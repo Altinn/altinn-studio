@@ -139,6 +139,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
 
         /// <summary>
+        /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
+        /// </summary>
+        /// <param name="repo">The repository</param>
+        /// <param name="serviceResource">The ServiceResource that is to be converted into a ListviewServiceResource</param>
+        /// <returns>Returns the ListviewServiceResource based on the information from input and additional fields</returns>
+        Task<ListviewServiceResource> MapServiceResourceToListViewResource(string repo, ServiceResource serviceResource);
+
+        /// <summary>
         /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

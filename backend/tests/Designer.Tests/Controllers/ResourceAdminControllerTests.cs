@@ -116,6 +116,10 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/resourcelist";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
+            _repositoryMock
+                .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new List<ServiceResource>());
+
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
@@ -239,7 +243,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/id:ttd_test_resource";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/ttd-resources/ttd_test_resource";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -254,7 +258,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_Passing_Repository_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/repository:ttd-resources";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/ttd-resources";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 

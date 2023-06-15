@@ -8,6 +8,12 @@ namespace Altinn.Studio.Designer.Helpers
 {
     public static class ResourceAdminHelper
     {
+        public static ListviewServiceResource MapServiceResourceToListView(ServiceResource resource)
+        {
+            ListviewServiceResource simplifiedResource = new ListviewServiceResource { Identifier = resource.Identifier, Title = resource.Title };
+            return simplifiedResource;
+        }
+
         public static string ValidateServiceResource(ServiceResource resourceToValidate, bool strictMode = false)
         {
             List<string> missingResourceAttributes = new List<string>();

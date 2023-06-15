@@ -185,5 +185,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string repo, ServiceResource serviceResource)
+        {
+            return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
+        }
     }
 }

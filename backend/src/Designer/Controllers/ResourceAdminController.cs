@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -42,10 +43,20 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/repository/resourcelist")]
-        public ActionResult<List<ServiceResource>> GetRepositoryResourceList(string org)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
         {
-            List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, string.Format("{0}-resources", org));
-            return repositoryResourceList != null && repositoryResourceList.Count > 0 ? repositoryResourceList : StatusCode(204);
+            string repository = string.Format("{0}-resources", org);
+            List <ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+            List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
+
+            foreach (ServiceResource resource in repositoryResourceList)
+            {
+                ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(string.Format("{0}-resources", org), resource);
+                listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
+                listviewServiceResources.Add(listviewResource);
+            }
+
+            return listviewServiceResources != null && listviewServiceResources.Count > 0 ? listviewServiceResources : StatusCode(204);
         }
 
         [HttpGet]
