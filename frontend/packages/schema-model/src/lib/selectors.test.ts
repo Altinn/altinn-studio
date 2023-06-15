@@ -59,7 +59,7 @@ describe('getNodeByPointer', () => {
   });
 });
 
-test('getRefferedNodes', () => {
+test('getReferredNodes', () => {
   const uiSchemaNodes = buildUiSchema(dataMock);
   const referedNodes = getReferredNodes(uiSchemaNodes, '#/$defs/RA-0678_M');
   expect(referedNodes).toHaveLength(1);
