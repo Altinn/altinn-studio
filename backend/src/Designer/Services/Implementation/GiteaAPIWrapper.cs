@@ -201,6 +201,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repos;
         }
 
+        /// <inheritdoc/>
         public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string repo, ServiceResource serviceResource)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
