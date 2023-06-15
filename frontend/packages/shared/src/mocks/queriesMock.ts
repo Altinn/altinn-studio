@@ -39,6 +39,7 @@ export const queriesMock: ServicesContextProps = {
   getWidgetSettings: jest.fn(),
   logout: jest.fn(),
   pushRepoChanges: jest.fn(),
+  resetRepoChanges: jest.fn(),
   saveFormLayout: jest.fn(),
   saveFormLayoutSettings: jest.fn(),
   saveRuleConfig: jest.fn(),
