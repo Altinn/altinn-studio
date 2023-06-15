@@ -5,8 +5,6 @@ import { Download } from '@navikt/ds-icons';
 import { ButtonContainer } from 'app-shared/primitives';
 import { DownloadRepoModal } from '../administration/components/DownloadRepoModal';
 import { ResetRepoModal } from '../administration/components/ResetRepoModal';
-import { RepoStatusActions } from '../../sharedResources/repoStatus/repoStatusSlice';
-import { useAppDispatch } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 
 interface MergeConflictWarningProps {
@@ -15,13 +13,11 @@ interface MergeConflictWarningProps {
 }
 
 export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) => {
-  const dispatch = useAppDispatch();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
   const { t } = useTranslation();
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
   const toggleResetModal = () => setResetRepoModalOpen(!resetRepoModalOpen);
-  const handleResetRepoClick = () => dispatch(RepoStatusActions.resetLocalRepo({ org, repo: app }));
   const downloadModalAnchor = useRef<HTMLButtonElement>();
   const resetRepoModalAnchor = useRef<HTMLButtonElement>();
   return (
@@ -51,7 +47,6 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
         </Button>
         <ResetRepoModal
           anchorRef={resetRepoModalAnchor}
-          handleClickResetRepo={handleResetRepoClick}
           onClose={toggleResetModal}
           open={resetRepoModalOpen}
           repositoryName={app}
