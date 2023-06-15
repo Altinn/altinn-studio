@@ -20,7 +20,7 @@ export const AboutResourcePage = () => {
   return (
     <div className={classes.pageWrapper}>
       <h1 className={classes.pageHeader}>Om ressursen</h1>
-      <p className={classes.subHeader}>Hva slags ressurs ønsker du å registrere</p>
+      <h2 className={classes.subHeader}>Hva slags ressurs ønsker du å registrere</h2>
       <p className={classes.text}>Velg ett alternativ fra listen under</p>
       <div className={classes.inputWrapper}>
         <Select
@@ -31,12 +31,12 @@ export const AboutResourcePage = () => {
           hideLabel
         />
       </div>
-      <p className={classes.subHeader}>Navn på tjenesten</p>
+      <h2 className={classes.subHeader}>Navn på tjenesten</h2>
       <p className={classes.text}>
         Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på
         at navnet er forståelig og gjenkjennbart. Om mulig, bruk nøkkelord som man kan søke etter.
       </p>
-      <p className={classes.subHeader}>{'Bokmål (standard)'}</p>
+      <p className={classes.subTitle}>{'Bokmål (standard)'}</p>
       <div className={classes.inputWrapper}>
         <TextField
           value={title}
@@ -44,12 +44,12 @@ export const AboutResourcePage = () => {
           aria-label='Navn på tjenesten'
         />
       </div>
-      <p className={classes.subHeader}>Beskrivelse</p>
+      <h2 className={classes.subHeader}>Beskrivelse</h2>
       <p className={classes.text}>
         Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av offentlige
         nettløsninger.
       </p>
-      <p className={classes.subHeader}>{'Bokmål (standard)'}</p>
+      <p className={classes.subTitle}>{'Bokmål (standard)'}</p>
       <div className={classes.inputWrapper}>
         <TextArea
           value={description}
@@ -60,7 +60,7 @@ export const AboutResourcePage = () => {
           aria-label='Beskrivelse'
         />
       </div>
-      <p className={classes.subHeader}>Hjemmeside</p>
+      <h2 className={classes.subHeader}>Hjemmeside</h2>
       <p className={classes.text}>Link til nettsiden der tjenesten kan startes av brukeren.</p>
       <div className={classes.inputWrapper}>
         <TextField
@@ -69,16 +69,16 @@ export const AboutResourcePage = () => {
           aria-label='Hjemmeside'
         />
       </div>
-      <p className={classes.subHeader}>Vis i offentlige kataloger</p>
+      <h2 className={classes.subHeader}>Vis i offentlige kataloger</h2>
       <p className={classes.text}>
         Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på norge.no
         og data.norge.no.
       </p>
       <div className={classes.inputWrapper}>
         <Switch isChecked={showInPublic} onToggle={(b: boolean) => setShowInPublic(b)} />
-        <p className={classes.toggleText}>{`Ressursen ${
-          showInPublic ? 'skal' : 'skal ikke'
-        } vises i offentlige kataloger.`}</p>
+        <p
+          className={showInPublic ? classes.toggleTextActive : classes.toggleTextInActive}
+        >{`Ressursen ${showInPublic ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
       </div>
       <div className={classes.buttonWrapper}>
         <Button onClick={() => {}}>Lagre ressurs</Button>
