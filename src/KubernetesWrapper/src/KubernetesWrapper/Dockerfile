@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0.302-alpine3.17 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.304-alpine3.17 AS build
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -10,7 +10,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0.5-alpine3.17 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:7.0.7-alpine3.17 AS final
 WORKDIR /app
 COPY --from=build /app/out .
 ENTRYPOINT ["dotnet", "KubernetesWrapper.dll"]
