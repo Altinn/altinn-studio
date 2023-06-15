@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class DeleteLanguage : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, DeleteLanguage>
+    public class DeleteLanguageTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, DeleteLanguageTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public DeleteLanguage(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public DeleteLanguageTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 

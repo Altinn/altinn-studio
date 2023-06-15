@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetServiceName : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetServiceName>
+    public class GetServiceNameTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetServiceNameTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public GetServiceName(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public GetServiceNameTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 
