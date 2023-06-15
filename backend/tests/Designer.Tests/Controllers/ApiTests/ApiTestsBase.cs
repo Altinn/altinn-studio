@@ -2,12 +2,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SharedResources.Tests;
 using Xunit;
 using static Designer.Tests.Utils.TestSetupUtils;
@@ -68,6 +71,10 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
         var client = Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
+            builder.ConfigureServices(services =>
+            {
+                services.AddSingleton<IHostLifetime, NoopHostLifetime>();
+            });
 
             builder.ConfigureTestServices(ConfigureTestServices);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
@@ -82,5 +89,18 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     {
         string projectDir = Directory.GetCurrentDirectory();
         return Path.Combine(projectDir, "appsettings.json");
+    }
+
+    public class NoopHostLifetime : IHostLifetime
+    {
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task WaitForStartAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
