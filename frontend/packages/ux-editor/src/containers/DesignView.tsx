@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
@@ -6,7 +6,10 @@ import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
 import { useFormLayoutsSelector } from '../hooks';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import {
+  selectedLayoutNameSelector,
+  selectedLayoutSetSelector,
+} from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
@@ -21,6 +24,7 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
+import { ErrorMessage } from '@digdir/design-system-react';
 
 export interface DesignViewProps {
   className?: string;
@@ -28,14 +32,21 @@ export interface DesignViewProps {
 
 export const DesignView = ({ className }: DesignViewProps) => {
   const { org, app } = useParams();
+  const { t } = useTranslation();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [nestedGroupCount, setNestedGroupCount] = useState(0);
+  const [nestedGroupIds, setNestedGroupIds] = useState<string[]>([]);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
-  const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
   const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);
-
-  const { t } = useTranslation();
+  const { mutate: updateFormLayout } = useFormLayoutMutation(
+    org,
+    app,
+    layoutName,
+    selectedLayoutSet
+  );
 
   const layout = layouts?.[layoutName];
 
@@ -45,10 +56,27 @@ export const DesignView = ({ className }: DesignViewProps) => {
 
   const addItem = (item: NewDndItem, { parentId, index }: ItemPosition) => {
     const newId = generateComponentId(item.type, layouts);
+    if (nestedGroupCount > 1 && item.type === 'Group' && nestedGroupIds.includes(parentId)) {
+      const error = t('schema_editor.error_message');
+      setErrorMessage(error);
+      return;
+    } else {
+      setNestedGroupCount((prevCount) => prevCount + 1);
+    }
+
     addItemToLayout({ componentType: item.type, newId, parentId, index });
+    if (item.type === 'Group') {
+      setNestedGroupIds((prevIds) => [...prevIds, newId]);
+    }
   };
-  const moveItem = (item: ExistingDndItem, { parentId, index }: ItemPosition) =>
+
+  /*     const component = components[item.id];
+    if (component?.type === 'Group' && nestedGroupIds.includes(item.id)) {
+      setNestedGroupCount((prevCount) => prevCount - 1);
+    } */
+  const moveItem = (item: ExistingDndItem, { parentId, index }: ItemPosition) => {
     updateFormLayout(moveLayoutItem(layout, item.id, parentId, index));
+  };
 
   const handleDrop: HandleDrop = (item, position) =>
     item.isNew === true ? addItem(item, position) : moveItem(item, position);
@@ -57,7 +85,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
     id: string,
     isBaseContainer: boolean,
     disabledDrop: boolean = false,
-    dragHandleRef?: ConnectDragSource,
+    dragHandleRef?: ConnectDragSource
   ) => {
     if (!id) return null;
 
@@ -65,7 +93,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
 
     return (
       <FormContainer
-        container={formId === id ? form as IFormContainer : containers[id]}
+        container={formId === id ? (form as IFormContainer) : containers[id]}
         dragHandleRef={dragHandleRef}
         handleDiscard={handleDiscard}
         handleEdit={handleEdit}
@@ -74,37 +102,45 @@ export const DesignView = ({ className }: DesignViewProps) => {
         isEditMode={formId === id}
       >
         <DroppableList containerId={id} handleDrop={handleDrop} disabledDrop={disabledDrop}>
-          {items?.length ? items.map((itemId: string, itemIndex: number) => (
-            <DragDropListItem
-              disabledDrop={disabledDrop}
-              key={itemId}
-              item={{ isNew: false, id: itemId, position: { parentId: id, index: itemIndex } }}
-              onDrop={handleDrop}
-              renderItem={(itemDragHandleRef, isDragging) => {
-                const component = components[itemId];
-                if (component) {
+          {items?.length ? (
+            items.map((itemId: string, itemIndex: number) => (
+              <DragDropListItem
+                disabledDrop={disabledDrop}
+                key={itemId}
+                item={{ isNew: false, id: itemId, position: { parentId: id, index: itemIndex } }}
+                onDrop={handleDrop}
+                renderItem={(itemDragHandleRef, isDragging) => {
+                  const component = components[itemId];
+                  if (component) {
+                    return (
+                      <FormComponent
+                        id={itemId}
+                        isEditMode={formId === itemId}
+                        component={
+                          formId === itemId ? (form as IFormComponent) : components[itemId]
+                        }
+                        handleEdit={handleEdit}
+                        handleSave={handleComponentSave}
+                        handleDiscard={handleDiscard}
+                        dragHandleRef={itemDragHandleRef}
+                      />
+                    );
+                  }
                   return (
-                    <FormComponent
-                      id={itemId}
-                      isEditMode={formId === itemId}
-                      component={formId === itemId ? form as IFormComponent : components[itemId]}
-                      handleEdit={handleEdit}
-                      handleSave={handleComponentSave}
-                      handleDiscard={handleDiscard}
-                      dragHandleRef={itemDragHandleRef}
-                    />
+                    containers[itemId] &&
+                    renderContainer(itemId, false, disabledDrop || isDragging, itemDragHandleRef)
                   );
+                }}
+                type={
+                  components[itemId]
+                    ? DraggableEditorItemType.Component
+                    : DraggableEditorItemType.Container
                 }
-                return containers[itemId] && renderContainer(
-                  itemId,
-                  false,
-                  disabledDrop || isDragging,
-                  itemDragHandleRef
-                );
-              }}
-              type={components[itemId] ? DraggableEditorItemType.Component : DraggableEditorItemType.Container}
-            />
-          )) : <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>}
+              />
+            ))
+          ) : (
+            <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>
+          )}
         </DroppableList>
       </FormContainer>
     );
@@ -115,10 +151,11 @@ export const DesignView = ({ className }: DesignViewProps) => {
       className={className}
       onClick={(event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        handleEdit(null)
+        handleEdit(null);
       }}
     >
       <h1 className={classes.pageHeader}>{layoutName}</h1>
+      {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       {renderContainer(BASE_CONTAINER_ID, true)}
     </div>
   );
