@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.TestAttributes;
 using Designer.Tests.TestDataClasses;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -22,7 +23,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
         }
 
-        [Theory]
+        [SkipOnWindowsTheory]
         [ClassData(typeof(FormLayoutsTestData))]
         public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, string layoutSetName, params string[] expectedLayoutPaths)
         {

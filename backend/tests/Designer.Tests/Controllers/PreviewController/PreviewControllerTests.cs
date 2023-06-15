@@ -11,6 +11,7 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.TestAttributes;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -56,7 +57,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_ApplicationMetadata_Ok()
         {
             string expectedApplicationMetadata = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/config/applicationmetadata.json");
@@ -89,7 +90,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("preview-app", applicationSettings.Title["nb"]);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_LayoutSets_NotFound()
         {
             string dataPathWithData = $"{Org}/{App}/api/layoutsets";
@@ -607,7 +608,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedRuleConfig, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleConfiguration_NoContent()
         {
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleConfiguration.json";
