@@ -9,7 +9,7 @@ import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-import { AppPreviewSubMenuProps } from "../AppPreviewSubMenu";
+import { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 
 export interface AppPreviewMenuItem {
   key: string;

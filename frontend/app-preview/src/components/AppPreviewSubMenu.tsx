@@ -1,7 +1,7 @@
 import React from 'react';
 import { SubPreviewMenuLeftContent, SubPreviewMenuRightContent } from './AppBarConfig/AppPreviewBarConfig';
 import classes from './AppPreviewSubMenu.module.css';
-import { _useIsProdHack } from "app-shared/utils/_useIsProdHack";
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
 export interface AppPreviewSubMenuProps {
   viewSize: 'desktop' | 'mobile';
