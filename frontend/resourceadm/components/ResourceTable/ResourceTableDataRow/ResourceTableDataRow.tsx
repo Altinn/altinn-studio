@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './ResourceTableDataRow.module.css';
 import { ResourceTableDataChip } from './ResourceTableDataChip';
 import { Button } from '@digdir/design-system-react';
-import { PencilWritingIcon, MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
+import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { ResourceType } from 'resourceadm/types/global';
@@ -39,7 +39,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <ResourceTableDataChip hasPolicy={resource.hasPolicy} />
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
+      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
         <Button
           variant='quiet'
           color='secondary'
@@ -51,14 +51,6 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
         >
           Rediger
         </Button>
-      </td>
-      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
-        <Button
-          variant='quiet'
-          color='secondary'
-          icon={<MenuElipsisVerticalIcon title='Se valg for ressursen' />}
-          onClick={() => {}}
-        />
       </td>
     </tr>
   );

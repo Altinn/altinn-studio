@@ -2,17 +2,32 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ContentsTests : RepositoryControllerTestsBase<ContentsTests>
+    public class ContentsTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, ContentsTests>
     {
+        private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
+        private static string VersionPrefix => "/designer/api/repos";
         public ContentsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
         {
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.Configure<ServiceRepositorySettings>(c =>
+                c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton(_ => _repositoryMock.Object);
         }
 
         [Fact]
@@ -21,7 +36,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/ttd/apps-test/contents";
 
-            RepositoryMock
+            _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new List<FileSystemObject>
                 {
@@ -49,7 +64,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/acn-sbuad/apps-test/contents?path=App";
 
-            RepositoryMock
+            _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns((List<FileSystemObject>)null);
 

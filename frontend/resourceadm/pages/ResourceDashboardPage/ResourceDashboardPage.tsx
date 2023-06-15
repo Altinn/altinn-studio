@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner } from '@digdir/design-system-react';
@@ -11,17 +11,33 @@ import { get } from 'app-shared/utils/networking';
 import { getResourcesUrlBySelectedContext } from 'resourceadm/utils/backendUrlUtils';
 import { mapResourceListBackendResultToResourceList } from 'resourceadm/utils/mapperUtils';
 import { Footer } from 'resourceadm/components/Footer';
+import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 
 /**
  * Displays the page for the resource dashboard
  */
 export const ResourceDashboardPage = () => {
   const { selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
 
   const [searchValue, setSearchValue] = useState('');
   const [resourceList, setResourceList] = useState<ResourceType[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [hasMergeConflict, setHasMergeConflict] = useState(false);
+
+  // Gets the repo status and the function to refetch it
+  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+
+  /**
+   * Updates the value for if there is a merge conflict when the repostatus is not undefined
+   */
+  useEffect(() => {
+    if (repoStatus) {
+      setHasMergeConflict(repoStatus.hasMergeConflict);
+    }
+  }, [repoStatus]);
 
   /**
    * Get the resources once the page loads
@@ -111,6 +127,14 @@ export const ResourceDashboardPage = () => {
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
         </div>
         <div className={classes.componentWrapper}>{displayContent()}</div>
+        {hasMergeConflict && (
+          <MergeConflictModal
+            isOpen={hasMergeConflict}
+            handleSolveMerge={refetch}
+            org={selectedContext}
+            repo={repo}
+          />
+        )}
       </div>
       <Footer />
     </>

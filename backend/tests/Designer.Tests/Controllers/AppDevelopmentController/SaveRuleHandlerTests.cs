@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -14,8 +15,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveRuleHandlerTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class SaveRuleHandlerTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 
         public SaveRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
@@ -39,7 +41,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task SaveRuleHandler_ShouldCreateRuleHandlerFile_AndReturnNoContent(string org, string app, string developer, string layoutSetName, string expectedRuleHandlerPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string content = SharedResourcesHelper.LoadTestDataAsString(expectedRuleHandlerPath);
 

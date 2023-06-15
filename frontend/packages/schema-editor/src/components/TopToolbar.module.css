@@ -20,7 +20,7 @@
 }
 
 .spinnerWrapper {
-  width: 200px;
+  flex: 1;
 }
 
 @keyframes fadeOut {
@@ -40,4 +40,15 @@
 
 .statusPopover.success {
   animation: fadeOut 1.5s;
+}
+
+.toggleButtonGroupWrapper {
+  flex: 0.5;
+}
+
+.wrapper {
+  display: flex;
+  flex: 3;
+  gap: 1rem;
+  justify-content: flex-end;
 }

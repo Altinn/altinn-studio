@@ -1,0 +1,22 @@
+.modalHeader {
+  margin-bottom: 20px;
+}
+
+.bodyText {
+  margin-top: 10px;
+  line-height: 27px;
+}
+
+.textFieldWrapper {
+  margin-block: 20px;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+h3, p {
+  margin: 0;
+}

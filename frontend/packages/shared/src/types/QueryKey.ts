@@ -16,6 +16,7 @@ export enum QueryKey {
   Organizations = 'Organizations',
   RepoMetaData = 'RepoMetaData',
   RepoPullData = 'RepoPullData',
+  RepoReset = 'RepoReset',
   RepoStatus = 'RepoStatus',
   RuleConfig = 'RuleConfig',
   RuleHandler = 'RuleHandler',

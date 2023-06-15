@@ -5,15 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.RepositorySettingsController
 {
-    public class PutTests : RepositorySettingsControllerTestsBase<GetTests>
+    public class PutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositorySettingsController, GetTests>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/repository-settings";
         public PutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositorySettingsController> factory) : base(factory)
         {
         }
@@ -23,7 +24,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
         public async Task Put_ValidRepositorySettings_ShouldUpdate(string org, string repo, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName("-datamodels");
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
+            await CopyRepositoryForTest(org, repo, developer, targetRepository);
 
             string requestUrl = VersionPrefix(org, targetRepository);
             const string requestBody = @"{""repoType"": ""Datamodels"", ""datamodelling.preference"": ""JsonSchema""}";

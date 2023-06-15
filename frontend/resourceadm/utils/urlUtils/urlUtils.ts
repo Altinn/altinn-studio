@@ -1,6 +1,7 @@
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { RepositoryType } from 'app-shared/types/global';
 import { getRepositoryType } from 'app-shared/utils/repository';
+import { NavigationBarPageType } from 'resourceadm/types/global';
 
 export const applicationAboutPage = ({ org, repo }: IGetRepoUrl) => {
   return `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${org}/${repo}/`;
@@ -51,7 +52,7 @@ export const getResourcePageURL = (
   organisation: string,
   repo: string,
   resourceId: string,
-  resourcePage: 'about' | 'security' | 'policy'
+  resourcePage: NavigationBarPageType
 ): string => {
   return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`
 }

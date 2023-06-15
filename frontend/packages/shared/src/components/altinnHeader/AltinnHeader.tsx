@@ -4,19 +4,19 @@ import classes from './AltinnHeader.module.css';
 import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
-import { AltinnHeaderProfile } from '../AltinnHeaderProfile/AltinnHeaderProfile';
-import { IRepository } from 'app-shared/types/global';
+import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
 import { User } from 'app-shared/types/User';
 import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { AltinnHeaderMenuItem } from '../altinnHeaderMenu/AltinnHeaderMenu';
+import { Repository } from 'app-shared/types/Repository';
 
 export interface AltinnHeaderProps {
   menu: AltinnHeaderMenuItem[];
   activeMenuSelection?: string;
   showSubMenu: boolean;
   subMenuContent?: JSX.Element;
-  repository: IRepository;
+  repository: Repository;
   user: User;
   org: string;
   app: string;
@@ -47,7 +47,7 @@ export const AltinnHeader = ({
           <span className={classes.appName}>{app || ''}</span>
         </div>
         <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
-        <div className={classes.rightContent} data-testid='altinn-header-buttons'>
+        <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
               {buttonActions.map((action) => (

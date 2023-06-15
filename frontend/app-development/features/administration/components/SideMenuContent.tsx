@@ -4,10 +4,8 @@ import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit } from '../../../types/global';
 import { RepositoryType } from 'app-shared/types/global';
 import { ResetRepoModal } from './ResetRepoModal';
-import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
-import { useAppDispatch } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRepoStatusQuery } from '../../../hooks/queries';
@@ -20,7 +18,6 @@ interface ISideMenuContent {
 }
 
 export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
-  const dispatch = useAppDispatch();
   const { org, app } = useParams();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
@@ -28,7 +25,6 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
   const onCloseModal = () => setResetRepoModalOpen(false);
   const onClickResetRepo = () => setResetRepoModalOpen(true);
-  const handleResetRepoClick = () => dispatch(RepoStatusActions.resetLocalRepo({ org, repo: app }));
 
   useEffect(() => {
     if (
@@ -86,7 +82,6 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       <div ref={resetRepoModalAnchor} />
       <ResetRepoModal
         anchorRef={resetRepoModalAnchor}
-        handleClickResetRepo={handleResetRepoClick}
         onClose={onCloseModal}
         open={resetRepoModalOpen}
         repositoryName={props.service.name}

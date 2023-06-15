@@ -1,8 +1,10 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,11 +13,13 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ResetLocalRepositoryTests : RepositoryControllerTestsBase<ResetLocalRepositoryTests>
+    public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, ResetLocalRepositoryTests>
     {
+        private static string VersionPrefix => "/designer/api/repos";
         public ResetLocalRepositoryTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
         {
         }
+
 
         // Do not use mocked repository
         protected override void ConfigureTestServices(IServiceCollection services)
@@ -31,8 +35,8 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task ResetRepo_Returns200(string org, string repo, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
-            CreatedSecondaryFolderPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
+            await CopyRepositoryForTest(org, repo, developer, targetRepository);
+            await CopyRemoteRepositoryForTest(org, repo, targetRepository);
 
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{targetRepository}/reset";

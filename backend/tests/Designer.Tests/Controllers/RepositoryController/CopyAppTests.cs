@@ -2,17 +2,32 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CopyAppTests : RepositoryControllerTestsBase<CopyAppTests>
+    public class CopyAppTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, CopyAppTests>
     {
+        private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
+        private static string VersionPrefix => "/designer/api/repos";
         public CopyAppTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
         {
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.Configure<ServiceRepositorySettings>(c =>
+                c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton(_ => _repositoryMock.Object);
         }
 
         [Fact]
@@ -21,7 +36,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app";
 
-            RepositoryMock
+            _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://www.vg.no" });
 
@@ -31,7 +46,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
-            RepositoryMock.VerifyAll();
+            _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
         }
 
@@ -56,11 +71,11 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app";
 
-            RepositoryMock
+            _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
 
-            RepositoryMock
+            _repositoryMock
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
@@ -69,7 +84,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
-            RepositoryMock.VerifyAll();
+            _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.GatewayTimeout, res.StatusCode);
         }
 
@@ -79,11 +94,11 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app";
 
-            RepositoryMock
+            _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                .Throws(new IOException());
 
-            RepositoryMock
+            _repositoryMock
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
@@ -92,7 +107,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
-            RepositoryMock.VerifyAll();
+            _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.InternalServerError, res.StatusCode);
         }
 

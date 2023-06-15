@@ -39,7 +39,7 @@ export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.j
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
 export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
 export const repositoryPath = (org, app) => `/repos/${org}/${app}`;
-export const publiserPath = (org, app) => `/editor/${org}/${app}/deploy`;
+export const publishPath = (org, app) => `/editor/${org}/${app}/deploy`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
 export const repositoryBasePath = () => '/repos';
 export const userLogoutPath = () => '/repos/user/logout';
@@ -92,7 +92,7 @@ export const repoLogPath = (org, app) => `/designer/api/repos/repo/${org}/${app}
 export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
-export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
+export const repoResetPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
 export const repoSearchPath = () => '/designer/api/repos/search'; // Get
 export const repoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/status`; // Get
 export const reposListPath = (org) => `/designer/api/repos/org/${org}`; // Get

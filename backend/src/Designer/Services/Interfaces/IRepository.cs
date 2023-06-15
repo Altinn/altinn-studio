@@ -140,12 +140,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         List<ServiceResource> GetServiceResources(string org, string repository, string path = "");
 
         /// <summary>
+        /// Lists the simplified model of ServiceResources
+        /// </summary>
+        List<ListviewServiceResource> GetListViewServiceResources(string org, string repository, string path = "");
+
+        /// <summary>
         /// Gets a specific ServiceResource based on the identifier
         /// </summary>
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
         /// <param name="repository">The repository where the resource resides</param>
         /// <param name="identifier">The identifier of the resource</param>
-        /// <returns></returns>
+        /// <returns>Returns the ServiceResource object with the corresponding identifier</returns>
         ServiceResource GetServiceResourceById(string org, string repository, string identifier);
 
         /// <summary>
@@ -155,7 +160,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The repository where the resource resides</param>
         /// <param name="id">The id of the resource that should be updated</param>
         /// <param name="strictMode">A bool indicating whether or not the validation will check extra attributes</param>
-        /// <returns></returns>
+        /// <returns>A string with the validationresult</returns>
         ActionResult<string> ValidateServiceResource(string org, string repository, string id, bool strictMode = false);
 
         /// <summary>
@@ -174,6 +179,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="newResource">The new resource that is to be added to the repository</param>
         /// <returns></returns>
         ActionResult AddServiceResource(string org, ServiceResource newResource);
+
+        /// <summary>
+        /// Checks a resource if it has a policy by checking if a policyfile exists in the same folder as the resourcefile.
+        /// </summary>
+        /// <param name="org">The organisation which owns the repository</param>
+        /// <param name="repository">The repository</param>
+        /// <param name="resource">The resource which is to be checked for policy</param>
+        /// <returns>Returns true if resourcefile has a policyfile along with it. If not, returns false</returns>
+        bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
 
         /// <summary>
         /// Returns the path to the app folder

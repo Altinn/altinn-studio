@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
 import classes from './ShareChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,9 @@ export interface IShareChangesComponentProps {
 export const ShareChangesButton = (props: IShareChangesComponentProps) => {
   const { t } = useTranslation();
 
-  const shareChangesHandler = (event: any) => props.shareChanges(event.currentTarget);
+  const shareChangesHandler = (event: any) => {
+    props.shareChanges(event.currentTarget);
+  };
 
   const renderCorrectText = () => {
     if (props.hasMergeConflict) {
@@ -33,8 +35,8 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
       icon={props.hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
       id='share_changes_button'
       onClick={shareChangesHandler}
-      size={ButtonSize.Small}
-      variant={ButtonVariant.Quiet}
+      size='small'
+      variant='quiet'
     >
       {renderCorrectText()}
     </Button>

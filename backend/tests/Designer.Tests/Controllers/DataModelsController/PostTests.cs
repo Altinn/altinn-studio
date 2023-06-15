@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.ViewModels.Request;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -12,8 +13,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PostTests : DatamodelsControllerTestsBase<PostTests>
+public class PostTests : DisagnerEndpointsTestsBase<DatamodelsController, PostTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public PostTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
@@ -26,7 +28,7 @@ public class PostTests : DatamodelsControllerTestsBase<PostTests>
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        await CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         string url = $"{VersionPrefix(org, targetRepository)}/new";
 
         var createViewModel = new CreateModelViewModel()

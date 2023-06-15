@@ -1,5 +1,5 @@
-import { del, post, put } from 'app-shared/utils/networking';
-import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetPath, layoutSetsPath, layoutSettingsPath, releasesPath, repoCommitPath, repoPushPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath } from 'app-shared/api/paths';
+import { del, get, post, put } from 'app-shared/utils/networking';
+import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
@@ -33,6 +33,7 @@ export const deleteFormLayout = (org: string, app: string, layoutName: string, l
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const logout = () => post(userLogoutPath());
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
+export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDatamodel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(modelPath, payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: ExternalFormLayout) => post<void, ExternalFormLayout>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);

@@ -51,6 +51,7 @@ export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
     order: [layout1NameMock, layout2NameMock],
   },
+  receiptLayoutName: 'Kvittering'
 };
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];

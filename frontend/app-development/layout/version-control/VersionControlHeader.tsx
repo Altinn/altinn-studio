@@ -6,9 +6,10 @@ import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoMetadataQuery, useRepoPullQuery, useRepoStatusQuery } from '../../hooks/queries';
+import { useRepoPullQuery, useRepoStatusQuery } from '../../hooks/queries';
 import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface IVersionControlHeaderProps {
   hasPushRight?: boolean;

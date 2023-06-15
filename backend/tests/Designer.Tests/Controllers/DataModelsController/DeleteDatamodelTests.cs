@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -14,8 +15,9 @@ using static Designer.Tests.Controllers.DataModelsController.Utils.MockUtils;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class DeleteDatamodelTests : DatamodelsControllerTestsBase<DeleteDatamodelTests>
+public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, DeleteDatamodelTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;
 
     public DeleteDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)

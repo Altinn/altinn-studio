@@ -13,6 +13,7 @@ import {
   useRepoPullQuery,
   useRepoStatusQuery,
 } from 'resourceadm/hooks/queries';
+import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 
 interface IVersionControlHeaderProps {
   hasPushRight?: boolean;
@@ -62,7 +63,7 @@ export const VersionControlButtons = (props: IVersionControlHeaderProps) => {
   }, [hasPushRight, currentRepo]);
   useEffect(() => {
     if (repoStatus) {
-      setHasMergeConflict(repoStatus.repositoryStatus === 'MergeConflict');
+      setHasMergeConflict(repoStatus.hasMergeConflict);
       setHasChangesInMaster(repoStatus.behindBy !== 0);
       setHasChangesInLocalRepo(hasLocalChanges(repoStatus));
     }
@@ -198,6 +199,7 @@ export const VersionControlButtons = (props: IVersionControlHeaderProps) => {
     });
     await repoCommitMutation.mutateAsync({ commitMessage });
     const { data: result } = await fetchPullData();
+    console.log('result', result);
     if (result.repositoryStatus === 'Ok') {
       setModalState({
         ...initialModalState,
@@ -207,21 +209,21 @@ export const VersionControlButtons = (props: IVersionControlHeaderProps) => {
         shouldShowDoneIcon: true,
         btnMethod: pushChanges,
       });
-    } else if (result.repositoryStatus === 'MergeConflict') {
+    } else if (
+      result.repositoryStatus === 'MergeConflict' ||
+      result.repositoryStatus === 'CheckoutConflict'
+    ) {
       // if pull resulted in a mergeconflict, show mergeconflict message
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.merge_conflict_occured'),
-        descriptionText: [t('sync_header.merge_conflict_occured_submessage')],
-        btnText: t('sync_header.merge_conflict_btn'),
-        btnMethod: forceRepoStatusCheck,
-      });
+      setModalState(initialModalState);
+      handleSyncModalClose();
       setHasMergeConflict(true);
     }
   };
 
-  const forceRepoStatusCheck = () =>
+  const forceRepoStatusCheck = () => {
     window.postMessage('forceRepoStatusCheck', window.location.href);
+  };
+
   return (
     <div className={classes.headerStyling} data-testid='version-control-header'>
       <FetchChangesButton
@@ -236,6 +238,12 @@ export const VersionControlButtons = (props: IVersionControlHeaderProps) => {
         shareChanges={shareChanges}
       />
       <SyncModal anchorEl={syncModalAnchorEl} handleClose={handleSyncModalClose} {...modalState} />
+      <MergeConflictModal
+        isOpen={hasMergeConflict}
+        handleSolveMerge={refetchRepoStatus}
+        org={selectedContext}
+        repo={repo}
+      />
     </div>
   );
 };

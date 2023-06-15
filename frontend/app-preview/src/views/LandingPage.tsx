@@ -5,10 +5,9 @@ import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
-import { IRepository } from 'app-shared/types/global';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import {
   getTopBarAppPreviewMenu,
@@ -19,7 +18,6 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
-  repository?: IRepository;
 }
 
 export type ViewSize = 'desktop' | 'mobile';
@@ -32,7 +30,7 @@ const getLocalSelectedViewSize = (): ViewSize => {
   return 'desktop';
 };
 
-export const LandingPage = ({ variant = 'preview', repository }: LandingPageProps) => {
+export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
@@ -42,6 +40,7 @@ export const LandingPage = ({ variant = 'preview', repository }: LandingPageProp
   );
   const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
   const { data: user } = useUserQuery();
+  const { data: repository } = useRepoMetadataQuery(org, app);
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>

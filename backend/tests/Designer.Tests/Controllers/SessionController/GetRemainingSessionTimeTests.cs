@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -13,8 +14,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class GetRemainingSessionTimeTests : SessionControllerTestsBase<GetRemainingSessionTimeTests>
+    public class GetRemainingSessionTimeTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.SessionController, GetRemainingSessionTimeTests>
     {
+        private static string VersionPrefix => "/designer/api/session";
         public GetRemainingSessionTimeTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.SessionController> factory) : base(factory)
         {
         }

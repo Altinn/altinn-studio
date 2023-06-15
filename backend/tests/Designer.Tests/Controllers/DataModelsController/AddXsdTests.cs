@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
@@ -10,8 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class AddXsdTests : DatamodelsControllerTestsBase<AddXsdTests>
+public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddXsdTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public AddXsdTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
@@ -22,7 +24,7 @@ public class AddXsdTests : DatamodelsControllerTestsBase<AddXsdTests>
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        await CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
         var fileStream = SharedResourcesHelper.LoadTestData(
@@ -47,7 +49,7 @@ public class AddXsdTests : DatamodelsControllerTestsBase<AddXsdTests>
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        await CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
         var fileStream = SharedResourcesHelper.LoadTestData(
@@ -72,7 +74,7 @@ public class AddXsdTests : DatamodelsControllerTestsBase<AddXsdTests>
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        await CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
         var fileStream = SharedResourcesHelper.LoadTestData(

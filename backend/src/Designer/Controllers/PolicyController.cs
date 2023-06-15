@@ -79,11 +79,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [HttpPost]
         [Route("")]
-        public ActionResult UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
+        public async Task<ActionResult> UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-            _repository.SavePolicy(org, app, null, xacmlPolicy);
+            await _repository.SavePolicy(org, app, null, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }
@@ -99,11 +99,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [HttpPost]
         [Route("{resourceid}")]
-        public ActionResult UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
+        public async Task<ActionResult> UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-            _repository.SavePolicy(org, app, resourceid, xacmlPolicy);
+            await _repository.SavePolicy(org, app, resourceid, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }
