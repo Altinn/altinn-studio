@@ -3,12 +3,13 @@ import { RepositoryType } from 'app-shared/types/global';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { editorPath } from 'app-shared/api/paths';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { Button, ButtonVariant, ToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
-import classes from '../../views/LandingPage.module.css';
+import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
+import { AppPreviewSubMenuProps } from "../AppPreviewSubMenu";
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -24,6 +25,11 @@ export interface TopBarAppPreviewMenuItem {
 export enum TopBarAppPreviewMenu {
   Preview = 'general.preview',
 }
+
+const handleChangeViewSizeClick = (selectedViewSize: string, setViewSize: (value: any) => void) => {
+  localStorage.setItem('viewSize', selectedViewSize);
+  setViewSize(selectedViewSize);
+};
 
 export const menu: TopBarAppPreviewMenuItem[] = [
   {
@@ -49,10 +55,32 @@ export const getTopBarAppPreviewMenu = (
     });
 };
 
-export const SubPreviewMenuContent = () => {
+export const SubPreviewMenuLeftContent = ({ viewSize, setViewSize }: AppPreviewSubMenuProps)=> {
   const { t } = useTranslation();
   return (
-    <div className={classes.leftSubHeaderButtons}>
+  <div className={classes.viewSizeButtons}>
+    <ToggleButtonGroup
+      items={[
+        {
+          label: t('preview.view_size_desktop'),
+          value: 'desktop',
+        },
+        {
+          label: t('preview.view_size_mobile'),
+          value: 'mobile',
+        },
+      ]}
+      onChange={(value) => handleChangeViewSizeClick(value, setViewSize)}
+      selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
+    />
+  </div>
+  );
+};
+
+export const SubPreviewMenuRightContent = () => {
+  const { t } = useTranslation();
+  return (
+    <div className={classes.rightSubHeaderButtons}>
       <Button data-testid='restartBtn' icon={<ArrowCirclepathIcon />} variant={ButtonVariant.Quiet}>
         {t('preview.subheader.restart.button')}
       </Button>
@@ -66,7 +94,7 @@ export const SubPreviewMenuContent = () => {
   );
 };
 
-export const appPreviewButtonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+export const appPreviewButtonActions = (org: string, app: string, selectedLayoutInEditor: string): AltinnButtonActionItem[] => {
   const action = [
     {
       title: 'top_menu.preview_back_to_editing',
@@ -74,7 +102,7 @@ export const appPreviewButtonActions = (org: string, app: string): AltinnButtonA
       menuKey: TopBarMenu.Preview,
       buttonVariant: ButtonVariant.Outline,
       headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => (window.location.href = editorPath(org, app)),
+      handleClick: () => (window.location.href = editorPath(org, app) + `/ui-editor?layout=${selectedLayoutInEditor}`),
     },
   ];
   return action;
