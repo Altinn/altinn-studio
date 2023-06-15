@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Select, TextField, TextArea, Button } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
-import { resourceTypeMockOptions } from 'resourceadm/data-mocks/resources';
+import {
+  resourceSectorsMockOptions,
+  resourceThematicAreaMockOptions,
+  resourceTypeMockOptions,
+} from 'resourceadm/data-mocks/resources';
 
 /**
  * Page that displays information about a resource
@@ -15,7 +19,18 @@ export const AboutResourcePage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [homepageURL, setHomepageURL] = useState('');
+  const [keywords, setKeywords] = useState('');
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [thematicArea, setThematicArea] = useState<string[]>([]);
+  const [delegationText, setDelegationText] = useState('');
   const [showInPublic, setShowInPublic] = useState(false);
+
+  const handleSaveResource = () => {
+    // TODO - Create the resource object
+    // TODO - Split the keyword string into string aray based on the commas
+    // Sectors might look like this: https://data.norge.no/reference-data/eu/data-themes
+    // Thematcic area might look like this: https://data.norge.no/reference-data/eu/eurovocs
+  };
 
   return (
     <div className={classes.pageWrapper}>
@@ -69,6 +84,49 @@ export const AboutResourcePage = () => {
           aria-label='Hjemmeside'
         />
       </div>
+
+      <h2 className={classes.subHeader}>Nøkkelord</h2>
+      <p className={classes.text}>
+        {'Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'}
+      </p>
+      <div className={classes.inputWrapper}>
+        <TextField
+          value={keywords}
+          onChange={(e) => setKeywords(e.target.value)}
+          aria-label='Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'
+        />
+      </div>
+      <h2 className={classes.subHeader}>Velg sektor for ressursen</h2>
+      {/* TODO - inform user that this is optional */}
+      <div className={classes.inputWrapper}>
+        <Select
+          multiple
+          options={resourceSectorsMockOptions}
+          onChange={(e) => setSectors(e)}
+          value={sectors}
+          label='Velg sektor for ressursen'
+          hideLabel
+        />
+      </div>
+      <h2 className={classes.subHeader}>Velg tematisk område</h2>
+      <div className={classes.inputWrapper}>
+        <Select
+          multiple
+          options={resourceThematicAreaMockOptions}
+          onChange={(e) => setThematicArea(e)}
+          value={thematicArea}
+          label='Velg tematisk område'
+          hideLabel
+        />
+      </div>
+      <h2 className={classes.subHeader}>Delegasjonstekst</h2>
+      <div className={classes.inputWrapper}>
+        <TextField
+          value={delegationText}
+          onChange={(e) => setDelegationText(e.target.value)}
+          aria-label='Delegasjonstekst'
+        />
+      </div>
       <h2 className={classes.subHeader}>Vis i offentlige kataloger</h2>
       <p className={classes.text}>
         Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på norge.no
@@ -81,7 +139,7 @@ export const AboutResourcePage = () => {
         >{`Ressursen ${showInPublic ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
       </div>
       <div className={classes.buttonWrapper}>
-        <Button onClick={() => {}}>Lagre ressurs</Button>
+        <Button onClick={handleSaveResource}>Lagre ressurs</Button>
       </div>
     </div>
   );
