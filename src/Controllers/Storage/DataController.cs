@@ -228,7 +228,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
         /// <param name="dataType">The data type identifier for the data being uploaded.</param>
         /// <param name="refs">An optional array of data element references.</param>
-        /// <param name="generatedFromIds">An optional array of generated from references containing data element ids.</param>
+        /// <param name="generatedFromTask">An optional id of the task the data element was generated from</param>
         /// <returns>The metadata of the new data element.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPost("data")]
@@ -242,7 +242,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromRoute] Guid instanceGuid,
             [FromQuery] string dataType,
             [FromQuery(Name = "refs")] List<Guid> refs = null,
-            [FromQuery(Name = "generatedFrom")] List<Guid> generatedFromIds = null)
+            [FromQuery(Name = "generatedFromTask")] string generatedFromTask = null)
         {
             if (instanceOwnerPartyId == 0 || string.IsNullOrEmpty(dataType) || Request.Body == null)
             {
@@ -268,7 +268,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Requested element type is not declared in application metadata");
             }
 
-            var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataType, refs, generatedFromIds, instance);
+            var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataType, refs, generatedFromTask, instance);
             Stream theStream = streamAndDataElement.Stream;
             DataElement newData = streamAndDataElement.DataElement;
 
@@ -305,7 +305,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
         /// <param name="dataGuid">The id of the data element to replace.</param>
         /// <param name="refs">An optional array of data element references.</param>
-        /// <param name="generatedFromIds">An optional array of generated from references containing data element ids.</param>
+        /// <param name="generatedFromTask">An optional id of the task the data element was generated from</param>
         /// <returns>The metadata of the updated data element.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("data/{dataGuid}")]
@@ -321,7 +321,7 @@ namespace Altinn.Platform.Storage.Controllers
             Guid instanceGuid,
             Guid dataGuid,
             [FromQuery(Name = "refs")] List<Guid> refs = null,
-            [FromQuery(Name = "generatedFrom")] List<Guid> generatedFromIds = null)
+            [FromQuery(Name = "generatedFromTask")] string generatedFromTask = null)
         {
             if (instanceOwnerPartyId == 0 || Request.Body == null)
             {
@@ -368,7 +368,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, "Storage url does not match with instance metadata");
             }
 
-            var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataElement.DataType, refs, generatedFromIds, instance);
+            var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataElement.DataType, refs, generatedFromTask, instance);
             Stream theStream = streamAndDataElement.Stream;
             DataElement updatedData = streamAndDataElement.DataElement;
 
@@ -484,7 +484,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private async Task<(Stream Stream, DataElement DataElement)> ReadRequestAndCreateDataElementAsync(HttpRequest request, string elementType, List<Guid> refs, List<Guid> generatedFromIds, Instance instance)
+        private async Task<(Stream Stream, DataElement DataElement)> ReadRequestAndCreateDataElementAsync(HttpRequest request, string elementType, List<Guid> refs, string generatedFromTask, Instance instance)
         {
             DateTime creationTime = DateTime.UtcNow;
             Stream theStream;
@@ -532,7 +532,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string user = User.GetUserOrOrgId();
 
-            DataElement newData = DataElementHelper.CreateDataElement(elementType, refs, instance, creationTime, contentType, contentFileName, fileSize, user, generatedFromIds);
+            DataElement newData = DataElementHelper.CreateDataElement(elementType, refs, instance, creationTime, contentType, contentFileName, fileSize, user, generatedFromTask);
 
             return (theStream, newData);
         }
