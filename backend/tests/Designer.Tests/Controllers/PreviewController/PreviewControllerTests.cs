@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_PreviewStatus_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/preview/preview-status";
@@ -73,7 +73,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_ApplicationSettings_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/applicationsettings";
@@ -100,7 +100,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_LayoutSettings_Ok()
         {
             string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/ui/Settings.json");
@@ -115,7 +115,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedLayoutSettings, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_LayoutSettingsForStatefulApps_Ok()
         {
             string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, $"App/ui/{LayoutSetName}/Settings.json");
@@ -130,7 +130,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedLayoutSettings, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Anonymous_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/data/anonymous";
@@ -143,7 +143,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals("{}", responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_KeepAlive_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/authentication/keepAlive";
@@ -153,7 +153,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_CurrentUser_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/profile/user";
@@ -168,7 +168,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("previewUser", currentUser.UserName);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_CurrentParty_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/authorization/parties/current";
@@ -183,7 +183,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(51001, currentParty.PartyId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Post_ValidateInstantiation_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/parties/validateInstantiation";
@@ -196,7 +196,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(@"{""valid"": true}", responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Text_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/texts/nb";
@@ -210,7 +210,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("nb", text.Language);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Post_Instance_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -230,7 +230,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Post_InstanceForStatefulApp_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -250,7 +250,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_FormData_Ok()
         {
             string expectedFormData = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
@@ -266,7 +266,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedFormData, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_FormDataForAppWithoutDatamodel_Ok()
         {
             string dataPathWithData = $"{Org}/empty-app/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
@@ -280,7 +280,7 @@ namespace Designer.Tests.Controllers.PreviewController
             responseBody.Should().Be($"{PartyId}/{InstanceGuId}");
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_FormDataForStatefulApp_Ok()
         {
             string expectedFormData = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, "App/models/datamodel.schema.json");
@@ -296,7 +296,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedFormData, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_FormDataForStatefulAppForTaskWithoutDatamodel_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
@@ -310,7 +310,7 @@ namespace Designer.Tests.Controllers.PreviewController
             responseBody.Should().Be($"{PartyId}/{InstanceGuId}");
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Put_UpdateFormData_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
@@ -321,7 +321,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Post_Attachment_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data?dataType=FileUploadId";
@@ -332,7 +332,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status201Created, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Delete_Attachment_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
@@ -343,7 +343,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Post_AttachmentForStateFulApp_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data?dataType=FileUploadId";
@@ -354,7 +354,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status201Created, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Delete_AttachmentForStateFulApp_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
@@ -365,7 +365,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Process_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
@@ -382,7 +382,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_ProcessForStatefulApp_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process";
@@ -399,7 +399,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_InstanceForNextProcess_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}";
@@ -416,7 +416,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("ttd", instance.Org);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_InstanceForNextTaskForStatefulApp_Ok_TaskIsIncreased()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}";
@@ -434,7 +434,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_ProcessNext_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
@@ -451,7 +451,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_ProcessNextForStatefulApp_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process/next";
@@ -468,7 +468,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Put_ProcessNext_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
@@ -482,7 +482,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(@"{""ended"": ""ended""}", responseBody);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Put_ProcessNextForStatefulAppForNonExistingTask_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process/next";
@@ -499,7 +499,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_TextResources_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/textresources";
@@ -514,7 +514,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal("nb", text.Language);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Datamodel_Ok()
         {
             string expectedDatamodel = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
@@ -529,7 +529,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedDatamodel, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_FormLayouts_Ok()
         {
             string expectedFormLayout = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/ui/layouts/layout.json");
@@ -545,7 +545,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedFormLayouts, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_FormLayoutsForStatefulApp_Ok()
         {
             string expectedFormLayout1 = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, $"App/ui/{LayoutSetName}/layouts/layoutFile1InSet1.json");
@@ -562,7 +562,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedFormLayouts, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleHandler_NoContent()
         {
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleHandler.js";
@@ -572,7 +572,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleHandlerForStatefulAppWithoutRuleHandler_NoContent()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/api/rulehandler/{LayoutSetName}";
@@ -582,7 +582,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleHandlerForStatefulAppWithRuleHandler_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/api/rulehandler/{LayoutSetName2}";
@@ -592,7 +592,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleConfiguration_Ok()
         {
             string appwithRuleConfig = "app-without-layoutsets";
@@ -618,7 +618,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleConfigurationForStatefulAppWithoutRuleConfig_NoContent()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/api/ruleconfiguration/{LayoutSetName}";
@@ -628,7 +628,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_RuleConfigurationForStatefulAppWithRuleConfig_Ok()
         {
             string expectedRuleConfig = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, $"App/ui/{LayoutSetName2}/RuleConfiguration.json");
@@ -643,7 +643,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonUtils.DeepEquals(expectedRuleConfig, responseBody).Should().BeTrue();
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_ApplicationLanguages_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/applicationlanguages";
@@ -656,7 +656,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(@"[{""language"":""en""},{""language"":""nb""}]", responseBody);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Options_when_options_exists_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/options/test-options";
@@ -670,7 +670,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Options_when_options_exists_for_stateful_app_Ok()
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/options/test-options";
@@ -684,7 +684,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
         }
 
-        [Fact]
+        [SkipOnWindowsFact]
         public async Task Get_Options_when_no_options_exist_returns_NoContent()
         {
             string dataPathWithData = $"{Org}/{App}/api/options/non-existing-options";
