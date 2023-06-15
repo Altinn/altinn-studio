@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -6,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class DeleteLanguage : TextControllerTestsBase<DeleteLanguage>
+    public class DeleteLanguageTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, DeleteLanguageTests>
     {
-
-        public DeleteLanguage(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
+        public DeleteLanguageTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 
@@ -19,7 +20,7 @@ namespace Designer.Tests.Controllers.TextController
         public async Task DeleteLanguage_WithValidInput_ReturnsOk(string org, string app, string developer, string language)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string url = $"{VersionPrefix(org, targetRepository)}/language/{language}";
             TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{language}.json")
                 .Should().BeTrue();

@@ -5,6 +5,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.TestAttributes;
 using Designer.Tests.TestDataClasses;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -14,20 +16,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetFormLayoutsTestsBase : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class GetFormLayoutsTestsBase : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetFormLayoutsTestsBase(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
 
-        [Theory]
+        [SkipOnWindowsTheory]
         [ClassData(typeof(FormLayoutsTestData))]
         public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, string layoutSetName, params string[] expectedLayoutPaths)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            Dictionary<string, string> expectedLayouts = await AddLayoutsToRepo(CreatedFolderPath, layoutSetName, expectedLayoutPaths);
+            Dictionary<string, string> expectedLayouts = await AddLayoutsToRepo(TestRepoPath, layoutSetName, expectedLayoutPaths);
 
             string url = $"{VersionPrefix(org, targetRepository)}/form-layouts?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

@@ -17,7 +17,7 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarly
+        os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarily
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
@@ -36,7 +36,4 @@ jobs:
            dotnet build backend/Designer.sln -v m
       - name: Test
         run: |
-           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m
-      # - name: FormatCheck
-      #   run: |
-      #      dotnet format backend/Designer.sln --verify-no-changes
+           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m --no-build

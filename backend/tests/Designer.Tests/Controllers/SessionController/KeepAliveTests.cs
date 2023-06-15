@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,9 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class KeepAliveTests : SessionControllerTestsBase<KeepAliveTests>
+    public class KeepAliveTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.SessionController, KeepAliveTests>
     {
-
+        private static string VersionPrefix => "/designer/api/session";
         public KeepAliveTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.SessionController> factory) : base(factory)
         {
         }

@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -15,10 +16,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class UpdateTextsForKeys : TextControllerTestsBase<UpdateTextsForKeys>
+    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, UpdateTextsForKeysTests>
     {
-
-        public UpdateTextsForKeys(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
+        public UpdateTextsForKeysTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 
@@ -35,7 +36,7 @@ namespace Designer.Tests.Controllers.TextController
         public async Task UpdateTextsForKeys_WithValidInput_ReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string file = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
             TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, _jsonOptions);
@@ -60,7 +61,7 @@ namespace Designer.Tests.Controllers.TextController
         public async Task UpdateTextsForKeys_ForTextsThatHaveVariables_MaintainsVariablesAndReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
 

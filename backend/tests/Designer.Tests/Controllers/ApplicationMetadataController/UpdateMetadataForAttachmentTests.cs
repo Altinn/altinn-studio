@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -16,9 +17,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class UpdateMetadataForAttachmentTests : ApplicationMetadataControllerTestsBase<UpdateMetadataForAttachmentTests>
+    public class UpdateMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, UpdateMetadataForAttachmentTests>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public UpdateMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
         {
         }
@@ -33,7 +34,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
         public async Task UpdateMetadataForAttachment_WhenExists_ShouldReturnConflict(string org, string app, string developer, string payload, params string[] expectedContentTypes)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
             var payloadNode = JsonNode.Parse(payload);
@@ -44,7 +45,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(CreatedFolderPath, "App", "config", "applicationmetadata.json"));
+            string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
             var applicationMetadata = JsonSerializer.Deserialize<Application>(applicationMetadataFile, _jsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payloadNode!["id"]!.ToString());

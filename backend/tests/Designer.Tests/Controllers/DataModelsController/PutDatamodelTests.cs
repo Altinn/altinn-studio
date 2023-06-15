@@ -15,6 +15,7 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -25,8 +26,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests>
+public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, PutDatamodelTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private string TargetTestRepository { get; }
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
@@ -50,7 +52,7 @@ public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests
         string fileName = Path.GetFileName(HttpUtility.UrlDecode(modelPath));
         string modelName = fileName!.Remove(fileName.Length - ".schema.json".Length);
 
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -63,11 +65,29 @@ public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests
     }
 
     [Theory]
+    [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser", "Model/JsonSchema/General/NonXsdContextSchema.json")]
+    public async Task ValidSchema_ShouldReturn_NoContent_And_Create_Files(string modelPath, string org, string repo, string user, string schemaPath)
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+
+        string schema = SharedResourcesHelper.LoadTestDataAsString(schemaPath);
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json)
+        };
+
+        var response = await HttpClient.Value.SendAsync(request);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Theory]
     [InlineData("testModel.schema.json", OneOfAndPropertiesSchema, DatamodelingErrorCodes.JsonSchemaConvertError, "ttd", "hvem-er-hvem", "testUser")]
     public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files2(string modelPath, string schema, string expectedErrorCode, string org, string repo, string user)
     {
         string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -82,7 +102,7 @@ public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
-        var location = Path.GetFullPath(Path.Combine(CreatedFolderPath, "App", "models"));
+        var location = Path.GetFullPath(Path.Combine(TestRepoPath, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");

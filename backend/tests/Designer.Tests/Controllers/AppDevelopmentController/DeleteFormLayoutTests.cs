@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -10,8 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class DeleteFormLayoutTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class DeleteFormLayoutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public DeleteFormLayoutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
@@ -22,7 +24,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(string org, string app, string developer, [CanBeNull] string layoutSetName, string layoutName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
@@ -34,7 +36,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
-            string layoutFilePath = Path.Combine(CreatedFolderPath, relativePath);
+            string layoutFilePath = Path.Combine(TestRepoPath, relativePath);
             File.Exists(layoutFilePath).Should().BeFalse();
         }
 
@@ -44,7 +46,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task DeleteFormLayout_NonExistingFile_Should_AndReturnNotFound(string org, string app, string developer, string layoutSetName, string layoutName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 

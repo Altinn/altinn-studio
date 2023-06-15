@@ -6,27 +6,28 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Controllers;
+using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-public class GetPermissions : DeploymentsControllerTestsBase<GetPermissions>
+public class GetPermissions : DisagnerEndpointsTestsBase<DeploymentsController, GetPermissions>
 {
-    private readonly Mock<IGitea> GiteaMock;
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
+    private readonly Mock<IGitea> _giteaMock;
 
     public GetPermissions(WebApplicationFactory<DeploymentsController> factory) : base(factory)
     {
-        GiteaMock = new Mock<IGitea>();
-        GiteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");
+        _giteaMock = new Mock<IGitea>();
+        _giteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");
         KeyValuePair<string, string>? token = new KeyValuePair<string, string>("asdfasdf", "sadfsdaf");
-        GiteaMock.Setup(g => g.GetSessionAppKey(It.IsAny<string>())).ReturnsAsync(token);
+        _giteaMock.Setup(g => g.GetSessionAppKey(It.IsAny<string>())).ReturnsAsync(token);
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.AddSingleton(_ => GiteaMock.Object);
+        services.AddSingleton(_ => _giteaMock.Object);
     }
 
     [Theory]
@@ -39,18 +40,18 @@ public class GetPermissions : DeploymentsControllerTestsBase<GetPermissions>
         {
             new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } }
         };
-        GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(teamWithDeployAccess);
+        _giteaMock.Setup(g => g.GetTeams()).ReturnsAsync(teamWithDeployAccess);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
         HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, Options);
+        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        Assert.Equal(1, permittedEnvironments.Count);
+        Assert.Single(permittedEnvironments);
         Assert.Equal("TestEnv", permittedEnvironments[0]);
     }
 
@@ -61,18 +62,18 @@ public class GetPermissions : DeploymentsControllerTestsBase<GetPermissions>
         // Arrange
         string uri = $"{VersionPrefix(org, app)}/permissions";
 
-        List<Team> emptyTeam = new ();
-        GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(emptyTeam);
+        List<Team> emptyTeam = new();
+        _giteaMock.Setup(g => g.GetTeams()).ReturnsAsync(emptyTeam);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
         HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, Options);
+        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        Assert.Equal(0, permittedEnvironments.Count);
+        Assert.Empty(permittedEnvironments);
     }
 }

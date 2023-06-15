@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
@@ -8,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetLanguages : TextControllerTestsBase<GetLanguages>
+    public class GetLanguagesTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetLanguagesTests>
     {
-
-        public GetLanguages(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
+        public GetLanguagesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 

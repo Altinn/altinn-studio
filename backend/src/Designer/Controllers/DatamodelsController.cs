@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -59,15 +61,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
+        /// <param name="payload">Json schema payload</param>
         /// <param name="modelPath">The path to the file to be updated.</param>
         /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
         [HttpPut]
+        [UseSystemTextJson]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("datamodel")]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromBody] JsonNode payload, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string content = await ReadRequestBodyContentAsync();
+            string content = payload.ToString();
 
             await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
 
@@ -207,18 +211,6 @@ namespace Altinn.Studio.Designer.Controllers
             string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
 
             return Created(filePath, jsonSchema);
-        }
-
-        private async Task<string> ReadRequestBodyContentAsync()
-        {
-            string content;
-
-            using (StreamReader reader = new(Request.Body, Encoding.UTF8))
-            {
-                content = await reader.ReadToEndAsync();
-            }
-
-            return content;
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)

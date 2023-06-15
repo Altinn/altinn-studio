@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -12,9 +13,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class DeleteMetadataForAttachmentTests : ApplicationMetadataControllerTestsBase<DeleteMetadataForAttachmentTests>
+    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, DeleteMetadataForAttachmentTests>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public DeleteMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
         {
         }
@@ -24,7 +25,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
         public async Task DeleteMetadataForAttachment_WhenExists_ShouldReturnOk(string org, string app, string developer, string attacmentIdToDelete)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string previousMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
             Application applicationMetadataPreDelete = JsonSerializer.Deserialize<Application>(previousMetadata, JsonSerializerOptions);
             Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attacmentIdToDelete);
