@@ -513,9 +513,9 @@
         "renderAsSummary": true
       },
       {
-        "id": "button-group-1",
+        "id": "button-group1",
         "type": "ButtonGroup",
-        "children": ["printBtn", "toSummary", "toNextTask"]
+        "children": ["printBtn", "toSummary"]
       },
       {
         "id": "printBtn",
@@ -530,14 +530,6 @@
         },
         "dataModelBindings": {},
         "triggers": ["validatePage"]
-      },
-      {
-        "id": "toNextTask",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Hopp videre til gruppe (fyll ut riktig data først)"
-        },
-        "dataModelBindings": {}
       }
     ]
   }
