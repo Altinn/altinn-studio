@@ -202,25 +202,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string repo, ServiceResource serviceResource)
+        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             ListviewServiceResource listviewResource = new ListviewServiceResource { Identifier = serviceResource.Identifier, Title = serviceResource.Title };
             string resourceFolder = serviceResource.Identifier;
 
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{developer}/{repo}/contents/{resourceFolder}/{serviceResource.Identifier}_resource.json");
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/contents/{resourceFolder}/{serviceResource.Identifier}_resource.json");
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 ContentsResponse contentsResponse = await response.Content.ReadAsAsync<ContentsResponse>();
-                response = await _httpClient.GetAsync($"repos/{developer}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
+                response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     GiteaCommit lastCommit = await response.Content.ReadAsAsync<GiteaCommit>();
                     listviewResource.LastChanged = DateTime.Parse(lastCommit.Created);
                 }
 
-                HttpResponseMessage responseFromCommits = await _httpClient.GetAsync($"repos/{developer}/{repo}/commits");
+                HttpResponseMessage responseFromCommits = await _httpClient.GetAsync($"repos/{org}/{repo}/commits");
                 if (responseFromCommits.StatusCode == HttpStatusCode.OK)
                 {
                     List<GiteaCommit> commitList = await responseFromCommits.Content.ReadAsAsync<List<GiteaCommit>>();
@@ -228,7 +227,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     GiteaCommit oldestCommit = new GiteaCommit();
                     foreach (GiteaCommit commit in commitList)
                     {
-                        if (DateTime.Parse(commit.Created) < oldestCommitTimestamp)
+                        if (DateTime.Parse(commit.Created) <= oldestCommitTimestamp)
                         {
                             oldestCommitTimestamp = DateTime.Parse(commit.Created);
                             oldestCommit = commit;
