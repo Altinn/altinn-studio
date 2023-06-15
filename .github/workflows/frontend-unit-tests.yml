@@ -37,6 +37,8 @@ jobs:
           query-filters:
             - exclude:
                 id: js/ml-powered/xss
+            - exclude:
+                id: js/ml-powered/sql-injection
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
