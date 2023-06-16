@@ -1,23 +1,17 @@
 import React from 'react';
 import classes from './App.module.css';
 import './App.css';
-import { PageSpinner } from 'app-shared/components';
-
-import { PageLayout } from 'resourceadm/pages/PageLayout';
-
-// import { TestPage } from '../pages/TestPage';
-import { ErrorPage } from '../pages/ErrorPage';
-import { RedirectPage } from '../pages/RedirectPage';
-
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-
+import { PageSpinner } from 'app-shared/components';
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
+import { PageLayout } from 'resourceadm/pages/PageLayout';
 import { ResourcePage } from 'resourceadm/pages/ResourcePage';
 import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
+import { ErrorPage } from '../pages/ErrorPage';
+import { RedirectPage } from '../pages/RedirectPage';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -87,6 +81,5 @@ export const App = (): JSX.Element => {
       </div>
     );
   }
-
   return <PageSpinner text={t('dashboard.loading')} />;
 };

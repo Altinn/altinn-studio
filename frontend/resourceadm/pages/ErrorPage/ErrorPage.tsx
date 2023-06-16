@@ -1,22 +1,26 @@
 import React from 'react';
 import { CenterContainer } from 'resourceadm/components/CenterContainer';
+import classes from './ErrorPage.module.css';
+import { Footer } from 'resourceadm/components/Footer';
 
 export const ErrorPage = () => {
   return (
-    <div>
-      <CenterContainer>
-        <h1>
-          Feil i URL
-        </h1>
+    <>
+      <div className={classes.pageWrapper}>
+        <CenterContainer>
+          <h1>
+            Feil i URL
+          </h1>
 
-        <h5>Du har nådd en ugyldig adresse</h5>
-        <br></br>
+          <h5>Du har nådd en ugyldig adresse</h5>
+          <br></br>
 
-        <p>
-          <a href='/'>Gå tilbake til Dashboard</a>
-        </p>
-
-      </CenterContainer>
-    </div>
+          <p>
+            <a href='/'>Gå tilbake til Dashboard</a>
+          </p>
+        </CenterContainer>
+      </div>
+      <Footer />
+    </>
   );
 };
