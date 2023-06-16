@@ -71,6 +71,18 @@ namespace Altinn.App.PlatformServices.Tests.Options
             optionsProvider.Id.Should().Be("country");
         }
 
+        [Fact]
+        public async Task GetParameters_CustomOptionsProviderWithUpperCase_ShouldReturnCustomType()
+        {
+            var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object), new CountryAppOptionsProvider() });
+
+            IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("Country");
+
+            AppOptions options = await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "key", "value" } });
+            options.Parameters.First(x => x.Key == "key").Value.Should().Be("value");
+        }
+
         internal class CountryAppOptionsProvider : IAppOptionsProvider
         {
             public string Id { get; set; } = "country";
@@ -91,7 +103,9 @@ namespace Altinn.App.PlatformServices.Tests.Options
                             Label = "Sverige",
                             Value = "46"
                         }
-                    }
+                    },
+
+                    Parameters = keyValuePairs
                 };
 
                 return Task.FromResult(options);
