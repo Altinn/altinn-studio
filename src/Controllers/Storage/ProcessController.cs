@@ -1,23 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Authorization;
+using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-
-using LocalTest.Configuration;
+using Altinn.Platform.Storage.Services;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -30,32 +21,30 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
-        private readonly ILogger _logger;
         private readonly string _storageBaseAndHost;
-        private readonly AuthorizationHelper _authorizationHelper;
+        private readonly IAuthorization _authorizationService;
+        private readonly IInstanceEventService _instanceEventService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
-        /// <param name="pdp">the policy decision point.</param>
         /// <param name="generalsettings">the general settings</param>
-        /// <param name="logger">the logger</param>
-        /// <param name="authzLogger">logger for authorization helper</param>
+        /// <param name="authorizationService">the authorization service</param>
+        /// <param name="instanceEventService">the instance event service</param>
         public ProcessController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
-            IPDP pdp,
             IOptions<GeneralSettings> generalsettings,
-            ILogger<ProcessController> logger,
-            ILogger<AuthorizationHelper> authzLogger)
+            IAuthorization authorizationService,
+            IInstanceEventService instanceEventService)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
-            _logger = logger;
-            _authorizationHelper = new AuthorizationHelper(pdp, authzLogger);
+            _authorizationService = authorizationService;
+            _instanceEventService = instanceEventService;
         }
 
         /// <summary>
@@ -77,17 +66,8 @@ namespace Altinn.Platform.Storage.Controllers
                 [FromBody] ProcessState processState)
         {
             Instance existingInstance;
-            try
-            {
-                existingInstance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
-            }
-            catch (Exception e)
-            {
-                string message = $"Unable to find instance {instanceOwnerPartyId}/{instanceGuid} to update: {e}";
-                _logger.LogError(message);
 
-                return NotFound(message);
-            }
+            existingInstance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (existingInstance == null)
             {
@@ -95,6 +75,13 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
+            string taskId = null;
+
+            if (processState?.CurrentTask?.FlowType != null && !processState.CurrentTask.FlowType.Equals("CompleteCurrentMoveToNext"))
+            {
+                altinnTaskType = processState.CurrentTask.AltinnTaskType;
+                taskId = processState.CurrentTask.ElementId;
+            }
 
             string action;
 
@@ -107,12 +94,15 @@ namespace Altinn.Platform.Storage.Controllers
                 case "confirmation":
                     action = "confirm";
                     break;
+                case "signing":
+                    action = "sign";
+                    break;
                 default:
                     action = altinnTaskType;
                     break;
             }
 
-            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action);
+            bool authorized = await _authorizationService.AuthorizeInstanceAction(existingInstance, action, taskId);
 
             if (!authorized)
             {
@@ -120,7 +110,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // Archiving instance if process was ended
-            if (existingInstance.Process.Ended == null && processState.Ended != null)
+            if (existingInstance.Process.Ended == null && processState?.Ended != null)
             {
                 existingInstance.Status ??= new InstanceStatus();
                 existingInstance.Status.IsArchived = true;
@@ -132,17 +122,15 @@ namespace Altinn.Platform.Storage.Controllers
             existingInstance.LastChanged = DateTime.UtcNow;
 
             Instance updatedInstance;
-            try
+
+            updatedInstance = await _instanceRepository.Update(existingInstance);
+
+            if (processState?.CurrentTask?.AltinnTaskType == "signing")
             {
-                updatedInstance = await _instanceRepository.Update(existingInstance);
-                updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Unable to update instance object {instanceOwnerPartyId}/{instanceGuid}.");
-                return StatusCode(500, $"Unable to update instance object {instanceOwnerPartyId}/{instanceGuid}: {e.Message}");
+                await _instanceEventService.DispatchEvent(InstanceEventType.SentToSign, updatedInstance);
             }
 
+            updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             return Ok(updatedInstance);
         }
 
@@ -151,7 +139,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
-        /// <returns>Returns a list of the process events.</returns>        
+        /// <returns>Returns a list of the process events.</returns>
         [HttpGet("history")]
         [Authorize(Policy = "InstanceRead")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -164,18 +152,10 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             ProcessHistoryList processHistoryList = new ProcessHistoryList();
 
-            try
-            {
-                List<InstanceEvent> processEvents = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
-                processHistoryList.ProcessHistory = ProcessHelper.MapInstanceEventsToProcessHistory(processEvents);
+            List<InstanceEvent> processEvents = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
+            processHistoryList.ProcessHistory = ProcessHelper.MapInstanceEventsToProcessHistory(processEvents);
 
-                return Ok(processHistoryList);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Unable to retriece process history for instance object {instanceId}. Due to {e}");
-                return StatusCode(500, $"Unable to retriece process history for instance object {instanceId}: {e.Message}");
-            }
+            return Ok(processHistoryList);
         }
     }
 }

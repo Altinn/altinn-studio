@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Services
@@ -35,12 +37,12 @@ namespace Altinn.Platform.Storage.Services
         public async Task<(bool Created, ServiceError ServiceError)> CreateSignDocument(int instanceOwnerPartyId, Guid instanceGuid, SignRequest signRequest, int userId)
         {
             Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
-            if (instance == null) 
+            if (instance == null)
             {
                 return (false, new ServiceError(404, "Instance not found"));
             }
 
-            (bool validDataType, ServiceError serviceError) = await _applicationService.ValidateDataTypeForApp(instance.Org, instance.AppId, signRequest.SignatureDocumentDataType);
+            (bool validDataType, ServiceError serviceError) = await _applicationService.ValidateDataTypeForApp(instance.Org, instance.AppId, signRequest.SignatureDocumentDataType, instance.Process.CurrentTask?.ElementId);
             if (!validDataType)
             {
                 return (false, serviceError);
@@ -65,28 +67,28 @@ namespace Altinn.Platform.Storage.Services
             }
 
             DataElement dataElement = DataElementHelper.CreateDataElement(
-                signRequest.SignatureDocumentDataType, 
-                null, 
-                instance, 
-                signDocument.SignedTime, 
-                "application/json", 
-                $"{signRequest.SignatureDocumentDataType}.json", 
-                0, 
+                signRequest.SignatureDocumentDataType,
+                null,
+                instance,
+                signDocument.SignedTime,
+                "application/json",
+                $"{signRequest.SignatureDocumentDataType}.json",
+                0,
                 userId.ToString(),
                 null);
 
             signDocument.Id = dataElement.Id;
-        
+
             using (MemoryStream fileStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(signDocument, Formatting.Indented))))
             {
-                await _dataService.UploadDataAndCreateDataElement(instance.Org, fileStream, dataElement);    
+                await _dataService.UploadDataAndCreateDataElement(instance.Org, fileStream, dataElement);
             }
-            
+
             await _instanceEventService.DispatchEvent(InstanceEventType.Signed, instance);
             return (true, null);
         }
 
-        private SignDocument GetSignDocument(Guid instanceGuid, SignRequest signRequest)
+        private static SignDocument GetSignDocument(Guid instanceGuid, SignRequest signRequest)
         {
             SignDocument signDocument = new SignDocument
             {
