@@ -1,0 +1,1 @@
+export { useDatamodelQuery } from './useDatamodelQuery';

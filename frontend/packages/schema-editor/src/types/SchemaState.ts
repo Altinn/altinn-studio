@@ -1,5 +1,5 @@
-import { JsonSchema } from '@altinn/schema-editor/types/JsonSchema';
 import type { UiSchemaNodes } from '@altinn/schema-model';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface SchemaState {
   schema: JsonSchema;

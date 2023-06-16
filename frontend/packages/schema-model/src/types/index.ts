@@ -7,5 +7,6 @@ export * from './SpecialArrayXsdField';
 export * from './StringFormat';
 export * from './UiSchemaNode';
 export * from './UiSchemaNodes';
+export * from './UiSchemaReducer';
 export * from './UnhandledKeyword';
 export * from './restrictionKeys';

@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import { useText } from './hooks';
 import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
-import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
+import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -30,7 +30,7 @@ export function App() {
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
-  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
+  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelMetadataQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   const componentIsReady =

@@ -2,7 +2,8 @@ import path from 'path';
 import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { FieldType, Keyword } from '../src';
+import { FieldType } from '../src';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 /**
  * Some schemas might not be valid
@@ -20,9 +21,9 @@ const readJsonFile = (filepath): KeyValuePairs => JSON.parse(fs.readFileSync(fil
 /**
  * Returns a map with json schemas.
  */
-const getJsonSchemasForTest = (dirPath: string): Map<string, KeyValuePairs> => {
+const getJsonSchemasForTest = (dirPath: string): Map<string, JsonSchema> => {
   if (!cache.has(dirPath)) {
-    const output = new Map<string, KeyValuePairs>();
+    const output = new Map<string, JsonSchema>();
     fs.readdirSync(dirPath).forEach((filename) => {
       const filepath = path.resolve(dirPath, filename);
       const basename = path.basename(filepath, '.json');
@@ -34,7 +35,7 @@ const getJsonSchemasForTest = (dirPath: string): Map<string, KeyValuePairs> => {
   }
   return cache.get(dirPath);
 };
-export const mapToTable = (input: Map<string, KeyValuePairs>): any[] => {
+export const mapToTable = (input: Map<string, JsonSchema>): any[] => {
   const out: any[] = [];
   input.forEach((value, key) => {
     out.push([key, value]);
@@ -77,36 +78,36 @@ export const validateSchema = (schema: KeyValuePairs) => {
   return new Ajv2020().validateSchema(schema);
 };
 
-export const simpleTestJsonSchema = {
-  [Keyword.Properties]: {
+export const simpleTestJsonSchema: JsonSchema = {
+  properties: {
     hello: {
-      [Keyword.Type]: FieldType.String,
+      type: FieldType.String,
     },
     world: {
-      [Keyword.Properties]: {
+      properties: {
         hola: {
-          [Keyword.Type]: FieldType.Boolean,
+          type: FieldType.Boolean,
         },
       },
     },
   },
 };
 
-export const selectorsTestSchema = {
-  [Keyword.Definitions]: {
-    waba: { [Keyword.Type]: FieldType.String },
-    duba: { [Keyword.Type]: FieldType.String },
-    dupp: { [Keyword.Type]: FieldType.String },
+export const selectorsTestSchema: JsonSchema = {
+  $defs: {
+    waba: { type: FieldType.String },
+    duba: { type: FieldType.String },
+    dupp: { type: FieldType.String },
     dapp: {
-      [Keyword.Properties]: {
-        name: { [Keyword.Type]: FieldType.String },
-        lame: { [Keyword.Type]: FieldType.String },
+      properties: {
+        name: { type: FieldType.String },
+        lame: { type: FieldType.String },
       },
     },
   },
-  [Keyword.Properties]: {
-    hello: { [Keyword.Type]: FieldType.String },
-    world: { [Keyword.Type]: FieldType.String },
+  properties: {
+    hello: { type: FieldType.String },
+    world: { type: FieldType.String },
   },
 };
 

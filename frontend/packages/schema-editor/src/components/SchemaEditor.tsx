@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { AltinnSpinner } from 'app-shared/components';
-import type { JsonSchema, SchemaState } from '../types';
+import type { SchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
   setJsonSchema,
@@ -34,6 +34,7 @@ import {
   selectedItemSelector,
   selectedPropertyParentSelector
 } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;

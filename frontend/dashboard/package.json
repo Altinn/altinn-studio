@@ -10,7 +10,6 @@
   ],
   "dependencies": {
     "@mui/x-data-grid": "5.17.26",
-    "@tanstack/react-query": "4.29.12",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.11.2",
