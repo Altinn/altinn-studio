@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-		<PackageReference Include="Altinn.App.Core" Version="7.10.1-preview.5" />
+		<PackageReference Include="Altinn.App.Core" Version="7.10.1" />
 		<PackageReference Include="Mime-Detective" Version="23.6.1" />
   </ItemGroup>
 
