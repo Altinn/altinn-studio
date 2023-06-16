@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
@@ -22,9 +23,16 @@ public class ProcessNavigatorTests
             {
                 Id = "Task2",
                 Name = "Bekreft skjemadata",
-                TaskType = "confirmation",
                 Incoming = new List<string> { "Flow2" },
-                Outgoing = new List<string> { "Flow3" }
+                Outgoing = new List<string> { "Flow3" },
+                ExtensionElements = new ExtensionElements()
+                {
+                    TaskExtension = new()
+                    {
+                        TaskType = "confirmation",
+                        AltinnActions = new()
+                    },
+                }
             });
     }
 
@@ -45,7 +53,6 @@ public class ProcessNavigatorTests
             {
                 Id = "Task2",
                 Name = null!,
-                TaskType = null!,
                 ExtensionElements = new()
                 {
                   TaskExtension = new()
@@ -55,11 +62,11 @@ public class ProcessNavigatorTests
                       {
                           new()
                           {
-                              Id = "confirm"
+                              Value = "confirm"
                           },
                           new()
                           {
-                              Id = "reject"
+                              Value = "reject"
                           }
                       }
                   }
@@ -89,7 +96,6 @@ public class ProcessNavigatorTests
             {
                 Id = "Task2",
                 Name = null!,
-                TaskType = null!,
                 ExtensionElements = new()
                 {
                     TaskExtension = new()
@@ -99,7 +105,7 @@ public class ProcessNavigatorTests
                         {
                             new()
                             {
-                                Id = "submit"
+                                Value = "submit"
                             }
                         }
                     }

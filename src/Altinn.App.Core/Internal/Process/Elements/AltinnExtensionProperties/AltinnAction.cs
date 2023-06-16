@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         /// <summary>
         /// Gets or sets the ID of the action
         /// </summary>
-        [XmlAttribute("id", Namespace = "http://altinn.no/process")]
-        public string Id { get; set; }
+        [XmlText]
+        public string Value { get; set; }
     }
 }

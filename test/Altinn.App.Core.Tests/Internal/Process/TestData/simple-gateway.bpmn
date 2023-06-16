@@ -3,7 +3,7 @@
                   xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  xmlns:altinn="http://altinn.no"
+                  xmlns:altinn="http://altinn.no/process"
                   id="Definitions_1eqx4ru" targetNamespace="http://bpmn.io/schema/bpmn"
                   exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="10.2.0">
   <bpmn:process id="Process_1rq9ej8" isExecutable="false">
@@ -17,9 +17,9 @@
       <bpmn:extensionElements>
         <altinn:properties>
           <altinn:actions>
-            <altinn:action id="submit" name="Send inn"/>
+            <altinn:action>submit</altinn:action>
           </altinn:actions>
-          <altinn:tasktype id="data"/>
+          <altinn:taskType>data</altinn:taskType>
         </altinn:properties>
       </bpmn:extensionElements>
     </bpmn:task>
@@ -37,10 +37,10 @@
       <bpmn:extensionElements>
         <altinn:properties>
           <altinn:actions>
-            <altinn:action id="confirm" name="Bekreft"/>
-            <altinn:action id="reject" name="Avslå"/>
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>reject</altinn:action>
           </altinn:actions>
-          <altinn:tasktype id="confirm"/>
+          <altinn:taskType>confirm</altinn:taskType>
         </altinn:properties>
       </bpmn:extensionElements>
     </bpmn:task>

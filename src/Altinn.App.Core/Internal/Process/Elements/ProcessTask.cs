@@ -9,12 +9,6 @@ namespace Altinn.App.Core.Internal.Process.Elements
     public class ProcessTask: ProcessElement
     {
         /// <summary>
-        /// Gets or sets the outgoing id of a task
-        /// </summary>
-        [XmlAttribute("tasktype", Namespace = "http://altinn.no")]
-        public string? TaskType { get; set; }
-        
-        /// <summary>
         /// Defines the extension elements
         /// </summary>
         [XmlElement("extensionElements")]

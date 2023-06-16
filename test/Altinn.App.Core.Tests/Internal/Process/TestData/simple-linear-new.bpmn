@@ -19,7 +19,7 @@ xmlns:altinn="http://altinn.no">
         <altinn:properties>
           <altinn:taskType>data</altinn:taskType>
           <altinn:actions>
-            <altinn:action id="submit" />
+            <altinn:action>submit</altinn:action>
           </altinn:actions>
         </altinn:properties>
       </bpmn:extensionElements>
@@ -31,8 +31,8 @@ xmlns:altinn="http://altinn.no">
       <bpmn:extensionElements>
         <altinn:properties>
           <altinn:actions>
-            <altinn:action id="confirm" />
-            <altinn:action id="reject" />
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>reject</altinn:action>
           </altinn:actions>
           <altinn:taskType>confirmation</altinn:taskType>
         </altinn:properties>

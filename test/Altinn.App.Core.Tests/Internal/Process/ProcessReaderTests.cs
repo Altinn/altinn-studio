@@ -101,7 +101,6 @@ public class ProcessReaderTests
                     Incoming = new List<string> { "Flow2" },
                     Outgoing = new List<string> { "Flow3" },
                     Name = "Bekreft skjemadata",
-                    TaskType = "confirmation"
                 }
             });
     }
@@ -316,7 +315,7 @@ public class ProcessReaderTests
                     {
                         new()
                         {
-                            Id = "submit",
+                            Value = "submit",
                         }
                     },
                     TaskType = "data",

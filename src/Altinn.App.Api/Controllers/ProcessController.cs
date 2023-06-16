@@ -461,7 +461,7 @@ namespace Altinn.App.Api.Controllers
                     appProcessState.CurrentTask.Actions = new Dictionary<string, bool>();
                     foreach (AltinnAction action in processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>())
                     {
-                        appProcessState.CurrentTask.Actions.Add(action.Id, await AuthorizeAction(action.Id, org, app, instanceOwnerPartyId, instanceGuid, flowElement.Id));
+                        appProcessState.CurrentTask.Actions.Add(action.Value, await AuthorizeAction(action.Value, org, app, instanceOwnerPartyId, instanceGuid, flowElement.Id));
                     }
 
                     appProcessState.CurrentTask.HasWriteAccess = await AuthorizeAction("write", org, app, instanceOwnerPartyId, instanceGuid, flowElement.Id);

@@ -17,7 +17,7 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:actions>
-            <altinn:action id="submit"/>
+            <altinn:action>submit</altinn:action>
           </altinn:actions>
           <altinn:taskType>data</altinn:taskType>
         </altinn:taskExtension>
@@ -37,7 +37,7 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:actions>
-            <altinn:action id="submit"/>
+            <altinn:action>submit</altinn:action>
           </altinn:actions>
           <altinn:taskType>data</altinn:taskType>
         </altinn:taskExtension>
