@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
@@ -15,6 +15,24 @@ import {
 } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
+
+const useLocalStorage = (layout: string) => {
+  const [layoutInStorage, setLayoutInStorage] = useState(localStorage.getItem(layout));
+
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === layout) {
+        setLayoutInStorage(event.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [layout]);
+
+  return layoutInStorage;
+};
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -34,19 +52,32 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const selectedLayoutInEditor = localStorage.getItem(instanceId);
   const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
   const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
     localSelectedViewSize ?? 'desktop'
   );
-  const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
+  const { data: instanceId } = useInstanceIdQuery(org, app);
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
+  let selectedLayoutInEditor = localStorage.getItem(instanceId);
+  const selectedLayoutSetInEditor = localStorage.getItem('layoutSet' + app);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
+
+  const handleChangeLayoutSet = (layoutSet: string) => {
+    localStorage.setItem('layoutSet' + app, layoutSet);
+    //localStorage.setItem('layoutSetInPreview', layoutSet);
+    // might need to remove selected layout from local storage to make sure first page is selected
+    window.location.reload();
+  }
+
+  const layoutInPreview = useLocalStorage(instanceId);
+
+  useEffect(() => {
+    selectedLayoutInEditor = localStorage.getItem(instanceId);
+  }, [layoutInPreview]);
 
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
@@ -75,7 +106,13 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             repository={repository}
             buttonActions={appPreviewButtonActions(org, app, selectedLayoutInEditor)}
             variant={variant}
-            subMenuContent={<AppPreviewSubMenu setViewSize={setViewSize} viewSize={viewSize} />}
+            subMenuContent={
+            <AppPreviewSubMenu
+              setViewSize={setViewSize}
+              viewSize={viewSize}
+              selectedLayoutSet={selectedLayoutSetInEditor}
+              handleChangeLayoutSet={handleChangeLayoutSet}
+            />}
           />
         </div>
         <div className={classes.iframeMobileViewContainer}>

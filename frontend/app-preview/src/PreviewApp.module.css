@@ -14,3 +14,10 @@
   overflow-x: hidden;
   overflow-y: auto;
 }
+
+.layoutSetSelector {
+  padding-top: 5px;
+  width: 200px;
+  --component-input-color-background-default: #3e845e;
+  --component-input-color-border-default: none;
+}

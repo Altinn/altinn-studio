@@ -14,15 +14,15 @@ export function PagesContainer() {
   const t = useText();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { data: layoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-  const layoutOrder = formLayoutSettingsQuery.data.pages.order;
+  const layoutOrder = layoutSettings?.pages?.order;
   const invalidLayouts: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.invalidLayouts
   );
 
   useEffect((): void => {
-    if (!layoutOrder?.length) {
+    if (layoutOrder && !layoutOrder?.length) {
       const layoutName = `${t('general.page')}1`;
       if (!addLayoutMutation.isLoading) {
         addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
@@ -33,7 +33,7 @@ export function PagesContainer() {
 
   return (
     <>
-      {layoutOrder.map((layout: string) => {
+      {layoutOrder && layoutOrder.map((layout: string) => {
         const invalid = invalidLayouts.includes(layout);
         return <PageElement name={layout} key={layout} invalid={invalid} />;
       })}

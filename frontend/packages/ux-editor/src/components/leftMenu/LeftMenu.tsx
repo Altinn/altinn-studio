@@ -32,9 +32,9 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { pages, receiptLayoutName } = formLayoutSettingsQuery.data;
-  const layoutOrder = pages.order;
+  const { data: layoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const layoutOrder = layoutSettings?.pages?.order;
+  const receiptLayoutName = layoutSettings?.receiptLayoutName;
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const t = useText();

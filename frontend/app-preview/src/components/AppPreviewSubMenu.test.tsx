@@ -12,6 +12,8 @@ describe('AppPreviewSubMenu', () => {
   const props: AppPreviewSubMenuProps = {
     viewSize: 'desktop',
     setViewSize: jest.fn(),
+    selectedLayoutSet: 'default',
+    handleChangeLayoutSet: jest.fn(),
   };
 
   it('renders the component with desktop viewSize', () => {
