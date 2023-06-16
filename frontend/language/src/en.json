@@ -667,7 +667,7 @@
   "schema_editor.title": "Title",
   "schema_editor.type": "Type",
   "schema_editor.types": "Types",
-  "schema_editor.types_editing": "You are now editing",
+  "schema_editor.types_editing": "You are now editing {{type}}",
   "schema_editor.uniqueItems": "Unique elements only",
   "schema_editor.value": "Value",
   "schema_editor.view_mode": "View",

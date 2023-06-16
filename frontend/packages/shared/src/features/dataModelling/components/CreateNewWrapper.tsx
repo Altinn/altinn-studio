@@ -10,14 +10,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 
+export type CreateAction = (props: { name: string; relativePath: string | undefined }) => void;
+
 export interface ICreateNewWrapper {
-  createAction: ({
-    name,
-    relativePath,
-  }: {
-    name: string;
-    relativePath: string | undefined;
-  }) => void;
+  createAction: CreateAction;
   dataModelNames: string[];
   createPathOption?: boolean;
   disabled: boolean;

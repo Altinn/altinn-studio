@@ -69,7 +69,6 @@ __metadata:
     react-dom: 18.2.0
     react-redux: 8.0.7
     redux: 4.2.1
-    redux-saga: 1.2.3
   languageName: unknown
   linkType: soft
 
@@ -1645,6 +1644,13 @@ __metadata:
     react: ">=16.8"
     react-dom: ">=16.8"
   checksum: 32385965279ffdaf9878bcca1ed5cc85a19e2d2060630feae50bf34cdf0c8438c2e9653004e7eee310bfdc4b17e62470ac202620fca67851e51331d4d9bee2ee
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:0.1.4":
+  version: 0.1.4
+  resolution: "@digdir/design-system-tokens@npm:0.1.4"
+  checksum: adbfd26c86093441d9fef454ad891bf176c865bcc96b1950d0feba38bf71de642692512e05a8cdc76c30861853485a9ec3e0a701bdf0a6a2a041368bdc10e1b0
   languageName: node
   linkType: hard
 
@@ -5058,6 +5064,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.15.0
+    "@digdir/design-system-tokens": 0.1.4
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.5

@@ -1,18 +1,11 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { NameError } from '../../types';
 import {
-  addCombinationItem,
-  deleteCombinationItem,
   navigateToType,
-  setCombinationType,
-  setDescription,
-  setPropertyName,
-  setRef,
-  setTitle,
-  setType,
-  toggleArrayField,
+  removeSelection,
+  setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
@@ -26,21 +19,35 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import { CombinationKind, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import {
-  combinationIsNullable,
+  CombinationKind,
+  UiSchemaNode,
+  addCombinationItem,
+  deleteNode,
+  pointerIsDefinition,
+  setCombinationType,
+  setDescription,
+  setPropertyName,
+  setRef,
+  setTitle,
+  setType,
+  toggleArrayField,
+} from '@altinn/schema-model';
+import {
   FieldType,
+  ObjectKind,
+  combinationIsNullable,
   getChildNodesByPointer,
   getNameFromPointer,
   hasNodePointer,
-  ObjectKind,
   replaceLastPointerSegment,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
-import { uiSchemaSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
 export type IItemDataComponentProps = Omit<UiSchemaNode, 'children'>;
 
@@ -57,6 +64,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     custom,
   } = props;
   const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
@@ -64,10 +73,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const [nameError, setNameError] = useState(NameError.NoError);
   const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
-  const uiSchema = useSelector(uiSchemaSelector);
-
   const getChildNodes = () =>
-    pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(uiSchema, pointer) : [];
+    pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
 
   const softValidateName = (nodeNameToValidate: string) => {
     const error = !isValidName(nodeNameToValidate) ? NameError.InvalidCharacter : NameError.NoError;
@@ -79,7 +86,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     if (error !== NameError.NoError) {
       return error;
     }
-    if (hasNodePointer(uiSchema, replaceLastPointerSegment(pointer, nodeName))) {
+    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeName))) {
       setNameError(NameError.AlreadyInUse);
       return NameError.AlreadyInUse;
     }
@@ -95,28 +102,35 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     setNodeName(value);
   };
 
-  const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
+  const onChangeRef = (path: string, ref: string) => mutate(setRef(data, { path, ref }));
 
-  const onChangeFieldType = (type: FieldType) => dispatch(setType({ path: pointer, type }));
+  const onChangeFieldType = (type: FieldType) => mutate(setType(data, { path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
-      dispatch(addCombinationItem({ pointer: pointer, props: { fieldType: FieldType.Null } }));
+      mutate(
+        addCombinationItem(data, {
+          pointer: pointer,
+          props: { fieldType: FieldType.Null },
+          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+        })
+      );
       return;
     }
 
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (childNode.fieldType === FieldType.Null) {
-        dispatch(deleteCombinationItem({ path: childNode.pointer }));
+        mutate(deleteNode(data, childNode.pointer));
+        removeSelection(childNode.pointer);
       }
     });
   };
 
-  const onChangeTitle = () => dispatch(setTitle({ path: pointer, title: itemTitle }));
+  const onChangeTitle = () => mutate(setTitle(data, { path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
-    dispatch(setDescription({ path: pointer, description: itemDescription }));
+    mutate(setDescription(data, { path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
     if (reference !== undefined) {
@@ -125,9 +139,9 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    dispatch(setCombinationType({ path: pointer, type: value }));
+    mutate(setCombinationType(data, { path: pointer, type: value }));
 
-  const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer }));
+  const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
 
   const handleChangeNodeName = () => {
     const error = hardValidateName();
@@ -136,11 +150,11 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     }
     const staleName = getNameFromPointer({ pointer });
     if (staleName !== nodeName) {
-      dispatch(
-        setPropertyName({
+      mutate(
+        setPropertyName(data, {
           path: pointer,
           name: nodeName,
-          navigate: true,
+          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
         })
       );
     }

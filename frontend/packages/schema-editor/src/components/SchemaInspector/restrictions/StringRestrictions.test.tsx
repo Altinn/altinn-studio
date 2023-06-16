@@ -63,10 +63,7 @@ const renderStringRestrictions = (props?: Partial<RestrictionItemProps>) =>
   render(<StringRestrictions {...defaultProps} {...props} />);
 
 describe('StringRestrictions', () => {
-  afterEach(() => {
-    onChangeRestrictionValue.mockReset();
-    onChangeRestrictions.mockReset();
-  });
+  afterEach(jest.clearAllMocks);
 
   test.each([
     [StrRestrictionKey.format, 'button'],

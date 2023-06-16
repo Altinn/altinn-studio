@@ -6,8 +6,9 @@ import { ROOT_POINTER } from './constants';
 export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSchemaNodes => {
   const rootNodes: UiSchemaNodes = [];
   if (hasNodePointer(uiSchemaNodes, ROOT_POINTER)) {
-    getRootNode(uiSchemaNodes)
-      .children.filter((p) => p.startsWith(makePointer(Keyword.Definitions)) === defs)
+    getNodeByPointer(uiSchemaNodes, ROOT_POINTER)
+      .children
+      .filter((p) => p.startsWith(makePointer(Keyword.Definitions)) === defs)
       .forEach((childPointer) => rootNodes.push(getNodeByPointer(uiSchemaNodes, childPointer)));
   }
   return rootNodes;
@@ -17,8 +18,8 @@ export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode =>
   getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
 
 /**
- * This litt trick is what making it possible to work with very large models. Its a needed complexity to beeing able
- * to handle very large models in an array. React and proably other SPA-frameworks will have problem dealing with the
+ * This little trick is what is making it possible to work with very large models. It's a needed complexity to beeing able
+ * to handle very large models in an array. React and probably other SPA-frameworks will have problems dealing with the
  * Map datastructure directly, so that is why wee keep these pointers in an internal cache that we can access when
  * doing mutations.
  */

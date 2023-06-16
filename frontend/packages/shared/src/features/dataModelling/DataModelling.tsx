@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Panel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
@@ -12,13 +12,9 @@ import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
 import { Dialog } from '@mui/material';
 import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
-import { CreateNewWrapper } from './components/CreateNewWrapper';
-import { DeleteWrapper } from './components/DeleteWrapper';
-import { SchemaSelect } from './components/SchemaSelect';
-import { XSDUpload } from './components/XSDUpload';
-import { datamodelPath } from '../../api/paths';
 import classes from './DataModelling.module.css';
 import { useTranslation } from 'react-i18next';
+import { JsonSchema } from 'app-shared/types/JsonSchema';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   org: string;
@@ -48,21 +44,20 @@ export function DataModelling({
   org,
   repo,
   createPathOption = false,
-}: IDataModellingContainerProps): JSX.Element {
+}: IDataModellingContainerProps): ReactNode {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const jsonSchemaState = useSelector((state: any) => {
     const { error, saving } = state.dataModelling;
     return { error, saving };
   });
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
-  const [selectedOption, setSelectedOption] = React.useState(undefined);
-  const [createNewOpen, setCreateNewOpen] = React.useState(false);
+  const [selectedOption, setSelectedOption] = useState(undefined);
+  const [createNewOpen, setCreateNewOpen] = useState(false);
 
-  const uploadedOrCreatedFileName = React.useRef(null);
-  const prevFetchedOption = React.useRef(null);
+  const uploadedOrCreatedFileName = useRef(null);
+  const prevFetchedOption = useRef(null);
 
   const modelNames =
     metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
@@ -102,8 +97,9 @@ export function DataModelling({
     }
   }, [selectedOption, dispatch, org, repo]);
 
-  const handleSaveSchema = (schema: any) =>
+  const handleSaveSchema = (schema: JsonSchema) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
+
   const handleDeleteSchema = () => {
     dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
     // Needs to reset prevFetchedOption when deleting the data model.
@@ -117,7 +113,7 @@ export function DataModelling({
     setCreateNewOpen(false);
   };
 
-  const handleXSDUploaded = (filename: string) => {
+  const handleXsdUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
     uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
@@ -132,8 +128,6 @@ export function DataModelling({
 
   const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
   const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
-
-  const shouldDisplayLandingPage = !jsonSchema && hideIntroPage;
 
   return (
     <>
@@ -172,48 +166,34 @@ export function DataModelling({
       <SchemaEditorApp
         editMode={editMode}
         toggleEditMode={toggleEditMode}
-        schema={jsonSchema}
+        modelPath={selectedOption?.value?.repositoryRelativeUrl}
+        name={selectedOption?.label}
         schemaState={jsonSchemaState}
         onSaveSchema={handleSaveSchema}
-        saveUrl={datamodelPath(org, repo, selectedOption?.value?.repositoryRelativeUrl)}
-        name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
+        toolbarProps={{
+          handleDeleteSchema,
+          handleCreateSchema,
+          modelNames,
+          selectedOption,
+          setSelectedOption,
+          createPathOption,
+          createNewOpen,
+          handleXsdUploaded,
+          setCreateNewOpen,
+          metadataOptions,
+        }}
         LandingPagePanel={
-          shouldDisplayLandingPage && (
+          hideIntroPage && (
             <LandingPagePanel
               org={org}
               repo={repo}
-              handleXSDUploaded={handleXSDUploaded}
+              handleXSDUploaded={handleXsdUploaded}
               handleCreateModelClick={handleCreateNewFromLandingPage}
             />
           )
         }
-      >
-        <CreateNewWrapper
-          createAction={handleCreateSchema}
-          dataModelNames={modelNames}
-          createPathOption={createPathOption}
-          disabled={shouldDisplayLandingPage}
-          open={createNewOpen}
-          setOpen={setCreateNewOpen}
-        />
-        <XSDUpload
-          onXSDUploaded={handleXSDUploaded}
-          org={org}
-          repo={repo}
-          disabled={shouldDisplayLandingPage}
-        />
-        <SchemaSelect
-          selectedOption={selectedOption}
-          onChange={setSelectedOption}
-          options={metadataOptions}
-          disabled={shouldDisplayLandingPage}
-        />
-        <DeleteWrapper
-          schemaName={selectedOption?.value && selectedOption?.label}
-          deleteAction={handleDeleteSchema}
-        />
-      </SchemaEditorApp>
+      />
     </>
   );
 }

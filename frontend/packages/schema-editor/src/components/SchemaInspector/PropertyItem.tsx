@@ -1,7 +1,5 @@
 import type { ChangeEventHandler, FocusEventHandler, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { setRequired } from '../../features/editor/schemaEditorSlice';
 import { TextField } from '@digdir/design-system-react';
 import { Checkbox, Select } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
@@ -10,6 +8,9 @@ import { IconImage } from '../common/Icon';
 import { getTypeOptions } from './helpers/options';
 import type { FieldType } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { setRequired } from '@altinn/schema-model';
 
 export interface IPropertyItemProps {
   fullPath: string;
@@ -37,7 +38,8 @@ export function PropertyItem({
   value,
 }: IPropertyItemProps) {
   const [inputValue, setInputValue] = useState<string>(value || '');
-  const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
 
   useEffect(() => setInputValue(value), [value]);
   const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
@@ -52,8 +54,8 @@ export function PropertyItem({
   const deleteHandler = () => onDeleteField?.(fullPath, value);
 
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
-    dispatch(
-      setRequired({
+    mutate(
+      setRequired(data, {
         path: fullPath,
         required: e.target.checked,
       })

@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -15,6 +15,12 @@ import {
   Keyword,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { renderWithProviders } from '../../test/renderWithProviders';
+import { queryClientMock } from '../../test/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { getSavedModel } from '../../test/test-utils';
+
+const user = userEvent.setup();
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -39,29 +45,44 @@ const texts = {
   'schema_editor.minLength': 'Minimal lengde',
 };
 
+const org = 'org';
+const app = 'app';
+const modelPath = 'test';
+const saveDatamodel = jest.fn();
+
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
   const store = configureStore()({
-    uiSchema: uiSchemaMap,
     selectedDefinitionNodeId: selectedItem?.pointer,
     selectedEditorTab: 'definitions',
   });
-  const user = userEvent.setup();
 
-  render(
+  queryClientMock.setQueryData(
+    [QueryKey.Datamodel, org, app, modelPath],
+    uiSchemaMap,
+  )
+
+  return renderWithProviders({
+    state: {
+      selectedDefinitionNodeId: selectedItem?.pointer,
+      selectedEditorTab: 'definitions',
+    },
+    appContextProps: { modelPath },
+    servicesContextProps: { saveDatamodel }
+  })(
     <Provider store={store}>
       <SchemaInspector selectedItem={selectedItem} />
     </Provider>
   );
-
-  return { store, user };
 };
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('SchemaInspector', () => {
-  test('dispatches correctly when entering text in textboxes', async () => {
-    const { store, user } = renderSchemaInspector(
+  afterEach(jest.clearAllMocks);
+
+  it('Saves datamodel when entering text in textboxes', async () => {
+    renderSchemaInspector(
       mockUiSchema,
       getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
     );
@@ -77,12 +98,8 @@ describe('SchemaInspector', () => {
       await act(() => user.type(textbox, 'new-value'));
       await act(() => user.tab());
     }
-    const actions = store.getActions();
-    expect(actions.length).toBeGreaterThanOrEqual(1);
-    const actionTypes = actions.map((a) => a.type);
-    expect(actionTypes).toContain('schemaEditor/setPropertyName');
-    expect(actionTypes).toContain('schemaEditor/setTitle');
-    expect(actionTypes).toContain('schemaEditor/setDescription');
+
+    expect(saveDatamodel).toHaveBeenCalled();
   });
 
   test('renders no item if nothing is selected', () => {
@@ -91,30 +108,32 @@ describe('SchemaInspector', () => {
     expect(textboxes).toHaveLength(0);
   });
 
-  test('dispatches correctly when changing restriction value', async () => {
-    const { store } = renderSchemaInspector(
-      mockUiSchema,
-      getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
-    );
+  it('Saves datamodel correctly when changing restriction value', async () => {
+    const pointer = '#/$defs/Kommentar2000Restriksjon';
+
+    renderSchemaInspector(mockUiSchema, getMockSchemaByPath(pointer));
 
     const minLength = '100';
     const maxLength = '666';
 
     const minLengthTextField = await screen.findByLabelText(texts['schema_editor.minLength']);
-    fireEvent.change(minLengthTextField, { target: { value: minLength } });
-    fireEvent.blur(minLengthTextField);
+    await act(() => user.clear(minLengthTextField));
+    await act(() => user.type(minLengthTextField, minLength));
+    await act(() => user.tab());
+
+    expect(saveDatamodel).toHaveBeenCalled();
+    let updatedModel = getSavedModel(saveDatamodel,3);
+    let updatedNode = getNodeByPointer(updatedModel, pointer);
+    expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(texts['schema_editor.maxLength']);
-    fireEvent.change(maxLengthTextField, { target: { value: maxLength } });
-    fireEvent.blur(maxLengthTextField);
+    await act(() => user.clear(maxLengthTextField));
+    await act(() => user.type(maxLengthTextField, maxLength));
+    await act(() => user.tab());
 
-    const actions = store.getActions();
-    expect(actions).toHaveLength(2);
-
-    expect(actions[0].type).toContain('schemaEditor');
-    expect(actions[0].payload.restrictions).toEqual(expect.objectContaining({ minLength }));
-    expect(actions[1].type).toContain('schemaEditor');
-    expect(actions[1].payload.restrictions).toEqual(expect.objectContaining({ maxLength }));
+    updatedModel = getSavedModel(saveDatamodel,7);
+    updatedNode = getNodeByPointer(updatedModel, pointer);
+    expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
 
   test('Adds new object field when pressing the enter key', async () => {
@@ -126,11 +145,11 @@ describe('SchemaInspector', () => {
     testUiSchema.push(parentNode);
     const childNode = createChildNode(parentNode, 'abc', false);
     testUiSchema.push(childNode);
-    const { store, user } = renderSchemaInspector(testUiSchema, parentNode);
+    renderSchemaInspector(testUiSchema, parentNode);
     await act(() => user.click(screen.queryAllByRole('tab')[1]));
     await act(() => user.click(screen.getByDisplayValue('abc')));
     await act(() => user.keyboard('{Enter}'));
-    expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 
   test('Adds new valid value field when pressing the enter key', async () => {
@@ -139,10 +158,10 @@ describe('SchemaInspector', () => {
     item.fieldType = FieldType.String;
     item.enum = ['valid value'];
     testUiSchema.push(item);
-    const { store, user } = renderSchemaInspector(testUiSchema, item);
+    renderSchemaInspector(testUiSchema, item);
     await act(() => user.click(screen.queryAllByRole('tab')[1]));
     await act(() => user.click(screen.getByDisplayValue('valid value')));
     await act(() => user.keyboard('{Enter}'));
-    expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 });

@@ -7,24 +7,28 @@ import {
   Capabilites,
   CombinationKind,
   FieldType,
-  getCapabilities,
-  getNameFromPointer,
   Keyword,
   ObjectKind,
+  addCombinationItem,
+  addProperty,
+  deleteNode,
+  getCapabilities,
+  getNameFromPointer,
   pointerIsDefinition,
+  promoteProperty,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
-  addCombinationItem,
-  addProperty,
-  deleteCombinationItem,
-  deleteProperty,
   navigateToType,
-  promoteProperty,
+  removeSelection,
+  setSelectedAndFocusedNode,
+  setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
 export interface SchemaItemLabelProps {
   editMode: boolean;
@@ -52,8 +56,11 @@ export const SchemaItemLabel = ({
 }: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
 
-  // Simple wrapper to avoid repeating ourself...
+
+  // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
     return (e: SyntheticEvent, arg?: any) => {
       e.stopPropagation();
@@ -62,15 +69,15 @@ export const SchemaItemLabel = ({
     };
   };
 
-  const handleGoToType = wrapper(() =>
-    dispatch(navigateToType({ pointer: selectedNode.reference }))
-  );
-  const handleConvertToReference = wrapper(() =>
-    dispatch(promoteProperty({ path: selectedNode.pointer }))
-  );
-  const handleConvertToField = wrapper(() =>
-    dispatch(promoteProperty({ path: selectedNode.pointer }))
-  );
+  const handleGoToType = wrapper(() => {
+    dispatch(navigateToType({ pointer: selectedNode.reference }));
+  });
+  const handleConvertToReference = wrapper(() => {
+    mutate(promoteProperty(data, selectedNode.pointer));
+  });
+  const handleConvertToField = wrapper(() => {
+    mutate(promoteProperty(data, selectedNode.pointer));
+  });
   const handleCloseContextMenu = wrapper(() => undefined);
 
   const handleToggleContextMenuClick = (e: SyntheticEvent) => {
@@ -90,15 +97,26 @@ export const SchemaItemLabel = ({
     };
     const { pointer } = selectedNode;
     selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(addCombinationItem({ pointer, props }))
-      : dispatch(addProperty({ pointer, props }));
+      ? mutate(
+        addCombinationItem(data, {
+          pointer,
+          props,
+          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer))
+        })
+      )
+      : mutate(
+        addProperty(data, {
+          pointer,
+          props,
+          callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer))
+        })
+      );
   });
 
-  const handleDeleteClick = wrapper(() =>
-    selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(deleteCombinationItem({ path: selectedNode.pointer }))
-      : dispatch(deleteProperty({ path: selectedNode.pointer }))
-  );
+  const handleDeleteClick = wrapper(() => {
+    mutate(deleteNode(data, selectedNode.pointer));
+    dispatch(removeSelection(selectedNode.pointer));
+  });
 
   const isArray = selectedNode.isArray || refNode?.isArray;
 
@@ -141,6 +159,7 @@ export const SchemaItemLabel = ({
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'
+        title={translate('open_action_menu')}
         onClick={handleToggleContextMenuClick}
         icon={<MenuElipsisVerticalIcon />}
         variant={ButtonVariant.Quiet}
