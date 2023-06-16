@@ -59,11 +59,38 @@ export const mapResourceListBackendResultToResourceList = (
   // TODO - Find out the type it should be assigned as, and how to handle the languages
   const resourcesResult: any[] = res as any[];
 
-  return resourcesResult.map((r: any, i: number) => ({
-    name: r.title.nb,
-    createdBy: 'Kåre Fredriksen', // TODO
-    dateChanged: '08.06.2023', // TODO
-    hasPolicy: i % 2 === 0, // TODO
-    resourceId: r.identifier
+  return sortByDateAndMap(resourcesResult);
+}
+
+/**
+ * Maps a string from the format sent from backend, e.g.,
+ * '2023-06-14T13:35:00+02:00' to dd.mm.yyyy.
+ *
+ * @param dateString the string to map
+ *
+ * @returns a formatted date
+ */
+const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString().replaceAll('/', '.');
+}
+
+/**
+ * Sorts a resource list by the date so the newest is at the top, then maps
+ * the object correctly.
+ *
+ * @param resourceList the list to sort and map
+ *
+ * @returns the sorted and mapped list
+ */
+const sortByDateAndMap = (resourceList: any[]): ResourceType[] => {
+  const sorted =  resourceList.sort((a, b) => {
+    return new Date(b.lastChanged.replaceAll('.', '/')).getTime() - new Date(a.lastChanged.replaceAll('.', '/')).getTime()
+  })
+
+  return sorted.map(r => ({
+    ...r,
+    lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
+    title: r.title.nb // TODO
   }))
 }

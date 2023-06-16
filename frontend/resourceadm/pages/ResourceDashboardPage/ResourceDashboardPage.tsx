@@ -53,7 +53,8 @@ export const ResourceDashboardPage = () => {
     setLoading(true);
 
     get(getResourcesUrlBySelectedContext(selectedContext))
-      .then((res: any) => {
+      .then((res: unknown) => {
+        console.log(res);
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
       })
@@ -74,7 +75,7 @@ export const ResourceDashboardPage = () => {
    * Filter the list based on what is typed in the search box
    */
   const filteredTableData = resourceList.filter((resource: ResourceType) =>
-    resource.name.toLowerCase().includes(searchValue.toLocaleLowerCase())
+    resource.title.toLowerCase().includes(searchValue.toLocaleLowerCase())
   );
 
   const navigate = useNavigate();
@@ -119,7 +120,7 @@ export const ResourceDashboardPage = () => {
     return (
       <>
         <h2 className={classes.subheader}>{`Alle ressurser (${resourceList.length})`}</h2>
-        <ResourceTable list={filteredTableData} isSortedByNewest={true} />
+        <ResourceTable list={filteredTableData} />
       </>
     );
   };

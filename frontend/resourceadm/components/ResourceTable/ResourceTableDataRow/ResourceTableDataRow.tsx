@@ -28,13 +28,13 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
   return (
     <tr>
       <td className={`${classes.tableDataXLarge} ${classes.tableData}`}>
-        <p className={classes.tableDataText}>{resource.name}</p>
+        <p className={classes.tableDataText}>{resource.title}</p>
       </td>
       <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
         <p className={classes.tableDataText}>{resource.createdBy}</p>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData} ${classes.tableDataDate}`}>
-        <p className={classes.tableDataText}>{resource.dateChanged}</p>
+        <p className={classes.tableDataText}>{resource.lastChanged}</p>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <ResourceTableDataChip hasPolicy={resource.hasPolicy} />
@@ -46,7 +46,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
           icon={<PencilWritingIcon title='Rediger ressurs' />}
           iconPlacement='right'
           onClick={() =>
-            navigate(getResourcePageURL(selectedContext, repo, resource.resourceId, 'about'))
+            navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'))
           }
         >
           Rediger
