@@ -321,11 +321,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     AllowedContentTypes = new List<string>() { "application/xml" },
                     MaxCount = 1,
                     MinCount = 1,
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef },
                 };
                 application.DataTypes.Add(logicElement);
             }
 
-            logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
+            if (logicElement.AppLogic == null)
+            {
+                logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
+            }
         }
 
         private static string SerializeJson(Json.Schema.JsonSchema jsonSchema)
