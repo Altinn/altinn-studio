@@ -14,7 +14,7 @@ describe('Formatting', () => {
       .should('have.css', 'border-bottom', '1px dashed rgb(148, 148, 148)');
     cy.get(appFrontend.changeOfName.mobilenummer).type('44444444');
     cy.get(appFrontend.changeOfName.mobilenummer).should('have.value', '+47 444 44 444');
-    cy.gotoAndComplete('changename');
+    cy.fillOut('changename');
     cy.get(appFrontend.backButton).should('be.visible');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton).click();

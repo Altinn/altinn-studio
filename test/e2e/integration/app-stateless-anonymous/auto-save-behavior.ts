@@ -9,7 +9,7 @@ describe('Auto save behavior', () => {
       postFormDataCounter++;
     }).as('putFormData');
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, null);
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { user: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
     cy.wait('@putFormData').then(() => {
@@ -30,7 +30,7 @@ describe('Auto save behavior', () => {
       postFormDataCounter++;
     }).as('putFormData');
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, null);
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { user: null });
 
     cy.get(appFrontend.stateless.name).type('Per');
     // Doing a hard wait to be sure no request is sent to backend

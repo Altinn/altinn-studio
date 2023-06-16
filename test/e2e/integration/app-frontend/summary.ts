@@ -32,7 +32,7 @@ describe('Summary', () => {
       });
 
     cy.gotoNavPage('form');
-    cy.gotoAndComplete('changename');
+    cy.fillOut('changename');
     cy.gotoNavPage('summary');
     cy.get(appFrontend.backButton).should('be.visible');
 
@@ -165,7 +165,7 @@ describe('Summary', () => {
     cy.get('[data-testid=summary-group-component] > div').last().should('contain.text', texts.emptySummary);
     cy.gotoNavPage('prefill');
 
-    cy.gotoAndComplete('group');
+    cy.fillOut('group');
 
     cy.get(appFrontend.group.mainGroupSummary)
       .should('have.length', 1)
@@ -394,7 +394,7 @@ describe('Summary', () => {
       cy.get(appFrontend.changeOfName.newFirstName).type(`Hello world`);
       cy.get(appFrontend.changeOfName.newLastName).clear();
       cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
-      cy.get(appFrontend.nextButton).clickAndGone();
+      cy.get(appFrontend.nextButton).click();
 
       if (trigger === undefined) {
         cy.navPage('summary').should('have.attr', 'aria-current', 'page');
@@ -416,7 +416,7 @@ describe('Summary', () => {
 
         cy.gotoNavPage('form');
         cy.get(appFrontend.changeOfName.newLastName).type('a');
-        cy.get(appFrontend.nextButton).clickAndGone();
+        cy.get(appFrontend.nextButton).click();
       }
 
       if (trigger === Triggers.ValidateAllPages) {

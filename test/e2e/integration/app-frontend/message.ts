@@ -8,14 +8,11 @@ const appFrontend = new AppFrontend();
 describe('Message', () => {
   const instanceIdExpr = getInstanceIdRegExp();
 
-  before(() => {
+  it('Attachments List displays correct number of attachments', () => {
     cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createdInstance');
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
-  });
-
-  it('Attachments List displays correct number of attachments', () => {
     cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
     cy.wait('@createdInstance').then((xhr) => {
       const instanceMetadata = xhr.response?.body;

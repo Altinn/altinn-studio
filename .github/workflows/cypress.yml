@@ -19,11 +19,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  altinn-app-frontend-test:
+  internal:
     if: |
-     github.repository_owner == 'Altinn' &&
-     (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-     (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+      github.repository_owner == 'Altinn' &&
+      (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
 
     runs-on: ubuntu-latest
     strategy:
@@ -41,7 +41,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -61,15 +61,18 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Verify cypress and run tests
+      - name: Run tests
+        env:
+          CYPRESS_PROJECT_ID: y2jhp6
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+          PERCY_PARALLEL_TOTAL: 3
+          PERCY_PARALLEL_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
         run: "
           yarn run cy:verify\n
-          export CYPRESS_PROJECT_ID=y2jhp6\n
-          export CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}\n
-          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}\n
-          export PERCY_TOKEN=${{ secrets.PERCY_TOKEN }}\n
-          bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
-          bash -c 'npx percy exec -- yarn run cy:test:all:headless
+          bash -c 'yarn serve 8080 >/dev/null &'\n
+          bash -c 'npx percy exec --parallel -- yarn run cy:test:all:headless
             --env environment=tt02
             --record
             --parallel
@@ -84,7 +87,7 @@ jobs:
           name: redux-state-history
           path: test/redux-history/*.json
 
-  altinn-app-frontend-test-on-fork-pr:
+  external:
     if: |
      github.repository_owner == 'Altinn' &&
      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
@@ -101,7 +104,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -124,7 +127,7 @@ jobs:
       - name: Verify cypress and run tests
         run: "
           yarn run cy:verify\n
-          bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
+          bash -c 'yarn serve 8080 >/dev/null &'\n
           bash -c 'yarn run cy:test:all:headless
               --config watchForFileChanges=false
               --env environment=tt02'

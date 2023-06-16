@@ -46,49 +46,47 @@ describe('Validation', () => {
     );
   });
 
-  it('Custom field validation - error', () => {
+  it('Custom field validation - warning/info/success', () => {
     cy.goto('changename');
-    cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
-    cy.wait('@validateData');
+
+    // Error
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName))
       .should('have.text', texts.testIsNotValidValue)
       .then((error) => {
         cy.wrap(error).find('a[href="https://www.altinn.no/"]').should('exist');
       });
-  });
 
-  it('Soft validation - warning', () => {
-    cy.goto('changename');
-    cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newMiddleName).type('test');
-    cy.wait('@validateData');
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName, 'warning')).should(
-      'have.text',
-      texts.testIsNotValidValue,
-    );
-  });
+    const validationTypeMap = {
+      warning: {
+        value: 'test',
+        message: texts.testIsNotValidValue,
+      },
+      info: {
+        value: 'info',
+        message: texts.infoMessage,
+      },
+      success: {
+        value: 'success',
+        message: texts.successMessage,
+      },
+    };
 
-  it('Soft validation - info', () => {
-    cy.goto('changename');
-    cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newMiddleName).type('info');
-    cy.wait('@validateData');
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName, 'info')).should(
-      'have.text',
-      texts.infoMessage,
-    );
-  });
+    for (const [type, { value, message }] of Object.entries(validationTypeMap)) {
+      const realType = type as keyof typeof validationTypeMap;
+      const field = appFrontend.changeOfName.newMiddleName;
+      cy.get(field).clear();
+      cy.get(field).type(value);
+      cy.get(appFrontend.fieldValidation(field, realType)).should('have.text', message);
 
-  it('Soft validation - success', () => {
-    cy.goto('changename');
-    cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newMiddleName).type('success');
-    cy.wait('@validateData');
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName, 'success')).should(
-      'have.text',
-      texts.successMessage,
-    );
+      // Should not have any other messages
+      for (const otherType of Object.keys(validationTypeMap)) {
+        const realOtherType = otherType as keyof typeof validationTypeMap;
+        if (realOtherType !== realType) {
+          cy.get(appFrontend.fieldValidation(field, realOtherType)).should('not.exist');
+        }
+      }
+    }
   });
 
   it('Page validation on clicking next', () => {
@@ -110,10 +108,10 @@ describe('Validation', () => {
 
     // Make sure all the buttons in the form are now inside errorReport, not outside of it.
     // - 4 of the button roles belong to each of the errors in the report
-    // - 3 of the button roles belong to the buttons on the bottom of the form (print, next, jump)
+    // - 2 of the button roles belong to the buttons on the bottom of the form (print, next)
     cy.get(appFrontend.errorReport)
       .findAllByRole('button')
-      .should('have.length', 4 + 3);
+      .should('have.length', 4 + 2);
 
     const lastNameError = appFrontend.fieldValidation(appFrontend.changeOfName.newLastName);
     cy.get(lastNameError).should('exist').should('not.be.inViewport');
@@ -157,7 +155,8 @@ describe('Validation', () => {
       'not.contain.text',
       appFrontend.changeOfName.uploadWithTag.unwantedChar,
     );
-    cy.get('#toNextTask').click();
+    cy.gotoNavPage('grid');
+    cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('not.contain.text', appFrontend.changeOfName.uploadWithTag.unwantedChar);
   });
 
@@ -211,7 +210,8 @@ describe('Validation', () => {
 
     // Clicking the submit button should display all validation errors on the bottom, and clicking them
     // should move focus to the correct elements in the form.
-    cy.get('#toNextTask').click();
+    cy.gotoNavPage('grid');
+    cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).find('li').should('have.length', expectedErrors.length);
     for (const { text, shouldFocus } of expectedErrors) {
       cy.get(appFrontend.errorReport).should('contain.text', text);

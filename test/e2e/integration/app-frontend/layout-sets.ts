@@ -1,7 +1,3 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-const appFrontend = new AppFrontend();
-
 it('should be possible to render the app even if layout-sets are not configured', () => {
   // This test makes sure the fallback mechanism for missing layout-sets still works.
   // All of our test-apps have layout-sets configured, but there are many real apps that do not. For this reason
@@ -12,9 +8,6 @@ it('should be possible to render the app even if layout-sets are not configured'
     headers: { location: '/ttd/frontend-test/api/layouts/message' },
   });
 
-  cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createdInstance');
-  cy.intercept('**/active', []).as('noActiveInstances');
-  cy.startAppInstance(appFrontend.apps.frontendTest);
-  cy.get(appFrontend.closeButton).should('be.visible');
+  cy.goto('message');
   cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
 });

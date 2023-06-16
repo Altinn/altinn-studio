@@ -6,10 +6,11 @@ import 'test/e2e/support/app-frontend';
 import 'test/e2e/support/custom';
 import 'test/e2e/support/start-app-instance';
 import 'test/e2e/support/auth';
+import 'test/e2e/support/navigation';
+import 'test/e2e/support/formFiller';
 import '@percy/cypress';
 
 import { chaiExtensions } from 'test/e2e/support/chai-extensions';
-import { resetNavigation } from 'test/e2e/support/navigation';
 
 before(() => {
   chai.use(chaiExtensions);
@@ -17,7 +18,6 @@ before(() => {
 
 const failedCaseTable = {};
 afterEach(function () {
-  resetNavigation();
   if (this.currentTest?.state === 'failed') {
     const testName = this.currentTest.fullTitle();
 

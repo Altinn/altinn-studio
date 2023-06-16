@@ -8,7 +8,7 @@ describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
     let putFormDataCounter = 0;
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
-    cy.goto('group', 'fast').then(() => {
+    cy.goto('group').then(() => {
       cy.intercept('PUT', '**/data/**', () => {
         putFormDataCounter++;
       }).as('putFormData');
@@ -25,11 +25,12 @@ describe('Auto save behavior', () => {
       });
     });
   });
+
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
     let putFormDataCounter = 0;
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
 
-    cy.goto('group', 'with-data').then(() => {
+    cy.goto('group').then(() => {
       cy.intercept('PUT', '**/data/**', () => {
         putFormDataCounter++;
       }).as('putFormData');
@@ -83,7 +84,7 @@ describe('Auto save behavior', () => {
       },
     );
 
-    cy.goto('group', 'with-data');
+    cy.goto('group');
     cy.intercept('POST', '**/pages/order*').as('getPageOrder');
     cy.intercept('PUT', '**/data/**').as('putFormData');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);

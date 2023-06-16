@@ -9,7 +9,7 @@ describe('Double signing', () => {
   });
 
   it('accountant -> manager -> auditor', () => {
-    cy.startAppInstance(appFrontend.apps.signingTest, 'accountant');
+    cy.startAppInstance(appFrontend.apps.signingTest, { user: 'accountant' });
     cy.assertUser('accountant');
 
     cy.get(appFrontend.signingTest.incomeField).type('4567');
@@ -42,7 +42,7 @@ describe('Double signing', () => {
   });
 
   it('manager -> manager -> auditor', () => {
-    cy.startAppInstance(appFrontend.apps.signingTest, 'manager');
+    cy.startAppInstance(appFrontend.apps.signingTest, { user: 'manager' });
     cy.assertUser('manager');
 
     cy.get(appFrontend.signingTest.incomeField).type('4567');

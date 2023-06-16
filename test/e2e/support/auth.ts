@@ -41,6 +41,7 @@ const userCredentials: { [K in user]: UserInfo } = {
 };
 
 export const getDisplayName = (user: user) => userCredentials[user].displayName;
+export const getLocalPartyId = (user: user) => userCredentials[user].localPartyId;
 
 export function login(user: user) {
   if (Cypress.env('environment') === 'local') {
