@@ -1,6 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
-import type { JsonSchema } from '@altinn/schema-editor/types';
 import { del, get, post, put as networkPut } from '../../../utils/networking';
 import type { IDataModelAction } from './dataModellingSlice';
 import {
@@ -24,6 +23,7 @@ import {
   datamodelPath,
 } from '../../../api/paths';
 import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;

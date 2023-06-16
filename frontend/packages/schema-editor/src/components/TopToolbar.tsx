@@ -14,7 +14,8 @@ import {
 import { GenerateSchemaState } from 'app-shared/types/global';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { JsonSchema } from '@altinn/schema-editor/types';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
+
 
 export interface TopToolbarProps {
   Toolbar: JSX.Element;

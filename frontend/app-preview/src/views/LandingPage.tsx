@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -34,6 +34,8 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
+  const { data: instanceId } = useInstanceIdQuery(org, app);
+  const selectedLayoutInEditor = localStorage.getItem(instanceId);
   const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
   const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
     localSelectedViewSize ?? 'desktop'
@@ -71,7 +73,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             app={app}
             user={user}
             repository={repository}
-            buttonActions={appPreviewButtonActions(org, app)}
+            buttonActions={appPreviewButtonActions(org, app, selectedLayoutInEditor)}
             variant={variant}
             subMenuContent={<AppPreviewSubMenu setViewSize={setViewSize} viewSize={viewSize} />}
           />

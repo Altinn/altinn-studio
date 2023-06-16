@@ -4,7 +4,7 @@ import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { getTopBarAppPreviewMenu, menu } from './AppPreviewBarConfig';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { SubPreviewMenuContent } from './AppPreviewBarConfig';
+import { SubPreviewMenuRightContent } from './AppPreviewBarConfig';
 
 describe('getTopBarAppPreviewMenu', () => {
   const { t } = mockUseTranslation();
@@ -21,8 +21,8 @@ describe('getTopBarAppPreviewMenu', () => {
     );
   });
 
-  it('should render enders all buttons', () => {
-    render(<SubPreviewMenuContent />);
+  it('should render all buttons on right side', () => {
+    render(<SubPreviewMenuRightContent />);
 
     expect(screen.getByTestId('restartBtn'));
     expect(screen.getByTestId('showBtn'));

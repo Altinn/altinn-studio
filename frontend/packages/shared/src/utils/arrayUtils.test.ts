@@ -3,6 +3,7 @@ import {
   arrayIntersection,
   insertArrayElementAtPos,
   last,
+  mapByKey,
   prepend,
   removeDuplicates,
   removeItemByValue,
@@ -113,6 +114,13 @@ describe('arrayUtils', () => {
       expect(arrayIntersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
       expect(arrayIntersection([1, 2, 3], [3, '4', 2])).toStrictEqual([2, 3]);
       expect(arrayIntersection([1, 2, 3], [1, 2, 3])).toStrictEqual([1, 2, 3]);
+    });
+  });
+
+  describe('mapByKey', () => {
+    it('Returns an array of values mapped by the given key', () => {
+      const array = [{ a: 1, b: 2 }, { a: 2, b: 'c' }, { a: 3, b: true, c: 'abc' }];
+      expect(mapByKey(array, 'a')).toEqual([1, 2, 3]);
     });
   });
 });

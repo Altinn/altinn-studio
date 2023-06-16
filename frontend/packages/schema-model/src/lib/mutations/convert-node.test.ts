@@ -88,15 +88,15 @@ describe('convert-node', () => {
 
     it('Converts a reference with children to a normal field', () => {
       const uiSchemaNodes = buildUiSchema({
-        [Keyword.Properties]: {
+        properties: {
           email: { [Keyword.Reference]: makePointer(Keyword.Definitions, 'emailType') },
         },
-        [Keyword.Definitions]: {
+        $defs: {
           emailType: {
-            [Keyword.Type]: FieldType.Object,
-            [Keyword.Properties]: {
-              givenName: FieldType.String,
-              familyName: FieldType.String,
+            type: FieldType.Object,
+            properties: {
+              givenName: { type: FieldType.String },
+              familyName: { type: FieldType.String },
             },
           },
         },

@@ -12,6 +12,7 @@ import { ILayoutSettings, IRepository, ITextResourcesObjectFormat } from 'app-sh
 import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 const headers = {
   Accept: 'application/json',
@@ -33,6 +34,7 @@ export const deleteLanguageCode = (org: string, app: string, language: string) =
 export const logout = () => post(userLogoutPath());
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
+export const saveDatamodel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(modelPath, payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: ExternalFormLayout) => post<void, ExternalFormLayout>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
 export const saveRuleConfig = (org: string, app: string, layoutSetName: string, payload: RuleConfig) => post<RuleConfig>(ruleConfigPath(org, app, layoutSetName), payload);

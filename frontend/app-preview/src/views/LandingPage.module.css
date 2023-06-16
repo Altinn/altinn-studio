@@ -9,20 +9,6 @@
   --component-button-outline-primary-color-text-default: #1e2b3c !important;
 }
 
-.leftSubHeaderButtons {
-  flex-direction: row;
-  text-align: right;
-  align-items: center;
-  display: flex;
-  gap: 16px;
-  justify-content: flex-end;
-  flex: 3;
-  --component-button-quiet-primary-color-background-default: none;
-  --component-button-quiet-primary-color-border-default: none;
-  --component-button-quiet-primary-color-border-hover: #004e95;
-  --component-button-quiet-primary-color-text-default: #ffffff;
-}
-
 .iframeDesktop {
   height: 100%;
   width: 100%;
@@ -52,8 +38,4 @@
   width: 100%;
   background-color: #efefef;
   z-index: 1;
-}
-
-.backToEditorBtn {
-  width: 18vw;
 }

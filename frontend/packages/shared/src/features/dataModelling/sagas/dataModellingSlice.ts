@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Action, PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import type { JsonSchema } from '@altinn/schema-editor/types';
 import type { IDataModelsMetadataState } from './metadata';
 import type { IMetadataOption } from '../functions/types';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;

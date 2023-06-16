@@ -19,6 +19,7 @@ export { removeNodeByPointer } from './lib/mutations/remove-node';
 export { renameNodePointer } from './lib/mutations/rename-node';
 export { convertPropToType } from './lib/mutations/convert-node';
 export * from './lib/mutations/custom-properties';
+export * from './lib/mutations/ui-schema-reducers';
 export { getCapabilities, Capabilites } from './lib/capabilities';
 export {
   getChildNodesByPointer,
