@@ -34,11 +34,7 @@ jobs:
         with:
           languages: javascript
           queries: +security-and-quality
-          query-filters:
-            - exclude:
-                id: js/ml-powered/xss
-            - exclude:
-                id: js/ml-powered/sql-injection
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
