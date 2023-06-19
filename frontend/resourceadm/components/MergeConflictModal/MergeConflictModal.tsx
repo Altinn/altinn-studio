@@ -79,7 +79,7 @@ export const MergeConflictModal = ({
             text='Last ned endret fil(er)'
             icon={<Download title='Download changed file' fontSize='1.3rem' />}
           />
-          <div className={classes.linkDivier}>
+          <div className={classes.linkDivider}>
             <Link
               href={repoDownloadPath(org, repo, true)}
               text='Last ned hele repoet'
