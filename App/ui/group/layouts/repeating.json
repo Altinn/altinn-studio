@@ -176,7 +176,7 @@
           "title": [
             "if",
             ["equals", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"], null],
-            "2. Endre verdi til",
+            "2\\. Endre verdi til",
             "else",
             "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
           ],
