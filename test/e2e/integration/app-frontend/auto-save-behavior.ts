@@ -1,8 +1,11 @@
+import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { Common } from 'test/e2e/pageobjects/common';
 
 import { Triggers } from 'src/types';
 
 const appFrontend = new AppFrontend();
+const mui = new Common();
 
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
@@ -99,5 +102,71 @@ describe('Auto save behavior', () => {
     // Both pages the 'repeating' and 'hide' pages are now hidden
     cy.get(appFrontend.navMenuCurrent).should('have.text', '2. summary');
     cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+  });
+
+  [Triggers.ValidatePage, Triggers.ValidateAllPages].forEach((trigger) => {
+    it(`should run save before single field validation with navigation trigger ${trigger || 'undefined'}`, () => {
+      cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+      cy.interceptLayout('changename', (component) => {
+        if (component.type === 'NavigationButtons') {
+          component.triggers = trigger ? [trigger] : [];
+        }
+      });
+
+      cy.goto('changename');
+      let putFormDataCounter = 0;
+      cy.intercept('PUT', '**/data/**', () => {
+        putFormDataCounter++;
+      }).as('putFormData');
+
+      // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
+      // message to appear if the field is set to 'test'. Regardless of the trigger on page navigation, if we're saving
+      // the data on page navigation, the error message should appear (because the field is set to trigger it).
+      cy.get(appFrontend.changeOfName.newFirstName).type('test');
+
+      cy.get(appFrontend.changeOfName.newMiddleName).type('Kråka');
+      cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+      cy.get(appFrontend.changeOfName.reasonRelationship).click();
+      cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
+      cy.get(appFrontend.changeOfName.dateOfEffect).siblings().findByRole('button').click();
+      cy.get(mui.selectedDate).click();
+
+      cy.get(appFrontend.nextButton).clickAndGone();
+      cy.wait('@putFormData').then(() => {
+        expect(putFormDataCounter).to.be.eq(1);
+      });
+
+      // None of the triggers should cause the page to change, because all of them should be triggered validation
+      // and stopped by the error message.
+      cy.navPage('form').should('have.attr', 'aria-current', 'page');
+
+      let expectedErrors: string[] = [];
+      if (trigger == Triggers.ValidatePage) {
+        expectedErrors = ['Du må fylle ut nytt etternavn', texts.testIsNotValidValue];
+      } else if (trigger == Triggers.ValidateAllPages) {
+        expectedErrors = [
+          'Du må fylle ut nytt etternavn',
+          texts.testIsNotValidValue,
+          'Må summeres opp til 100%', // Validation on the future 'grid' page
+        ];
+      } else {
+        expectedErrors = [
+          // We don't validate the whole page, but the first name field has a trigger for single field validation,
+          // so that should be triggered when we're saving the data on page navigation.
+          texts.testIsNotValidValue,
+        ];
+      }
+
+      cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', expectedErrors.length);
+      for (const error of expectedErrors) {
+        cy.get(appFrontend.errorReport).should('contain.text', error);
+      }
+
+      cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName))
+        .should('have.text', texts.testIsNotValidValue)
+        .then((error) => {
+          cy.wrap(error).find('a[href="https://www.altinn.no/"]').should('exist');
+        });
+    });
   });
 });

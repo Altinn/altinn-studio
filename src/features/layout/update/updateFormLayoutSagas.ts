@@ -62,6 +62,7 @@ export function* updateCurrentViewSaga({
       const visibleLayouts: string[] | null = yield select(selectLayoutOrder);
       if (visibleLayouts?.includes(uiConfig.currentView)) {
         yield put(FormDataActions.saveLatest({}));
+        yield take(FormDataActions.submitFulfilled);
       }
     } else {
       // When triggering navigation to the next page, we need to make sure there are no unsaved changes. The action to
