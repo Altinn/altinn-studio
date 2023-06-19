@@ -36,7 +36,7 @@
                     <altinn:dataTypesToSign>
                         <altinn:dataType>data</altinn:dataType>
                     </altinn:dataTypesToSign>
-                    <altinn:signatureDataType>signature</altinn:signatureDataType>
+                    <altinn:signatureDataType>signature1</altinn:signatureDataType>
                 </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
@@ -52,7 +52,7 @@
                     <altinn:dataTypesToSign>
                         <altinn:dataType>data</altinn:dataType>
                     </altinn:dataTypesToSign>
-                    <altinn:signatureDataType>signature</altinn:signatureDataType>
+                    <altinn:signatureDataType>signature2</altinn:signatureDataType>
                 </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>

@@ -33,6 +33,28 @@
       "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
+    },
+    {
+      "id": "signature1",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "taskId": "Task_2",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false
+    },
+    {
+      "id": "signature2",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "taskId": "Task_3",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false
     }
   ],
   "partyTypesAllowed": {
