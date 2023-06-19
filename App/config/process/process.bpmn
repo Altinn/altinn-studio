@@ -18,9 +18,9 @@
             <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
             <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
             <bpmn:extensionElements>
-                <altinn:properties>
+                <altinn:taskExtension>
                     <altinn:taskType>data</altinn:taskType>
-                </altinn:properties>
+                </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
         <bpmn:task id="Task_2" name="Confirm1">
@@ -30,8 +30,8 @@
                 <altinn:taskExtension>
                     <altinn:taskType>signing</altinn:taskType>
                     <altinn:actions>
-                        <altinn:action id="reject" />
-                        <altinn:action id="sign" />
+                        <altinn:action>reject</altinn:action>
+                        <altinn:action>sign</altinn:action> 
                     </altinn:actions>
                     <altinn:dataTypesToSign>
                         <altinn:dataType>data</altinn:dataType>
@@ -47,7 +47,7 @@
                 <altinn:taskExtension>
                     <altinn:taskType>signing</altinn:taskType>
                     <altinn:actions>
-                        <altinn:action id="sign" />
+                        <altinn:action>sign</altinn:action> 
                     </altinn:actions>
                     <altinn:dataTypesToSign>
                         <altinn:dataType>data</altinn:dataType>
