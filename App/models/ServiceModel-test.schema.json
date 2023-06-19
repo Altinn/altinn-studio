@@ -9,6 +9,9 @@
     "Radioknapp": {
       "type": "string"
     },
+    "BegrunnelseFrivillig": {
+      "type": "string"
+    },
     "Innledning-grp-9309": {
       "$ref": "#/definitions/Innledning-grp-9309"
     },
@@ -404,6 +407,15 @@
           "$ref": "#/definitions/Begrunnelse-grp-9317"
         },
         "Radioknapp": {
+          "texts": {
+            "LEDE": {
+              "EN": "Radiobutton component for automated test",
+              "NOB": "Radioknapp komponent for automatisert testing"
+            }
+          },
+          "type": "string"
+        },
+        "BegrunnelseFrivillig": {
           "texts": {
             "LEDE": {
               "EN": "Radiobutton component for automated test",

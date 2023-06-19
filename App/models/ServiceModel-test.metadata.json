@@ -9108,6 +9108,31 @@
       "jsonSchemaPointer": "#/definitions/Skjema/properties/Radioknapp",
       "displayString": "Skjema.Radioknapp : [0..1] String"
     },
+    "Skjema.BegrunnelseFrivillig": {
+      "id": "Skjema.BegrunnelseFrivillig",
+      "parentElement": "Skjema",
+      "typeName": "String",
+      "name": "BegrunnelseFrivillig",
+      "dataBindingName": "BegrunnelseFrivillig",
+      "xPath": "/Skjema/BegrunnelseFrivillig",
+      "restrictions": {},
+      "choices": null,
+      "type": "Field",
+      "xsdValueType": "String",
+      "texts": {
+        "Label": "BegrunnelseFrivillig.Label"
+      },
+      "customProperties": {},
+      "maxOccurs": 1,
+      "minOccurs": 0,
+      "xName": "BegrunnelseFrivillig",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/definitions/Skjema/properties/BegrunnelseFrivillig",
+      "displayString": "Skjema.BegrunnelseFrivillig : [0..1] String"
+    },
     "Skjema": {
       "id": "Skjema",
       "parentElement": null,
