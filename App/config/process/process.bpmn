@@ -4,7 +4,7 @@
     xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
     xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
     xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-    xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:altinn="http://altinn.no"
+    xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:altinn="http://altinn.no/process"
     xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Altinn_Data_Signing_Process_Definition"
     targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler"
     exporterVersion="60e1771" modeler:executionPlatform="Camunda Cloud"
@@ -27,27 +27,33 @@
             <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
             <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
             <bpmn:extensionElements>
-                <altinn:properties>
-                    <!-- TODO: What should the task type be? -->
-                    <altinn:taskType>confirmation</altinn:taskType>
+                <altinn:taskExtension>
+                    <altinn:taskType>signing</altinn:taskType>
                     <altinn:actions>
                         <altinn:action id="reject" />
                         <altinn:action id="sign" />
                     </altinn:actions>
-                </altinn:properties>
+                    <altinn:dataTypesToSign>
+                        <altinn:dataType>data</altinn:dataType>
+                    </altinn:dataTypesToSign>
+                    <altinn:signatureDataType>signature</altinn:signatureDataType>
+                </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
         <bpmn:task id="Task_3" name="Confirm2">
             <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
             <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
             <bpmn:extensionElements>
-                <altinn:properties>
-                    <!-- TODO: What should the task type be? -->
-                <altinn:taskType>confirmation</altinn:taskType>
+                <altinn:taskExtension>
+                    <altinn:taskType>signing</altinn:taskType>
                     <altinn:actions>
                         <altinn:action id="sign" />
                     </altinn:actions>
-                </altinn:properties>
+                    <altinn:dataTypesToSign>
+                        <altinn:dataType>data</altinn:dataType>
+                    </altinn:dataTypesToSign>
+                    <altinn:signatureDataType>signature</altinn:signatureDataType>
+                </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
         <bpmn:endEvent id="EndEvent_1">
