@@ -85,7 +85,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
 
   /**
    * Handles the click of the edit button. If we click the edit button
-   * so that is closes the edit field, the id is set to the title.
+   * so that it closes the edit field, the id is set to the title.
    *
    * @param isOpened the value of the button when it is pressed
    */
