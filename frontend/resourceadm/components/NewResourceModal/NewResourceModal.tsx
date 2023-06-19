@@ -108,15 +108,14 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
     >
       <h2 className={classes.modalTitle}>Opprett en ny ressurs</h2>
       <div className={classes.contentDivider} />
-      <p className={classes.text}>
-        Velg et navn for å opprette ressursen din. Endrer dette frem til delegeringsfasen.
-      </p>
+      <p className={classes.text}>Velg et navn for å opprette ressursen din.</p>
       <div className={classes.textfieldWrapper}>
         <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
         <TextField
           placeholder='Ressursnavn (Bokmål)'
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
+          aria-label='Ressursnavn (Bokmål)'
         />
       </div>
       <div className={classes.idWrapper}>
@@ -140,7 +139,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
             variant='outline'
             color={editIdFieldOpen ? 'danger' : 'primary'}
           >
-            {editIdFieldOpen ? 'Stopp redigering' : 'Rediger'}
+            {editIdFieldOpen ? 'Avbryt redigering' : 'Rediger'}
           </Button>
         </div>
       </div>
@@ -152,13 +151,14 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
               placeholder='Tilpasset id navn'
               value={id}
               onChange={(e) => handleIDInput(e.target.value)}
+              aria-label='Tilpasset ID navn'
               // TODO - Potentially show error if ID exists
             />
           </>
         )}
       </div>
       <div className={classes.buttonWrapper}>
-        <div className={classes.firstButton}>
+        <div className={classes.closeButton}>
           <Button onClick={onClose} color='secondary' variant='outline'>
             Avbryt
           </Button>

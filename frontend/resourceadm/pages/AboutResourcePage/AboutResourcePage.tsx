@@ -30,6 +30,7 @@ export const AboutResourcePage = () => {
     // TODO - Split the keyword string into string aray based on the commas
     // Sectors might look like this: https://data.norge.no/reference-data/eu/data-themes
     // Thematcic area might look like this: https://data.norge.no/reference-data/eu/eurovocs
+    // TODO - Validate input
   };
 
   return (
@@ -135,7 +136,7 @@ export const AboutResourcePage = () => {
       <div className={classes.inputWrapper}>
         <Switch isChecked={showInPublic} onToggle={(b: boolean) => setShowInPublic(b)} />
         <p
-          className={showInPublic ? classes.toggleTextActive : classes.toggleTextInActive}
+          className={showInPublic ? classes.toggleTextActive : classes.toggleTextInactive}
         >{`Ressursen ${showInPublic ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
       </div>
       <div className={classes.buttonWrapper}>
