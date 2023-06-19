@@ -159,6 +159,32 @@
         "preselectedOptionIndex": 0
       },
       {
+        "id": "begrunnelsefrivillig",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "BegrunnelseFrivillig"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "BegrunnelseFrivillig"
+        },
+        "options": [
+          {
+            "label": "Ja, jeg gjør dette frivillig",
+            "value": "1"
+          },
+          {
+            "label": "Nei, noen presser meg til å gjøre navnebytte",
+            "value": "2"
+          },
+          {
+            "label": "Vet ikke",
+            "value": "3"
+          }
+        ],
+        "showAsCard": true,
+        "preselectedOptionIndex": 0
+      },
+      {
         "id": "reasonRelationship",
         "type": "TextArea",
         "textResourceBindings": {

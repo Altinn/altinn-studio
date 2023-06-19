@@ -310,6 +310,10 @@
           "dataSource": "dataModel.default"
         }
       ]
+    },
+    {
+      "id": "BegrunnelseFrivillig",
+      "value": "Endrer du navn frivillig?"
     }
   ]
 }

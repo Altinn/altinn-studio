@@ -61,6 +61,11 @@ namespace Altinn.App.Models
         [JsonPropertyName("Radioknapp")]
         public string? Radioknapp { get; set; }
 
+        [XmlElement("BegrunnelseFrivillig")]
+        [JsonProperty("BegrunnelseFrivillig")]
+        [JsonPropertyName("BegrunnelseFrivillig")]
+        public string? BegrunnelseFrivillig { get; set; }
+
         [XmlElement("Adresse")]
         [JsonProperty("Adresse")]
         [JsonPropertyName("Adresse")]
