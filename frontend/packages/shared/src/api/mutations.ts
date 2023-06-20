@@ -45,7 +45,7 @@ export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig)
 export const addRepo = (repoToAdd: AddRepoParams) => post<IRepository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<void, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
-export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetsPath(org, app, layoutSetName));
+export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetsPath(org, app));
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) => del(appMetadataAttachmentPath(org, app), { headers, data: id });
