@@ -6,10 +6,8 @@ import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
 import { useFormLayoutsSelector } from '../hooks';
-import {
-  selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
-} from '../selectors/formLayoutSelectors';
+import {selectedLayoutNameSelector, selectedLayoutSetSelector } from 
+'../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
@@ -51,12 +49,8 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
   const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);
-  const { mutate: updateFormLayout } = useFormLayoutMutation(
-    org,
-    app,
-    layoutName,
-    selectedLayoutSet
-  );
+  const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName,
+    selectedLayoutSet);
 
   useEffect(() => {
     localStorage.setItem('nestedGroupCount', nestedGroupCount.toString());
@@ -109,7 +103,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
     id: string,
     isBaseContainer: boolean,
     disabledDrop: boolean = false,
-    dragHandleRef?: ConnectDragSource
+    dragHandleRef?: ConnectDragSource,
   ) => {
     if (!id) return null;
 
@@ -117,7 +111,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
 
     return (
       <FormContainer
-        container={formId === id ? (form as IFormContainer) : containers[id]}
+        container={formId === id ? form as IFormContainer : containers[id]}
         dragHandleRef={dragHandleRef}
         handleDiscard={handleDiscard}
         handleEdit={handleEdit}
@@ -178,7 +172,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
       className={className}
       onClick={(event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        handleEdit(null);
+        handleEdit(null)
       }}
     >
       <h1 className={classes.pageHeader}>{layoutName}</h1>

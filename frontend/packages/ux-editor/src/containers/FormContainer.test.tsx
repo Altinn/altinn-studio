@@ -15,7 +15,7 @@ describe('FormContainer', () => {
 
   it('Renders children', async () => {
     const childComponentTestid = 'childComponent';
-    const childComponent = <div data-testid={childComponentTestid} />;
+    const childComponent = <div data-testid={childComponentTestid}/>;
     await render({ children: childComponent });
     expect(screen.getByTestId(childComponentTestid)).toBeInTheDocument();
   });

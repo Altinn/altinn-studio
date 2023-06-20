@@ -7,8 +7,8 @@ import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteForm
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { useFormLayoutsSelector } from "../hooks/useFormLayoutsSelector";
+import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
 
 export interface IFormContainerProps {
   children: ReactNode;
@@ -36,32 +36,29 @@ export const FormContainer = ({
   const { org, app } = useParams();
   const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
 
-  const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(
-    org,
-    app,
-    selectedLayoutSetName
-  );
+  const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app,
+    selectedLayoutSetName);
 
-  const handleDeleteFormContainer = useCallback(deleteFormContainer, [deleteFormContainer]);
+  const handleDeleteFormContainer = useCallback(
+    deleteFormContainer,
+    [deleteFormContainer]
+    );
 
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const handleDelete = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>): void => {
-      event.stopPropagation();
-      handleDeleteFormContainer(id);
-      handleDiscard();
-      nestedGroupCount();
-    },
-    [handleDeleteFormContainer, handleDiscard, id, nestedGroupCount]
-  );
+  const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
+    handleDeleteFormContainer(id);
+    handleDiscard();
+    nestedGroupCount();
+  }, [handleDeleteFormContainer, handleDiscard, id]);
 
   return (
     <div
       className={cn(
         classes.wrapper,
         isEditMode && classes.editMode,
-        !isBaseContainer && classes.formGroupWrapper
+        !isBaseContainer && classes.formGroupWrapper,
       )}
       onClick={(event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
