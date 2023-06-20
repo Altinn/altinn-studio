@@ -16,9 +16,9 @@ export const RedirectPage = () => {
       <div className={classes.pageWrapper}>
         { orgIsAlle? (
           <CenterContainer>
-            <h2>Du har en ugyldig URL</h2>
+            <h1>Du har en ugyldig URL</h1>
             <br></br>
-            <h3>Merk! URL = /resourceadm/all/ er ikke gyldig : du må velge en enkelt organisasjon</h3>
+            <p>Merk! URL = /resourceadm/all/ er ikke gyldig : du må velge en enkelt organisasjon</p>
             <br></br>
             <p>
               < a href='/'>Gå tilbake til Dashboard</a>
