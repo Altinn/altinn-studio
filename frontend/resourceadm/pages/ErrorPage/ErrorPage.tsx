@@ -8,11 +8,12 @@ export const ErrorPage = () => {
     <>
       <div className={classes.pageWrapper}>
         <CenterContainer>
-          <h1>
+          <h2>
             Feil i URL
-          </h1>
+          </h2>
 
-          <h5>Du har nådd en ugyldig adresse</h5>
+          <br></br>
+          <h3>Du har nådd en ugyldig adresse</h3>
           <br></br>
 
           <p>

@@ -14,20 +14,20 @@ export const RedirectPage = () => {
   return (
     <>
       <div className={classes.pageWrapper}>
-        { orgIsAlle && (
+        { orgIsAlle? (
           <CenterContainer>
-            <h1>Du har en ugyldig URL</h1>
-
-            <h5>Merk! URL = /resourceadm/all/ er ikke gyldig : du må velge en enkelt organisasjon</h5>
-
+            <h2>Du har en ugyldig URL</h2>
+            <br></br>
+            <h3>Merk! URL = /resourceadm/all/ er ikke gyldig : du må velge en enkelt organisasjon</h3>
+            <br></br>
             <p>
               < a href='/'>Gå tilbake til Dashboard</a>
             </p>
           </CenterContainer>
-        )}
-        { !orgIsAlle && (
+        ): (
           <Navigate to={`${selectedContext}-resources/`} replace={true} />
-        )}
+        )
+      }
       </div>
       <Footer />
     </>
