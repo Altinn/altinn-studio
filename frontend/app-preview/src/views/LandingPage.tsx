@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -15,24 +16,6 @@ import {
 } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
-
-const useLocalStorage = (layout: string) => {
-  const [layoutInStorage, setLayoutInStorage] = useState(localStorage.getItem(layout));
-
-  useEffect(() => {
-    const handleStorageChange = (event) => {
-      if (event.key === layout) {
-        setLayoutInStorage(event.newValue);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [layout]);
-
-  return layoutInStorage;
-};
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -52,32 +35,26 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
+  const { data: user } = useUserQuery();
+  const { data: repository } = useRepoMetadataQuery(org, app);
+  const { data: instanceId } = useInstanceIdQuery(org, app);
+  useLocalStorage(instanceId);
+  const repoType = getRepositoryType(org, app);
+  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
+  const selectedLayoutInEditor = localStorage.getItem(instanceId);
+  const selectedLayoutSetInEditor = localStorage.getItem('layoutSet' + app);
   const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
   const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
     localSelectedViewSize ?? 'desktop'
   );
-  const { data: user } = useUserQuery();
-  const { data: repository } = useRepoMetadataQuery(org, app);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const repoType = getRepositoryType(org, app);
-  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
-  let selectedLayoutInEditor = localStorage.getItem(instanceId);
-  const selectedLayoutSetInEditor = localStorage.getItem('layoutSet' + app);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (layoutSet: string) => {
     localStorage.setItem('layoutSet' + app, layoutSet);
-    //localStorage.setItem('layoutSetInPreview', layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
-  }
-
-  const layoutInPreview = useLocalStorage(instanceId);
-
-  useEffect(() => {
-    selectedLayoutInEditor = localStorage.getItem(instanceId);
-  }, [layoutInPreview]);
+  };
 
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {

@@ -16,8 +16,8 @@ export function ReceiptPageElement() {
   const { t } = useTranslation();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-  const { data: layoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const receiptName = layoutSettings?.receiptLayoutName;
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
   const handleAddPage = () => {
     addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
