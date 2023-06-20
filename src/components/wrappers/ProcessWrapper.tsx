@@ -89,11 +89,15 @@ export const ProcessWrapper = () => {
         >
           {isLoading === false ? (
             <>
-              {taskType === ProcessTaskType.Data && <Form />}
-              {taskType === ProcessTaskType.Archived && <ReceiptContainer />}
-              {taskType === ProcessTaskType.Confirm &&
-                (behavesLikeDataTask(process.taskId, layoutSets) ? <Form /> : <Confirm />)}
-              {taskType === ProcessTaskType.Feedback && <Feedback />}
+              {taskType === ProcessTaskType.Data || behavesLikeDataTask(process.taskId, layoutSets) ? (
+                <Form />
+              ) : taskType === ProcessTaskType.Confirm ? (
+                <Confirm />
+              ) : taskType === ProcessTaskType.Feedback ? (
+                <Feedback />
+              ) : taskType === ProcessTaskType.Archived ? (
+                <ReceiptContainer />
+              ) : null}
             </>
           ) : (
             <div style={{ marginTop: '1.5625rem' }}>
