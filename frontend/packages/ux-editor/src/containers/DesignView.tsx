@@ -137,9 +137,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
                       <FormComponent
                         id={itemId}
                         isEditMode={formId === itemId}
-                        component={
-                          formId === itemId ? (form as IFormComponent) : components[itemId]
-                        }
+                        component={formId === itemId ? (form as IFormComponent) : components[itemId]}
                         handleEdit={handleEdit}
                         handleSave={handleComponentSave}
                         handleDiscard={handleDiscard}
@@ -148,14 +146,16 @@ export const DesignView = ({ className }: DesignViewProps) => {
                     );
                   }
                   return (
-                    containers[itemId] &&
-                    renderContainer(itemId, false, disabledDrop || isDragging, itemDragHandleRef)
+                    containers[itemId] && renderContainer(
+                      itemId,
+                      false, 
+                      disabledDrop || isDragging,
+                      itemDragHandleRef)
                   );
                 }}
                 type={
-                  components[itemId]
-                    ? DraggableEditorItemType.Component
-                    : DraggableEditorItemType.Container
+                  components[itemId] ? DraggableEditorItemType.Component :
+                  DraggableEditorItemType.Container
                 }
               />
             ))
