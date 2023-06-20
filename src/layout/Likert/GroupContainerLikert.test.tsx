@@ -309,7 +309,9 @@ describe('GroupContainerLikert', () => {
         validations: { ...createFormError(1), ...createFormError(2) },
         mobileView: true,
       });
-      expect(screen.getAllByRole('alert')).toHaveLength(2);
+
+      // Should have 2 alerts per validation error (one on the radio button and one below with the error message)
+      expect(screen.getAllByRole('alert')).toHaveLength(2 + 2);
     });
 
     it('should render mobile layout with start and end binding', () => {
