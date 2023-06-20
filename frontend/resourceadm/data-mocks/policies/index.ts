@@ -1,4 +1,4 @@
-import { PolicyActionType, PolicyBackendType, PolicyRuleBackendType, PolicyRuleResourceType, PolicySubjectType, ResourceType } from "resourceadm/types/global";
+import { PolicyActionType, PolicyBackendType, PolicyRuleBackendType, PolicyRuleResourceType, PolicySubjectType } from "resourceadm/types/global";
 
 // RESOURCE ID
 export const resourceIdMock1: string = "resource_id_1"
@@ -177,62 +177,3 @@ export const subjectsListMock: PolicySubjectType[] = [
   subjectMock11
 ]
 
-// RESOURCES
-export const mockResources: ResourceType[] = [
-  {
-    name: 'Ressurs 1',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: true,
-    resourceId: 'resource_id_1',
-  },
-  {
-    name: 'Ressurs 2',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: true,
-    resourceId: 'resource_id_2',
-  },
-  {
-    name: 'Ressurs 9',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: false,
-    resourceId: 'resource_id_9',
-  },
-  {
-    name: 'Ressurs 4',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: true,
-    resourceId: 'resource_id_4',
-  },
-  {
-    name: 'Ressurs 5',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: true,
-    resourceId: 'resource_id_5',
-  },
-  {
-    name: 'Ressurs 7',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: false,
-    resourceId: 'resource_id_7',
-  },
-  {
-    name: 'Ressurs 8',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: false,
-    resourceId: 'resource_id_8',
-  },
-  {
-    name: 'Ressurs 3',
-    createdBy: 'Kåre Fredriksen',
-    dateChanged: '25.11.2021',
-    hasPolicy: true,
-    resourceId: 'resource_id_3',
-  },
-];

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner } from '@digdir/design-system-react';
 import { PlusCircleIcon } from '@navikt/aksel-icons';
@@ -7,12 +7,17 @@ import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { ResourceType } from 'resourceadm/types/global';
 import { useOnce } from 'resourceadm/hooks/useOnce';
-import { get } from 'app-shared/utils/networking';
-import { getResourcesUrlBySelectedContext } from 'resourceadm/utils/backendUrlUtils';
+import { get, post } from 'app-shared/utils/networking';
+import {
+  getCreateResourceUrlBySelectedContext,
+  getResourcesUrlBySelectedContext,
+} from 'resourceadm/utils/backendUrlUtils';
 import { mapResourceListBackendResultToResourceList } from 'resourceadm/utils/mapperUtils';
 import { Footer } from 'resourceadm/components/Footer';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
+import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
  * Displays the page for the resource dashboard
@@ -26,6 +31,8 @@ export const ResourceDashboardPage = () => {
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
+
+  const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
 
   // Gets the repo status and the function to refetch it
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
@@ -46,7 +53,8 @@ export const ResourceDashboardPage = () => {
     setLoading(true);
 
     get(getResourcesUrlBySelectedContext(selectedContext))
-      .then((res: any) => {
+      .then((res: unknown) => {
+        console.log(res);
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
       })
@@ -67,8 +75,32 @@ export const ResourceDashboardPage = () => {
    * Filter the list based on what is typed in the search box
    */
   const filteredTableData = resourceList.filter((resource: ResourceType) =>
-    resource.name.toLowerCase().includes(searchValue.toLocaleLowerCase())
+    resource.title.toLowerCase().includes(searchValue.toLocaleLowerCase())
   );
+
+  const navigate = useNavigate();
+
+  /**
+   * Creates a new resource in backend
+   */
+  const handleCreateNewResource = (id: string, title: string) => {
+    // TODO - API call to backend to add resource
+    const idAndTitle = {
+      identifier: id,
+      title: {
+        nb: title,
+      },
+    };
+
+    // TODO - missing API connection - not working atm
+    post(getCreateResourceUrlBySelectedContext(selectedContext), idAndTitle)
+      .then(() => {
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
+      })
+      .catch((err) => {
+        console.error('Error posting the new resource', err);
+      });
+  };
 
   /**
    * Display different content based on the loading state
@@ -88,7 +120,7 @@ export const ResourceDashboardPage = () => {
     return (
       <>
         <h2 className={classes.subheader}>{`Alle ressurser (${resourceList.length})`}</h2>
-        <ResourceTable list={filteredTableData} isSortedByNewest={true} />
+        <ResourceTable list={filteredTableData} />
       </>
     );
   };
@@ -113,9 +145,9 @@ export const ResourceDashboardPage = () => {
             <Button
               variant='quiet'
               color='secondary'
-              icon={<PlusCircleIcon title='Migrer ressurs' />}
+              icon={<PlusCircleIcon title='Opprett ny ressurs' />}
               iconPlacement='right'
-              onClick={() => {}}
+              onClick={() => setNewResourceModalOpen(true)}
               size='medium'
             >
               <strong>Opprett ny ressurs</strong>
@@ -135,6 +167,11 @@ export const ResourceDashboardPage = () => {
             repo={repo}
           />
         )}
+        <NewResourceModal
+          isOpen={newResourceModalOpen}
+          onClose={() => setNewResourceModalOpen(false)}
+          onCreateNewResource={handleCreateNewResource}
+        />
       </div>
       <Footer />
     </>

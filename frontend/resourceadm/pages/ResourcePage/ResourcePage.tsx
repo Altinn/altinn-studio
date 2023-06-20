@@ -4,11 +4,11 @@ import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
-import { AboutResource } from '../AboutResource';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
+import { AboutResourcePage } from '../AboutResourcePage';
 
 /**
  * Displays the 4 pages to manage resources and a left navigation bar.
@@ -70,7 +70,7 @@ export const ResourcePage = () => {
         goBack={goBack}
       />
       <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' && <AboutResource />}
+        {currentPage === 'about' && <AboutResourcePage />}
         {currentPage === 'security' && (
           <div className={classes.resourcePage}>
             <h2 className={classes.resourceH2}>Sikkerhet - TODO sett inn komponent</h2>
