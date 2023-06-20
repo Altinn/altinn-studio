@@ -33,7 +33,12 @@ export class Datepicker extends FormComponent<'Datepicker'> {
 
   renderSummary({ targetNode }: SummaryRendererProps<'Datepicker'>): JSX.Element | null {
     const displayData = this.useDisplayData(targetNode);
-    return <SummaryItemSimple formDataAsString={displayData} />;
+    return (
+      <SummaryItemSimple
+        formDataAsString={displayData}
+        hideFromVisualTesting={true}
+      />
+    );
   }
 }
 

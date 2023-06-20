@@ -46,8 +46,15 @@ export function useUploaderSummaryData(node: LayoutNodeFromType<'FileUpload' | '
   const listBinding = node.item.dataModelBindings?.list;
   if (listBinding) {
     const values = extractListFromBinding(formData, listBinding);
-    return attachmentsFromUuids(node.item.id, values, attachments);
+    return attachmentsFromUuids(node.item.id, values, attachments).sort(sortAttachmentsByName);
   }
 
-  return attachmentsFromComponentId(node.item.id, attachments);
+  return attachmentsFromComponentId(node.item.id, attachments).sort(sortAttachmentsByName);
+}
+
+function sortAttachmentsByName(a: IAttachment, b: IAttachment) {
+  if (a.name && b.name) {
+    return a.name.localeCompare(b.name);
+  }
+  return 0;
 }

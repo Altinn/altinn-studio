@@ -268,6 +268,13 @@ describe('UI Components', () => {
     cy.get('#form-content-newFirstName').contains('Du har 0 tegn igjen');
     cy.get(appFrontend.changeOfName.newFirstName).type('r');
     cy.get('#form-content-newFirstName').contains('Du har overskredet maks antall tegn med 1');
+
+    // This field triggers validation, but the countdown error is not yet visible in the error report, because this
+    // countdown circumvents the normal validation flow and is not affected by triggers.
+    // @see https://github.com/Altinn/app-frontend-react/issues/1263
+    cy.get(appFrontend.errorReport).should('be.visible');
+    cy.get(appFrontend.errorReport).should('contain.text', 'Må summeres opp til 100%');
+    cy.get(appFrontend.errorReport).should('not.contain.text', 'Du har overskredet maks antall tegn med 1');
     cy.snapshot('components:text-countdown');
   });
 });

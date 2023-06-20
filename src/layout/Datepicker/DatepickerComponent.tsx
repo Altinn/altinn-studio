@@ -195,6 +195,7 @@ export function DatepickerComponent({
               }),
             }}
             inputProps={{
+              className: 'no-visual-testing',
               'aria-label': overrideDisplay?.renderedInTable
                 ? getTextResourceAsString(textResourceBindings?.title)
                 : undefined,

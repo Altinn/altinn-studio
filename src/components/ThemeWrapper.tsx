@@ -23,7 +23,10 @@ export const ThemeWrapper = ({ children }: ThemeWrapperProps) => {
   document.documentElement.lang = language;
   document.documentElement.dir = direction;
 
-  React.useEffect(() => {
+  // Using a layout effect to make sure the whole app is re-rendered as we want it before taking screenshots
+  // for visual testing. This is needed because the visual testing library takes screenshots as soon as the viewport
+  // is resized and these classes are set.
+  React.useLayoutEffect(() => {
     const documentClasses = {
       'viewport-is-mobile': isMobile,
       'viewport-is-tablet': isTablet && !isMobile,
