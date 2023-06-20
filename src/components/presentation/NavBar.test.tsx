@@ -8,7 +8,6 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { NavBar } from 'src/components/presentation/NavBar';
-import { getLanguageFromCode } from 'src/language/languages';
 import { renderWithProviders } from 'src/testUtils';
 import type { ITextResource } from 'src/types';
 import type { IAppLanguage } from 'src/types/shared';
@@ -42,10 +41,6 @@ const renderNavBar = ({
     />,
     {
       preloadedState: {
-        language: {
-          language: getLanguageFromCode('nb'),
-          error: null,
-        },
         profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
         textResources: {
           resources: textResources,
@@ -127,7 +122,9 @@ describe('NavBar', () => {
     await act(() => dropdown.click());
     const en = screen.getByText(/Engelsk/i, { selector: '[role=option]' });
     await act(() => en.click());
-    expect(dropdown).toHaveValue('Engelsk');
+
+    // Language now changed, so the value should be the language name in the selected language
+    expect(dropdown).toHaveValue('English');
   });
   it('should render app language with custom labels', async () => {
     renderNavBar({

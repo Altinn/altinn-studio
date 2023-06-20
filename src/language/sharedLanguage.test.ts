@@ -1,8 +1,8 @@
+import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import {
   getAppName,
   getAppOwner,
   getParsedLanguageFromText,
-  getTextResourceByKey,
   replaceTextResourceParams,
 } from 'src/language/sharedLanguage';
 import type {
@@ -257,7 +257,7 @@ describe('language.ts', () => {
         },
       ];
 
-      const result = getAppName(textResources, {} as IApplication, 'nb');
+      const result = getAppName({} as IApplication, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'SomeAppName';
       expect(result).toEqual(expectedResult);
     });
@@ -270,7 +270,7 @@ describe('language.ts', () => {
         },
       ];
 
-      const result = getAppName(textResources, {} as IApplication, 'nb');
+      const result = getAppName({} as IApplication, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'SomeAppName';
       expect(result).toEqual(expectedResult);
     });
@@ -283,7 +283,7 @@ describe('language.ts', () => {
         },
       } as unknown as IApplication;
 
-      const result = getAppName(textResources, applicationMetadata, 'nb');
+      const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'SomeAppName';
       expect(result).toEqual(expectedResult);
     });
@@ -301,7 +301,7 @@ describe('language.ts', () => {
         },
       } as unknown as IApplication;
 
-      const result = getAppName(textResources, applicationMetadata, 'nb');
+      const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'AppNameFromTextResource';
       expect(result).toEqual(expectedResult);
     });
@@ -319,7 +319,7 @@ describe('language.ts', () => {
         },
       } as unknown as IApplication;
 
-      const result = getAppName(textResources, applicationMetadata, 'nb');
+      const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'AppNameFromTextResource';
       expect(result).toEqual(expectedResult);
     });
@@ -332,13 +332,13 @@ describe('language.ts', () => {
         },
       } as unknown as IApplication;
 
-      const result = getAppName(textResources, applicationMetadata, 'en');
+      const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'NorwegianName';
       expect(result).toEqual(expectedResult);
     });
 
     it('should return undefined string if neither defined in textResources and applicationMetadata not set', () => {
-      const result = getAppName([], null, 'nb');
+      const result = getAppName(null, staticUseLanguageForTests());
       expect(result).toBeUndefined();
     });
   });
@@ -356,7 +356,7 @@ describe('language.ts', () => {
           name: { nb: 'NameFromOrg' },
         } as unknown as IAltinnOrg,
       };
-      const result = getAppOwner(textResources, orgs, 'ttd', 'nb');
+      const result = getAppOwner(orgs, 'ttd', staticUseLanguageForTests({ textResources }));
       const expectedResult = 'NameFromResources';
       expect(result).toEqual(expectedResult);
     });
@@ -368,65 +368,15 @@ describe('language.ts', () => {
           name: { nb: 'NameFromOrg' },
         } as unknown as IAltinnOrg,
       };
-      const result = getAppOwner(textResources, orgs, 'ttd', 'nb');
+      const result = getAppOwner(orgs, 'ttd', staticUseLanguageForTests({ textResources }));
       const expectedResult = 'NameFromOrg';
       expect(result).toEqual(expectedResult);
     });
 
     it('should return undefined value is not set by appOwner key and no text defined in org', () => {
       const textResources: ITextResource[] = [];
-      const result = getAppOwner(textResources, {}, 'ttd', 'nb');
+      const result = getAppOwner({}, 'ttd', staticUseLanguageForTests({ textResources }));
       expect(result).toEqual(undefined);
-    });
-  });
-
-  describe('textResource', () => {
-    let mockTextResources: ITextResource[];
-    let mockKey: string;
-    let mockInvalidKey: string;
-    beforeEach(() => {
-      mockTextResources = [
-        {
-          id: 'mockId1',
-          value: 'mock value 1',
-          unparsedValue: 'mock value 1',
-          variables: undefined,
-        },
-        {
-          id: 'mockId2',
-          value: 'mock value 2',
-          unparsedValue: 'mock value 2',
-          variables: undefined,
-        },
-        {
-          id: 'mockId3',
-          value: 'mockId1',
-          unparsedValue: 'mockId1',
-          variables: undefined,
-        },
-      ];
-      mockKey = 'mockId1';
-      mockInvalidKey = 'invalid';
-    });
-
-    it('should return correct value for a given key', () => {
-      const result = getTextResourceByKey(mockKey, mockTextResources);
-      expect(result).toBe(mockTextResources[0].value);
-    });
-
-    it('should return the key if a value does not exist for the given key', () => {
-      const result = getTextResourceByKey(mockInvalidKey, mockTextResources);
-      expect(result).toBe(mockInvalidKey);
-    });
-
-    it('should return key if mockTextResources are null', () => {
-      const result = getTextResourceByKey(mockKey, null);
-      expect(result).toBe(mockKey);
-    });
-
-    it('should return key of key if present', () => {
-      const result = getTextResourceByKey('mockId3', mockTextResources);
-      expect(result).toBe(mockTextResources[0].value);
     });
   });
 });

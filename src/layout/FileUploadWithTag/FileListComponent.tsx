@@ -15,7 +15,8 @@ import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/types';
 
-export interface FileListProps extends PropsFromGenericComponent<'FileUploadWithTag'> {
+export interface FileListProps {
+  node: PropsFromGenericComponent<'FileUploadWithTag'>['node'];
   attachments: IAttachment[];
   editIndex: number;
   mobileView: boolean;
@@ -32,13 +33,24 @@ export interface FileListProps extends PropsFromGenericComponent<'FileUploadWith
 
 export const bytesInOneMB = 1048576;
 
-export function FileList(props: FileListProps): JSX.Element | null {
+export function FileList({
+  attachmentValidations,
+  attachments,
+  editIndex,
+  mobileView,
+  node,
+  onDropdownDataChange,
+  onEdit,
+  onSave,
+  options,
+  setEditIndex,
+}: FileListProps): JSX.Element | null {
   const { lang, langAsString } = useLanguage();
 
-  if (!props.attachments || props.attachments.length === 0) {
+  if (!attachments || attachments.length === 0) {
     return null;
   }
-  const { textResourceBindings } = props.node.item;
+  const { textResourceBindings } = node.item;
 
   return (
     <Grid
@@ -49,18 +61,18 @@ export function FileList(props: FileListProps): JSX.Element | null {
       spacing={1}
     >
       <TableContainer component={Grid}>
-        <Table className={!props.mobileView ? classes.table : classes.tableMobile}>
-          {atleastOneTagExists(props.attachments) && (
+        <Table className={!mobileView ? classes.table : classes.tableMobile}>
+          {atleastOneTagExists(attachments) && (
             <TableHead className={classes.tableHeader}>
-              <TableRow className={props.mobileView ? classes.mobileTableRow : ''}>
+              <TableRow className={mobileView ? classes.mobileTableRow : ''}>
                 <TableCell align='left'>{lang('form_filler.file_uploader_list_header_name')}</TableCell>
                 <TableCell align='left'>
-                  {textResourceBindings?.tagTitle && props.getTextResource(textResourceBindings.tagTitle)}
+                  {textResourceBindings?.tagTitle && langAsString(textResourceBindings.tagTitle)}
                 </TableCell>
-                {!props.mobileView ? (
+                {!mobileView ? (
                   <TableCell align='left'>{lang('form_filler.file_uploader_list_header_file_size')}</TableCell>
                 ) : null}
-                {!props.mobileView ? (
+                {!mobileView ? (
                   <TableCell align='left'>{lang('form_filler.file_uploader_list_header_status')}</TableCell>
                 ) : null}
                 <TableCell />
@@ -68,24 +80,24 @@ export function FileList(props: FileListProps): JSX.Element | null {
             </TableHead>
           )}
           <TableBody className={classes.tableBody}>
-            {props.attachments.map((attachment: IAttachment, index: number) => {
+            {attachments.map((attachment: IAttachment, index: number) => {
               // Check if filter is applied and includes specified index.
-              if (attachment.tags !== undefined && attachment.tags.length > 0 && props.editIndex !== index) {
+              if (attachment.tags !== undefined && attachment.tags.length > 0 && editIndex !== index) {
                 const firstTag = attachment.tags[0];
-                const label = props.options?.find((option) => option.value === firstTag)?.label;
+                const label = options?.find((option) => option.value === firstTag)?.label;
 
                 return (
                   <TableRow
                     key={`altinn-file-list-row-${attachment.id}`}
-                    className={props.mobileView ? classes.mobileTableRow : ''}
+                    className={mobileView ? classes.mobileTableRow : ''}
                   >
                     <TableCell key={`attachment-name-${index}`}>
                       <div style={{ minWidth: '0px' }}>
                         <AttachmentFileName
-                          attachment={props.attachments[index]}
-                          mobileView={props.mobileView}
+                          attachment={attachments[index]}
+                          mobileView={mobileView}
                         />
-                        {props.mobileView ? (
+                        {mobileView ? (
                           <div
                             style={{
                               color: AltinnAppTheme.altinnPalette.primary.grey,
@@ -102,7 +114,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                               </div>
                             ) : (
                               <AltinnLoader
-                                id={`attachment-loader-upload-${props.attachments[index].id}`}
+                                id={`attachment-loader-upload-${attachments[index].id}`}
                                 style={{
                                   marginBottom: '1rem',
                                   marginRight: '0.8125rem',
@@ -114,17 +126,15 @@ export function FileList(props: FileListProps): JSX.Element | null {
                         ) : null}
                       </div>
                     </TableCell>
-                    <TableCell key={`attachment-tag-${index}`}>
-                      {label && props.getTextResourceAsString(label)}
-                    </TableCell>
-                    {!props.mobileView ? (
+                    <TableCell key={`attachment-tag-${index}`}>{label && langAsString(label)}</TableCell>
+                    {!mobileView ? (
                       <TableCell key={`attachment-size-${index}`}>
                         {`${(attachment.size / bytesInOneMB).toFixed(2)} ${langAsString(
                           'form_filler.file_uploader_mb',
                         )}`}
                       </TableCell>
                     ) : null}
-                    {!props.mobileView ? (
+                    {!mobileView ? (
                       <TableCell key={`attachment-status-${index}`}>
                         {attachment.uploaded ? (
                           <div className={classes.fileStatus}>
@@ -152,11 +162,11 @@ export function FileList(props: FileListProps): JSX.Element | null {
                         size={ButtonSize.Small}
                         variant={ButtonVariant.Quiet}
                         color={ButtonColor.Secondary}
-                        onClick={() => props.onEdit(index)}
+                        onClick={() => onEdit(index)}
                         icon={<PencilIcon aria-hidden={true} />}
                         iconPlacement='right'
                       >
-                        {!props.mobileView && lang('general.edit_alt')}
+                        {!mobileView && lang('general.edit_alt')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -166,31 +176,20 @@ export function FileList(props: FileListProps): JSX.Element | null {
               return (
                 <TableRow key={`altinn-unchosen-option-attachment-row-${index}`}>
                   <TableCell
-                    className={props.mobileView ? classes.fullGrid : ''}
-                    colSpan={!props.mobileView ? 5 : undefined}
+                    className={mobileView ? classes.fullGrid : ''}
+                    colSpan={!mobileView ? 5 : undefined}
                   >
                     <EditWindowComponent
-                      handleDataChange={props.handleDataChange}
-                      formData={props.formData}
-                      label={props.label}
-                      legend={props.legend}
-                      shouldFocus={props.shouldFocus}
-                      text={props.text}
-                      node={props.node}
-                      attachment={props.attachments[index]}
+                      node={node}
+                      attachment={attachments[index]}
                       attachmentValidations={[
-                        ...new Map(
-                          props.attachmentValidations.map((validation) => [validation['id'], validation]),
-                        ).values(),
+                        ...new Map(attachmentValidations.map((validation) => [validation['id'], validation])).values(),
                       ]}
-                      language={props.language}
-                      mobileView={props.mobileView}
-                      options={props.options}
-                      getTextResource={props.getTextResource}
-                      getTextResourceAsString={props.getTextResourceAsString}
-                      onSave={props.onSave}
-                      onDropdownDataChange={props.onDropdownDataChange}
-                      setEditIndex={props.setEditIndex}
+                      mobileView={mobileView}
+                      options={options}
+                      onSave={onSave}
+                      onDropdownDataChange={onDropdownDataChange}
+                      setEditIndex={setEditIndex}
                     />
                   </TableCell>
                 </TableRow>

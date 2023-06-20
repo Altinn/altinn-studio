@@ -7,12 +7,10 @@ import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { ILabelSettings } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
 
 export interface IFormLabelProps {
   labelText: React.ReactNode;
   id: string;
-  language: ILanguage;
   required?: boolean;
   readOnly?: boolean;
   labelSettings?: ILabelSettings;
@@ -41,11 +39,9 @@ export function Label(props: IFormLabelProps) {
           <RequiredIndicator
             required={props.required}
             readOnly={props.readOnly}
-            language={props.language}
           />
           <OptionalIndicator
             labelSettings={props.labelSettings}
-            language={props.language}
             readOnly={props.readOnly}
             required={props.required}
           />
@@ -54,7 +50,6 @@ export function Label(props: IFormLabelProps) {
       {props.helpText && (
         <Grid item={true}>
           <HelpTextContainer
-            language={props.language}
             helpText={props.helpText}
             title={getPlainTextFromNode(props.labelText)}
           />

@@ -4,8 +4,7 @@ import { List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } fr
 import cn from 'classnames';
 
 import { AltinnIcon } from 'src/components/AltinnIcon';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/types/shared';
 
@@ -69,7 +68,7 @@ function ListItemLink(props: any) {
 
 export function AltinnAttachment({ attachments, listDisableVerticalPadding, nested, id }: IAltinnAttachmentProps) {
   const classes = useStyles();
-  const currentLanguage = useAppSelector(appLanguageStateSelector);
+  const { selectedLanguage } = useLanguage();
 
   return (
     <>
@@ -84,7 +83,7 @@ export function AltinnAttachment({ attachments, listDisableVerticalPadding, nest
               if (!a.name || !b.name) {
                 return 0;
               }
-              return a.name.localeCompare(b.name, currentLanguage);
+              return a.name.localeCompare(b.name, selectedLanguage);
             })
             .map((attachment, index) => (
               <ListItemLink

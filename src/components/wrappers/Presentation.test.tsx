@@ -61,7 +61,7 @@ describe('Presentation', () => {
     expect(window.location.href).not.toEqual(returnUrl);
 
     const closeButton = screen.getByRole('button', {
-      name: /general\.close_schema/i,
+      name: /Lukk skjema/i,
     });
     await user.click(closeButton);
 

@@ -6,15 +6,17 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { ProfileActions } from 'src/features/profile/profileSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { TextResourcesActions } from 'src/features/textResources/textResourcesSlice';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { httpGet } from 'src/utils/network/networking';
 import { waitFor } from 'src/utils/sagas';
 import { oldTextResourcesUrl, textResourcesUrl } from 'src/utils/urls/appUrlHelper';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 
 export function* fetchTextResources(): SagaIterator {
   try {
-    const appLanguage = yield select(appLanguageStateSelector);
+    const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
+    const appLanguage = langTools.selectedLanguage;
     let resource: any;
     try {
       resource = yield call(httpGet, textResourcesUrl(appLanguage));

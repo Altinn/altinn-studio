@@ -15,21 +15,13 @@ import type { HRepGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { RootState } from 'src/redux/store';
 import type { IOption } from 'src/types';
-import type { ILanguage, ITextResource } from 'src/types/shared';
+import type { ITextResource } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const user = userEvent.setup();
 
 describe('RepeatingGroupsEditContainer', () => {
   const multiPageGroup = getMultiPageGroupMock('group');
-  const language: ILanguage = {
-    general: {
-      delete: 'Delete',
-      edit_alt: 'Edit',
-      save_and_close: 'Save and close',
-      save_and_next: 'Save and open next',
-    },
-  };
   const textResources: ITextResource[] = [{ id: 'option.label', value: 'Value to be shown' }];
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
   const components: ExprUnresolved<ILayoutComponent>[] = [
@@ -93,7 +85,7 @@ describe('RepeatingGroupsEditContainer', () => {
       multiPageGroup.edit.saveAndNextButton = true;
     }
     render({ setEditIndex, setMultiPageIndex, editIndex: 0 });
-    await user.click(screen.getByRole('button', { name: /save and open next/i }));
+    await user.click(screen.getByRole('button', { name: /Lagre og åpne neste/i }));
     expect(setEditIndex).toHaveBeenCalledWith(1, true);
   });
 
@@ -107,7 +99,6 @@ describe('RepeatingGroupsEditContainer', () => {
 
     const preloadedState = getInitialStateMock() as RootState;
     preloadedState.formLayout.layouts = { FormLayout: layout };
-    preloadedState.language.language = language;
     preloadedState.textResources.resources = textResources;
 
     renderWithProviders(

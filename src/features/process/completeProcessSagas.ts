@@ -5,7 +5,7 @@ import type { SagaIterator } from 'redux-saga';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/features/process/processSlice';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { layoutSetsSelector } from 'src/selectors/simpleSelectors';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -13,6 +13,7 @@ import { httpPut } from 'src/utils/network/sharedNetworking';
 import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import type { IInstanceDataState } from 'src/features/instanceData';
 import type { ICompleteProcess } from 'src/features/process';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IRuntimeState } from 'src/types';
 import type { IProcess } from 'src/types/shared';
 
@@ -20,7 +21,8 @@ const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
 export function* completeProcessSaga(action: PayloadAction<ICompleteProcess | undefined>): SagaIterator {
   const taskId = action.payload?.taskId;
-  const language = yield select(appLanguageStateSelector);
+  const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
+  const language = langTools.selectedLanguage;
   const userAction = action.payload?.action;
   const body = userAction ? { action: userAction } : null;
   try {

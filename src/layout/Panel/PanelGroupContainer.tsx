@@ -6,11 +6,10 @@ import { Grid } from '@material-ui/core';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
 import classes from 'src/layout/Panel/Panel.module.css';
-import { selectComponentTexts } from 'src/utils/formComponentUtils';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
@@ -19,9 +18,9 @@ interface PanelGroupConatinerProps {
 }
 
 export const PanelGroupContainer = ({ node }: PanelGroupConatinerProps) => {
-  const texts = useAppSelector((state) =>
-    selectComponentTexts(state.textResources.resources, node.item.textResourceBindings),
-  );
+  const { lang } = useLanguage();
+  const title = lang(node.item.textResourceBindings?.title);
+  const body = lang(node.item.textResourceBindings?.body);
   const { iconUrl, iconAlt } = node.item.panel || {};
   const fullWidth = node.parent instanceof LayoutPage;
   const isOnBottom = node.parent.children().indexOf(node) === node.parent.children().length - 1;
@@ -46,7 +45,7 @@ export const PanelGroupContainer = ({ node }: PanelGroupConatinerProps) => {
         )}
       >
         <Panel
-          title={texts.title}
+          title={title}
           renderIcon={
             iconUrl
               ? ({ size }) => (
@@ -66,7 +65,7 @@ export const PanelGroupContainer = ({ node }: PanelGroupConatinerProps) => {
             spacing={3}
             data-testid='panel-group-container'
           >
-            {texts.body && <div className={classes.panelBodyText}>{texts.body}</div>}
+            {body && <div className={classes.panelBodyText}>{body}</div>}
             {node.children().map((child) => (
               <GenericComponent
                 key={node.item.id}

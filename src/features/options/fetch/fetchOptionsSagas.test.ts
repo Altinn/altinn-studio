@@ -12,7 +12,7 @@ import {
   optionsWithIndexIndicatorsSelector,
   repeatingGroupsSelector,
 } from 'src/features/options/fetch/fetchOptionsSagas';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { staticUseLanguageForTests, staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import * as networking from 'src/utils/network/sharedNetworking';
 import { selectNotNull } from 'src/utils/sagas';
 import type { ILayouts } from 'src/layout/layout';
@@ -48,7 +48,7 @@ describe('fetchOptionsSagas', () => {
       return expectSaga(checkIfOptionsShouldRefetchSaga, action)
         .provide([
           [select(formDataSelector), formData],
-          [select(appLanguageStateSelector), userLanguage],
+          [select(staticUseLanguageFromState), staticUseLanguageForTests({ selectedAppLanguage: userLanguage })],
           [select(optionsSelector), optionsWithField],
           [select(optionsWithIndexIndicatorsSelector), []],
           [select(instanceIdSelector), 'someId'],
@@ -76,7 +76,7 @@ describe('fetchOptionsSagas', () => {
       return expectSaga(checkIfOptionsShouldRefetchSaga, action)
         .provide([
           [select(formDataSelector), formData],
-          [select(appLanguageStateSelector), userLanguage],
+          [select(staticUseLanguageFromState), staticUseLanguageForTests({ selectedAppLanguage: userLanguage })],
           [select(optionsSelector), optionsWithoutField],
           [select(optionsWithIndexIndicatorsSelector), []],
         ])

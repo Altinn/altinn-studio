@@ -1,3 +1,4 @@
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { convertDataBindingToModel } from 'src/utils/databindings';
@@ -43,33 +44,20 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
   const layoutOrder = getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks);
   const model = convertDataBindingToModel(state.formData.formData);
   const layouts = resolvedLayoutsFromState(state);
+  const langTools = staticUseLanguageFromState(state);
 
-  if (!layoutOrder || !state.language.language || !layouts) {
+  if (!layoutOrder || !layouts) {
     return out;
   }
 
-  out.validationResult = validateFormData(
-    model,
-    layouts,
-    layoutOrder,
-    validator,
-    state.language.language,
-    state.textResources.resources,
-  );
+  out.validationResult = validateFormData(model, layouts, layoutOrder, validator, langTools);
   out.componentSpecificValidations = validateFormComponents(
     state.attachments.attachments,
     layouts,
     layoutOrder,
-    state.language.language,
-    state.profile.selectedAppLanguage || state.profile.profile.profileSettingPreference.language,
+    langTools,
   );
-  out.emptyFieldsValidations = validateEmptyFields(
-    state.formData.formData,
-    layouts,
-    layoutOrder,
-    state.language.language,
-    state.textResources.resources,
-  );
+  out.emptyFieldsValidations = validateEmptyFields(state.formData.formData, layouts, layoutOrder, langTools);
 
   return out;
 }

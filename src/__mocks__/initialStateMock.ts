@@ -6,7 +6,6 @@ import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
 import { partyMock } from 'src/__mocks__/partyMock';
 import { getProcessStateMock } from 'src/__mocks__/processMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
-import { getLanguageFromCode } from 'src/language/languages';
 import type { IDevToolsState } from 'src/features/devtools/data/types';
 import type { IRuntimeState } from 'src/types';
 
@@ -56,10 +55,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     isLoading: {
       dataTask: false,
       stateless: null,
-    },
-    language: {
-      language: getLanguageFromCode('nb'),
-      error: null,
     },
     organisationMetaData: {
       allOrgs: {

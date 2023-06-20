@@ -4,12 +4,13 @@ import { screen } from '@testing-library/react';
 
 import { PrintButtonComponent } from 'src/layout/PrintButton/PrintButtonComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
+import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
-const render = (genericProps = {}) => {
+const render = (component: Partial<AnyItem<'PrintButton'>> = {}) => {
   renderGenericComponentTest({
     type: 'PrintButton',
     renderer: (props) => <PrintButtonComponent {...props} />,
-    genericProps,
+    component,
   });
 };
 
@@ -22,7 +23,9 @@ describe('PrintButton', () => {
 
   it('should display custom text id defined', () => {
     render({
-      text: 'Skriv ut',
+      textResourceBindings: {
+        title: 'Skriv ut',
+      },
     });
 
     expect(screen.getByText('Skriv ut')).toBeInTheDocument();

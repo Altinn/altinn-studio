@@ -3,7 +3,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { OptionsActions } from 'src/features/options/optionsSlice';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import {
   getKeyIndex,
   getKeyWithoutIndex,
@@ -16,6 +16,7 @@ import { selectNotNull } from 'src/utils/sagas';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/formData';
 import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayouts, ISelectionComponentProps } from 'src/layout/layout';
 import type {
   IFetchSpecificOptionSaga,
@@ -114,7 +115,8 @@ export function* fetchSpecificOptionSaga({ optionsId, dataMapping, secure }: IFe
     };
     yield put(OptionsActions.fetching({ key, metaData }));
     const formData: IFormData = yield select(formDataSelector);
-    const language = yield select(appLanguageStateSelector);
+    const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
+    const language = langTools.selectedLanguage;
     const url = getOptionsUrl({
       optionsId,
       formData,

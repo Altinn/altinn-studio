@@ -1,27 +1,19 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromCode } from 'src/language/languages';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
-
-const defaultLocale = 'nb';
+import { useLanguage } from 'src/hooks/useLanguage';
 
 export function UnknownError() {
-  const fetchedLanguage = useAppSelector((state) => state.language.language);
-  const languageFromCode = getLanguageFromCode(defaultLocale);
-
-  // Fallback to default language if fetched language has failed fetching
-  const language = fetchedLanguage || languageFromCode;
+  const { lang, langAsString } = useLanguage();
 
   const createUnknownErrorContent = (): JSX.Element => {
-    const customerSupport = getParsedLanguageFromKey('instantiate.unknown_error_customer_support', language, [
-      getLanguageFromKey('general.customer_service_phone_number', language),
+    const customerSupport = lang('instantiate.unknown_error_customer_support', [
+      langAsString('general.customer_service_phone_number'),
     ]);
 
     return (
       <>
-        {getLanguageFromKey('instantiate.unknown_error_text', language)}
+        {lang('instantiate.unknown_error_text')}
         <br />
         <br />
         {customerSupport}
@@ -31,9 +23,9 @@ export function UnknownError() {
 
   return (
     <InstantiationErrorPage
-      title={getLanguageFromKey('instantiate.unknown_error_title', language)}
+      title={lang('instantiate.unknown_error_title')}
       content={createUnknownErrorContent()}
-      statusCode={getLanguageFromKey('instantiate.unknown_error_status', language)}
+      statusCode={langAsString('instantiate.unknown_error_status')}
     />
   );
 }

@@ -3,7 +3,6 @@ import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
 import { ApplicationMetadataActions } from 'src/features/applicationMetadata/applicationMetadataSlice';
-import { LanguageActions } from 'src/features/language/languageSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
@@ -22,9 +21,6 @@ export const useApplicationMetadataQuery = (): UseQueryResult<IApplicationMetada
       dispatch(ApplicationMetadataActions.getFulfilled({ applicationMetadata }));
     },
     onError: (error: HttpClientError) => {
-      // make sure default texts are fetched
-      dispatch(LanguageActions.fetchDefaultLanguage());
-
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
       dispatch(ApplicationMetadataActions.getRejected({ error }));
       dispatch(QueueActions.appTaskQueueError({ error }));

@@ -70,34 +70,6 @@ describe('InstantiateContainer', () => {
     expect(screen.queryByText('Instance page')).not.toBeInTheDocument();
   });
 
-  it('should show header as "" when translations have not been initialized properly loader on initial render and start instantiation if valid party', async () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const mockDispatch = render({
-      language: {
-        language: {
-          instantiate: {
-            starting: 'instantiate.starting',
-          },
-        },
-        error: null,
-      },
-    });
-
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(InstantiationActions.instantiate());
-    });
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
-    });
-
-    const contentLoader = await screen.findByText('Loading...');
-    expect(contentLoader).toBeInTheDocument();
-
-    const instantiationText = within(await screen.findByTestId('presentation-heading')).getByText('');
-
-    expect(instantiationText).toBeInTheDocument();
-  });
-
   it('should not call InstantiationActions.instantiate when no selected party', async () => {
     // eslint-disable-next-line testing-library/render-result-naming-convention
     const mockDispatch = render({

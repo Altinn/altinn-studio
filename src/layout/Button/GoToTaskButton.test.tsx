@@ -14,10 +14,12 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
     renderer: (props) => <ButtonComponent {...props} />,
     component: {
       mode: 'go-to-task',
+      textResourceBindings: {
+        title: 'Go to task',
+      },
       ...component,
     },
     genericProps: {
-      text: 'Go to task',
       ...genericProps,
     },
     manipulateState: (state) => {

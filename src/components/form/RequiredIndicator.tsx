@@ -1,17 +1,16 @@
 import React from 'react';
 
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import type { ILanguage } from 'src/types/shared';
+import { useLanguage } from 'src/hooks/useLanguage';
 
 export interface IRequiredIndicatorProps {
-  language: ILanguage;
   required?: boolean;
   readOnly?: boolean;
 }
 
-export const RequiredIndicator = ({ language, required, readOnly }: IRequiredIndicatorProps) => {
+export const RequiredIndicator = ({ required, readOnly }: IRequiredIndicatorProps) => {
+  const { langAsString } = useLanguage();
   if (required && !readOnly) {
-    return <span>{` ${getLanguageFromKey('form_filler.required_label', language)}`}</span>;
+    return <span>{` ${langAsString('form_filler.required_label')}`}</span>;
   }
   return null;
 };

@@ -1,6 +1,5 @@
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { useOptionList } from 'src/hooks/useOptionList';
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import type { ISelectionComponent } from 'src/layout/layout';
 
 /**
@@ -10,13 +9,13 @@ import type { ISelectionComponent } from 'src/layout/layout';
  * @see FormComponent.useDisplayData
  */
 export function useCommaSeparatedOptionsToText(component: ISelectionComponent, value: string) {
-  const textResources = useAppSelector((state) => state.textResources.resources);
+  const { langAsString } = useLanguage();
   const optionList = useOptionList(component);
   const split = value.split(',').filter((value) => !!value.trim());
   const out: { [key: string]: string } = {};
   split?.forEach((part) => {
     const textKey = optionList.find((option) => option.value === part)?.label || '';
-    out[part] = getTextResourceByKey(textKey, textResources) || part;
+    out[part] = langAsString(textKey) || part;
   });
 
   return out;

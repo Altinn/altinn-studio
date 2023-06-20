@@ -8,6 +8,7 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { ProcessActions } from 'src/features/process/processSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { Severity } from 'src/types';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
@@ -70,12 +71,9 @@ function* submitComplete(state: IRuntimeState) {
     : undefined;
 
   // update validation state
+  const langTools = staticUseLanguageFromState(state);
   const layoutState: ILayoutState = yield select(LayoutSelector);
-  const mappedValidations = mapDataElementValidationToRedux(
-    serverValidation,
-    layoutState.layouts,
-    state.textResources.resources,
-  );
+  const mappedValidations = mapDataElementValidationToRedux(serverValidation, layoutState.layouts, langTools);
   yield put(ValidationActions.updateValidations({ validations: mappedValidations }));
   const hasErrors = hasValidationsOfSeverity(mappedValidations, Severity.Error);
   if (hasErrors) {

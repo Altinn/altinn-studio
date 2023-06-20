@@ -17,7 +17,7 @@ describe('AltinnPartySearch', () => {
     render({ onSearchUpdated: handleSearchChange });
 
     const input = screen.getByRole('textbox', {
-      name: /party_selection\.search_placeholder/i,
+      name: 'Søk etter aktør',
     });
 
     await act(() => user.type(input, 'Hello world'));
@@ -35,10 +35,6 @@ const render = (props: Partial<IAltinnPartySearchProps> = {}) => {
   renderWithProviders(<AltinnPartySearch {...allProps} />, {
     preloadedState: {
       ...getInitialStateMock(),
-      language: {
-        language: {},
-        error: null,
-      },
       profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
     },
   });

@@ -7,6 +7,7 @@ import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile }
 import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { ReceiptContainer, returnInstanceMetaDataObject } from 'src/features/receipt/ReceiptContainer';
+import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { ILayout } from 'src/layout/layout';
@@ -222,19 +223,19 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.queryByRole('img', {
-        name: /loading\.\.\./i,
+        name: /Laster/i,
       }),
     ).not.toBeInTheDocument();
 
     expect(
       screen.getByRole('heading', {
-        name: 'receipt.title',
+        name: 'Skjema er sendt inn',
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByRole('heading', {
-        name: 'receipt.title_submitted',
+        name: /Følgende er sendt inn:/,
       }),
     ).toBeInTheDocument();
 
@@ -246,7 +247,7 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.getByRole('link', {
-        name: /receipt\.subtitle/i,
+        name: /Kopi av din kvittering er sendt til ditt arkiv/i,
       }),
     ).toBeInTheDocument();
 
@@ -258,19 +259,19 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.queryByRole('img', {
-        name: /loading\.\.\./i,
+        name: /Laster/i,
       }),
     ).not.toBeInTheDocument();
 
     expect(
       screen.getByRole('heading', {
-        name: /receipt\.title/i,
+        name: /Skjema er sendt inn/i,
       }),
     ).toBeInTheDocument();
 
     expect(
       screen.getByRole('link', {
-        name: /receipt\.subtitle/i,
+        name: /Kopi av din kvittering er sendt til ditt arkiv/i,
       }),
     ).toBeInTheDocument();
 
@@ -280,13 +281,21 @@ describe('ReceiptContainer', () => {
   it('should show complex receipt when autoDeleteOnProcessEnd is false', () => {
     render();
 
-    expect(screen.queryByText(/receipt\.body_simple/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        /Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden/i,
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it('should show simple receipt when autoDeleteOnProcessEnd is true', () => {
     render({ autoDeleteOnProcessEnd: true });
 
-    expect(screen.getByText(/receipt\.body_simple/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden/i,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should show custom receipt when receiptLayoutName is found in uiConfig and the layout exists', () => {
@@ -388,6 +397,11 @@ describe('returnInstanceMetaDataObject', () => {
         ssn: '01017512345',
       },
     };
+    const langTools = staticUseLanguageForTests({
+      textResources: testData.textResources,
+      language: testData.languageData,
+      selectedAppLanguage: testData.userLanguageString,
+    });
 
     const expected: SummaryDataObject = {
       'receipt.date_sent': {
@@ -409,11 +423,9 @@ describe('returnInstanceMetaDataObject', () => {
     expect(
       returnInstanceMetaDataObject(
         testData.orgsData as unknown as IAltinnOrgs,
-        testData.languageData,
-        testData.textResources,
+        langTools,
         testData.instanceOwnerParty as unknown as IParty,
         testData.instanceGuid,
-        testData.userLanguageString,
         testData.lastChangedDateTime,
         testData.instance.org,
       ),

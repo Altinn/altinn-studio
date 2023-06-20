@@ -1,8 +1,4 @@
-import {
-  getParsedLanguageFromText,
-  getTextResourceByKey,
-  replaceTextResourceParams,
-} from 'src/language/sharedLanguage';
+import { getParsedLanguageFromText, replaceTextResourceParams } from 'src/language/sharedLanguage';
 import {
   getBaseGroupDataModelBindingFromKeyWithIndexIndicators,
   getGroupDataModelBinding,
@@ -12,16 +8,9 @@ import {
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/formData';
 import type { IOptionResources } from 'src/hooks/useGetOptions';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayout } from 'src/layout/layout';
-import type {
-  IMapping,
-  IOption,
-  IOptions,
-  IOptionsMetaData,
-  IOptionSource,
-  IRepeatingGroups,
-  ITextResource,
-} from 'src/types';
+import type { IMapping, IOption, IOptions, IOptionsMetaData, IOptionSource, IRepeatingGroups } from 'src/types';
 import type { IDataSources } from 'src/types/shared';
 
 export function getOptionLookupKey({ id, mapping }: IOptionsMetaData) {
@@ -228,12 +217,12 @@ export function duplicateOptionFilter(currentOption: IOption, currentIndex: numb
   return true;
 }
 
-export function formatLabelForSelect(option: IOption, textResources: ITextResource[]): React.ReactNode {
-  const label = getTextResourceByKey(option.label, textResources) ?? option.value;
+export function formatLabelForSelect(option: IOption, langAsString: IUseLanguage['langAsString']): React.ReactNode {
   if (option.description) {
-    const description = getTextResourceByKey(option.description, textResources);
-    return getParsedLanguageFromText(`<b>${label}</b><br><span>${description}</span>`);
+    return getParsedLanguageFromText(
+      `<b>${langAsString(option.label ?? option.value)}</b><br><span>${langAsString(option.description)}</span>`,
+    );
   } else {
-    return getParsedLanguageFromText(`<span>${label}</span>`);
+    return getParsedLanguageFromText(`<span>${langAsString(option.label ?? option.value)}</span>`);
   }
 }

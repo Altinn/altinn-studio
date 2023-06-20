@@ -5,6 +5,7 @@ import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
+import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
@@ -13,7 +14,6 @@ import { _private } from 'src/utils/layout/hierarchy';
 import { generateEntireHierarchy, generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
-import type { IProfileState } from 'src/features/profile';
 import type { IRepeatingGroups } from 'src/types';
 import type { IApplicationSettings } from 'src/types/shared';
 import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
@@ -64,7 +64,7 @@ describe('Expressions shared function tests', () => {
         permissions,
         frontendSettings,
         textResources,
-        profile,
+        profileSettings,
       }) => {
         if (disabledFrontend) {
           // Skipped tests usually means that the frontend does not support the feature yet
@@ -77,8 +77,10 @@ describe('Expressions shared function tests', () => {
           instanceContext: buildInstanceContext(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
-          textResources: textResources || [],
-          profile: profile || ({} as IProfileState),
+          langTools: staticUseLanguageForTests({
+            textResources: textResources || [],
+            profileLanguage: profileSettings?.language,
+          }),
         };
 
         const _layouts = convertLayouts(layouts);

@@ -1,6 +1,4 @@
-import parseHtmlToReact from 'html-react-parser';
-
-import { parseOptions } from 'src/language/sharedLanguage';
+import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import {
   atleastOneTagExists,
@@ -12,48 +10,13 @@ import {
   isAttachmentError,
   isNotAttachmentError,
   parseFileUploadComponentWithTagValidationObject,
-  selectComponentTexts,
   smartLowerCaseFirst,
 } from 'src/utils/formComponentUtils';
 import type { IAttachment, IAttachments } from 'src/features/attachments';
 import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
-import type { ITextResource } from 'src/types';
 import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 describe('formComponentUtils', () => {
-  const mockTextResources: ITextResource[] = [
-    {
-      id: 'textKey1',
-      value: 'Value1',
-    },
-    {
-      id: 'textKey2',
-      value: 'Value2',
-    },
-    {
-      id: 'repTextKey1',
-      value: 'RepValue1',
-    },
-    {
-      id: 'repTextKey2',
-      value: 'RepValue2',
-    },
-    {
-      id: 'repTextKey3',
-      value: 'RepValue3',
-    },
-    {
-      id: 'dropdown.label',
-      value: 'Label value: {0}',
-      unparsedValue: 'Label value: {0}',
-      variables: [
-        {
-          key: 'someGroup[{0}].fieldUsedAsLabel',
-          dataSource: 'dataModel.default',
-        },
-      ],
-    },
-  ];
   const mockAttachments: IAttachments = {
     upload: [
       {
@@ -112,36 +75,6 @@ describe('formComponentUtils', () => {
       id: '123457',
     },
   ];
-
-  describe('selectComponentTexts', () => {
-    it('should return value of mapped textResourceBinding', () => {
-      const textResourceBindings = {
-        title: 'textKey2',
-      };
-      const result = selectComponentTexts(mockTextResources, textResourceBindings);
-
-      expect(result).toEqual({
-        title: parseHtmlToReact(`<span>Value2</span>`, parseOptions),
-      });
-    });
-
-    it('should return empty object when no textResourceBindings are provided', () => {
-      const result = selectComponentTexts(mockTextResources, undefined);
-
-      expect(result).toEqual({});
-    });
-
-    it('should return original key when textResourceBinding key is not found in textResources', () => {
-      const textResourceBindings = {
-        title: 'key-that-does-not-exist',
-      };
-      const result = selectComponentTexts(mockTextResources, textResourceBindings);
-
-      expect(result).toEqual({
-        title: 'key-that-does-not-exist',
-      });
-    });
-  });
 
   describe('isAttachmentError', () => {
     it('should return true when error has attachmentId', () => {
@@ -211,24 +144,25 @@ describe('formComponentUtils', () => {
         generic_field: 'dette feltet',
       },
     };
+    const mockLangTools = staticUseLanguageForTests({ textResources, language: mockLanguage });
 
     it('should return field text from languages when fieldKey is present', () => {
-      const result = getFieldName({ title: 'title' }, textResources, mockLanguage, 'address');
+      const result = getFieldName({ title: 'title' }, mockLangTools, 'address');
       expect(result).toEqual('gateadresse');
     });
 
     it('should return component shortName (textResourceBindings) when no fieldKey is present', () => {
-      const result = getFieldName({ title: 'title', shortName: 'short' }, textResources, mockLanguage);
+      const result = getFieldName({ title: 'title', shortName: 'short' }, mockLangTools);
       expect(result).toEqual('name');
     });
 
     it('should return component title (textResourceBindings) when no shortName (textResourceBindings) and no fieldKey is present', () => {
-      const result = getFieldName({ title: 'title' }, textResources, mockLanguage);
+      const result = getFieldName({ title: 'title' }, mockLangTools);
       expect(result).toEqual('component name');
     });
 
     it('should return generic field name when fieldKey, shortName and title are all not available', () => {
-      const result = getFieldName({ something: 'someTextKey' }, textResources, mockLanguage);
+      const result = getFieldName({ something: 'someTextKey' }, mockLangTools);
       expect(result).toEqual('dette feltet');
     });
   });
@@ -275,8 +209,9 @@ describe('formComponentUtils', () => {
           },
         },
       };
+      const langTools = staticUseLanguageForTests({ language: mockLanguage.language });
 
-      const uploadValidation = getFileUploadComponentValidations('upload', mockLanguage.language);
+      const uploadValidation = getFileUploadComponentValidations('upload', langTools);
       expect(uploadValidation).toEqual({
         simpleBinding: {
           errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere.'],
@@ -284,7 +219,7 @@ describe('formComponentUtils', () => {
         },
       });
 
-      const updateValidation = getFileUploadComponentValidations('update', mockLanguage.language);
+      const updateValidation = getFileUploadComponentValidations('update', langTools);
       expect(updateValidation).toEqual({
         simpleBinding: {
           errors: ['Noe gikk galt under oppdatering av filens merking, prøv igjen senere.'],
@@ -292,11 +227,7 @@ describe('formComponentUtils', () => {
         },
       });
 
-      const updateValidationWithId = getFileUploadComponentValidations(
-        'update',
-        mockLanguage.language,
-        'mock-attachment-id',
-      );
+      const updateValidationWithId = getFileUploadComponentValidations('update', langTools, 'mock-attachment-id');
       expect(updateValidationWithId).toEqual({
         simpleBinding: {
           errors: [
@@ -306,7 +237,7 @@ describe('formComponentUtils', () => {
         },
       });
 
-      const deleteValidation = getFileUploadComponentValidations('delete', mockLanguage.language);
+      const deleteValidation = getFileUploadComponentValidations('delete', langTools);
       expect(deleteValidation).toEqual({
         simpleBinding: {
           errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'],

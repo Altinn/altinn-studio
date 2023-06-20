@@ -43,7 +43,6 @@ const render = ({
     genericProps: {
       legend: () => <span>legend</span>,
       handleDataChange: jest.fn(),
-      getTextResource: (value) => value,
       ...genericProps,
     },
     manipulateState: manipulateState

@@ -1,4 +1,5 @@
 import { Children, isValidElement } from 'react';
+import type { ReactNode } from 'react';
 
 export const capitalizeName = (name: string) =>
   name
@@ -19,7 +20,7 @@ export const capitalizeName = (name: string) =>
     .join(' ')
     .trim();
 
-export const getPlainTextFromNode = (node: React.ReactNode): string => {
+export const getPlainTextFromNode = (node: ReactNode): string => {
   if (typeof node === 'string') {
     return node;
   }

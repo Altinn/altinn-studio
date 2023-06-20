@@ -3,6 +3,7 @@ import React from 'react';
 import { RadioButton } from '@digdir/design-system-react';
 import { TableCell, TableRow, Typography } from '@material-ui/core';
 
+import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
@@ -47,13 +48,14 @@ const RadioGroupTableRow = ({
   componentValidations,
   legend,
   isValid,
-  text,
-  getTextResourceAsString,
 }: IControlledRadioGroupProps) => {
+  const { lang, langAsString } = useLanguage();
   const id = node.item.id;
   const groupContainerId = node.closest((n) => n.type === 'Group')?.item.id;
   const RenderLegend = legend;
   const rowLabelId = `row-label-${id}`;
+  const texts = node.item.textResourceBindings;
+
   return (
     <TableRow
       aria-labelledby={rowLabelId}
@@ -85,7 +87,7 @@ const RadioGroupTableRow = ({
               checked={isChecked}
               onChange={handleChange}
               value={option.value}
-              label={`${getPlainTextFromNode(text)} ${getTextResourceAsString(option.label)}`}
+              label={`${getPlainTextFromNode(lang(texts?.title))} ${langAsString(option.label)}`}
               hideLabel={true}
               name={rowLabelId}
               radioId={inputId}

@@ -3,22 +3,20 @@ import React from 'react';
 import { HelpText } from '@digdir/design-system-react';
 
 import classes from 'src/components/form/HelpTextContainer.module.css';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import type { ILanguage } from 'src/types/shared';
+import { useLanguage } from 'src/hooks/useLanguage';
+
 export interface IHelpTextContainerProps {
-  language: ILanguage;
   helpText: React.ReactNode;
   title?: string;
 }
 
-export function HelpTextContainer({ language, helpText, title }: IHelpTextContainerProps) {
+export function HelpTextContainer({ helpText, title }: IHelpTextContainerProps) {
+  const { langAsString } = useLanguage();
   return (
     <div className={classes.helpTextContainer}>
       <HelpText
         title={
-          title
-            ? `${getLanguageFromKey('helptext.button_title_prefix', language)} ${title}`
-            : getLanguageFromKey('helptext.button_title', language)
+          title ? `${langAsString('helptext.button_title_prefix')} ${title}` : langAsString('helptext.button_title')
         }
       >
         {helpText}

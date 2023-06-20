@@ -4,8 +4,8 @@ import { marked } from 'marked';
 import { mangle } from 'marked-mangle';
 import type { HTMLReactParserOptions } from 'html-react-parser';
 
-import type { ValidLanguageKey } from 'src/hooks/useLanguage';
-import type { IAltinnOrgs, IApplication, IDataSources, ILanguage, ITextResource } from 'src/types/shared';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IAltinnOrgs, IApplication, IDataSources, ITextResource } from 'src/types/shared';
 
 marked.use(mangle());
 
@@ -26,60 +26,6 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
     }
   }
 });
-
-/**
- * @deprecated Use lang() from useLanguage.ts instead
- * @see useLanguage
- */
-export function getLanguageFromKey<T extends ValidLanguageKey | undefined>(key: T, language: ILanguage | null) {
-  if (!key || !language) {
-    return key;
-  }
-  const path = key.split('.');
-  const value = getNestedObject(language, path);
-  if (!value || typeof value === 'object') {
-    return key;
-  }
-  return value;
-}
-
-function getNestedObject(nestedObj: ILanguage, pathArr: string[]) {
-  return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
-}
-
-export type LangParams = (string | undefined | number)[];
-
-// Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
-/**
- * @deprecated Use lang() from useLanguage.ts instead
- * @see useLanguage
- */
-export function getParsedLanguageFromKey(
-  key: ValidLanguageKey | undefined,
-  language: ILanguage | null,
-  params?: LangParams,
-  stringOutput?: false,
-): JSX.Element | null;
-export function getParsedLanguageFromKey(
-  key: ValidLanguageKey | undefined,
-  language: ILanguage | null,
-  params?: LangParams,
-  stringOutput?: true,
-): string;
-export function getParsedLanguageFromKey(
-  key: ValidLanguageKey | undefined,
-  language: ILanguage | null,
-  params?: LangParams,
-  stringOutput?: boolean,
-): any {
-  const name = getLanguageFromKey(key, language);
-  const paramParsed = params ? replaceParameters(name, params) : name;
-
-  if (stringOutput) {
-    return paramParsed;
-  }
-  return getParsedLanguageFromText(paramParsed);
-}
 
 export const getParsedLanguageFromText = (
   text: string | undefined,
@@ -123,7 +69,8 @@ const replaceRootTag = (domNode: any) => {
   }
 };
 
-const replaceParameters = (nameString: string | undefined, params: LangParams) => {
+export type LangParams = (string | undefined | number)[];
+export const replaceParameters = (nameString: string | undefined, params: LangParams) => {
   if (nameString === undefined) {
     return nameString;
   }
@@ -135,28 +82,6 @@ const replaceParameters = (nameString: string | undefined, params: LangParams) =
   });
   return mutatingString;
 };
-
-/**
- * @deprecated Use lang() from useLanguage.ts instead
- * @see useLanguage
- */
-export function getTextResourceByKey<T extends string | undefined>(
-  key: T,
-  textResources: ITextResource[] | null,
-): string | T {
-  if (!textResources || !key) {
-    return key;
-  }
-
-  const textResource = textResources.find((resource: ITextResource) => resource.id === key);
-  if (!textResource) {
-    return key;
-  }
-  // Checks if this text resource is a reference to another text resource.
-  // This is a common case when using likert component
-  const resource = textResources.find((resource) => resource.id === textResource.value) || textResource;
-  return resource.value;
-}
 
 /**
  * Replaces all variables in text resources with values from relevant source.
@@ -248,10 +173,10 @@ export function replaceTextResourceParams(
 export function getOrgName(
   orgs: IAltinnOrgs | null,
   org: string | undefined,
-  userLanguage: string,
+  langTools: IUseLanguage,
 ): string | undefined {
   if (orgs && typeof org === 'string' && orgs[org]) {
-    return orgs[org].name[userLanguage] || orgs[org].name.nb;
+    return orgs[org].name[langTools.selectedLanguage] || orgs[org].name.nb;
   }
 
   return undefined;
@@ -259,47 +184,37 @@ export function getOrgName(
 
 const appOwnerKey = 'appOwner';
 
-export function getAppOwner(
-  textResources: ITextResource[],
-  orgs: IAltinnOrgs | null,
-  org: string | undefined,
-  userLanguage: string,
-) {
-  const appOwner = getTextResourceByKey(appOwnerKey, textResources);
+export function getAppOwner(orgs: IAltinnOrgs | null, org: string | undefined, langTools: IUseLanguage) {
+  const appOwner = langTools.langAsString(appOwnerKey);
   if (appOwner !== appOwnerKey) {
     return appOwner;
   }
 
-  return getOrgName(orgs, org, userLanguage);
+  return getOrgName(orgs, org, langTools);
 }
 
 const appReceiverKey = 'appReceiver';
 
 export function getAppReceiver(
-  textResources: ITextResource[],
   orgs: IAltinnOrgs | null,
   org: string | undefined,
-  userLanguage: string,
+  langTools: IUseLanguage,
 ): string | undefined {
-  const appReceiver = getTextResourceByKey(appReceiverKey, textResources);
+  const appReceiver = langTools.langAsString(appReceiverKey);
   if (appReceiver !== appReceiverKey) {
     return appReceiver;
   }
 
-  return getOrgName(orgs, org, userLanguage);
+  return getOrgName(orgs, org, langTools);
 }
 
 const appNameKey = 'appName';
 const oldAppNameKey = 'ServiceName';
 
-export function getAppName(
-  textResources: ITextResource[],
-  applicationMetadata: IApplication | null,
-  userLanguage: string,
-) {
-  let appName = getTextResourceByKey(appNameKey, textResources);
+export function getAppName(applicationMetadata: IApplication | null, langTools: IUseLanguage) {
+  let appName = langTools.langAsString(appNameKey);
   if (appName === appNameKey) {
-    appName = getTextResourceByKey(oldAppNameKey, textResources);
+    appName = langTools.langAsString(oldAppNameKey);
   }
 
   if (appName !== appNameKey && appName !== oldAppNameKey) {
@@ -308,7 +223,7 @@ export function getAppName(
 
   // if no text resource key is set, fetch from app metadata
   if (applicationMetadata) {
-    return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
+    return applicationMetadata.title[langTools.selectedLanguage] || applicationMetadata.title.nb;
   }
 
   return undefined;

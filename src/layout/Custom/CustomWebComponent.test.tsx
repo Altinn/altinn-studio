@@ -60,12 +60,8 @@ describe('CustomWebComponent', () => {
       },
       genericProps: {
         formData: { simpleBinding: 'This is a test' },
-        text: 'Title',
         handleDataChange: (value: string) => value,
-        getTextResource: (key: string) => key,
-        getTextResourceAsString: (key: string) => key,
         isValid: true,
-        language: {},
         shouldFocus: false,
         ...({ 'data-CustomAttributeWithReact': <span>Hello world</span> } as any),
       },

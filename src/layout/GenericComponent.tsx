@@ -11,12 +11,12 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { FormComponentContext } from 'src/layout/index';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { Triggers } from 'src/types';
-import { getTextResource, gridBreakpoints, pageBreakStyles, selectComponentTexts } from 'src/utils/formComponentUtils';
+import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ISingleFieldValidation } from 'src/features/formData/formDataTypes';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
@@ -103,17 +103,11 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   const GetFocusSelector = makeGetFocus();
   const hasValidationMessages = node.hasValidationMessages('any');
   const hidden = node.isHidden();
+  const { lang } = useLanguage();
 
   const formData = node.getFormData();
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-
   const isValid = !node.hasValidationMessages('errors');
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-
-  const texts = useAppSelector((state) =>
-    selectComponentTexts(state.textResources.resources, item.textResourceBindings),
-  );
 
   const shouldFocus = useAppSelector((state) => GetFocusSelector(state, { id }));
   const componentValidations = useAppSelector(
@@ -145,7 +139,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     }
   }, [shouldFocus, hidden, dispatch]);
 
-  if (hidden || !language) {
+  if (hidden) {
     return null;
   }
 
@@ -196,9 +190,8 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     return (
       <Label
         key={`label-${id}`}
-        labelText={texts.title}
-        helpText={texts.help}
-        language={language}
+        labelText={lang(item.textResourceBindings?.title)}
+        helpText={lang(item.textResourceBindings?.help)}
         id={id}
         readOnly={item.readOnly}
         required={item.required}
@@ -215,7 +208,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     return (
       <Description
         key={`description-${id}`}
-        description={texts.description}
+        description={lang(item.textResourceBindings?.description)}
         id={id}
       />
     );
@@ -229,10 +222,9 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     return (
       <Legend
         key={`legend-${id}`}
-        labelText={texts.title}
-        descriptionText={texts.description}
-        helpText={texts.help}
-        language={language}
+        labelText={lang(item.textResourceBindings?.title)}
+        descriptionText={lang(item.textResourceBindings?.description)}
+        helpText={lang(item.textResourceBindings?.help)}
         id={id}
         required={item.required}
         labelSettings={item.labelSettings}
@@ -241,20 +233,11 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     );
   };
 
-  const getTextResourceWrapper = (key: string | undefined) => getTextResource(key, textResources);
-
-  const getTextResourceAsString = (key: string | undefined) => getTextResourceByKey(key, textResources);
-
   const fixedComponentProps: IComponentProps = {
     handleDataChange,
-    getTextResource: getTextResourceWrapper,
-    getTextResourceAsString,
     formData,
     isValid,
-    language,
     shouldFocus,
-    text: texts.title,
-    texts,
     label: RenderLabel,
     legend: RenderLegend,
     componentValidations,

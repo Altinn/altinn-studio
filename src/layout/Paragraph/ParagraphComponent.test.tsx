@@ -29,7 +29,7 @@ describe('ParagraphComponent', () => {
 
     expect(
       screen.getByRole('button', {
-        name: /helptext\.button_title/i,
+        name: /Hjelp/i,
       }),
     ).toBeInTheDocument();
   });
@@ -48,22 +48,18 @@ describe('ParagraphComponent', () => {
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('H3');
   });
 
-  it('should render in a <p> when regular text content is supplied', () => {
+  it('should render in a <span> when text content is HTML', () => {
     const id = 'mock-id';
     render({
-      component: { id },
-      genericProps: {
-        text: (
-          <>
-            Hello world with line
-            <br />
-            break
-          </>
-        ),
+      component: {
+        id,
+        textResourceBindings: {
+          title: 'Hello world with line<br>break',
+        },
       },
     });
     // eslint-disable-next-line testing-library/no-node-access
-    expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
+    expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('SPAN');
   });
 });
 

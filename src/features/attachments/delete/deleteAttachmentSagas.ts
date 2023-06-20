@@ -6,21 +6,23 @@ import type { SagaIterator } from 'redux-saga';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import { httpDelete } from 'src/utils/network/networking';
 import { dataElementUrl } from 'src/utils/urls/appUrlHelper';
 import type { IDeleteAttachmentAction } from 'src/features/attachments/delete/deleteAttachmentActions';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IRuntimeState } from 'src/types';
 
 export function* deleteAttachmentSaga({
   payload: { attachment, attachmentType, componentId, dataModelBindings },
 }: PayloadAction<IDeleteAttachmentAction>): SagaIterator {
-  const language = yield select((s: IRuntimeState) => s.language.language);
+  const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
   const currentView: string = yield select((s: IRuntimeState) => s.formLayout.uiConfig.currentView);
 
   try {
     // Sets validations to empty.
-    const newValidations = getFileUploadComponentValidations(null, {});
+    const newValidations = getFileUploadComponentValidations(null, langTools);
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
@@ -51,7 +53,7 @@ export function* deleteAttachmentSaga({
       throw new Error(`Got error response when deleting attachment: ${response.status}`);
     }
   } catch (err) {
-    const validations = getFileUploadComponentValidations('delete', language);
+    const validations = getFileUploadComponentValidations('delete', langTools);
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,

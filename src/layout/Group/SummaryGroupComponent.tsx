@@ -3,14 +3,12 @@ import React from 'react';
 import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { ComponentType } from 'src/layout/LayoutComponent';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -30,30 +28,16 @@ export function SummaryGroupComponent({
   targetNode,
   overrides,
 }: ISummaryGroupComponent) {
-  const textResourceBindings = targetNode.item.textResourceBindings;
   const excludedChildren = summaryNode.item.excludedChildren;
   const display = overrides?.display || summaryNode.item.display;
+  const { lang, langAsString } = useLanguage();
 
   const inExcludedChildren = (n: LayoutNode) =>
     excludedChildren &&
     (excludedChildren.includes(n.item.id) || excludedChildren.includes(`${n.item.baseComponentId}`));
 
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const language = useAppSelector((state) => state.language.language);
   const groupHasErrors = targetNode.hasDeepValidationMessages();
-
-  const title = React.useMemo(() => {
-    if (textResources && textResourceBindings) {
-      const titleKey = textResourceBindings.title;
-      if (!titleKey) {
-        return '';
-      }
-
-      return getTextFromAppOrDefault(titleKey, textResources, language || {}, [], true);
-    }
-
-    return '';
-  }, [textResources, textResourceBindings, language]);
+  const title = langAsString(targetNode.item.textResourceBindings?.title);
 
   const rowIndexes: (number | undefined)[] = [];
   if (targetNode.isRepGroup()) {
@@ -106,9 +90,6 @@ export function SummaryGroupComponent({
     );
   }
 
-  if (!language) {
-    return null;
-  }
   return (
     <>
       <div
@@ -132,7 +113,7 @@ export function SummaryGroupComponent({
         </div>
         <div style={{ width: '100%' }}>
           {rowIndexes.length === 0 ? (
-            <span className={classes.emptyField}>{getLanguageFromKey('general.empty_summary', language)}</span>
+            <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
           ) : (
             rowIndexes.map((idx) => {
               const childSummaryComponents = targetNode
@@ -170,7 +151,7 @@ export function SummaryGroupComponent({
 
       {groupHasErrors && !display?.hideValidationMessages && (
         <div className={classes.gridStyle}>
-          <ErrorPaper message={getLanguageFromKey('group.row_error', language)} />
+          <ErrorPaper message={langAsString('group.row_error')} />
           <div>
             {!display?.hideChangeButton && (
               <button
@@ -178,7 +159,7 @@ export function SummaryGroupComponent({
                 onClick={onChangeClick}
                 type='button'
               >
-                {getTextFromAppOrDefault('form_filler.summary_go_to_correct_page', textResources, language, [], true)}
+                {lang('form_filler.summary_go_to_correct_page')}
               </button>
             )}
           </div>

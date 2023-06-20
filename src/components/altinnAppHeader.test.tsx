@@ -5,7 +5,6 @@ import { screen } from '@testing-library/react';
 import { organisationMock } from 'src/__mocks__/organisationMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { AltinnAppHeader } from 'src/components/altinnAppHeader';
-import { getLanguageFromCode } from 'src/language/languages';
 import { renderWithProviders } from 'src/testUtils';
 import type { IHeaderProps } from 'src/components/altinnAppHeader';
 
@@ -74,10 +73,8 @@ describe('AltinnAppHeader', () => {
 
 const render = (props: Partial<IHeaderProps> = {}) => {
   const profile = getProfileStateMock();
-  const language = getLanguageFromCode('nb');
 
   const allProps = {
-    language,
     profile: profile.profile,
     ...props,
   };

@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ICompactSummaryItem {
@@ -12,22 +10,21 @@ export interface ICompactSummaryItem {
 }
 
 export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
+  const { lang } = useLanguage();
   const textBindings = targetNode.item.textResourceBindings;
 
   return (
     <div data-testid={'summary-item-compact'}>
       {textBindings?.title && (
         <span>
-          {getTextFromAppOrDefault(textBindings.title, textResources, {}, [], false)}
+          {lang(textBindings.title)}
           {' : '}
         </span>
       )}
       {displayData ? (
         <span className={classes.data}>{displayData}</span>
       ) : (
-        <span className={classes.emptyField}>{getLanguageFromKey('general.empty_summary', language || {})}</span>
+        <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
       )}
     </div>
   );

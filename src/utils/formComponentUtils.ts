@@ -1,53 +1,25 @@
 import type React from 'react';
 
-import { getLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'src/language/sharedLanguage';
 import printStyles from 'src/styles/print.module.css';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
 import type { IPageBreak } from 'src/layout/layout.d';
-import type { IComponentValidations, ITextResource, ITextResourceBindings } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
+import type { IComponentValidations, ITextResourceBindings } from 'src/types';
 import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 export interface IComponentFormData {
   [binding: string]: string | undefined;
 }
 
-export const getTextResource = (resourceKey: string | undefined, textResources: ITextResource[]): React.ReactNode => {
-  const textResourceValue = getTextResourceByKey(resourceKey, textResources);
-  if (textResourceValue === resourceKey) {
-    // No match in text resources
-    return resourceKey;
-  }
-  if (!textResourceValue) {
-    return undefined;
-  }
-
-  return getParsedLanguageFromText(textResourceValue);
-};
-
-export function selectComponentTexts(
-  textResources: ITextResource[],
-  textResourceBindings: ITextResourceBindings | undefined,
-) {
-  const result: { [textResourceKey: string]: React.ReactNode } = {};
-
-  if (textResourceBindings) {
-    Object.keys(textResourceBindings).forEach((key) => {
-      result[key] = getTextResource(textResourceBindings[key], textResources);
-    });
-  }
-  return result;
-}
-
 export function getFileUploadComponentValidations(
   validationError: 'upload' | 'update' | 'delete' | null,
-  language: ILanguage,
+  langTools: IUseLanguage,
   attachmentId?: string,
 ): IComponentValidations {
+  const { langAsString } = langTools;
   const componentValidations: any = {
     simpleBinding: {
       errors: [],
@@ -55,26 +27,18 @@ export function getFileUploadComponentValidations(
     },
   };
   if (validationError === 'upload') {
-    componentValidations.simpleBinding.errors.push(
-      getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language),
-    );
+    componentValidations.simpleBinding.errors.push(langAsString('form_filler.file_uploader_validation_error_upload'));
   } else if (validationError === 'update') {
     if (attachmentId === undefined || attachmentId === '') {
-      componentValidations.simpleBinding.errors.push(
-        getLanguageFromKey('form_filler.file_uploader_validation_error_update', language),
-      );
+      componentValidations.simpleBinding.errors.push(langAsString('form_filler.file_uploader_validation_error_update'));
     } else {
       componentValidations.simpleBinding.errors.push(
         // If validation has attachmentId, add to start of message and seperate using ASCII Universal Seperator
-        attachmentId +
-          AsciiUnitSeparator +
-          getLanguageFromKey('form_filler.file_uploader_validation_error_update', language),
+        attachmentId + AsciiUnitSeparator + langAsString('form_filler.file_uploader_validation_error_update'),
       );
     }
   } else if (validationError === 'delete') {
-    componentValidations.simpleBinding.errors.push(
-      getLanguageFromKey('form_filler.file_uploader_validation_error_delete', language),
-    );
+    componentValidations.simpleBinding.errors.push(langAsString('form_filler.file_uploader_validation_error_delete'));
   }
   return componentValidations;
 }
@@ -143,25 +107,24 @@ export const atleastOneTagExists = (attachments: IAttachment[]): boolean => {
 
 export function getFieldName(
   textResourceBindings: ITextResourceBindings | undefined,
-  textResources: ITextResource[],
-  language: ILanguage,
+  langTools: IUseLanguage,
   fieldKey?: string,
 ): string | undefined {
+  const { langAsString } = langTools;
+
   if (fieldKey) {
-    return smartLowerCaseFirst(
-      getTextFromAppOrDefault(`form_filler.${fieldKey}`, textResources, language, undefined, true),
-    );
+    return smartLowerCaseFirst(langAsString(`form_filler.${fieldKey}`));
   }
 
   if (textResourceBindings?.shortName) {
-    return getTextResourceByKey(textResourceBindings.shortName, textResources);
+    return langAsString(textResourceBindings.shortName);
   }
 
   if (textResourceBindings?.title) {
-    return smartLowerCaseFirst(getTextResourceByKey(textResourceBindings.title, textResources));
+    return smartLowerCaseFirst(langAsString(textResourceBindings.title));
   }
 
-  return getLanguageFromKey('validation.generic_field', language);
+  return langAsString('validation.generic_field');
 }
 
 /**

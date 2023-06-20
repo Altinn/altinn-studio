@@ -113,8 +113,6 @@ export function renderGenericComponentTest<T extends ComponentTypes>({
     const props: PropsFromGenericComponent<T> = {
       node,
       ...mockComponentProps,
-      getTextResource: (key: string) => key,
-      getTextResourceAsString: (key: string) => key,
       ...genericProps,
     };
 
@@ -196,15 +194,8 @@ export const mockComponentProps: IComponentProps & { id: string } = {
   handleDataChange: () => {
     throw new Error('Called mock handleDataChange, override this yourself');
   },
-  getTextResource: () => {
-    throw new Error('Called mock getTextResource, override this yourself');
-  },
-  getTextResourceAsString: () => {
-    throw new Error('Called mock getTextResourceAsString, override this yourself');
-  },
   shouldFocus: false,
   isValid: undefined,
-  language: {},
   componentValidations: {},
   label: () => {
     throw new Error('Rendered mock label, override this yourself');
@@ -212,8 +203,6 @@ export const mockComponentProps: IComponentProps & { id: string } = {
   legend: () => {
     throw new Error('Rendered mock legend, override this yourself');
   },
-  text: undefined,
-  texts: {},
 };
 
 export const createStorageMock = (): Storage => {

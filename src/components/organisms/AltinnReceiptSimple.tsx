@@ -3,8 +3,8 @@ import React from 'react';
 import { makeStyles, Typography } from '@material-ui/core';
 
 export interface IReceiptComponentProps {
-  body: string | JSX.Element | JSX.Element[];
-  title: string | JSX.Element | JSX.Element[];
+  body: string | JSX.Element | JSX.Element[] | null;
+  title: string | JSX.Element | JSX.Element[] | null;
 }
 
 const useStyles = makeStyles(() => ({

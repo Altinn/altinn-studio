@@ -12,14 +12,11 @@ import { selectAppName } from 'src/selectors/language';
 export const Confirm = () => {
   const { instanceId } = useInstanceIdParams();
   const dispatch = useAppDispatch();
-  const pageProps = {
-    instance: useAppSelector((state) => state.instanceData.instance),
-    parties: useAppSelector((state) => state.party.parties),
-    applicationMetadata: useAppSelector((state) => state.applicationMetadata.applicationMetadata),
-    language: useAppSelector((state) => state.language.language),
-    appName: useAppSelector(selectAppName),
-    textResources: useAppSelector((state) => state.textResources.resources),
-  };
+  const instance = useAppSelector((state) => state.instanceData.instance);
+  const parties = useAppSelector((state) => state.party.parties);
+  const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
+  const appName = useAppSelector(selectAppName);
+
   React.useEffect(() => {
     dispatch(
       InstanceDataActions.get({
@@ -27,7 +24,6 @@ export const Confirm = () => {
       }),
     );
   }, [instanceId, dispatch]);
-  const { instance, parties } = pageProps;
   const isLoading = !instance || !parties;
   return (
     <div id='confirmcontainer'>
@@ -39,7 +35,12 @@ export const Confirm = () => {
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
       ) : (
-        <ConfirmPage {...pageProps} />
+        <ConfirmPage
+          applicationMetadata={applicationMetadata}
+          instance={instance}
+          parties={parties}
+          appName={appName}
+        />
       )}
     </div>
   );

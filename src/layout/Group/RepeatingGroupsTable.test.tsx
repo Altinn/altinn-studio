@@ -18,7 +18,6 @@ import type { IRepeatingGroupTableProps } from 'src/layout/Group/RepeatingGroupT
 import type { HRepGroup, ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { IOption, ITextResource } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 (global as any).ResizeObserver = ResizeObserverModule;
@@ -61,17 +60,6 @@ describe('RepeatingGroupTable', () => {
   const group: ExprUnresolved<ILayoutGroup> = getFormLayoutGroupMock({
     id: 'mock-container-id',
   });
-  const language: ILanguage = {
-    general: {
-      delete: 'Delete',
-      edit_alt: 'Edit',
-      cancel: 'Cancel',
-    },
-    group: {
-      row_popover_delete_message: 'Are you sure you want to delete this row?',
-      row_popover_delete_button_confirm: 'Yes, delete the row',
-    },
-  };
   const textResources: ITextResource[] = [{ id: 'option.label', value: 'Value to be shown' }];
   const attachments: IAttachments = {};
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
@@ -165,13 +153,13 @@ describe('RepeatingGroupTable', () => {
 
       render({}, layout);
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /delete/i })[0]));
+      await act(() => user.click(screen.getAllByRole('button', { name: /slett/i })[0]));
 
-      expect(screen.getByText('Are you sure you want to delete this row?')).toBeInTheDocument();
+      expect(screen.getByText('Er du sikker på at du vil slette denne raden?')).toBeInTheDocument();
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /delete/i })[0]));
+      await act(() => user.click(screen.getAllByRole('button', { name: /slett/i })[0]));
 
-      expect(screen.queryByText('Are you sure you want to delete this row?')).not.toBeInTheDocument();
+      expect(screen.queryByText('Er du sikker på at du vil slette denne raden?')).not.toBeInTheDocument();
     });
   });
 
@@ -185,7 +173,7 @@ describe('RepeatingGroupTable', () => {
       const onClickRemove = jest.fn();
       render({ onClickRemove });
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /delete/i })[0]));
+      await act(() => user.click(screen.getAllByRole('button', { name: /slett/i })[0]));
 
       expect(onClickRemove).toBeCalledTimes(1);
     });
@@ -194,7 +182,7 @@ describe('RepeatingGroupTable', () => {
       const setEditIndex = jest.fn();
       render({ setEditIndex });
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /edit/i })[0]));
+      await act(() => user.click(screen.getAllByRole('button', { name: /rediger/i })[0]));
 
       expect(setEditIndex).toBeCalledTimes(1);
     });
@@ -239,7 +227,6 @@ describe('RepeatingGroupTable', () => {
     preloadedState.attachments.attachments = attachments;
     preloadedState.textResources.resources = textResources;
     preloadedState.formData.formData = data;
-    preloadedState.language.language = language;
 
     const { container } = renderWithProviders(
       <RenderGroupTable

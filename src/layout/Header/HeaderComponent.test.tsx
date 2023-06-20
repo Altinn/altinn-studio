@@ -17,12 +17,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
       textResourceBindings: {},
       ...component,
     },
-    genericProps: {
-      text: 'text',
-      getTextResource: (key: string) => key,
-      language: {},
-      ...genericProps,
-    },
+    genericProps,
   });
 };
 describe('HeaderComponent', () => {
@@ -94,10 +89,7 @@ describe('HeaderComponent', () => {
       },
     });
 
-    const helpButton = screen.getByRole('button', {
-      name: /helptext\.button_title/i,
-    });
-
+    const helpButton = screen.getByRole('button', { name: /Hjelp/i });
     expect(helpButton).toBeInTheDocument();
   });
 
@@ -111,10 +103,7 @@ describe('HeaderComponent', () => {
       },
     });
 
-    const helpButton = screen.getByRole('button', {
-      name: /helptext\.button_title/i,
-    });
-
+    const helpButton = screen.getByRole('button', { name: /Hjelp/i });
     expect(screen.queryByText(helpText)).not.toBeInTheDocument();
     fireEvent.click(helpButton);
     expect(screen.getByText(helpText)).toBeInTheDocument();

@@ -1,6 +1,5 @@
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { useOptionList } from 'src/hooks/useOptionList';
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import type { ISelectionComponent } from 'src/layout/layout';
 
 /**
@@ -10,7 +9,7 @@ import type { ISelectionComponent } from 'src/layout/layout';
  * @see FormComponent.useDisplayData
  */
 export function useSelectedValueToText(component: ISelectionComponent, value: string) {
-  const textResources = useAppSelector((state) => state.textResources.resources);
+  const { langAsString } = useLanguage();
   const optionList = useOptionList(component);
   const label = optionList.find((option) => option.value === value)?.label;
 
@@ -18,5 +17,5 @@ export function useSelectedValueToText(component: ISelectionComponent, value: st
     return value;
   }
 
-  return getTextResourceByKey(label, textResources) || value;
+  return langAsString(label) || value;
 }

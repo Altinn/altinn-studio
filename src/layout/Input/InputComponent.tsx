@@ -12,14 +12,7 @@ import type { IInputFormatting } from 'src/layout/layout';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
-export function InputComponent({
-  node,
-  isValid,
-  formData,
-  handleDataChange,
-  overrideDisplay,
-  getTextResourceAsString,
-}: IInputProps) {
+export function InputComponent({ node, isValid, formData, handleDataChange, overrideDisplay }: IInputProps) {
   const {
     id,
     readOnly,
@@ -36,12 +29,11 @@ export function InputComponent({
     formData?.simpleBinding ?? '',
     saveWhileTyping,
   );
-  const { lang } = useLanguage();
+  const { lang, langAsString } = useLanguage();
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting, value);
   const handleChange = (e) => setValue(e.target.value);
 
-  const ariaLabel =
-    overrideDisplay?.renderedInTable === true ? getTextResourceAsString(textResourceBindings?.title) : undefined;
+  const ariaLabel = overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined;
 
   return (
     <>

@@ -11,7 +11,6 @@ import {
 import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
@@ -523,18 +522,14 @@ export const ExprFunctions = {
         return null;
       }
 
-      return getTextResourceByKey(key, this.dataSources.textResources);
+      return this.dataSources.langTools.langAsString(key);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.String,
   }),
   language: defineFunc({
     impl() {
-      const selectedLanguage =
-        this.dataSources.profile?.selectedAppLanguage ||
-        this.dataSources.profile?.profile?.profileSettingPreference?.language;
-
-      return selectedLanguage || 'nb';
+      return this.dataSources.langTools.selectedLanguage;
     },
     args: [] as const,
     returns: ExprVal.String,

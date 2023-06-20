@@ -43,8 +43,6 @@ const render = ({ component, genericProps, optionState }: Props = {}) =>
     genericProps: {
       legend: () => <span>legend</span>,
       handleDataChange: jest.fn(),
-      getTextResource: (value) => value,
-      getTextResourceAsString: (value) => value,
       ...genericProps,
     },
     manipulateState: (state) => {

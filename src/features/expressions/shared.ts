@@ -26,7 +26,7 @@ export interface SharedTest {
   permissions?: IProcessPermissions;
   frontendSettings?: IApplicationSettings;
   textResources?: ITextResource[];
-  profile?: IProfileState;
+  profileSettings?: Pick<IProfileState['profile']['profileSettingPreference'], 'language'>;
 }
 
 export interface SharedTestContext {

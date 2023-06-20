@@ -143,7 +143,7 @@ describe('Form', () => {
     ];
     renderForm(layoutWithNavBar);
     expect(screen.getByRole('navigation')).toBeInTheDocument();
-    expect(screen.getByText('1. FormLayout')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1. FormLayout' })).toBeInTheDocument();
   });
 
   it('should not render ErrorReport when there are no validation errors', () => {

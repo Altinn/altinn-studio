@@ -86,8 +86,5 @@ const render = ({ title, target, openInNewTab = false, style = 'primary' }) => {
       openInNewTab,
       style: style as LinkStyle,
     },
-    genericProps: {
-      getTextResourceAsString: (text) => text,
-    },
   });
 };

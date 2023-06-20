@@ -2,36 +2,32 @@ import React from 'react';
 
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import type { ValidLanguageKey } from 'src/hooks/useLanguage';
 import type { ILabelSettings } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
 
 interface IAddressLabel {
   labelKey: ValidLanguageKey;
   id: string;
-  language: ILanguage;
   required?: boolean;
   readOnly?: boolean;
   labelSettings?: ILabelSettings;
 }
 
-export const AddressLabel = ({ labelKey, id, language, required, readOnly, labelSettings }: IAddressLabel) => {
-  const label = getLanguageFromKey(labelKey, language);
+export const AddressLabel = ({ labelKey, id, required, readOnly, labelSettings }: IAddressLabel) => {
+  const { lang } = useLanguage();
   return (
     <label
       className='a-form-label title-label'
       htmlFor={id}
     >
-      {label}
+      {lang(labelKey)}
       <RequiredIndicator
         required={required}
         readOnly={readOnly}
-        language={language}
       />
       <OptionalIndicator
         labelSettings={labelSettings}
-        language={language}
         readOnly={readOnly}
         required={required}
       />

@@ -1,5 +1,5 @@
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
-import type { IApplication, IAttachment, IAttachmentGrouping, IData, IDataType, ITextResource } from 'src/types/shared';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IApplication, IAttachment, IAttachmentGrouping, IData, IDataType } from 'src/types/shared';
 
 export const mapInstanceAttachments = (
   data: IData[] | undefined,
@@ -49,24 +49,21 @@ export const getInstancePdf = (data: IData[] | undefined, platform?: boolean): I
 
 /**
  * Gets the attachment groupings from a list of attachments.
- * @param attachments the attachments
- * @param applicationMetadata the application metadata
- * @param textResources the application text resources
  */
 export const getAttachmentGroupings = (
   attachments: IAttachment[] | undefined,
   applicationMetadata: IApplication | null,
-  textResources: ITextResource[],
+  langTools: IUseLanguage,
 ): IAttachmentGrouping => {
   const attachmentGroupings: IAttachmentGrouping = {};
 
-  if (!attachments || !applicationMetadata || !textResources) {
+  if (!attachments || !applicationMetadata) {
     return attachmentGroupings;
   }
 
   attachments.forEach((attachment: IAttachment) => {
     const grouping = getGroupingForAttachment(attachment, applicationMetadata);
-    const title = getTextResourceByKey(grouping, textResources);
+    const title = langTools.langAsString(grouping);
     if (!attachmentGroupings[title]) {
       attachmentGroupings[title] = [];
     }

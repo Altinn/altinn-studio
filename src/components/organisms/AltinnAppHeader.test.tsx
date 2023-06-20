@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
+import { renderWithProviders } from 'src/testUtils';
 import type { IParty } from 'src/types/shared';
 
 describe('organisms/AltinnAppHeader', () => {
@@ -31,28 +32,21 @@ describe('organisms/AltinnAppHeader', () => {
 
   const headerBackgroundColor = 'blue';
   const logoColor = 'blue';
-  const language = {
-    general: {
-      header_profile_icon_label: 'Profilikon meny',
-      log_out: 'Logg ut',
-    },
-  };
 
   const renderComponent = (party: IParty, user = partyPerson) =>
-    render(
+    renderWithProviders(
       <AltinnAppHeader
         party={party}
         userParty={user}
         logoColor={logoColor}
         headerBackgroundColor={headerBackgroundColor}
-        language={language}
       />,
     );
 
   it('should render private icon when party is person', () => {
     renderComponent(partyPerson);
     const profileButton = screen.getByRole('button', {
-      name: /profilikon meny/i,
+      name: /Profil ikon knapp/i,
     });
     // eslint-disable-next-line testing-library/no-node-access
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
@@ -61,7 +55,7 @@ describe('organisms/AltinnAppHeader', () => {
   it('should render private icon for user without ssn or org number', () => {
     renderComponent(selfIdentifiedUser);
     const profileButton = screen.getByRole('button', {
-      name: /profilikon meny/i,
+      name: /Profil ikon knapp/i,
     });
     // eslint-disable-next-line testing-library/no-node-access
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
@@ -70,7 +64,7 @@ describe('organisms/AltinnAppHeader', () => {
   it('should render org icon when party is org', () => {
     renderComponent(partyOrg);
     const profileButton = screen.getByRole('button', {
-      name: /profilikon meny/i,
+      name: /Profil ikon knapp/i,
     });
     // eslint-disable-next-line testing-library/no-node-access
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-corp-circle-big');
@@ -88,7 +82,7 @@ describe('organisms/AltinnAppHeader', () => {
     await act(() =>
       userEvent.click(
         screen.getByRole('button', {
-          name: /profilikon meny/i,
+          name: /Profil ikon knapp/i,
         }),
       ),
     );

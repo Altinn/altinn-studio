@@ -3,8 +3,7 @@ import React from 'react';
 import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
 
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import type { IParty } from 'src/types/shared';
 
 const useStyles = makeStyles((theme) => ({
@@ -115,16 +114,10 @@ export interface IAltinnPartyProps {
 
 export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
   const classes = useStyles();
+  const { lang, langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const isOrg: boolean = party.orgNumber != null;
-  const _language = useAppSelector((state) => state.language.language);
-
-  if (_language === null) {
-    return null;
-  }
-
-  const language = _language;
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();
@@ -180,7 +173,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
               <Typography className={classes.subUnitListHeaderText}>
                 {party.childParties.length}
                 &nbsp;
-                {getLanguageFromKey('party_selection.unit_type_subunit_plural', language)}
+                {lang('party_selection.unit_type_subunit_plural')}
               </Typography>
             </Grid>
           </Grid>
@@ -212,7 +205,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 <Typography className={`${classes.partyName}`}>{childParty.name}</Typography>
                 <Typography className={classes.partyInfo}>
                   &nbsp;
-                  {getLanguageFromKey('party_selection.unit_org_number', language)}
+                  {lang('party_selection.unit_org_number')}
                   &nbsp;{childParty.orgNumber}
                 </Typography>
               </Grid>
@@ -241,12 +234,12 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
           className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}
         />
         <Typography className={classes.partyName}>
-          {party.name + (party.isDeleted ? ` (${getLanguageFromKey('party_selection.unit_deleted', language)}) ` : '')}
+          {party.name + (party.isDeleted ? ` (${langAsString('party_selection.unit_deleted')}) ` : '')}
         </Typography>
         <Typography className={classes.partyInfo}>
           {isOrg
-            ? `${getLanguageFromKey('party_selection.unit_org_number', language)} ${party.orgNumber}`
-            : `${getLanguageFromKey('party_selection.unit_personal_number', language)} ${party.ssn}`}
+            ? `${langAsString('party_selection.unit_org_number')} ${party.orgNumber}`
+            : `${langAsString('party_selection.unit_personal_number')} ${party.ssn}`}
         </Typography>
       </Grid>
       {renderSubunits()}

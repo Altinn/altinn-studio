@@ -1,10 +1,9 @@
 import React from 'react';
-import { Provider } from 'react-redux';
 
-import { render, screen } from '@testing-library/react';
-import configureStore from 'redux-mock-store';
+import { screen } from '@testing-library/react';
 
 import { Label } from 'src/components/form/Label';
+import { renderWithProviders } from 'src/testUtils';
 import type { IFormLabelProps } from 'src/components/form/Label';
 
 describe('Label', () => {
@@ -53,21 +52,10 @@ describe('Label', () => {
   });
 
   function renderLabelComponent(props: Partial<IFormLabelProps> = {}) {
-    const createStore = configureStore();
-    const mockLanguage = {
-      general: {
-        optional: optionalMarking,
-      },
-      form_filler: {
-        required_label: requiredMarking,
-      },
-    };
-
     const defaultProps: IFormLabelProps = {
       id: 'label1',
       labelText: 'label.text',
       helpText: '',
-      language: mockLanguage,
       readOnly: false,
       required: false,
       labelSettings: {
@@ -75,15 +63,11 @@ describe('Label', () => {
       },
     };
 
-    const mockStore = createStore({ language: { language: mockLanguage } });
-
-    return render(
-      <Provider store={mockStore}>
-        <Label
-          {...defaultProps}
-          {...props}
-        />
-      </Provider>,
+    return renderWithProviders(
+      <Label
+        {...defaultProps}
+        {...props}
+      />,
     );
   }
 });

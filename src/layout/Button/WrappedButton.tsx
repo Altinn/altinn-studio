@@ -4,7 +4,6 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import classes from 'src/layout/Button/WrappedButton.module.css';
-import type { ButtonLoaderProps } from 'src/layout/Button/ButtonLoader';
 
 export interface BaseButtonProps {
   onClick: (...args) => void;
@@ -12,7 +11,7 @@ export interface BaseButtonProps {
   disabled?: boolean;
 }
 
-export interface ButtonProps extends ButtonLoaderProps, BaseButtonProps {
+export interface ButtonProps extends BaseButtonProps {
   id: string;
   children: React.ReactNode;
 }
@@ -29,7 +28,6 @@ export const WrappedButton = ({
   id,
   children,
   busyWithId,
-  language,
   disabled,
 }: Props) => {
   const somethingIsLoading = !!busyWithId;
@@ -49,7 +47,7 @@ export const WrappedButton = ({
       disabled={disabled}
     >
       {children}
-      {thisIsLoading && <ButtonLoader language={language} />}
+      {thisIsLoading && <ButtonLoader />}
     </Button>
   );
 };

@@ -9,13 +9,14 @@ import * as complexSchema from 'src/__mocks__/json-schema/complex.json';
 import * as oneOfOnRootSchema from 'src/__mocks__/json-schema/one-of-on-root.json';
 import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
 import { getMockValidationState } from 'src/__mocks__/validationStateMock';
-import { getParsedLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { Severity } from 'src/types';
 import { getRepeatingGroups } from 'src/utils/formLayout';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import * as validation from 'src/utils/validation/validation';
 import type { ExprUnresolved } from 'src/features/expressions/types';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutComponent, ILayouts } from 'src/layout/layout';
 import type {
@@ -88,6 +89,7 @@ describe('utils > validation', () => {
   let mockFormAttachments: any;
   let mockDataElementValidations: IValidationIssue[];
   let mockTextResources: ITextResource[];
+  let mockLangTools: IUseLanguage;
 
   beforeEach(() => {
     mockLanguage = {
@@ -150,6 +152,10 @@ describe('utils > validation', () => {
             dataSource: 'dataModel.default',
           },
         ],
+      },
+      {
+        id: 'custom_error',
+        value: 'This is a custom error message',
       },
     ];
 
@@ -474,22 +480,22 @@ describe('utils > validation', () => {
         FormLayout: {
           componentId_1: {
             simpleBinding: {
-              errors: [getParsedLanguageFromKey('validation_errors.min', mockLanguage.language, [0], true)],
+              errors: ['must be bigger than 0'],
             },
           },
           componentId_2: {
             customBinding: {
-              errors: [getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10], true)],
+              errors: ['length must be bigger than 10'],
             },
           },
           'componentId_4-0': {
             simpleBinding: {
-              errors: [getParsedLanguageFromKey('validation_errors.pattern', mockLanguage.language, [], true)],
+              errors: ['Feil format eller verdi'],
             },
           },
           'componentId_5-0-1': {
             simpleBinding: {
-              errors: [getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10], true)],
+              errors: ['length must be bigger than 10'],
             },
           },
         },
@@ -568,6 +574,8 @@ describe('utils > validation', () => {
         code: '',
       },
     ];
+
+    mockLangTools = staticUseLanguageForTests({ textResources: mockTextResources, language: mockLanguage.language });
 
     /**
      * Silences deprecation warning about jsPropertySyntax from Ajv, so we don't pollute our test runner output with
@@ -753,8 +761,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       const mockResult = {
@@ -779,8 +786,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       const mockResult = {
@@ -813,8 +819,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         Object.keys(mockLayout),
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       const mockResult = {
@@ -840,8 +845,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout, {}, new Set(['componentId_4'])),
         Object.keys(mockLayout),
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       const mockResult = {
@@ -867,8 +871,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         [],
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(componentSpecificValidations).toEqual({});
@@ -888,8 +891,7 @@ describe('utils > validation', () => {
         mockFormData,
         toCollection(mockLayout, repeatingGroups),
         Object.keys(mockLayout),
-        mockLanguage.language,
-        mockTextResources,
+        mockLangTools,
       );
 
       const mockResult = {
@@ -928,8 +930,7 @@ describe('utils > validation', () => {
         mockFormData,
         toCollection(mockLayout, repeatingGroups, new Set(['componentId_4-0'])),
         Object.keys(mockLayout),
-        mockLanguage.language,
-        mockTextResources,
+        mockLangTools,
       );
 
       const mockResult = {
@@ -962,8 +963,7 @@ describe('utils > validation', () => {
         mockFormData,
         toCollection(mockLayout, repeatingGroups),
         [],
-        mockLanguage.language,
-        mockTextResources,
+        mockLangTools,
       );
 
       expect(componentSpecificValidations).toEqual({});
@@ -977,12 +977,7 @@ describe('utils > validation', () => {
       }
 
       const validations = {};
-      validations[component.item.id] = validation.validateEmptyField(
-        mockFormData,
-        component,
-        mockTextResources,
-        mockLanguage.language,
-      );
+      validations[component.item.id] = validation.validateEmptyField(mockFormData, component, mockLangTools);
 
       const mockResult = {
         componentId_3: {
@@ -1004,12 +999,7 @@ describe('utils > validation', () => {
       }
 
       const validations = {};
-      validations[component.item.id] = validation.validateEmptyField(
-        mockFormData,
-        component,
-        mockTextResources,
-        mockLanguage.language,
-      );
+      validations[component.item.id] = validation.validateEmptyField(mockFormData, component, mockLangTools);
 
       const mockResult = {
         componentId_6: {
@@ -1041,7 +1031,7 @@ describe('utils > validation', () => {
       if (!layout) {
         throw new Error('No layout found - check your test data!');
       }
-      return validation.validateEmptyFieldsForNodes(formData, layout, mockLanguage.language, mockTextResources);
+      return validation.validateEmptyFieldsForNodes(formData, layout, mockLangTools);
     };
 
     const requiredFieldInSimpleGroup = 'required_in_group_simple';
@@ -1181,7 +1171,7 @@ describe('utils > validation', () => {
       const mappedDataElementValidations = validation.mapDataElementValidationToRedux(
         mockDataElementValidations,
         mockLayoutState.layouts,
-        [],
+        mockLangTools,
       );
       const expected = getMockValidationState(false);
       expect(mappedDataElementValidations).toEqual(expected);
@@ -1235,15 +1225,15 @@ describe('utils > validation', () => {
         FormLayout: {
           componentId_1: {
             simpleBinding: {
-              errors: [getTextResourceByKey('Error message', [])],
-              info: [getTextResourceByKey('Info message', [])],
-              fixed: [getTextResourceByKey('Another error message', [])],
+              errors: ['Error message'],
+              info: ['Info message'],
+              fixed: ['Another error message'],
             },
           },
           componentId_2: {
             customBinding: {
-              success: [getTextResourceByKey('Success message', [])],
-              warnings: [getTextResourceByKey('Warning message', [])],
+              success: ['Success message'],
+              warnings: ['Warning message'],
             },
           },
         },
@@ -1252,7 +1242,7 @@ describe('utils > validation', () => {
       const mappedDataElementValidations = validation.mapDataElementValidationToRedux(
         serverValidationResponse,
         mockLayoutState.layouts,
-        [],
+        mockLangTools,
       );
 
       expect(mappedDataElementValidations).toEqual(expectedResult);
@@ -1276,14 +1266,14 @@ describe('utils > validation', () => {
             },
           ],
         },
-        [],
+        mockLangTools,
       );
       const expected = {
         ...getMockValidationState(false),
         AnotherPage: {
           AnotherComponent: {
             simpleBinding: {
-              errors: [getTextResourceByKey('Error message 1', []), getTextResourceByKey('Error message 2', [])],
+              errors: ['Error message 1', 'Error message 2'],
             },
           },
         },
@@ -1300,8 +1290,7 @@ describe('utils > validation', () => {
         toCollectionFromData(mockLayout, mockFormData),
         Object.keys(mockLayoutState.layouts),
         mockValidator,
-        mockLanguage.language,
-        [],
+        mockLangTools,
       );
       expect(mockResult).toEqual(mockFormValidationResult);
     });
@@ -1313,15 +1302,13 @@ describe('utils > validation', () => {
         toCollectionFromData(mockLayout, mockValidFormData),
         Object.keys(mockLayoutState.layouts),
         mockValidator,
-        mockLanguage,
-        [],
+        mockLangTools,
       );
       expect(mockResult.validations).toEqual({});
     });
 
     it('should return custom error message when this is defined', () => {
       const mockValidator = validation.createValidator(mockJsonSchema);
-      const mockTexts = [{ id: 'custom_error', value: 'This is a custom error message' }];
       const formData = {
         ...mockValidFormData,
         dataModelField_custom: 'abcdefg',
@@ -1332,14 +1319,13 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
         mockValidator,
-        mockLanguage,
-        mockTexts,
+        mockLangTools,
       );
       expect(mockResult.validations).toEqual({
         FormLayout: {
           componentId_customError: {
             simpleBinding: {
-              errors: [getTextResourceByKey('custom_error', mockTexts)],
+              errors: ['This is a custom error message'],
             },
           },
         },
@@ -1356,8 +1342,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
         mockValidator,
-        mockLanguage,
-        [],
+        mockLangTools,
       );
       expect(mockResult.invalidDataTypes).toBeTruthy();
     });
@@ -1369,8 +1354,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         [],
         mockValidator,
-        mockLanguage.language,
-        [],
+        mockLangTools,
       );
       expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
     });
@@ -1387,15 +1371,14 @@ describe('utils > validation', () => {
         toCollectionFromData(mockLayout, useFormData),
         Object.keys(mockLayoutState.layouts),
         mockValidator,
-        mockLanguage.language,
-        [],
+        mockLangTools,
       );
       const mockFormValidationResult = {
         validations: {
           FormLayout: {
             componentId_2: {
               customBinding: {
-                errors: [getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10], true)],
+                errors: ['length must be bigger than 10'],
               },
             },
           },
@@ -1419,15 +1402,14 @@ describe('utils > validation', () => {
         toCollectionFromData(mockLayout, useFormData),
         Object.keys(mockLayoutState.layouts),
         mockValidator,
-        mockLanguage.language,
-        [],
+        mockLangTools,
       );
       const mockFormValidationResult = {
         validations: {
           FormLayout: {
             componentId_2: {
               customBinding: {
-                errors: [getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10], true)],
+                errors: ['length must be bigger than 10'],
               },
             },
           },
@@ -1445,7 +1427,7 @@ describe('utils > validation', () => {
 
   describe('isOneOfError', () => {
     it('should return fasle if provided error does not have keyword `oneOf`', () => {
-      const error: ErrorObject<string, Record<string, any>, unknown> = {
+      const error: ErrorObject = {
         keyword: 'test',
         instancePath: '',
         schemaPath: '',
@@ -1455,7 +1437,7 @@ describe('utils > validation', () => {
       expect(result).toBeFalsy();
     });
     it('should return true if provided error has keyword `oneOf`', () => {
-      const error: ErrorObject<string, Record<string, any>, unknown> = {
+      const error: ErrorObject = {
         keyword: 'oneOf',
         instancePath: '',
         schemaPath: '',
@@ -1466,7 +1448,7 @@ describe('utils > validation', () => {
     });
 
     it('should return true if provided error has param "type: null"', () => {
-      const error: ErrorObject<string, Record<string, any>, unknown> = {
+      const error: ErrorObject = {
         keyword: 'test',
         instancePath: '',
         schemaPath: '',
@@ -1715,17 +1697,12 @@ describe('utils > validation', () => {
         FormLayout: {
           'componentId_4-0': {
             simpleBinding: {
-              errors: [
-                'Du må fylle ut component_4',
-                getParsedLanguageFromKey(`validation_errors.pattern`, state.language.language || {}, [], true),
-              ],
+              errors: ['Du må fylle ut component_4', 'Feil format eller verdi'],
             },
           },
           'componentId_5-0-1': {
             simpleBinding: {
-              errors: [
-                getParsedLanguageFromKey(`validation_errors.minLength`, state.language.language || {}, [10], true),
-              ],
+              errors: ['Bruk 10 eller flere tegn'],
             },
           },
         },
@@ -1807,17 +1784,12 @@ describe('utils > validation', () => {
         FormLayout: {
           'componentId_4-0': {
             simpleBinding: {
-              errors: [
-                'Du må fylle ut component_4',
-                getParsedLanguageFromKey(`validation_errors.pattern`, state.language.language || {}, [], true),
-              ],
+              errors: ['Du må fylle ut component_4', 'Feil format eller verdi'],
             },
           },
           'componentId_5-0-1': {
             simpleBinding: {
-              errors: [
-                getParsedLanguageFromKey(`validation_errors.minLength`, state.language.language || {}, [10], true),
-              ],
+              errors: ['Bruk 10 eller flere tegn'],
             },
           },
         },
@@ -1828,17 +1800,12 @@ describe('utils > validation', () => {
         FormLayout: {
           'componentId_4-1': {
             simpleBinding: {
-              errors: [
-                'Du må fylle ut component_4',
-                getParsedLanguageFromKey(`validation_errors.pattern`, state.language.language || {}, [], true),
-              ],
+              errors: ['Du må fylle ut component_4', 'Feil format eller verdi'],
             },
           },
           'componentId_5-1-0': {
             simpleBinding: {
-              errors: [
-                getParsedLanguageFromKey(`validation_errors.minLength`, state.language.language || {}, [10], true),
-              ],
+              errors: ['Bruk 10 eller flere tegn'],
             },
           },
         },
@@ -1910,9 +1877,7 @@ describe('utils > validation', () => {
         FormLayout: {
           'componentId_5-0-1': {
             simpleBinding: {
-              errors: [
-                getParsedLanguageFromKey(`validation_errors.minLength`, state.language.language || {}, [10], true),
-              ],
+              errors: ['Bruk 10 eller flere tegn'],
             },
           },
         },
@@ -2459,7 +2424,7 @@ describe('utils > validation', () => {
           },
         },
       };
-      const result = validation.missingFieldsInLayoutValidations(validations, mockLanguage.language);
+      const result = validation.missingFieldsInLayoutValidations(validations, mockLangTools);
       expect(result).toBeFalsy();
     });
     it('should return true when validations contain messages (string) for missing fields', () => {
@@ -2471,7 +2436,7 @@ describe('utils > validation', () => {
           },
         },
       };
-      const result = validation.missingFieldsInLayoutValidations(validations, mockLanguage.language);
+      const result = validation.missingFieldsInLayoutValidations(validations, mockLangTools);
       expect(result).toBeTruthy();
     });
     it('should return true when validations contain arrays with error message for missing fields', () => {
@@ -2485,8 +2450,8 @@ describe('utils > validation', () => {
       });
       const shallow = 'Første linje\nDu må fylle ut ';
       const deep = 'Dette er feil:\nFørste linje\nDu må fylle ut ';
-      expect(validation.missingFieldsInLayoutValidations(validations(shallow), mockLanguage.language)).toBeTruthy();
-      expect(validation.missingFieldsInLayoutValidations(validations(deep), mockLanguage.language)).toBeTruthy();
+      expect(validation.missingFieldsInLayoutValidations(validations(shallow), mockLangTools)).toBeTruthy();
+      expect(validation.missingFieldsInLayoutValidations(validations(deep), mockLangTools)).toBeTruthy();
     });
   });
   describe('validateDatepickerFormData', () => {
@@ -2498,8 +2463,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2515,8 +2479,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2532,8 +2495,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2549,8 +2511,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2566,8 +2527,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-31T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2583,8 +2543,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2600,8 +2559,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2617,8 +2575,7 @@ describe('utils > validation', () => {
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
-        mockLanguage.language,
-        'nb',
+        mockLangTools,
       );
 
       expect(validations.simpleBinding).toEqual({

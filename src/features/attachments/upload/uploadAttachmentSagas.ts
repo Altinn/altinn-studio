@@ -7,6 +7,7 @@ import type { SagaIterator } from 'redux-saga';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Severity } from 'src/types';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import { httpPost } from 'src/utils/network/networking';
@@ -15,20 +16,19 @@ import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import { getValidationMessage } from 'src/utils/validation/validationHelpers';
 import type { IAttachment } from 'src/features/attachments';
 import type { IUploadAttachmentAction } from 'src/features/attachments/upload/uploadAttachmentActions';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IComponentValidations, IRuntimeState, IValidationIssue } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
 
 export function* uploadAttachmentSaga({
   payload: { file, attachmentType, tmpAttachmentId, componentId, dataModelBindings, index },
 }: PayloadAction<IUploadAttachmentAction>): SagaIterator {
   const currentView: string = yield select((s: IRuntimeState) => s.formLayout.uiConfig.currentView);
-  const language: ILanguage = yield select((s: IRuntimeState) => s.language.language);
-  const textResources = yield select((s: IRuntimeState) => s.textResources.resources);
   const backendFeatures = yield select((s: IRuntimeState) => s.applicationMetadata.applicationMetadata?.features);
+  const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
 
   try {
     // Sets validations to empty.
-    const newValidations = getFileUploadComponentValidations(null, {});
+    const newValidations = getFileUploadComponentValidations(null, langTools);
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
@@ -87,7 +87,7 @@ export function* uploadAttachmentSaga({
       );
     }
   } catch (err) {
-    let validations: IComponentValidations = {};
+    let validations: IComponentValidations;
 
     if (backendFeatures?.jsonObjectInDataResponse && err instanceof AxiosError && err.response?.data?.result) {
       const validationIssues: IValidationIssue[] = err.response.data.result;
@@ -96,14 +96,14 @@ export function* uploadAttachmentSaga({
         simpleBinding: {
           errors: validationIssues
             .filter((v) => v.severity === Severity.Error)
-            .map((v) => getValidationMessage(v, textResources, language)),
+            .map((v) => getValidationMessage(v, langTools)),
           warnings: validationIssues
             .filter((v) => v.severity === Severity.Warning)
-            .map((v) => getValidationMessage(v, textResources, language)),
+            .map((v) => getValidationMessage(v, langTools)),
         },
       };
     } else {
-      validations = getFileUploadComponentValidations('upload', language);
+      validations = getFileUploadComponentValidations('upload', langTools);
     }
 
     yield put(

@@ -13,7 +13,6 @@ import { formRulesSlice } from 'src/features/formRules/rulesSlice';
 import { instanceDataSlice } from 'src/features/instanceData/instanceDataSlice';
 import { instantiationSlice } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { isLoadingSlice } from 'src/features/isLoading/isLoadingSlice';
-import { languageSlice } from 'src/features/language/languageSlice';
 import { formLayoutSlice } from 'src/features/layout/formLayoutSlice';
 import { optionsSlice } from 'src/features/options/optionsSlice';
 import { orgsSlice } from 'src/features/orgs/orgsSlice';
@@ -43,7 +42,6 @@ const slices = [
   instanceDataSlice,
   instantiationSlice,
   isLoadingSlice,
-  languageSlice,
   optionsSlice,
   orgsSlice,
   partySlice,

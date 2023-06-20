@@ -11,7 +11,7 @@ import { Footer } from 'src/features/footer/Footer';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { PresentationType, ProcessTaskType } from 'src/types';
@@ -29,11 +29,10 @@ export interface IPresentationProvidedProps {
 
 export const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useAppDispatch();
+  const { langAsString } = useLanguage();
   const party = useAppSelector((state) => state.party?.selectedParty);
-  const language = useAppSelector((state) => state.language.language || {});
   const instance = useAppSelector((state) => state.instanceData?.instance);
   const userParty = useAppSelector((state) => state.profile.profile?.party);
-  const textResources = useAppSelector((state) => state.textResources.resources);
   const { expandedWidth } = useAppSelector((state) => state.formLayout.uiConfig);
 
   const previousFormPage: string = useAppSelector((state) =>
@@ -94,13 +93,12 @@ export const PresentationComponent = (props: IPresentationProvidedProps) => {
         userParty={userParty}
         logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
         headerBackgroundColor={backgroundColor}
-        language={language}
       />
       <main className={classes.page}>
         {isProcessStepsArchived && instance?.status?.substatus && (
           <AltinnSubstatusPaper
-            label={getTextResourceByKey(instance.status.substatus.label, textResources)}
-            description={getTextResourceByKey(instance.status.substatus.description, textResources)}
+            label={langAsString(instance.status.substatus.label)}
+            description={langAsString(instance.status.substatus.description)}
           />
         )}
         <NavBar

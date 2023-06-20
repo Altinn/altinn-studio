@@ -37,6 +37,7 @@ export function SummaryContent({
 
   const { langAsString } = useLanguage();
   const ariaLabel = langAsString(summaryNode.item?.textResourceBindings?.accessibleTitle);
+  const realAriaLabel = ariaLabel ? ariaLabel : getPlainTextFromNode(label);
 
   return (
     <div className={classes.container}>
@@ -64,7 +65,7 @@ export function SummaryContent({
           <EditButton
             onClick={onChangeClick}
             editText={changeText}
-            label={ariaLabel ?? getPlainTextFromNode(label)}
+            label={realAriaLabel}
           />
         </span>
       )}

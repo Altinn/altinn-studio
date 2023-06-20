@@ -4,11 +4,10 @@ import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Group/DisplayGroupContainer.module.css';
-import { pageBreakStyles, selectComponentTexts } from 'src/utils/formComponentUtils';
+import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { HGroups } from 'src/layout/Group/types';
 
 const H = ({ level, children, ...props }) => {
@@ -39,18 +38,10 @@ export interface IDisplayGroupContainer {
 }
 
 export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayoutNode }: IDisplayGroupContainer) {
+  const { lang, langAsString } = useLanguage();
   const container = groupNode.item;
-  const title = useAppSelector((state) => {
-    const titleKey = container.textResourceBindings?.title;
-    if (titleKey && state.language.language) {
-      return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
-    }
-    return undefined;
-  });
-
-  const texts = useAppSelector((state) =>
-    selectComponentTexts(state.textResources.resources, container.textResourceBindings),
-  );
+  const title = langAsString(container.textResourceBindings?.title);
+  const body = lang(container.textResourceBindings?.body);
 
   if (groupNode.isHidden()) {
     return null;
@@ -73,7 +64,7 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
       data-testid='display-group-container'
       data-componentid={container.id}
     >
-      {(title || texts.body) && (
+      {(title || body) && (
         <Grid
           item={true}
           xs={12}
@@ -86,7 +77,7 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
               {title}
             </H>
           )}
-          {texts.body && <p className={classes.groupBody}>{texts.body}</p>}
+          {body && <p className={classes.groupBody}>{body}</p>}
         </Grid>
       )}
       <ConditionalWrapper

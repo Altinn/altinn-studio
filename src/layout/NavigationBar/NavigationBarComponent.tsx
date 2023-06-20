@@ -7,10 +7,9 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobile } from 'src/hooks/useIsMobile';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations } from 'src/types';
-import { getTextResource } from 'src/utils/formComponentUtils';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 const useStyles = makeStyles((theme) => ({
@@ -115,11 +114,10 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
   const pageIds = useAppSelector(selectLayoutOrder);
   const pageTriggers = useAppSelector((state) => state.formLayout.uiConfig.pageTriggers);
   const pageOrPropTriggers = triggers || pageTriggers;
-  const textResources = useAppSelector((state) => state.textResources.resources);
   const currentPageId = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const language = useAppSelector((state) => state.language.language);
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
+  const { lang, langAsString } = useLanguage();
 
   const firstPageLink = React.useRef<HTMLButtonElement>();
 
@@ -150,7 +148,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
     }
   }, [showMenu]);
 
-  if (!language || !pageIds) {
+  if (!pageIds) {
     return null;
   }
 
@@ -162,7 +160,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
         component='nav'
         xs={12}
         role='navigation'
-        aria-label={getTextFromAppOrDefault('general.navigation_form', textResources, language, undefined, true)}
+        aria-label={langAsString('general.navigation_form')}
       >
         {isMobile && (
           <NavigationButton
@@ -175,7 +173,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
           >
             <span className={classes.dropdownMenuContent}>
               <span>
-                {pageIds.indexOf(currentPageId) + 1}/{pageIds.length} {getTextResource(currentPageId, textResources)}
+                {pageIds.indexOf(currentPageId) + 1}/{pageIds.length} {lang(currentPageId)}
               </span>
               <i className={cn('ai ai-arrow-down', classes.dropdownIcon)} />
             </span>
@@ -199,7 +197,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
                   onClick={() => handleNavigationClick(pageId)}
                   ref={index === 0 ? firstPageLink : null}
                 >
-                  {index + 1}. {getTextResource(pageId, textResources)}
+                  {index + 1}. {lang(pageId)}
                 </NavigationButton>
               </li>
             ))}

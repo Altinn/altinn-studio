@@ -4,7 +4,7 @@ import { TextField } from '@digdir/design-system-react';
 import axios from 'axios';
 
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AddressLabel } from 'src/layout/Address/AddressLabel';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
@@ -30,17 +30,12 @@ export enum AddressKeys {
   houseNumber = 'houseNumber',
 }
 
-export function AddressComponent({
-  formData,
-  language,
-  handleDataChange,
-  componentValidations,
-  node,
-}: IAddressComponentProps) {
+export function AddressComponent({ formData, handleDataChange, componentValidations, node }: IAddressComponentProps) {
   // eslint-disable-next-line import/no-named-as-default-member
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
   const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
+  const { lang, langAsString } = useLanguage();
 
   const handleDataChangeOverride =
     (key: AddressKeys): IAddressComponentProps['handleDataChange'] =>
@@ -84,18 +79,18 @@ export function AddressComponent({
   const validate = React.useCallback(() => {
     const validationErrors: IAddressValidationErrors = {};
     if (zipCode && !zipCode.match(/^\d{4}$/)) {
-      validationErrors.zipCode = getLanguageFromKey('address_component.validation_error_zipcode', language);
+      validationErrors.zipCode = langAsString('address_component.validation_error_zipcode');
       setPostPlace('');
     } else {
       delete validationErrors.zipCode;
     }
     if (houseNumber && !houseNumber.match(/^[a-z,A-Z]\d{4}$/)) {
-      validationErrors.houseNumber = getLanguageFromKey('address_component.validation_error_house_number', language);
+      validationErrors.houseNumber = langAsString('address_component.validation_error_house_number');
     } else {
       delete validationErrors.houseNumber;
     }
     return validationErrors;
-  }, [houseNumber, language, zipCode, setPostPlace]);
+  }, [houseNumber, langAsString, zipCode, setPostPlace]);
 
   const onSaveField = React.useCallback(
     (key: AddressKeys, value: any) => {
@@ -141,7 +136,7 @@ export function AddressComponent({
           setValidations({ ...validations, zipCode: undefined });
           onSaveField(AddressKeys.postPlace, response.result);
         } else {
-          const errorMessage = getLanguageFromKey('address_component.validation_error_zipcode', language);
+          const errorMessage = langAsString('address_component.validation_error_zipcode');
           setPostPlace('');
           setValidations({ ...validations, zipCode: errorMessage });
         }
@@ -160,7 +155,7 @@ export function AddressComponent({
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
-  }, [formData.zipCode, language, source, onSaveField, validations, setPostPlace]);
+  }, [formData.zipCode, langAsString, source, onSaveField, validations, setPostPlace]);
 
   const updateField = (key: AddressKeys, saveImmediately: boolean, event: any): void => {
     const changedFieldValue: string = event.target.value;
@@ -243,7 +238,6 @@ export function AddressComponent({
         <AddressLabel
           labelKey={'address_component.address'}
           id={`address_address_${id}`}
-          language={language}
           required={required}
           readOnly={readOnly}
           labelSettings={labelSettings}
@@ -269,7 +263,6 @@ export function AddressComponent({
           <AddressLabel
             labelKey={'address_component.care_of'}
             id={`address_care_of_${id}`}
-            language={language}
             required={required}
             readOnly={readOnly}
             labelSettings={labelSettings}
@@ -295,7 +288,6 @@ export function AddressComponent({
           <AddressLabel
             labelKey='address_component.zip_code'
             id={`address_zip_code_${id}`}
-            language={language}
             required={required}
             readOnly={readOnly}
             labelSettings={labelSettings}
@@ -323,7 +315,6 @@ export function AddressComponent({
           <AddressLabel
             labelKey='address_component.post_place'
             id={`address_post_place_${id}`}
-            language={language}
             required={required}
             readOnly={true}
             labelSettings={labelSettings}
@@ -350,12 +341,11 @@ export function AddressComponent({
           <AddressLabel
             labelKey='address_component.house_number'
             id={`address_house_number_${id}`}
-            language={language}
             required={required}
             readOnly={readOnly}
             labelSettings={labelSettings}
           />
-          <p>{getLanguageFromKey('address_component.house_number_helper', language)}</p>
+          <p>{lang('address_component.house_number_helper')}</p>
           <div className={'address-component-small-inputs'}>
             <TextField
               id={`address_house_number_${id}`}

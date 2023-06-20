@@ -1,12 +1,10 @@
 import { createContext } from 'react';
-import type React from 'react';
 
 import { ComponentConfigs } from 'src/layout/components';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { ComponentTypes, IGrid } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { IComponentValidations } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
@@ -39,14 +37,7 @@ export interface IComponentProps {
       validate?: boolean; // Defaults to true
     },
   ) => void;
-  getTextResource: (key: string | undefined) => React.ReactNode;
-  getTextResourceAsString: (key: string | undefined) => string | undefined;
-  language: ILanguage;
   shouldFocus: boolean;
-  text: React.ReactNode | string;
-  texts?: {
-    [textResourceKey: string]: React.ReactNode;
-  };
   label: () => JSX.Element | null;
   legend: () => JSX.Element | null;
   formData: IComponentFormData;

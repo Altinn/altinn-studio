@@ -6,7 +6,6 @@ import userEvent from '@testing-library/user-event';
 import { AltinnMobileTableItem } from 'src/components/table/AltinnMobileTableItem';
 import { renderWithProviders } from 'src/testUtils';
 import type { IAltinnMobileTableItemProps, IMobileTableItem } from 'src/components/table/AltinnMobileTableItem';
-import type { ILanguage } from 'src/types/shared';
 
 const user = userEvent.setup();
 
@@ -85,20 +84,12 @@ const render = (props: Partial<IAltinnMobileTableItemProps> = {}) => {
     { key: 'test2', label: 'label2', value: 'value2' },
   ] as IMobileTableItem[];
 
-  const language: ILanguage = {
-    general: {
-      delete: 'Delete',
-      edit_alt: 'Edit',
-    },
-  };
-
   const allProps = {
     items,
     onEditClick: jest.fn(),
     onDeleteClick: jest.fn(),
     editIconNode: ' i ',
     editButtonText: 'Edit',
-    language,
     ...props,
   } as IAltinnMobileTableItemProps;
 

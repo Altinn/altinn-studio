@@ -1,11 +1,10 @@
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { formatNumber } from 'src/utils/formattingUtils';
 import type { IInputFormatting } from 'src/layout/layout';
 import type { CurrencyFormattingOptions, UnitFormattingOptions } from 'src/utils/formattingUtils';
 
 export const useMapToReactNumberConfig = (formatting: IInputFormatting, value = ''): IInputFormatting => {
-  const appLanguage = useAppSelector(appLanguageStateSelector);
+  const { selectedLanguage } = useLanguage();
 
   if (!formatting?.currency && !formatting?.unit) {
     return formatting;
@@ -24,7 +23,7 @@ export const useMapToReactNumberConfig = (formatting: IInputFormatting, value = 
   const position = formatting?.position || undefined;
 
   const numberFormatResult = {
-    ...formatNumber(value, appLanguage, createOptions(formatting), position),
+    ...formatNumber(value, selectedLanguage, createOptions(formatting), position),
     ...formatting.number,
   };
 

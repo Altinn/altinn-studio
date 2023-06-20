@@ -13,11 +13,11 @@ import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IGrid } from 'src/layout/layout';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+
 export interface ISummaryComponent {
   summaryNode: LayoutNodeFromType<'Summary'>;
   overrides?: {
@@ -33,37 +33,11 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   const { pageRef } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
   const dispatch = useAppDispatch();
+  const { lang, langAsString } = useLanguage();
   const summaryPageName = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const changeText = useAppSelector(
-    (state) =>
-      state.language.language &&
-      getTextFromAppOrDefault(
-        'form_filler.summary_item_change',
-        state.textResources.resources,
-        state.language.language,
-        [],
-        true,
-      ),
-  );
-  const { lang } = useLanguage();
   const summaryItem = summaryNode.item;
   const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
   const targetItem = targetNode?.item;
-
-  const goToCorrectPageLinkText = useAppSelector(
-    (state) =>
-      state.language.language &&
-      getTextFromAppOrDefault(
-        'form_filler.summary_go_to_correct_page',
-        state.textResources.resources,
-        state.language.language,
-        [],
-        true,
-      ),
-  );
-
-  const titleKey = summaryItem?.textResourceBindings?.title ?? targetItem?.textResourceBindings?.title;
-
   const onChangeClick = () => {
     if (!pageRef) {
       return;
@@ -112,8 +86,8 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
         {RenderSummary && 'renderSummaryBoilerplate' in component ? (
           <SummaryContent
             onChangeClick={onChangeClick}
-            changeText={changeText}
-            label={lang(titleKey)}
+            changeText={langAsString('form_filler.summary_item_change')}
+            label={lang(summaryItem?.textResourceBindings?.title ?? targetItem?.textResourceBindings?.title)}
             summaryNode={summaryNode}
             targetNode={targetNode}
             overrides={overrides}
@@ -146,7 +120,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
                     onClick={onChangeClick}
                     type='button'
                   >
-                    {goToCorrectPageLinkText}
+                    {lang('form_filler.summary_go_to_correct_page')}
                   </button>
                 )}
               </Grid>

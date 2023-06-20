@@ -4,6 +4,7 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 
 import type { PropsFromGenericComponent } from '..';
 
+import { useLanguage } from 'src/hooks/useLanguage';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LinkStyle } from 'src/layout/Link/types';
 
@@ -16,10 +17,9 @@ export const buttonStyles: {
 
 export type ILinkComponent = PropsFromGenericComponent<'Link'>;
 
-export function LinkComponent({ node, getTextResourceAsString }: ILinkComponent) {
+export function LinkComponent({ node }: ILinkComponent) {
   const { id, style, openInNewTab, textResourceBindings } = node.item;
-  const title = getTextResourceAsString(textResourceBindings?.title);
-  const target = getTextResourceAsString(textResourceBindings?.target);
+  const { lang, langAsString } = useLanguage();
   const parentIsPage = node.parent instanceof LayoutPage;
 
   if (style === 'link') {
@@ -27,11 +27,11 @@ export function LinkComponent({ node, getTextResourceAsString }: ILinkComponent)
       <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
         <a
           id={`link-${id}`}
-          href={target}
+          href={langAsString(textResourceBindings?.target)}
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noreferrer' : undefined}
         >
-          {title}
+          {lang(textResourceBindings?.title)}
         </a>
       </div>
     );
@@ -44,9 +44,9 @@ export function LinkComponent({ node, getTextResourceAsString }: ILinkComponent)
         style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
         color={color}
         variant={variant}
-        onClick={() => window.open(target, openInNewTab ? '_blank' : '_self')}
+        onClick={() => window.open(langAsString(textResourceBindings?.target), openInNewTab ? '_blank' : '_self')}
       >
-        {title}
+        {lang(textResourceBindings?.title)}
       </Button>
     );
   }

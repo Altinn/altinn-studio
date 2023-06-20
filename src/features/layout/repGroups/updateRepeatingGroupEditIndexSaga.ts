@@ -5,6 +5,7 @@ import type { SagaIterator } from 'redux-saga';
 
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/types';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { splitDashedKey } from 'src/utils/formLayout';
@@ -27,6 +28,7 @@ export function* updateRepeatingGroupEditIndexSaga({
 }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
+    const langTools = staticUseLanguageFromState(state);
     const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
     const rowIndex = state.formLayout.uiConfig.repeatingGroups?.[group].editIndex;
 
@@ -85,7 +87,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       const mappedServerValidations: IValidations = mapDataElementValidationToRedux(
         serverValidations,
         state.formLayout.layouts,
-        state.textResources.resources,
+        langTools,
       );
 
       const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);

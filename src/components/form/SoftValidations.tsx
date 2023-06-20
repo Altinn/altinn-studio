@@ -1,9 +1,8 @@
 import React from 'react';
 
 import { Panel } from 'src/components/form/Panel';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ILanguage, ITextResource } from 'src/types/shared';
+import { useLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 
 export interface ISoftValidationProps {
   children: React.ReactNode;
@@ -14,35 +13,30 @@ export type SoftValidationVariant = 'warning' | 'info' | 'success';
 
 interface IGetPanelTitleProps {
   variant: SoftValidationVariant;
-  textResources: ITextResource[];
-  language: ILanguage;
+  langTools: IUseLanguage;
 }
 
-export const getPanelTitle = ({ variant, textResources, language }: IGetPanelTitleProps) => {
+export const getPanelTitle = ({ variant, langTools }: IGetPanelTitleProps) => {
+  const { langAsString } = langTools;
   switch (variant) {
     case 'warning':
-      return getTextFromAppOrDefault('soft_validation.warning_title', textResources, language, undefined, true);
+      return langAsString('soft_validation.warning_title');
     case 'info':
-      return getTextFromAppOrDefault('soft_validation.info_title', textResources, language, undefined, true);
+      return langAsString('soft_validation.info_title');
     case 'success':
-      return getTextFromAppOrDefault('soft_validation.success_title', textResources, language, undefined, true);
+      return langAsString('soft_validation.success_title');
   }
 };
 
 export function SoftValidations({ variant, children }: ISoftValidationProps) {
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-
-  if (!language) {
-    return null;
-  }
+  const langTools = useLanguage();
 
   return (
     <Panel
       variant={variant}
       showPointer={true}
       showIcon={true}
-      title={getPanelTitle({ variant, textResources, language })}
+      title={getPanelTitle({ variant, langTools })}
     >
       {children}
     </Panel>

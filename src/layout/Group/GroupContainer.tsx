@@ -87,13 +87,13 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
           srContent={
             resolvedTextBindings?.add_button_full
               ? langAsString(resolvedTextBindings.add_button_full)
-              : `${langAsString('general.add_new')} ${langAsString(resolvedTextBindings?.add_button) ?? ''}`
+              : `${langAsString('general.add_new')} ${langAsString(resolvedTextBindings?.add_button)}`
           }
         />
       )}
       {resolvedTextBindings?.add_button_full
         ? lang(resolvedTextBindings.add_button_full)
-        : `${langAsString('general.add_new')} ${langAsString(resolvedTextBindings?.add_button) ?? ''}`}
+        : `${langAsString('general.add_new')} ${langAsString(resolvedTextBindings?.add_button)}`}
     </Button>
   );
 

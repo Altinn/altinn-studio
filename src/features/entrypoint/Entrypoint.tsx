@@ -20,11 +20,11 @@ import { useActiveInstancesQuery } from 'src/hooks/queries/useActiveInstancesQue
 import { useAlwaysPromptForParty } from 'src/hooks/useAlwaysPromptForParty';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
 import { checkIfAxiosError, HttpStatusCodes } from 'src/utils/network/networking';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ShowTypes } from 'src/features/applicationMetadata';
 
 const titleKey = 'instantiate.starting';
@@ -35,6 +35,7 @@ type EntrypointProps = {
 export function Entrypoint({ allowAnonymous }: EntrypointProps) {
   const [action, setAction] = React.useState<ShowTypes | null>(null);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
+  const { langAsStringOrEmpty } = useLanguage();
 
   const {
     data: partyValidation,
@@ -59,18 +60,6 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);
   const alwaysPromptForParty = useAlwaysPromptForParty();
-
-  const titleText = useAppSelector((state) => {
-    const text = getTextFromAppOrDefault(
-      titleKey,
-      state.textResources.resources,
-      state.language.language || {},
-      [],
-      true,
-    );
-    return text === titleKey ? '' : text;
-  });
-
   const dispatch = useAppDispatch();
 
   const componentHasErrors = hasPartyValidationError || hasActiveInstancesError;
@@ -176,7 +165,7 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
 
   return (
     <PresentationComponent
-      header={titleText}
+      header={langAsStringOrEmpty(titleKey)}
       type={ProcessTaskType.Unknown}
     >
       <AltinnContentLoader

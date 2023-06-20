@@ -8,7 +8,8 @@ import classes from 'src/components/message/ErrorReport.module.css';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey, getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
+import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { useExprContext } from 'src/utils/layout/ExprContext';
@@ -33,8 +34,8 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
     getUnmappedErrors(state.formValidations.validations),
   ]);
   const allNodes = useExprContext();
-  const language = useAppSelector((state) => state.language.language);
   const hasErrors = errorsUnmapped.length > 0 || errorsMapped.length > 0;
+  const { lang } = useLanguage();
 
   if (!hasErrors) {
     return null;
@@ -99,7 +100,7 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
     <div data-testid='ErrorReport'>
       <FullWidthWrapper isOnBottom={true}>
         <Panel
-          title={language && getLanguageFromKey('form_filler.error_report_header', language)}
+          title={lang('form_filler.error_report_header')}
           showIcon={false}
           variant={PanelVariant.Error}
         >

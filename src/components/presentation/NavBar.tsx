@@ -9,7 +9,7 @@ import classes from 'src/components/presentation/NavBar.module.css';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 
 export interface INavBarProps {
   handleClose: () => void;
@@ -21,7 +21,7 @@ const expandIconStyle = { transform: 'rotate(45deg)' };
 
 export const NavBar = (props: INavBarProps) => {
   const dispatch = useAppDispatch();
-  const language = useAppSelector((state) => state.language.language || {});
+  const { langAsString } = useLanguage();
   const { hideCloseButton, showLanguageSelector, showExpandWidthButton, expandedWidth } = useAppSelector(
     (state) => state.formLayout.uiConfig,
   );
@@ -33,7 +33,7 @@ export const NavBar = (props: INavBarProps) => {
   return (
     <nav
       className={classes.nav}
-      aria-label={getLanguageFromKey('navigation.main', language)}
+      aria-label={langAsString('navigation.main')}
     >
       <div>
         {props.showBackArrow && (
@@ -43,7 +43,7 @@ export const NavBar = (props: INavBarProps) => {
             onClick={props.handleBack}
             variant={ButtonVariant.Quiet}
             color={ButtonColor.Secondary}
-            aria-label={getLanguageFromKey('general.back', language)}
+            aria-label={langAsString('general.back')}
             icon={<Left aria-hidden />}
           />
         )}
@@ -59,7 +59,7 @@ export const NavBar = (props: INavBarProps) => {
             onClick={handleExpand}
             variant={ButtonVariant.Quiet}
             color={ButtonColor.Secondary}
-            aria-label={getLanguageFromKey('general.expand_form', language)}
+            aria-label={langAsString('general.expand_form')}
             icon={
               expandedWidth ? (
                 <FullscreenExit
@@ -83,7 +83,7 @@ export const NavBar = (props: INavBarProps) => {
             onClick={props.handleClose}
             variant={ButtonVariant.Quiet}
             color={ButtonColor.Secondary}
-            aria-label={getLanguageFromKey('general.close_schema', language)}
+            aria-label={langAsString('general.close_schema')}
             icon={<Close aria-hidden />}
           />
         )}

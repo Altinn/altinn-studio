@@ -11,9 +11,8 @@ import { AltinnMobileTableItem } from 'src/components/table/AltinnMobileTableIte
 import { AltinnTableBody } from 'src/components/table/AltinnTableBody';
 import { AltinnTableHeader } from 'src/components/table/AltinnTableHeader';
 import { AltinnTableRow } from 'src/components/table/AltinnTableRow';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
 
@@ -52,32 +51,28 @@ const buttonCell = {
 };
 
 export function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
-  const language = useAppSelector((state) => state.language.language);
+  const { lang, langAsString } = useLanguage();
   const mobileView = useIsMobileOrTablet();
 
   const openInstance = (instanceId: string) => {
     window.location.href = getInstanceUiUrl(instanceId);
   };
 
-  if (!language) {
-    return null;
-  }
-
   const renderMobileTable = () => (
     <>
-      <Typography variant='h3'>{getLanguageFromKey('instance_selection.left_of', language)}</Typography>
+      <Typography variant='h3'>{lang('instance_selection.left_of')}</Typography>
       <AltinnMobileTable id='instance-selection-mobile-table'>
         {instances.map((instance) => (
           <AltinnMobileTableItem
             items={[
               {
                 key: 1,
-                label: getLanguageFromKey('instance_selection.last_changed', language),
+                label: langAsString('instance_selection.last_changed'),
                 value: getDateDisplayString(instance.lastChanged),
               },
               {
                 key: 2,
-                label: getLanguageFromKey('instance_selection.changed_by', language),
+                label: langAsString('instance_selection.changed_by'),
                 value: instance.lastChangedBy,
               },
             ]}
@@ -85,7 +80,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
             editIndex={-2}
             onEditClick={() => openInstance(instance.id)}
             key={instance.id}
-            editButtonText={getLanguageFromKey('instance_selection.continue', language)}
+            editButtonText={langAsString('instance_selection.continue')}
           />
         ))}
       </AltinnMobileTable>
@@ -96,8 +91,8 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
     <AltinnTable id='instance-selection-table'>
       <AltinnTableHeader id='instance-selection-table-header'>
         <AltinnTableRow>
-          <TableCell>{getLanguageFromKey('instance_selection.last_changed', language)}</TableCell>
-          <TableCell>{getLanguageFromKey('instance_selection.changed_by', language)}</TableCell>
+          <TableCell>{lang('instance_selection.last_changed')}</TableCell>
+          <TableCell>{lang('instance_selection.changed_by')}</TableCell>
         </AltinnTableRow>
       </AltinnTableHeader>
       <AltinnTableBody id='instance-selection-table-body'>
@@ -114,7 +109,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                   iconPlacement='right'
                   onClick={() => openInstance(instance.id)}
                 >
-                  {getLanguageFromKey('instance_selection.continue', language)}
+                  {lang('instance_selection.continue')}
                 </Button>
               </div>
             </TableCell>
@@ -135,7 +130,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
             variant='h2'
             id='instance-selection-header'
           >
-            {getLanguageFromKey('instance_selection.header', language)}
+            {lang('instance_selection.header')}
           </Typography>
         </Grid>
         <Grid
@@ -146,7 +141,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
             variant='body1'
             style={marginTop12}
           >
-            {getLanguageFromKey('instance_selection.description', language)}
+            {lang('instance_selection.description')}
           </Typography>
         </Grid>
         <Grid
@@ -164,7 +159,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
             onClick={onNewInstance}
             id='new-instance-button'
           >
-            {getLanguageFromKey('instance_selection.new_instance', language)}
+            {lang('instance_selection.new_instance')}
           </Button>
         </Grid>
       </Grid>

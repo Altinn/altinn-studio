@@ -9,7 +9,7 @@ import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useIsMobile } from 'src/hooks/useIsMobile';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { getDateConstraint, getDateFormat, getDateString } from 'src/utils/dateHelpers';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -105,17 +105,10 @@ class AltinnMomentUtils extends MomentUtils {
 // We dont use the built-in validation for the 3rd party component, so it is always empty string
 const emptyString = '';
 
-export function DatepickerComponent({
-  node,
-  language,
-  formData,
-  handleDataChange,
-  isValid,
-  overrideDisplay,
-  getTextResourceAsString,
-}: IDatepickerProps) {
+export function DatepickerComponent({ node, formData, handleDataChange, isValid, overrideDisplay }: IDatepickerProps) {
   const classes = useStyles();
   const profile = useAppSelector((state) => state.profile);
+  const { langAsString } = useLanguage();
   const languageLocale = profile.selectedAppLanguage || profile.profile.profileSettingPreference.language;
   const { minDate, maxDate, format, timeStamp = true, readOnly, required, id, textResourceBindings } = node.item;
 
@@ -146,9 +139,9 @@ export function DatepickerComponent({
 
   const mobileOnlyProps = isMobile
     ? {
-        cancelLabel: getLanguageFromKey('date_picker.cancel_label', language),
-        clearLabel: getLanguageFromKey('date_picker.clear_label', language),
-        todayLabel: getLanguageFromKey('date_picker.today_label', language),
+        cancelLabel: langAsString('date_picker.cancel_label'),
+        clearLabel: langAsString('date_picker.clear_label'),
+        todayLabel: langAsString('date_picker.today_label'),
       }
     : {};
 
@@ -196,9 +189,7 @@ export function DatepickerComponent({
             }}
             inputProps={{
               className: 'no-visual-testing',
-              'aria-label': overrideDisplay?.renderedInTable
-                ? getTextResourceAsString(textResourceBindings?.title)
-                : undefined,
+              'aria-label': overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined,
             }}
             DialogProps={{ className: classes.dialog }}
             PopoverProps={{ className: classes.dialog }}
@@ -208,18 +199,18 @@ export function DatepickerComponent({
               },
             }}
             KeyboardButtonProps={{
-              'aria-label': getLanguageFromKey('date_picker.aria_label_icon', language),
+              'aria-label': langAsString('date_picker.aria_label_icon'),
               id: 'date-icon-button',
               classes: {
                 root: classes.iconButton,
               },
             }}
             leftArrowButtonProps={{
-              'aria-label': getLanguageFromKey('date_picker.aria_label_left_arrow', language),
+              'aria-label': langAsString('date_picker.aria_label_left_arrow'),
               id: 'date-left-icon-button',
             }}
             rightArrowButtonProps={{
-              'aria-label': getLanguageFromKey('date_picker.aria_label_right_arrow', language),
+              'aria-label': langAsString('date_picker.aria_label_right_arrow'),
               id: 'date-right-icon-button',
             }}
             keyboardIcon={

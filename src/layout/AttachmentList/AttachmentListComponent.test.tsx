@@ -19,9 +19,9 @@ const render = () => {
     renderer: (props) => <AttachmentListComponent {...props} />,
     component: {
       dataTypeIds: ['test-data-type-1'],
-    },
-    genericProps: {
-      text: 'Attachments',
+      textResourceBindings: {
+        title: 'Attachments',
+      },
     },
     manipulateState: (state) => {
       if (state.instanceData.instance) {

@@ -6,16 +6,15 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const theme = createTheme(AltinnAppTheme);
 
 export function Feedback() {
   const dispatch = useAppDispatch();
   const processState = useAppSelector((state) => state.process.taskType);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const language = useAppSelector((state) => state.language.language);
+  const { lang } = useLanguage();
 
   React.useEffect(() => {
     if (processState) {
@@ -23,15 +22,11 @@ export function Feedback() {
     }
   }, [processState, dispatch]);
 
-  if (!language) {
-    return null;
-  }
-
   return (
     <div id='FeedbackContainer'>
       <MuiThemeProvider theme={theme}>
-        <Typography variant='body1'>{getTextFromAppOrDefault('feedback.title', textResources, language)}</Typography>
-        <Typography variant='body1'>{getTextFromAppOrDefault('feedback.body', textResources, language)}</Typography>
+        <Typography variant='body1'>{lang('feedback.title')}</Typography>
+        <Typography variant='body1'>{lang('feedback.body')}</Typography>
       </MuiThemeProvider>
       <ReadyForPrint />
     </div>

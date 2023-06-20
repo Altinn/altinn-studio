@@ -1,18 +1,13 @@
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
-import type { ILanguage, IParty, ITextResource } from 'src/types/shared';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IParty } from 'src/types/shared';
 
 export interface ISummaryData {
-  languageData?: ILanguage;
   instanceOwnerParty?: IParty;
-  textResources?: ITextResource[];
+  langTools: IUseLanguage;
 }
 
-export const returnConfirmSummaryObject = ({
-  languageData,
-  instanceOwnerParty,
-  textResources,
-}: ISummaryData): SummaryDataObject => {
+export const returnConfirmSummaryObject = ({ instanceOwnerParty, langTools }: ISummaryData): SummaryDataObject => {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
@@ -20,7 +15,7 @@ export const returnConfirmSummaryObject = ({
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
 
-  const key = getTextFromAppOrDefault('confirm.sender', textResources || [], languageData || {}, undefined, true);
+  const key = langTools.langAsString('confirm.sender');
 
   return {
     [key]: {

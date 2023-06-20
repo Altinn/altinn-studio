@@ -4,21 +4,22 @@ import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { httpGet } from 'src/utils/network/networking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { mapDataElementValidationToRedux, mergeValidationObjects } from 'src/utils/validation/validation';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IRunSingleFieldValidation } from 'src/features/validation/validationSlice';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayouts } from 'src/layout/layout';
-import type { ILayoutSets, IRuntimeState, ITextResource, IValidationIssue, IValidations } from 'src/types';
+import type { ILayoutSets, IRuntimeState, IValidationIssue, IValidations } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
 export const selectLayoutsState = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectApplicationMetadataState = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 export const selectInstanceState = (state: IRuntimeState) => state.instanceData.instance;
 export const selectLayoutSetsState = (state: IRuntimeState) => state.formLayout.layoutsets;
-export const selectTextResourcesState = (state: IRuntimeState) => state.textResources.resources;
 export const selectValidationsState = (state: IRuntimeState) => state.formValidations.validations;
 export const selectHiddenFieldsState = (state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields;
 
@@ -35,6 +36,7 @@ export function* runSingleFieldValidationSaga({
   const applicationMetadata: IApplicationMetadata = yield select(selectApplicationMetadataState);
   const instance: IInstance = yield select(selectInstanceState);
   const layoutSets: ILayoutSets = yield select(selectLayoutSetsState);
+  const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
 
   const currentTaskDataId: string | undefined =
     applicationMetadata && getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
@@ -49,13 +51,12 @@ export function* runSingleFieldValidationSaga({
 
     try {
       const layouts: ILayouts = yield select(selectLayoutsState);
-      const textResources: ITextResource[] = yield select(selectTextResourcesState);
       const serverValidation: IValidationIssue[] = yield call(httpGet, url, options);
 
       const mappedValidations: IValidations = mapDataElementValidationToRedux(
         serverValidation,
         layouts || {},
-        textResources,
+        langTools,
       );
       const validationsFromState: IValidations = yield select(selectValidationsState);
       const validations: IValidations = mergeValidationObjects(validationsFromState, mappedValidations);

@@ -5,14 +5,13 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { AltinnLogo } from 'src/components/AltinnLogo';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { renderParty } from 'src/utils/party';
 import { returnUrlToAllSchemas, returnUrlToMessagebox, returnUrlToProfile } from 'src/utils/urls/urlHelper';
-import type { ILanguage, IProfile } from 'src/types/shared';
+import type { IProfile } from 'src/types/shared';
 
 export interface IHeaderProps {
-  language: ILanguage;
   profile: IProfile;
   type?: string;
 }
@@ -100,10 +99,10 @@ const gridStyle = { flexGrow: 1 };
 
 const emptyObj = {};
 
-export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
+export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
   const party = profile?.party;
   const classes = useStyles();
-
+  const { langAsString } = useLanguage();
   const blueClass = type ? classes.blueDark : classes.blueDarker;
 
   return (
@@ -115,7 +114,7 @@ export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
         shortcuts={[
           {
             id: 'main-content',
-            text: getLanguageFromKey('navigation.to_main_content', language),
+            text: langAsString('navigation.to_main_content'),
           },
         ]}
       />
@@ -141,17 +140,17 @@ export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
                 <a href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}>
-                  {getLanguageFromKey('instantiate.inbox', language)}
+                  {langAsString('instantiate.inbox')}
                 </a>
               </li>
               <li className={classes.headerLink}>
                 <a href={returnUrlToAllSchemas(window.location.origin) || '#'}>
-                  {getLanguageFromKey('instantiate.all_forms', language)}
+                  {langAsString('instantiate.all_forms')}
                 </a>
               </li>
               <li className={classes.headerLink}>
                 <a href={returnUrlToProfile(window.location.origin, party?.partyId) || '#'}>
-                  {getLanguageFromKey('instantiate.profile', language)}
+                  {langAsString('instantiate.profile')}
                 </a>
               </li>
             </ul>
@@ -171,7 +170,7 @@ export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
                     <span className={blueClass}>
                       {party &&
                         party.organization &&
-                        `${getLanguageFromKey('general.for', language)} ${party.organization.name.toUpperCase()}`}
+                        `${langAsString('general.for')} ${party.organization.name.toUpperCase()}`}
                     </span>
                   </>
                 )}

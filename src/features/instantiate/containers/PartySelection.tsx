@@ -75,7 +75,6 @@ export const PartySelection = () => {
   const errorCode = match?.params.errorCode;
 
   const dispatch = useAppDispatch();
-  const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
   const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
@@ -162,10 +161,6 @@ export const PartySelection = () => {
   }
 
   function templateErrorMessage() {
-    if (!language || !language.party_selection) {
-      return null;
-    }
-
     if (errorCode === `${HttpStatusCodes.Forbidden}`) {
       return (
         <Typography
@@ -204,11 +199,8 @@ export const PartySelection = () => {
   }
 
   function templatePartyTypesString() {
-    if (!language || !language.party_selection) {
-      return null;
-    }
     /*
-      This method we allways return the strings in an order of:
+      This method we always return the strings in an order of:
       1. private person
       2. organisation
       3. sub unit
@@ -258,9 +250,6 @@ export const PartySelection = () => {
   }
 
   function renderShowMoreButton() {
-    if (!language) {
-      return null;
-    }
     return (
       <button
         className={classes.loadMoreButton}
@@ -284,10 +273,6 @@ export const PartySelection = () => {
   const toggleShowSubUnits = () => {
     setShowSubUnits(!showSubUnits);
   };
-
-  if (!language) {
-    return null;
-  }
 
   return (
     <InstantiationContainer type='partyChoice'>

@@ -4,6 +4,7 @@ import { Grid, makeStyles } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IImageProps = PropsFromGenericComponent<'Image'>;
@@ -14,13 +15,14 @@ const useStyles = makeStyles({
   },
 });
 
-export function ImageComponent({ node, language, getTextResourceAsString, getTextResource }: IImageProps) {
+export function ImageComponent({ node }: IImageProps) {
+  const { lang, langAsString } = useLanguage();
   const { id, image, textResourceBindings } = node.item;
   const classes = useStyles();
   const languageKey = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
   const width = image?.width || '100%';
   const align = image?.align || 'center';
-  const altText = textResourceBindings?.altTextImg && getTextResourceAsString(textResourceBindings.altTextImg);
+  const altText = textResourceBindings?.altTextImg && langAsString(textResourceBindings.altTextImg);
 
   let imgSrc = image?.src[languageKey] || image?.src.nb || '';
   if (imgSrc.startsWith('wwwroot')) {
@@ -69,8 +71,7 @@ export function ImageComponent({ node, language, getTextResourceAsString, getTex
           className={classes.spacing}
         >
           <HelpTextContainer
-            language={language}
-            helpText={getTextResource(textResourceBindings.help)}
+            helpText={lang(textResourceBindings.help)}
             title={altText}
           />
         </Grid>

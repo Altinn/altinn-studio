@@ -3,8 +3,7 @@ import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 
 import { AltinnInput } from 'src/components/AltinnInput';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 
 const useStyles = makeStyles((theme) => ({
   partySearchContainer: {
@@ -19,15 +18,11 @@ export interface IAltinnPartySearchProps {
 
 export function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
   const classes = useStyles();
-  const language = useAppSelector((state) => state.language.language);
+  const { langAsString } = useLanguage();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearchUpdated(e.target.value);
   };
-
-  if (!language) {
-    return null;
-  }
 
   return (
     <Grid
@@ -35,10 +30,10 @@ export function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) 
       className={classes.partySearchContainer}
     >
       <AltinnInput
-        label={getLanguageFromKey('party_selection.search_placeholder', language)}
+        label={langAsString('party_selection.search_placeholder')}
         showLabel={false}
         onChange={handleChange}
-        placeholder={getLanguageFromKey('party_selection.search_placeholder', language)}
+        placeholder={langAsString('party_selection.search_placeholder')}
         iconString='fa fa-others'
       />
     </Grid>

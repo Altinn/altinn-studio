@@ -22,7 +22,7 @@ describe('FileUploadComponent', () => {
         name: 'Legg til flere vedlegg',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/form_filler\.file_uploader_number_of_files 2\/3\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Antall filer 2\/3\./i)).toBeInTheDocument();
   });
 
   it('should not show add attachment button, and should show file counter when number of attachments is same as max', () => {
@@ -36,7 +36,7 @@ describe('FileUploadComponent', () => {
         name: 'Legg til flere vedlegg',
       }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText(/form_filler\.file_uploader_number_of_files 3\/3\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Antall filer 3\/3\./i)).toBeInTheDocument();
   });
 
   describe('file status', () => {

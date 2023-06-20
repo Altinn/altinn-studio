@@ -7,6 +7,7 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { filterPageValidations, Triggers } from 'src/types';
 import {
@@ -71,6 +72,7 @@ export function* updateCurrentViewSaga({
     }
 
     const state: IRuntimeState = yield select();
+    const langTools = staticUseLanguageFromState(state);
     const visibleLayouts: string[] | null = yield select(selectLayoutOrder);
     const viewCacheKey = state.formLayout.uiConfig.currentViewCacheKey;
     const instanceId = state.instanceData.instance?.id;
@@ -124,11 +126,7 @@ export function* updateCurrentViewSaga({
           : undefined;
 
       // update validation state
-      const mappedValidations = mapDataElementValidationToRedux(
-        serverValidation,
-        layoutState.layouts || {},
-        state.textResources.resources,
-      );
+      const mappedValidations = mapDataElementValidationToRedux(serverValidation, layoutState.layouts || {}, langTools);
 
       validationResult.validations = mergeValidationObjects(
         validationResult.validations,

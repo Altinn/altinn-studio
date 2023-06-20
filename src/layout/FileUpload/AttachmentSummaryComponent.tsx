@@ -2,8 +2,7 @@ import React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
@@ -22,7 +21,8 @@ const useStyles = makeStyles({
 export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryComponent) {
   const classes = useStyles();
   const attachments = useUploaderSummaryData(targetNode);
-  const language = useAppSelector((state) => state.language.language);
+  const { lang } = useLanguage();
+
   return (
     <Grid
       item
@@ -35,7 +35,7 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
           className={classes.emptyField}
           component='p'
         >
-          {getLanguageFromKey('general.empty_summary', language || {})}
+          {lang('general.empty_summary')}
         </Typography>
       ) : (
         attachments.map((attachment) => (

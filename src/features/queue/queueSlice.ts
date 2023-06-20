@@ -5,7 +5,6 @@ import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { DataModelActions } from 'src/features/datamodel/datamodelSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
-import { LanguageActions } from 'src/features/language/languageSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { PdfActions } from 'src/features/pdf/data/pdfSlice';
 import { watchStartInitialInfoTaskQueueSaga } from 'src/features/queue/infoTask/infoTaskQueueSaga';
@@ -62,7 +61,6 @@ export const queueSlice = () => {
       startInitialAppTaskQueue: mkAction<void>({
         *takeEvery(): SagaIterator {
           yield put(TextResourcesActions.fetch());
-          yield put(LanguageActions.fetchLanguage());
           yield put(QueueActions.startInitialAppTaskQueueFulfilled());
         },
         reducer: (state) => {

@@ -13,6 +13,7 @@ import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { ExprResolved } from 'src/features/expressions/types';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { HRepGroup, ILayoutGroup } from 'src/layout/Group/types';
 import type { ITextResourceBindings } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -53,16 +54,16 @@ function getTableTitle(textResourceBindings: ITextResourceBindings) {
 
 function getEditButtonText(
   isEditing: boolean,
+  langTools: IUseLanguage,
   textResourceBindings: ITextResourceBindings | undefined,
-  langAsString: (key: string) => string,
 ) {
   if (isEditing && textResourceBindings?.edit_button_close) {
-    return langAsString(textResourceBindings?.edit_button_close);
+    return langTools.langAsString(textResourceBindings?.edit_button_close);
   } else if (!isEditing && textResourceBindings?.edit_button_open) {
-    return langAsString(textResourceBindings?.edit_button_open);
+    return langTools.langAsString(textResourceBindings?.edit_button_open);
   }
 
-  return isEditing ? langAsString('general.save_and_close') : langAsString('general.edit_alt');
+  return isEditing ? langTools.langAsString('general.save_and_close') : langTools.langAsString('general.edit_alt');
 }
 
 export function RepeatingGroupTableRow({
@@ -85,7 +86,8 @@ export function RepeatingGroupTableRow({
   const { popoverOpen, popoverPanelIndex, onDeleteClick, setPopoverOpen, onPopoverDeleteClick, onOpenChange } =
     deleteFunctionality || {};
 
-  const { lang, langAsString } = useLanguage();
+  const langTools = useLanguage();
+  const { lang, langAsString } = langTools;
   const id = node.item.id;
   const group = node.item;
   const row = group.rows[index] ? group.rows[index] : undefined;
@@ -109,7 +111,7 @@ export function RepeatingGroupTableRow({
 
   const editButtonText = rowHasErrors
     ? langAsString('general.edit_alt_error')
-    : getEditButtonText(editIndex === index, resolvedTextBindings, langAsString);
+    : getEditButtonText(editIndex === index, langTools, resolvedTextBindings);
 
   const deleteButtonText = langAsString('general.delete');
 

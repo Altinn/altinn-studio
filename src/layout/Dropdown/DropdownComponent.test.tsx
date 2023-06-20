@@ -35,7 +35,6 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
     },
     genericProps: {
       handleDataChange: jest.fn(),
-      getTextResourceAsString: (value) => value,
       isValid: true,
       ...genericProps,
     },

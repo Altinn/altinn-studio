@@ -4,13 +4,15 @@ import { Grid, Typography } from '@material-ui/core';
 
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
-export function AttachmentListComponent({ node, text }: IAttachmentListProps) {
+export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const { dataTypeIds, includePDF } = node.item;
+  const { lang } = useLanguage();
   const currentTaskId = useAppSelector((state) => state.instanceData.instance?.process?.currentTask?.elementId);
   const dataForTask = useAppSelector((state) => {
     const dataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter(
@@ -41,7 +43,7 @@ export function AttachmentListComponent({ node, text }: IAttachmentListProps) {
         className='attachmentList-title'
         component='span'
       >
-        {text}
+        {lang(node.item.textResourceBindings?.title)}
       </Typography>
       <AltinnAttachment attachments={attachments} />
     </Grid>

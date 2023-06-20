@@ -14,7 +14,6 @@ import { getFormHasErrors } from 'src/utils/validation/validation';
 export function CustomReceipt() {
   const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
   const page = useExprContext()?.findLayout(receiptLayoutName);
-  const language = useAppSelector((state) => state.language.language);
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {
@@ -24,7 +23,7 @@ export function CustomReceipt() {
     return hasErrors ? extractBottomButtons(page) : [page.children(), []];
   }, [page, hasErrors]);
 
-  if (!language || !page) {
+  if (!page) {
     return null;
   }
 

@@ -45,7 +45,7 @@ const getCalendarYearHeader = (method = 'getByRole') =>
 
 const getOpenCalendarButton = () =>
   screen.getByRole('button', {
-    name: /date_picker\.aria_label_icon/i,
+    name: /Åpne datovelger/i,
   });
 
 const getCalendarDayButton = (dayNumber) =>

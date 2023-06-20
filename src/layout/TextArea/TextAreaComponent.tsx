@@ -11,15 +11,8 @@ import 'src/styles/shared.css';
 
 export type ITextAreaProps = PropsFromGenericComponent<'TextArea'>;
 
-export function TextAreaComponent({
-  node,
-  formData,
-  isValid,
-  handleDataChange,
-  overrideDisplay,
-  getTextResourceAsString,
-}: ITextAreaProps) {
-  const { lang } = useLanguage();
+export function TextAreaComponent({ node, formData, isValid, handleDataChange, overrideDisplay }: ITextAreaProps) {
+  const { lang, langAsString } = useLanguage();
   const { id, readOnly, textResourceBindings, saveWhileTyping, autocomplete, maxLength } = node.item;
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
@@ -46,9 +39,7 @@ export function TextAreaComponent({
       aria-describedby={
         overrideDisplay?.renderedInTable !== true && textResourceBindings ? `description-${id}` : undefined
       }
-      aria-label={
-        overrideDisplay?.renderedInTable === true ? getTextResourceAsString(textResourceBindings?.title) : undefined
-      }
+      aria-label={overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined}
       autoComplete={autocomplete}
       style={{ height: '150px' }}
     />

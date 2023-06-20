@@ -2,8 +2,7 @@ import React from 'react';
 
 import { Grid, List, ListItem, ListItemText, makeStyles, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 
 export interface IMultipleChoiceSummaryProps {
   formData: { [key: string]: string };
@@ -34,7 +33,7 @@ const useStyles = makeStyles({
 
 export function MultipleChoiceSummary({ formData }: IMultipleChoiceSummaryProps) {
   const classes = useStyles();
-  const language = useAppSelector((state) => state.language.language);
+  const { lang } = useLanguage();
 
   return (
     <Grid
@@ -47,7 +46,7 @@ export function MultipleChoiceSummary({ formData }: IMultipleChoiceSummaryProps)
           variant='body1'
           className={classes.emptyField}
         >
-          {getLanguageFromKey('general.empty_summary', language || {})}
+          {lang('general.empty_summary')}
         </Typography>
       ) : (
         <List classes={{ root: classes.list }}>

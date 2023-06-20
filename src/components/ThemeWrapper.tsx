@@ -3,10 +3,9 @@ import type { ReactNode } from 'react';
 
 import { createTheme, ThemeProvider } from '@material-ui/core';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobile, useIsTablet } from 'src/hooks/useIsMobile';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 type ThemeWrapperProps = {
@@ -16,11 +15,11 @@ type ThemeWrapperProps = {
 export const ThemeWrapper = ({ children }: ThemeWrapperProps) => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
-  const language = useAppSelector(appLanguageStateSelector);
+  const { selectedLanguage } = useLanguage();
 
-  const isRtl = rightToLeftISOLanguageCodes.includes(language);
+  const isRtl = rightToLeftISOLanguageCodes.includes(selectedLanguage);
   const direction = isRtl ? 'rtl' : 'ltr';
-  document.documentElement.lang = language;
+  document.documentElement.lang = selectedLanguage;
   document.documentElement.dir = direction;
 
   // Using a layout effect to make sure the whole app is re-rendered as we want it before taking screenshots

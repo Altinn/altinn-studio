@@ -3,7 +3,7 @@ import React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -31,8 +31,7 @@ export function AttachmentWithTagSummaryComponent({ targetNode }: IAttachmentWit
   const classes = useStyles();
   const component = targetNode.item;
   const attachments = useUploaderSummaryData(targetNode);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const language = useAppSelector((state) => state.language.language);
+  const { lang, langAsString } = useLanguage();
   const options = useAppSelector(
     (state) =>
       state.optionState.options[
@@ -47,8 +46,9 @@ export function AttachmentWithTagSummaryComponent({ targetNode }: IAttachmentWit
     options?.find((option) => option.value === tags[0])?.label;
   const tryToGetTextResource = (attachment) => {
     const optionsTagLabel = getOptionsTagLabel(attachment);
-    return textResources?.find(({ id }) => id === optionsTagLabel)?.value || optionsTagLabel;
+    return langAsString(optionsTagLabel);
   };
+
   return (
     <Grid
       item
@@ -61,7 +61,7 @@ export function AttachmentWithTagSummaryComponent({ targetNode }: IAttachmentWit
           className={classes.emptyField}
           component='p'
         >
-          {getLanguageFromKey('general.empty_summary', language || {})}
+          {lang('general.empty_summary')}
         </Typography>
       ) : (
         attachments.map((attachment) => (

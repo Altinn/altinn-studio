@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupVariant } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import type { IOption } from 'src/types';
@@ -21,30 +22,23 @@ export interface IControlledRadioGroupProps extends IRadioButtonsContainerProps 
 
 export const ControlledRadioGroup = ({
   node,
-  getTextResource,
   fetchingOptions,
   selected,
-  text,
-  language,
   handleBlur,
   handleChangeRadioGroup,
   calculatedOptions,
   isValid,
   overrideDisplay,
-  getTextResourceAsString,
 }: IControlledRadioGroupProps) => {
   const { id, layout, readOnly, textResourceBindings, required, labelSettings } = node.item;
+  const { lang, langAsString } = useLanguage();
 
   const labelText = (
     <span style={{ fontSize: '1rem', wordBreak: 'break-word' }}>
-      {text}
-      <RequiredIndicator
-        required={required}
-        language={language}
-      />
+      {lang(textResourceBindings?.title)}
+      <RequiredIndicator required={required} />
       <OptionalIndicator
         labelSettings={labelSettings}
-        language={language}
         required={required}
       />
     </span>
@@ -65,15 +59,13 @@ export const ControlledRadioGroup = ({
             name={id}
             aria-labelledby={`${id}-label`}
             legend={overrideDisplay?.renderLegend === false ? null : labelText}
-            description={textResourceBindings?.description && getTextResource(textResourceBindings.description)}
+            description={textResourceBindings?.description && lang(textResourceBindings.description)}
             value={selected}
             error={!isValid}
             fieldSetProps={{
-              'aria-label': overrideDisplay?.renderedInTable
-                ? getTextResourceAsString(textResourceBindings?.title)
-                : undefined,
+              'aria-label': overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined,
             }}
-            helpText={textResourceBindings?.help && getTextResource(textResourceBindings.help)}
+            helpText={textResourceBindings?.help && lang(textResourceBindings.help)}
             disabled={readOnly}
             variant={
               shouldUseRowLayout({
@@ -88,9 +80,9 @@ export const ControlledRadioGroup = ({
               value: option.value,
               checkboxId: `${id}-${option.label.replace(/\s/g, '-')}`,
               hideLabel,
-              label: hideLabel ? getTextResourceAsString(option.label) : getTextResource(option.label),
-              description: getTextResource(option.description),
-              helpText: option.helpText && getTextResource(option.helpText),
+              label: langAsString(option.label),
+              description: lang(option.description),
+              helpText: option.helpText && lang(option.helpText),
             }))}
           />
         </div>

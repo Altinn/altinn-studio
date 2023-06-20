@@ -109,11 +109,10 @@ function testCustomReceiptPage() {
     'Takk for din innsending, dette er en veldig fin custom kvittering.',
   );
 
-  // TODO: Update test when the language subsystem fetches these texts correctly
-  cy.get('#form-content-r-header-pdfs').should('contain.text', 'receipt.title_submitted');
+  cy.get('#form-content-r-header-pdfs').should('contain.text', 'Følgende er sendt inn:');
   cy.get('#form-content-r-pdfs').find('[data-testId=attachment-list]').children().should('have.length', 5);
   cy.get('#form-content-r-pdfs').should('contain.text', 'frontend-test.pdf');
-  cy.get('#form-content-r-header-attachments').should('contain.text', 'receipt.attachments');
+  cy.get('#form-content-r-header-attachments').should('contain.text', 'Vedlegg');
   cy.get('#form-content-r-attachments').find('[data-testId=attachment-list]').children().should('have.length', 1);
   cy.get('#form-content-r-attachments').should('contain.text', 'test.pdf');
   cy.snapshot('custom-receipt');

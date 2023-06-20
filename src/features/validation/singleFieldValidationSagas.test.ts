@@ -11,10 +11,10 @@ import {
   selectInstanceState,
   selectLayoutSetsState,
   selectLayoutsState,
-  selectTextResourcesState,
   selectValidationsState,
 } from 'src/features/validation/singleFieldValidationSagas';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Severity } from 'src/types';
 import { httpGet } from 'src/utils/network/networking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
@@ -75,7 +75,7 @@ describe('singleFieldValidationSagas', () => {
         [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
         [select(selectInstanceState), mockState.instanceData.instance],
         [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
-        [select(selectTextResourcesState), mockState.textResources.resources],
+        [select(staticUseLanguageFromState), staticUseLanguageFromState(mockState)],
         [select(selectValidationsState), mockState.formValidations.validations],
         [call(httpGet, url, options), validationIssues],
       ])
@@ -113,7 +113,7 @@ describe('singleFieldValidationSagas', () => {
         [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
         [select(selectInstanceState), mockState.instanceData.instance],
         [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
-        [select(selectTextResourcesState), mockState.textResources.resources],
+        [select(staticUseLanguageFromState), staticUseLanguageFromState(mockState)],
         [select(selectValidationsState), mockState.formValidations.validations],
         [call(httpGet, url, options), throwError(error)],
       ])

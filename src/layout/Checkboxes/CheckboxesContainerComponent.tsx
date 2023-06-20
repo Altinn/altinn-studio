@@ -9,6 +9,7 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useHasChangedIgnoreUndefined } from 'src/hooks/useHasChangedIgnoreUndefined';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -22,12 +23,8 @@ const defaultSelectedOptions: string[] = [];
 export const CheckboxContainerComponent = ({
   node,
   formData,
-  text,
   isValid,
-  language,
   handleDataChange,
-  getTextResource,
-  getTextResourceAsString,
   overrideDisplay,
 }: ICheckboxContainerProps) => {
   const {
@@ -49,6 +46,7 @@ export const CheckboxContainerComponent = ({
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
+  const { lang, langAsString } = useLanguage();
 
   const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '', 200);
 
@@ -92,14 +90,10 @@ export const CheckboxContainerComponent = ({
 
   const labelText = (
     <span style={{ fontSize: '1rem' }}>
-      {text}
-      <RequiredIndicator
-        required={required}
-        language={language}
-      />
+      {lang(node.item.textResourceBindings?.title)}
+      <RequiredIndicator required={required} />
       <OptionalIndicator
         labelSettings={labelSettings}
-        language={language}
         required={required}
       />
     </span>
@@ -120,14 +114,12 @@ export const CheckboxContainerComponent = ({
         disabled={readOnly}
         onChange={(values) => handleChange(values)}
         legend={overrideDisplay?.renderLegend === false ? null : labelText}
-        description={textResourceBindings?.description && getTextResource(textResourceBindings.description)}
+        description={textResourceBindings?.description && langAsString(textResourceBindings.description)}
         error={!isValid}
         fieldSetProps={{
-          'aria-label': overrideDisplay?.renderedInTable
-            ? getTextResourceAsString(textResourceBindings?.title)
-            : undefined,
+          'aria-label': overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined,
         }}
-        helpText={textResourceBindings?.help && getTextResource(textResourceBindings.help)}
+        helpText={textResourceBindings?.help && lang(textResourceBindings.help)}
         variant={
           shouldUseRowLayout({
             layout,
@@ -141,9 +133,9 @@ export const CheckboxContainerComponent = ({
           checkboxId: `${id}-${option.label.replace(/\s/g, '-')}`,
           checked: selected.includes(option.value),
           hideLabel,
-          label: hideLabel ? getTextResourceAsString(option.label) : getTextResource(option.label),
-          description: getTextResource(option.description),
-          helpText: option.helpText && getTextResource(option.helpText),
+          label: langAsString(option.label),
+          description: langAsString(option.description),
+          helpText: option.helpText && langAsString(option.helpText),
         }))}
       />
     </div>

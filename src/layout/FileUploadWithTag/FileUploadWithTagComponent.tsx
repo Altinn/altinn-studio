@@ -27,8 +27,7 @@ import type { IRuntimeState } from 'src/types';
 
 export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUploadWithTag'>;
 
-export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.Element {
-  const { componentValidations, language, getTextResource, getTextResourceAsString } = props;
+export function FileUploadWithTagComponent({ componentValidations, node }: IFileUploadWithTagProps): JSX.Element {
   const {
     id,
     baseComponentId,
@@ -42,7 +41,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     mapping,
     textResourceBindings,
     dataModelBindings,
-  } = props.node.item;
+  } = node.item;
   const dataDispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string; message: string }>>([]);
   const mobileView = useIsMobileOrTablet();
@@ -61,7 +60,8 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
         state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions) ??
       {},
   );
-  const { langAsString } = useLanguage();
+  const langTools = useLanguage();
+  const { langAsString } = langTools;
   const attachments: IAttachment[] = useAppSelector((state: IRuntimeState) => state.attachments.attachments[id] || []);
 
   const setValidationsFromArray = (validationArray: string[]) => {
@@ -98,7 +98,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       tmpValidations.push({
         id: attachment.id,
         message: `${langAsString('form_filler.file_uploader_validation_error_no_chosen_tag')} ${(
-          getTextResource(textResourceBindings?.tagTitle || '') || ''
+          langAsString(textResourceBindings?.tagTitle || '') || ''
         )
           .toString()
           .toLowerCase()}.`,
@@ -170,7 +170,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       });
 
       const rejections = handleRejectedFiles({
-        language,
+        langTools,
         rejectedFiles,
         maxFileSizeInMB,
       });
@@ -207,45 +207,36 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
         />
       )}
 
-      {shouldShowFileUpload() &&
-        AttachmentsCounter({
-          language,
-          currentNumberOfAttachments: attachments.length,
-          minNumberOfAttachments,
-          maxNumberOfAttachments,
-        })}
+      {shouldShowFileUpload() && (
+        <AttachmentsCounter
+          currentNumberOfAttachments={attachments.length}
+          minNumberOfAttachments={minNumberOfAttachments}
+          maxNumberOfAttachments={maxNumberOfAttachments}
+        />
+      )}
 
       {hasValidationMessages && shouldShowFileUpload() && renderValidationMessagesForComponent(validationMessages, id)}
 
       <FileList
-        text={props.text}
-        shouldFocus={props.shouldFocus}
-        legend={props.legend}
-        label={props.label}
-        formData={props.formData}
-        handleDataChange={props.handleDataChange}
-        node={props.node}
+        node={node}
         attachments={attachments}
         attachmentValidations={attachmentValidationMessages}
-        language={language}
         editIndex={editIndex}
         mobileView={mobileView}
         options={options}
-        getTextResource={getTextResource}
-        getTextResourceAsString={getTextResourceAsString}
         onEdit={handleEdit}
         onSave={handleSave}
         onDropdownDataChange={handleDropdownDataChange}
         setEditIndex={setEditIndex}
       />
 
-      {!shouldShowFileUpload() &&
-        AttachmentsCounter({
-          language,
-          currentNumberOfAttachments: attachments.length,
-          minNumberOfAttachments,
-          maxNumberOfAttachments,
-        })}
+      {!shouldShowFileUpload() && (
+        <AttachmentsCounter
+          currentNumberOfAttachments={attachments.length}
+          minNumberOfAttachments={minNumberOfAttachments}
+          maxNumberOfAttachments={maxNumberOfAttachments}
+        />
+      )}
 
       {hasValidationMessages && !shouldShowFileUpload() && renderValidationMessagesForComponent(validationMessages, id)}
     </div>

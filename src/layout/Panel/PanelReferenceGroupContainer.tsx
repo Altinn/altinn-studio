@@ -12,11 +12,10 @@ import { SuccessIconButton } from 'src/components/SuccessIconButton';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
-import { getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
@@ -30,21 +29,10 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
   const node = useResolvedNode(id) as LayoutNodeFromType<'Group'>;
   const container = node.item.panel ? node.item : undefined;
   const [open, setOpen] = useState<boolean>(!container?.panel?.groupReference);
-  const language = useAppSelector((state) => state.language.language);
   const hidden = useAppSelector((state) => GetHiddenSelector(state, { id }));
   const textResourceBindings = node?.item.textResourceBindings;
+  const { lang } = useLanguage();
 
-  const title = useAppSelector(
-    (state) =>
-      textResourceBindings?.title && getTextResource(textResourceBindings.title, state.textResources.resources),
-  );
-  const body = useAppSelector(
-    (state) => textResourceBindings?.body && getTextResource(textResourceBindings.body, state.textResources.resources),
-  );
-  const addLabel = useAppSelector(
-    (state) =>
-      textResourceBindings?.add_label && getTextResource(textResourceBindings.add_label, state.textResources.resources),
-  );
   const { iconUrl, iconAlt } = container?.panel || {};
   const fullWidth = !container?.baseComponentId;
   const repGroupReference = container?.panel?.groupReference;
@@ -66,7 +54,7 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
     setOpen(true);
   };
 
-  if (hidden || !language || !container || !node) {
+  if (hidden || !container || !node) {
     return null;
   }
 
@@ -88,14 +76,14 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
               <Grid item>
                 <EditIconButton
                   id={`add-reference-button-${container.id}`}
-                  label={addLabel}
+                  label={lang(textResourceBindings?.add_label)}
                   onClick={handleOpen}
                 />
               </Grid>
             )}
             {open && (
               <Panel
-                title={title}
+                title={lang(textResourceBindings?.title)}
                 renderIcon={
                   iconUrl
                     ? ({ size }) => (
@@ -122,7 +110,7 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
                     item
                     xs={12}
                   >
-                    {body}
+                    {lang(textResourceBindings?.body)}
                   </Grid>
 
                   {/*  // TODO: Add test case for filling out a new row in panel, not saving it, and midway through*/}
@@ -142,7 +130,7 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
                       <Grid item>
                         <SuccessIconButton
                           id={`save-reference-button-${container.id}`}
-                          label={getLanguageFromKey('general.save', language)}
+                          label={lang('general.save')}
                           onClick={handleSave}
                         />
                       </Grid>

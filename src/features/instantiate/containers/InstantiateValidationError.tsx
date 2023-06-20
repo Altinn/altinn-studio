@@ -1,29 +1,17 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { useLanguage } from 'src/hooks/useLanguage';
 
 export function InstantiateValidationError(props: { message: string }) {
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  if (!language) {
-    return null;
-  }
+  const { lang, langAsString } = useLanguage();
 
   function createErrorContent() {
-    if (!language) {
-      return null;
-    }
-
-    const errorCustomerService = getParsedLanguageFromKey(
+    const errorCustomerService = langAsString(
       'instantiate.authorization_error_instantiate_validation_info_customer_service',
-      language,
-      [getLanguageFromKey('general.customer_service_phone_number', language)],
+      [langAsString('general.customer_service_phone_number')],
     );
-    const customErrorMessage =
-      props.message && getTextFromAppOrDefault(props.message, textResources, language, [], false);
+    const customErrorMessage = props.message && lang(props.message);
 
     return (
       <>
@@ -37,9 +25,9 @@ export function InstantiateValidationError(props: { message: string }) {
 
   return (
     <InstantiationErrorPage
-      title={getLanguageFromKey('instantiate.authorization_error_instantiate_validation_title', language)}
+      title={lang('instantiate.authorization_error_instantiate_validation_title')}
       content={createErrorContent()}
-      statusCode={`${getLanguageFromKey('party_selection.error_caption_prefix', language)} 403`}
+      statusCode={`${langAsString('party_selection.error_caption_prefix')} 403`}
     />
   );
 }

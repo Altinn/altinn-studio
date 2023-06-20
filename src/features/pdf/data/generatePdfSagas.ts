@@ -6,7 +6,6 @@ import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
-import { LanguageActions } from 'src/features/language/languageSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { OptionsActions } from 'src/features/options/optionsSlice';
 import { OrgsActions } from 'src/features/orgs/orgsSlice';
@@ -167,7 +166,6 @@ export function* watchPdfPreviewSaga(): SagaIterator {
 export function* watchPdfReadySaga(): SagaIterator {
   yield all([
     take(PartyActions.getPartiesFulfilled),
-    take(LanguageActions.fetchLanguageFulfilled),
     take(TextResourcesActions.fetchFulfilled),
     take(OrgsActions.fetchFulfilled),
     take(OptionsActions.loaded),

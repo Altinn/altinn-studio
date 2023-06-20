@@ -1,5 +1,5 @@
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import type { IProfileState } from 'src/features/profile';
+import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 
 export function getHierarchyDataSourcesMock(): HierarchyDataSources {
@@ -11,7 +11,6 @@ export function getHierarchyDataSourcesMock(): HierarchyDataSources {
     authContext: null,
     validations: {},
     devTools: getInitialStateMock().devTools,
-    textResources: [],
-    profile: {} as IProfileState,
+    langTools: staticUseLanguageForTests(),
   };
 }

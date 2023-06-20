@@ -1,10 +1,9 @@
 import React from 'react';
-import { Provider } from 'react-redux';
 
-import { render, screen } from '@testing-library/react';
-import configureStore from 'redux-mock-store';
+import { screen } from '@testing-library/react';
 
 import { Legend } from 'src/components/form/Legend';
+import { renderWithProviders } from 'src/testUtils';
 import type { IFormLegendProps } from 'src/components/form/Legend';
 
 describe('Legend', () => {
@@ -12,34 +11,20 @@ describe('Legend', () => {
   const optionalMarking = 'Valgfri';
 
   function renderLegendComponent(props: Partial<IFormLegendProps> = {}) {
-    const createStore = configureStore();
-    const mockLanguage = {
-      general: {
-        optional: optionalMarking,
-      },
-      form_filler: {
-        required_label: requiredMarking,
-      },
-    };
     const defaultProps: IFormLegendProps = {
       id: 'label1',
       labelText: 'label.text',
       descriptionText: '',
       helpText: '',
-      language: mockLanguage,
       required: false,
       labelSettings: {},
     };
 
-    const mockStore = createStore({ language: { language: mockLanguage } });
-
-    return render(
-      <Provider store={mockStore}>
-        <Legend
-          {...defaultProps}
-          {...props}
-        />
-      </Provider>,
+    return renderWithProviders(
+      <Legend
+        {...defaultProps}
+        {...props}
+      />,
     );
   }
 

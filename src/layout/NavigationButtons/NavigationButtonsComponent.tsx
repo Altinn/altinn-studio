@@ -6,11 +6,11 @@ import { Grid } from '@material-ui/core';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations, Triggers } from 'src/types';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutNavigation, INavigationConfig } from 'src/types';
@@ -19,6 +19,7 @@ export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const { id, showBackButton, textResourceBindings, triggers } = node.item;
   const dispatch = useAppDispatch();
+  const { lang } = useLanguage();
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);
@@ -30,8 +31,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const orderedLayoutKeys = useAppSelector(selectLayoutOrder);
   const returnToView = useAppSelector((state) => state.formLayout.uiConfig.returnToView);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const language = useAppSelector((state) => state.language.language);
   const pageTriggers = useAppSelector((state) => state.formLayout.uiConfig.pageTriggers);
   const { next, previous } = useAppSelector((state) =>
     getNavigationConfigForCurrentView(
@@ -110,10 +109,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
     dispatch(FormLayoutActions.clearKeepScrollPos());
   }, [keepScrollPos, dispatch, id, getScrollPosition]);
 
-  if (!language) {
-    return null;
-  }
-
   return (
     <div
       data-testid='NavigationButtons'
@@ -127,7 +122,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             onClick={onClickPrevious}
             disabled={disableBack}
           >
-            {getTextFromAppOrDefault(backTextKey, textResources, language, undefined, true)}
+            {lang(backTextKey)}
           </Button>
         </Grid>
       )}
@@ -138,7 +133,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             onClick={OnClickNext}
             disabled={disableNext}
           >
-            {getTextFromAppOrDefault(nextTextKey, textResources, language, undefined, true)}
+            {lang(nextTextKey)}
           </Button>
         </Grid>
       )}

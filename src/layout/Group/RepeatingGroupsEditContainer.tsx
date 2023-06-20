@@ -5,14 +5,12 @@ import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { HRepGroup, HRepGroupRow, IGroupEditProperties } from 'src/layout/Group/types';
-import type { ILanguage } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupsEditContainer {
@@ -33,12 +31,11 @@ export function RepeatingGroupsEditContainer({
   editIndex,
   ...props
 }: IRepeatingGroupsEditContainer): JSX.Element | null {
-  const language = useAppSelector((state) => state.language.language);
   const group = node.item;
 
   const row = group.rows[editIndex];
 
-  if (!row || !language) {
+  if (!row) {
     return null;
   }
 
@@ -53,7 +50,6 @@ export function RepeatingGroupsEditContainer({
       editIndex={editIndex}
       group={group}
       row={row}
-      language={language}
       {...props}
     />
   );
@@ -72,13 +68,10 @@ function RepeatingGroupsEditContainerInternal({
   filteredIndexes,
   group,
   row,
-  language,
 }: IRepeatingGroupsEditContainer & {
   group: HRepGroup;
   row: HRepGroupRow;
-  language: ILanguage;
 }): JSX.Element | null {
-  const textResources = useAppSelector((state) => state.textResources.resources);
   const id = node.item.id;
   const textsForRow = row.groupExpressions?.textResourceBindings;
   const editForRow = row.groupExpressions?.edit;
@@ -93,6 +86,7 @@ function RepeatingGroupsEditContainerInternal({
     ...group.textResourceBindings,
     ...textsForRow,
   };
+  const { lang } = useLanguage();
 
   const nextDisplayedGroup = () => {
     const nextDisplayedIndex = group.rows.findIndex(
@@ -194,7 +188,7 @@ function RepeatingGroupsEditContainerInternal({
               onClick={removeClicked}
               data-testid='delete-button'
             >
-              {getLanguageFromKey('general.delete', language)}
+              {lang('general.delete')}
             </Button>
           </Grid>
         </Grid>
@@ -232,7 +226,7 @@ function RepeatingGroupsEditContainerInternal({
                       color={ButtonColor.Secondary}
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)}
                     >
-                      {getLanguageFromKey('general.back', language)}
+                      {lang('general.back')}
                     </Button>
                   </Grid>
                 )}
@@ -247,7 +241,7 @@ function RepeatingGroupsEditContainerInternal({
                       color={ButtonColor.Secondary}
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)}
                     >
-                      {getLanguageFromKey('general.next', language)}
+                      {lang('general.next')}
                     </Button>
                   </Grid>
                 )}
@@ -266,9 +260,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant={ButtonVariant.Filled}
                   color={ButtonColor.Primary}
                 >
-                  {texts?.save_and_next_button
-                    ? getTextResourceByKey(texts.save_and_next_button, textResources)
-                    : getLanguageFromKey('general.save_and_next', language)}
+                  {lang(texts?.save_and_next_button ?? 'general.save_and_next')}
                 </Button>
               </Grid>
             )}
@@ -280,9 +272,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant={saveAndNextButtonVisible ? ButtonVariant.Outline : ButtonVariant.Filled}
                   color={ButtonColor.Primary}
                 >
-                  {texts?.save_button
-                    ? getTextResourceByKey(texts.save_button, textResources)
-                    : getLanguageFromKey('general.save_and_close', language)}
+                  {lang(texts?.save_button ?? 'general.save_and_close')}
                 </Button>
               </Grid>
             )}

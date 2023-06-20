@@ -8,12 +8,10 @@ import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { LayoutStyle } from 'src/types';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { ILabelSettings } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
 
 export interface IFormLegendProps {
   labelText: React.ReactNode;
   descriptionText: React.ReactNode;
-  language: ILanguage;
   required?: boolean;
   labelSettings?: ILabelSettings;
   helpText: React.ReactNode;
@@ -28,13 +26,9 @@ export function Legend(props: IFormLegendProps) {
   const LabelText = (
     <>
       {props.labelText}
-      <RequiredIndicator
-        required={props.required}
-        language={props.language}
-      />
+      <RequiredIndicator required={props.required} />
       <OptionalIndicator
         labelSettings={props.labelSettings}
-        language={props.language}
         required={props.required}
       />
     </>
@@ -50,7 +44,6 @@ export function Legend(props: IFormLegendProps) {
         <legend className='a-form-label title-label'>{LabelText}</legend>
         {props.helpText && (
           <HelpTextContainer
-            language={props.language}
             helpText={props.helpText}
             title={getPlainTextFromNode(props.labelText)}
           />

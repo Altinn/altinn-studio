@@ -1,13 +1,5 @@
 {
-  "name": "Should return profile selectedAppLanguage",
+  "name": "Should return 'nb' language as default",
   "expression": ["language"],
-  "expects": "nb",
-  "profile": {
-    "profile": {
-      "profileSettingPreference": {
-        "language": "en"
-      }
-    },
-    "selectedAppLanguage": "nb"
-  }
+  "expects": "nb"
 }

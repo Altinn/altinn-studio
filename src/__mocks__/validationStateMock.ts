@@ -1,4 +1,3 @@
-import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import type { IValidations } from 'src/types';
 
 export function getMockValidationState(withFixed = false): IValidations {
@@ -7,25 +6,25 @@ export function getMockValidationState(withFixed = false): IValidations {
     FormLayout: {
       componentId_1: {
         simpleBinding: {
-          errors: [getTextResourceByKey('Error message 1', []), getTextResourceByKey('Error message 2', [])],
+          errors: ['Error message 1', 'Error message 2'],
           fixed,
         },
       },
       componentId_2: {
         customBinding: {
-          warnings: [getTextResourceByKey('Warning message 1', []), getTextResourceByKey('Warning message 2', [])],
+          warnings: ['Warning message 1', 'Warning message 2'],
           fixed,
         },
       },
       'componentId_4-1': {
         simpleBinding: {
-          errors: [getTextResourceByKey('test error', [])],
+          errors: ['test error'],
           fixed,
         },
       },
       'componentId_5-0-1': {
         simpleBinding: {
-          errors: [getTextResourceByKey('test error', [])],
+          errors: ['test error'],
           fixed,
         },
       },
@@ -33,8 +32,8 @@ export function getMockValidationState(withFixed = false): IValidations {
     unmapped: {
       unmapped: {
         random_key: {
-          errors: [getTextResourceByKey('test error', [])],
-          warnings: [getTextResourceByKey('test warning', [])],
+          errors: ['test error'],
+          warnings: ['test warning'],
           fixed,
         },
       },

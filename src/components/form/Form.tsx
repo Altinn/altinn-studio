@@ -7,6 +7,7 @@ import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
 import { useExprContext } from 'src/utils/layout/ExprContext';
@@ -14,19 +15,19 @@ import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/va
 
 export function Form() {
   const nodes = useExprContext();
-  const language = useAppSelector((state) => state.language.language);
+  const langTools = useLanguage();
   const validations = useAppSelector((state) => state.formValidations.validations);
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
   const page = nodes?.current();
   const pageKey = page?.top.myKey;
 
   const requiredFieldsMissing = React.useMemo(() => {
-    if (validations && pageKey && validations[pageKey] && language) {
-      return missingFieldsInLayoutValidations(validations[pageKey], language);
+    if (validations && pageKey && validations[pageKey]) {
+      return missingFieldsInLayoutValidations(validations[pageKey], langTools);
     }
 
     return false;
-  }, [pageKey, language, validations]);
+  }, [pageKey, langTools, validations]);
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {
     if (!page) {
@@ -35,7 +36,7 @@ export function Form() {
     return hasErrors ? extractBottomButtons(page) : [page.children(), []];
   }, [page, hasErrors]);
 
-  if (!language || !page) {
+  if (!page) {
     return null;
   }
 
@@ -43,7 +44,6 @@ export function Form() {
     <>
       {page && hasRequiredFields(page) && (
         <MessageBanner
-          language={language}
           error={requiredFieldsMissing}
           messageKey={'form_filler.required_description'}
         />

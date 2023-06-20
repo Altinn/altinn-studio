@@ -3,7 +3,7 @@ import React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
-import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -45,11 +45,11 @@ const useStyles = makeStyles({
   },
 });
 
-export function ParagraphComponent({ node, getTextResourceAsString, getTextResource, language }: IParagraphProps) {
+export function ParagraphComponent({ node }: IParagraphProps) {
   const { id, textResourceBindings } = node.item;
   const classes = useStyles();
-
-  const text = getParsedLanguageFromText(getTextResourceAsString(textResourceBindings?.title) ?? '', {}, false);
+  const { lang } = useLanguage();
+  const text = lang(textResourceBindings?.title);
 
   return (
     <Grid
@@ -73,8 +73,7 @@ export function ParagraphComponent({ node, getTextResourceAsString, getTextResou
           className={classes.spacing}
         >
           <HelpTextContainer
-            language={language}
-            helpText={getTextResource(textResourceBindings.help)}
+            helpText={lang(textResourceBindings.help)}
             title={getPlainTextFromNode(text)}
           />
         </Grid>

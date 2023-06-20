@@ -1,27 +1,22 @@
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { validationTexts } from 'src/utils/validation/validationTexts';
-import type { ITextResource, IValidationIssue } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IValidationIssue } from 'src/types';
 
-export function getValidationMessage(
-  issue: IValidationIssue,
-  textResources: ITextResource[],
-  language: ILanguage,
-  params?: string[],
-): string {
+export function getValidationMessage(issue: IValidationIssue, langTools: IUseLanguage, params?: string[]): string {
+  const { langAsString } = langTools;
   if (issue.customTextKey) {
-    return getTextFromAppOrDefault(issue.customTextKey, textResources, language, params, true);
+    return langAsString(issue.customTextKey, params);
   }
 
   if (issue.source && issue.code) {
     const resource = validationTexts[issue.source]?.[issue.code];
     if (resource) {
-      return getTextFromAppOrDefault(resource, textResources, language, params, true);
+      return langAsString(resource, params);
     }
   }
 
-  // Fallback to old behvaior if source not set.
-  const legacyText = getTextFromAppOrDefault(issue.code, textResources, language, params, true);
+  // Fallback to old behavior if source not set.
+  const legacyText = langAsString(issue.code, params);
   if (legacyText !== issue.code) {
     return legacyText;
   }

@@ -5,8 +5,8 @@ import classNames from 'classnames';
 
 import { Progress } from 'src/components/presentation/Progress';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { ProcessTaskType } from 'src/types';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { PresentationType } from 'src/types';
 
 export interface IHeaderProps {
@@ -17,14 +17,8 @@ export interface IHeaderProps {
 
 export const Header = ({ type, header, appOwner }: IHeaderProps) => {
   const showProgressSettings = useAppSelector((state) => state.formLayout.uiConfig.showProgress);
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-
   const showProgress = type !== ProcessTaskType.Archived && showProgressSettings;
-
-  if (!language) {
-    return null;
-  }
+  const { lang } = useLanguage();
 
   return (
     <header
@@ -50,11 +44,7 @@ export const Header = ({ type, header, appOwner }: IHeaderProps) => {
                   className='a-iconText-text-large'
                   data-testid='presentation-heading'
                 >
-                  {type === ProcessTaskType.Archived ? (
-                    <span>{getTextFromAppOrDefault('receipt.receipt', textResources, language)}</span>
-                  ) : (
-                    header
-                  )}
+                  {type === ProcessTaskType.Archived ? <span>{lang('receipt.receipt')}</span> : header}
                 </span>
               </h1>
             </Grid>

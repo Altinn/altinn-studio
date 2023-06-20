@@ -3,14 +3,13 @@ import React from 'react';
 import { CircularProgress } from '@altinn/altinn-design-system';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 export const Progress = () => {
   const currentPageId = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const pageIds = useAppSelector(selectLayoutOrder);
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
+  const { langAsString } = useLanguage();
 
   const currentPageIndex = pageIds?.findIndex((page) => page === currentPageId) || 0;
   const currentPageNum = currentPageIndex + 1;
@@ -24,17 +23,7 @@ export const Progress = () => {
       value={value}
       id={'progress'}
       label={labelText}
-      ariaLabel={
-        (language &&
-          getTextFromAppOrDefault(
-            'general.progress',
-            textResources,
-            language,
-            [currentPageNum.toString(), numberOfPages.toString()],
-            true,
-          )) ||
-        undefined
-      }
+      ariaLabel={langAsString('general.progress', [currentPageNum, numberOfPages])}
     />
   );
 };

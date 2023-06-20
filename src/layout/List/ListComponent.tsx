@@ -10,6 +10,7 @@ import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useGetDataList } from 'src/hooks/useGetDataList';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -17,16 +18,10 @@ export type IListProps = PropsFromGenericComponent<'List'>;
 
 const defaultDataList: any[] = [];
 
-export const ListComponent = ({
-  node,
-  formData,
-  handleDataChange,
-  getTextResourceAsString,
-  language,
-  legend,
-}: IListProps) => {
+export const ListComponent = ({ node, formData, handleDataChange, legend }: IListProps) => {
   const { tableHeaders, id, pagination, sortableColumns, tableHeadersMobile } = node.item;
   const classes = useRadioStyles();
+  const { langAsString, language } = useLanguage();
   const RenderLegend = legend;
   const dynamicDataList = useGetDataList({ id });
   const calculatedDataList = dynamicDataList || defaultDataList;
@@ -50,7 +45,7 @@ export const ListComponent = ({
 
   const tableHeadersValues = { ...tableHeaders };
   for (const key in tableHeaders) {
-    tableHeadersValues[key] = getTextResourceAsString(tableHeaders[key]) ?? '';
+    tableHeadersValues[key] = langAsString(tableHeaders[key]);
   }
 
   const selectedRow: Record<string, string> = React.useMemo(() => {
@@ -109,7 +104,7 @@ export const ListComponent = ({
           onRowsPerPageChange={handleChangeRowsPerPage}
           currentPage={currentPage}
           setCurrentPage={handleChangeCurrentPage}
-          descriptionTexts={language['list_component'] as DescriptionText}
+          descriptionTexts={((language && language['list_component']) || {}) as unknown as DescriptionText}
         />
       );
     } else {

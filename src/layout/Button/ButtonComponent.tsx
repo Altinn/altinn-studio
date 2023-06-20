@@ -4,6 +4,7 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Button/ButtonComponent.module.css';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
@@ -18,6 +19,7 @@ export type IButtonProvidedProps =
 
 export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
   const { id, mode } = node.item;
+  const { lang } = useLanguage();
   const props: IButtonProvidedProps = { ...componentProps, ...node.item, node };
 
   const dispatch = useAppDispatch();
@@ -46,7 +48,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
         className={classes.container}
         style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
       >
-        <GenericButton {...props}>{props.text}</GenericButton>
+        <GenericButton {...props}>{lang(node.item.textResourceBindings?.title)}</GenericButton>
       </div>
     );
   }
@@ -77,11 +79,10 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
       <SubmitButton
         onClick={() => submitTask({ componentId: id })}
         id={id}
-        language={props.language}
         busyWithId={busyWithId}
         disabled={disabled}
       >
-        {props.text}
+        {lang(node.item.textResourceBindings?.title)}
       </SubmitButton>
     </div>
   );

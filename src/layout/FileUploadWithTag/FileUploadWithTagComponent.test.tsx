@@ -210,8 +210,6 @@ const render = ({ component, genericProps, attachments = getAttachments(), editI
     },
     genericProps: {
       isValid: true,
-      getTextResource: jest.fn(),
-      getTextResourceAsString: jest.fn(),
       ...genericProps,
     },
     manipulateState: (state) => {

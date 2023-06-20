@@ -10,9 +10,9 @@ import { AltinnTableRow } from 'src/components/table/AltinnTableRow';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { LayoutStyle } from 'src/types';
-import { getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
@@ -23,8 +23,6 @@ type RepeatingGroupsLikertContainerProps = {
 };
 
 export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertContainerProps) => {
-  const textResources = useAppSelector((state) => state.textResources.resources);
-
   const node = useResolvedNode(id);
   const firstLikertChild = node?.children((item) => item.type === 'Likert') as LayoutNodeFromType<'Likert'> | undefined;
   const { optionsId, mapping, source, options } = firstLikertChild?.item || {};
@@ -33,13 +31,10 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
   const calculatedOptions = apiOptions || options || [];
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
+  const { lang } = useLanguage();
 
-  const getText = (key: string | undefined) => (key ? getTextResource(key, textResources) : undefined);
-
-  const title = getText(node?.item.textResourceBindings?.title);
-  const description = getText(node?.item.textResourceBindings?.description);
-  const leftColumnHeader = getText(node?.item.textResourceBindings?.leftColumnHeader);
-
+  const hasDescription = !!node?.item.textResourceBindings?.description;
+  const hasTitle = !!node?.item.textResourceBindings?.title;
   const titleId = `likert-title-${id}`;
   const descriptionId = `likert-description-${id}`;
 
@@ -49,23 +44,23 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
       xs={12}
       data-componentid={node?.item.id}
     >
-      {title && (
+      {hasTitle && (
         <Typography
           component='div'
           variant='h3'
           style={{ width: '100%' }}
           id={titleId}
         >
-          {title}
+          {lang(node?.item.textResourceBindings?.title)}
         </Typography>
       )}
-      {description && (
+      {hasDescription && (
         <Typography
           variant='body1'
           gutterBottom
           id={descriptionId}
         >
-          {description}
+          {lang(node?.item.textResourceBindings?.description)}
         </Typography>
       )}
     </Grid>
@@ -80,8 +75,8 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
         {Header}
         <div
           role='group'
-          aria-labelledby={(title && titleId) || undefined}
-          aria-describedby={(description && descriptionId) || undefined}
+          aria-labelledby={(hasTitle && titleId) || undefined}
+          aria-describedby={(hasDescription && descriptionId) || undefined}
         >
           {node?.children().map((comp) => {
             if (comp.isType('Group') || comp.isType('Summary')) {
@@ -111,15 +106,19 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
           id={id}
           tableLayout='auto'
           wordBreak='normal'
-          aria-labelledby={(title && titleId) || undefined}
-          aria-describedby={(description && descriptionId) || undefined}
+          aria-labelledby={(hasTitle && titleId) || undefined}
+          aria-describedby={(hasDescription && descriptionId) || undefined}
         >
           <AltinnTableHeader
             id={`likert-table-header-${id}`}
             padding={'dense'}
           >
             <AltinnTableRow>
-              {leftColumnHeader ? <TableCell>{leftColumnHeader}</TableCell> : <td />}
+              {node?.item.textResourceBindings?.leftColumnHeader ? (
+                <TableCell>{lang(node?.item.textResourceBindings?.leftColumnHeader)}</TableCell>
+              ) : (
+                <td />
+              )}
               {calculatedOptions.map((option, index) => {
                 const colLabelId = `${id}-likert-columnheader-${index}`;
                 return (
@@ -128,7 +127,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
                     id={colLabelId}
                     align='center'
                   >
-                    {getTextResource(option.label, textResources)}
+                    {lang(option.label)}
                   </TableCell>
                 );
               })}

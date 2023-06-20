@@ -111,10 +111,6 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
           ],
         },
       };
-      state.language = {
-        language: {},
-        error: null,
-      };
     },
     manipulateStore: (store) => {
       store.dispatch = dispatch;
@@ -146,7 +142,8 @@ describe('NavigationBar', () => {
       const dispatchMock = jest.fn();
       const { user } = render({ dispatch: dispatchMock });
 
-      const btn = screen.getByText(/3\. page3/i);
+      const btn = screen.getByText(/3\./i);
+      expect(btn).toHaveTextContent(/^3\. page3$/);
 
       await act(() => user.click(btn));
 

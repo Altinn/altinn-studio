@@ -11,12 +11,12 @@ import { InstantiationActions } from 'src/features/instantiate/instantiation/ins
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { isAxiosError } from 'src/utils/network/sharedNetworking';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const titleKey = 'instantiate.starting';
 
@@ -25,16 +25,7 @@ export const InstantiateContainer = () => {
   const dispatch = useAppDispatch();
   const instantiation = useAppSelector((state) => state.instantiation);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
-  const titleText = useAppSelector((state) => {
-    const text = getTextFromAppOrDefault(
-      titleKey,
-      state.textResources.resources,
-      state.language.language || {},
-      [],
-      true,
-    );
-    return text === titleKey ? '' : text;
-  });
+  const { langAsStringOrEmpty } = useLanguage();
 
   React.useEffect(() => {
     const shouldCreateInstance =
@@ -43,7 +34,9 @@ export const InstantiateContainer = () => {
       dispatch(InstantiationActions.instantiate());
     }
   }, [selectedParty, instantiation.instantiating, instantiation.instanceId, instantiation.error, dispatch]);
+
   const { instanceId } = useInstanceIdParams();
+
   if (isAxiosError(instantiation.error)) {
     const message = (instantiation.error.response?.data as any)?.message;
     if (instantiation.error.response?.status === HttpStatusCodes.Forbidden) {
@@ -69,7 +62,7 @@ export const InstantiateContainer = () => {
 
   return (
     <PresentationComponent
-      header={titleText}
+      header={langAsStringOrEmpty(titleKey)}
       type={ProcessTaskType.Unknown}
     >
       <AltinnContentLoader

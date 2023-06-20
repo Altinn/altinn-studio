@@ -5,6 +5,7 @@ import type { SagaIterator } from 'redux-saga';
 import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
 import { getLayoutComponentById, getLayoutIdForComponent } from 'src/utils/layout';
@@ -58,9 +59,6 @@ function* runValidations(field: string, data: any, componentId: string | undefin
     );
     return;
   }
-  if (!state.language.language) {
-    return;
-  }
 
   const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts || {});
 
@@ -69,6 +67,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
     return;
   }
 
+  const langTools = staticUseLanguageFromState(state);
   const currentDataTypeId = getCurrentDataTypeForApplication({
     application: state.applicationMetadata.applicationMetadata,
     instance: state.instanceData.instance,
@@ -82,8 +81,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
     data,
     field,
     component,
-    state.language.language,
-    state.textResources.resources,
+    langTools,
     validator,
     state.formValidations.validations[componentId],
     componentId !== component?.id ? componentId : null,
@@ -91,13 +89,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
 
   const componentValidations = validationResult?.validations[layoutId][componentId];
 
-  const profileLanguage = state.profile.selectedAppLanguage || state.profile.profile.profileSettingPreference.language;
-  const componentSpecificValidations = validateComponentSpecificValidations(
-    data,
-    component,
-    state.language.language,
-    profileLanguage,
-  );
+  const componentSpecificValidations = validateComponentSpecificValidations(data, component, langTools);
   const mergedValidations = mergeComponentValidations(componentValidations ?? {}, componentSpecificValidations);
 
   const invalidDataComponents = state.formValidations.invalidDataTypes || [];

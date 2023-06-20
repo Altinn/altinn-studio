@@ -22,12 +22,6 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
         simpleBinding: undefined,
       },
       isValid: true,
-      language: {
-        map_component: {
-          selectedLocation: 'Selected location: {0},{1}',
-          noSelectedLocation: 'No selected location',
-        },
-      },
       ...genericProps,
     },
   });
@@ -36,8 +30,8 @@ describe('MapComponent', () => {
   it('should show correct footer text when no location is selected', () => {
     render();
 
-    expect(screen.getByText('No selected location')).toBeInTheDocument();
-    expect(screen.queryByText('Selected location')).not.toBeInTheDocument();
+    expect(screen.getByText('Ingen lokasjon valgt')).toBeInTheDocument();
+    expect(screen.queryByText('Valgt lokasjon')).not.toBeInTheDocument();
   });
 
   it('should show correct footer text when location is set', () => {
@@ -49,8 +43,8 @@ describe('MapComponent', () => {
       },
     });
 
-    expect(screen.queryByText('No selected location')).not.toBeInTheDocument();
-    expect(screen.getByText('Selected location: 59.2641592,10.4036248')).toBeInTheDocument();
+    expect(screen.queryByText('Ingen lokasjon valgt')).not.toBeInTheDocument();
+    expect(screen.getByText('Valgt lokasjon: 59.2641592° nord, 10.4036248° øst')).toBeInTheDocument();
   });
 
   it('should mark map component with validation error when validation fails', () => {
