@@ -834,9 +834,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    string fullPathOfNewResource = $"{repopath}\\{newResource.Identifier}\\{newResource.Identifier}_resource.json";
+                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier, string.Format("{0}_resource.json", newResource.Identifier));
                     string newResourceJson = JsonConvert.SerializeObject(newResource);
-                    Directory.CreateDirectory($"{repopath}\\{newResource.Identifier}");
+                    Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
                     return new StatusCodeResult(201);
