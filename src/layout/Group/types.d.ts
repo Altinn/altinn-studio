@@ -29,6 +29,7 @@ export interface IGroupEditProperties {
 export interface ILayoutGroup extends ILayoutCompBase<'Group'> {
   children: string[];
   maxCount?: number;
+  minCount?: number;
   tableHeaders?: string[];
   tableColumns?: ITableColumnFormatting<IGroupColumnFormatting>;
   edit?: IGroupEditProperties;

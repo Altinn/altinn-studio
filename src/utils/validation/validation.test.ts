@@ -109,6 +109,7 @@ describe('utils > validation', () => {
           minLength: 'length must be bigger than {0}',
           min: 'must be bigger than {0}',
           pattern: 'Feil format eller verdi',
+          minItems: 'Du må legge til minst {0} rader',
         },
         date_picker: {
           invalid_date_message: 'Invalid date format. Use the format {0}.',
@@ -772,6 +773,11 @@ describe('utils > validation', () => {
               warnings: [],
             },
           },
+          group1: {
+            group: {
+              errors: [],
+            },
+          },
         },
       };
 
@@ -795,6 +801,11 @@ describe('utils > validation', () => {
             simpleBinding: {
               errors: ['For å fortsette må du laste opp 2 vedlegg'],
               warnings: [],
+            },
+          },
+          group1: {
+            group: {
+              errors: [],
             },
           },
         },
@@ -1705,6 +1716,12 @@ describe('utils > validation', () => {
               errors: ['Bruk 10 eller flere tegn'],
             },
           },
+          'group2-0': {
+            group: {},
+          },
+          group1: {
+            group: {},
+          },
         },
       });
     });
@@ -1792,6 +1809,12 @@ describe('utils > validation', () => {
               errors: ['Bruk 10 eller flere tegn'],
             },
           },
+          'group2-0': {
+            group: {},
+          },
+          group1: {
+            group: {},
+          },
         },
       });
 
@@ -1807,6 +1830,12 @@ describe('utils > validation', () => {
             simpleBinding: {
               errors: ['Bruk 10 eller flere tegn'],
             },
+          },
+          'group2-1': {
+            group: {},
+          },
+          group1: {
+            group: {},
           },
         },
       });
@@ -1879,6 +1908,9 @@ describe('utils > validation', () => {
             simpleBinding: {
               errors: ['Bruk 10 eller flere tegn'],
             },
+          },
+          'group2-0': {
+            group: {},
           },
         },
       });
@@ -2581,6 +2613,56 @@ describe('utils > validation', () => {
       expect(validations.simpleBinding).toEqual({
         errors: [`Invalid date format. Use the format DD.MM.YYYY.`],
         warnings: [],
+      });
+    });
+  });
+  describe('validateRepeatingGroup', () => {
+    it('should return validation object with errors for repeating group if number of rows is less than minCount', () => {
+      const mockRepeatingGroupNode = {
+        id: 'group1',
+        item: {
+          minCount: 2,
+          maxCount: 3,
+          rows: [
+            {
+              id: 'group1-0',
+              baseComponentId: 'group1',
+              children: [],
+              hidden: false,
+            },
+          ],
+        },
+      };
+      const validations = validation.validateRepeatingGroup(mockRepeatingGroupNode, mockLangTools);
+      expect(validations).toEqual({
+        group: {
+          errors: ['Du må legge til minst 2 rader'],
+        },
+      });
+    });
+    it('should return empty validation object if number of rows is greater or equal to minCount', () => {
+      const mockRepeatingGroupNode = {
+        id: 'group1',
+        item: {
+          minCount: 2,
+          maxCount: 3,
+          rows: [
+            {
+              id: 'group1-0',
+              groupExpressions: { hiddenRow: false },
+            },
+            {
+              id: 'group1-1',
+              groupExpressions: { hiddenRow: false },
+            },
+          ],
+        },
+      };
+      const validations = validation.validateRepeatingGroup(mockRepeatingGroupNode, mockLangTools);
+      expect(validations).toEqual({
+        group: {
+          errors: [],
+        },
       });
     });
   });

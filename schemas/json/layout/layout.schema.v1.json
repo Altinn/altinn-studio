@@ -580,6 +580,12 @@
           "description": "The maximum number of iterations of a group. Only relevant if group is repeating.",
           "minimum": 0
         },
+        "minCount": {
+          "type": "integer",
+          "title": "Minimum count",
+          "description": "The minimum number of iterations of a group. Only relevant if group is repeating.",
+          "minimum": 0
+        },
         "rowsBefore": {
           "title": "Static rows before",
           "description": "An array of rows to be rendered before the group table (using Grid component configuration)",

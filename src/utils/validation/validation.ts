@@ -203,6 +203,14 @@ export const errorMessageKeys = {
     textKey: 'formatMinimum',
     paramKey: 'limit',
   },
+  minItems: {
+    textKey: 'minItems',
+    paramKey: 'limit',
+  },
+  maxItems: {
+    textKey: 'maxItems',
+    paramKey: 'limit',
+  },
 };
 
 export function validateEmptyFields(
@@ -374,7 +382,7 @@ function validateFormComponentsForNodes(
 ): ILayoutValidations {
   const validations: ILayoutValidations = {};
   const fieldKey: keyof IDataModelBindings = 'simpleBinding';
-  const flatNodes = nodes.flat(false, onlyInRowIndex);
+  const flatNodes = nodes.flat(true, onlyInRowIndex);
   const { langAsString } = langTools;
 
   for (const node of flatNodes) {
@@ -431,6 +439,11 @@ function validateFormComponentsForNodes(
     if (node.item.type === 'Datepicker') {
       const componentFormData = node.getFormData();
       validations[node.item.id] = validateDatepickerFormData(componentFormData?.simpleBinding, node.item, langTools);
+    }
+
+    if (node.isRepGroup()) {
+      const repeatingGroupComponentValidations = validateRepeatingGroup(node, langTools);
+      validations[node.item.id] = repeatingGroupComponentValidations;
     }
   }
 
@@ -1303,6 +1316,32 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
     { [currentView]: componentValidations },
     formDataValidations,
   );
+}
+
+/*
+ * Validates a repeating groups component specific validations
+ * @param node the node to validate
+ */
+export function validateRepeatingGroup(node, langTools: IUseLanguage): IComponentValidations {
+  const { langAsString } = langTools;
+  const validations: IComponentBindingValidation = { errors: [] };
+  // check if minCount is less than visible rows
+  const repeatingGroupComponent = node.item;
+  const repeatingGroupMinCount = repeatingGroupComponent.minCount || 0;
+  const repeatingGroupVisibleRows = repeatingGroupComponent.rows.filter(
+    (row) => !row.groupExpressions?.hiddenRow,
+  ).length;
+
+  const repeatingGroupMinCountValid = repeatingGroupMinCount <= repeatingGroupVisibleRows;
+
+  // if not valid, return appropriate error message
+  if (!repeatingGroupMinCountValid) {
+    const errorMessage = langAsString('validation_errors.minItems', [repeatingGroupMinCount]);
+
+    validations.errors?.push(errorMessage);
+  }
+
+  return { group: validations };
 }
 
 /*

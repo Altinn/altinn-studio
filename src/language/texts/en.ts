@@ -292,6 +292,8 @@ export function en() {
       pattern: 'Wrong format or value',
       required: 'Field is required',
       enum: 'Only the values {0} are permitted',
+      minItems: 'A minimum of {0} rows are required',
+      maxItems: 'A maximum of {0} rows are permitted',
     },
     map_component: {
       selectedLocation: 'Selected location: {0}° north, {1}° east',

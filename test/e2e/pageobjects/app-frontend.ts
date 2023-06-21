@@ -211,7 +211,7 @@ export class AppFrontend {
     mainGroupTableBody: '#group-mainGroup-table-body',
     options: '#reduxOptions',
     hideRepeatingGroupRow: '#hideRepeatingGroupRow',
-    tableErrors: '[data-testid=group-table-errors]',
+    tableErrors: '#error_mainGroup',
     popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
     edit: '[data-testid=edit-button]',

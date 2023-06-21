@@ -295,6 +295,8 @@ export function nn(): FixedLanguageList {
       pattern: 'Feil format eller verdi',
       required: 'Feltet er påkravd',
       enum: 'Kun verdiane {0} er tillatne',
+      minItems: 'Minst {0} radar er påkrevd',
+      maxItems: 'Maks {0} radar er tillatne',
     },
     map_component: {
       selectedLocation: 'Valt lokasjon: {0}° nord, {1}° øst',
