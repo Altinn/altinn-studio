@@ -83,7 +83,7 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
     EditSettings.CodeList,
   ],
   [ComponentType.Panel]: [EditSettings.Title],
-  [ComponentType.Map]: [EditSettings.ReadOnly, EditSettings.Required],
+  [ComponentType.Map]: [...editBoilerPlate],
 };
 
 export const configComponents: IConfigComponents = {

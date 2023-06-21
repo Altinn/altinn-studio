@@ -908,6 +908,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return false;
         }
 
+        public ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource)
+        {
+            if (serviceResource.CreatedBy == null)
+            {
+                serviceResource.CreatedBy = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            }
+
+            if (serviceResource.LastChanged.Year.Equals(1))
+            {
+                serviceResource.LastChanged = DateTime.Now;
+            }
+
+            return serviceResource;
+        }
+
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
         {
             List<FileSystemObject> contents = GetContents(org, repository, path);

@@ -6,6 +6,7 @@ import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -34,19 +35,26 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
+  const { data: user } = useUserQuery();
+  const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
+  useLocalStorage(instanceId);
+  const repoType = getRepositoryType(org, app);
+  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const selectedLayoutInEditor = localStorage.getItem(instanceId);
+  const selectedLayoutSetInEditor = localStorage.getItem('layoutSet' + app);
   const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
   const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
     localSelectedViewSize ?? 'desktop'
   );
-  const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
-  const { data: user } = useUserQuery();
-  const { data: repository } = useRepoMetadataQuery(org, app);
-  const repoType = getRepositoryType(org, app);
-  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
+
+  const handleChangeLayoutSet = (layoutSet: string) => {
+    localStorage.setItem('layoutSet' + app, layoutSet);
+    // might need to remove selected layout from local storage to make sure first page is selected
+    window.location.reload();
+  };
 
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
@@ -75,7 +83,13 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             repository={repository}
             buttonActions={appPreviewButtonActions(org, app, selectedLayoutInEditor)}
             variant={variant}
-            subMenuContent={<AppPreviewSubMenu setViewSize={setViewSize} viewSize={viewSize} />}
+            subMenuContent={
+            <AppPreviewSubMenu
+              setViewSize={setViewSize}
+              viewSize={viewSize}
+              selectedLayoutSet={selectedLayoutSetInEditor}
+              handleChangeLayoutSet={handleChangeLayoutSet}
+            />}
           />
         </div>
         <div className={classes.iframeMobileViewContainer}>

@@ -51,6 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, string.Format("{0}-resources", org), resource);
                 listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
+                listviewResource = _repository.AddLastChangedAndCreatedByIfMissingFromGitea(listviewResource);
                 listviewServiceResources.Add(listviewResource);
             }
 

@@ -39,7 +39,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const { t } = useTranslation();
 
   const conditionRules = ruleModel?.filter(({ type }: IRuleModelFieldElement) => type === 'condition');
-  const { conditionalRendering } = ruleConfig.data;
+  const { conditionalRendering } = ruleConfig?.data ?? {};
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
