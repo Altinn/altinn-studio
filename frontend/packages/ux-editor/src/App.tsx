@@ -11,7 +11,6 @@ import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQ
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries/useInstanceIdQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 
 /**
@@ -24,9 +23,9 @@ export function App() {
   const dispatch = useDispatch();
   const t = useText();
   const { org, app } = useParams();
-
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const selectedLayoutSetInPreviewFromLocalStorage = localStorage.getItem('layoutSet' + app);
+  const selectedLayoutSetInPreview = selectedLayoutSetInPreviewFromLocalStorage !== '' ? selectedLayoutSetInPreviewFromLocalStorage : null;
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
@@ -61,14 +60,19 @@ export function App() {
 
   useEffect(() => {
     if (selectedLayoutSet === null && layoutSets){
+      // Only set layout set if layout sets exists and there is no layout set selected yet
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSets.sets[0].id));
+      localStorage.setItem('layoutSet' + app, layoutSets.sets[0].id);
     }
-  }, [dispatch, selectedLayoutSet, layoutSets]);
+  }, [dispatch, selectedLayoutSet, layoutSets, app]);
 
   useEffect(() => {
-    localStorage.setItem(instanceId, selectedLayout);
-    localStorage.setItem('layoutSetName', layoutSets ? selectedLayoutSet : '');
-  }, [selectedLayout, instanceId, selectedLayoutSet, layoutSets]);
+    const layoutSetInEditor = selectedLayoutSetInPreview ?? selectedLayoutSet;
+    if (layoutSets && layoutSetInEditor !== null && layoutSetInEditor !== '' && layoutSetInEditor !== ""){
+      localStorage.setItem('layoutSet' + app, layoutSetInEditor);
+      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetInEditor));
+    }
+  }, [dispatch, selectedLayoutSet, layoutSets, selectedLayoutSetInPreview, app]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
@@ -81,7 +85,7 @@ export function App() {
         <ErrorMessageComponent />
         <FormDesigner
           selectedLayout={selectedLayout}
-          selectedLayoutSet={selectedLayoutSet}/>
+          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}/>
       </>
     );
   }

@@ -9,7 +9,7 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   name?: string;
   size?: string;
   options?: IOption[];
-  dataModelBindings: IDataModelBindings;
+  dataModelBindings?: IDataModelBindings;
   textResourceBindings?: ITextResourceBindings;
   customType?: string;
   codeListId?: string;
@@ -73,7 +73,8 @@ export interface FormFileUploaderComponent extends FormComponentBase<ComponentTy
   validFileEndings?: string;
 }
 
-export interface FormFileUploaderWithTagComponent extends FormComponentBase<ComponentType.FileUploadWithTag> {
+export interface FormFileUploaderWithTagComponent
+  extends FormComponentBase<ComponentType.FileUploadWithTag> {
   description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
@@ -83,7 +84,8 @@ export interface FormFileUploaderWithTagComponent extends FormComponentBase<Comp
   optionsId: string;
 }
 
-export interface FormButtonComponent extends FormComponentBase<ComponentType.Button | ComponentType.NavigationButtons> {
+export interface FormButtonComponent
+  extends FormComponentBase<ComponentType.Button | ComponentType.NavigationButtons> {
   onClickAction: () => void;
 }
 
