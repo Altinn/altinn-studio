@@ -37,6 +37,8 @@ export const ResourceDashboardPage = () => {
   // Gets the repo status and the function to refetch it
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
 
+  const navigate = useNavigate();
+
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
    */
@@ -54,7 +56,6 @@ export const ResourceDashboardPage = () => {
 
     get(getResourcesUrlBySelectedContext(selectedContext))
       .then((res: unknown) => {
-        console.log(res);
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
       })
@@ -77,8 +78,6 @@ export const ResourceDashboardPage = () => {
   const filteredTableData = resourceList.filter((resource: ResourceType) =>
     resource.title.toLowerCase().includes(searchValue.toLocaleLowerCase())
   );
-
-  const navigate = useNavigate();
 
   /**
    * Creates a new resource in backend

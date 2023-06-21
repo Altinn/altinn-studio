@@ -1,24 +1,8 @@
 import React, { useState } from 'react';
-import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import { Button, TextField } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
-
-/**
- * Style the modal
- */
-const modalStyles = {
-  content: {
-    width: '400px',
-    height: 'fit-content',
-    margin: 'auto',
-    paddingBlock: '40px',
-    paddingInline: '70px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
+import { Modal } from 'resourceadm/components/Modal';
 
 interface Props {
   isOpen: boolean;
@@ -56,14 +40,7 @@ export const RemoveChangesModal = ({ isOpen, onClose, handleClickResetRepo, repo
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={onClose}
-      contentLabel='Remove Modal'
-      style={modalStyles}
-      ariaHideApp={false}
-    >
-      <h3 className={classes.modalHeader}>{t('administration.reset_repo_confirm_heading')}</h3>
+    <Modal isOpen={isOpen} onClose={onClose} title={t('administration.reset_repo_confirm_heading')}>
       <p className={classes.bodyText}>
         {t('administration.reset_repo_confirm_info', { repositoryName: repo })}
       </p>

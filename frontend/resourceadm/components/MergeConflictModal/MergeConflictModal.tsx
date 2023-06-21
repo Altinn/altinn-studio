@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictModal.module.css';
-import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@digdir/design-system-react';
 import { Download } from '@navikt/ds-icons';
@@ -8,23 +7,7 @@ import { repoDownloadPath, repoResetPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal';
 import { get } from 'app-shared/utils/networking';
 import { Link } from '../Link';
-
-/**
- * Style the modal
- */
-const modalStyles = {
-  content: {
-    width: '600px',
-    height: 'fit-content',
-    margin: 'auto',
-    paddingBlock: '40px',
-    paddingInline: '70px',
-    borderRadius: '10px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
+import { Modal } from '../Modal';
 
 interface Props {
   isOpen: boolean;
@@ -61,14 +44,7 @@ export const MergeConflictModal = ({
 
   // TODO - more translation
   return (
-    <Modal
-      isOpen={isOpen}
-      contentLabel='Merge Conflict Modal'
-      style={modalStyles}
-      ariaHideApp={false}
-    >
-      <h2 className={classes.modalHeader}>{t('merge_conflict.headline')}</h2>
-      <div className={classes.contentDivider} />
+    <Modal isOpen={isOpen} title={t('merge_conflict.headline')}>
       <p className={classes.bodyText}>{t('merge_conflict.body1')} </p>
       <p className={classes.bodyText}>{t('merge_conflict.body2')}</p>
       <div className={classes.buttonWrapper}>

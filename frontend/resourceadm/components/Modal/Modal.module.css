@@ -1,0 +1,12 @@
+p, h2 {
+  margin: 0;
+}
+
+.contentDivider {
+  border: solid 1px #D6D6D6;
+  margin-block: 25px;
+}
+
+.modalTitle {
+  font-size: 24px;
+}

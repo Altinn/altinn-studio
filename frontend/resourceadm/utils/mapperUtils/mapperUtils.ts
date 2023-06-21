@@ -84,8 +84,9 @@ const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
  * @returns the sorted and mapped list
  */
 const sortByDateAndMap = (resourceList: any[]): ResourceType[] => {
+
   const sorted =  resourceList.sort((a, b) => {
-    return new Date(b.lastChanged.replaceAll('.', '/')).getTime() - new Date(a.lastChanged.replaceAll('.', '/')).getTime()
+    return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime()
   })
 
   return sorted.map(r => ({
