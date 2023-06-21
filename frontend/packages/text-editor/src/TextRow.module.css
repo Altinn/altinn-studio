@@ -19,6 +19,7 @@
 
 .textAreaCell {
   min-width: 310px;
+  vertical-align: top;
 }
 
 .textEntryComponent textArea {

@@ -68,7 +68,7 @@ export const mapResourceFilesToTableRows = (files: ITextResources): TextTableRow
             translations: [],
           });
         }
-        if (rows.has(resource.id) && !rows.has(resource.variables)){
+        if (rows.has(resource.id) && !rows.has(resource.variables) && resource.variables) {
           rows.get(resource.id).variables = resource.variables;
         }
         rows.get(resource.id).translations.push({
