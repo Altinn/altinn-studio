@@ -12,14 +12,15 @@ import { deepCopy } from 'app-shared/pure';
 import { useText } from '../hooks';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
-import { useFormLayoutsQuery } from "../hooks/queries/useFormLayoutsQuery";
-import { useFormLayoutSettingsQuery } from "../hooks/queries/useFormLayoutSettingsQuery";
-import { useRuleModelQuery } from "../hooks/queries/useRuleModelQuery";
-import { FormLayoutActions } from "../features/formDesigner/formLayout/formLayoutSlice";
-import { ErrorPage } from "../components/ErrorPage";
-import { PageSpinner } from "app-shared/components";
-import { DEFAULT_SELECTED_LAYOUT_NAME } from "app-shared/constants";
-import { useRuleConfigQuery } from "../hooks/queries/useRuleConfigQuery";
+import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
+import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { ErrorPage } from '../components/ErrorPage';
+import { PageSpinner } from 'app-shared/components';
+import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -30,6 +31,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
   const dispatch = useDispatch();
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
@@ -41,6 +43,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const formLayoutIsReady =
+    instanceId &&
     formLayouts &&
     formLayoutSettings &&
     ruleModel &&
@@ -78,9 +81,12 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
       dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
     } else if (searchParams.has('layout')) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
+      // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
+      if (instanceId) localStorage.setItem(instanceId, selectedLayout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, layoutPagesOrder, selectedLayout, org, app]);
+  }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);
+
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -88,10 +94,10 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
       addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
     };
 
-    const layoutsExist = layoutOrder && !Object.keys(layoutOrder).length;
+    const layoutsWithContentExist = layoutOrder && !Object.keys(layoutOrder).length;
     // Old apps might have selectedLayout='default' even when there exist a single layout.
     // Should only add initial page if no layouts exist.
-    if (selectedLayout === 'default' && !layoutsExist) {
+    if (selectedLayout === DEFAULT_SELECTED_LAYOUT_NAME && !layoutsWithContentExist) {
       addInitialPage();
     }
   }, [app, dispatch, org, selectedLayout, t, layoutOrder, addLayoutMutation]);

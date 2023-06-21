@@ -11,7 +11,7 @@ import { RuleConnection } from 'app-shared/types/RuleConfig';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
-import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
+import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -28,7 +28,7 @@ export function RuleModal(props: IRuleModalProps) {
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
   const { t } = useTranslation();
 
-  const { ruleConnection } = ruleConfig.data ?? {};
+  const { ruleConnection } = ruleConfig?.data ?? {};
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);

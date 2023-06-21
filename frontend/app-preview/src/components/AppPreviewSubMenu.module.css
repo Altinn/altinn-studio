@@ -18,16 +18,40 @@
   margin-top: 80px;
 }
 
-.viewSizeButtons {
+.leftSubHeaderComponents {
   display: flex;
+  justify-content: center;
   align-items: center;
-  width: 20vw;
+}
+
+.viewSizeButtons {
+  flex: 0 0 auto;
+  width: fit-content;
+  margin-right: 100px;
   --component-toggle_button-color-border-inactive: white;
   --component-toggle_button-color-border-active: white;
   --component-toggle_button-color-background-active: white;
   --component-toggle_button-color-background-inactive: transparent;
   --component-toggle_button-color-text-active: black;
   --component-toggle_button-color-text-inactive: white;
+}
+
+.layoutSetSelector input {
+  color: white;
+}
+
+.layoutSetSelector {
+  padding-top: 5px;
+  width: 200px;
+}
+
+.layoutSetSelector > * {
+  color: white;
+  --arrow-color: white;
+  --arrow-border_left: none;
+  --component-input-color-border-hover: white;
+  --component-input-color-background-default: #3e845e;
+  --component-input-color-border-default: none;
 }
 
 .rightSubHeaderButtons {
@@ -51,5 +75,7 @@
 }
 
 .backToEditorBtn {
-  width: 18vw;
+  width: fit-content;
+  --component-button-outline-primary-color-background-default: white;
+  --component-button-outline-primary-color-border-default: transparent;
 }
