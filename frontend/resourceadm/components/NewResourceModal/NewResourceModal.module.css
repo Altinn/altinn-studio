@@ -1,0 +1,71 @@
+.modalTitle {
+  font-size: 24px;
+}
+
+.textfieldWrapper {
+  margin-top: 20px;
+  width: 400px;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.closeButton {
+  margin-right: 10px;
+}
+
+p, h2 {
+  margin: 0;
+}
+
+.contentDivider {
+  border: solid 1px #D6D6D6;
+  margin-block: 30px;
+}
+
+.text {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.textfieldHeader {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.idWrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.idBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #E9EAEC;
+  width: 20px;
+  height: 20px;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 1px;
+  margin-right: 10px;
+}
+
+.idText {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editButtonWrapper {
+  margin-left: 20px;
+}
+
+.editFieldWrapper {
+  margin-top: 20px;
+  height: 70px;
+  width: 400px;
+}

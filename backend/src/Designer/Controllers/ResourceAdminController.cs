@@ -10,7 +10,7 @@ using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository
 namespace Altinn.Studio.Designer.Controllers
 {
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+    //[AutoValidateAntiforgeryToken]
     public class ResourceAdminController : ControllerBase
     {
         private readonly IGitea _giteaApi;

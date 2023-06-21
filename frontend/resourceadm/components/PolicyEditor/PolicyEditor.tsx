@@ -17,7 +17,7 @@ import {
   mapPolicyRuleToPolicyRuleBackendObject,
 } from 'resourceadm/utils/policyEditorUtils';
 import { VerificationModal } from 'resourceadm/components/PolicyEditor/VerificationModal';
-import { SelectAuthLevel } from 'resourceadm/components/SelectAuthLevel';
+import { SelectAuthLevel } from 'resourceadm/components/PolicyEditor/SelectAuthLevel';
 
 interface Props {
   policy: PolicyBackendType;

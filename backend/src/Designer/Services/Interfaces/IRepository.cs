@@ -140,11 +140,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         List<ServiceResource> GetServiceResources(string org, string repository, string path = "");
 
         /// <summary>
-        /// Lists the simplified model of ServiceResources
-        /// </summary>
-        List<ListviewServiceResource> GetListViewServiceResources(string org, string repository, string path = "");
-
-        /// <summary>
         /// Gets a specific ServiceResource based on the identifier
         /// </summary>
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
