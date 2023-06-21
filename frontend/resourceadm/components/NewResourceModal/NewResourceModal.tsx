@@ -23,7 +23,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
 
   /**
-   * Replaces the spaces in the value typed with '-'
+   * Replaces the spaces in the value typed with '-'.
    */
   const handleIDInput = (val: string) => {
     setId(val.replace(/\s/g, '-'));
