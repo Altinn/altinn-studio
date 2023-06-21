@@ -1,11 +1,11 @@
-﻿using System.Text;
-using System;
+﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
-using Microsoft.Extensions.Options;
-using Azure.Security.KeyVault.Secrets;
 using Altinn.Studio.Designer.Configuration;
+using Azure.Security.KeyVault.Secrets;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
