@@ -76,7 +76,7 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRo
           mutableColumnSettings[cellIdx] = cell.columnOptions;
         }
 
-        if (cell && 'text' in cell) {
+        if (cell && 'text' in cell && cell.text) {
           let textCellSettings: ITableColumnProperties = mutableColumnSettings[cellIdx]
             ? structuredClone(mutableColumnSettings[cellIdx])
             : {};
@@ -93,8 +93,8 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRo
           );
         }
 
-        const node = cell?.node as LayoutNode;
-        const componentId = node?.item.id;
+        const node = cell && 'node' in cell && cell?.node;
+        const componentId = node && node.item.id;
         return (
           <CellWithComponent
             key={`${componentId}/${cellIdx}`}
