@@ -18,8 +18,6 @@ import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { getUser } from 'app-shared/api/queries';
-import { useUserQuery } from 'app-shared/hooks/queries';
 
 /**
  * Displays the page for the resource dashboard
@@ -39,6 +37,8 @@ export const ResourceDashboardPage = () => {
   // Gets the repo status and the function to refetch it
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
 
+  const navigate = useNavigate();
+
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
    */
@@ -56,7 +56,6 @@ export const ResourceDashboardPage = () => {
 
     get(getResourcesUrlBySelectedContext(selectedContext))
       .then((res: unknown) => {
-        console.log(res);
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
       })
@@ -80,9 +79,6 @@ export const ResourceDashboardPage = () => {
     resource.title.toLowerCase().includes(searchValue.toLocaleLowerCase())
   );
 
-  const navigate = useNavigate();
-  const { data: user } = useUserQuery();
-
   /**
    * Creates a new resource in backend
    */
@@ -97,9 +93,7 @@ export const ResourceDashboardPage = () => {
 
     // TODO - missing API connection - not working atm
     post(getCreateResourceUrlBySelectedContext(selectedContext), idAndTitle)
-      .then((res) => {
-        console.log(res);
-        console.log('user', user);
+      .then(() => {
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
       })
       .catch((err) => {
