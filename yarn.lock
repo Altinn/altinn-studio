@@ -5151,6 +5151,7 @@ __metadata:
     "@typescript-eslint/parser": 5.62.0
     ajv: ^8.12.0
     ajv-formats: ^2.1.1
+    autosize: ^6.0.1
     clean-webpack-plugin: 4.0.0
     cross-env: 7.0.3
     css-loader: 6.8.1
@@ -5557,6 +5558,13 @@ __metadata:
   version: 1.0.0
   resolution: "at-least-node@npm:1.0.0"
   checksum: 463e2f8e43384f1afb54bc68485c436d7622acec08b6fad269b421cb1d29cebb5af751426793d0961ed243146fe4dc983402f6d5a51b720b277818dbf6f2e49e
+  languageName: node
+  linkType: hard
+
+"autosize@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "autosize@npm:6.0.1"
+  checksum: 116635be9479baee6dd9c4f0545fbd07318e83bcdb198f9c41c0594af82ca52a1e0cce38797dcbda9d321467805293e66a3b2f3e01a82952ff879c50e2c813e8
   languageName: node
   linkType: hard
 

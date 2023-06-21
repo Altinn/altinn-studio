@@ -85,8 +85,8 @@ export const TextRow = ({
           };
         }
         return (
-          <TableCell key={translation.lang + '-' + textId}>
-            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
+          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
+            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} className={classes.textEntryComponent}/>
           </TableCell>
         );
       })}
