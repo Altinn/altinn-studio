@@ -1,24 +1,8 @@
 import React, { useState } from 'react';
 import classes from './NewResourceModal.module.css';
-import Modal from 'react-modal';
 import { Button, TextField } from '@digdir/design-system-react';
 import { PencilWritingIcon, MultiplyIcon } from '@navikt/aksel-icons';
-
-/**
- * Style the modal
- */
-const modalStyles = {
-  content: {
-    width: '600px',
-    height: 'fit-content',
-    margin: 'auto',
-    paddingBlock: '40px',
-    paddingInline: '70px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
+import { Modal } from '../Modal';
 
 interface Props {
   isOpen: boolean;
@@ -53,7 +37,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
    */
   const handleEditTitle = (val: string) => {
     if (!editIdFieldOpen) {
-      setId(val);
+      setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
   };
@@ -94,20 +78,12 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
 
     // If we stop editing, set the ID to the title
     if (!isOpened) {
-      if (title !== id) setId(title);
+      if (title !== id) setId(title.replace(/\s/g, '-'));
     }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={onClose}
-      contentLabel='Create new resource modal'
-      style={modalStyles}
-      ariaHideApp={false}
-    >
-      <h2 className={classes.modalTitle}>Opprett en ny ressurs</h2>
-      <div className={classes.contentDivider} />
+    <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
       <p className={classes.text}>Velg et navn for å opprette ressursen din.</p>
       <div className={classes.textfieldWrapper}>
         <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
@@ -159,7 +135,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
       </div>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
-          <Button onClick={onClose} color='secondary' variant='outline'>
+          <Button onClick={onClose} color='primary' variant='quiet'>
             Avbryt
           </Button>
         </div>

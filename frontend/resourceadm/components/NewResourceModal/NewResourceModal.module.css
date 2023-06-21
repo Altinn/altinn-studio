@@ -1,7 +1,3 @@
-.modalTitle {
-  font-size: 24px;
-}
-
 .textfieldWrapper {
   margin-top: 20px;
   width: 400px;
@@ -19,11 +15,6 @@
 
 p, h2 {
   margin: 0;
-}
-
-.contentDivider {
-  border: solid 1px #D6D6D6;
-  margin-block: 30px;
 }
 
 .text {

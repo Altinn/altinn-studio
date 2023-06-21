@@ -192,7 +192,7 @@ export const PolicyEditor = ({
       <VerificationModal
         isOpen={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
-        text='Er du sikker på at du vil slette denne regelen?'
+        text='Er du sikker på at du vil slette denne regelen fra policyen?'
         closeButtonText='Nei, gå tilbake'
         actionButtonText='Ja, slett regel'
         onPerformAction={() => handleDeleteRule(ruleIdToDelete)}
