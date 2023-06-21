@@ -12,6 +12,7 @@ import { ResourcePage } from 'resourceadm/pages/ResourcePage';
 import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
 import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
+import { SearchField } from '@altinn/altinn-design-system';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -54,6 +55,14 @@ export const App = (): JSX.Element => {
   if (componentIsReady) {
     return (
       <div className={classes.root}>
+        {/*
+            This is a "hack" to make sure that the resourceadm doesnt break. We do not
+            use any other dependencies to the old altin-design-system (which for some reason
+            is needed). By hiding the component it can not be seen by the user in the browser.
+        */}
+        <div style={{ display: 'none' }}>
+          <SearchField id='hack' label='hack' />
+        </div>
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
