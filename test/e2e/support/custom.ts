@@ -1,6 +1,11 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import deepEqual from 'fast-deep-equal';
+import type axe from 'axe-core';
+import type { Options as AxeOptions } from 'cypress-axe';
+
 import { breakpoints } from 'src/hooks/useIsMobile';
+import type { ILayouts } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 
@@ -74,6 +79,96 @@ Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQuer
   cy.wrap(subject).type(`${moveToStart}${del}`);
 });
 
+interface KnownViolation extends Pick<axe.Result, 'id'> {
+  spec: string;
+  test: string;
+  nodeLength: number;
+  countTowardsExpected?: false;
+}
+
+// TODO: Fix all violations and remove this list
+const knownWcagViolations: KnownViolation[] = [
+  {
+    spec: 'app-frontend/all-process-steps.ts',
+    test: 'Should be possible to fill out all steps from beginning to end',
+    id: 'landmark-unique',
+    nodeLength: 1,
+    countTowardsExpected: false,
+  },
+  {
+    spec: 'app-frontend/all-process-steps.ts',
+    test: 'Should be possible to fill out all steps from beginning to end',
+    id: 'list',
+    nodeLength: 2,
+  },
+  {
+    spec: 'app-frontend/grid.ts',
+    test: 'should work with basic table functionality',
+    id: 'list',
+    nodeLength: 1,
+  },
+  {
+    spec: 'app-frontend/group.ts',
+    test: 'Validation on group',
+    id: 'color-contrast',
+    nodeLength: 1,
+  },
+  {
+    spec: 'app-frontend/group.ts',
+    test: 'Validation on group',
+    id: 'list',
+    nodeLength: 1,
+  },
+  {
+    spec: 'app-frontend/group.ts',
+    test: 'Opens delete warning popup when alertOnDelete is true and deletes on confirm',
+    id: 'aria-dialog-name',
+    nodeLength: 1,
+  },
+  {
+    spec: 'app-frontend/hide-row-in-group.ts',
+    test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
+    id: 'aria-valid-attr-value',
+    nodeLength: 3,
+  },
+  {
+    spec: 'app-frontend/hide-row-in-group.ts',
+    test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
+    id: 'heading-order',
+    nodeLength: 1,
+  },
+  {
+    spec: 'app-frontend/likert.ts',
+    test: 'Should show validation message for required likert',
+    id: 'list',
+    nodeLength: 2,
+  },
+  {
+    spec: 'app-frontend/on-entry.ts',
+    test: 'is possible to select an existing instance',
+    id: 'svg-img-alt',
+    nodeLength: 3,
+  },
+  {
+    spec: 'app-frontend/reportee-selection.ts',
+    test: 'Prompts for party when doNotPromptForParty = false, on instantiation with multiple possible parties',
+    id: 'label',
+    nodeLength: 2,
+  },
+  {
+    spec: 'signing/double-signing.ts',
+    test: 'accountant -> manager -> auditor',
+    id: 'list',
+    nodeLength: 1,
+  },
+  {
+    spec: 'app-stateless-anonymous/validation.ts',
+    test: 'Should show validation message for missing name',
+    id: 'list',
+    nodeLength: 1,
+  },
+];
+
 Cypress.Commands.add('snapshot', (name: string) => {
   cy.get('#readyForPrint').should('exist');
 
@@ -86,7 +181,7 @@ Cypress.Commands.add('snapshot', (name: string) => {
 
     const { innerWidth, innerHeight } = win;
     cy.readFile('test/percy.css').then((percyCSS) => {
-      cy.log('Taking snapshot with Percy');
+      cy.log(`Taking snapshot with Percy: ${name}`);
 
       // We need to manually resize the viewport to ensure that the snapshot is taken with the correct DOM. We sometimes
       // change the DOM based on the viewport size, and Percy only understands CSS media queries (not our React logic).
@@ -103,17 +198,185 @@ Cypress.Commands.add('snapshot', (name: string) => {
 
       // Reset to original viewport
       cy.viewport(innerWidth, innerHeight);
+      const targetViewport =
+        innerWidth < breakpoints.mobile ? 'mobile' : innerWidth < breakpoints.tablet ? 'tablet' : 'desktop';
+      cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
     });
   });
 
-  /*
-   * TODO: Enable this again later, when we have fixed all the accessibility issues in current tests.
-   *
-   *
+  cy.testWcag();
+});
+
+Cypress.Commands.add('testWcag', () => {
   cy.log('Testing WCAG');
-  cy.injectAxe();
-  cy.checkA11y(undefined, {
+  const spec = Cypress.spec.absolute.replace(/.*\/integration\//g, '');
+  const axeOptions: AxeOptions = {
     includedImpacts: ['critical', 'serious', 'moderate'],
+  };
+  const violationsCallback = (violations: axe.Result[]) => {
+    const knownHere = knownWcagViolations.filter(
+      (known) => known.spec === spec && known.test === Cypress.currentTest.title,
+    );
+    const expectedHere = [...knownHere].filter((known) => known.countTowardsExpected === undefined);
+
+    let foundNewViolations = false;
+    let foundKnownViolations = 0;
+    for (const violation of violations) {
+      const asKnown: KnownViolation = {
+        id: violation.id,
+        spec,
+        test: Cypress.currentTest.title,
+        nodeLength: violation.nodes.length,
+      };
+      const isKnown = knownHere.some(({ id, spec, test, nodeLength }) =>
+        deepEqual({ id, spec, test, nodeLength }, asKnown),
+      );
+      if (isKnown) {
+        cy.log(`Ignoring known WCAG violation: ${violation.id}`);
+        foundKnownViolations++;
+        continue;
+      }
+
+      if (!foundNewViolations) {
+        cy.log('-----------------------------------');
+        cy.log('Found new WCAG violations:');
+        cy.log(`snapshotName: ${spec}`);
+        cy.log(`currentTest: ${Cypress.currentTest.title}`);
+        cy.log(`known here: ${knownHere.length}`);
+        cy.log(`expected here: ${expectedHere.length}`);
+      }
+      cy.log('-----------------------------------');
+      cy.log(`id: ${violation.id}`);
+      cy.log(`impact: ${violation.impact}`);
+      cy.log(`descr: ${violation.description}`);
+      cy.log(`help: ${violation.help}`);
+      cy.log(`helpUrl: ${violation.helpUrl}`);
+      cy.log(`nodeLength: ${violation.nodes.length}`);
+      foundNewViolations = true;
+    }
+
+    if (foundNewViolations) {
+      cy.log('-----------------------------------');
+
+      // Forcing a failure here, as long as skipFailures is true, to ensure that we don't miss any new WCAG violations.
+      cy.get('#element-does-not-exist').should('exist');
+    } else if (foundKnownViolations !== expectedHere.length && foundKnownViolations !== knownHere.length) {
+      cy.log(
+        `Expected to find ${expectedHere.length} or ${knownHere.length} known WCAG violations, but found ${foundKnownViolations} in this test`,
+      );
+      cy.get('#element-does-not-exist').should('exist');
+    }
+  };
+  const skipFailures = true; // TODO: Remove this when we have fixed all WCAG violations
+  cy.checkA11y(undefined, axeOptions, violationsCallback, skipFailures);
+});
+
+Cypress.Commands.add('reloadAndWait', () => {
+  cy.reload();
+  cy.get('#readyForPrint').should('exist');
+  cy.injectAxe();
+});
+
+Cypress.Commands.add(
+  'addItemToGroup',
+  (oldValue: number, newValue: number, comment: string, openByDefault?: boolean) => {
+    if (!openByDefault) {
+      cy.get(appFrontend.group.addNewItem).click();
+    }
+
+    cy.get(appFrontend.group.currentValue).type(`${oldValue}`);
+    cy.get(appFrontend.group.currentValue).blur();
+    cy.get(appFrontend.group.newValue).type(`${newValue}`);
+    cy.get(appFrontend.group.newValue).blur();
+    cy.get(appFrontend.group.mainGroup)
+      .find(appFrontend.group.editContainer)
+      .find(appFrontend.group.next)
+
+      .click();
+
+    if (openByDefault || typeof openByDefault === 'undefined') {
+      cy.get(appFrontend.group.addNewItemSubGroup).should('not.exist');
+    } else {
+      cy.get(appFrontend.group.addNewItemSubGroup).click();
+    }
+
+    cy.get(appFrontend.group.comments).type(comment);
+    cy.get(appFrontend.group.comments).blur();
+    cy.get(appFrontend.group.saveSubGroup).clickAndGone();
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+  },
+);
+
+Cypress.Commands.add('startStateFullFromStateless', () => {
+  cy.intercept('POST', '**/instances/create').as('createInstance');
+  cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
+  cy.get(appFrontend.instantiationButton).click();
+  cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
+  cy.wait('@getLayoutSettings');
+});
+
+Cypress.Commands.add('getReduxState', (selector) =>
+  cy
+    .window()
+    .its('reduxStore')
+    .invoke('getState')
+    .then((state) => {
+      if (selector) {
+        return selector(state);
+      }
+
+      return state;
+    }),
+);
+
+Cypress.Commands.add('reduxDispatch', (action) => cy.window().its('reduxStore').invoke('dispatch', action));
+
+Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) => {
+  cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, times: 1 }, (req) => {
+    req.reply((res) => {
+      const set = JSON.parse(res.body);
+      if (mutator) {
+        for (const layout of Object.values(set)) {
+          (layout as any).data.layout.map(mutator);
+        }
+      }
+      if (wholeLayoutMutator) {
+        wholeLayoutMutator(set);
+      }
+      res.send(JSON.stringify(set));
+    });
+  }).as(`interceptLayout(${taskName})`);
+});
+
+Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
+  cy.window().then((win) => {
+    const state = win.reduxStore.getState();
+    const layouts: ILayouts = structuredClone(state.formLayout.layouts || {});
+    if (mutator && layouts) {
+      for (const layout of Object.values(layouts)) {
+        for (const component of layout || []) {
+          mutator(component);
+        }
+      }
+    }
+    if (wholeLayoutMutator) {
+      wholeLayoutMutator(layouts);
+    }
+    win.reduxStore.dispatch({
+      type: 'formLayout/updateLayouts',
+      payload: layouts,
+    });
   });
-   */
+});
+
+Cypress.Commands.add('interceptLayoutSetsUiSettings', (uiSettings) => {
+  cy.intercept('GET', '**/api/layoutsets', (req) => {
+    req.continue((res) => {
+      const body = JSON.parse(res.body);
+      res.body = JSON.stringify({
+        ...body,
+        uiSettings: { ...body.uiSettings, ...uiSettings },
+      });
+    });
+  }).as('layoutSets');
 });

@@ -437,7 +437,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroupTableBody).find(appFrontend.group.saveMainGroup).should('not.exist');
   });
 
-  it('Opens delete warning popoup when alertOnDelete is true and deletes on confirm', () => {
+  it('Opens delete warning popup when alertOnDelete is true and deletes on confirm', () => {
     cy.interceptLayout('group', (component) => {
       if (component.type === 'Group' && component.edit && typeof component.edit.openByDefault !== 'undefined') {
         component.edit.alertOnDelete = true;

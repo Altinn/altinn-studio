@@ -83,6 +83,8 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
   if (evaluateBefore) {
     cy.get('#cy-evaluating-js').should('not.exist');
   }
+
+  cy.injectAxe();
 });
 
 export function getTargetUrl(appName: string) {

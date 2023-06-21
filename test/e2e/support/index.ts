@@ -2,7 +2,6 @@ import '@testing-library/cypress/add-commands';
 import 'cypress-wait-until';
 import 'cypress-axe';
 import 'cypress-plugin-tab';
-import 'test/e2e/support/app-frontend';
 import 'test/e2e/support/custom';
 import 'test/e2e/support/start-app-instance';
 import 'test/e2e/support/auth';

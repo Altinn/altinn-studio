@@ -96,7 +96,7 @@ Cypress.Commands.add('assertUser', (user: user) => {
 Cypress.Commands.add('switchUser', (user: user) => {
   logout();
   login(user);
-  cy.reload();
+  cy.reloadAndWait();
 });
 
 function getPermissions(format: string): IProcessPermissions {

@@ -184,6 +184,11 @@ declare global {
        * @param name A unique name for the snapshot.
        */
       snapshot(name: string): Chainable<null>;
+
+      /**
+       * Runs the wcag tests on the app and notifies us of any violations (using axe/ally)
+       */
+      testWcag(): Chainable<null>;
     }
   }
 }
