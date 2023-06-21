@@ -185,6 +185,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
 
         /// <summary>
+        /// Checks if LastChanged and/or CreatedBy was added to the ListviewServiceResource-object. If not sets CreatedBy to the logged in user and LastChanged to current datetime.
+        /// </summary>
+        /// <param name="serviceResource">The ListviewServiceResource that will be enriched if neccessary</param>
+        /// <returns>The enriched ListviewServiceResource-object if CreatedBy and LastChanged was missing, otherwise returns the same object</returns>
+        ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource);
+
+        /// <summary>
         /// Returns the path to the app folder
         /// </summary>
         /// <param name="org">The application owner id.</param>
