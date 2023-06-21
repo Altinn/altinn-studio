@@ -1647,13 +1647,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.1.4":
-  version: 0.1.4
-  resolution: "@digdir/design-system-tokens@npm:0.1.4"
-  checksum: adbfd26c86093441d9fef454ad891bf176c865bcc96b1950d0feba38bf71de642692512e05a8cdc76c30861853485a9ec3e0a701bdf0a6a2a041368bdc10e1b0
-  languageName: node
-  linkType: hard
-
 "@digdir/design-system-tokens@npm:^0.1.3":
   version: 0.1.3
   resolution: "@digdir/design-system-tokens@npm:0.1.3"
@@ -5064,7 +5057,6 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.15.0
-    "@digdir/design-system-tokens": 0.1.4
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.5
