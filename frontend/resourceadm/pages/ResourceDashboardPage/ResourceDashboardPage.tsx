@@ -18,6 +18,7 @@ import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { SearchField } from '@altinn/altinn-design-system';
 
 /**
  * Displays the page for the resource dashboard
@@ -126,6 +127,9 @@ export const ResourceDashboardPage = () => {
 
   return (
     <>
+      <div style={{ display: 'none' }}>
+        <SearchField id='search-repos' label='Søk etter ressurs' />
+      </div>
       <div className={classes.pageWrapper}>
         <div className={classes.topWrapper}>
           <h1>{`${selectedContext}'s ressurser`}</h1>
