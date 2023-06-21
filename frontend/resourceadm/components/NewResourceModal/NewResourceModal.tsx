@@ -139,6 +139,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
           </>
         )}
       </div>
+      {/* TODO - Add if the id is valid or not based on API calls later */}
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
           <Button onClick={onClose} color='primary' variant='quiet'>

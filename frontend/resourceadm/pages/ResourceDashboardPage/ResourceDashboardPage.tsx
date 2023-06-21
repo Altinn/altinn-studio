@@ -18,6 +18,8 @@ import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getUser } from 'app-shared/api/queries';
+import { useUserQuery } from 'app-shared/hooks/queries';
 
 /**
  * Displays the page for the resource dashboard
@@ -79,6 +81,7 @@ export const ResourceDashboardPage = () => {
   );
 
   const navigate = useNavigate();
+  const { data: user } = useUserQuery();
 
   /**
    * Creates a new resource in backend
@@ -94,7 +97,9 @@ export const ResourceDashboardPage = () => {
 
     // TODO - missing API connection - not working atm
     post(getCreateResourceUrlBySelectedContext(selectedContext), idAndTitle)
-      .then(() => {
+      .then((res) => {
+        console.log(res);
+        console.log('user', user);
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
       })
       .catch((err) => {
