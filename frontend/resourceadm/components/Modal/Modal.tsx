@@ -36,7 +36,7 @@ export const Modal = ({ isOpen, title, onClose, children }: Props) => {
   return (
     <ReactModal
       isOpen={isOpen}
-      onRequestClose={onClose && onClose}
+      onRequestClose={() => onClose && onClose()}
       contentLabel={title}
       style={modalStyles}
       ariaHideApp={false}
