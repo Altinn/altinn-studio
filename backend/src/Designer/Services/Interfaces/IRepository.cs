@@ -195,33 +195,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<ActionResult> PublishResource(string org, string repository, string id);
 
         /// <summary>
-        /// Validates that required attributes has value in a given ServiceResource.
-        /// </summary>
-        /// <param name="org">The organisation which owns the repositor</param>
-        /// <param name="repository">The repository where the resource resides</param>
-        /// <param name="id">The id of the resource that should be updated</param>
-        /// <param name="strictMode">A bool indicating whether or not the validation will check extra attributes</param>
-        /// <returns></returns>
-        ActionResult<string> ValidateServiceResource(string org, string repository, string id, bool strictMode = false);
-
-        /// <summary>
-        /// Update existing ServiceResource in repository
-        /// </summary>
-        /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="id">The id of the resource that should be updated</param>
-        /// <param name="updatedResource">The resource that is to be updated</param>
-        /// <returns></returns>
-        ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource);
-
-        /// <summary>
-        /// Add new ServiceResource to repository
-        /// </summary>
-        /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="newResource">The new resource that is to be added to the repository</param>
-        /// <returns></returns>
-        ActionResult AddServiceResource(string org, ServiceResource newResource);
-
-        /// <summary>
         /// Returns the path to the app folder
         /// </summary>
         /// <param name="org">The application owner id.</param>
