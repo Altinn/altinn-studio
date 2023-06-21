@@ -85,8 +85,9 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
   return (
     <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
       <p className={classes.text}>Velg et navn for å opprette ressursen din.</p>
+      <p className={classes.text}>Navnet kan endres på frem til tjenesten din er publisert.</p>
+      <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
       <div className={classes.textfieldWrapper}>
-        <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
         <TextField
           placeholder='Ressursnavn (Bokmål)'
           value={title}
@@ -94,42 +95,47 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
           aria-label='Ressursnavn (Bokmål)'
         />
       </div>
-      <div className={classes.idWrapper}>
-        <div className={classes.idBox}>
-          <p className={classes.idText}>id</p>
-        </div>
-        <p className={classes.text}>
-          altinn.svv.<strong>{getIdToDisplay()}</strong>
-        </p>
-        <div className={classes.editButtonWrapper}>
-          <Button
-            onClick={() => handleClickEditButton(!editIdFieldOpen)}
-            iconPlacement='right'
-            icon={
-              editIdFieldOpen ? (
-                <MultiplyIcon title='Slutt å endre ressurs id' />
-              ) : (
-                <PencilWritingIcon title='Endre ressurs id' fontSize='1.5rem' />
-              )
-            }
-            variant='outline'
-            color={editIdFieldOpen ? 'danger' : 'primary'}
-          >
-            {editIdFieldOpen ? 'Avbryt redigering' : 'Rediger'}
-          </Button>
-        </div>
-      </div>
+      <p className={classes.textfieldHeader}>Ressurs id</p>
       <div className={classes.editFieldWrapper}>
-        {editIdFieldOpen && (
+        {editIdFieldOpen ? (
           <>
-            <p className={classes.textfieldHeader}>Tilpasset id navn</p>
-            <TextField
-              placeholder='Tilpasset id navn'
-              value={id}
-              onChange={(e) => handleIDInput(e.target.value)}
-              aria-label='Tilpasset ID navn'
-              // TODO - Potentially show error if ID exists
-            />
+            <div className={classes.textfieldWrapper}>
+              <TextField
+                placeholder='Ressurs id'
+                value={id}
+                onChange={(e) => handleIDInput(e.target.value)}
+                aria-label='Ressurs id'
+                // TODO - Potentially show error if ID exists
+              />
+            </div>
+            <div className={classes.stopEditingButton}>
+              <Button
+                onClick={() => handleClickEditButton(!editIdFieldOpen)}
+                variant='quiet'
+                icon={<MultiplyIcon title='Slutt å endre ressurs id' />}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={classes.idBox}>
+              <p className={classes.idText}>id</p>
+            </div>
+            <p className={classes.text}>
+              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
+              altinn.svv.<strong>{getIdToDisplay()}</strong>
+            </p>
+            <div className={classes.editButtonWrapper}>
+              <Button
+                onClick={() => handleClickEditButton(!editIdFieldOpen)}
+                iconPlacement='right'
+                icon={<PencilWritingIcon title='Endre ressurs id' />}
+                variant='quiet'
+                color='primary'
+              >
+                Rediger
+              </Button>
+            </div>
           </>
         )}
       </div>
@@ -144,7 +150,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
           color='primary'
           disabled={id.length === 0 || title.length === 0}
         >
-          Lagre ressurs
+          Opprett ressurs
         </Button>
       </div>
     </Modal>

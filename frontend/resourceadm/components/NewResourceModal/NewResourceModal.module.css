@@ -1,12 +1,11 @@
 .textfieldWrapper {
-  margin-top: 20px;
-  width: 400px;
+  width: 500px;
 }
 
 .buttonWrapper {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
 .closeButton {
@@ -26,12 +25,7 @@ p, h2 {
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 5px;
-}
-
-.idWrapper {
-  display: flex;
-  align-items: center;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 .idBox {
@@ -56,7 +50,11 @@ p, h2 {
 }
 
 .editFieldWrapper {
-  margin-top: 20px;
-  height: 70px;
-  width: 400px;
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+
+.stopEditingButton {
+  margin-left: 10px;
 }
