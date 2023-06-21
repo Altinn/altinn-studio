@@ -1,21 +1,17 @@
 import React from 'react';
 import classes from './App.module.css';
 import './App.css';
-import { PageSpinner } from 'app-shared/components';
-
-import { PageLayout } from 'resourceadm/pages/PageLayout';
-import { ResourceDashboardOld } from '../pages/ResourceDashboardOld';
-import { TestPage } from '../pages/TestPage';
-
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-
+import { PageSpinner } from 'app-shared/components';
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
+import { PageLayout } from 'resourceadm/pages/PageLayout';
 import { ResourcePage } from 'resourceadm/pages/ResourcePage';
 import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
+import { ErrorPage } from '../pages/ErrorPage';
+import { RedirectPage } from '../pages/RedirectPage';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -60,30 +56,30 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
           <Route element={<PageLayout />}>
-            <Route path={basePath} element={<ResourceDashboardPage />} />
-          </Route>
-
-          <Route element={<TestPage />}>
             <Route
-              path={basePath + '/old'}
-              element={<ResourceDashboardOld user={user} organizations={organizations} />}
+              path={basePath}
+              element={<ResourceDashboardPage />}
             />
-          </Route>
-
-          <Route element={<PageLayout />}>
             <Route
-              path='/:selectedContext/repo'
-              element={<ResourceDashboardOld user={user} organizations={organizations} />}
+              path={`${basePath}/resource/:resourceId/:pageType`}
+              element={<ResourcePage />}
             />
-          </Route>
-
-          <Route element={<PageLayout />}>
-            <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
+            <Route
+              path='/'
+              element={<ErrorPage />}
+            />
+            <Route
+              path='/:selectedContext'
+              element={<RedirectPage />}
+            />
+            <Route
+              path='/:selectedContext/:repo/*'
+              element={<ErrorPage />}
+            />
           </Route>
         </Routes>
       </div>
     );
   }
-
   return <PageSpinner text={t('dashboard.loading')} />;
 };
