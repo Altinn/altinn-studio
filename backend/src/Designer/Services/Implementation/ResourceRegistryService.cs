@@ -2,10 +2,8 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
 
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-            var myHttpClient = _httpClientFactory.CreateClient("myHttpClient");
+            _httpClientFactory.CreateClient("myHttpClient");
 
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
             HttpResponseMessage response = await _httpClient.PostAsync(resourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));

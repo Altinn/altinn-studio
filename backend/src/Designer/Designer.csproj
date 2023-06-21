@@ -91,7 +91,6 @@
     <Watch Remove="Services\Implementation\PolicyOptionsService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
-    <Watch Remove="Services\Interfaces\IMaskinportenClient.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistry.cs" />
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
