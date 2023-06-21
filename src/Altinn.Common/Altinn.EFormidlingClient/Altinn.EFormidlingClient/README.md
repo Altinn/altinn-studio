@@ -26,7 +26,7 @@ The client package is written in C# and targets .Net Standard 2.1. The API solut
 
 ## Setup eFormidlingClient package in solution
 
-Download the eFormidlingClient nuget package from Nuget Package Manager where source is nuget.org. Search for its name: Altinn.Common.EFormidlingClient, then download and install. 
+Download the eFormidlingClient nuget package from Nuget Package Manager where source is nuget.org. Search for its name: Altinn.Common.EFormidlingClient, then download and install.
 
 In order to debug the solution it is possible to retrieve the source code from: https://github.com/Altinn/altinn-studio and then add the project as a reference instead of the nuget package in Altinn.EFormidlingClient.csproj.
 
@@ -34,16 +34,16 @@ In startup class, IEFormidlingClient and EFormidlingClientSettings are injected.
 
 
 ### Running eFormidling Integration Point locally
-The intgration point is a REST based API which is documented here: 
+The integration point is a REST based API which is documented here:
 https://docs.digdir.no/eformidling_nm_restdocs.html
 
-After downloading the Integration Point (IP) from https://docs.digdir.no/eformidling_download_ip.html, start the jar executable by running the following command in CLI: 
+After downloading the Integration Point (IP) from https://docs.digdir.no/eformidling_download_ip.html, start the jar executable by running the following command in CLI:
 
 ```cmd
 java -Dspring.profiles.active=mock -jar integrasjonspunkt-<VERSION>.jar
 ```
 
-Make sure that Java is set in the PATH and its version is at least 8. The -Dspring.profiles.active=mock argument indicates that the IP is running with mock properties, allowing for debug and testing locally during development. 
+Make sure that Java is set in the PATH and its version is at least 8. The -Dspring.profiles.active=mock argument indicates that the IP is running with mock properties, allowing for debug and testing locally during development.
 
 The solution should be ran with at least 2GB memory available. If needed, increase Java runtime parameter with following memory setting "-Xms2048m" as it defaults to 256 MB. In order to verify it is running correctly, run the tests specified in the test section or the tests that comes with the eFormidling Mock Solution.
 
@@ -84,14 +84,14 @@ First perform a peek of the queue, verify that the SBD and InstanceIdentifier is
 
 ### Running tests move-mocks
 
-In order to test the mock solution and the integration point, navigate to the 'tests/next-move' folder. Run with Node the following command: node NextMove.js dpi dpiprint dpe dpf dpv dpo. This will execute a complete test. Verify in the dashboard on localhost:8001 that the messages were sent successfully. Moreover, the NextMove class writen in Javascript, contains examples on how to create and send a message.
+In order to test the mock solution and the integration point, navigate to the 'tests/next-move' folder. Run with Node the following command: node NextMove.js dpi dpiprint dpe dpf dpv dpo. This will execute a complete test. Verify in the dashboard on localhost:8001 that the messages were sent successfully. Moreover, the NextMove class written in Javascript, contains examples on how to create and send a message.
 
 
 For more information, consult the README.md in the mock solution.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/Altinn/altinn-studio/blob/master/docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 
@@ -101,7 +101,7 @@ See also the list of [contributors](https://github.com/Altinn/altinn-studio/grap
 
 ## License
 
-This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md) file for details.
 
 
 

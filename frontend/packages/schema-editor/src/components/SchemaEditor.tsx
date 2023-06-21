@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { AltinnSpinner } from 'app-shared/components';
-import type { IJsonSchema, ISchemaState } from '../types';
+import type { SchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
   setJsonSchema,
@@ -18,7 +18,6 @@ import { getNameFromPointer, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-
 import {
   getChildNodesByPointer,
   getNodeByPointer,
-  getParentNodeByPointer,
   pointerIsDefinition,
   ROOT_POINTER,
 } from '@altinn/schema-model';
@@ -30,6 +29,12 @@ import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
 import { GenerateSchemaState } from 'app-shared/types/global';
+import {
+  selectedDefinitionParentSelector,
+  selectedItemSelector,
+  selectedPropertyParentSelector
+} from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -38,14 +43,14 @@ export interface IEditorProps {
   name?: string;
   onSaveSchema: (payload: any) => void;
   saveUrl: string;
-  schema: IJsonSchema;
+  schema: JsonSchema;
   schemaState: GenerateSchemaState;
   editMode: boolean;
   toggleEditMode: () => void;
 }
 
 const rootNodesSelector = createSelector(
-  (state: ISchemaState) => state.uiSchema,
+  (state: SchemaState) => state.uiSchema,
   (uiSchema) => {
     const nodesmap = new Map();
     if (uiSchema.length) {
@@ -58,7 +63,7 @@ const rootNodesSelector = createSelector(
 );
 
 const rootChildrenSelector = createSelector(
-  (state: ISchemaState) => state.uiSchema,
+  (state: SchemaState) => state.uiSchema,
   (uiSchema) => {
     if (uiSchema.length) {
       return getNodeByPointer(uiSchema, ROOT_POINTER).children;
@@ -117,18 +122,8 @@ export const SchemaEditor = ({
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useSelector((state: ISchemaState) =>
-    getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
-  );
-
-  const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId
-  );
-  const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
-  );
+  const selectedPropertyParent = useSelector(selectedPropertyParentSelector);
+  const selectedItem = useSelector(selectedItemSelector);
 
   useEffect(() => {
     if (selectedType) {
@@ -148,9 +143,7 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSelector((state: ISchemaState) =>
-    getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId)
-  );
+  const selectedDefinitionParent = useSelector(selectedDefinitionParentSelector);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);

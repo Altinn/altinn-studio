@@ -1,0 +1,13 @@
+.root {
+  --fieldset-gap: 24px;
+}
+
+.gridItem {
+  margin-top: 18px;
+}
+
+.root > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fieldset-gap);
+}

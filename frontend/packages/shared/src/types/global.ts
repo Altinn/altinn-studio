@@ -73,6 +73,7 @@ export interface IGiteaOrganisation {
   full_name?: string;
 }
 
+
 export interface IContentStatus {
   filePath: string;
   fileStatus: string;

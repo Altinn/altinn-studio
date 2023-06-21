@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,8 +10,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextKeysController
 {
-    public class GetTests : TextKeysControllerTestsBase<GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextKeysController, GetTests>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
         public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextKeysController> factory) : base(factory)
         {
         }
@@ -20,7 +22,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task Get_Keys_200Ok(string org, string app, string developer, int expectedKeyNumber)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = VersionPrefix(org, targetRepository);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
@@ -38,7 +40,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task GetKeys_TextsFilesNotFound_404NotFound(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = VersionPrefix(org, targetRepository);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
@@ -47,11 +49,11 @@ namespace Designer.Tests.Controllers.TextKeysController
         }
 
         [Theory]
-        [InlineData("ttd", "invalid-texts-format", "testUser")]
+        [InlineData("ttd", "invalid-texts-and-ruleconfig", "testUser")]
         public async Task GetKeys_TextsFileInvalidFormat_500InternalServerError(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = VersionPrefix(org, targetRepository);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 

@@ -1,4 +1,5 @@
-import type { IFormComponent, IWidget } from '../../types/global';
+import type { IWidget } from '../../types/global';
+import type { FormComponent } from '../../types/FormComponent';
 
 export interface IAddLayoutFulfilledAction {
   layoutOrder: string[];
@@ -7,14 +8,6 @@ export interface IAddLayoutFulfilledAction {
 
 export interface IFormDesignerActionRejected {
   error: Error;
-}
-
-export interface ApplicationAttachmentMetadata {
-  id: string;
-  maxCount: number;
-  minCount: number;
-  maxSize: number;
-  fileType: string;
 }
 
 export interface IAddApplicationMetadataAction {
@@ -28,7 +21,7 @@ export interface IAddApplicationMetadataAction {
 }
 
 export interface IAddFormComponentsAction {
-  components: IFormComponent[];
+  components: FormComponent[];
   position: number;
   containerId?: string;
   callback?: (...args: any[]) => any;
@@ -53,19 +46,7 @@ export interface IDeleteLayoutAction {
   pageOrder: string[];
 }
 
-export interface IUpdateFormComponentIdAction {
-  currentId: string;
-  newId: string;
-  org: string;
-  app: string;
-}
-
 export interface IUpdateLayoutNameAction {
   oldName: string;
   newName: string;
-}
-
-export interface IUpdateContainerIdAction {
-  currentId: string;
-  newId: string;
 }

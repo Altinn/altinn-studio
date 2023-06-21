@@ -111,6 +111,15 @@
   margin-top: 25px;
 }
 
+.dangerButton {
+  font-size: 1rem;
+  padding: 8px 30px;
+  color: var(--paper-color);
+  background-color: var(--danger-color);
+  border: 2px solid var(--danger-color);
+  margin-top: 25px;
+}
+
 .cancelButton {
   font-size: 1rem;
   padding: 8px 30px;

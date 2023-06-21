@@ -1,0 +1,58 @@
+.table {
+  border: none;
+  box-shadow: none;
+}
+
+.tableHeader {
+  text-align: left;
+  border-bottom: 2px solid #BCC7CC;
+  padding-block: 15px;
+}
+
+.tableHeaderXLarge {
+  width: 32%;
+}
+
+.tableHeaderLarge {
+  width: 22%;
+  padding-left: 20px;
+}
+
+.tableHeaderMedium {
+  width: 18%;
+}
+
+.tableHeaderSmall {
+  width: 10%;
+}
+
+.tableHeaderText {
+  font-size: 16px;
+  font-weight: 400;
+  font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #00315D;
+}
+
+.tableHeaderLastChanged {
+  text-align: left;
+  border-bottom: 2px solid #BCC7CC;
+  padding-block: 5px;
+  padding-right: 10px;
+}
+
+.tableHeaderbutton {
+  border: none;
+  background-color: transparent;
+  display: flex;
+  font-size: 16px;
+  font-weight: 300;
+  width: 100%;
+  padding-block: 10px;
+  padding-inline: 20px;
+  border-radius: 50px;
+  background-color: red;
+}
+
+p {
+  margin: 0
+}

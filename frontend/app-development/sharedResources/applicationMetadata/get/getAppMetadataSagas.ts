@@ -1,7 +1,7 @@
 import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get, post } from 'app-shared/utils/networking';
-import { appMetadataPath } from 'app-shared/api-paths';
+import { appMetadataPath } from 'app-shared/api/paths';
 import { ApplicationMetadataActions } from '../applicationMetadataSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
 

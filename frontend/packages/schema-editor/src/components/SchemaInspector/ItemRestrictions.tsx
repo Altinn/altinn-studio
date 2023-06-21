@@ -1,6 +1,6 @@
 import { MouseEvent, useState } from 'react';
 import React from 'react';
-import { Dict, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
+import { pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import {
@@ -28,13 +28,14 @@ import {
 import { Divider } from 'app-shared/primitives';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface RestrictionItemProps {
   restrictions: any;
   readonly: boolean;
   path: string;
-  onChangeRestrictionValue: (id: string, key: string, value?: string) => void;
-  onChangeRestrictions: (id: string, restrictions: Dict) => void;
+  onChangeRestrictionValue: (id: string, key: string, value?: string | boolean) => void;
+  onChangeRestrictions: (id: string, restrictions: KeyValuePairs) => void;
 }
 
 export type ItemRestrictionsProps = Omit<UiSchemaNode, 'children'>;
@@ -64,7 +65,7 @@ export const ItemRestrictions = ({
     }
   };
 
-  const onChangeRestrictionValue = (path: string, key: string, value?: string) =>
+  const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
     dispatch(
       setRestriction({
         path,
@@ -73,7 +74,7 @@ export const ItemRestrictions = ({
       })
     );
 
-  const onChangeRestrictions = (path: string, changedRestrictions: Dict) =>
+  const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
     dispatch(setRestrictions({ path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {

@@ -3,7 +3,7 @@ import { Avatar, Divider, Grid, IconButton, MenuItem, Typography } from '@mui/ma
 import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
 import { getOrgNameByUsername, HeaderContext, SelectedContextType } from './Header';
-import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api-paths';
+import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api/paths';
 import classes from './HeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';

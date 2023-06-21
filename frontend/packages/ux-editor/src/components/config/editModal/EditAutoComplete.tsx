@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import {
   TextField,
@@ -71,7 +71,12 @@ const stdAutocompleteOpts = [
 
 export const EditAutoComplete = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const [searchFieldFocused, setSearchFieldFocused] = useState<boolean>(false);
-  const [autocompleteText, setAutocompleteText] = useState<string>(component?.autocomplete || '');
+  const initialAutocompleteText = component?.autocomplete || '';
+  const [autocompleteText, setAutocompleteText] = useState<string>(initialAutocompleteText);
+
+  useEffect(() => {
+    setAutocompleteText(initialAutocompleteText);
+  }, [initialAutocompleteText]);
 
   const autoCompleteOptions = useMemo((): string[] => {
     const lastWord = getLastWord(autocompleteText);
@@ -91,13 +96,8 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
       ...component,
       autocomplete,
     });
+    setSearchFieldFocused(false);
   };
-
-  const persistChange = (): void =>
-    handleComponentChange({
-      ...component,
-      autocomplete: autocompleteText,
-    });
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setAutocompleteText(event.target.value);
@@ -112,10 +112,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         value={autocompleteText}
         onFocus={(): void => setSearchFieldFocused(true)}
         onBlur={(): void => {
-          persistChange();
-          setTimeout(() => {
-            setSearchFieldFocused(false);
-          }, 100);
+          if (searchFieldFocused) setSearchFieldFocused(false);
         }}
       />
       <Popover
@@ -133,7 +130,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
               size={ButtonSize.Small}
               color={ButtonColor.Secondary}
               variant={ButtonVariant.Quiet}
-              onClick={() => handleWordClick(option)}
+              onMouseDown={() => handleWordClick(option)}
             >
               {option}
             </Button>

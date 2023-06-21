@@ -6,6 +6,7 @@ using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -14,9 +15,9 @@ using static Designer.Tests.Controllers.DataModelsController.Utils.MockUtils;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class DeleteDatamodelTests : ApiTestsBase<DatamodelsController, DeleteDatamodelTests>
+public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, DeleteDatamodelTests>
 {
-    private const string VersionPrefix = "/designer/api";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;
 
     public DeleteDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
@@ -33,14 +34,15 @@ public class DeleteDatamodelTests : ApiTestsBase<DatamodelsController, DeleteDat
         services.AddSingleton(_repositoryMock.Object);
     }
 
-    [Fact]
-    public async Task Delete_Datamodel_Ok()
+    [Theory]
+    [InlineData("ttd", "ttd-datamodels", "/App/models/41111.schema.json")]
+    public async Task Delete_Datamodel_Ok(string org, string repo, string modelPath)
     {
-        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/datamodel?modelPath=/App/models/41111.schema.json";
+        string dataPathWithData = $"{VersionPrefix(org, repo)}/datamodel?modelPath={modelPath}";
 
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

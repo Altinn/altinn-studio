@@ -1,4 +1,4 @@
-import { IExternalFormLayouts, IFormLayouts, IInternalLayout } from '../types/global';
+import { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
   convertFromLayoutToInternalFormat,
@@ -6,11 +6,12 @@ import {
   hasNavigationButtons,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from '../components';
-import { removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import { removeDuplicates } from 'app-shared/utils/arrayUtils';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -30,39 +31,33 @@ export const addOrRemoveNavigationButtons = async (
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
   }
 
-  const updatedLayouts = deepCopy(layouts);
+  const allLayouts = deepCopy(layouts);
+  let layoutsToUpdate: string[] = [];
 
-  // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is the only one.
-  const allLayoutNames = Object.keys(layouts).filter((name) => name !== receiptLayoutName);
-  if (allLayoutNames.length === 1) {
+  // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.
+  const allLayoutNames = Object.keys(layouts);
+  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter((name) => name !== receiptLayoutName);
+  if (layoutsThatShouldHaveNavigationButtons.length === 1) {
     // There is only one layout
-    const name = allLayoutNames[0];
+    const name = layoutsThatShouldHaveNavigationButtons[0];
     const layout = removeComponentsByType(layouts[name], ComponentType.NavigationButtons);
-    await callback(name, layout);
-    updatedLayouts[name] = layout;
+    layouts[name] !== layout && layoutsToUpdate.push(name);
+    allLayouts[name] = layout;
   } else {
     // There are multiple layouts
-    for (const name of removeItemByValue(allLayoutNames, currentLayoutName)) {
+    for (const name of layoutsThatShouldHaveNavigationButtons) {
       const layout = layouts[name];
       if (!hasNavigationButtons(layout)) {
         const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
-        const layoutWithNavigation = addNavigationButtons(layout, navButtonsId);
-        updatedLayouts[name] = layoutWithNavigation;
-        await callback(name, layoutWithNavigation);
+        allLayouts[name] = addNavigationButtons(layout, navButtonsId);
+        layoutsToUpdate.push(name);
       }
-    }
-    if (currentLayoutName) {
-      // Add navigation buttons to the current layout if they are not present, and run callback
-      let currentLayout = layouts[currentLayoutName];
-      if (!hasNavigationButtons(currentLayout)) {
-        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
-        currentLayout = addNavigationButtons(currentLayout, navButtonsId);
-        updatedLayouts[currentLayoutName] = currentLayout;
-      }
-      await callback(currentLayoutName, currentLayout);
     }
   }
-  return updatedLayouts;
+  currentLayoutName && layoutsToUpdate.push(currentLayoutName); // Always update the current layout if it is set
+  layoutsToUpdate = removeDuplicates(layoutsToUpdate); // Remove duplicates so that callback is only called once for each layout
+  await Promise.all(layoutsToUpdate.map((name) => callback(name, allLayouts[name])));
+  return allLayouts;
 };
 
 interface AllLayouts {
@@ -76,7 +71,7 @@ interface AllLayouts {
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: IExternalFormLayouts
+  layouts: FormLayoutsResponse
 ): AllLayouts => {
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];

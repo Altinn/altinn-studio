@@ -8,6 +8,7 @@ export interface Validation {
   valueAsUrl?: {
     message: string;
   };
+  custom?: (value: string) => string
 }
 
 export const validate = (
@@ -37,5 +38,11 @@ export const validate = (
       return { error: validation.valueAsUrl.message };
     }
   }
+
+  if (validation.custom) {
+    const error = validation.custom(inputValue);
+    if (error) return { error };
+  }
+
   return { error: undefined };
 };

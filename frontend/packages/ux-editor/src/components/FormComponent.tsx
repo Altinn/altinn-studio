@@ -1,103 +1,134 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { EditContainer } from '../containers/EditContainer';
-import type { FormComponentType, IAppState } from '../types/global';
+import React, { memo, useState } from 'react';
+import '../styles/index.css';
+import classes from './FormComponent.module.css';
+import cn from 'classnames';
+import type { FormComponent as IFormComponent } from '../types/FormComponent';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { ComponentPreview } from '../containers/ComponentPreview';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { DragHandle } from './dragAndDrop/DragHandle';
+import { ITextResource } from 'app-shared/types/global';
+import { MonitorIcon, TrashIcon } from '@navikt/aksel-icons';
+import { formItemConfigs } from '../data/formItemConfig';
+import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
+import { useFormLayoutsSelector, useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
-import { ComponentType } from './index';
-import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTranslation } from 'react-i18next';
 
-/**
- * Properties defined for input for wrapper
- */
-export interface IProvidedProps {
+export interface IFormComponentProps {
+  component: IFormComponent;
+  dragHandleRef?: ConnectDragSource;
+  handleDiscard: () => void;
+  handleEdit: (component: IFormComponent) => void;
+  handleSave: (id: string, updatedComponent: IFormComponent) => Promise<void>;
   id: string;
-  partOfGroup?: boolean;
-  dragHandleRef: ConnectDragSource;
+  isEditMode: boolean;
 }
 
-/**
- * Properties for the component itself. mapStateToProps convert to this from
- */
-export interface IFormElementProps extends IProvidedProps {
-  validationErrors: any[];
-}
-
-const FormComponent = (props: IFormElementProps) => {
+export const FormComponent = memo(function FormComponent({
+  component,
+  dragHandleRef,
+  handleDiscard,
+  handleEdit,
+  handleSave,
+  id,
+  isEditMode,
+}: IFormComponentProps) {
+  const { t } = useTranslation();
   const { org, app } = useParams();
-  const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const { components } = useFormLayoutsSelector(selectedLayoutSelector);
-  const component: FormComponentType = components[props.id];
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
 
-  /**
-   * Return a given textresource from all textresources avaiable
-   */
-  const getTextResource = (resourceKey: string): string => {
-    const textResource = textResources?.[DEFAULT_LANGUAGE]?.find((resource) => resource.id === resourceKey);
-    return textResource ? textResource.value : resourceKey;
+  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
+
+  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
+
+  const previewableComponents = [
+    ComponentType.Checkboxes,
+    ComponentType.RadioButtons,
+    ComponentType.Button,
+    ComponentType.NavigationButtons,
+  ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
+
+  const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
+
+  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
+    deleteFormComponent(id);
+    if (isEditMode) handleDiscard();
   };
 
-  /**
-   * Render label
-   */
-  const renderLabel = (): JSX.Element => {
-    const componentsWithoutLabel = [
-      ComponentType.Header,
-      ComponentType.Paragraph,
-      ComponentType.ThirdParty,
-      ComponentType.AddressComponent,
-    ];
-    if (componentsWithoutLabel.includes(component.type)) {
-      return null;
-    }
-    if (!component.textResourceBindings) {
-      return null;
-    }
-    if (component.textResourceBindings.title) {
-      const label: string = getTextResource(component.textResourceBindings.title);
-      return (
-        <label className='a-form-label title-label' htmlFor={props.id}>
-          {label}
-          {component.required ? null : (
-            // TODO: Get text key from common texts for all services.
-            <span className='label-optional'>{getTextResource('(Valgfri)')}</span>
-          )}
-        </label>
-      );
-    }
-
-    return null;
+  const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsPreviewMode(previous => !previous);
   };
 
   return (
-    <div>
-      <EditContainer
-        component={component}
-        id={props.id}
-        partOfGroup={props.partOfGroup}
-        dragHandleRef={props.dragHandleRef}
-      >
-        <button className={'divider'}>
-          {renderLabel()}
-        </button>
-      </EditContainer>
+    <div
+      className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
+      role='listitem'
+      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
+        if (!isEditMode) handleEdit(component);
+      }}
+    >
+      <div className={classes.formComponentWithHandle}>
+        <div ref={dragHandleRef} className={classes.dragHandle}>
+          <DragHandle />
+        </div>
+        <div className={classes.formComponent} tabIndex={0}>
+          {isPreviewMode ? (
+            <ComponentPreview
+              component={component}
+              handleComponentChange={async (updatedComponent) => {
+                handleEdit(updatedComponent);
+                await handleSave(id, updatedComponent);
+              }}
+              layoutName={selectedLayout}
+            />
+          ) : (
+            <div className={classes.formComponentTitle}>
+              <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
+              {component.textResourceBindings?.title
+                ? truncate(
+                    getTextResource(component.textResourceBindings.title, textResources),
+                    80
+                  )
+                : getComponentTitleByComponentType(component.type, t) ||
+                  t('ux_editor.component_unknown')}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className={classes.buttons}>
+        <Button
+          data-testid='component-delete-button'
+          color={ButtonColor.Secondary}
+          icon={<TrashIcon />}
+          onClick={handleDelete}
+          tabIndex={0}
+          title={t('general.delete')}
+          variant={ButtonVariant.Quiet}
+        />
+        {
+          isPreviewable && (
+            <Button
+            color={ButtonColor.Secondary}
+            icon={<MonitorIcon title={t('general.preview')} />}
+            onClick={handlePreview}
+            title='Forhåndsvisning (under utvikling)'
+            variant={ButtonVariant.Quiet}
+            />
+          )
+        }
+      </div>
     </div>
   );
-};
-
-const makeMapStateToProps = () => {
-  return (state: IAppState, props: IProvidedProps): IFormElementProps => ({
-    id: props.id,
-    validationErrors: null,
-    dragHandleRef: props.dragHandleRef,
-  });
-};
-
-/**
- * Wrapper made available for other compoments
- */
-export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);
+});

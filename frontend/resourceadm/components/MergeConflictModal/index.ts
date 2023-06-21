@@ -1,0 +1,1 @@
+export { MergeConflictModal } from './MergeConflictModal'

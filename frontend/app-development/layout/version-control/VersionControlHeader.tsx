@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import classes from './VersionControlHeader.module.css';
-import postMessages from 'app-shared/utils/postMessages';
 import { FetchChangesButton } from './FetchChangesButton';
 import { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoStatus } from '../../features/appPublish/hooks/query-hooks';
-import { useRepoMetadataQuery, useRepoPullQuery } from '../../hooks/queries';
+import { useRepoPullQuery, useRepoStatusQuery } from '../../hooks/queries';
 import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
-import { AltinnSpinner } from 'app-shared/components';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface IVersionControlHeaderProps {
   hasPushRight?: boolean;
@@ -42,9 +41,9 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const [modalState, setModalState] = useState(initialModalState);
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
-  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
+  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app);
-  const [shouldShowSpinner, setShouldShowSpinner] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (hasPushRight === undefined && currentRepo) {
@@ -83,7 +82,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         shouldShowDoneIcon: true,
       });
       // force refetch  files
-      window.postMessage(postMessages.refetchFiles, window.location.href);
+      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       forceRepoStatusCheck();
     } else if (result.repositoryStatus === 'CheckoutConflict') {
       // if pull gives merge conflict, show user needs to commit message
@@ -161,23 +160,21 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
     }
   };
 
-  const repoPushMutation = useRepoPushMutation(org, app, setShouldShowSpinner);
+  const repoPushMutation = useRepoPushMutation(org, app);
   const pushChanges = async () => {
-    setShouldShowSpinner(true);
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes'),
       isLoading: true,
     });
-    await repoPushMutation.mutateAsync();
 
+    await repoPushMutation.mutateAsync();
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes_completed'),
       descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
       shouldShowDoneIcon: true,
     });
-
     forceRepoStatusCheck();
   };
 
@@ -189,7 +186,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       descriptionText: [],
       isLoading: true,
     });
-    await repoCommitMutation.mutate({ commitMessage });
+    await repoCommitMutation.mutateAsync({ commitMessage });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
       setModalState({
@@ -222,7 +219,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         fetchChanges={fetchChanges}
         buttonText={t('sync_header.fetch_changes')}
       />
-      {shouldShowSpinner && <AltinnSpinner />}
       <ShareChangesButton
         changesInLocalRepo={hasChangesInLocalRepo}
         hasMergeConflict={hasMergeConflict}

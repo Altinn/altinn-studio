@@ -1,0 +1,24 @@
+{
+  "Rules": [
+    {
+      "RuleId": "urn:altinn:resource:altinn_maskinporten_scope_delegation:ruleid:1",
+      "Description": "SystemResource policy for resource; altinn_maskinporten_scope_delegation for roles; APIADM, APIADMNUF and HADM to have access to actions; read and write",
+      "Subject": [
+        "urn:altinn:rolecode:APIADM",
+        "urn:altinn:rolecode:APIADMNUF",
+        "urn:altinn:rolecode:HADM"
+      ],
+      "Actions": [
+        "read",
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:resource:altinn_maskinporten_scope_delegation"
+        ]
+      ]
+    }
+  ],
+  "RequiredAuthenticationLevelEndUser": "3",
+  "RequiredAuthenticationLevelOrg": null
+}

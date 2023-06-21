@@ -1,7 +1,7 @@
 import { HeaderContext } from 'app-shared/navigation/main-header/Header';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useOrganizationsQuery } from 'dashboard/hooks/useOrganizationQueries';
-import { useUserQuery } from 'dashboard/hooks/useUserQueries';
+import { useOrganizationsQuery } from 'dashboard/hooks/queries';
+import { useUserQuery } from 'app-shared/hooks/queries';
 import React, { useEffect, useMemo } from 'react';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import AppHeader from 'app-shared/navigation/main-header/Header';

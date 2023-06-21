@@ -1,16 +1,13 @@
 import React from 'react';
 import { FieldSet, RadioGroup, RadioGroupVariant, TextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
-import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
-import {
-  IFormFileUploaderComponent,
-  IFormFileUploaderWithTagComponent,
-} from '../../../../types/global';
-import { EditDescription } from '../../editModal/EditDescription';
-import { TextResource } from '../../../TextResource';
-import { ComponentType } from '../../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import type {
+  FormFileUploaderComponent,
+  FormFileUploaderWithTagComponent,
+} from '../../../../types/FormComponent';
 
 export const FileUploadComponent = ({
   component,
@@ -19,28 +16,15 @@ export const FileUploadComponent = ({
 }: IGenericEditComponent) => {
   const t = useText();
 
-  const fileUploaderComponent = component as IFormFileUploaderComponent;
+  const fileUploaderComponent = component as FormFileUploaderComponent;
 
   const handleDisplayModeChange = (displayMode: string) =>
     handleComponentChange({ ...component, displayMode });
 
-  const handleTagTitleChange = (id: string): void => {
-    const updatedComponent = { ...component };
-    updatedComponent.textResourceBindings.tagTitle = id;
-    handleComponentChange(updatedComponent);
-  };
-
-  const handleOptionsIdChange = (e: any) => {
-    handleComponentChange({
-      ...component,
-      optionsId: e.target.value,
-    });
-  };
-
   const handleHasCustomFileEndingsChange = (value: string) => {
     const componentCopy = { ...component } as
-      | IFormFileUploaderComponent
-      | IFormFileUploaderWithTagComponent;
+      | FormFileUploaderComponent
+      | FormFileUploaderWithTagComponent;
     componentCopy.hasCustomFileEndings = value === 'true';
     if (!componentCopy.hasCustomFileEndings) {
       componentCopy.validFileEndings = undefined;
@@ -50,13 +34,13 @@ export const FileUploadComponent = ({
 
   const handleValidFileEndingsChange = (event: any) =>
     handleComponentChange({ ...component, validFileEndings: event.target.value } as
-      | IFormFileUploaderComponent
-      | IFormFileUploaderWithTagComponent);
+      | FormFileUploaderComponent
+      | FormFileUploaderWithTagComponent);
 
   const handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
     const componentCopy = { ...component } as
-      | IFormFileUploaderComponent
-      | IFormFileUploaderWithTagComponent;
+      | FormFileUploaderComponent
+      | FormFileUploaderWithTagComponent;
     const value = parseInt(event.target.value, 10);
     if (type === 'max') {
       componentCopy.maxNumberOfAttachments = value >= 1 ? value : 1;
@@ -69,8 +53,8 @@ export const FileUploadComponent = ({
 
   const handleMaxFileSizeInMBChange = (event: any) => {
     const componentCopy = { ...component } as
-      | IFormFileUploaderComponent
-      | IFormFileUploaderWithTagComponent;
+      | FormFileUploaderComponent
+      | FormFileUploaderWithTagComponent;
     const value = parseInt(event.target.value, 10);
     componentCopy.maxFileSizeInMB = value >= 0 ? value : 0;
     handleComponentChange(componentCopy);
@@ -78,62 +62,6 @@ export const FileUploadComponent = ({
 
   return (
     <FieldSet className={classes.fieldset}>
-      {component.type === ComponentType.FileUpload ? (
-        <>
-          <RadioGroup
-            items={[
-              {
-                label: t('ux_editor.modal_properties_file_upload_simple'),
-                value: 'simple',
-              },
-              {
-                label: t('ux_editor.modal_properties_file_upload_list'),
-                value: 'list',
-              },
-            ]}
-            name={`${component.id}-display-mode`}
-            onChange={handleDisplayModeChange}
-            value={fileUploaderComponent.displayMode}
-            variant={RadioGroupVariant.Horizontal}
-          />
-          <FieldSet className={classes.fieldset}>
-            <EditTitle component={component} handleComponentChange={handleComponentChange} />
-            <EditDescription component={component} handleComponentChange={handleComponentChange} />
-          </FieldSet>
-        </>
-      ) : (
-        <>
-          <TextResource
-            handleIdChange={handleTagTitleChange}
-            label={t('ux_editor.modal_properties_tag')}
-            placeholder={t('ux_editor.modal_properties_tag_add')}
-            textResourceId={component.textResourceBindings?.tagTitle}
-            generateIdOptions={{
-              componentId: component.id,
-              layoutId: layoutName,
-              textResourceKey: 'tagTitle',
-            }}
-          />
-          <div>
-            <TextField
-              id='modal-properties-code-list-id'
-              label={t('ux_editor.modal_properties_code_list_id')}
-              onChange={handleOptionsIdChange}
-              value={component.optionsId}
-            />
-          </div>
-          <p>
-            <a
-              target='_blank'
-              rel='noopener noreferrer'
-              href='https://docs.altinn.studio/app/development/data/options/'
-            >
-              {t('ux_editor.modal_properties_code_list_read_more')}
-            </a>
-          </p>
-        </>
-      )}
-
       <RadioGroup
         items={[
           {
@@ -157,6 +85,24 @@ export const FileUploadComponent = ({
           label={t('ux_editor.modal_properties_valid_file_endings_helper')}
           onChange={handleValidFileEndingsChange}
           value={fileUploaderComponent.validFileEndings}
+        />
+      )}
+      {component.type === ComponentType.FileUpload && (
+        <RadioGroup
+          items={[
+            {
+              label: t('ux_editor.modal_properties_file_upload_simple'),
+              value: 'simple',
+            },
+            {
+              label: t('ux_editor.modal_properties_file_upload_list'),
+              value: 'list',
+            },
+          ]}
+          name={`${component.id}-display-mode`}
+          onChange={handleDisplayModeChange}
+          value={fileUploaderComponent.displayMode}
+          variant={RadioGroupVariant.Horizontal}
         />
       )}
       <div>

@@ -1,0 +1,1 @@
+export { RessursRettighetsBeskrivelseInput } from './RessursRettighetsBeskrivelseInput';

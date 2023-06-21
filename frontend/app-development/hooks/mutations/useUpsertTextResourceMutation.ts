@@ -1,4 +1,4 @@
-import { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useMutation } from '@tanstack/react-query';
 import { UpsertTextResourceMutation } from '@altinn/text-editor/src/types';
 

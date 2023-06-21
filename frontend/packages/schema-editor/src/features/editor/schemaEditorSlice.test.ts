@@ -28,7 +28,7 @@ import {
   updateJsonSchema,
 } from './schemaEditorSlice';
 import { dataMock } from '../../mockData';
-import type { ISchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   CombinationKind,
@@ -37,18 +37,19 @@ import {
   getNodeByPointer,
   getReferredNodes,
   hasNodePointer,
-  Keywords,
+  Keyword,
   makePointer,
   ObjectKind,
   StringFormat,
-  StrRestrictionKeys,
+  StrRestrictionKey,
 } from '@altinn/schema-model';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 describe('SchemaEditorSlice', () => {
-  let state: ISchemaState;
+  let state: SchemaState;
   beforeEach(() => {
     // setup state
-    const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
+    const state1: SchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
     state = reducer(state1, setUiSchema({ name: '#/$defs/RA-0678_M' }));
   });
 
@@ -183,7 +184,7 @@ describe('SchemaEditorSlice', () => {
       ...state,
       selectedEditorTab: 'definitions',
       selectedDefinitionNodeId: '#/$defs/Kommentar2000Restriksjon',
-    } as ISchemaState;
+    } as SchemaState;
     expect(() => {
       reducer(
         mockState,
@@ -199,7 +200,7 @@ describe('SchemaEditorSlice', () => {
       ...state,
       selectedEditorTab: 'properties',
       selectedPropertyNodeId: '#/properties/melding',
-    } as ISchemaState;
+    } as SchemaState;
     const nextState = reducer(
       mockState,
       deleteProperty({
@@ -355,17 +356,17 @@ describe('SchemaEditorSlice', () => {
   });
 
   it('handles promotion of root-level types', () => {
-    const schema = {
-      [Keywords.Properties]: {
+    const schema: JsonSchema = {
+      properties: {
         melding: {
-          [Keywords.Properties]: {
+          properties: {
             name: {
-              [Keywords.Type]: FieldType.String,
+              type: FieldType.String,
             },
           },
         },
       },
-      [Keywords.Definitions]: {},
+      $defs: {},
     };
     let nextState = reducer(state, setJsonSchema({ schema }));
     nextState = reducer(nextState, setUiSchema({ name: 'test' }));
@@ -457,7 +458,7 @@ describe('SchemaEditorSlice', () => {
 
   it('resets selectedDefinitionNodeId when deleting a combination child that is currently selected', () => {
     const path = '#/$defs/anyOfTestSeveralItems/anyOf/1';
-    const mockState: ISchemaState = {
+    const mockState: SchemaState = {
       ...state,
       selectedDefinitionNodeId: path,
     };
@@ -467,7 +468,7 @@ describe('SchemaEditorSlice', () => {
 
   it('resets selectedPropertiesNodeId when deleting a combination child that is currently selected', () => {
     const path = '#/$defs/anyOfTestSeveralItems/anyOf/1';
-    const mockState: ISchemaState = {
+    const mockState: SchemaState = {
       ...state,
       selectedPropertyNodeId: path,
     };
@@ -533,8 +534,8 @@ describe('SchemaEditorSlice', () => {
     expect(updatedOneOfItemChild.fieldType).toBe(FieldType.String);
   });
   it('should handle to toggleArrayField', () => {
-    const pointer = makePointer(Keywords.Properties, 'melding');
-    const mockState: ISchemaState = {
+    const pointer = makePointer(Keyword.Properties, 'melding');
+    const mockState: SchemaState = {
       ...state,
       selectedPropertyNodeId: pointer,
     };
@@ -550,10 +551,10 @@ describe('SchemaEditorSlice', () => {
     expect(expectedField.objectKind).toBe(ObjectKind.Reference);
   });
   it('should handle to changeChildrenOrder', () => {
-    const parentPointer = makePointer(Keywords.Definitions, 'RA-0678_M');
+    const parentPointer = makePointer(Keyword.Definitions, 'RA-0678_M');
     const parentNodeBefore = getNodeByPointer(state.uiSchema, parentPointer);
-    const pointerA = makePointer(parentPointer, Keywords.Properties, 'dataFormatId');
-    const pointerB = makePointer(parentPointer, Keywords.Properties, 'InternInformasjon');
+    const pointerA = makePointer(parentPointer, Keyword.Properties, 'dataFormatId');
+    const pointerB = makePointer(parentPointer, Keyword.Properties, 'InternInformasjon');
     const nextState = reducer(state, changeChildrenOrder({ pointerA, pointerB }));
     const parentNode = getNodeByPointer(nextState.uiSchema, parentPointer);
     expect(parentNode.children[1]).toBe(pointerB);
@@ -562,14 +563,14 @@ describe('SchemaEditorSlice', () => {
 
     const expectedUnchanged = reducer(
       nextState,
-      changeChildrenOrder({ pointerA, pointerB: makePointer(Keywords.Properties, 'jibberish') })
+      changeChildrenOrder({ pointerA, pointerB: makePointer(Keyword.Properties, 'jibberish') })
     );
     expect(nextState).toBe(expectedUnchanged);
   });
 
   it('Handles format change', () => {
     const checkSetFormat = (path: string, format?: StringFormat) => {
-      const key = StrRestrictionKeys.format;
+      const key = StrRestrictionKey.format;
       const value = format as string;
       const nextState = reducer(state, setRestriction({ path, key, value }));
       const node = getNodeByPointer(nextState.uiSchema, path);

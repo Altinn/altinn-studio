@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { IFormButtonComponent } from '../../../types/global';
 import { ButtonPreview } from './ButtonPreview';
-import { ComponentType } from '../../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
+import type { FormButtonComponent } from '../../../types/FormComponent';
 
 // Test data:
 const org = 'org';
@@ -24,7 +24,8 @@ describe('ButtonPreview', () => {
       },
       type: ComponentType.Button,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: sendInnText }));
   });
@@ -39,7 +40,8 @@ describe('ButtonPreview', () => {
       showBackButton: false,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: 'next' }));
   });
@@ -54,7 +56,8 @@ describe('ButtonPreview', () => {
       showBackButton: true,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: 'back' }));
   });
@@ -69,14 +72,15 @@ describe('ButtonPreview', () => {
       showBackButton: true,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: 'back' }));
     expect(screen.getByRole('button', { name: 'next' }));
   });
 });
 
-const renderWithMock = async (component: IFormButtonComponent) => {
+const renderWithMock = async (component: FormButtonComponent) => {
 
   const { result: texts } = renderHookWithMockStore({}, {
     getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources })

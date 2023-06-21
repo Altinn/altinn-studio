@@ -2,7 +2,7 @@ import React from 'react';
 import { Popover } from '@mui/material';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './RepoModal.module.css';
-import { repoDownloadPath } from 'app-shared/api-paths';
+import { repoDownloadPath } from 'app-shared/api/paths';
 import { Trans, useTranslation } from 'react-i18next';
 
 interface IDownloadRepoModalProps {

@@ -2,18 +2,19 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IGenericEditComponent } from '../../componentConfig';
-import { IFormButtonComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { ButtonComponent } from './ButtonComponent';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import type { FormButtonComponent } from '../../../../types/FormComponent';
 
 // Test data:
-const component: IFormButtonComponent = {
+const component: FormButtonComponent = {
   id: '1',
   onClickAction: jest.fn(),
   type: ComponentType.Button,
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
 const defaultProps: IGenericEditComponent = {
@@ -22,10 +23,6 @@ const defaultProps: IGenericEditComponent = {
 };
 
 describe('ButtonComponent', () => {
-  it('Renders without errors', () => {
-    render();
-  });
-
   it('changing button type to navigation buttons should call handleComponentChange with expected properties', async () => {
     const mockHandleComponentChange = jest.fn();
     const { user } = render({ handleComponentChange: mockHandleComponentChange });

@@ -2,9 +2,10 @@ import React, { useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
 import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
-import { Panel, PanelVariant, Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
+import { Panel, PanelVariant } from '@altinn/altinn-design-system';
+import { Table, TableRow, TableHeader, TableCell, TableBody } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
-import { useCreateDeployMutation } from '../hooks/mutation-hooks';
+import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 
@@ -53,7 +54,7 @@ export const AppDeploymentComponent = ({
   const { t } = useTranslation();
 
   const { org, app } = useParams();
-  const mutation = useCreateDeployMutation(org, app);
+  const mutation = useCreateDeploymentMutation(org, app);
   const startDeploy = () =>
     mutation.mutate({
       tagName: selectedImageTag,

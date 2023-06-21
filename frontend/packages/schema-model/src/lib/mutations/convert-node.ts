@@ -1,5 +1,5 @@
-import type { UiSchemaNodes } from '../types';
-import { Keywords, ObjectKind } from '../types';
+import type { UiSchemaNodes } from '../../types';
+import { Keyword, ObjectKind } from '../../types';
 import { createNodeBase, getUniqueNodePath, makePointer, pointerIsDefinition } from '../utils';
 import {
   getNodeByPointer,
@@ -17,16 +17,16 @@ import { copyNodePointer } from './copy-node';
 export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
   if (uiNodeIndex === undefined) {
-    throw new Error(`Pointer ${pointer}, can't be found.`);
+    throw new Error(`Pointer ${pointer} can't be found.`);
   }
   const uiNode = uiSchemaNodes[uiNodeIndex];
   if (uiNode.objectKind === ObjectKind.Reference) {
-    throw new Error(`Pointer ${pointer}, is already a reference.`);
+    throw new Error(`Pointer ${pointer} is already a reference.`);
   }
 
   const promotedNodePointer = getUniqueNodePath(
     uiSchemaNodes,
-    makePointer(Keywords.Definitions, pointer.split('/').pop())
+    makePointer(Keyword.Definitions, pointer.split('/').pop())
   );
 
   const updatedUiSchemaNodes = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
@@ -68,7 +68,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
 export const convertRefToField = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
   if (uiNodeIndex === undefined) {
-    throw new Error(`Pointer ${pointer}, can't be found.`);
+    throw new Error(`Pointer ${pointer} can't be found.`);
   }
   const uiNode = uiSchemaNodes[uiNodeIndex];
   if (uiNode.objectKind !== ObjectKind.Reference) {

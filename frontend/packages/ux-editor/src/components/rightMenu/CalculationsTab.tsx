@@ -21,7 +21,10 @@ export const CalculationsTab = () => {
           variant={ButtonVariant.Quiet}
         />
       </div>
-      <RuleModal modalOpen={modalOpen} handleClose={() => setModalOpen(false)} />
+      <RuleModal
+        modalOpen={modalOpen}
+        handleClose={() => setModalOpen(false)}
+        handleOpen={() => setModalOpen(true)} />
     </div>
     <Divider marginless/>
     <Dynamics />

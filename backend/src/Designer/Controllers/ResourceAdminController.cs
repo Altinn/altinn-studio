@@ -10,7 +10,7 @@ using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository
 namespace Altinn.Studio.Designer.Controllers
 {
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+    //[AutoValidateAntiforgeryToken]
     public class ResourceAdminController : ControllerBase
     {
         private readonly IGitea _giteaApi;
@@ -41,10 +41,20 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/repository/resourcelist")]
-        public ActionResult<List<ServiceResource>> GetRepositoryResourceList(string org)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
         {
-            List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, string.Format("{0}-resources", org));
-            return repositoryResourceList != null && repositoryResourceList.Count > 0 ? repositoryResourceList : StatusCode(204);
+            string repository = string.Format("{0}-resources", org);
+            List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+            List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
+
+            foreach (ServiceResource resource in repositoryResourceList)
+            {
+                ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, string.Format("{0}-resources", org), resource);
+                listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
+                listviewServiceResources.Add(listviewResource);
+            }
+
+            return listviewServiceResources != null && listviewServiceResources.Count > 0 ? listviewServiceResources : StatusCode(204);
         }
 
         [HttpGet]

@@ -1,10 +1,11 @@
 import React from 'react';
 import { FieldSet, Select } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
-import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';
-import { IGenericEditComponent } from '../../componentConfig';
-import { ComponentType } from '../../../index';
+import { EditSettings, IGenericEditComponent } from '../../componentConfig';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
+import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
 
 export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -54,7 +55,20 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
         />
       </div>
       {component.type === ComponentType.Button && (
-        <EditTitle component={component} handleComponentChange={handleComponentChange} />
+        <EditTextResourceBinding
+          component={component}
+          handleComponentChange={handleComponentChange}
+          textKey={EditSettings.Title}
+          labelKey={`ux_editor.modal_properties_textResourceBindings_${EditSettings.Title}`}
+          placeholderKey={`ux_editor.modal_properties_textResourceBindings_${EditSettings.Title}_add`}
+        />
+      )}
+      {component.type === ComponentType.NavigationButtons && (
+        <EditTextResourceBindings
+          component={component}
+          handleComponentChange={handleComponentChange}
+          textResourceBindingKeys={['next', 'back']}
+        />
       )}
     </FieldSet>
   );

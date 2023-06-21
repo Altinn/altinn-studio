@@ -3,12 +3,12 @@ import { EditTextResourceBinding, EditTextResourceBindingProps } from './EditTex
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { FormComponentType } from '../../../types/global';
 import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from '../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import type { FormComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -28,13 +28,14 @@ jest.mock(
 );
 
 describe('EditTextResourceBindings component', () => {
-  const mockComponent: FormComponentType = {
+  const mockComponent: FormComponent = {
     id: 'test-id',
     textResourceBindings: {
       test: 'test-text',
     },
     type: ComponentType.Input,
     itemType: 'COMPONENT',
+    dataModelBindings: {},
   };
 
   const textResources: ITextResource[] = [

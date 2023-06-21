@@ -5,13 +5,13 @@ import userEvent from '@testing-library/user-event';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
 import { renderWithMockStore } from '../../../../testing/mocks';
-import type { IFormImageComponent } from '../../../../types/global';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import type { FormImageComponent } from '../../../../types/FormComponent';
 
 const user = userEvent.setup();
 
-const componentData: IFormImageComponent = {
+const componentData: FormImageComponent = {
   id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
   textResourceBindings: {},
   type: ComponentType.Image,
@@ -19,6 +19,7 @@ const componentData: IFormImageComponent = {
     src: {},
   },
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const texts = {
   'ux_editor.modal_properties_image_src_value_label': 'Source',

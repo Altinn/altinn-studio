@@ -1,5 +1,5 @@
-import type { UiSchemaNodes } from '../types';
-import { CombinationKind } from '../types';
+import type { UiSchemaNodes } from '../../types';
+import { CombinationKind } from '../../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 
@@ -9,7 +9,7 @@ export const renameNodePointer = (
   newPointer: string
 ) => {
   if (oldPointer === newPointer) {
-    throw new Error('Old and new name is equal');
+    throw new Error('Old and new name are equal');
   }
 
   if (!hasNodePointer(uiSchemaNodes, oldPointer)) {

@@ -1,15 +1,16 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.ConfigController
 {
-    public class GetServiceConfigTests : ConfigControllerTestsBase<GetServiceConfigTests>
+    public class GetServiceConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ConfigController, GetServiceConfigTests>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
         public GetServiceConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ConfigController> factory) : base(factory)
         {
         }
@@ -40,7 +41,7 @@ namespace Designer.Tests.Controllers.ConfigController
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfigResponse = await response.Content.ReadAsAsync<ServiceConfiguration>();
-            ServiceConfiguration serviceConfiguration = GetServiceConfiguration(org, app);
+            ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(TestRepositoriesLocation, org, app, "testUser");
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(serviceConfiguration.RepositoryName, serviceConfigResponse.RepositoryName);

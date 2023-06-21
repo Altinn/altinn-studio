@@ -1,11 +1,11 @@
 import { findCustomAttributes } from './custom-properties';
-import { Keywords } from '../types';
+import { Keyword } from '../../types';
 
-test('that we are handling custom properties ', () => {
+test('findCustomAttributes', () => {
   const customData = 'custom-data';
   expect(
     findCustomAttributes({
-      [Keywords.Enum]: [],
+      [Keyword.Enum]: [],
       customData,
     })
   ).toStrictEqual({ customData });

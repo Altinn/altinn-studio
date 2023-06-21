@@ -1,0 +1,131 @@
+{
+  "Rules": [
+    {
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner ssb the right to instantiate a instance of a given app of ssb/ra1000-01",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:ssb"
+      ],
+      "Actions": [
+        "instantiate",
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role REGNA or DAGL can read and write for ssb/ra1000-01 when it is in Task_1",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:A0237",
+        "urn:altinn:rolecode:A0240",
+        "urn:altinn:rolecode:A0239",
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL"
+      ],
+      "Actions": [
+        "read",
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01",
+          "urn:altinn:task:Task_1"
+        ],
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role REGNA or DAGL can delete instances of ssb/ra1000-01",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:A0237",
+        "urn:altinn:rolecode:A0240",
+        "urn:altinn:rolecode:A0239",
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:ssb"
+      ],
+      "Actions": [
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that org can write to instances of ssb/ra1000-01 for any states",
+      "Subject": [
+        "urn:altinn:org:ssb"
+      ],
+      "Actions": [
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that org can complete an instance of ssb/ra1000-01 which state is at the end event.",
+      "Subject": [
+        "urn:altinn:org:ssb"
+      ],
+      "Actions": [
+        "complete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner ssb the right to read the appresource events of a given app of ssb/ra1000-01",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:A0237",
+        "urn:altinn:rolecode:A0240",
+        "urn:altinn:rolecode:A0239",
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:ssb"
+      ],
+      "Actions": [
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:ssb",
+          "urn:altinn:app:ra1000-01",
+          "urn:altinn:appresource:events"
+        ]
+      ]
+    }
+  ],
+  "RequiredAuthenticationLevelEndUser": "2",
+  "RequiredAuthenticationLevelOrg": null
+}

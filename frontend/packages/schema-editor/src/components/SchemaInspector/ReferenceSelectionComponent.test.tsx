@@ -4,7 +4,7 @@ import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { createNodeBase, Keywords, ObjectKind } from '@altinn/schema-model';
+import { createNodeBase, Keyword, ObjectKind } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -16,14 +16,14 @@ const label = 'Refererer til';
 const onChangeRef = jest.fn();
 const onGoToDefButtonClick = jest.fn();
 const selectedNode: UiSchemaNode = {
-  ...createNodeBase(Keywords.Reference, 'test'),
+  ...createNodeBase(Keyword.Reference, 'test'),
   objectKind: ObjectKind.Reference,
   reference: '',
 };
 const type1Name = 'type1';
 const type2Name = 'type2';
-const type1 = createNodeBase(Keywords.Definitions, type1Name);
-const type2 = createNodeBase(Keywords.Definitions, type2Name);
+const type1 = createNodeBase(Keyword.Definitions, type1Name);
+const type2 = createNodeBase(Keyword.Definitions, type2Name);
 const rootNode = {
   ...createNodeBase('#'),
   children: [selectedNode, type1, type2].map((node) => node.pointer),
@@ -43,19 +43,19 @@ const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionPr
   renderWithRedux(<ReferenceSelectionComponent {...defaultProps} {...props} />, { uiSchema });
 
 describe('ReferenceSelectionComponent', () => {
-  test('Select box appears', () => {
+  test('Select box appears', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByRole('combobox')).toBeDefined();
+    expect(await screen.findByRole('combobox')).toBeDefined();
   });
 
-  test('Label text appears', () => {
+  test('Label text appears', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByText(label)).toBeDefined();
+    expect(await screen.findByText(label)).toBeDefined();
   });
 
-  test('"Go to type" button appears with given text', () => {
+  test('"Go to type" button appears with given text', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByRole('button')).toHaveTextContent(buttonText);
+    expect(await screen.findByRole('button', { name: buttonText })).toBeInTheDocument();
   });
 
   test('All types should appear as options', async () => {
@@ -77,16 +77,16 @@ describe('ReferenceSelectionComponent', () => {
     expect(screen.getByRole('option', { name: emptyOptionLabel })).toBeDefined();
   });
 
-  test('Empty option is selected by default', () => {
+  test('Empty option is selected by default', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByRole('combobox')).toHaveValue('');
+    expect(await screen.findByRole('combobox')).toHaveValue(emptyOptionLabel);
   });
 
-  test('Referenced type is selected if given', () => {
+  test('Referenced type is selected if given', async () => {
     renderReferenceSelectionComponent({
       selectedNode: { ...selectedNode, reference: type1.pointer },
     });
-    expect(screen.getByRole('combobox')).toHaveValue(type1.pointer);
+    expect(await screen.findByRole('combobox')).toHaveValue(type1Name);
   });
 
   test('onChange handler is called with correct parameters when value changes', async () => {

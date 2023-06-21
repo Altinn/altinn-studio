@@ -1,33 +1,37 @@
-import { ICreateFormContainer, IInternalLayout } from '../../types/global';
+import { IInternalLayout } from '../../types/global';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { deepCopy } from 'app-shared/pure';
+import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
+import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
+import { useRuleConfigMutation } from './useRuleConfigMutation';
+import { FormContainer } from '../../types/FormContainer';
+import { updateContainer } from '../../utils/formLayoutUtils';
 
 export interface UpdateFormContainerMutationArgs {
-  updatedContainer: ICreateFormContainer;
+  updatedContainer: FormContainer;
   id: string;
 }
 
-export const useUpdateFormContainerMutation = (org: string, app: string) => {
+export const useUpdateFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
+  const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
+  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
 
   return useMutation({
     mutationFn: ({ updatedContainer, id }: UpdateFormContainerMutationArgs) => {
-      const oldLayout = deepCopy(layout);
-      const newLayout: IInternalLayout = {
-        ...oldLayout,
-        containers: {
-          ...oldLayout.containers,
-          [id]: {
-            ...oldLayout.containers[id],
-            ...updatedContainer,
-          }
-        }
-      }
-      return formLayoutMutation.mutateAsync(newLayout);
+      const newLayout: IInternalLayout = updateContainer(layout, updatedContainer, id);
+
+      const currentId = id;
+      const newId = updatedContainer.id || currentId;
+
+      // Save:
+      return saveLayout(newLayout).then(() => ({ currentId, newId }));
+    },
+    onSuccess: async ({ currentId, newId }) => {
+      await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
     }
   });
 };

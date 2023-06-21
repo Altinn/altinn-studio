@@ -45,5 +45,7 @@ const config = {
 
 if (process.env.CI) {
   config.reporters.push('github-actions');
+  config.collectCoverage = true;
+  config.coverageReporters = ['lcov'];
 }
 module.exports = config;

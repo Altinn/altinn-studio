@@ -1,192 +1,125 @@
-import React, { useEffect, useState } from 'react';
-import { Container } from './Container';
-import type { IFormLayoutOrder } from '../types/global';
-import { DroppableDraggableContainer } from './DroppableDraggableContainer';
-
-import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
-import { ItemType } from './helpers/dnd-types';
-import {
-  insertArrayElementAtPos,
-  removeArrayElement,
-  swapArrayElements,
-} from 'app-shared/pure/array-functions';
+import React, { useContext } from 'react';
+import { useSelector } from 'react-redux';
+import { FormContainer } from './FormContainer';
+import type { FormContainer as IFormContainer } from '../types/FormContainer';
+import type { FormComponent as IFormComponent } from '../types/FormComponent';
+import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
+import { DraggableEditorItemType } from '../types/dndTypes';
+import { useFormLayoutsSelector } from '../hooks';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { FormComponent } from '../components/FormComponent';
+import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
+import { generateComponentId } from '../utils/generateId';
+import { moveLayoutItem } from '../utils/formLayoutUtils';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { FormContext } from './FormContext';
+import { DroppableList } from '../components/dragAndDrop/DroppableList';
+import { DragDropListItem } from '../components/dragAndDrop/DragDropListItem';
+import { ConnectDragSource } from 'react-dnd';
+import classes from './DesignView.module.css';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
-import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
-import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
-import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
-import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { ITextResource } from 'app-shared/types/global';
+import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 
 export interface DesignViewProps {
-  isDragging: boolean;
-  layoutOrder: IFormLayoutOrder;
-  order: IFormLayoutOrder;
+  className?: string;
 }
 
-export interface DesignViewState {
-  layoutOrder: IFormLayoutOrder;
-  isDragging: boolean;
-}
-
-export const DesignView = ({
-  isDragging,
-  layoutOrder,
-  order,
-}: DesignViewProps) => {
-  const [beforeDrag, setBeforeDrag] = useState(null);
-
-  const [state, setState] = useState<DesignViewState>({ layoutOrder, isDragging });
-  useEffect(
-    () => setState({ layoutOrder, isDragging }),
-    [layoutOrder, isDragging]
-  );
-
+export const DesignView = ({ className }: DesignViewProps) => {
   const { org, app } = useParams();
-  const { data: datamodel } = useDatamodelQuery(org, app);
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
-  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
-  const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
-  const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
-  const updateContainerIdMutation = useUpdateContainerIdMutation(org, app);
-  const deleteFormContainerMutation = useDeleteFormContainerMutation(org, app);
+  const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
+  const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);
 
-  const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
-    if (newLayoutOrder.includes(containerId)) {
-      throw Error("can't add item to itself");
-    }
-    setState({
-      layoutOrder: { ...state.layoutOrder, [containerId]: newLayoutOrder },
-      isDragging: true,
-    });
+  const { t } = useTranslation();
+
+  const layout = layouts?.[layoutName];
+
+  if (!layout) return null;
+
+  const { order, containers, components } = layout;
+
+  const addItem = (item: NewDndItem, { parentId, index }: ItemPosition) => {
+    const newId = generateComponentId(item.type, layouts);
+    addItemToLayout({ componentType: item.type, newId, parentId, index });
   };
+  const moveItem = (item: ExistingDndItem, { parentId, index }: ItemPosition) =>
+    updateFormLayout(moveLayoutItem(layout, item.id, parentId, index));
 
-  const removeItemFromContainer = (item: EditorDndItem): void => {
-    const updatedLayoutOrder = removeArrayElement(state.layoutOrder[item.containerId], item.id);
-    setContainerLayoutOrder(item.containerId, updatedLayoutOrder);
-    item.index = undefined;
-    item.containerId = undefined;
-  };
+  const handleDrop: HandleDrop = (item, position) =>
+    item.isNew === true ? addItem(item, position) : moveItem(item, position);
 
-  const addItemToContainer = (
-    item: EditorDndItem,
-    targetContainerId: string,
-    targetPos: number
+  const renderContainer = (
+    id: string,
+    isBaseContainer: boolean,
+    disabledDrop: boolean = false,
+    dragHandleRef?: ConnectDragSource,
   ) => {
-    const newLayoutOrder = insertArrayElementAtPos(
-      state.layoutOrder[targetContainerId],
-      item.id,
-      targetPos
+    if (!id) return null;
+
+    const items = order[id];
+
+    return (
+      <FormContainer
+        container={formId === id ? form as IFormContainer : containers[id]}
+        dragHandleRef={dragHandleRef}
+        handleDiscard={handleDiscard}
+        handleEdit={handleEdit}
+        id={id}
+        isBaseContainer={isBaseContainer}
+        isEditMode={formId === id}
+      >
+        <DroppableList containerId={id} handleDrop={handleDrop} disabledDrop={disabledDrop}>
+          {items?.length ? items.map((itemId: string, itemIndex: number) => (
+            <DragDropListItem
+              disabledDrop={disabledDrop}
+              key={itemId}
+              item={{ isNew: false, id: itemId, position: { parentId: id, index: itemIndex } }}
+              onDrop={handleDrop}
+              renderItem={(itemDragHandleRef, isDragging) => {
+                const component = components[itemId];
+                if (component) {
+                  return (
+                    <FormComponent
+                      id={itemId}
+                      isEditMode={formId === itemId}
+                      component={formId === itemId ? form as IFormComponent : components[itemId]}
+                      handleEdit={handleEdit}
+                      handleSave={handleComponentSave}
+                      handleDiscard={handleDiscard}
+                      dragHandleRef={itemDragHandleRef}
+                    />
+                  );
+                }
+                return containers[itemId] && renderContainer(
+                  itemId,
+                  false,
+                  disabledDrop || isDragging,
+                  itemDragHandleRef
+                );
+              }}
+              type={components[itemId] ? DraggableEditorItemType.Component : DraggableEditorItemType.Container}
+            />
+          )) : <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>}
+        </DroppableList>
+      </FormContainer>
     );
-    setContainerLayoutOrder(targetContainerId, newLayoutOrder);
-    item.index = newLayoutOrder.indexOf(item.id);
-    item.containerId = targetContainerId;
   };
 
-  const moveItemBetweenContainers = (
-    item: EditorDndItem,
-    targetContainerId: string,
-    targetContainerPosition: number
-  ) => {
-    removeItemFromContainer(item);
-    addItemToContainer(item, targetContainerId, targetContainerPosition);
-  };
-
-  const moveItemToTop = (item: EditorDndItem) => {
-    const arr = state.layoutOrder[item.containerId];
-    swapItemsInsideTheSameContainer(item, arr[0]);
-  };
-
-  const moveItemToBottom = (item: EditorDndItem) => {
-    const arr = state.layoutOrder[item.containerId];
-    swapItemsInsideTheSameContainer(item, arr[arr.length - 1]);
-  };
-
-  const swapItemsInsideTheSameContainer = (movedItem: EditorDndItem, targetId: string): void => {
-    const currentLayoutOrder = state.layoutOrder[movedItem.containerId];
-    const newLayoutOrder = swapArrayElements(currentLayoutOrder, movedItem.id, targetId);
-    setContainerLayoutOrder(movedItem.containerId, newLayoutOrder);
-    movedItem.index = newLayoutOrder.indexOf(movedItem.id);
-  };
-
-  const moveItem = (
-    movedItem: EditorDndItem,
-    targetItem: EditorDndItem,
-    toIndex?: number
-  ): void => {
-    if (
-      !movedItem.id ||
-      (ItemType.Item && !movedItem.containerId) ||
-      (targetItem.type === ItemType.Container && movedItem.containerId === targetItem.id) ||
-      (movedItem.id === targetItem.id)
-    ) return;
-
-    if (!beforeDrag) {
-      setBeforeDrag(state.layoutOrder);
-    }
-
-    if (movedItem.containerId === targetItem.containerId) {
-      swapItemsInsideTheSameContainer(movedItem, targetItem.id);
-    } else if (targetItem.type === ItemType.Container && toIndex !== undefined) {
-      moveItemBetweenContainers(movedItem, targetItem.id, toIndex);
-    } else if (targetItem.type === ItemType.Item && movedItem.id !== targetItem.containerId) {
-      moveItemBetweenContainers(movedItem, targetItem.containerId, targetItem.index);
-    } else {
-      // There is nothing that should be moved.
-    }
-  };
-
-  const resetState = () => {
-    beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
-  };
-  const onDropItem = (reset?: boolean) => {
-    if (reset) {
-      resetState();
-    } else {
-      updateFormComponentOrderMutation.mutate(state.layoutOrder);
-      setState({ ...state, isDragging: false });
-    }
-    setBeforeDrag(null);
-  };
-  const baseContainerId =
-    Object.keys(state.layoutOrder).length > 0 ? Object.keys(state.layoutOrder)[0] : null;
-
-  const dndEvents: EditorDndEvents = {
-    moveItem,
-    moveItemToBottom,
-    moveItemToTop,
-    onDropItem,
-  };
   return (
-    baseContainerId && (
-      <DroppableDraggableContainer
-        id={baseContainerId}
-        isBaseContainer={true}
-        canDrag={false}
-        dndEvents={dndEvents}
-        container={() => (
-          <Container
-            isBaseContainer={true}
-            id={baseContainerId}
-            items={state.layoutOrder[baseContainerId]}
-            layoutOrder={state.layoutOrder}
-            dndEvents={dndEvents}
-            dataModel={datamodel}
-            components={components}
-            containers={containers}
-            itemOrder={order}
-            updateFormContainerMutation={updateFormContainerMutation}
-            updateContainerIdMutation={updateContainerIdMutation}
-            deleteFormContainerMutation={deleteFormContainerMutation}
-            textResources={textResources}
-          />
-        )}
-      />
-    )
+    <div
+      className={className}
+      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
+        handleEdit(null)
+      }}
+    >
+      <h1 className={classes.pageHeader}>{layoutName}</h1>
+      {renderContainer(BASE_CONTAINER_ID, true)}
+    </div>
   );
 };

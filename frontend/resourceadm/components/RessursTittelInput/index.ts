@@ -1,0 +1,1 @@
+export { RessursTittelInput } from './RessursTittelInput';

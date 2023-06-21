@@ -23,8 +23,8 @@ import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import { useParams } from 'react-router-dom';
 import type { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
+import { useTextResourcesSelector } from '../hooks';
+import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 
 export interface TextResourceProps {
   description?: string;
@@ -75,7 +75,8 @@ export const TextResource = ({
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
   const isEditing = textResourceId && editId === textResourceId;
 
-  const handleEditButtonClick = () => {
+  const handleEditButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     if (textResourceId) {
       setEditId(textResourceId);
     } else {

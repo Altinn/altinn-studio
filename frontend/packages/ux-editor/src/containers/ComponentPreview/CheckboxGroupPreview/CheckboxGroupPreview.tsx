@@ -1,7 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
 import { CheckboxGroup } from '@digdir/design-system-react';
-import { IFormCheckboxComponent } from '../../../types/global';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
@@ -12,9 +11,10 @@ import {
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
 import { TranslationKey } from 'language/type';
+import type { FormCheckboxesComponent } from '../../../types/FormComponent';
 
 export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
-  component: IFormCheckboxComponent;
+  component: FormCheckboxesComponent;
 }
 
 export const CheckboxGroupPreview = ({
@@ -79,7 +79,7 @@ export const CheckboxGroupPreview = ({
         presentation
       />
       {!component.optionsId && (
-        <AddOption<IFormCheckboxComponent>
+        <AddOption<FormCheckboxesComponent>
           addButtonClass={classes.addCheckbox}
           component={component}
           duplicateErrorText={tCheckboxes('option_value_error_duplicate')}

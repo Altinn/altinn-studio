@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.5" />
     <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.0.0" />
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
@@ -46,7 +47,6 @@
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Yuniql.AspNetCore" />
     <PackageReference Include="Yuniql.PostgreSql" />
-    <PackageReference Include="RestSharp" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
@@ -63,6 +63,7 @@
     <CoreLanguage Include="../Common/Languages/ini/*" />
     <Compile Remove="Controllers\ManualTestingController.cs" />
     <None Remove="jwtselfsignedcert.pfx" />
+    <Watch Remove="Controllers\PolicyController.cs" />
     <Watch Remove="Configuration\MaskinportenClientSettings.cs" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />
     <Watch Remove="Controllers\ResourceAdmController.cs" />
@@ -71,24 +72,33 @@
     <Watch Remove="Enums\ReferenceType.cs" />
     <Watch Remove="Enums\ResourceType.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
+    <Watch Remove="Models\GiteaCommit.cs" />
+    <Watch Remove="Models\GiteaRepoCommitInfo.cs" />
+    <Watch Remove="Models\GiteaRepoCommitMeta.cs" />
+    <Watch Remove="Models\GiteaRepoCommitUser.cs" />
+    <Watch Remove="Models\GiteaRepoPayloadCommitVerification.cs" />
+    <Watch Remove="Models\GiteaRepoPayloadUser.cs" />
+    <Watch Remove="Models\GiteaUser.cs" />
     <Watch Remove="Models\Keyword.cs" />
+    <Watch Remove="Models\ListviewServiceResource.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
-    <Watch Remove="Services\Implementation\IMaskinportenService.cs" />
-    <Watch Remove="Services\Implementation\MaskinportenClient.cs" />
-    <Watch Remove="Services\Implementation\MaskinPortenClientDefinition.cs" />
-    <Watch Remove="Services\Implementation\ResourceRegistryService.cs" />
+    <Watch Remove="RepositoryClient\Client\PolicyOptionsClient.cs" />
+    <Watch Remove="RepositoryClient\Model\CommitAffectedFile.cs" />
+    <Watch Remove="RepositoryClient\Model\ContentsResponse.cs" />
+    <Watch Remove="RepositoryClient\Model\FileLinksResponse.cs" />
+    <Watch Remove="RepositoryClient\Model\GiteaRepoCommitStats.cs" />
+    <Watch Remove="Services\Implementation\PolicyOptionsService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
     <Watch Remove="Services\Interfaces\IMaskinportenClient.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistry.cs" />
+    <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
-    <Content Include="jwtselfsignedcert.pfx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>
 

@@ -34,6 +34,7 @@ jobs:
         with:
           languages: javascript
           queries: +security-and-quality
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -76,6 +77,14 @@ jobs:
 
       - name: 'Running Unit Tests'
         run: yarn test:ci
+
+      - name: 'Upload coverage reports to Codecov'
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          directory: frontend/coverage
+          fail_ci_if_error: true
 
   build:
     name: 'Building'

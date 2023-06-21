@@ -1,4 +1,14 @@
-import { removeItemByValue, last, prepend, removeDuplicates } from './arrayUtils';
+import {
+  areItemsUnique,
+  arrayIntersection,
+  insertArrayElementAtPos,
+  last,
+  mapByKey,
+  prepend,
+  removeDuplicates,
+  removeItemByValue,
+  swapArrayElements,
+} from './arrayUtils';
 
 describe('arrayUtils', () => {
 
@@ -12,6 +22,7 @@ describe('arrayUtils', () => {
     it('Returns equal array if there are no duplicates', () => {
       expect(removeDuplicates([1, 2, 3])).toEqual([1, 2, 3]);
       expect(removeDuplicates(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
+      expect(removeDuplicates([1, 2, 3, '3'])).toEqual([1, 2, 3, '3']);
     });
 
     it('Returns empty array if input is empty', () => {
@@ -44,6 +55,72 @@ describe('arrayUtils', () => {
       expect(removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
       expect(removeItemByValue([], 'a')).toEqual([]);
       expect(removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
+    });
+  });
+
+  describe('areItemsUnique', () => {
+    it('Returns true if all items are unique', () => {
+      expect(areItemsUnique([1, 2, 3])).toBe(true);
+      expect(areItemsUnique(['a', 'b', 'c'])).toBe(true);
+      expect(areItemsUnique(['abc', 'bcd', 'cde'])).toBe(true);
+      expect(areItemsUnique([true, false])).toBe(true);
+      expect(areItemsUnique([1, 'b', true])).toBe(true);
+      expect(areItemsUnique([0, '', false, null, undefined])).toBe(true);
+    });
+
+    it('Returns true if array is empty', () => {
+      expect(areItemsUnique([])).toBe(true);
+    });
+
+    it('Returns false if there is at least one duplicated item', () => {
+      expect(areItemsUnique([1, 2, 1])).toBe(false);
+      expect(areItemsUnique(['a', 'a', 'c'])).toBe(false);
+      expect(areItemsUnique(['abc', 'bcd', 'bcd'])).toBe(false);
+      expect(areItemsUnique([true, false, true])).toBe(false);
+      expect(areItemsUnique([1, 'b', false, 1])).toBe(false);
+      expect(areItemsUnique([null, null])).toBe(false);
+      expect(areItemsUnique([undefined, undefined])).toBe(false);
+    });
+  });
+
+  describe('insertArrayElementAtPos', () => {
+    const arr = ['a', 'b', 'c'];
+
+    it('Inserts element at given position', () => {
+      expect(insertArrayElementAtPos(arr, 'M', 0)).toEqual(['M', 'a', 'b', 'c']);
+      expect(insertArrayElementAtPos(arr, 'M', 1)).toEqual(['a', 'M', 'b', 'c']);
+      expect(insertArrayElementAtPos(arr, 'M', 3)).toEqual(['a', 'b', 'c', 'M']);
+    });
+
+    it('Inserts element at the end if the position number is too large', () => {
+      expect(insertArrayElementAtPos(arr, 'M', 9)).toEqual(['a', 'b', 'c', 'M']);
+    });
+
+    it('Inserts element at the end if the position number is negative', () => {
+      expect(insertArrayElementAtPos(arr, 'M', -1)).toEqual(['a', 'b', 'c', 'M']);
+    });
+  });
+
+  describe('swapArrayElements', () => {
+    it('Swaps two elements in an array', () => {
+      const arr: string[] = ['a', 'b', 'c', 'd', 'e', 'f'];
+      expect(swapArrayElements(arr, 'a', 'b')).toEqual(['b', 'a', 'c', 'd', 'e', 'f']);
+    });
+  });
+
+  describe('arrayIntersection', () => {
+    it('Returns intersection of two arrays', () => {
+      expect(arrayIntersection([1, 2, 3], [3, '4', 5])).toStrictEqual([3]);
+      expect(arrayIntersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
+      expect(arrayIntersection([1, 2, 3], [3, '4', 2])).toStrictEqual([2, 3]);
+      expect(arrayIntersection([1, 2, 3], [1, 2, 3])).toStrictEqual([1, 2, 3]);
+    });
+  });
+
+  describe('mapByKey', () => {
+    it('Returns an array of values mapped by the given key', () => {
+      const array = [{ a: 1, b: 2 }, { a: 2, b: 'c' }, { a: 3, b: true, c: 'abc' }];
+      expect(mapByKey(array, 'a')).toEqual([1, 2, 3]);
     });
   });
 });

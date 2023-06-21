@@ -38,6 +38,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+                if (textResource?.Resources == null)
+                {
+                    textResource = new TextResource();
+                    textResource.Language = "nb";
+                    textResource.Resources = new List<TextResourceElement>();
+                }
+
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = repo });
                 await altinnAppGitRepository.SaveTextV1("nb", textResource);
             }
@@ -212,7 +219,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 else
                 {
                     int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
-                    textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                    if (textResourceContainsKey.Variables == null)
+                    {
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                    }
+                    else
+                    {
+                        List<TextResourceVariable> variables = textResourceContainsKey.Variables;
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value, Variables = variables };
+                    }
                 }
             }
 

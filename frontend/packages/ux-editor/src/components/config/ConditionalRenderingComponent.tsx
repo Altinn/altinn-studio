@@ -1,35 +1,46 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
 import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
-  IAppState,
-  IFormComponent,
-  IFormDesignerComponents, IFormDesignerContainers,
+  IFormDesignerComponents,
+  IFormDesignerContainers,
   IFormLayoutOrder,
   IRuleModelFieldElement,
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
-import { ComponentType } from '../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { ConditionalRenderingConnection, ConditionalRenderingConnections } from 'app-shared/types/RuleConfig';
+import i18next from 'i18next';
+import type { FormComponent } from '../../types/FormComponent';
 
 export interface IConditionalRenderingComponentProps {
-  connectionId?: any;
+  connectionId?: string;
   cancelEdit: () => void;
-  saveEdit: (updatedConnection: any) => void;
+  saveEdit: (id: string, connection: ConditionalRenderingConnection) => void;
   ruleModelElements: IRuleModelFieldElement[];
-  conditionalRendering: any;
+  conditionalRendering: ConditionalRenderingConnections;
   formLayoutComponents: IFormDesignerComponents;
-  deleteConnection?: (connectionId: any) => void;
+  deleteConnection?: (connectionId: string) => void;
   formLayoutContainers: IFormDesignerContainers;
   order: IFormLayoutOrder;
-  t: any;
+  t: typeof i18next.t;
 }
 
-class ConditionalRendering extends React.Component<IConditionalRenderingComponentProps, any> {
+interface IConditionalRenderingComponentState {
+  selectedFunctionNr: number | null;
+  connectionId: string | null;
+  selectableActions: string[];
+  conditionalRendering: ConditionalRenderingConnection;
+}
+
+class ConditionalRendering extends React.Component<
+  IConditionalRenderingComponentProps,
+  IConditionalRenderingComponentState
+> {
   constructor(props: IConditionalRenderingComponentProps) {
     super(props);
     const id = uuidv1();
@@ -39,7 +50,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
       selectableActions: ['Show', 'Hide'],
       conditionalRendering: {
         selectedFunction: '',
-        inputParams: '',
+        inputParams: {},
         selectedAction: '',
         selectedFields: {
           [id]: '',
@@ -81,12 +92,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
    * Methods that handles the saving of a conditional rendering rule
    */
   public handleSaveEdit = (): void => {
-    const connectionToSave = {
-      [this.state.connectionId]: {
-        ...this.state.conditionalRendering,
-      },
-    };
-    this.props.saveEdit(connectionToSave);
+    this.props.saveEdit(this.state.connectionId, this.state.conditionalRendering);
   };
 
   /**
@@ -194,7 +200,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   };
 
   public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
-    const component: IFormComponent = this.props.formLayoutComponents[id];
+    const component: FormComponent = this.props.formLayoutComponents[id];
     const labelText = getComponentTitleByComponentType(component.type, this.props.t);
     return (
       <option key={id} value={id}>
@@ -426,13 +432,4 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   }
 }
 
-const mapStateToProps = (state: IAppState, props: any): any => {
-  return {
-    conditionalRendering: state.serviceConfigurations.conditionalRendering,
-    selectedFunction: props.selectedFunction,
-  };
-};
-
-export const ConditionalRenderingComponent = withTranslation()(
-  connect(mapStateToProps)(ConditionalRendering)
-);
+export const ConditionalRenderingComponent = withTranslation()(ConditionalRendering);

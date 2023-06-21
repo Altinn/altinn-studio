@@ -1,6 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
-import type { IJsonSchema } from '@altinn/schema-editor/types';
 import { del, get, post, put as networkPut } from '../../../utils/networking';
 import type { IDataModelAction } from './dataModellingSlice';
 import {
@@ -22,8 +21,9 @@ import {
   createDatamodelPath,
   datamodelAddXsdFromRepoPath,
   datamodelPath,
-} from '../../../api-paths';
+} from '../../../api/paths';
 import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
@@ -68,7 +68,7 @@ function* createDataModelSaga(action: IDataModelAction) {
   const body = { modelName: name, relativeDirectory: relativePath };
   const { org, app } = _useParamsClassCompHack();
   try {
-    const schema: IJsonSchema = yield call(post, createDatamodelPath(org, app), body);
+    const schema: JsonSchema = yield call(post, createDatamodelPath(org, app), body);
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(createDataModelFulfilled({ schema }));
   } catch (err) {

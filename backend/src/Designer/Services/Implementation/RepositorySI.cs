@@ -5,6 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Schema;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -18,6 +22,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using static Altinn.Studio.Designer.Infrastructure.GitRepository.AltinnAppGitRepository;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -236,59 +241,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourceTexts;
         }
 
-        /// <summary>
-        /// Get the Json form model from disk for Dynamics
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetRuleHandler(string org, string app)
-        {
-            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string fileData = null;
-
-            if (File.Exists(filePath))
-            {
-                fileData = File.ReadAllText(filePath, Encoding.UTF8);
-            }
-
-            return fileData;
-        }
-
-        /// <summary>
-        /// Get the Json file from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetRuleConfig(string org, string app)
-        {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            if (File.Exists(filePath))
-            {
-                string fileData = File.ReadAllText(filePath, Encoding.UTF8);
-                return fileData;
-            }
-            throw new FileNotFoundException("Rule configuration not found.");
-        }
-
-        /// <summary>
-        /// Save rule handler file to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="content">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleHandler(string org, string app, string content)
-        {
-            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, content, Encoding.UTF8);
-
-            return true;
-        }
-
         /// <inheritdoc/>
         public string GetWidgetSettings(string org, string app)
         {
@@ -300,40 +252,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return fileData;
-        }
-
-        /// <summary>
-        /// Save the Rules configuration JSON file to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleConfig(string org, string app, string resource)
-        {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Method that stores configuration to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <param name="config">The content</param>
-        /// <returns>A boolean indicating if everything went ok</returns>
-        public bool SaveConfiguration(string org, string app, string name, string config)
-        {
-            string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, config, Encoding.UTF8);
-
-            return true;
         }
 
         /// <summary>
@@ -426,9 +344,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 if (Directory.Exists(repoPath))
                 {
-                    // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                    string backupPath = _settings.GetServicePath(org, $"{serviceConfig.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                    Directory.Move(repoPath, backupPath);
+                    FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
                 _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
@@ -477,9 +393,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (Directory.Exists(targetRepositoryPath))
             {
-                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                Directory.Move(targetRepositoryPath, backupPath);
+                FireDeletionOfLocalRepo(org, targetRepository, developer);
             }
 
             _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
@@ -530,9 +444,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (Directory.Exists(repoPath))
             {
-                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                string backupPath = _settings.GetServicePath(org, $"{repositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                Directory.Move(repoPath, backupPath);
+                FireDeletionOfLocalRepo(org, repositoryName, developer);
                 _sourceControl.CloneRemoteRepository(org, repositoryName);
                 return true;
             }
@@ -926,8 +838,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    string fullPathOfNewResource = $"{repopath}\\{newResource.Identifier}_resource.json";
+                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), string.Format("{0}_resource.json", newResource.Identifier));
                     string newResourceJson = JsonConvert.SerializeObject(newResource);
+                    Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
                     return new StatusCodeResult(201);
@@ -968,6 +881,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await _resourceRegistryService.PublishServiceResource(resource);
         }
 
+        public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)
+        {
+            List<FileSystemObject> contents = new();
+            string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            if (Directory.Exists(repositoryPath))
+            {
+                string[] dirs = Directory.GetDirectories(repositoryPath);
+                foreach (string directoryPath in dirs)
+                {
+                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
+                    if (!d.Name.StartsWith(".") && d.Name.ToLower().Contains(resource.Identifier.ToLower()))
+                    {
+                        contents.Add(d);
+                        string[] files = Directory.GetFiles(d.Path);
+                        foreach (string file in files)
+                        {
+                            if (file.EndsWith("policy.xml"))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
         {
             List<FileSystemObject> contents = GetContents(org, repository, path);
@@ -977,6 +919,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 foreach (FileSystemObject resourceFile in contents)
                 {
+                    if (resourceFile.Type.Equals("Dir") && !resourceFile.Name.StartsWith("."))
+                    {
+                        List<FileSystemObject> contentsInFolder = GetContents(org, repository, resourceFile.Name);
+
+                        if (contentsInFolder != null)
+                        {
+                            foreach (FileSystemObject content in contentsInFolder)
+                            {
+                                if (content.Name.EndsWith("_resource.json"))
+                                {
+                                    resourceFiles.Add(content);
+                                }
+                            }
+                        }
+                    }
                     if (resourceFile.Name.EndsWith("_resource.json"))
                     {
                         resourceFiles.Add(resourceFile);
@@ -1048,6 +1005,96 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task DeleteRepository(string org, string repository)
         {
             await _sourceControl.DeleteRepository(org, repository);
+        }
+
+        public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
+        {
+            string policyPath = GetPolicyPath(org, repo, resourceId);
+
+
+            string xsd;
+            await using (MemoryStream stream = new MemoryStream())
+            await using (var xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                XacmlSerializer.WritePolicy(xw, xacmlPolicy);
+                xw.Flush();
+                stream.Position = 0;
+                xsd = Encoding.UTF8.GetString(stream.ToArray());
+            }
+            await WriteTextAsync(policyPath, xsd);
+
+            return true;
+        }
+
+        public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
+        {
+            string policyPath = GetPolicyPath(org, repo, resourceId);
+            if (!File.Exists(policyPath))
+            {
+                return null;
+            }
+
+            XmlDocument policyDocument = new XmlDocument();
+            policyDocument.Load(policyPath);
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
+        }
+
+        private string GetPolicyPath(string org, string repo, string resourceId)
+        {
+            string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
+            if (!string.IsNullOrEmpty(resourceId))
+            {
+                policyPath = Path.Combine(localRepoPath, resourceId, resourceId + "_policy.xml");
+            }
+
+            return policyPath;
+        }
+
+        private static async Task WriteTextAsync(string absoluteFilePath, string text)
+        {
+            byte[] encodedText = Encoding.UTF8.GetBytes(text);
+            await using FileStream sourceStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
+        }
+
+        private void FireDeletionOfLocalRepo(string org, string repo, string developer)
+        {
+            string origRepo = _settings.GetServicePath(org, repo, developer);
+            if (!Directory.Exists(origRepo))
+            {
+                return;
+            }
+            // Rename the folder to be deleted. This operation should be much faster than delete.
+            string deletePath = _settings.GetServicePath(org, $"{repo}_SCHEDULED_FOR_DELETE_{DateTime.Now.Ticks}", developer);
+            Directory.Move(origRepo, deletePath);
+
+            // Run deletion task in background. It's not a critical issue if it fails.
+            Task.Run(() =>
+            {
+                try
+                {
+                    // On windows platform the deletion fail due to hidden files.
+                    var directory = new DirectoryInfo(deletePath) { Attributes = FileAttributes.Normal };
+
+                    foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+                    {
+                        info.Attributes = FileAttributes.Normal;
+                    }
+
+                    directory.Delete(true);
+                }
+                catch
+                {
+                    _logger.LogWarning("Failed to delete repository {Repo} for org {Org}.", repo, org);
+                }
+            });
         }
     }
 }

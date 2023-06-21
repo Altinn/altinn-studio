@@ -1,12 +1,13 @@
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
-import { ApplicationAttachmentMetadata } from '../../features/formDesigner/formDesignerTypes';
+import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const metadata: ApplicationAttachmentMetadata = {
   id: 'test',
+  taskId: 'Task_1',
   maxCount: 3,
   minCount: 1,
   maxSize: 16,

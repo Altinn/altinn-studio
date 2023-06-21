@@ -1,0 +1,7 @@
+.pageHeader {
+  margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
+}
+
+.emptyContainerText {
+  padding: 0 var(--margin-horizontal);
+}

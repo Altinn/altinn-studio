@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Checkbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 
 export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditComponent) => {
-  const [checked, setChecked] = useState(component.readOnly);
   const t = useText();
 
   const handleChange = () => {
-    setChecked(!checked);
     handleComponentChange({
       ...component,
       readOnly: !component.readOnly,
@@ -18,7 +16,7 @@ export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditC
   return (
     <div>
       <Checkbox
-        checked={checked}
+        checked={component.readOnly}
         onChange={handleChange}
         checkboxId={`readonly-checkbox-${component.id}`}
         label={t('ux_editor.modal_configure_read_only')}

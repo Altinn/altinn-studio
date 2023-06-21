@@ -1,0 +1,47 @@
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FFFFFF;
+  border-radius: 50px;
+  border: 1px solid #000000;
+  padding-inline: 12px;
+  padding-block: 5px;
+  width: fit-content;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.chipSelected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #E3F7FF;
+  border-radius: 50px;
+  border: 1px solid #1EAEF7;
+  padding-inline: 12px;
+  padding-block: 5px;
+  width: fit-content;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.chip:hover, .chipSelected:hover {
+  background-color: #00315D;
+  color: #FFFFFF;
+  border: 1px solid #00315D;
+}
+
+.chip:focus, .chipSelected:focus {
+  outline: 2px solid #98177e;
+  outline-offset: 3px;
+  /* TODO - handle when clicked and accessed with keyboard */
+}
+
+.text {
+  font-size: 12px;
+  font-weight: 400;
+  margin: 0;
+}

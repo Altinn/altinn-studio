@@ -1,6 +1,6 @@
 import { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 describe('generateComponentId', () => {
   const layouts: IFormLayouts = {
@@ -16,6 +16,7 @@ describe('generateComponentId', () => {
           id: 'Input-1bd34',
           type: ComponentType.Input,
           itemType: 'COMPONENT',
+          dataModelBindings: {},
         },
       },
       order: {
@@ -36,6 +37,7 @@ describe('generateComponentId', () => {
           id: 'Input-abfr34',
           type: ComponentType.Input,
           itemType: 'COMPONENT',
+          dataModelBindings: {},
         },
       },
       order: {

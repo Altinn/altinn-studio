@@ -1,7 +1,7 @@
-import { StrRestrictionKeys } from '@altinn/schema-model';
-import type { Dict } from '@altinn/schema-model/src/lib/types';
+import { StrRestrictionKey } from '@altinn/schema-model';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-type ChangeCallback = (restrictions: Dict) => void;
+type ChangeCallback = (restrictions: KeyValuePairs) => void;
 
 export enum StringRestrictionsReducerActionType {
   setEarliest = 'setEarliest',
@@ -29,7 +29,7 @@ interface SetEarliestOrLatestAction {
 
 interface SetRestrictionAction {
   type: StringRestrictionsReducerActionType.setRestriction;
-  restriction: StrRestrictionKeys;
+  restriction: StrRestrictionKey;
   value: string;
   changeCallback: ChangeCallback;
 }
@@ -45,7 +45,7 @@ export type StringRestricionsReducerState = {
   earliest: string;
   latest: string;
   restrictions: {
-    [restriction in StrRestrictionKeys]?: string;
+    [restriction in StrRestrictionKey]?: string;
   };
 };
 
@@ -53,16 +53,16 @@ const setMinIncl = (state: StringRestricionsReducerState, action: SetInclAction)
   const { restrictions } = state;
   if (action.value) {
     state.earliestIsInclusive = true;
-    const newInclMin = restrictions[StrRestrictionKeys.formatExclusiveMinimum];
+    const newInclMin = restrictions[StrRestrictionKey.formatExclusiveMinimum];
     state.earliest = newInclMin;
-    restrictions[StrRestrictionKeys.formatMinimum] = newInclMin;
-    restrictions[StrRestrictionKeys.formatExclusiveMinimum] = undefined;
+    restrictions[StrRestrictionKey.formatMinimum] = newInclMin;
+    restrictions[StrRestrictionKey.formatExclusiveMinimum] = undefined;
   } else {
     state.earliestIsInclusive = false;
-    const newExclMin = restrictions[StrRestrictionKeys.formatMinimum];
+    const newExclMin = restrictions[StrRestrictionKey.formatMinimum];
     state.earliest = newExclMin;
-    restrictions[StrRestrictionKeys.formatExclusiveMinimum] = newExclMin;
-    restrictions[StrRestrictionKeys.formatMinimum] = undefined;
+    restrictions[StrRestrictionKey.formatExclusiveMinimum] = newExclMin;
+    restrictions[StrRestrictionKey.formatMinimum] = undefined;
   }
 };
 
@@ -70,24 +70,24 @@ const setMaxIncl = (state: StringRestricionsReducerState, action: SetInclAction)
   const { restrictions } = state;
   if (action.value) {
     state.latestIsInclusive = true;
-    const newInclMax = restrictions[StrRestrictionKeys.formatExclusiveMaximum];
+    const newInclMax = restrictions[StrRestrictionKey.formatExclusiveMaximum];
     state.latest = newInclMax;
-    restrictions[StrRestrictionKeys.formatMaximum] = newInclMax;
-    restrictions[StrRestrictionKeys.formatExclusiveMaximum] = undefined;
+    restrictions[StrRestrictionKey.formatMaximum] = newInclMax;
+    restrictions[StrRestrictionKey.formatExclusiveMaximum] = undefined;
   } else {
     state.latestIsInclusive = false;
-    const newExclMax = restrictions[StrRestrictionKeys.formatMaximum];
+    const newExclMax = restrictions[StrRestrictionKey.formatMaximum];
     state.latest = newExclMax;
-    restrictions[StrRestrictionKeys.formatExclusiveMaximum] = newExclMax;
-    restrictions[StrRestrictionKeys.formatMaximum] = undefined;
+    restrictions[StrRestrictionKey.formatExclusiveMaximum] = newExclMax;
+    restrictions[StrRestrictionKey.formatMaximum] = undefined;
   }
 };
 
 const setEarliest = (state: StringRestricionsReducerState, action: SetEarliestOrLatestAction) => {
   const { value } = action;
   const key = state.earliestIsInclusive
-    ? StrRestrictionKeys.formatMinimum
-    : StrRestrictionKeys.formatExclusiveMinimum;
+    ? StrRestrictionKey.formatMinimum
+    : StrRestrictionKey.formatExclusiveMinimum;
   state.earliest = value;
   state.restrictions[key] = value;
 };
@@ -95,8 +95,8 @@ const setEarliest = (state: StringRestricionsReducerState, action: SetEarliestOr
 const setLatest = (state: StringRestricionsReducerState, action: SetEarliestOrLatestAction) => {
   const { value } = action;
   const key = state.latestIsInclusive
-    ? StrRestrictionKeys.formatMaximum
-    : StrRestrictionKeys.formatExclusiveMaximum;
+    ? StrRestrictionKey.formatMaximum
+    : StrRestrictionKey.formatExclusiveMaximum;
   state.latest = value;
   state.restrictions[key] = value;
 };

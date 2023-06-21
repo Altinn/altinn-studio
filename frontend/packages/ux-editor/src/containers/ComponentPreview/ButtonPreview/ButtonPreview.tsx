@@ -1,16 +1,16 @@
 import React from 'react';
 import { Button, ButtonVariant, ButtonColor } from '@digdir/design-system-react';
-import { IFormButtonComponent } from '../../../types/global';
 import { getTextResource } from '../../../utils/language';
-import { ComponentType } from '../../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './ButtonPreview.module.css';
 import { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesSelector } from '../../../hooks/useTextResourcesSelector';
+import { useTextResourcesSelector } from '../../../hooks';
 import { textResourcesByLanguageSelector } from '../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import type { FormButtonComponent } from '../../../types/FormComponent';
 
 export interface ButtonPreviewProps {
-  component: IFormButtonComponent;
+  component: FormButtonComponent;
 }
 
 export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => {

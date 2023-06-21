@@ -1,24 +1,24 @@
-import type { Dict } from '../types';
-import { CombinationKind, Keywords, UnhandledKeywords } from '../types';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { CombinationKind, Keyword, UnhandledKeyword } from '../../types';
 import { AllRestrictions } from '../restrictions';
 import { META_SCHEMA_ID } from '../constants';
 
 const specialAttributes = [
-  ...Object.values(Keywords),
+  ...Object.values(Keyword),
   ...Object.values(CombinationKind),
   ...Object.values(AllRestrictions),
 ] as string[];
 
 // Deals with custom properties... or really what properties that we not know about.
-export const findCustomAttributes = (schemaNode: Dict) => {
-  const outout: Dict = {};
+export const findCustomAttributes = (schemaNode: KeyValuePairs) => {
+  const output: KeyValuePairs = {};
   Object.keys(schemaNode).forEach((key) => {
     if (!specialAttributes.includes(key)) {
-      outout[key] = schemaNode[key];
+      output[key] = schemaNode[key];
     }
-    if (key === UnhandledKeywords.Schema) {
-      outout[key] = META_SCHEMA_ID;
+    if (key === UnhandledKeyword.Schema) {
+      output[key] = META_SCHEMA_ID;
     }
   });
-  return outout;
+  return output;
 };

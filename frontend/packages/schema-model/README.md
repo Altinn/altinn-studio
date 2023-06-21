@@ -12,7 +12,7 @@ instance cast the correct types of fields and so on.
 All mutations of the model should be immutable. So every mutation function will return a new copy of the array. Atm
 this package can:
 
-- Convert nodes between a normal field and a referance and back again.
+- Convert nodes between a normal field and a reference and back again.
 - Copy a node
 - Add new nodes to the tree
 - Remove nodes from the tree
@@ -29,8 +29,8 @@ to types and parent-child relations. Se more in [selectors.ts](src/lib/selectors
 
 ### Exceptions and Errors
 
-The solution will throw errors when encountering situtions that should not occur. This is a design choice. The application
-need to handle these exceptions. At the current iteration of this package errors are not translateable.
+The solution will throw errors when encountering situations that should not occur. This is a design choice. The application
+need to handle these exceptions. At the current iteration of this package errors are not translatable.
 
 ### Known problems
 
@@ -74,10 +74,10 @@ The model will not be able to put it back on the right place.
 
 #### Nullable Nodes
 
-Should add support for nullable items. This should be handeled inside this component and
+Should add support for nullable items. This should be handled inside this component and
 nodes should just expose an `isNullable`-property.
 
-Problem is that there are atleast two ways of creating nullables in JSON-schemas. You could
+Problem is that there are at least two ways of creating nullables in JSON-schemas. You could
 use the `type`-property and just set this to `type: ["string","null"]` this is a very easy
 inspection. Alternatively you could use `anyOf` or `oneOf` to create structures like this:
 
@@ -99,4 +99,4 @@ This is a problem that is not really solved.
 
 ### Final considerations
 
-Json-schemas can be endlessly complex. Try to limit which features that you want to support. Less is more. Happy validating!
+JSON-schemas can be endlessly complex. Try to limit which features that you want to support. Less is more. Happy validating!

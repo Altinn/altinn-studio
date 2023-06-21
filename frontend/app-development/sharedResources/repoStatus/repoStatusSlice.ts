@@ -44,20 +44,6 @@ export const repoStatusSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    resetLocalRepo: (state, action: PayloadAction<IRepoStatusAction>) => {
-      state.resettingLocalRepo = true;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    resetLocalRepoFulfilled: (state, action: PayloadAction<IRepoStatusActionFulfilled>) => {
-      state.resettingLocalRepo = false;
-      state.error = null;
-    },
-    resetLocalRepoRejected: (state, action: PayloadAction<IRepoStatusActionRejected>) => {
-      const { error } = action.payload;
-      state.error = error;
-      state.resettingLocalRepo = false;
-    },
   },
 });
 

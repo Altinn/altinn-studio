@@ -1,47 +1,35 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetXsdDatamodelsTests : ApiTestsBase<DatamodelsController, GetXsdDatamodelsTests>
+public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<DatamodelsController, GetXsdDatamodelsTests>
 {
-    private const string VersionPrefix = "/designer/api";
-
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public GetXsdDatamodelsTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
 
-    protected override void ConfigureTestServices(IServiceCollection services)
+    [Theory]
+    [InlineData("ttd", "hvem-er-hvem")]
+    public async Task GetXsdDatamodels_NoInput_ShouldReturnAllModels(string org, string repo)
     {
-        services.Configure<ServiceRepositorySettings>(c =>
-            c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGitea, IGiteaMock>();
-    }
-
-    [Fact]
-    public async Task GetXsdDatamodels_NoInput_ShouldReturnAllModels()
-    {
-        var url = $"{VersionPrefix}/ttd/hvem-er-hvem/datamodels/all-xsd";
+        string url = $"{VersionPrefix(org, repo)}/all-xsd";
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         var response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        var json = await response.Content.ReadAsStringAsync();
-        var altinnCoreFiles = JsonSerializer.Deserialize<List<AltinnCoreFile>>(json);
+        var altinnCoreFiles = await response.Content.ReadAsAsync<List<AltinnCoreFile>>();
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(2, altinnCoreFiles.Count);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        altinnCoreFiles.Count.Should().Be(2);
     }
 }

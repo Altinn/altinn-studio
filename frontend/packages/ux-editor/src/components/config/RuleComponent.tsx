@@ -1,24 +1,30 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import type { IAppState, IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
+import type { IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
+import { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
+import i18next from 'i18next';
 
 export interface IRuleComponentProps {
-  connectionId?: any;
+  connectionId?: string;
   cancelEdit: () => void;
-  saveEdit: (updatedConnection: any) => void;
+  saveEdit: (id: string, connection: RuleConnection) => void;
   ruleModelElements: IRuleModelFieldElement[];
-  dataModelElements: IDataModelFieldElement;
-  ruleConnection: any;
-  deleteConnection?: (connectionId: any) => void;
-  t: any;
+  ruleConnection: RuleConnections;
+  deleteConnection?: (connectionId: string) => void;
+  t: typeof i18next.t;
 }
 
-class Rule extends React.Component<IRuleComponentProps, any> {
+interface IRuleComponentState {
+  selectedFunctionNr: number | null;
+  connectionId: string | null;
+  ruleConnection: RuleConnection;
+}
+
+class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
   constructor(props: IRuleComponentProps) {
     super(props);
     this.state = {
@@ -26,8 +32,8 @@ class Rule extends React.Component<IRuleComponentProps, any> {
       connectionId: null,
       ruleConnection: {
         selectedFunction: '',
-        inputParams: '',
-        outParams: '',
+        inputParams: {},
+        outParams: {},
       },
     };
   }
@@ -58,12 +64,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
   }
 
   public handleSaveEdit = (): void => {
-    const connectionToSave = {
-      [this.state.connectionId]: {
-        ...this.state.ruleConnection,
-      },
-    };
-    this.props.saveEdit(connectionToSave);
+    this.props.saveEdit(this.state.connectionId, this.state.ruleConnection);
   };
 
   public handleSelectedMethodChange = (e: any): void => {
@@ -220,6 +221,11 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                 {this.props.t('general.save')}
               </button>
             ) : null}
+            {this.props.connectionId ? (
+              <button type='button' className={classes.dangerButton} onClick={this.handleDeleteConnection}>
+                {this.props.t('general.delete')}
+              </button>
+            ) : null}
             <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
               {this.props.t('general.cancel')}
             </button>
@@ -230,11 +236,4 @@ class Rule extends React.Component<IRuleComponentProps, any> {
   }
 }
 
-const mapsStateToProps = (state: IAppState, props: any): any => {
-  return {
-    ruleConnection: state.serviceConfigurations.ruleConnection,
-    selectedFunction: props.selectedFunction,
-  };
-};
-
-export const RuleComponent = withTranslation()(connect(mapsStateToProps)(Rule));
+export const RuleComponent = withTranslation()(Rule);

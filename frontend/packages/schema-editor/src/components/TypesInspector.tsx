@@ -1,7 +1,7 @@
 import React, { MouseEvent } from 'react';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { FieldType, Keywords, makePointer, UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, Keyword, makePointer, UiSchemaNode } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +28,7 @@ export const TypesInspector = ({
     dispatch(
       addRootItem({
         name: 'name',
-        location: makePointer(Keywords.Definitions),
+        location: makePointer(Keyword.Definitions),
         props: { fieldType: FieldType.Object },
       })
     );

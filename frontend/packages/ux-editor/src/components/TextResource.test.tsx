@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { TextResource, TextResourceProps } from './TextResource';
 import {
+  queryClientMock,
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../testing/mocks';
 import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { queryClient } from '../../../../app-development/common/ServiceContext';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 const user = userEvent.setup();
@@ -48,7 +48,7 @@ jest.mock(
 describe('TextResource', () => {
   afterEach(() => {
     jest.clearAllMocks();
-    queryClient.clear();
+    queryClientMock.clear();
   });
 
   it('Renders add button when no resource id is given', async () => {
@@ -171,7 +171,7 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByLabelText(searchLabelText)));
+    await act(() => user.click(screen.getByRole('combobox', { name: searchLabelText })));
     await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
@@ -179,7 +179,7 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByLabelText(searchLabelText)));
+    await act(() => user.click(screen.getByRole('combobox', { name: searchLabelText })));
     await act(() => user.click(screen.getByRole('option', { name: noTextChosenText })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(undefined);

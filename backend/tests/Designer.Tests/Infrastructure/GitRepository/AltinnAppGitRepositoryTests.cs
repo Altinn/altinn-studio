@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Xunit;
@@ -233,6 +231,62 @@ namespace Designer.Tests.Infrastructure.GitRepository
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
 
+        }
+
+        [Fact]
+        public async Task GetOptions_WithAppThatHasOptions_ShouldReturnSpecifiecOptionsList()
+        {
+            string org = "ttd";
+            string repository = "app-with-options";
+            string developer = "testUser";
+            string optionsId = "test-options";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            string options = await altinnAppGitRepository.GetOptions(optionsId);
+            options.Should().NotBeNull();
+            var optionsArray = JsonNode.Parse(options).AsArray();
+            optionsArray.Count.Should().Be(2);
+            optionsArray[0]["label"].ToString().Should().Be("label1");
+            optionsArray[1]["label"].ToString().Should().Be("label2");
+        }
+
+        [Fact]
+        public Task GetOptions_WhenSpecifiedOptionIdDoesNotExistInApp_ShouldThrowNotFoundException()
+        {
+            string org = "ttd";
+            string repository = "app-with-options";
+            string developer = "testUser";
+            string optionsId = "test-options";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
+            return Task.CompletedTask;
+        }
+
+        [Fact]
+        public Task GetOptionListIds_WithAppThatHasOptionLists_ShouldReturnOptionListPathNames()
+        {
+            string org = "ttd";
+            string repository = "app-with-options";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
+
+            optionListIds.Should().NotBeNull();
+            optionListIds.Should().HaveCount(2);
+            return Task.CompletedTask;
+        }
+
+        [Fact]
+        public Task GetOptionListIds_WithAppThatHasNoOptionLists_ShouldThrowNotFoundException()
+        {
+            string org = "ttd";
+            string repository = "empty-app";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionListIds);
+            return Task.CompletedTask;
         }
 
         private static AltinnAppGitRepository PrepareRepositoryForTest(string org, string repository, string developer)

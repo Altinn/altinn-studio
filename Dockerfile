@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:alpine AS generate-studio-frontend
+FROM node:18.16.0-alpine AS generate-studio-frontend
 WORKDIR /build
 COPY . .
 RUN corepack enable
@@ -30,6 +30,7 @@ COPY --from=generate-studio-backend /app_output .
 COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/designer/frontend/app-development
 COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/designer/frontend/app-preview
 COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
+COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
 COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template

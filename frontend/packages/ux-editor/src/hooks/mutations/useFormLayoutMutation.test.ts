@@ -1,16 +1,14 @@
-import {
-  baseContainerIdMock,
-  queriesMock,
-  renderHookWithMockStore
-} from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { IInternalLayout } from '../../types/global';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { baseContainerIdMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const layoutName = 'layoutName';
+const selectedLayoutSet = 'test-layout-set';
 
 describe('useFormLayoutMutation', () => {
   it('Calls saveFormLayout with correct arguments and payload', async () => {
@@ -23,7 +21,8 @@ describe('useFormLayoutMutation', () => {
         [componentId]: {
           id: componentId,
           type: componentType,
-          itemType: 'COMPONENT'
+          itemType: 'COMPONENT',
+          dataModelBindings: {},
         }
       },
       containers: {
@@ -43,6 +42,7 @@ describe('useFormLayoutMutation', () => {
       org,
       app,
       layoutName,
+      selectedLayoutSet,
       expect.objectContaining({
         data: {
           layout: [
@@ -54,6 +54,7 @@ describe('useFormLayoutMutation', () => {
             {
               id: componentId,
               type: componentType,
+              dataModelBindings: {},
             }
           ]
         }
@@ -63,7 +64,7 @@ describe('useFormLayoutMutation', () => {
 });
 
 const renderAndMutate = (layout: IInternalLayout) => renderHookWithMockStore()
-  (() => useFormLayoutMutation(org, app, layoutName))
+  (() => useFormLayoutMutation(org, app, layoutName, selectedLayoutSet))
     .renderHookResult
     .result
     .current

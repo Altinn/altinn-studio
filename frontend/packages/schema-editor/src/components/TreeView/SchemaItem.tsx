@@ -12,7 +12,7 @@ import {
   ObjectKind,
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
-import type { ISchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
 import { DndItem } from './DnDWrapper';
@@ -41,17 +41,17 @@ export function SchemaItem({
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = useSelector((state: ISchemaState) =>
+  const refNode = useSelector((state: SchemaState) =>
     selectedNode.objectKind === ObjectKind.Reference && selectedNode.reference
       ? getNodeByPointer(state.uiSchema, selectedNode.reference)
       : undefined
   );
-  const childNodes = useSelector((state: ISchemaState) =>
+  const childNodes = useSelector((state: SchemaState) =>
     refNode
       ? getChildNodesByPointer(state.uiSchema, refNode.pointer)
       : getChildNodesByPointer(state.uiSchema, selectedNode.pointer)
   );
-  const referredNodes = useSelector((state: ISchemaState) =>
+  const referredNodes = useSelector((state: SchemaState) =>
     getReferredNodes(state.uiSchema, selectedNode.pointer)
   );
   const focusedNode = refNode ?? selectedNode;
@@ -60,7 +60,7 @@ export function SchemaItem({
     const node = childNodes.find((childNode) => childNode.pointer === childPointer);
     node && childNodesSorted.push(node);
   });
-  const selectedPointer = useSelector((state: ISchemaState) =>
+  const selectedPointer = useSelector((state: SchemaState) =>
     state.selectedEditorTab === 'definitions'
       ? state.selectedDefinitionNodeId
       : state.selectedPropertyNodeId

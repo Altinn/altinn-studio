@@ -120,7 +120,11 @@ namespace Designer.Tests.Mocks
 
         public Task<List<Team>> GetTeams()
         {
-            throw new NotImplementedException();
+            List<Team> teamWithDeployAccess = new()
+            {
+                new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } }
+            };
+            return Task.FromResult(teamWithDeployAccess);
         }
 
         public Task<string> GetUserNameFromUI()
@@ -184,6 +188,11 @@ namespace Designer.Tests.Mocks
         public Task<SearchResults> SearchRepo(SearchOptions searchOption)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
+        {
+            return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
     }
 }

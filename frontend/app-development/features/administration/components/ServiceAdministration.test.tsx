@@ -1,22 +1,23 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import { Administration } from './Administration';
-import type { ICommit, IRepository } from '../../../types/global';
+import type { ICommit } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
-import { serviceConfigPath } from 'app-shared/api-paths';
+import { serviceConfigPath } from 'app-shared/api/paths';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import type { Repository } from 'app-shared/types/Repository';
 
 const user = userEvent.setup();
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
 
 describe('Administration', () => {
-  const mockService: IRepository = {
+  const mockService: Repository = {
     clone_url: '',
     created_at: '',
     default_branch: '',

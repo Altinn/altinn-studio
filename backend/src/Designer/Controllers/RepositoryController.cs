@@ -4,18 +4,16 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -31,6 +29,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IGitea _giteaApi;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
@@ -38,11 +37,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
-        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository)
+        /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
+        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
             _repository = repository;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         /// <summary>
@@ -186,8 +187,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public RepoStatus RepoStatus(string org, string repository)
         {
-            _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+            try
+            {
+                _sourceControl.FetchRemoteChanges(org, repository);
+                return _sourceControl.RepositoryStatus(org, repository);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>
@@ -200,16 +211,27 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
         public RepoStatus Pull(string org, string repository)
         {
-            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
 
-            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
-
-            if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
+            try
             {
-                status.RepositoryStatus = pullStatus.RepositoryStatus;
-            }
+                RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
 
-            return status;
+                RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
+
+                if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
+                {
+                    status.RepositoryStatus = pullStatus.RepositoryStatus;
+                }
+
+                return status;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>
@@ -222,6 +244,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/reset")]
         public ActionResult ResetLocalRepository(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+
             try
             {
                 _repository.ResetLocalRepository(org, repository);
@@ -230,6 +256,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -241,7 +271,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit-and-push")]
         public void CommitAndPushRepo([FromBody] CommitInfo commitInfo)
         {
-            _sourceControl.PushChangesForRepository(commitInfo);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
+            semaphore.Wait();
+            try
+            {
+                _sourceControl.PushChangesForRepository(commitInfo);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+
         }
 
         /// <summary>
@@ -253,6 +294,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public ActionResult Commit([FromBody] CommitInfo commitInfo)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
+            semaphore.Wait();
             try
             {
                 _sourceControl.Commit(commitInfo);
@@ -261,6 +305,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -273,14 +321,17 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
-            bool pushSuccess = await _sourceControl.Push(org, repository);
-            if (pushSuccess)
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            await semaphore.WaitAsync();
+            try
             {
-                return Ok();
+                bool pushSuccess = await _sourceControl.Push(org, repository);
+                return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
             }
-            else
+            finally
             {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                semaphore.Release();
             }
         }
 

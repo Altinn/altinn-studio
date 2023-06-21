@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ToolbarGroup.module.css';
 import type { CollapsableMenus, IToolbarElement } from '../../types/global';
-import type { ComponentType } from '..';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { CollapsableMenuComponent } from '../toolbar/CollapsableMenuComponent';
 import { Collapse } from '@mui/material';
 import { ToolbarItem } from './ToolbarItem';
@@ -43,7 +43,6 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
             text={getComponentTitleByComponentType(component.type, t) || component.label}
             icon={component.icon}
             componentType={component.type}
-            onDropAction={component.actionMethod}
             onClick={props.handleComponentInformationOpen}
             key={component.type}
           />

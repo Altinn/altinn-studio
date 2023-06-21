@@ -1,8 +1,13 @@
-import {
-  IFormComponent,
-  IFormGenericOptionsComponent,
-  IOption
-} from '../types/global';
+import { IOption } from '../types/global';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import type {
+  FormCheckboxesComponent,
+  FormComponent,
+  FormRadioButtonsComponent
+} from '../types/FormComponent';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { formItemConfigs } from '../data/formItemConfig';
+import { FormItem } from '../types/FormItem';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {
@@ -36,10 +41,10 @@ export enum AddressKeys {
 }
 
 export const changeTextResourceBinding = (
-  component: IFormComponent,
+  component: FormComponent,
   bindingKey: string,
   resourceKey: string
-): IFormComponent => ({
+): FormComponent => ({
   ...component,
   textResourceBindings: {
     ...component.textResourceBindings,
@@ -47,13 +52,13 @@ export const changeTextResourceBinding = (
   }
 });
 
-export const changeTitleBinding = (component: IFormComponent, resourceKey: string): IFormComponent =>
+export const changeTitleBinding = (component: FormComponent, resourceKey: string): FormComponent =>
   changeTextResourceBinding(component, 'title', resourceKey);
 
-export const changeDescriptionBinding = (component: IFormComponent, resourceKey: string): IFormComponent =>
+export const changeDescriptionBinding = (component: FormComponent, resourceKey: string): FormComponent =>
   changeTextResourceBinding(component, 'description', resourceKey);
 
-export const addOptionToComponent = <T extends IFormGenericOptionsComponent>(
+export const addOptionToComponent = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>(
   component: T,
   option: IOption
 ): T => ({
@@ -64,7 +69,7 @@ export const addOptionToComponent = <T extends IFormGenericOptionsComponent>(
   ],
 });
 
-export const changeComponentOptionLabel = <T extends IFormGenericOptionsComponent>(
+export const changeComponentOptionLabel = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>(
   component: T,
   value: string,
   label: string
@@ -74,3 +79,17 @@ export const changeComponentOptionLabel = <T extends IFormGenericOptionsComponen
     return option.value === value ? { ...option, label } : option;
   })
 });
+
+export const generateRandomOption = (): IOption =>
+  ({ label: '', value: generateRandomId(4) });
+
+/**
+ * Generates a component with the given type and id and all the required properties set to some default values.
+ * @param type The type of the component to generate.
+ * @param id The id of the component to generate.
+ * @returns A component of the given type.
+ */
+export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
+  const { defaultProperties } = formItemConfigs[type];
+  return type === ComponentType.Group ? defaultProperties : { ...defaultProperties, id };
+};

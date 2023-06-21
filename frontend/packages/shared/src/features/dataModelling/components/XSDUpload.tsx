@@ -2,7 +2,7 @@ import React from 'react';
 import { AltinnSpinner, FileSelector } from '../../../components';
 import axios from 'axios';
 import ErrorPopover from '../../../components/ErrorPopover';
-import { datamodelsUploadPath } from '../../../api-paths';
+import { datamodelsUploadPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
 
 export interface IXSDUploadProps {

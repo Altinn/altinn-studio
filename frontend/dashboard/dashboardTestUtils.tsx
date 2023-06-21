@@ -1,21 +1,18 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import { IRepository } from 'app-shared/types/global';
-import React, { useMemo } from 'react';
+import React, { useMemo, ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProvider } from './contexts/servicesContext';
-import { OrganizationService } from './services/organizationService';
-import { AddRepo, RepoService, SearchRepository } from './services/repoService';
-import { UserService } from './services/userService';
-
-export type Services = {
-  userService?: Partial<UserService>;
-  organizationService?: Partial<OrganizationService>;
-  repoService?: Partial<RepoService>;
-};
+import {
+  ServicesContextProps,
+  ServicesContextProvider,
+  ServicesContextProviderProps
+} from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { AddRepoParams, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 
 export type MockServicesContextWrapperProps = {
-  children: React.ReactNode;
-  customServices?: Services;
+  children: ReactNode;
+  customServices?: Partial<ServicesContextProps>;
 };
 
 export const MockServicesContextWrapper = ({
@@ -38,39 +35,26 @@ export const MockServicesContextWrapper = ({
     []
   );
 
-  const userService: UserService = {
-    getCurrentUser: () =>
-      Promise.resolve({ avatar_url: null, email: '', full_name: '', id: null, login: null }),
+  const queries: ServicesContextProviderProps = {
+    ...queriesMock,
+    getUser: () => Promise.resolve({ avatar_url: null, email: '', full_name: '', id: null, login: null }),
     logout: () => Promise.resolve(),
-    ...customServices?.userService,
-  };
-
-  const organizationService: OrganizationService = {
     getOrganizations: () => Promise.resolve([]),
-    ...customServices?.organizationService,
-  };
-
-  const repoService: RepoService = {
-    addRepo: (repoToAdd: AddRepo) => Promise.resolve({} as IRepository),
+    addRepo: (repoToAdd: AddRepoParams) => Promise.resolve({} as IRepository),
     copyApp: () => Promise.resolve(),
     getStarredRepos: () => Promise.resolve([] as IRepository[]),
-    searchRepos: () => Promise.resolve({} as unknown as SearchRepository),
+    searchRepos: (params: SearchRepoFilterParams) => Promise.resolve({} as SearchRepositoryResponse),
     setStarredRepo: () => Promise.resolve([]),
     unsetStarredRepo: () => Promise.resolve(),
-    ...customServices?.repoService,
+    ...customServices,
+    client,
   };
 
   return (
     <MemoryRouter>
-      <QueryClientProvider client={client}>
-        <ServicesContextProvider
-          userService={userService}
-          organizationService={organizationService}
-          repoService={repoService}
-        >
-          {children}
-        </ServicesContextProvider>
-      </QueryClientProvider>
+      <ServicesContextProvider {...queries}>
+        {children}
+      </ServicesContextProvider>
     </MemoryRouter>
   );
 };

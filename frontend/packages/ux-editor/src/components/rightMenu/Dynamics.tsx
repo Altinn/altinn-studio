@@ -3,11 +3,12 @@ import classes from './Dynamics.module.css';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { giteaEditLink } from 'app-shared/ext-urls';
 
 export const Dynamics = () => {
   const { t } = useTranslation();
   const { app, org } = useParams();
-  const dynamicLink = `/repos/${org}/${app}/_edit/master/App/ui/RuleHandler.js`;
+  const dynamicLocation = `App/ui/RuleHandler.js`;
   return (
     <div>
       <div className={classes.header}>{t('right_menu.dynamics')}</div>
@@ -27,7 +28,7 @@ export const Dynamics = () => {
             </span>
           </a>
         </p>
-        <a className={classes.textLink} href={dynamicLink} target='_blank' rel='noreferrer'>
+        <a className={classes.textLink} href={giteaEditLink(org, app, dynamicLocation)} target='_blank' rel='noreferrer'>
           {t('right_menu.dynamics_edit')}
         </a>{' '}
         ({t('right_menu.dynamics_edit_comment')})

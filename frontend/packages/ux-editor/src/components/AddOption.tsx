@@ -9,13 +9,13 @@ import {
   TextField,
 } from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
-import { IFormGenericOptionsComponent, IOption } from '../types/global';
+import { IOption } from '../types/global';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useText } from '../hooks';
-import { addOptionToComponent } from '../utils/component';
+import { addOptionToComponent, generateRandomOption } from '../utils/component';
+import { FormCheckboxesComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
-export interface AddOptionProps<T extends IFormGenericOptionsComponent>
+export interface AddOptionProps<T extends FormCheckboxesComponent | FormRadioButtonsComponent>
   extends IGenericEditComponent {
   addButtonClass: string;
   component: T;
@@ -23,9 +23,7 @@ export interface AddOptionProps<T extends IFormGenericOptionsComponent>
   emptyErrorText: string;
 }
 
-const initialNewOption = () => ({ label: generateRandomId(12), value: generateRandomId(4) });
-
-export const AddOption = <T extends IFormGenericOptionsComponent>({
+export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>({
   addButtonClass,
   component,
   duplicateErrorText,
@@ -35,7 +33,7 @@ export const AddOption = <T extends IFormGenericOptionsComponent>({
   const t = useText();
 
   const [isAddMode, setIsAddMode] = useState(false);
-  const [newOption, setNewOption] = useState(initialNewOption());
+  const [newOption, setNewOption] = useState(generateRandomOption());
 
   const isNewValueUnique = !component.options?.some((option) => option.value === newOption.value);
   const isNewValueEmpty = newOption.value === '';
@@ -48,10 +46,11 @@ export const AddOption = <T extends IFormGenericOptionsComponent>({
     errorMessage = duplicateErrorText;
   }
 
-  const addOption = (option: IOption) => {
+  const addOption = (event: React.MouseEvent<HTMLButtonElement>, option: IOption) => {
+    event.stopPropagation();
     handleComponentChange(addOptionToComponent(component, option));
     setIsAddMode(false);
-    setNewOption(initialNewOption());
+    setNewOption(generateRandomOption());
   };
 
   return isAddMode ? (
@@ -80,7 +79,7 @@ export const AddOption = <T extends IFormGenericOptionsComponent>({
         <div className={classes.addButtons}>
           <Button
             disabled={!isNewValueValid}
-            onClick={() => addOption(newOption)}
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => addOption(event, newOption)}
             title={t('general.add')}
           >
             {t('general.add')}

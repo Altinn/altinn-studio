@@ -1,6 +1,12 @@
-import { IFormCheckboxComponent, IFormComponent, IFormRadioButtonComponent, IOption } from '../types/global';
-import { addOptionToComponent, changeComponentOptionLabel, changeTextResourceBinding, } from './component';
-import { ComponentType } from '../components';
+import { IOption } from '../types/global';
+import {
+  addOptionToComponent,
+  changeComponentOptionLabel,
+  changeTextResourceBinding,
+  generateFormItem,
+} from './component';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -10,7 +16,7 @@ describe('Component utils', () => {
       const bindingKeyToChange = 'testKeyToChange';
       const resourceKeyToChange = 'testResourceKeyToChange';
       const newResourceKey = 'newResourceKey';
-      const component: IFormComponent = {
+      const component: FormComponent = {
         id: 'test',
         textResourceBindings: {
           [bindingKeyToKeep]: resourceKeyToKeep,
@@ -18,6 +24,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(changeTextResourceBinding(component, bindingKeyToChange, newResourceKey)).toEqual({
         ...component,
@@ -33,13 +40,14 @@ describe('Component utils', () => {
     it('Changes title binding', () => {
       const titleResourceKey = 'testResourceKey';
       const newResourceKey = 'newResourceKey';
-      const component: IFormComponent = {
+      const component: FormComponent = {
         id: 'test',
         textResourceBindings: {
           title: titleResourceKey,
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(
         changeTextResourceBinding(component, 'title', newResourceKey)
@@ -53,13 +61,14 @@ describe('Component utils', () => {
     it('Changes description binding', () => {
       const descriptionResourceKey = 'testResourceKey';
       const newResourceKey = 'newResourceKey';
-      const component: IFormComponent = {
+      const component: FormComponent = {
         id: 'test',
         textResourceBindings: {
           description: descriptionResourceKey,
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(
         changeTextResourceBinding(component, 'description', newResourceKey)
@@ -76,7 +85,7 @@ describe('Component utils', () => {
     ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
       'Adds option to %s component',
       (componentType) => {
-        const component: IFormCheckboxComponent | IFormRadioButtonComponent = {
+        const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
           id: 'test',
           type: componentType,
           options: [
@@ -87,6 +96,7 @@ describe('Component utils', () => {
           ],
           optionsId: null,
           itemType: 'COMPONENT',
+          dataModelBindings: {},
         };
         const newOption: IOption = {
           label: 'newTestLabel',
@@ -108,7 +118,7 @@ describe('Component utils', () => {
       'Changes label of option with given value on %s component',
       (componentType) => {
         const valueOfWhichLabelShouldChange = 'testValue2';
-        const component: IFormCheckboxComponent | IFormRadioButtonComponent = {
+        const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
           id: 'test',
           type: componentType,
           options: [
@@ -123,6 +133,7 @@ describe('Component utils', () => {
           ],
           optionsId: null,
           itemType: 'COMPONENT',
+          dataModelBindings: {},
         };
         const newLabel = 'newTestLabel';
         expect(changeComponentOptionLabel(
@@ -135,5 +146,27 @@ describe('Component utils', () => {
         }]));
       }
     );
+  });
+
+  describe('generateFormItem', () => {
+    it.each(Object.values(ComponentType).filter((v) => v !== ComponentType.Group))(
+      'Generates component of type %s with given ID',
+      (componentType) => {
+        const id = 'testId';
+        const component = generateFormItem(componentType, id);
+        expect(component).toEqual(expect.objectContaining({
+          id,
+          type: componentType,
+          itemType: 'COMPONENT',
+        }));
+      }
+    );
+
+    it('Generates container when type is Group', () => {
+      const component = generateFormItem(ComponentType.Group, 'testId');
+      expect(component).toEqual(expect.objectContaining({
+        itemType: 'CONTAINER',
+      }));
+    });
   });
 });

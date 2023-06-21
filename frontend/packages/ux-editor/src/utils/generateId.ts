@@ -1,6 +1,6 @@
 import { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export const generateTextResourceId = (
   layoutName: string,

@@ -13,10 +13,10 @@ import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSele
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
+import { useTextResourcesSelector } from '../hooks';
+import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
@@ -69,8 +69,8 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { org, app } = useParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
-  const updateTextResource =
-    (text: string) => mutate({ language, textResources: [{ id: textResourceId, value: text }] });
+  const updateTextResource = (text: string) =>
+    mutate({ language, textResources: [{ id: textResourceId, value: text, variables: textResource.variables }] });
 
   const [value, setValue] = useState<string>(textResource?.value || '');
 
@@ -81,6 +81,8 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   return (
     <div>
       <TextArea
+        rows={5}
+        resize='vertical'
         label={t(`language.${language}`)}
         onBlur={(e) => updateTextResource((e.target as HTMLTextAreaElement).value)}
         onChange={(e) => setValue((e.target as HTMLTextAreaElement).value)}

@@ -1,47 +1,49 @@
 import React from 'react';
 import Modal from 'react-modal';
 import { Typography } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
-import {
-  addConditionalRenderingConnection,
-  deleteConditionalRenderingConnnection,
-} from '../../features/serviceConfigurations/serviceConfigurationSlice';
-import type { IAppState, IRuleModelFieldElement } from '../../types/global';
+import type { IRuleModelFieldElement } from '../../types/global';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector } from '../../hooks';
 import {
   allLayoutComponentsSelector,
   allLayoutContainersSelector,
-  fullLayoutOrderSelector
+  fullLayoutOrderSelector,
+  selectedLayoutSetSelector,
 } from '../../selectors/formLayoutSelectors';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
+import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
+import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
+import { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
+import { addConditionalRenderingConnection, deleteConditionalRenderingConnection } from '../../utils/ruleConfigUtils';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
   handleClose: () => void;
+  handleOpen: () => void;
 }
 
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const { org, app } = useParams();
-  const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const conditionalRendering = useSelector(
-    (state: IAppState) => state.serviceConfigurations.conditionalRendering
-  );
-  const { data: ruleModel } = useRuleModelQuery(org, app);
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
   const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
   const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
   const layoutOrder = useFormLayoutsSelector(fullLayoutOrderSelector);
   const { t } = useTranslation();
 
   const conditionRules = ruleModel?.filter(({ type }: IRuleModelFieldElement) => type === 'condition');
+  const { conditionalRendering } = ruleConfig.data;
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
-    props.handleClose();
+    props.handleOpen();
   }
 
   function handleClose() {
@@ -49,14 +51,14 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
     props.handleClose();
   }
 
-  function handleSaveChange(newConnection: string) {
-    dispatch(addConditionalRenderingConnection({ newConnection, org, app }));
+  function handleSaveChange(id: string, connection: ConditionalRenderingConnection) {
+    saveRuleConfig(addConditionalRenderingConnection(ruleConfig, id, connection));
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
   function handleDeleteConnection(connectionId: string) {
-    dispatch(deleteConditionalRenderingConnnection({ connectionId, org, app }));
+    saveRuleConfig(deleteConditionalRenderingConnection(ruleConfig, connectionId));
     setSelectedConnectionId(null);
     props.handleClose();
   }
@@ -95,6 +97,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
             connectionId={selectedConnectionId}
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
+            conditionalRendering={conditionalRendering}
             deleteConnection={handleDeleteConnection}
             formLayoutContainers={layoutContainers}
             formLayoutComponents={layoutComponents}
@@ -105,7 +108,8 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
           <ConditionalRenderingComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
+            conditionalRendering={conditionalRendering}
+            deleteConnection={handleDeleteConnection}
             formLayoutContainers={layoutContainers}
             formLayoutComponents={layoutComponents}
             order={layoutOrder}

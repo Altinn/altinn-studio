@@ -1,14 +1,15 @@
 import React from 'react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { CheckboxGroupPreview, CheckboxGroupPreviewProps } from './CheckboxGroupPreview';
-import { IFormCheckboxComponent, IOption } from '../../../types/global';
+import { IOption } from '../../../types/global';
 import type { ITextResource } from 'app-shared/types/global';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
-import { ComponentType } from '../../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import type { FormCheckboxesComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -29,7 +30,7 @@ const options: IOption[] = [
   { label: option1TextKey, value: option1Value },
   { label: option2TextKey, value: option2Value },
 ];
-const component: IFormCheckboxComponent = {
+const component: FormCheckboxesComponent = {
   id: '1',
   options,
   optionsId: '',
@@ -38,7 +39,8 @@ const component: IFormCheckboxComponent = {
     title: titleTextKey,
     description: descriptionTextKey,
   },
-  itemType: 'COMPONENT'
+  itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
 const defaultProps: CheckboxGroupPreviewProps = {
@@ -138,7 +140,7 @@ describe('CheckboxGroupPreview', () => {
     const valueInput = screen.getByLabelText(valueText);
     expect(valueInput).not.toHaveValue('');
     await act(() => user.clear(valueInput));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(emptyErrorText);
+    expect(screen.getByRole('alert')).toHaveTextContent(emptyErrorText);
   });
 
   it('Renders correct error message when an existing value is given in the add section', async () => {
@@ -147,7 +149,7 @@ describe('CheckboxGroupPreview', () => {
     expect(valueInput).not.toHaveValue('');
     await act(() => user.clear(valueInput));
     await act(() => user.type(valueInput, option1Value));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(duplicateErrorText);
+    expect(screen.getByRole('alert')).toHaveTextContent(duplicateErrorText);
   });
 });
 

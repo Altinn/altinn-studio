@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeDirectory">Relative path to a directory within the repository.</param>
         protected string[] GetFilesByRelativeDirectory(string relativeDirectory)
         {
-            string absoluteDirectory = GetAbsoluteFilePathSanitized(relativeDirectory);
+            string absoluteDirectory = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectory);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
 
@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeDirectory">Relative path to a directory within the repository.</param>
         protected string[] GetDirectoriesByRelativeDirectory(string relativeDirectory)
         {
-            string absoluteDirectory = GetAbsoluteFilePathSanitized(relativeDirectory);
+            string absoluteDirectory = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectory);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
 
@@ -113,7 +113,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A string containing the file content</returns>
         public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath)
         {
-            string absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+            string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
@@ -146,7 +146,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
 
-            string absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+            string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
@@ -168,7 +168,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
 
-            string absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+            string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
@@ -201,7 +201,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
 
-            string absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+            string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
@@ -221,12 +221,35 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Move the specified file to specified destination
+        /// </summary>
+        /// <param name="sourceRelativeFilePath">Relative path to file to be moved.</param>
+        /// <param name="destRelativeFilePath">Relative path to destination of moved file.</param>
+        /// <param name="destinationFileName">FileName for the destination file</param>
+        protected void MoveFileByRelativePath(string sourceRelativeFilePath, string destRelativeFilePath, string destinationFileName)
+        {
+            if (FileExistsByRelativePath(sourceRelativeFilePath))
+            {
+                Guard.AssertNotNullOrEmpty(sourceRelativeFilePath, nameof(sourceRelativeFilePath));
+
+                string sourceAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativeFilePath);
+                string destAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativeFilePath);
+                string destAbsoluteParentDirPath = destAbsoluteFilePath.Remove(destAbsoluteFilePath.IndexOf(destinationFileName, StringComparison.Ordinal));
+                Directory.CreateDirectory(destAbsoluteParentDirPath);
+                Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, sourceAbsoluteFilePath);
+                Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteFilePath);
+
+                File.Move(sourceAbsoluteFilePath, destAbsoluteFilePath);
+            }
+        }
+
+        /// <summary>
         /// Checks if a file exists within the repository.
         /// </summary>
         /// <param name="relativeFilePath">Relative path to file to check for existence.</param>
         public bool FileExistsByRelativePath(string relativeFilePath)
         {
-            string absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
+            string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             if (!absoluteFilePath.StartsWith(RepositoryDirectory))
             {
@@ -242,7 +265,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeDirectoryPath">Relative path to directory to check for existence.</param>
         public bool DirectoryExistsByRelativePath(string relativeDirectoryPath)
         {
-            string absoluteDirectoryPath = GetAbsoluteFilePathSanitized(relativeDirectoryPath);
+            string absoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectoryPath);
 
             if (!absoluteDirectoryPath.StartsWith(RepositoryDirectory))
             {
@@ -301,7 +324,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets the absolute path for a file given a repository relative path.
         /// </summary>
         /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>
-        protected string GetAbsoluteFilePathSanitized(string relativeFilePath)
+        protected string GetAbsoluteFileOrDirectoryPathSanitized(string relativeFilePath)
         {
             if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
             {

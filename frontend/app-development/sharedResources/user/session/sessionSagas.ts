@@ -15,7 +15,7 @@ import {
   remainingSessionTimePath,
   userLogoutAfterPath,
   userLogoutPath,
-} from 'app-shared/api-paths';
+} from 'app-shared/api/paths';
 
 export function* fetchRemainingSessionSaga(): SagaIterator {
   try {

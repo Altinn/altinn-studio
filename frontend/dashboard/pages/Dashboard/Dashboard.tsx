@@ -15,9 +15,9 @@ import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
-import { User } from 'dashboard/services/userService';
-import { Organization } from 'dashboard/services/organizationService';
-import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
+import { User } from 'app-shared/types/User';
+import { Organization } from 'app-shared/types/Organization';
+import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
 type DashboardProps = {
@@ -29,7 +29,7 @@ type DashboardProps = {
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
+  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useStarredReposQuery();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
@@ -96,7 +96,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
           ) : (
             <>
               <FavoriteReposList />
-              <div className={classes.marginTop}>
+              <div>
                 <OrgReposList
                   user={user}
                   organizations={organizations}

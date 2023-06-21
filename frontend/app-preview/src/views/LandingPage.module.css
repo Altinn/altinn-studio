@@ -1,21 +1,41 @@
-@import url('https://fonts.googleapis.com/css?family=Inter');
-
-.landingPage {
-  background-color: #0a572e;
+.header {
+  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  align-items: center;
+  height: var(--header-height);
+  width: 100vw;
+  --component-button-outline-primary-color-background-default: #efefef;
+  --component-button-outline-primary-color-border-default: #1e2b3c;
+  --component-button-outline-primary-color-border-hover: none;
+  --component-button-outline-primary-color-text-default: #1e2b3c !important;
 }
 
-.iframe {
+.iframeDesktop {
   height: 100%;
   width: 100%;
-  margin: 0;
   border: none;
 }
 
-.header {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: white;
-  padding: 10px;
-  height: auto;
-  border-bottom: 1px solid gray;
-  background-color: #15a859;
+.iframeMobileViewContainer {
+  display: flex;
+  justify-content: center;
+  background-color: #efefef;
+  height: calc(100vh - var(--header-height));
+}
+
+.iframeMobile {
+  height: 844px;
+  width: calc(390px + 48px);
+  padding: 20px 0;
+  border: none;
+  margin: 0;
+}
+
+/* Mobile View Overlay to cover devtools in the middle of the screen */
+.iframeMobileViewOverlay {
+  position: absolute;
+  bottom: 0;
+  height: 100px;
+  width: 100%;
+  background-color: #efefef;
+  z-index: 1;
 }

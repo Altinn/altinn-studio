@@ -8,14 +8,14 @@ import {
   createChildNode,
   createNodeBase,
   FieldType,
-  Keywords,
+  Keyword,
   ObjectKind,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const selectedItem: UiSchemaNode = {
-  ...createNodeBase(Keywords.Properties, 'test'),
+  ...createNodeBase(Keyword.Properties, 'test'),
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
 };
@@ -64,26 +64,26 @@ const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =
   renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
 
 describe('ItemFieldsTab', () => {
-  test('Header texts appear', () => {
+  test('Header texts appear', async () => {
     renderItemFieldsTab();
-    expect(screen.getByText(textFieldName)).toBeDefined();
-    expect(screen.getByText(textType)).toBeDefined();
-    expect(screen.getByText(textRequired)).toBeDefined();
-    expect(screen.getByText(textDelete)).toBeDefined();
+    expect(await screen.findByText(textFieldName)).toBeDefined();
+    expect(await screen.findByText(textType)).toBeDefined();
+    expect(await screen.findAllByText(textRequired)).toBeDefined();
+    expect(await screen.findByText(textDelete)).toBeDefined();
   });
 
-  test('Inputs and delete buttons appear for all fields', () => {
+  test('Inputs and delete buttons appear for all fields', async () => {
     renderItemFieldsTab();
-    const textboxes = screen.getAllByLabelText(textFieldName);
+    const textboxes = await screen.findAllByLabelText(textFieldName);
     expect(textboxes).toHaveLength(numberOfFields);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(fieldNames[i]));
     expect(screen.getAllByRole('checkbox')).toHaveLength(numberOfFields);
     expect(screen.queryAllByLabelText(textDeleteField)).toHaveLength(numberOfFields);
   });
 
-  test('"Add property" button appears', () => {
+  test('"Add property" button appears', async () => {
     renderItemFieldsTab();
-    expect(screen.getByText(textAdd)).toBeDefined();
+    expect(await screen.findByText(textAdd)).toBeDefined();
   });
 
   test('setPropertyName action is called with correct payload when a name is changed', async () => {
@@ -178,14 +178,15 @@ describe('ItemFieldsTab', () => {
     expect(screen.queryByDisplayValue(newChildNodeName)).toBeFalsy();
   });
 
-  test('Inputs are enabled by default', () => {
+  test('Inputs are enabled by default', async () => {
     renderItemFieldsTab();
-    screen.queryAllByRole('textbox').forEach((input) => expect(input).toBeEnabled());
+    const textboxes = await screen.findAllByRole('textbox');
+    textboxes.forEach((input) => expect(input).toBeEnabled());
     screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeEnabled());
   });
 
-  test('Inputs are disabled if the selected item is a reference', () => {
-    const referencedNode = createNodeBase(Keywords.Definitions, 'testtype');
+  test('Inputs are disabled if the selected item is a reference', async () => {
+    const referencedNode = createNodeBase(Keyword.Definitions, 'testtype');
     renderItemFieldsTab(
       {
         selectedItem: {
@@ -196,7 +197,8 @@ describe('ItemFieldsTab', () => {
       },
       { uiSchema: [...uiSchema, referencedNode] }
     );
-    screen.queryAllByLabelText(textFieldName).forEach((input) => expect(input).toBeDisabled());
+    const textboxes = await screen.findAllByLabelText(textFieldName);
+    textboxes.forEach((input) => expect(input).toBeDisabled());
     screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeDisabled());
   });
 });

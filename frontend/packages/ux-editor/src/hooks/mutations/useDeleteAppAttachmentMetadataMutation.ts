@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationMetadataActions } from '../../../../../app-development/sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../../../app-development/sharedResources/applicationMetadata/selectors/applicationMetadataSelector';

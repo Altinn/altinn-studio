@@ -171,7 +171,6 @@ namespace Designer.Tests.Services
                 createdTargetRepoPath = await TestDataHelper.CopyRepositoryForTest(org, origRepo, developer, targetRepositoryName);
                 PrepareRemoteTestData(org, workingRemoteRepositoryName);
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepositoryName);
-                await TestDataHelper.CleanUpReplacedRepositories(org, targetRepositoryName, developer);
 
                 RepositorySI sut = GetServiceForTest(developer);
 
@@ -181,12 +180,11 @@ namespace Designer.Tests.Services
                 // Assert
                 string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
                 int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains(targetRepositoryName));
-                Assert.Equal(2, actualCloneCount);
+                Assert.Equal(1, actualCloneCount);
             }
             finally
             {
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepositoryName);
-                await TestDataHelper.CleanUpReplacedRepositories(org, targetRepositoryName, developer);
                 CleanUpRemoteTestData(org, workingRemoteRepositoryName);
                 TestDataHelper.DeleteDirectory(createdTargetRepoPath);
                 TestDataHelper.DeleteDirectory(workingRemoteDirPath);
@@ -327,7 +325,7 @@ namespace Designer.Tests.Services
 
             EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
 
-            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
+            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
 
             ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, new IGiteaMock());
 

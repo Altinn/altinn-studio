@@ -1,0 +1,42 @@
+.pageWrapper {
+  padding-inline: 10%;
+  padding-block: 50px;
+}
+
+.topWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topRightWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.verticalDivider {
+  border: 1px solid #BDBDBD;
+  height: 20px;
+  margin-inline: 10px;
+}
+
+.horizontalDivider {
+  border: 1px solid #BDBDBD;
+  margin-block: 20px;
+}
+
+.componentWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-block: 20px;
+  padding-block: 20px;
+}
+
+.subheader {
+  width: 100%;
+  text-align: left;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}

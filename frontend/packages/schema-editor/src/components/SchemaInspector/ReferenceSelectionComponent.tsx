@@ -2,8 +2,8 @@ import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { useSelector } from 'react-redux';
-import type { ISchemaState } from '../../types';
-import { getRootNodes, Keywords } from '@altinn/schema-model';
+import type { SchemaState } from '../../types';
+import { getRootNodes, Keyword } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 import { Select } from '@digdir/design-system-react';
 
@@ -24,7 +24,7 @@ export function ReferenceSelectionComponent({
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-  const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) =>
+  const definitions: UiSchemaNode[] = useSelector((state: SchemaState) =>
     getRootNodes(state.uiSchema, true)
   );
   const selectId = getDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
@@ -39,7 +39,7 @@ export function ReferenceSelectionComponent({
           emptyOption,
           ...definitions.map(({ pointer }) => ({
             value: pointer,
-            label: pointer.replace(`#/${Keywords.Definitions}/`, ''),
+            label: pointer.replace(`#/${Keyword.Definitions}/`, ''),
           })),
         ]}
         value={selectedNode.reference || ''}

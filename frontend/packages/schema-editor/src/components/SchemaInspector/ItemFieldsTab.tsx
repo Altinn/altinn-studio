@@ -1,6 +1,6 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
-import type { ISchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
 import {
   addProperty,
@@ -26,7 +26,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const readonly = selectedItem.reference !== undefined;
   const dispatch = useDispatch();
 
-  const fieldNodes = useSelector((state: ISchemaState) =>
+  const fieldNodes = useSelector((state: SchemaState) =>
     getChildNodesByPointer(state.uiSchema, selectedItem.pointer).map((node) => ({
       ...node,
       domId: getDomFriendlyID(node.pointer),

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,27 +11,28 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetRuleHandlerTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class GetRuleHandlerTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
 
         [Theory]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/changename/RuleHandler.js")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/datalist/RuleHandler.js")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/group/RuleHandler.js")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/likert/RuleHandler.js")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/message/RuleHandler.js")]
-        public async Task GetRuleHandler_ShouldReturnJsContent(string org, string app, string developer, string expectedRuleLayoutPath)
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/changename/RuleHandler.js")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/changename/RuleHandler.js")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/datalist/RuleHandler.js")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/RuleHandler.js")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/likert/RuleHandler.js")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/message/RuleHandler.js")]
+        public async Task GetRuleHandler_ShouldReturnJsContent(string org, string app, string developer, string layoutSetName, string expectedRuleLayoutPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedRuleHandler = await AddRuleHandler(CreatedFolderPath, expectedRuleLayoutPath);
+            string expectedRuleHandler = await AddRuleHandler(TestRepoPath, layoutSetName, expectedRuleLayoutPath);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/rule-handler";
+            string url = $"{VersionPrefix(org, targetRepository)}/rule-handler?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -41,22 +43,23 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app")]
-        public async Task GetLayoutSettings_IfNotExists_Should_AndReturnNotFound(string org, string app)
+        [InlineData("ttd", "empty-app", "layoutSet1")]
+        [InlineData("ttd", "empty-app", null)]
+        public async Task GetRuleHandler_IfNotExists_Should_AndReturnNotFound(string org, string app, string layoutSetName)
         {
-            string url = $"{VersionPrefix(org, app)}/rule-handler";
+            string url = $"{VersionPrefix(org, app)}/rule-handler?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
             string content = await response.Content.ReadAsStringAsync();
-            content.Should().BeEmpty();
+            content.Should().Be("Could not find rule handler in app.");
         }
 
-        private static async Task<string> AddRuleHandler(string createdFolderPath, string expectedRuleHandlerPath)
+        private static async Task<string> AddRuleHandler(string createdFolderPath, string layoutSetName, string expectedRuleHandlerPath)
         {
             string ruleHandler = SharedResourcesHelper.LoadTestDataAsString(expectedRuleHandlerPath);
-            string filePath = Path.Combine(createdFolderPath, "App", "ui", "RuleHandler.js");
+            string filePath = string.IsNullOrEmpty(layoutSetName) ? Path.Combine(createdFolderPath, "App", "ui", "RuleHandler.js") : Path.Combine(createdFolderPath, "App", "ui", layoutSetName, "RuleHandler.js");
             await File.WriteAllTextAsync(filePath, ruleHandler);
             return ruleHandler;
         }

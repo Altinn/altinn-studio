@@ -1,0 +1,37 @@
+.modalHeader {
+  font-size: 24px;
+}
+
+.contentDivider {
+  border: solid 1px #D6D6D6;
+  margin-block: 30px;
+}
+
+.bodyText {
+  margin-top: 10px;
+  line-height: 27px;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 20px;
+}
+
+.downloadWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.linkDivider {
+  margin-top: 20px;
+}
+
+.subHeader {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
