@@ -152,4 +152,4 @@ const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = 
     appContextProps: { modelPath },
     state: { ...defaultSchemaState, ...schemaState }
   })(<CustomProperties path={path}/>);
-}
+};

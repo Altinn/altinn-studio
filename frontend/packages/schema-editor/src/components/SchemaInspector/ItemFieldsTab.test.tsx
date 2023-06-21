@@ -85,7 +85,7 @@ const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, state: Par
     state,
     servicesContextProps: { saveDatamodel },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
-}
+};
 
 describe('ItemFieldsTab', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));

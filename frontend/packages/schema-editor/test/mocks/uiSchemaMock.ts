@@ -32,7 +32,7 @@ export const rootNodeMock: UiSchemaNode = {
   ...nodeMockBase,
   pointer: ROOT_POINTER,
   children: [parentNodePointer, toggableNodePointer, nodeWithCustomPropsPointer],
-}
+};
 
 export const parentNodeMock: UiSchemaNode = {
   ...nodeMockBase,

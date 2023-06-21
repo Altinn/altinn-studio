@@ -81,7 +81,7 @@ const clickMenuItem = async (name: string) =>{
 const clickOpenContextMenuButton = async () => {
   const buttons = screen.getAllByRole('button', { name: textMock('schema_editor.open_action_menu') });
   await act(() => user.click(buttons[0]));
-}
+};
 
 const setSchema = (schema: JsonSchema): UiSchemaNodes => {
   const uiSchema = buildUiSchema(schema);
