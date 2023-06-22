@@ -385,6 +385,23 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
 
+        [Fact]
+        public async Task PublishResource_Success()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/repository/publish/ttd-resources/testresource";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            _repositoryMock.Setup(r => r.PublishResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            //Assert
+            _repositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        }
+
         private static List<ResourceReference> GetTestResourceReferences()
         {
             List<ResourceReference> resourceReferences = new List<ResourceReference>
