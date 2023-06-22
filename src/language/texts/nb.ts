@@ -60,6 +60,8 @@ export function nb(): FixedLanguageList {
       file_uploader_drag: 'Dra og slipp eller',
       file_uploader_find: 'let etter fil',
       file_uploader_list_delete: 'Slett vedlegg',
+      file_uploader_delete_warning: 'Er du sikker på at du vil slette dette vedlegget?',
+      file_uploader_delete_button_confirm: 'Ja, slett vedlegg',
       file_uploader_list_header_file_size: 'Filstørrelse',
       file_uploader_list_header_name: 'Navn',
       file_uploader_list_header_status: 'Status',

@@ -58,6 +58,8 @@ export function en() {
       file_uploader_drag: 'Drag and drop or',
       file_uploader_find: 'find a file',
       file_uploader_list_delete: 'Delete attachment',
+      file_uploader_delete_warning: 'Are you sure you want to delete this attachment?',
+      file_uploader_delete_button_confirm: 'Yes, delete attachment',
       file_uploader_list_header_file_size: 'File size',
       file_uploader_list_header_name: 'Name',
       file_uploader_list_header_status: 'Status',

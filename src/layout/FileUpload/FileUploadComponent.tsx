@@ -1,30 +1,24 @@
 import React from 'react';
 import type { FileRejection } from 'react-dropzone';
 
-import { Button } from '@digdir/design-system-react';
-import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AltinnLoader } from 'src/components/AltinnLoader';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
-import { AttachmentFileName } from 'src/layout/FileUpload/shared/AttachmentFileName';
+import { FileUploadTableRow } from 'src/layout/FileUpload/FileUploadTableRow';
 import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
 import { handleRejectedFiles } from 'src/layout/FileUpload/shared/handleRejectedFiles';
 import { AttachmentsCounter } from 'src/layout/FileUpload/shared/render';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IComponentValidations } from 'src/types';
 
 export type IFileUploadProps = PropsFromGenericComponent<'FileUpload'>;
 
-export const bytesInOneMB = 1048576;
 export const emptyArray = [];
 
 export function FileUploadComponent({ node, componentValidations }: IFileUploadProps) {
@@ -46,6 +40,7 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useIsMobileOrTablet();
   const attachments = useAppSelector((state) => state.attachments.attachments[id] || emptyArray);
+  const alertOnDelete = node.item?.alertOnDelete;
   const langTools = useLanguage();
   const { lang, langAsString } = langTools;
   const getComponentValidations = (): IComponentValidations => {
@@ -100,73 +95,8 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
     }
   };
 
-  const handleDeleteFile = (index: number) => {
-    const attachmentToDelete = attachments[index];
-    dispatch(
-      AttachmentActions.deleteAttachment({
-        attachment: attachmentToDelete,
-        attachmentType: baseComponentId || id,
-        componentId: id,
-        dataModelBindings,
-      }),
-    );
-  };
   const NonMobileColumnHeader = () =>
     !mobileView ? <th scope='col'>{lang('form_filler.file_uploader_list_header_file_size')}</th> : null;
-
-  const StatusCellContent = ({ attachment }: { attachment: { uploaded: boolean } }) => {
-    const { uploaded } = attachment;
-    const status = attachment.uploaded
-      ? langAsString('form_filler.file_uploader_list_status_done')
-      : langAsString('general.loading');
-
-    return uploaded ? (
-      <div className={classes.fileStatus}>
-        {mobileView ? null : status}
-        <CheckmarkCircleFillIcon
-          data-testid='checkmark-success'
-          style={mobileView ? { margin: 'auto' } : {}}
-          aria-hidden={!mobileView}
-          aria-label={status}
-          role='img'
-        />
-      </div>
-    ) : (
-      <AltinnLoader
-        id='loader-upload'
-        style={{
-          marginBottom: '1rem',
-          marginRight: '0.8125rem',
-        }}
-        srContent={status}
-      />
-    );
-  };
-  const DeleteCellContent = ({ attachment, index }: { attachment: { deleting: boolean }; index: number }) => (
-    <>
-      {attachment.deleting ? (
-        <AltinnLoader
-          id='loader-delete'
-          className={classes.deleteLoader}
-          srContent={langAsString('general.loading')}
-        />
-      ) : (
-        <Button
-          className={classes.deleteButton}
-          size='small'
-          variant='quiet'
-          color='danger'
-          onClick={() => handleDeleteFile(index)}
-          icon={<TrashIcon aria-hidden={true} />}
-          iconPlacement='right'
-          data-testid={`attachment-delete-${index}`}
-          aria-label={langAsString('general.delete')}
-        >
-          {!mobileView && lang('form_filler.file_uploader_list_delete')}
-        </Button>
-      )}
-    </>
-  );
 
   const FileList = (): JSX.Element | null => {
     if (!attachments?.length) {
@@ -209,26 +139,16 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
           </thead>
           <tbody>
             {attachments.map((attachment, index: number) => (
-              <tr
+              <FileUploadTableRow
                 key={attachment.id}
-                className={classes.blueUnderlineDotted}
-                id={`altinn-file-list-row-${attachment.id}`}
-                tabIndex={0}
-              >
-                <NameCell
-                  attachment={attachment}
-                  mobileView={mobileView}
-                />
-                <td>
-                  <StatusCellContent attachment={attachment} />
-                </td>
-                <td>
-                  <DeleteCellContent
-                    attachment={attachment}
-                    index={index}
-                  />
-                </td>
-              </tr>
+                id={id}
+                alertOnDelete={alertOnDelete}
+                attachment={attachment}
+                index={index}
+                mobileView={mobileView}
+                baseComponentId={baseComponentId}
+                dataModelBindings={dataModelBindings}
+              />
             ))}
           </tbody>
         </table>
@@ -317,35 +237,3 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
     </div>
   );
 }
-
-const NameCell = ({
-  mobileView,
-  attachment,
-}: {
-  mobileView: boolean;
-  attachment: Pick<IAttachment, 'name' | 'size' | 'id' | 'uploaded'>;
-}) => {
-  const { langAsString } = useLanguage();
-  const readableSize = `${(attachment.size / bytesInOneMB).toFixed(2)} ${langAsString('form_filler.file_uploader_mb')}`;
-
-  return (
-    <>
-      <td>
-        <AttachmentFileName
-          attachment={attachment}
-          mobileView={mobileView}
-        />
-        {mobileView ? (
-          <div
-            style={{
-              color: AltinnAppTheme.altinnPalette.primary.grey,
-            }}
-          >
-            {readableSize}
-          </div>
-        ) : null}
-      </td>
-      {!mobileView ? <td>{readableSize}</td> : null}
-    </>
-  );
-};

@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
 import classNames from 'classnames';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
+import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -41,8 +42,18 @@ export function EditWindowComponent({
   setEditIndex,
 }: EditWindowProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const { id, baseComponentId, dataModelBindings, readOnly, textResourceBindings } = node.item;
+  const { id, baseComponentId, dataModelBindings, readOnly, textResourceBindings, alertOnDelete } = node.item;
   const { lang, langAsString } = useLanguage();
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const handleDeleteClick = () => {
+    alertOnDelete ? setPopoverOpen(!popoverOpen) : handleDeleteFile();
+  };
+
+  const handlePopoverDeleteClick = () => {
+    setPopoverOpen(false);
+    handleDeleteFile();
+  };
 
   const handleDeleteFile = () => {
     dispatch(
@@ -92,6 +103,7 @@ export function EditWindowComponent({
                   aria-hidden={!mobileView}
                   aria-label={langAsString('form_filler.file_uploader_list_status_done')}
                   className={classes.checkMark}
+                  data-testid='checkmark-success'
                 />
               </div>
             )}
@@ -105,15 +117,14 @@ export function EditWindowComponent({
               />
             )}
             <div>
-              <Button
-                onClick={() => handleDeleteFile()}
-                variant={ButtonVariant.Quiet}
-                color={ButtonColor.Danger}
-                icon={<TrashIcon aria-hidden={true} />}
-                iconPlacement='right'
-              >
-                {!mobileView && lang('general.delete')}
-              </Button>
+              <DeleteButton
+                alertOnDelete={alertOnDelete}
+                mobileView={mobileView}
+                handleDeleteClick={handleDeleteClick}
+                handlePopoverDeleteClick={handlePopoverDeleteClick}
+                popoverOpen={popoverOpen}
+                setPopoverOpen={setPopoverOpen}
+              />
             </div>
           </div>
         </Grid>
@@ -199,3 +210,49 @@ export function EditWindowComponent({
     </div>
   );
 }
+
+const DeleteButton = ({
+  alertOnDelete,
+  mobileView,
+  handleDeleteClick,
+  handlePopoverDeleteClick,
+  popoverOpen,
+  setPopoverOpen,
+}: {
+  alertOnDelete?: boolean;
+  mobileView: boolean;
+  handleDeleteClick: () => void;
+  handlePopoverDeleteClick: () => void;
+  popoverOpen: boolean;
+  setPopoverOpen: (open: boolean) => void;
+}) => {
+  const { lang, langAsString } = useLanguage();
+  const deleteButton = (
+    <Button
+      onClick={() => handleDeleteClick()}
+      variant='quiet'
+      color='danger'
+      icon={<TrashIcon aria-hidden={true} />}
+      iconPlacement='right'
+      data-testid='attachment-delete'
+    >
+      {!mobileView && lang('general.delete')}
+    </Button>
+  );
+  if (alertOnDelete) {
+    return (
+      <DeleteWarningPopover
+        trigger={deleteButton}
+        onPopoverDeleteClick={() => handlePopoverDeleteClick()}
+        placement='left'
+        onCancelClick={() => setPopoverOpen(false)}
+        deleteButtonText={langAsString('form_filler.file_uploader_delete_button_confirm')}
+        messageText={langAsString('form_filler.file_uploader_delete_warning')}
+        open={popoverOpen}
+        setOpen={setPopoverOpen}
+      />
+    );
+  } else {
+    return deleteButton;
+  }
+};

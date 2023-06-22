@@ -765,6 +765,11 @@ export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {
       resolvePerRow: false,
     },
   },
+  alertOnDelete: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    resolvePerRow: false,
+  },
 };
 
 export const ExprConfigForGroup: ExprObjConfig<ILayoutGroup> = {

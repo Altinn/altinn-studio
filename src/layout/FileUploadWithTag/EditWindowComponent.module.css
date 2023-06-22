@@ -16,7 +16,6 @@
 .textContainer {
   white-space: nowrap;
   text-overflow: ellipsis;
-  overflow: hidden;
   color: #000;
   font-weight: 500 !important;
   font-size: 0.875rem;

@@ -459,30 +459,18 @@ describe('Group', () => {
     cy.get(appFrontend.group.subGroup).find(appFrontend.group.delete).click();
     cy.snapshot('group: delete-warning-popup');
 
-    cy.get(appFrontend.group.subGroup)
-      .find(appFrontend.designSystemPanel)
-      .find(appFrontend.group.popOverCancelButton)
-      .click();
+    cy.get(appFrontend.group.subGroup).find(appFrontend.group.popOverCancelButton).click();
     cy.get(appFrontend.group.subGroup).find(appFrontend.group.delete).click();
-    cy.get(appFrontend.group.subGroup)
-      .find(appFrontend.designSystemPanel)
-      .find(appFrontend.group.popOverDeleteButton)
-      .click();
+    cy.get(appFrontend.group.subGroup).find(appFrontend.group.popOverDeleteButton).click();
 
     cy.get(appFrontend.group.subGroup).find('tbody > tr > td').eq(0).should('not.contain.text', 'automation');
 
     // Navigate to main group and test delete warning popup cancel and confirm
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.back).click();
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.delete).click();
-    cy.get(appFrontend.group.mainGroup)
-      .find(appFrontend.designSystemPanel)
-      .find(appFrontend.group.popOverCancelButton)
-      .click();
+    cy.get(appFrontend.group.mainGroup).find(appFrontend.group.popOverCancelButton).click();
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.delete).click();
-    cy.get(appFrontend.group.mainGroup)
-      .find(appFrontend.designSystemPanel)
-      .find(appFrontend.group.popOverDeleteButton)
-      .click();
+    cy.get(appFrontend.group.mainGroup).find(appFrontend.group.popOverDeleteButton).click();
 
     cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length', 0);
   });

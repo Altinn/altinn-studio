@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
 import cn from 'classnames';
@@ -96,8 +96,6 @@ export function RepeatingGroupTable({
 
   const isEmpty = numRows === 0;
   const showTableHeader = numRows > 0 && !(numRows == 1 && editRowIndex == 0);
-  const [popoverPanelIndex, setPopoverPanelIndex] = useState(-1);
-  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
@@ -119,26 +117,8 @@ export function RepeatingGroupTable({
 
   const isNested = typeof container?.baseComponentId === 'string';
 
-  const onOpenChange = (index: number) => {
-    if (index == popoverPanelIndex && popoverOpen) {
-      setPopoverPanelIndex(-1);
-    } else {
-      setPopoverPanelIndex(index);
-    }
-  };
-
-  const handlePopoverDeleteClick = (index: number) => () => {
-    onClickRemove(index);
-    onOpenChange(index);
-    setPopoverOpen(false);
-  };
-
   const handleDeleteClick = (index: number) => {
-    if (edit?.alertOnDelete) {
-      onOpenChange(index);
-    } else {
-      onClickRemove(index);
-    }
+    onClickRemove(index);
   };
 
   const handleEditClick = (groupIndex: number) => {
@@ -294,15 +274,8 @@ export function RepeatingGroupTable({
                     rowHasErrors={rowHasErrors}
                     getTableNodes={getTableNodes}
                     onEditClick={() => handleEditClick(index)}
+                    onDeleteClick={() => handleDeleteClick(index)}
                     mobileView={mobileView}
-                    deleteFunctionality={{
-                      onDeleteClick: () => handleDeleteClick(index),
-                      popoverPanelIndex,
-                      popoverOpen,
-                      setPopoverOpen,
-                      onPopoverDeleteClick: handlePopoverDeleteClick,
-                      onOpenChange,
-                    }}
                     displayDeleteColumn={displayDeleteColumn}
                     displayEditColumn={displayEditColumn}
                   />

@@ -14,16 +14,3 @@
   font-family: monospace !important;
   font-size: 0.8rem !important;
 }
-
-/*
- * This mitigates a problem where our DeleteWarningPopover (and potentially other components using radix popper)
- * is not displayed in the correct location in the snapshot. It seems the radix popover is positioned actively
- * using javascript, which is not passed on to Percy. This workaround positions the popover in a spot where it
- * is visible, instead of defaulting to being buried under our app header (with a higher z-index).
- */
-[data-radix-popper-content-wrapper] {
-  left: 100px !important;
-  top: 150px !important;
-  position: fixed !important;
-  transform: none !important;
-}

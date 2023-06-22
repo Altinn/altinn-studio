@@ -103,6 +103,39 @@ describe('UI Components', () => {
     cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(299));
   });
 
+  it('should implement delete confirmation for both file upload components and require user confirmation', () => {
+    const components = [
+      {
+        type: 'FileUpload',
+        uploader: appFrontend.changeOfName.upload,
+        shouldExist: appFrontend.changeOfName.uploadedTable,
+      },
+      {
+        type: 'FileUploadWithTag',
+        uploader: appFrontend.changeOfName.uploadWithTag.uploadZone,
+        shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
+      },
+    ];
+    cy.interceptLayout('changename', (component) => {
+      for (const { type } of components) {
+        if (component.type === type) {
+          component.alertOnDelete = true;
+        }
+      }
+    });
+    cy.goto('changename');
+    for (const { uploader, shouldExist } of components) {
+      cy.get(uploader).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+      cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
+      cy.get(appFrontend.changeOfName.deleteAttachment).click();
+      cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+      cy.get(shouldExist).should('exist');
+      cy.get(appFrontend.changeOfName.deleteAttachment).click();
+      cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+      cy.get(shouldExist).should('not.exist');
+    }
+  });
+
   it('is possible to navigate between pages using navigation bar', () => {
     cy.goto('changename');
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
