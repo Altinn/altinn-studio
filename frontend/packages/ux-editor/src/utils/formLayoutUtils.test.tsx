@@ -5,13 +5,16 @@ import {
   addNavigationButtons,
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
+  createEmptyLayout,
   extractChildrenFromGroup,
   findParentId,
-  hasNavigationButtons,
+  getDepth,
+  hasNavigationButtons, hasSubContainers, isContainer,
   moveLayoutItem,
   removeComponent,
   removeComponentsByType,
   updateContainer,
+  validateDepth,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { IInternalLayout } from '../types/global';
@@ -19,11 +22,13 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 import type {
   FormButtonComponent,
+  FormComponent,
   FormHeaderComponent,
   FormParagraphComponent
 } from '../types/FormComponent';
 import { FormContainer } from '../types/FormContainer';
 import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import { deepCopy } from 'app-shared/pure';
 
 // Test data:
 const baseContainer: FormContainer = {
@@ -571,6 +576,79 @@ describe('formLayoutUtils', () => {
       const id = 'newGroupId';
       const layout = addItemOfType(mockInternal, ComponentType.Group, id);
       expect(layout.containers[id].itemType).toEqual('CONTAINER');
+    });
+  });
+
+  describe('isContainer', () => {
+    it('Returns true if the given id is a container', () => {
+      expect(isContainer(mockInternal, groupId)).toBe(true);
+      expect(isContainer(mockInternal, groupInGroupId)).toBe(true);
+    });
+
+    it('Returns false if the given id is not a container', () => {
+      expect(isContainer(mockInternal, paragraphId)).toBe(false);
+      expect(isContainer(mockInternal, paragraphInGroupId)).toBe(false);
+    });
+
+    it('Returns false if the given id does not exist', () => {
+      expect(isContainer(mockInternal, 'nonExistingId')).toBe(false);
+    });
+  });
+
+  describe('hasSubContainers', () => {
+    it('Returns true if the given container has sub containers', () => {
+      expect(hasSubContainers(mockInternal, groupId)).toBe(true);
+    });
+
+    it('Returns false if the given container does not have sub containers', () => {
+      expect(hasSubContainers(mockInternal, groupInGroupId)).toBe(false);
+    });
+  });
+
+  describe('getDepth', () => {
+    it('Returns 0 if only the base container is present', () => {
+      const layout: IInternalLayout = createEmptyLayout();
+      expect(getDepth(layout)).toBe(0);
+    });
+
+    it('Returns 1 if there is a group', () => {
+      const container: FormContainer = { itemType: 'CONTAINER' };
+      const layout: IInternalLayout = addContainer(createEmptyLayout(), container, 'test');
+      expect(getDepth(layout)).toBe(1);
+    });
+
+    it('Returns 1 if there is a group with components only', () => {
+      const container: FormContainer = { itemType: 'CONTAINER' };
+      const containerId = 'sometestgroup';
+      const component: FormComponent = { itemType: 'COMPONENT', type: ComponentType.Paragraph, id: 'sometestcomponent' };
+      let layout: IInternalLayout = createEmptyLayout();
+      layout = addContainer(layout, container, containerId);
+      layout = addComponent(layout, component, containerId);
+      expect(getDepth(layout)).toBe(1);
+    });
+
+    it('Returns 2 if there is a group within a group', () => {
+      expect(getDepth(mockInternal)).toBe(2);
+    });
+
+    it('Returns 3 if there is a group within a group within a group', () => {
+      let layout = deepCopy(mockInternal);
+      const container: FormContainer = { itemType: 'CONTAINER' };
+      layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
+      expect(getDepth(layout)).toBe(3);
+    });
+  });
+
+  describe('validateDepth', () => {
+    it('Returns true if the depth is valid', () => {
+      expect(validateDepth(mockInternal)).toBe(true);
+    });
+
+    it('Returns false if the depth is invalid', () => {
+      let layout = deepCopy(mockInternal);
+      const container: FormContainer = { itemType: 'CONTAINER' };
+      layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
+      expect(validateDepth(layout)).toBe(false);
     });
   });
 });

@@ -1,24 +1,8 @@
 import React, { useState } from 'react';
 import classes from './NewResourceModal.module.css';
-import Modal from 'react-modal';
 import { Button, TextField } from '@digdir/design-system-react';
 import { PencilWritingIcon, MultiplyIcon } from '@navikt/aksel-icons';
-
-/**
- * Style the modal
- */
-const modalStyles = {
-  content: {
-    width: '600px',
-    height: 'fit-content',
-    margin: 'auto',
-    paddingBlock: '40px',
-    paddingInline: '70px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
+import { Modal } from '../Modal';
 
 interface Props {
   isOpen: boolean;
@@ -39,7 +23,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
 
   /**
-   * Replaces the spaces in the value typed with '-'
+   * Replaces the spaces in the value typed with '-'.
    */
   const handleIDInput = (val: string) => {
     setId(val.replace(/\s/g, '-'));
@@ -53,7 +37,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
    */
   const handleEditTitle = (val: string) => {
     if (!editIdFieldOpen) {
-      setId(val);
+      setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
   };
@@ -94,23 +78,16 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
 
     // If we stop editing, set the ID to the title
     if (!isOpened) {
-      if (title !== id) setId(title);
+      if (title !== id) setId(title.replace(/\s/g, '-'));
     }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={onClose}
-      contentLabel='Create new resource modal'
-      style={modalStyles}
-      ariaHideApp={false}
-    >
-      <h2 className={classes.modalTitle}>Opprett en ny ressurs</h2>
-      <div className={classes.contentDivider} />
+    <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
       <p className={classes.text}>Velg et navn for å opprette ressursen din.</p>
+      <p className={classes.text}>Navnet kan endres på frem til tjenesten din er publisert.</p>
+      <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
       <div className={classes.textfieldWrapper}>
-        <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
         <TextField
           placeholder='Ressursnavn (Bokmål)'
           value={title}
@@ -118,48 +95,54 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
           aria-label='Ressursnavn (Bokmål)'
         />
       </div>
-      <div className={classes.idWrapper}>
-        <div className={classes.idBox}>
-          <p className={classes.idText}>id</p>
-        </div>
-        <p className={classes.text}>
-          altinn.svv.<strong>{getIdToDisplay()}</strong>
-        </p>
-        <div className={classes.editButtonWrapper}>
-          <Button
-            onClick={() => handleClickEditButton(!editIdFieldOpen)}
-            iconPlacement='right'
-            icon={
-              editIdFieldOpen ? (
-                <MultiplyIcon title='Slutt å endre ressurs id' />
-              ) : (
-                <PencilWritingIcon title='Endre ressurs id' fontSize='1.5rem' />
-              )
-            }
-            variant='outline'
-            color={editIdFieldOpen ? 'danger' : 'primary'}
-          >
-            {editIdFieldOpen ? 'Avbryt redigering' : 'Rediger'}
-          </Button>
-        </div>
-      </div>
+      <p className={classes.textfieldHeader}>Ressurs id</p>
       <div className={classes.editFieldWrapper}>
-        {editIdFieldOpen && (
+        {editIdFieldOpen ? (
           <>
-            <p className={classes.textfieldHeader}>Tilpasset id navn</p>
-            <TextField
-              placeholder='Tilpasset id navn'
-              value={id}
-              onChange={(e) => handleIDInput(e.target.value)}
-              aria-label='Tilpasset ID navn'
-              // TODO - Potentially show error if ID exists
-            />
+            <div className={classes.textfieldWrapper}>
+              <TextField
+                placeholder='Ressurs id'
+                value={id}
+                onChange={(e) => handleIDInput(e.target.value)}
+                aria-label='Ressurs id'
+                // TODO - Potentially show error if ID exists
+              />
+            </div>
+            <div className={classes.stopEditingButton}>
+              <Button
+                onClick={() => handleClickEditButton(!editIdFieldOpen)}
+                variant='quiet'
+                icon={<MultiplyIcon title='Slutt å endre ressurs id' />}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={classes.idBox}>
+              <p className={classes.idText}>id</p>
+            </div>
+            <p className={classes.text}>
+              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
+              altinn.svv.<strong>{getIdToDisplay()}</strong>
+            </p>
+            <div className={classes.editButtonWrapper}>
+              <Button
+                onClick={() => handleClickEditButton(!editIdFieldOpen)}
+                iconPlacement='right'
+                icon={<PencilWritingIcon title='Endre ressurs id' />}
+                variant='quiet'
+                color='primary'
+              >
+                Rediger
+              </Button>
+            </div>
           </>
         )}
       </div>
+      {/* TODO - Add if the id is valid or not based on API calls later */}
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
-          <Button onClick={onClose} color='secondary' variant='outline'>
+          <Button onClick={onClose} color='primary' variant='quiet'>
             Avbryt
           </Button>
         </div>
@@ -168,7 +151,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
           color='primary'
           disabled={id.length === 0 || title.length === 0}
         >
-          Lagre ressurs
+          Opprett ressurs
         </Button>
       </div>
     </Modal>

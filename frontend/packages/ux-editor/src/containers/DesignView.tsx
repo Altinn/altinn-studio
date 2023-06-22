@@ -11,7 +11,7 @@ import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { generateComponentId } from '../utils/generateId';
-import { moveLayoutItem } from '../utils/formLayoutUtils';
+import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { FormContext } from './FormContext';
 import { DroppableList } from '../components/dragAndDrop/DroppableList';
@@ -43,12 +43,19 @@ export const DesignView = ({ className }: DesignViewProps) => {
 
   const { order, containers, components } = layout;
 
+  const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
+
   const addItem = (item: NewDndItem, { parentId, index }: ItemPosition) => {
     const newId = generateComponentId(item.type, layouts);
-    addItemToLayout({ componentType: item.type, newId, parentId, index });
+    const updatedLayout = addItemOfType(layout, item.type, newId, parentId, index);
+    if (validateDepth(updatedLayout)) {
+      addItemToLayout({ componentType: item.type, newId, parentId, index });
+    } else triggerDepthAlert();
   };
-  const moveItem = (item: ExistingDndItem, { parentId, index }: ItemPosition) =>
-    updateFormLayout(moveLayoutItem(layout, item.id, parentId, index));
+  const moveItem = (item: ExistingDndItem, { parentId, index }: ItemPosition) => {
+    const updatedLayout = moveLayoutItem(layout, item.id, parentId, index);
+    validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
+  };
 
   const handleDrop: HandleDrop = (item, position) =>
     item.isNew === true ? addItem(item, position) : moveItem(item, position);

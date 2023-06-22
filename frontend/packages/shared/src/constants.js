@@ -9,3 +9,4 @@ export const AUTOSAVE_DEBOUNCE_INTERVAL = 500;
 export const APP_NAME = 'appName';
 export const DEFAULT_SELECTED_LAYOUT_NAME = 'default';
 export const TASKID_FOR_STATELESS_APPS = 'Task_1';
+export const MAX_NESTED_GROUP_LEVEL = 2;
