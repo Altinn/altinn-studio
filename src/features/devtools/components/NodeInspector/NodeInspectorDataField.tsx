@@ -32,7 +32,7 @@ export function Value({ children, className, property, collapsible, wasExpressio
   const context = useNodeInspectorContext();
 
   const editExpression = () => {
-    dispatch(DevToolsActions.exprPlaygroundSetExpression({ expression: JSON.stringify(wasExpression) }));
+    dispatch(DevToolsActions.exprPlaygroundSetExpression({ expression: JSON.stringify(wasExpression, null, 2) }));
     dispatch(
       DevToolsActions.exprPlaygroundSetContext({
         forPage: context.node?.top.top.myKey,

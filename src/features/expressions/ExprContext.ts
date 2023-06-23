@@ -2,6 +2,7 @@ import dot from 'dot-object';
 
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
+import type { EvalExprOptions } from 'src/features/expressions/index';
 import type { ExprConfig, Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
@@ -34,6 +35,7 @@ export class ExprContext {
     public expr: Expression,
     public node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
     public dataSources: ContextDataSources,
+    public callbacks: Pick<EvalExprOptions, 'onBeforeFunctionCall' | 'onAfterFunctionCall'>,
   ) {}
 
   /**
@@ -43,8 +45,9 @@ export class ExprContext {
     expr: Expression,
     node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
     dataSources: ContextDataSources,
+    callbacks: Pick<EvalExprOptions, 'onBeforeFunctionCall' | 'onAfterFunctionCall'>,
   ): ExprContext {
-    return new ExprContext(expr, node, dataSources);
+    return new ExprContext(expr, node, dataSources, callbacks);
   }
 
   /**
@@ -52,7 +55,12 @@ export class ExprContext {
    * inner part of the expression)
    */
   public static withPath(prevInstance: ExprContext, newPath: string[]) {
-    const newInstance = new ExprContext(prevInstance.expr, prevInstance.node, prevInstance.dataSources);
+    const newInstance = new ExprContext(
+      prevInstance.expr,
+      prevInstance.node,
+      prevInstance.dataSources,
+      prevInstance.callbacks,
+    );
     newInstance.path = newPath;
 
     return newInstance;

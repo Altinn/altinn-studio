@@ -13,7 +13,7 @@ function setHighlightStyle(highlightElement: HTMLElement, referenceElement: HTML
   highlightElement.style.height = `${height}px`;
   highlightElement.style.backgroundColor = 'rgba(0, 200, 255, 0.33)';
   highlightElement.style.border = '3px solid rgb(0, 200, 255)';
-  highlightElement.style.zIndex = '5000';
+  highlightElement.style.zIndex = '900';
 }
 
 export function useComponentHighlighter(componentId: string, exact = false) {

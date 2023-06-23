@@ -30,3 +30,9 @@
   background-color: white;
   height: 100%;
 }
+
+.outputs,
+.outputs > div,
+.outputs > div > div:not([role='tablist']) {
+  height: 100%;
+}

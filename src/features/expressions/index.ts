@@ -30,6 +30,8 @@ import type { IAuthContext, IInstanceContext } from 'src/types/shared';
 export interface EvalExprOptions {
   config?: ExprConfig;
   errorIntroText?: string;
+  onBeforeFunctionCall?: (path: string[], func: ExprFunction, args: any[]) => void;
+  onAfterFunctionCall?: (path: string[], func: ExprFunction, args: any[], result: any) => void;
 }
 
 export interface EvalExprInObjArgs<T> {
@@ -175,7 +177,10 @@ export function evalExpr(
   dataSources: ContextDataSources,
   options?: EvalExprOptions,
 ) {
-  let ctx = ExprContext.withBlankPath(expr, node, dataSources);
+  let ctx = ExprContext.withBlankPath(expr, node, dataSources, {
+    onBeforeFunctionCall: options?.onBeforeFunctionCall,
+    onAfterFunctionCall: options?.onAfterFunctionCall,
+  });
   try {
     const result = innerEvalExpr(ctx);
     if ((result === null || result === undefined) && options && options.config) {
@@ -244,10 +249,16 @@ function innerEvalExpr(context: ExprContext) {
     return castValue(argValue, argType, argContext);
   });
 
-  const actualFunc: (...args: any) => any = ExprFunctions[func].impl;
-  const returnValue = actualFunc.apply(context, computedArgs);
+  const { onBeforeFunctionCall, onAfterFunctionCall } = context.callbacks;
 
-  return castValue(returnValue, returnType, context);
+  const actualFunc: (...args: any) => any = ExprFunctions[func].impl;
+
+  onBeforeFunctionCall && onBeforeFunctionCall(context.path, func, computedArgs);
+  const returnValue = actualFunc.apply(context, computedArgs);
+  const returnValueCasted = castValue(returnValue, returnType, context);
+  onAfterFunctionCall && onAfterFunctionCall(context.path, func, computedArgs, returnValueCasted);
+
+  return returnValueCasted;
 }
 
 function valueToExprValueType(value: any): ExprVal {

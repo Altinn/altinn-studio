@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
-import { FieldSet, Select } from '@digdir/design-system-react';
+import { Checkbox, FieldSet, Select, Tabs } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';
@@ -14,9 +14,14 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 import { dataSourcesFromState } from 'src/utils/layout/hierarchy';
-import type { ExprConfig, Expression } from 'src/features/expressions/types';
+import type { ExprConfig, Expression, ExprFunction } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+
+interface ExpressionResult {
+  value: string;
+  isError: boolean;
+}
 
 export const ExpressionPlayground = () => {
   const input = useAppSelector((state) => state.devTools.exprPlayground.expression);
@@ -24,16 +29,42 @@ export const ExpressionPlayground = () => {
   const forComponentId = useAppSelector((state) => state.devTools.exprPlayground.forComponentId);
   const dispatch = useAppDispatch();
 
-  const [output, setOutput] = React.useState('');
-  const [isError, setIsError] = React.useState(false);
+  const [showAllSteps, setShowAllSteps] = React.useState(false);
+  const [activeOutputTab, setActiveOutputTab] = React.useState('Gjeldende resultat');
+  const [outputs, setOutputs] = React.useState<ExpressionResult[]>([
+    {
+      value: '',
+      isError: false,
+    },
+  ]);
   const nodes = useExprContext();
   const currentPage = nodes?.current()?.top.myKey;
   const dataSources = useAppSelector(dataSourcesFromState);
 
+  const setOutputWithHistory = useCallback(
+    (newValue: string, isError: boolean): boolean => {
+      const lastOutput = outputs[0];
+      if (!lastOutput || lastOutput.value === '') {
+        setOutputs([{ value: newValue, isError }]);
+        return true;
+      }
+      if (lastOutput.value === newValue && lastOutput.isError === isError) {
+        return false;
+      }
+      const newOutputs = [{ value: newValue, isError }, ...outputs];
+      setOutputs(newOutputs.slice(0, 10));
+      return true;
+    },
+    [outputs],
+  );
+
+  // This is OK if this function is called from places that immediately evaluates the expression again, thus
+  // populating the output history with a fresh value.
+  const resetOutputHistory = () => setOutputs([]);
+
   useEffect(() => {
     if (!input || input.length <= 0) {
-      setOutput('');
-      setIsError(false);
+      setOutputs([{ value: '', isError: false }]);
       return;
     }
 
@@ -72,14 +103,23 @@ export const ExpressionPlayground = () => {
         }
       }
 
-      const out = evalExpr(expr as Expression, evalContext, dataSources, { config });
-      setOutput(out);
-      setIsError(false);
+      const calls: string[] = [];
+      const onAfterFunctionCall = (path: string[], func: ExprFunction, args: any[], result: any) => {
+        const indent = '  '.repeat(path.length);
+        calls.push(`${indent}${JSON.stringify([func, ...args])} => ${JSON.stringify(result)}`);
+      };
+
+      const out = evalExpr(expr as Expression, evalContext, dataSources, { config, onAfterFunctionCall });
+
+      if (showAllSteps) {
+        setOutputWithHistory(calls.join('\n'), false);
+      } else {
+        setOutputWithHistory(JSON.stringify(out), false);
+      }
     } catch (e) {
-      setOutput(e.message);
-      setIsError(true);
+      setOutputs([{ value: e.message, isError: true }]);
     }
-  }, [input, forPage, forComponentId, dataSources, nodes]);
+  }, [input, forPage, forComponentId, dataSources, nodes, showAllSteps, outputs, setOutputWithHistory]);
 
   return (
     <div className={classes.container}>
@@ -94,13 +134,37 @@ export const ExpressionPlayground = () => {
             onChange={(e) => dispatch(DevToolsActions.exprPlaygroundSetExpression({ expression: e.target.value }))}
             placeholder={'Skriv inn et dynamisk uttrykk...\nEksempel: ["equals", ["component", "firstName"], "Ola"]'}
           />
-          <textarea
-            style={{ color: isError ? 'red' : 'black' }}
-            className={cn(classes.textbox, classes.output)}
-            readOnly={true}
-            value={JSON.stringify(output)}
-            placeholder={'Resultatet av uttrykket vises her'}
-          />
+          {outputs.length === 1 && (
+            <textarea
+              style={{ color: outputs[0].isError ? 'red' : 'black' }}
+              className={cn(classes.textbox, classes.output)}
+              readOnly={true}
+              value={outputs[0].value}
+              placeholder={'Resultatet av uttrykket vises her'}
+            />
+          )}
+          {outputs.length > 1 && (
+            <div className={classes.outputs}>
+              <Tabs
+                activeTab={activeOutputTab}
+                onChange={(outputName) => {
+                  setActiveOutputTab(outputName);
+                }}
+                items={outputs.map((output, i) => ({
+                  name: i === 0 ? `Gjeldende resultat` : `Tidligere (-${i})`,
+                  content: (
+                    <textarea
+                      style={{ color: output.isError ? 'red' : 'black' }}
+                      className={cn(classes.textbox, classes.output)}
+                      readOnly={true}
+                      value={output.value}
+                      placeholder={'Resultatet av uttrykket vises her'}
+                    />
+                  ),
+                }))}
+              />
+            </div>
+          )}
         </SplitView>
         <div className={classes.rightColumn}>
           <FieldSet legend={'Kjør uttrykk i kontekst av komponent'}>
@@ -115,7 +179,7 @@ export const ExpressionPlayground = () => {
                 .flat()
                 .map((n) => ({ label: n.item.id, value: `${n.top.top.myKey}|${n.item.id}` }))}
             />
-            {forPage === currentPage && (
+            {forComponentId && forPage === currentPage && (
               // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
                 href={'#'}
@@ -128,11 +192,21 @@ export const ExpressionPlayground = () => {
                 Vis i komponent-utforskeren
               </a>
             )}
-            {forPage !== currentPage && (
+            {forComponentId && forPage !== currentPage && (
               <span>
                 Komponenten vises på siden <em>{forPage}</em>
               </span>
             )}
+            <div style={{ paddingTop: 10 }}>
+              <Checkbox
+                checked={showAllSteps}
+                onChange={(ev) => {
+                  resetOutputHistory();
+                  setShowAllSteps(ev.target.checked);
+                }}
+                label={'Vis alle steg i evalueringen'}
+              />
+            </div>
           </FieldSet>
           <br />
           <br />
