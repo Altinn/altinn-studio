@@ -13,7 +13,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const { org, app } = useParams();
 
   const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
-  const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds.length === 0);
+  const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
   const handleOptionsIdChange = (optionsId: string) => {
     handleComponentChange({
       ...component,
@@ -24,24 +24,25 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   return (
     <div>
       {isLoading ? (
-        <AltinnSpinner/>
+        <AltinnSpinner />
       ) : isError ? (
         <ErrorMessage>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
-      ) : optionListIds.length === 0 ? (
-        <ErrorMessage>
-          {t('ux_editor.modal_properties_no_options_found_message')}
-        </ErrorMessage>
+      ) : optionListIds?.length === 0 ? (
+        <ErrorMessage>{t('ux_editor.modal_properties_no_options_found_message')}</ErrorMessage>
       ) : (
         <>
           <p>
-            <Button variant={ButtonVariant.Quiet} onClick={() => setUseCustomCodeList(!useCustomCodeList)}>
-              {optionListIds.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
+            <Button
+              variant={ButtonVariant.Quiet}
+              onClick={() => setUseCustomCodeList(!useCustomCodeList)}
+            >
+              {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
             </Button>
           </p>
-          {!useCustomCodeList &&
+          {!useCustomCodeList && (
             <Select
               options={optionListIds.map((option) => ({
                 label: option,
@@ -50,19 +51,21 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               label={t('ux_editor.modal_properties_code_list_id')}
               onChange={handleOptionsIdChange}
               value={component.optionsId}
-            />}
+            />
+          )}
         </>
       )}
-      {<>
-        {useCustomCodeList &&
-          <TextField
-            displayType="input"
-            label={t('ux_editor.modal_properties_custom_code_list_id')}
-            onChange={event => handleOptionsIdChange(event.target.value)}
-            value={component.optionsId}
-          />
-        }
-      </>
+      {
+        <>
+          {useCustomCodeList && (
+            <TextField
+              displayType='input'
+              label={t('ux_editor.modal_properties_custom_code_list_id')}
+              onChange={(event) => handleOptionsIdChange(event.target.value)}
+              value={component.optionsId}
+            />
+          )}
+        </>
       }
       <p>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
