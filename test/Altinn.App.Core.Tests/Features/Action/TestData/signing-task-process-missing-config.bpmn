@@ -17,47 +17,34 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:actions>
-            <altinn:action>submit</altinn:action>
+            <altinn:action id="submit"/>
           </altinn:actions>
           <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Task2"/>
+    <bpmn:task id="Task2">
+      <bpmn:incoming>Flow2</bpmn:incoming>
+      <bpmn:outgoing>Flow3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:actions>
+            <altinn:action id="sign"/>
+            <altinn:action id="reject"/>
+          </altinn:actions>
+          <altinn:taskType>signing</altinn:taskType>
           <altinn:signatureConfig>
             <altinn:dataTypesToSign>
-              <altinn:dataType>default</altinn:dataType>
-              <altinn:dataType>default2</altinn:dataType>
+              <altinn:dataType>Model</altinn:dataType>
             </altinn:dataTypesToSign>
-            <altinn:signatureDataType>signature</altinn:signatureDataType>
-            <altinn:uniqueFromSignaturesInDataTypes>
-              <altinn:dataType>signature1</altinn:dataType>
-            </altinn:uniqueFromSignaturesInDataTypes>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Gateway1"/>
-    <bpmn:exclusiveGateway id="Gateway1" default="Flow3">
-      <bpmn:incoming>Flow2</bpmn:incoming>
-      <bpmn:outgoing>Flow3</bpmn:outgoing>
-      <bpmn:outgoing>Flow4</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow3" sourceRef="Gateway1" targetRef="Task2"/>
-    <bpmn:sequenceFlow id="Flow4" sourceRef="Gateway1" targetRef="EndEvent"/>
-    <bpmn:task id="Task2">
-      <bpmn:incoming>Flow3</bpmn:incoming>
-      <bpmn:outgoing>Flow5</bpmn:outgoing>
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:actions>
-            <altinn:action>confirm</altinn:action>
-            <altinn:action>reject</altinn:action>
-          </altinn:actions>
-          <altinn:taskType>confirm</altinn:taskType>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow5" sourceRef="Task2" targetRef="EndEvent"/>
+    <bpmn:sequenceFlow id="Flow3" sourceRef="Task2" targetRef="EndEvent"/>
     <bpmn:endEvent id="EndEvent">
-      <bpmn:incoming>Flow5</bpmn:incoming>
-      <bpmn:incoming>Flow4</bpmn:incoming>
+      <bpmn:incoming>Flow3</bpmn:incoming>
     </bpmn:endEvent>
   </bpmn:process>
 </bpmn:definitions>

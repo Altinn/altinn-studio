@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
+using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -34,7 +35,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstanceClient _instanceClient;
         private readonly IProcessClient _processClient;
         private readonly IValidation _validationService;
-        private readonly IAuthorizationClient _authorization;
+        private readonly IAuthorizationService _authorization;
         private readonly IProcessEngine _processEngine;
         private readonly IProcessReader _processReader;
 
@@ -46,7 +47,7 @@ namespace Altinn.App.Api.Controllers
             IInstanceClient instanceClient,
             IProcessClient processClient,
             IValidation validationService,
-            IAuthorizationClient authorization,
+            IAuthorizationService authorization,
             IProcessReader processReader,
             IProcessEngine processEngine)
         {

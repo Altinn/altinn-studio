@@ -319,12 +319,19 @@ public class ProcessReaderTests
                         }
                     },
                     TaskType = "data",
-                    DataTypesToSign = new()
+                    SignatureConfiguration = new()
                     {
-                        "default",
-                        "default2"
-                    },
-                    SignatureDataType = "signature"
+                        DataTypesToSign = new()
+                        {
+                            "default",
+                            "default2"
+                        },
+                        SignatureDataType = "signature",
+                        UniqueFromSignaturesInDataTypes = new()
+                        {
+                            "signature1"
+                        }
+                    }
                 }
             }
         });

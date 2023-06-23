@@ -43,19 +43,22 @@ public class SigningUserAction: IUserAction
 
     /// <inheritdoc />
     /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException"></exception>
+    /// <exception cref="Altinn.App.Core.Internal.App.ApplicationConfigException"></exception>
     public async Task<bool> HandleAction(UserActionContext context)
     {
         if (_processReader.GetFlowElement(context.Instance.Process.CurrentTask.ElementId) is ProcessTask currentTask)
         {
             _logger.LogInformation("Signing action handler invoked for instance {Id}. In task: {CurrentTaskId}", context.Instance.Id, currentTask.Id);
-            var dataTypes = currentTask.ExtensionElements?.TaskExtension?.DataTypesToSign ?? new();
+            var dataTypes = currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.DataTypesToSign ?? new();
             var connectedDataElements = GetDataElementSignatures(context.Instance.Data, dataTypes);
-            if (connectedDataElements.Count > 0)
+            if (connectedDataElements.Count > 0 && currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType != null)
             {
-                SignatureContext signatureContext = new SignatureContext(new InstanceIdentifier(context.Instance), currentTask.ExtensionElements?.TaskExtension?.SignatureDataType, await GetSignee(context.UserId), connectedDataElements);
+                SignatureContext signatureContext = new SignatureContext(new InstanceIdentifier(context.Instance), currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!, await GetSignee(context.UserId), connectedDataElements);
                 await _signClient.SignDataElements(signatureContext);
+                return true;
             }
-            return true;
+
+            throw new ApplicationConfigException("Missing configuration for signing. Check that the task has a signature configuration and that the data types to sign are defined.");
         }
 
         return false;

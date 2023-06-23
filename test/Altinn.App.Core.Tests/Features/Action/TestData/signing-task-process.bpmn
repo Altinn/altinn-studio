@@ -34,10 +34,12 @@
             <altinn:action id="reject"/>
           </altinn:actions>
           <altinn:taskType>signing</altinn:taskType>
-          <altinn:dataTypesToSign>
-            <altinn:dataType>Model</altinn:dataType>
-          </altinn:dataTypesToSign>
-          <altinn:signatureDataType>signature</altinn:signatureDataType>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>Model</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signature</altinn:signatureDataType>
+          </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>

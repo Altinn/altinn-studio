@@ -90,6 +90,7 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IUserTokenProvider, UserTokenProvider>();
             services.TryAddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.TryAddTransient<IApplicationLanguage, Internal.Language.ApplicationLanguage>();
+            services.TryAddTransient<IAuthorizationService, AuthorizationService>();
         }
 
         private static void AddApplicationIdentifier(IServiceCollection services)
