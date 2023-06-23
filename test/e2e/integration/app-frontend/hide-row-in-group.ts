@@ -53,6 +53,10 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.get('@firstRow').eq(1).should('contain.text', 'Endre fra');
   cy.get('@firstRow').eq(2).should('contain.text', 'Endre til');
 
+  // Take a screenshot, but make sure the preselectedOptionIndex takes effect first
+  cy.get(appFrontend.group.overflowGroup).find('tr:nth(1) td:nth(0) input').should('have.value', 'Altinn');
+  cy.get(appFrontend.group.overflowGroup).find('tr:nth(2) td:nth(0) input').should('have.value', 'Altinn');
+  cy.get(appFrontend.group.overflowGroup).find('tr:nth(3) td:nth(0) input').should('have.value', 'Altinn');
   cy.snapshot('hide-row-in-group');
 
   // Adding a new row to the repeating group should automatically move it to the overflow group on the next page
