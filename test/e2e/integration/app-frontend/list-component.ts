@@ -35,12 +35,12 @@ describe('List component', () => {
       .contains('Caroline')
       .closest('tr')
       .should('not.have.class', dataListPage.selectedRowClass);
-    cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
+    cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
     cy.get(dataListPage.tableBody)
       .contains('Caroline')
       .closest('tr')
       .should('have.class', dataListPage.selectedRowClass);
-    cy.get(dataListPage.tableBody).contains('Kåre').parent('td').parent('tr').click();
+    cy.get(dataListPage.tableBody).contains('Kåre').closest('tr').click();
     cy.get(dataListPage.tableBody)
       .contains('Kåre')
       .closest('tr')

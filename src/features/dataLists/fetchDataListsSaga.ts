@@ -1,10 +1,10 @@
-import { SortDirection } from '@altinn/altinn-design-system';
 import { call, fork, put, race, select, take } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
+import { SortDirection } from 'src/layout/List/types';
 import { listStateSelector } from 'src/selectors/dataListStateSelector';
 import { getDataListLookupKey, getDataListLookupKeys } from 'src/utils/dataList';
 import { httpGet } from 'src/utils/network/sharedNetworking';

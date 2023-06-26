@@ -1,10 +1,10 @@
 export class Datalist {
   public listComponent = '#form-content-listComponent';
   public selectComponent = '[class^="Pagination-module_pagination-wrapper"] select';
-  public tableBody = '[class=TableBody-module_TableBody__tqUvt]';
+  public tableBody = '#form-content-listComponent table tbody';
   public navigateNextButton = '[data-testid=pagination-next-icon]';
   public navigatePreviousButton = '[data-testid=pagination-previous-icon]';
   public sortButton = '[data-testid="sort-icon"]';
-  public selectedRowClass = 'TableRow-module_table-row--selected__0i2on';
+  public selectedRowClass = 'TableRow-module_selected__0FWjw';
   public searchInput = '#searchForList';
 }

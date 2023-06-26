@@ -23,10 +23,6 @@ export function ReadyForPrint() {
       image.complete || promises.push(loadPromise(image));
     });
 
-    document.querySelectorAll('link[rel="stylesheet"]').forEach((link: HTMLLinkElement) => {
-      cssHasLoaded(link.href) || promises.push(loadPromise(link));
-    });
-
     Promise.all(promises).then(() => {
       // All images have loaded (or failed to load), but they haven't always been painted/caused a re-render. A request
       // for an animation frame reserves you a slot to execute some code _before the next repaint_, but that might be
@@ -50,9 +46,4 @@ export function ReadyForPrint() {
       id='readyForPrint'
     />
   );
-}
-
-function cssHasLoaded(url: string) {
-  const resources = window.performance.getEntriesByType('resource');
-  return resources.some((resource) => resource.name === url);
 }

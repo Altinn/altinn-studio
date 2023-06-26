@@ -1,5 +1,4 @@
-import { SortDirection } from '@altinn/altinn-design-system';
-
+import { SortDirection } from 'src/layout/List/types';
 import {
   dataElementUrl,
   fileTagUrl,

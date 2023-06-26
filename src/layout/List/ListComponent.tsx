@@ -1,16 +1,18 @@
 import React from 'react';
 
-import { Pagination, ResponsiveTable, SortDirection } from '@altinn/altinn-design-system';
+import { Pagination } from '@altinn/altinn-design-system';
+import { ResponsiveTable } from '@digdir/design-system-react';
 import { FormControl, FormLabel } from '@material-ui/core';
 import cn from 'classnames';
-import type { ChangeProps, ResponsiveTableConfig, SortProps } from '@altinn/altinn-design-system';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
+import type { ChangeProps, ResponsiveTableConfig, SortProps } from '@digdir/design-system-react';
 
 import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useGetDataList } from 'src/hooks/useGetDataList';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { SortDirection } from 'src/layout/List/types';
 import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 

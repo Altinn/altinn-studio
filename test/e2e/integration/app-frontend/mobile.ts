@@ -17,7 +17,7 @@ describe('Mobile', () => {
     cy.get('html.viewport-is-mobile').should('be.visible');
     testGroup('mobile');
     testLikert();
-    testList('mobile');
+    testList();
     testConfirm();
   });
 
@@ -27,7 +27,7 @@ describe('Mobile', () => {
     cy.get('html.viewport-is-tablet').should('be.visible');
     testGroup('tablet');
     testLikert();
-    testList('tablet');
+    testList();
     testConfirm();
   });
 });
@@ -109,12 +109,8 @@ function testLikert() {
   sendIn();
 }
 
-function testList(mode: Mode) {
-  if (mode === 'mobile') {
-    cy.get(dataListPage.tableBody).contains('Caroline').parent('div').parent('td').parent('tr').click();
-  } else {
-    cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
-  }
+function testList() {
+  cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
   cy.get(appFrontend.nextButton).click();
   sendIn();
 }

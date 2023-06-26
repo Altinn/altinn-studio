@@ -20,3 +20,9 @@ export interface ILayoutCompList extends ILayoutCompBase<'List'> {
 export interface IDataModelBindingsForList {
   [columnKey: string]: string;
 }
+
+export enum SortDirection {
+  Ascending = 'asc',
+  Descending = 'desc',
+  NotActive = 'notActive',
+}

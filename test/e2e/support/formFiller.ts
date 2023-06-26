@@ -89,7 +89,7 @@ function fillOutLikert() {
 }
 
 function fillOutList() {
-  cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
+  cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
   cy.get(appFrontend.nextButton).click();
 }
 

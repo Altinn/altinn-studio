@@ -1,8 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
-import { FieldSet, Select } from '@digdir/design-system-react';
+import { FieldSet, Select, ToggleButtonGroup } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
@@ -32,23 +31,20 @@ export const DevNavigationButtons = () => {
     <FieldSet legend='Navigasjon'>
       <div className={compactView ? classes.hidden : classes.responsiveButtons}>
         <ToggleButtonGroup
-          onChange={({ selectedValue }) => handleChange(selectedValue)}
+          onChange={(selectedValue) => handleChange(selectedValue)}
           selectedValue={currentView}
-        >
-          {order?.map((page) => (
-            <ToggleButton
-              key={page}
-              value={page}
-            >
+          items={order?.map((page) => ({
+            value: page,
+            label: (
               <span
                 className={isHidden(page) ? classes.hiddenPage : classes.visiblePage}
                 title={isHidden(page) ? 'Denne siden er skjult for brukeren' : ''}
               >
                 {page}
               </span>
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+            ),
+          }))}
+        />
       </div>
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
         <Select

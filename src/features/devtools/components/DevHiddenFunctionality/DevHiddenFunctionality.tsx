@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
-import { FieldSet } from '@digdir/design-system-react';
+import { FieldSet, ToggleButtonGroup } from '@digdir/design-system-react';
 
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
@@ -39,7 +38,7 @@ export function DevHiddenFunctionality() {
     <FieldSet legend='Skjulte komponenter'>
       <div>
         <ToggleButtonGroup
-          onChange={({ selectedValue }) =>
+          onChange={(selectedValue) =>
             dispatch(
               DevToolsActions.setShowHiddenComponents({
                 value: selectedValue as IDevToolsState['hiddenComponents'],
@@ -47,11 +46,21 @@ export function DevHiddenFunctionality() {
             )
           }
           selectedValue={state}
-        >
-          <ToggleButton value={'hide'}>Skjul</ToggleButton>
-          <ToggleButton value={'disabled'}>Vis som deaktivert</ToggleButton>
-          <ToggleButton value={'show'}>Vis</ToggleButton>
-        </ToggleButtonGroup>
+          items={[
+            {
+              value: 'hide',
+              label: 'Skjul',
+            },
+            {
+              value: 'disabled',
+              label: 'Utgrået',
+            },
+            {
+              value: 'show',
+              label: 'Vis',
+            },
+          ]}
+        />
       </div>
     </FieldSet>
   );
