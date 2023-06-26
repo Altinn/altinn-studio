@@ -3,7 +3,8 @@ import classes from './Link.module.css';
 
 interface Props {
   text: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
   icon?: ReactNode;
 }
 
@@ -15,7 +16,15 @@ interface Props {
  * @param props.icon icon to be displayed
  * @returns
  */
-export const Link = ({ text, href, icon }: Props) => {
+export const Link = ({ text, href, onClick, icon }: Props) => {
+  if (onClick) {
+    return (
+      <button className={classes.link} onClick={onClick}>
+        {text}
+        {icon}
+      </button>
+    );
+  }
   return (
     <a className={classes.link} href={href}>
       {text}

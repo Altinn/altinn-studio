@@ -90,7 +90,7 @@ export const getResourceUrlBySelectedContextRepoAndId = (
   repo: string,
   id: string
 ): string => {
-  return `${basePath}/${selectedContext}/resources/${repo}/${id}`
+  return `${basePath}/${selectedContext}/resources/repository/${repo}/${id}`
 }
 
 /**
@@ -104,4 +104,21 @@ export const getCreateResourceUrlBySelectedContext = (
   selectedContext: string
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/addresource`
+}
+
+/**
+ * Gets the URL path to the API for validating a resource
+ *
+ * @param selectedContext the organisation
+ * @param repo the repo
+ * @param resourceId the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getValidateResourceUrlBySelectedContextRepoAndId = (
+  selectedContext: string,
+  repo: string,
+  resourceId: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/validate/${repo}/${resourceId}`
 }

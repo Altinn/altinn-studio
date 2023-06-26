@@ -1,6 +1,6 @@
 .danger {
   background-color: #F9D5DB;
-  border-left: 8px solid #E02E49;
+  border-radius: 3px;
 }
 
 .success {

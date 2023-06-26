@@ -7,16 +7,21 @@ import { TextField, Button } from '@digdir/design-system-react';
 import { get } from 'app-shared/utils/networking';
 import { getValidatePolicyUrlBySelectedContextRepoAndId } from 'resourceadm/utils/backendUrlUtils';
 import { useParams } from 'react-router-dom';
-import { PolicyErrorType } from 'resourceadm/types/global';
-import { mapPolicyErrorsFromBackend } from 'resourceadm/utils/mapperUtils';
+import { NavigationBarPageType } from 'resourceadm/types/global';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import { Link } from 'resourceadm/components/Link';
+import { UploadIcon } from '@navikt/aksel-icons';
+
+interface Props {
+  navigateToPage: (page: NavigationBarPageType) => void;
+}
 
 /**
  * Displays the deploy page for resources
  *
  * @param props.isLocalRepoInSync boolean for if the local repo is in sync or not
  */
-export const DeployResourcePage = () => {
+export const DeployResourcePage = ({ navigateToPage }: Props) => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -30,11 +35,10 @@ export const DeployResourcePage = () => {
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
 
   // TODO - Find out how the error response looks like
-  const [hasResourceError, setHasResourceError] = useState(false);
+  const [hasResourceError, setHasResourceError] = useState(true);
+  const [hasPolicyError, setHasPolicyError] = useState(true);
 
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
-
-  const [policyErrors, setPolicyErrors] = useState<PolicyErrorType[]>([]);
 
   // TODO - The user MUST save the version number to backend. When the version number
   // from backend is different than what is in test/prod, then it is valid.
@@ -42,13 +46,26 @@ export const DeployResourcePage = () => {
   // TODO - ADD information box.
   const [newVersionText, setNewVersionText] = useState('1');
 
+  const versionInTest = 2;
+  const versionInProd = 1;
+  const versionInGitea = 2;
+
   useOnce(() => {
     get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
-      .then((res: unknown) => {
-        console.log(res);
-        setPolicyErrors(mapPolicyErrorsFromBackend(res));
+      .then((res) => {
+        // Remove error if status is 200
+        res.status === '200' && setHasPolicyError(false);
       })
       .catch((err) => console.log(err));
+
+    /*get(getValidateResourceUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+      .then((res) => {
+        console.log('res', res);
+        res.status === '200' && setHasResourceError(false);
+      })
+      .catch((err) => console.log(err));
+      */
+    // setHasResourceError(false);
 
     // TODO - Get errors in resource
 
@@ -77,48 +94,32 @@ export const DeployResourcePage = () => {
     - Display text "Oppdater versjonsnummer for å publisere"
   */
 
-  /**
-   * Based on if the resource is valid and if the final type is
-   * published it returns the text to be displayed in the publish cards
-   *
-   * @param type if it is test of prod
-   *
-   * @returns the text to display
-   */
-  const getDeploymentNotPossibleText = (type: 'test' | 'prod'): string => {
-    if (!resourceIsValid) return '';
-    if (
-      resourceIsValid &&
-      type === 'test' &&
-      newVersionText === currentEnvVersionTest &&
-      isLocalRepoInSync
-    )
-      return 'Siste versjon er allerede publisert';
-    if (
-      resourceIsValid &&
-      type === 'prod' &&
-      newVersionText === currentEnvVersionProd &&
-      isLocalRepoInSync
-    )
-      return 'Siste versjon er allerede publisert';
-    return '';
-  };
-
-  /**
-   * Gets the message to be displayed in the status card
-   *
-   * @returns the message to display
-   */
-  const getStatusCardMessage = (): string => {
-    if (!isLocalRepoInSync) {
-      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
-    } else {
-      if (resourceIsValid) {
-        return 'Ingen feil i ressursen.';
-      } else {
-        return 'Det er feil i ressursen - TODO - LIST ALL';
-      }
-    }
+  const displayStatusCardContent = () => {
+    if (hasResourceError || hasPolicyError) {
+      return (
+        <div>
+          {hasResourceError && (
+            <p className={hasResourceError && hasPolicyError && classes.firstError}>
+              Det er en feil i ressursen.{' '}
+              <Link text='Klikk her for å fikse det.' onClick={() => navigateToPage('about')} />
+            </p>
+          )}
+          {hasPolicyError && (
+            <p>
+              Det er en feil i policyen.{' '}
+              <Link text='Klikk her for å fikse det.' onClick={() => navigateToPage('policy')} />
+            </p>
+          )}
+        </div>
+      );
+    } else if (!isLocalRepoInSync) {
+      return (
+        <p>
+          Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i
+          sync.
+        </p>
+      );
+    } else return <p>Ressursen er klar til å publiseres</p>;
   };
 
   /**
@@ -127,7 +128,7 @@ export const DeployResourcePage = () => {
    * @returns danger or success
    */
   const getStatusCardType = (): 'danger' | 'success' => {
-    if (!isLocalRepoInSync || !resourceIsValid) return 'danger';
+    if (hasResourceError || hasPolicyError || !isLocalRepoInSync) return 'danger';
     return 'success';
   };
 
@@ -135,7 +136,11 @@ export const DeployResourcePage = () => {
    * Displays a spinner when loading the status or displays the status card
    */
   const displayStatusCard = () => {
-    return <ResourceDeployStatus type={getStatusCardType()} message={getStatusCardMessage()} />;
+    return (
+      <ResourceDeployStatus type={getStatusCardType()}>
+        {displayStatusCardContent()}
+      </ResourceDeployStatus>
+    );
   };
 
   /**
@@ -160,19 +165,19 @@ export const DeployResourcePage = () => {
   const isDeployPossible = (type: 'test' | 'prod'): boolean => {
     if (
       type === 'test' &&
-      hasOnlyNumbers(newVersionText) &&
-      resourceIsValid &&
+      !hasResourceError &&
+      !hasPolicyError &&
       isLocalRepoInSync &&
-      newVersionText !== currentEnvVersionTest
+      versionInTest !== versionInGitea
     ) {
       return true;
     }
     if (
       type === 'prod' &&
-      hasOnlyNumbers(newVersionText) &&
-      resourceIsValid &&
+      !hasResourceError &&
+      !hasPolicyError &&
       isLocalRepoInSync &&
-      newVersionText !== currentEnvVersionProd
+      versionInProd !== versionInGitea
     ) {
       return true;
     }
@@ -182,10 +187,12 @@ export const DeployResourcePage = () => {
   return (
     <div className={classes.deployPageWrapper}>
       <h1 className={classes.pageHeader}>Publiser ressurs</h1>
+      <h2 className={classes.subHeader}>Status</h2>
       {displayStatusCard()}
       <div>
         <div className={classes.newVersionWrapper}>
-          <p className={classes.newVersionText}>Versjonsnummer for ressurs og policy</p>
+          <h2 className={classes.subHeader}>Nytt versjonsnummer</h2>
+          <p className={classes.text}>Sett et versjonsnummer for endringene du har gjort</p>
           <div className={classes.textAndButton}>
             <div className={classes.textfield}>
               <TextField
@@ -195,31 +202,35 @@ export const DeployResourcePage = () => {
                 isValid={hasOnlyNumbers(newVersionText)} // TODO - only numbers??
               />
             </div>
-            <Button color='secondary'>Oppdater versjon</Button>
+            <Button
+              color='primary'
+              onClick={() => {
+                // TODO - Push to git
+                alert('todo - push to git');
+              }}
+              iconPlacement='left'
+              icon={<UploadIcon title='Last opp dine endringer' />}
+            >
+              Last opp dine endringer
+            </Button>
           </div>
         </div>
         <h2 className={classes.subHeader}>Velg miljø å publisere i</h2>
         <div className={classes.deployCardsWrapper}>
           <ResourceDeployEnvCard
             isDeployPossible={isDeployPossible('test')}
-            envName='tt02-miljøet'
-            currentEnvVersion={currentEnvVersionTest}
-            deploymentNotPossibleText={getDeploymentNotPossibleText('test')}
+            envName='Testmiljø TT-02' //'tt02-miljøet'
+            currentEnvVersion={versionInTest}
+            newEnvVersion={versionInGitea !== versionInTest ? versionInGitea : undefined}
           />
           <ResourceDeployEnvCard
             isDeployPossible={isDeployPossible('prod')}
-            envName='production-miljøet'
-            currentEnvVersion={currentEnvVersionProd}
-            deploymentNotPossibleText={getDeploymentNotPossibleText('prod')}
+            envName='Produksjonsmiljø' //'production-miljøet'
+            currentEnvVersion={versionInProd}
+            newEnvVersion={versionInGitea !== versionInProd ? versionInGitea : undefined}
           />
         </div>
       </div>
-      {policyErrors.map((p, key) => (
-        <p key={key}>
-          ruleNumber: {p.ruleNumber} --- errors: {p.errors.map((e) => e + ', ')}
-        </p>
-      ))}
-      <p>Localrepo in sync: {isLocalRepoInSync}</p>
     </div>
   );
 };

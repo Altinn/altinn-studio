@@ -41,6 +41,13 @@ export const ResourcePage = () => {
   }, [repoStatus, currentPage]);
 
   /**
+   * Check if the pageType parameter has changed and update the currentPage
+   */
+  useEffect(() => {
+    setCurrentPage(pageType as NavigationBarPageType);
+  }, [pageType]);
+
+  /**
    * Navigates to the selected page
    */
   const navigateToPage = (page: NavigationBarPageType) => {
@@ -68,7 +75,7 @@ export const ResourcePage = () => {
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' && <AboutResourcePage />}
         {currentPage === 'policy' && <PolicyEditorPage />}
-        {currentPage === 'deploy' && <DeployResourcePage />}
+        {currentPage === 'deploy' && <DeployResourcePage navigateToPage={navigateToPage} />}
       </div>
       {hasMergeConflict && (
         <MergeConflictModal

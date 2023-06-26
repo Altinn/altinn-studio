@@ -22,7 +22,7 @@
 .deployCardsWrapper {
   display: flex;
   justify-content: space-between;
-  width: 800px;
+  width: 630px;
   margin-top: 20px;
 }
 
@@ -31,10 +31,10 @@
   width: 550px;
 }
 
-.newVersionText {
+.text {
   margin-bottom: 5px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .textAndButton {
@@ -44,6 +44,10 @@
 
 .textfield {
   width: 300px;
+}
+
+.firstError {
+  margin-bottom: 20px;
 }
 
 p, h1, h2 {
