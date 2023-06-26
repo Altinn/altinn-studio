@@ -276,7 +276,7 @@ namespace Altinn.App.Api.Controllers
 
                 bool authorized;
                 string checkedAction = EnsureActionNotTaskType(processNext?.Action ?? altinnTaskType);
-                authorized = await AuthorizeAction(checkedAction, org, app, instanceOwnerPartyId, instanceGuid);
+                authorized = await AuthorizeAction(checkedAction, org, app, instanceOwnerPartyId, instanceGuid, instance.Process.CurrentTask?.ElementId);
 
                 if (!authorized)
                 {
@@ -372,7 +372,7 @@ namespace Altinn.App.Api.Controllers
             {
                 string altinnTaskType = EnsureActionNotTaskType(instance.Process.CurrentTask?.AltinnTaskType);
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, instance.Process.CurrentTask?.ElementId);
                 if (!authorized)
                 {
                     return Forbid();

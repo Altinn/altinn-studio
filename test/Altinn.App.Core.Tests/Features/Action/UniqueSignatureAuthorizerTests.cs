@@ -173,6 +173,37 @@ public class UniqueSignatureAuthorizerTests : IDisposable
     }
     
     [Fact]
+    public async Task AuthorizeAction_returns_true_if_taskID_is_null()
+    {
+        ProcessElement processTask = new ProcessTask()
+        {
+            ExtensionElements = new()
+            {
+                TaskExtension = new()
+                {
+                    SignatureConfiguration = new()
+                    {
+                        UniqueFromSignaturesInDataTypes = new()
+                        {
+                            "signature"
+                        }
+                    }
+                }
+            }
+        };
+        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
+        {
+            new(AltinnCoreClaimTypes.UserId, "1337"),
+            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+            new(AltinnCoreClaimTypes.Org, "tdd")
+        }));
+
+        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), null, "sign"));
+        result.Should().BeTrue();
+    }
+    
+    [Fact]
     public async Task AuthorizeAction_returns_true_if_dataelement_not_of_type_SignDocument()
     {
         ProcessElement processTask = new ProcessTask()

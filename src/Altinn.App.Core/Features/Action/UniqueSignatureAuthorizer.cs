@@ -38,6 +38,10 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
     /// <inheritdoc />
     public async Task<bool> AuthorizeAction(UserActionAuthorizerContext context)
     {
+        if (context.TaskId == null)
+        {
+            return true;
+        }
         var flowElement = _processReader.GetFlowElement(context.TaskId) as ProcessTask;
         if (flowElement?.ExtensionElements?.TaskExtension?.SignatureConfiguration?.UniqueFromSignaturesInDataTypes.Count > 0)
         {
