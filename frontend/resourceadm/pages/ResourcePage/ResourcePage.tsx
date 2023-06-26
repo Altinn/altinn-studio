@@ -58,11 +58,13 @@ export const ResourcePage = () => {
 
   return (
     <div className={classes.resourceWrapper}>
-      <LeftNavigationBar
-        currentPage={currentPage}
-        navigateToPage={navigateToPage}
-        goBack={goBack}
-      />
+      <div className={classes.leftNavWrapper}>
+        <LeftNavigationBar
+          currentPage={currentPage}
+          navigateToPage={navigateToPage}
+          goBack={goBack}
+        />
+      </div>
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' && <AboutResourcePage />}
         {currentPage === 'policy' && <PolicyEditorPage />}
