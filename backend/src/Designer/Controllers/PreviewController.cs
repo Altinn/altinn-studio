@@ -272,6 +272,33 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for mocking a response to validate the instance
         /// </summary>
         /// <returns>bool</returns>
+        [HttpGet]
+        [Route("api/v1/parties")]
+        public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string allowedToInstantiateFilter)
+        {
+            List<Party> parties = new() {
+                new()
+                {
+                    PartyId = PartyId,
+                    PartyTypeName = PartyType.Person,
+                    OrgNumber = "1",
+                    SSN = null,
+                    UnitType = "AS",
+                    Name = "Test Testesen",
+                    IsDeleted = false,
+                    OnlyHierarchyElementWithNoAccess = false,
+                    Person = new Person(),
+                    Organization = null,
+                    ChildParties = null
+                }
+            };
+            return Ok(parties);
+        }
+
+        /// <summary>
+        /// Action for mocking a response to validate the instance
+        /// </summary>
+        /// <returns>bool</returns>
         [HttpPost]
         [Route("api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation()
@@ -399,6 +426,18 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult DeleteAttachment([FromRoute] string dataTypeId)
         {
             return Ok();
+        }
+
+        /// <summary>
+        /// Action for mocking updating tags for an attachment component in the datamodel
+        /// </summary>
+        /// <param name="tag">The specific tag from the code list chosen for the attachment</param>
+        /// <returns>Ok</returns>
+        [HttpPost]
+        [Route("instances/{partyId}/{instanceGuid}/data/{dataTypeId}/tags")]
+        public ActionResult UpdateTagsForAttachment([FromBody] string tag)
+        {
+            return Created("link-to-app-placeholder", tag);
         }
 
         /// <summary>
@@ -744,6 +783,22 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NoContent();
             }
+        }
+
+        /// <summary>
+        /// Action for updating data model with tag for attachment component // TODO: Figure out what actually happens here
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="currentPage">Current page in running app</param>
+        /// <param name="layoutSetId">Current layout set in running app</param>
+        /// <param name="dataTypeId">Connected datatype for that process task</param>
+        /// <returns>The options list if it exists, otherwise nothing</returns>
+        [HttpPost]
+        [Route("instances/{partyId}/{instanceGuid}/pages/order")]
+        public IActionResult UpdateAttachmentWithTag(string org, string app, [FromQuery] string currentPage, [FromQuery] string layoutSetId, [FromQuery] string dataTypeId)
+        {
+            return Ok();
         }
 
         private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
