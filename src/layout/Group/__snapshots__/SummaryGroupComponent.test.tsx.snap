@@ -12,7 +12,9 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       <span
         class="label"
       >
-        Mock group
+        <span>
+          Mock group
+        </span>
       </span>
       <button
         aria-label="Change: Mock group"

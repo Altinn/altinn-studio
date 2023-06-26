@@ -87,7 +87,6 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
           <SummaryContent
             onChangeClick={onChangeClick}
             changeText={langAsString('form_filler.summary_item_change')}
-            label={lang(summaryItem?.textResourceBindings?.title ?? targetItem?.textResourceBindings?.title)}
             summaryNode={summaryNode}
             targetNode={targetNode}
             overrides={overrides}

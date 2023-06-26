@@ -5,14 +5,12 @@ import cn from 'classnames';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import classes from 'src/layout/Summary/SummaryContent.module.css';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export interface SummaryContentProps {
   onChangeClick: () => void;
   changeText: string | null;
-  label: React.ReactNode;
   summaryNode: LayoutNodeFromType<'Summary'>;
   targetNode: LayoutNode;
   overrides: ISummaryComponent['overrides'];
@@ -22,12 +20,12 @@ export interface SummaryContentProps {
 export function SummaryContent({
   onChangeClick,
   changeText,
-  label,
   summaryNode,
   targetNode,
   overrides,
   RenderSummary,
 }: SummaryContentProps) {
+  const { lang, langAsString } = useLanguage();
   const display = overrides?.display || summaryNode.item.display;
   const readOnlyComponent = targetNode.item.readOnly === true;
   const hasValidationMessages = targetNode.hasValidationMessages();
@@ -35,9 +33,11 @@ export function SummaryContent({
   const displaySummaryBoilerPlate =
     'renderSummaryBoilerplate' in targetNode.def && targetNode.def.renderSummaryBoilerplate();
 
-  const { langAsString } = useLanguage();
-  const ariaLabel = langAsString(summaryNode.item?.textResourceBindings?.accessibleTitle);
-  const realAriaLabel = ariaLabel ? ariaLabel : getPlainTextFromNode(label);
+  const textBindings = targetNode.item?.textResourceBindings;
+  const title = lang(textBindings?.summaryTitle ?? textBindings?.title);
+  const ariaLabel = langAsString(
+    textBindings?.summaryAccessibleTitle ?? textBindings?.summaryTitle ?? textBindings?.title,
+  );
 
   return (
     <div className={classes.container}>
@@ -48,7 +48,7 @@ export function SummaryContent({
             'data-testid': 'has-validation-message',
           })}
         >
-          {label}
+          {title}
         </span>
       )}
       <span className={classes.summary}>
@@ -65,7 +65,7 @@ export function SummaryContent({
           <EditButton
             onClick={onChangeClick}
             editText={changeText}
-            label={realAriaLabel}
+            label={ariaLabel}
           />
         </span>
       )}

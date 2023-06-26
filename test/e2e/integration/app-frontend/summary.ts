@@ -485,29 +485,63 @@ describe('Summary', () => {
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
   });
 
-  ['Summary Title', undefined].forEach((title) => {
-    it(`should display title from summary component if (${title} !== undefined), else title from reference component`, () => {
+  //The test below validates that the summary component displays the appropriate summaryTitle and summaryAccessibleTitle values,
+  //based on the provided test data, for different types of components in the "changename" layout.
+  const testTitleData = [
+    {
+      summaryTitle: 'Summary Title',
+      summaryAccessibleTitle: 'Summary Accessible Title',
+    },
+    {
+      summaryAccessibleTitle: 'Summary Accessible Title',
+    },
+    {
+      summaryTitle: 'Summary Title',
+    },
+    undefined,
+  ];
+
+  testTitleData.forEach((title) => {
+    it(`should display summaryTitle (${!!title?.summaryTitle}) and/or summaryAccessibleTitle (${!!title?.summaryAccessibleTitle}) in summary if defined`, () => {
+      const components = [
+        {
+          id: 'dateOfEffect',
+          type: 'Datepicker',
+          summaryComponent: '[data-testid=summary-summary-4]',
+          defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
+        },
+        {
+          id: 'reference-group',
+          type: 'Group',
+          summaryComponent: '[data-testid=summary-group-component]',
+          defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
+        },
+      ];
+
       cy.interceptLayout('changename', (component) => {
-        if (component.type === 'Summary' && component.id === 'summary-4') {
+        const matchingComponent = components.find((c) => c.type === component.type && c.id === component.id);
+        if (matchingComponent) {
           component.textResourceBindings = {
-            title,
-            accessibleTitle: title,
+            title: matchingComponent.defaultTitle,
+            summaryTitle: title?.summaryTitle,
+            summaryAccessibleTitle: title?.summaryAccessibleTitle,
           };
         }
       });
+
       cy.goto('changename');
       cy.gotoNavPage('summary');
-      if (title === undefined) {
-        cy.get('[data-testid=summary-summary-4]').should('contain.text', 'Når vil du at navnendringen skal skje?');
-        cy.get('[data-testid=summary-summary-4]')
+
+      components.forEach(({ summaryComponent, defaultTitle }) => {
+        cy.get(summaryComponent).should('contain.text', title?.summaryTitle ?? defaultTitle);
+        cy.get(summaryComponent)
           .find('button')
-          .should('have.attr', 'aria-label', 'Endre: Når vil du at navnendringen skal skje?');
-      } else {
-        cy.get('[data-testid=summary-summary-4]').should('contain.text', title);
-        cy.get('[data-testid=summary-summary-4]')
-          .find('button')
-          .should('have.attr', 'aria-label', 'Endre: Summary Title');
-      }
+          .should(
+            'have.attr',
+            'aria-label',
+            `Endre: ${title?.summaryAccessibleTitle ?? title?.summaryTitle ?? defaultTitle}`,
+          );
+      });
     });
   });
 });
