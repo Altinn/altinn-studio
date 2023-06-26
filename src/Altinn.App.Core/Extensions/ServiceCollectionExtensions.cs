@@ -27,6 +27,7 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Action;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
@@ -243,6 +244,7 @@ namespace Altinn.App.Core.Extensions
             services.AddTransient<IUserAction, NullUserAction>();
             services.AddTransient<IUserAction, SigningUserAction>();
             services.AddHttpClient<ISignClient, SignClient>();
+            services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");
         }
     }
 }
