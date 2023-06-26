@@ -151,7 +151,7 @@
         { "if": {"properties": {"type": { "const": "MultipleSelect"}}}, "then": { "$ref": "#/definitions/selectionComponents"}},
         { "if": {"properties": {"type": { "const": "NavigationButtons"}}}, "then": { "$ref": "#/definitions/navigationButtonsComponent"}},
         { "if": {"properties": {"type": { "const": "NavigationBar"}}}, "then": { "$ref": "#/definitions/navigationBarComponent"}},
-        { "if": {"properties": {"type": { "const": "RadioButtons"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
+        { "if": {"properties": {"type": { "const": "RadioButtons"}}}, "then": { "$ref": "#/definitions/radioComponent"}},
         { "if": {"properties": {"type": { "const": "Summary"}}}, "then": {"$ref": "#/definitions/summaryComponent"}},
         { "if": {"properties": {"type": { "const": "Header"}}}, "then": {"$ref": "#/definitions/headerComponent"}},
         { "if": {"properties": {"type": { "const": "Panel"}}}, "then": {"$ref": "#/definitions/panelComponent"}},
@@ -912,6 +912,16 @@
         },
         "autocomplete": {
           "$ref": "#/definitions/autocomplete"
+        }
+      }
+    },
+    "radioComponent": {
+      "$ref": "#/definitions/radioAndCheckboxComponents",
+      "properties": {
+        "showAsCard": {
+          "type": "boolean",
+          "title": "Show as card",
+          "description": "Boolean value indicating if the options should be displayed as cards. Defaults to false."
         }
       }
     },

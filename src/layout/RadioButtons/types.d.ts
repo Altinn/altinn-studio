@@ -1,3 +1,3 @@
-import type { IComponentRadioOrCheckbox } from 'src/layout/layout';
+import type { IComponentRadioOrLikert } from 'src/layout/layout';
 
-export type ILayoutCompRadioButtons = IComponentRadioOrCheckbox<'RadioButtons'>;
+export type ILayoutCompRadioButtons = IComponentRadioOrLikert<'RadioButtons'>;

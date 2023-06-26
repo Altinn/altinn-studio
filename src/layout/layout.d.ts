@@ -48,10 +48,17 @@ interface ISelectionComponent {
   preselectedOptionIndex?: number;
 }
 
-export interface IComponentRadioOrCheckbox<T extends Extract<ComponentTypes, 'RadioButtons' | 'Checkboxes' | 'Likert'>>
+export interface IComponentCheckbox<T extends Extract<ComponentTypes, 'Checkboxes'>>
   extends ILayoutCompBase<T>,
     ISelectionComponent {
   layout?: LayoutStyle;
+}
+
+export interface IComponentRadioOrLikert<T extends Extract<ComponentTypes, 'RadioButtons' | 'Likert'>>
+  extends ILayoutCompBase<T>,
+    ISelectionComponent {
+  layout?: LayoutStyle;
+  showAsCard?: boolean;
 }
 
 export type NumberFormatProps = Exclude<Parameters<typeof TextField>[0]['formatting'], undefined>['number'];

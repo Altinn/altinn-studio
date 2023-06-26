@@ -1,0 +1,45 @@
+.cardLabel {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+  z-index: -1;
+}
+
+.card label:focus-within {
+  box-shadow: none;
+  outline: none;
+}
+
+.card {
+  border-radius: 6px;
+  background-color: var(--fds-semantic-background-subtle);
+  padding: var(--fds-spacing-3);
+  position: relative;
+  display: flex;
+  z-index: 0;
+}
+
+.card:hover {
+  background: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.card:active {
+  background: var(--fds-semantic-border-neutral-subtle);
+}
+
+.card:is(:checked, :has(:checked)) {
+  background: var(--fds-semantic-surface-neutral-selected);
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-primary-active);
+}
+
+.card:focus-within {
+  --fds-focus-border-width: 3px;
+  background: var(--fds-semantic-surface-neutral-selected);
+
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
+  outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
+  outline-offset: var(--fds-focus-border-width);
+}
