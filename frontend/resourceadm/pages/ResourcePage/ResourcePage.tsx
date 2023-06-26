@@ -26,7 +26,6 @@ export const ResourcePage = () => {
   );
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
-  const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
 
   // Get the status of the repo and the function to refetch it
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
@@ -38,12 +37,8 @@ export const ResourcePage = () => {
   useEffect(() => {
     if (repoStatus) {
       setHasMergeConflict(repoStatus.hasMergeConflict);
-      setIsLocalRepoInSync(
-        ((repoStatus.behindBy === 0 || repoStatus.behindBy === null) && repoStatus.aheadBy === 0) ||
-          repoStatus.aheadBy === null
-      );
     }
-  }, [repoStatus]);
+  }, [repoStatus, currentPage]);
 
   /**
    * Navigates to the selected page
@@ -70,13 +65,8 @@ export const ResourcePage = () => {
       />
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' && <AboutResourcePage />}
-        {currentPage === 'security' && (
-          <div className={classes.resourcePage}>
-            <h2 className={classes.resourceH2}>Sikkerhet - TODO sett inn komponent</h2>
-          </div>
-        )}
         {currentPage === 'policy' && <PolicyEditorPage />}
-        {currentPage === 'deploy' && <DeployResourcePage isLocalRepoInSync={isLocalRepoInSync} />}
+        {currentPage === 'deploy' && <DeployResourcePage />}
       </div>
       {hasMergeConflict && (
         <MergeConflictModal

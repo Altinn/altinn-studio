@@ -33,13 +33,14 @@ export interface PolicyRuleBackendType {
 }
 
 export type RequiredAuthLevelType = '1' | '2' | '3' | '4';
+
 export interface PolicyBackendType {
   rules: PolicyRuleBackendType[] | null,
   requiredAuthenticationLevelEndUser: RequiredAuthLevelType,
   requiredAuthenticationLevelOrg: string
 }
 
-export type NavigationBarPageType = 'about' | 'security' | 'policy' | 'deploy';
+export type NavigationBarPageType = 'about' | 'policy' | 'deploy';
 
 export interface ResourceType {
   title: string;
@@ -47,4 +48,11 @@ export interface ResourceType {
   lastChanged: string;
   hasPolicy: boolean;
   identifier: string;
+}
+
+export type PolicyRuleErrorType = 'policyerror.missingsubject' | 'policyerror.missingaction' | 'policyerror.missingresource'
+
+export interface PolicyErrorType {
+  ruleNumber: number;
+  errors: PolicyRuleErrorType[];
 }

@@ -3,5 +3,7 @@ export {
   getActionOptionsUrlBySelectedContextAndRepo,
   getSubjectOptionsUrlBySelectedContextAndRepo,
   getResourcesUrlBySelectedContext,
-  getCreateResourceUrlBySelectedContext
+  getCreateResourceUrlBySelectedContext,
+  getResourceUrlBySelectedContextRepoAndId,
+  getValidatePolicyUrlBySelectedContextRepoAndId
 } from './backendUserUtils'

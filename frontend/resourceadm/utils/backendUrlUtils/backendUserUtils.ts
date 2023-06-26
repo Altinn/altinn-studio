@@ -18,6 +18,23 @@ export const getPolicyUrlBySelectedContextRepoAndId = (
 }
 
 /**
+ * Gets the URL path to the API for validating a policy
+ *
+ * @param selectedContext the organisation
+ * @param repo the repo
+ * @param resourceId the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getValidatePolicyUrlBySelectedContextRepoAndId = (
+  selectedContext: string,
+  repo: string,
+  resourceId: string
+): string => {
+  return `${basePath}/${selectedContext}/${repo}/policy/validate/${resourceId}`
+}
+
+/**
  * Gets the URL path to the API for the subject options for a policy
  *
  * @param selectedContext the organisation
@@ -58,6 +75,22 @@ export const getResourcesUrlBySelectedContext = (
   selectedContext: string
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/resourcelist`
+}
+
+/**
+ * Gets the URL path to the API fora single resource
+ *
+ * @param selectedContext the organisation
+ * @param id the id of the selected resource
+ *
+ * @returns the url path string
+ */
+export const getResourceUrlBySelectedContextRepoAndId = (
+  selectedContext: string,
+  repo: string,
+  id: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/${repo}/${id}`
 }
 
 /**

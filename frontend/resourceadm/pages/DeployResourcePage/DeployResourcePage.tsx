@@ -1,25 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import { TextField, Button } from '@digdir/design-system-react';
-
-interface Props {
-  isLocalRepoInSync: boolean;
-}
+import { get } from 'app-shared/utils/networking';
+import { getValidatePolicyUrlBySelectedContextRepoAndId } from 'resourceadm/utils/backendUrlUtils';
+import { useParams } from 'react-router-dom';
+import { PolicyErrorType } from 'resourceadm/types/global';
+import { mapPolicyErrorsFromBackend } from 'resourceadm/utils/mapperUtils';
+import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 
 /**
  * Displays the deploy page for resources
  *
  * @param props.isLocalRepoInSync boolean for if the local repo is in sync or not
  */
-export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
+export const DeployResourcePage = () => {
+  const { selectedContext, resourceId } = useParams();
+  const repo = `${selectedContext}-resources`;
+
   // To manage state for if the resource is valid or not
   const [resourceIsValid, setResourceIsValid] = useState(false);
 
   const [currentEnvVersionTest, setCurrentEnvVersionTest] = useState('1');
   const [currentEnvVersionProd, setCurrentEnvVersionProd] = useState('1');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
+
+  // TODO - Find out how the error response looks like
+  const [hasResourceError, setHasResourceError] = useState(false);
+
+  const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
+
+  const [policyErrors, setPolicyErrors] = useState<PolicyErrorType[]>([]);
 
   // TODO - The user MUST save the version number to backend. When the version number
   // from backend is different than what is in test/prod, then it is valid.
@@ -28,11 +43,39 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
   const [newVersionText, setNewVersionText] = useState('1');
 
   useOnce(() => {
+    get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+      .then((res: unknown) => {
+        console.log(res);
+        setPolicyErrors(mapPolicyErrorsFromBackend(res));
+      })
+      .catch((err) => console.log(err));
+
+    // TODO - Get errors in resource
+
     // TODO - replace with API call
     setResourceIsValid(true);
     setCurrentEnvVersionTest('2');
     setCurrentEnvVersionProd('1');
   });
+
+  useEffect(() => {
+    if (repoStatus) {
+      setIsLocalRepoInSync(
+        (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
+          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null)
+      );
+    }
+  }, [repoStatus]);
+
+  /*
+    Possible errors on deploy page:
+    - Error in resource
+    - Error in policy
+    - Not pushed / pulled latest changes to / from gitea - ONLY IF THE TWO ABOVE ARE OK
+
+    IF an environment has the same version as the version in gitea,
+    - Display text "Oppdater versjonsnummer for å publisere"
+  */
 
   /**
    * Based on if the resource is valid and if the final type is
@@ -171,6 +214,12 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
           />
         </div>
       </div>
+      {policyErrors.map((p, key) => (
+        <p key={key}>
+          ruleNumber: {p.ruleNumber} --- errors: {p.errors.map((e) => e + ', ')}
+        </p>
+      ))}
+      <p>Localrepo in sync: {isLocalRepoInSync}</p>
     </div>
   );
 };

@@ -7,13 +7,20 @@ import {
   resourceThematicAreaMockOptions,
   resourceTypeMockOptions,
 } from 'resourceadm/data-mocks/resources';
+import { useOnce } from 'resourceadm/hooks/useOnce';
+import { get } from 'app-shared/utils/networking';
+import { useParams } from 'react-router-dom';
+import { getResourceUrlBySelectedContextRepoAndId } from 'resourceadm/utils/backendUrlUtils';
 
 /**
  * Page that displays information about a resource
  */
 export const AboutResourcePage = () => {
   // TODO - translation
-  // TODO - connect with backend
+  // TODO - connect with backend - Get and populate resource
+
+  const { selectedContext, resourceId } = useParams();
+  const repo = `${selectedContext}-resources`;
 
   const [selectedResource, setSelectedResource] = useState('');
   const [title, setTitle] = useState('');
@@ -24,6 +31,15 @@ export const AboutResourcePage = () => {
   const [thematicArea, setThematicArea] = useState<string[]>([]);
   const [delegationText, setDelegationText] = useState('');
   const [showInPublic, setShowInPublic] = useState(false);
+
+  useOnce(() => {
+    console.log('Hei');
+    console.log(resourceId);
+    console.log(repo);
+    get(getResourceUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+      .then((res) => console.log(res))
+      .catch((e) => console.log(e));
+  });
 
   const handleSaveResource = () => {
     // TODO - Create the resource object
@@ -36,14 +52,14 @@ export const AboutResourcePage = () => {
   return (
     <div className={classes.pageWrapper}>
       <h1 className={classes.pageHeader}>Om ressursen</h1>
-      <h2 className={classes.subHeader}>Hva slags ressurs ønsker du å registrere</h2>
+      <h2 className={classes.subHeader}>Ressurs type</h2>
       <p className={classes.text}>Velg ett alternativ fra listen under</p>
       <div className={classes.inputWrapper}>
         <Select
           options={resourceTypeMockOptions}
           onChange={(e: string) => setSelectedResource(e)}
           value={selectedResource}
-          label='Hva slags ressurs ønsker du å registrere?'
+          label='Ressurs type'
           hideLabel
         />
       </div>
@@ -85,7 +101,6 @@ export const AboutResourcePage = () => {
           aria-label='Hjemmeside'
         />
       </div>
-
       <h2 className={classes.subHeader}>Nøkkelord</h2>
       <p className={classes.text}>
         {'Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'}
@@ -97,7 +112,8 @@ export const AboutResourcePage = () => {
           aria-label='Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'
         />
       </div>
-      <h2 className={classes.subHeader}>Velg sektor for ressursen</h2>
+      <h2 className={classes.subHeader}>Hvilken sektor er tjenesten relatert til?</h2>
+      <p className={classes.text}>En tjeneste kan relateres til flere industrier/sektorer</p>
       {/* TODO - inform user that this is optional */}
       <div className={classes.inputWrapper}>
         <Select
@@ -105,11 +121,12 @@ export const AboutResourcePage = () => {
           options={resourceSectorsMockOptions}
           onChange={(e) => setSectors(e)}
           value={sectors}
-          label='Velg sektor for ressursen'
+          label='Hvilken sektor er tjenesten relatert til?'
           hideLabel
         />
       </div>
-      <h2 className={classes.subHeader}>Velg tematisk område</h2>
+      <h2 className={classes.subHeader}>Hvilke geografiske områder dekker tjenesten?</h2>
+      <p className={classes.text}>En tjeneste kan relateres til flere geografiske områder</p>
       <div className={classes.inputWrapper}>
         <Select
           multiple
@@ -121,6 +138,7 @@ export const AboutResourcePage = () => {
         />
       </div>
       <h2 className={classes.subHeader}>Delegasjonstekst</h2>
+      <p className={classes.text}></p>
       <div className={classes.inputWrapper}>
         <TextField
           value={delegationText}
