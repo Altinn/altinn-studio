@@ -220,6 +220,8 @@ export class AppFrontend {
     hideCommentField: '[id^="hideComment"]',
     hiddenRowsInfoMsg: '[data-componentid="info-msg"]',
     row: (idx: number) => ({
+      currentValue: `#currentValue-${idx}`,
+      newValue: `#newValue-${idx}`,
       uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3, 'untagged'),
       uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4, 'untagged'),
       editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) [data-testid=edit-button]`,

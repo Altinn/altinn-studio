@@ -2,6 +2,8 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
+import { Triggers } from 'src/types';
+
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
@@ -269,7 +271,7 @@ describe('Validation', () => {
 
   it('Clicking the error report should focus the correct field', () => {
     cy.interceptLayout('group', (component) => {
-      if (component.id === 'comments') {
+      if (component.id === 'comments' || component.id === 'newValue' || component.id === 'currentValue') {
         component.required = true;
       }
     });
@@ -277,16 +279,41 @@ describe('Validation', () => {
 
     cy.get(appFrontend.group.prefill.liten).dsCheck();
     cy.get(appFrontend.group.prefill.stor).dsCheck();
-
     cy.get(appFrontend.nextButton).click();
 
     // Check that showGroupToContinue is focused
     cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.errorReport).findByText(texts.requiredOpenRepGroup).click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').should('be.focused');
 
-    // Check that nested group with multipage gets focus
+    // Check that clicking the error focuses a component inside a group
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.row(2).nestedGroup.row(0).comments).should('be.visible');
+    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.group.editContainer).should('be.visible');
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 1.')
+      .should('have.text', 'Du må fylle ut 1. endre fra')
+      .click();
+    cy.get(appFrontend.group.row(2).currentValue).should('exist').and('be.focused');
+    cy.get(appFrontend.group.row(2).currentValue).type('123');
+
+    // At this point, even though we have filled out the required field, the validation message for the other
+    // field should still be there as it was.
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.group.row(2).newValue).should('exist').and('be.focused');
+    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+
+    // Validation message should now have changed, since we filled out currentValue and saved
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').should('be.visible');
+    cy.get(appFrontend.group.row(2).deleteBtn).click();
+
+    // Check that nested group with multipage gets focus
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).comments).type('comment');
@@ -305,8 +332,147 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.gotoNavPage('summary');
     cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.errorReport).findByText(texts.requiredSendersName).click();
     cy.get(appFrontend.group.sendersName).should('be.focused');
+    cy.get(appFrontend.group.sendersName).type('hello world');
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.get(appFrontend.prevButton).click();
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.id === 'mainGroup' && component.tableColumns) {
+        // As the component is hidden in edit mode, and not shown in the table for editing, it should not be
+        // showing any validation messages.
+        component.tableColumns.currentValue.showInExpandedEdit = false;
+      }
+    });
+
+    // Attempting to save the group with one remaining required field should let us focus that field,
+    // but the field not shown in the expanded edit should not be focused
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.saveMainGroup).click();
+
+    // The currentValue field is required, but as it's implicitly hidden in the expanded edit, it should not produce
+    // a validation message or be visible in the error report.
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.group.editContainer).should('be.visible');
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.group.row(2).newValue).should('exist').and('be.focused');
+    cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
+
+    // Even though the currentValue field is hidden, the value should still be displayed in the table
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(0).find('td').eq(0).should('have.text', 'NOK 1');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(1).find('td').eq(0).should('have.text', 'NOK 1 233');
+
+    // Filling out the remaining field should let us save the group and hide leftover errors
+    cy.get(appFrontend.group.row(2).newValue).type('456');
+    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.id === 'mainGroup' && component.edit) {
+        // In the 'onlyTable' mode, there is no option to edit a row, so we should not open the row in edit mode
+        // to focus a component either.
+        component.edit.mode = 'onlyTable';
+      }
+    });
+
+    // These components are not editable in the table yet, so even though the edit button
+    // is gone now, they're not to be found.
+    cy.get(appFrontend.group.edit).should('not.exist');
+    cy.get(appFrontend.group.row(0).currentValue).should('not.exist');
+    cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
+    cy.get(appFrontend.group.row(0).newValue).should('not.exist');
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.id === 'mainGroup' && component.tableColumns) {
+        component.tableColumns.currentValue.editInTable = undefined;
+        component.tableColumns.newValue.editInTable = true;
+      }
+      if (component.type === 'NavigationButtons') {
+        // When components are visible in the table, the validation trigger on the group itself stops having an effect,
+        // as there is no way for the user to say they're 'done' editing a row.
+        component.triggers = [Triggers.ValidatePage];
+      }
+    });
+
+    // Components are now visible in the table
+    cy.get(appFrontend.group.row(0).currentValue).should('have.attr', 'readonly', 'readonly');
+    cy.get(appFrontend.group.row(2).currentValue).should('not.have.attr', 'readonly');
+    cy.get(appFrontend.group.row(0).newValue).should('have.attr', 'readonly', 'readonly');
+
+    // Delete the row, start over, and observe that the currentValue now exists as a field in the table and
+    // produces a validation message if not filled out. We need to use the 'next' button to trigger validation.
+    cy.get(appFrontend.group.row(2).deleteBtn).click();
+    cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.row(2).currentValue).should('exist');
+    cy.get(appFrontend.group.row(2).newValue).should('exist');
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1.').click();
+    cy.get(appFrontend.group.row(2).currentValue).should('be.focused');
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.group.row(2).newValue).should('be.focused');
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.id === 'mainGroup' && component.tableColumns) {
+        // Components that are not editable in the table, when using the 'onlyTable' mode, are implicitly hidden
+        component.tableColumns.currentValue.editInTable = false;
+      }
+    });
+
+    cy.get(appFrontend.group.row(0).currentValue).should('not.exist');
+    cy.get(appFrontend.group.row(0).newValue).should('exist');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(1).find('td').eq(0).should('have.text', 'NOK 1 233');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(2).find('td').eq(0).should('have.text', '');
+    cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.group.row(2).newValue).should('be.focused');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.id === 'mainGroup' && component.edit && component.tableColumns) {
+        // In regular mode, if the edit button is hidden, we should not open the row in edit mode to focus a component
+        // because this isn't a mode the user would be able to reach either.
+        component.edit.mode = 'showTable';
+        component.edit.editButton = false;
+        component.tableColumns.newValue.editInTable = undefined;
+        component.tableColumns.currentValue.editInTable = undefined;
+      }
+    });
+
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.editContainer).should('be.visible');
+    cy.get(appFrontend.group.row(3).newValue).should('exist');
+    cy.get(appFrontend.group.row(3).currentValue).should('not.exist');
+    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+    cy.get(appFrontend.errorReport).findAllByText('Du må fylle ut 2. endre verdi til').eq(0).click();
+
+    // We have no way to focus this field, because this component is hidden when the edit container is no longer
+    // visible for this row. It's not technically a fully hidden component since it can still be edited when the
+    // edit container was first opened, but by removing the edit button, we've made it impossible to reach the
+    // component to focus it.
+    //
+    // Note that we're testing expected functionality here, but if you're actually implementing this in an app, you
+    // should trigger validation before saving and closing the group row, so that the user cannot reach this state
+    // (although they still could if refreshing the page, so it's not the best idea).
+    cy.focused().should('have.text', 'Du må fylle ut 2. endre verdi til');
+
+    // Clicking the next validation message should focus the component already open in editing mode
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.row(3).newValue).should('not.be.focused');
+    cy.get(appFrontend.errorReport).findAllByText('Du må fylle ut 2. endre verdi til').eq(1).click();
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.row(3).newValue).should('be.focused');
   });
 
   it('Validates mime type on attachment', () => {

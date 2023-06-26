@@ -13,8 +13,8 @@ import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { useExprContext } from 'src/utils/layout/ExprContext';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { FlatError } from 'src/utils/validation/validation';
 
 export interface IErrorReportProps {
@@ -46,6 +46,12 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
       return;
     }
     ev.preventDefault();
+    const componentNode = allNodes?.findById(error.componentId);
+    if (!componentNode || componentNode.isHidden()) {
+      // No point in trying to focus on a hidden component
+      return;
+    }
+
     if (currentView !== error.layout) {
       dispatch(
         FormLayoutActions.updateCurrentView({
@@ -54,36 +60,59 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
       );
     }
 
-    const componentNode = allNodes?.findById(error.componentId);
-
-    // Iterate over parent repeating groups
-    componentNode?.parents().forEach((parentNode, i, allParents) => {
-      const parent = parentNode.item;
-      if (parent?.type == 'Group' && parent.edit?.mode !== 'likert' && parent.maxCount && parent.maxCount > 1) {
-        const childNode = i == 0 ? componentNode : (allParents[i - 1] as LayoutNode);
-
-        // Go to correct multiPage page if necessary
-        if (parent.edit?.multiPage && childNode.item.multiPageIndex !== undefined) {
-          const multiPageIndex = childNode.item.multiPageIndex;
-          dispatch(
-            FormLayoutActions.repGroupSetMultiPage({
-              groupId: parent.id,
-              page: multiPageIndex,
-            }),
-          );
-        }
-
-        if (childNode?.rowIndex !== undefined) {
-          // Set editIndex to rowIndex
-          dispatch(
-            FormLayoutActions.updateRepeatingGroupsEditIndex({
-              group: parent.id,
-              index: childNode.rowIndex,
-            }),
-          );
-        }
+    const allParents = componentNode?.parents() || [];
+    for (const [i, parentNode] of allParents.entries()) {
+      if (!(parentNode instanceof LayoutNode && parentNode.isRepGroup())) {
+        continue;
       }
-    });
+      const editMode = parentNode.item.edit?.mode;
+      if (editMode === 'likert' || editMode === 'onlyTable') {
+        // No need to set editIndex for likert or repeating groups only rendering in table.
+        // These have no edit container.
+        continue;
+      }
+
+      const childNode = i == 0 ? componentNode : (allParents[i - 1] as LayoutNode);
+      const childBaseId = childNode.item.baseComponentId || childNode.item.id;
+      const tableColSetup = parentNode.item.tableColumns && parentNode.item.tableColumns[childBaseId];
+
+      if (tableColSetup?.editInTable || tableColSetup?.showInExpandedEdit === false) {
+        // No need to open rows or set editIndex for components that are
+        // rendered in table (outside of the edit container)
+        continue;
+      }
+
+      const childRow = childNode.rowIndex !== undefined ? parentNode.item.rows[childNode.rowIndex] : undefined;
+      const edit = {
+        ...parentNode.item.edit,
+        ...childRow?.groupExpressions?.edit,
+      };
+      if (edit.editButton === false) {
+        // Cannot open this group row for editing, as the edit button is disabled
+        continue;
+      }
+
+      // Go to correct multiPage page if necessary
+      if (parentNode.item.edit?.multiPage && childNode.item.multiPageIndex !== undefined) {
+        const multiPageIndex = childNode.item.multiPageIndex;
+        dispatch(
+          FormLayoutActions.repGroupSetMultiPage({
+            groupId: parentNode.item.id,
+            page: multiPageIndex,
+          }),
+        );
+      }
+
+      if (childNode?.rowIndex !== undefined) {
+        // Set editIndex to rowIndex
+        dispatch(
+          FormLayoutActions.updateRepeatingGroupsEditIndex({
+            group: parentNode.item.id,
+            index: childNode.rowIndex,
+          }),
+        );
+      }
+    }
 
     // Set focus
     dispatch(

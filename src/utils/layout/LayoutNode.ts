@@ -165,9 +165,29 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
       return true;
     }
 
-    if (this.parent.item.type === 'Group' && 'rows' in this.parent.item && typeof this.rowIndex === 'number') {
+    if (this.parent instanceof LayoutNode && this.parent.isRepGroup() && typeof this.rowIndex === 'number') {
       const isHiddenRow = this.parent.item.rows[this.rowIndex]?.groupExpressions?.hiddenRow;
       if (isHiddenRow) {
+        return true;
+      }
+
+      const myBaseId = this.item.baseComponentId || this.item.id;
+      const groupMode = this.parent.item.edit?.mode;
+      const tableColSetup = this.parent.item.tableColumns && this.parent.item.tableColumns[myBaseId];
+
+      // This specific configuration hides the component fully, without having set hidden=true on the component itself.
+      // It's most likely done by mistake, but we still need to respect it when checking if the component is hidden,
+      // because it doesn't make sense to validate a component that is hidden in the UI and the
+      // user cannot interact with.
+      let hiddenImplicitly =
+        tableColSetup?.showInExpandedEdit === false && !tableColSetup?.editInTable && groupMode !== 'onlyTable';
+
+      if (groupMode === 'onlyTable' && tableColSetup?.editInTable === false) {
+        // This is also a way to hide a component implicitly
+        hiddenImplicitly = true;
+      }
+
+      if (hiddenImplicitly) {
         return true;
       }
     }

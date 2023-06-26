@@ -299,11 +299,11 @@ export function shouldEditInTable(
   tableNode: LayoutNode,
   columnSettings: ILayoutGroup['tableColumns'],
 ) {
-  if (groupEdit?.mode === 'onlyTable') {
+  const column = columnSettings && columnSettings[tableNode.item.baseComponentId || tableNode.item.id];
+  if (groupEdit?.mode === 'onlyTable' && column?.editInTable !== false) {
     return tableNode.def.canRenderInTable();
   }
 
-  const column = columnSettings && columnSettings[tableNode.item.baseComponentId || tableNode.item.id];
   if (column && column.editInTable) {
     return tableNode.def.canRenderInTable();
   }
