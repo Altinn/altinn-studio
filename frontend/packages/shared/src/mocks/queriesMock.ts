@@ -5,6 +5,7 @@ export const queriesMock: ServicesContextProps = {
   addLanguageCode: jest.fn(),
   addRepo: jest.fn(),
   addLayoutSet: jest.fn(),
+  commitAndPushChanges: jest.fn(),
   configureLayoutSet: jest.fn(),
   copyApp: jest.fn(),
   createDeployment: jest.fn(),
