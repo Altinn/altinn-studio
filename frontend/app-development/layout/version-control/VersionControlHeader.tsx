@@ -7,9 +7,9 @@ import { SyncModal } from './SyncModal';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRepoPullQuery, useRepoStatusQuery } from '../../hooks/queries';
-import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { useRepoCommitAndPushMutation } from 'app-development/hooks/mutations/useRepoCommitAndPushMutation';
 
 export interface IVersionControlHeaderProps {
   hasPushRight?: boolean;
@@ -61,6 +61,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const handleSyncModalClose = () => {
     if (!(repoStatus?.repositoryStatus === 'MergeConflict')) {
       setSyncModalAnchorEl(null);
+      setModalState(initialModalState);
     }
   };
 
@@ -95,7 +96,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         ],
         btnText: t('sync_header.fetch_changes_btn'),
         shouldShowCommitBox: true,
-        btnMethod: commitChanges,
+        btnMethod: commitAndPushChanges,
       });
     }
   };
@@ -125,15 +126,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
             shouldShowDoneIcon: true,
             header: t('sync_header.nothing_to_push'),
           });
-        } else if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy > 0) {
-          setModalState({
-            ...initialModalState,
-            header: t('sync_header.validation_completed'),
-            btnText: t('sync_header.share_changes'),
-            shouldShowDoneIcon: true,
-            isLoading: false,
-            btnMethod: pushChanges,
-          });
         } else {
           // if user has changes to share, show write commit message modal
           setModalState({
@@ -146,7 +138,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
             btnText: t('sync_header.describe_and_validate_btnText'),
             shouldShowCommitBox: true,
             isLoading: false,
-            btnMethod: commitChanges,
+            btnMethod: commitAndPushChanges,
           });
         }
       }
@@ -160,42 +152,22 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
     }
   };
 
-  const repoPushMutation = useRepoPushMutation(org, app);
-  const pushChanges = async () => {
+  const repoCommitAndPushMutation = useRepoCommitAndPushMutation(org, app);
+  const commitAndPushChanges = async (commitMessage: string) => {
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes'),
       isLoading: true,
     });
+    await repoCommitAndPushMutation.mutateAsync({ commitMessage });
 
-    await repoPushMutation.mutateAsync();
-    setModalState({
-      ...initialModalState,
-      header: t('sync_header.sharing_changes_completed'),
-      descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
-      shouldShowDoneIcon: true,
-    });
-    forceRepoStatusCheck();
-  };
-
-  const repoCommitMutation = useCreateRepoCommitMutation(org, app);
-  const commitChanges = async (commitMessage: string) => {
-    setModalState({
-      ...initialModalState,
-      header: t('sync_header.validating_changes'),
-      descriptionText: [],
-      isLoading: true,
-    });
-    await repoCommitMutation.mutateAsync({ commitMessage });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
       setModalState({
         ...initialModalState,
-        header: t('sync_header.validation_completed'),
-        descriptionText: [],
-        btnText: t('sync_header.share_changes'),
+        header: t('sync_header.sharing_changes_completed'),
+        descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
         shouldShowDoneIcon: true,
-        btnMethod: pushChanges,
       });
     } else if (result.repositoryStatus === 'MergeConflict') {
       // if pull resulted in a mergeconflict, show mergeconflict message

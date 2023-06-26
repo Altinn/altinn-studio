@@ -1,5 +1,5 @@
 import { del, get, post, put } from 'app-shared/utils/networking';
-import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath } from 'app-shared/api/paths';
+import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath, repoCommitPushPath } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
@@ -25,6 +25,7 @@ export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig)
 export const addRepo = (repoToAdd: AddRepoParams) => post<IRepository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<void, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
+export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetPath(org, app, layoutSetName));
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
