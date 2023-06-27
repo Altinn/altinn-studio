@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import React, { Children, createRef, useEffect, useState } from 'react';
+import React, { Children, createRef, useEffect, useMemo, useState } from 'react';
 
 import classes from 'src/features/devtools/components/SplitView/SplitView.module.css';
 
@@ -7,14 +7,17 @@ interface SplitViewProps {
   direction: 'row' | 'column';
   children: React.ReactNode;
   sizes?: number[];
+  minContent?: boolean;
 }
 
-export const SplitView = ({ direction, children, sizes: defaultSizes }: SplitViewProps) => {
+export const SplitView = ({ direction, children, sizes: defaultSizes, minContent }: SplitViewProps) => {
   const childArray = Children.toArray(children);
   const nPanels = childArray.length;
   const isRow = direction === 'row';
   const [panelRefs, setPanelRefs] = useState<React.RefObject<HTMLDivElement>[]>([]);
-  const [sizes, setSizes] = useState<number[]>(defaultSizes ?? Array(childArray.length - 1).fill(100));
+  const realDefaultSizes = useMemo(() => defaultSizes ?? Array(nPanels - 1).fill(100), [defaultSizes, nPanels]);
+  const [sizes, setSizes] = useState<number[]>(realDefaultSizes);
+  const minContentCss = minContent ? { minWidth: 'min-content', minHeight: 'min-content' } : {};
 
   useEffect(() => {
     setPanelRefs((refs) =>
@@ -58,7 +61,11 @@ export const SplitView = ({ direction, children, sizes: defaultSizes }: SplitVie
           <div
             ref={panelRefs[index]}
             className={classes.panel}
-            style={{ flexBasis: index > 0 ? `${sizes[index - 1]}px` : 0, flexGrow: index === 0 ? 1 : 0 }}
+            style={{
+              flexBasis: index > 0 ? `${sizes[index - 1]}px` : 0,
+              flexGrow: index === 0 ? 1 : 0,
+              ...minContentCss,
+            }}
           >
             {child}
           </div>

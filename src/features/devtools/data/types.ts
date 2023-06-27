@@ -22,4 +22,5 @@ export enum DevToolsTab {
   Layout = 'Layout',
   Components = 'Komponenter',
   Expressions = 'Uttrykk',
+  FeatureToggles = 'Beta-funksjonalitet',
 }

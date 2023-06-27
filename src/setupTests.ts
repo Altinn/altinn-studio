@@ -26,7 +26,6 @@ Object.defineProperty(document, 'fonts', {
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
 window.org = 'ttd';
 window.app = 'test';
-window.featureToggles = {};
 jest.setTimeout(10000);
 
 jest.mock('axios');

@@ -51,7 +51,7 @@ export const ExpressionPlayground = () => {
       if (lastOutput.value === newValue && lastOutput.isError === isError) {
         return false;
       }
-      const newOutputs = [{ value: newValue, isError }, ...outputs];
+      const newOutputs = [{ value: newValue, isError }, ...outputs.filter((o) => (!isError ? !o.isError : true))];
       setOutputs(newOutputs.slice(0, 10));
       return true;
     },
@@ -64,7 +64,9 @@ export const ExpressionPlayground = () => {
 
   useEffect(() => {
     if (!input || input.length <= 0) {
-      setOutputs([{ value: '', isError: false }]);
+      if (!outputs[0] || outputs[0]?.value !== '') {
+        setOutputs([{ value: '', isError: false }]);
+      }
       return;
     }
 
@@ -117,7 +119,9 @@ export const ExpressionPlayground = () => {
         setOutputWithHistory(JSON.stringify(out), false);
       }
     } catch (e) {
-      setOutputs([{ value: e.message, isError: true }]);
+      if (!outputs[0] || outputs[0]?.value !== e.message) {
+        setOutputs([{ value: e.message, isError: true }]);
+      }
     }
   }, [input, forPage, forComponentId, dataSources, nodes, showAllSteps, outputs, setOutputWithHistory]);
 

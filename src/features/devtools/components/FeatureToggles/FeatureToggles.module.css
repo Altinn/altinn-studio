@@ -1,0 +1,43 @@
+.list {
+  display: grid;
+  padding: 1rem;
+  grid-template-columns: 50px 1fr;
+}
+
+.itemCheckbox {
+  grid-column-start: 1;
+}
+
+.itemContent {
+  grid-column-start: 2;
+  max-width: 80%;
+}
+
+@media only screen and (max-width: 768px) {
+  .itemContent {
+    max-width: 100%;
+  }
+}
+
+.button {
+  grid-column-start: span 2;
+  margin-top: 1rem;
+}
+
+.linkList {
+  margin-left: 1.5rem;
+}
+
+.sideBar {
+  padding: 1rem;
+  min-width: fit-content;
+}
+
+.sideBar pre {
+  width: min-content;
+  background-color: #0a0a0a;
+  color: #efefef;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  margin: 8px 0;
+}
