@@ -11,7 +11,6 @@
 .card {
   padding-block: 10px;
   padding-inline: 20px;
-  width: 510px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;

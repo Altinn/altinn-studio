@@ -12,6 +12,10 @@
   font-size: 30px;
 }
 
+.contentWrapper {
+  width: 630px;
+}
+
 .subHeader {
   font-weight: 500;
   margin-top: 40px;
@@ -22,13 +26,12 @@
 .deployCardsWrapper {
   display: flex;
   justify-content: space-between;
-  width: 630px;
   margin-top: 20px;
 }
 
 .newVersionWrapper {
   margin-top: 40px;
-  width: 550px;
+  width: 100%;
 }
 
 .text {
@@ -39,11 +42,12 @@
 
 .textAndButton {
   display: flex;
-  justify-content: space-between;
+  width: 100%;
 }
 
 .textfield {
-  width: 300px;
+  flex: 1;
+  margin-right: 8px;
 }
 
 .firstError {
