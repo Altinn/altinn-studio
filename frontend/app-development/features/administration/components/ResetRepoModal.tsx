@@ -4,7 +4,6 @@ import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 
 export interface IResetRepoModalProps {
@@ -12,12 +11,12 @@ export interface IResetRepoModalProps {
   onClose: any;
   open: boolean;
   repositoryName: string;
+  org: string;
 }
 
 export function ResetRepoModal(props: IResetRepoModalProps) {
   const [canDelete, setCanDelete] = useState<boolean>(false);
   const [deleteRepoName, setDeleteRepoName] = useState<string>('');
-  const { org, app } = useParams<{ org: string; app: string }>();
 
   useEffect(() => {
     if (deleteRepoName === props.repositoryName) {
@@ -29,7 +28,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
 
   const onDeleteRepoNameChange = (event: any) => setDeleteRepoName(event.target.value);
 
-  const repoResetMutation = useResetRepositoryMutation(org, app);
+  const repoResetMutation = useResetRepositoryMutation(props.org, props.repositoryName);
   const onResetWrapper = () => {
     setCanDelete(false);
     repoResetMutation.mutate();

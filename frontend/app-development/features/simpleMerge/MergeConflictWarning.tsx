@@ -50,6 +50,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
           onClose={toggleResetModal}
           open={resetRepoModalOpen}
           repositoryName={app}
+          org={org}
         />
       </ButtonContainer>
     </div>
