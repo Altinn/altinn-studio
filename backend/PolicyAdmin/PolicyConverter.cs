@@ -147,7 +147,7 @@ namespace Altinn.Studio.PolicyAdmin
         public static XacmlPolicy ConvertPolicy(ResourcePolicy? policyInput)
         {
             XacmlPolicy policyOutput = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
-           
+
             if (policyInput == null)
             {
                 return policyOutput;
