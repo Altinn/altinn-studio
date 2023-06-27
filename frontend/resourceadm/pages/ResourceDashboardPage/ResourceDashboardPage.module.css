@@ -1,6 +1,7 @@
 .pageWrapper {
   padding-inline: 10%;
   padding-block: 20px;
+  flex-grow: 1;
 }
 
 .topWrapper {

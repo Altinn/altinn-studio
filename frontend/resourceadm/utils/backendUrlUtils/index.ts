@@ -6,5 +6,6 @@ export {
   getCreateResourceUrlBySelectedContext,
   getResourceUrlBySelectedContextRepoAndId,
   getValidatePolicyUrlBySelectedContextRepoAndId,
-  getValidateResourceUrlBySelectedContextRepoAndId
+  getValidateResourceUrlBySelectedContextRepoAndId,
+  getEditResourceUrlBySelectedContextAndId
 } from './backendUserUtils'

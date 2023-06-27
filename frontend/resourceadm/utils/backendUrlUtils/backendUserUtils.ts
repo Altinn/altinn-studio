@@ -107,6 +107,21 @@ export const getCreateResourceUrlBySelectedContext = (
 }
 
 /**
+ * Gets the URL path to the API for the editing of an exisitng resource
+ *
+ * @param selectedContext the organisation
+ * @param id the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getEditResourceUrlBySelectedContextAndId = (
+  selectedContext: string,
+  id: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/updateresource/${id}`
+}
+
+/**
  * Gets the URL path to the API for validating a resource
  *
  * @param selectedContext the organisation

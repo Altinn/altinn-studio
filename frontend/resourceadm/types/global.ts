@@ -50,9 +50,37 @@ export interface ResourceType {
   identifier: string;
 }
 
+export type ResourceTypeOptionType = "Default" | "Systemresource" | "Maskinportenschema";
+
+export interface ResourceBackendType {
+  identifier: string;
+  resourceType?: ResourceTypeOptionType;
+  title: SupportedLanguageKey<string>;
+  description?: SupportedLanguageKey<string>;
+  keywords?: ResourceKeywordType[]; // TODO - Does this need to be changed?
+  homepage?: string;
+  isPublicService?: boolean;
+  sector?: string[];
+  thematicArea?: string;
+  rightDescription?: SupportedLanguageKey<string>;
+  // TODO - Missing available languages, organisation types
+}
+
 export type PolicyRuleErrorType = 'policyerror.missingsubject' | 'policyerror.missingaction' | 'policyerror.missingresource'
 
 export interface PolicyErrorType {
   ruleNumber: number;
   errors: PolicyRuleErrorType[];
+}
+
+export interface ResourceKeywordType {
+  language: 'nb' | 'nn' | 'en'; // TODO - Samisk
+  word: string
+}
+
+export interface SupportedLanguageKey<T> {
+  nb?: T;
+  nn?: T;
+  en?: T;
+  // TODO - Samisk
 }

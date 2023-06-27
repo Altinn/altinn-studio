@@ -13,6 +13,7 @@ import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
 import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { SearchField } from '@altinn/altinn-design-system';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -61,7 +62,8 @@ export const App = (): JSX.Element => {
             is needed). By hiding the component it can not be seen by the user in the browser.
         */}
         <div style={{ display: 'none' }}>
-          <SearchField id='hack' label='hack' />
+          <SearchField id='hack' aria-labelledby='hack' />
+          <ScreenReaderSpan id='hack' label='hack' />
         </div>
         <Routes>
           <Route element={<PageLayout />}>
