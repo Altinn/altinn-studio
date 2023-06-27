@@ -377,7 +377,8 @@ export function extractBottomButtons(page: LayoutPage) {
   const toMainLayout: LayoutNode[] = [];
   const toErrorReport: LayoutNode[] = [];
   for (const node of all.reverse()) {
-    if ((node.isType('ButtonGroup') || node.def.canRenderInButtonGroup()) && toMainLayout.length === 0) {
+    const isButtonLike = node.isType('ButtonGroup') || (node.def.canRenderInButtonGroup() && !node.isType('Custom'));
+    if (isButtonLike && toMainLayout.length === 0) {
       toErrorReport.push(node);
     } else {
       toMainLayout.push(node);

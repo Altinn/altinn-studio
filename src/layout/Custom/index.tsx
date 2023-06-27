@@ -28,6 +28,14 @@ export class Custom extends FormComponent<'Custom'> {
     const displayData = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
+
+  canRenderInButtonGroup(): boolean {
+    return true;
+  }
+
+  canRenderInTable(): boolean {
+    return true;
+  }
 }
 
 export const Config = {
