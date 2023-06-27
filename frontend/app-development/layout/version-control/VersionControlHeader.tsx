@@ -159,7 +159,24 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       header: t('sync_header.sharing_changes'),
       isLoading: true,
     });
-    await repoCommitAndPushMutation.mutateAsync({ commitMessage });
+    try {
+      await repoCommitAndPushMutation.mutateAsync({ commitMessage });
+    } catch (error) {
+      console.error(error);
+      const { data: result } = await fetchPullData();
+      if (result.repositoryStatus === 'CheckoutConflict') {
+        // if pull resulted in a mergeconflict, show mergeconflict message
+        setModalState({
+          ...initialModalState,
+          header: t('sync_header.merge_conflict_occured'),
+          descriptionText: [t('sync_header.merge_conflict_occured_submessage')],
+          btnText: t('sync_header.merge_conflict_btn'),
+          btnMethod: forceRepoStatusCheck,
+        });
+        setHasMergeConflict(true);
+        return;
+      }
+    }
 
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
@@ -169,7 +186,10 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
         shouldShowDoneIcon: true,
       });
-    } else if (result.repositoryStatus === 'MergeConflict') {
+    } else if (
+      result.repositoryStatus === 'MergeConflict' ||
+      result.repositoryStatus === 'CheckoutConflict'
+    ) {
       // if pull resulted in a mergeconflict, show mergeconflict message
       setModalState({
         ...initialModalState,
@@ -184,6 +204,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
 
   const forceRepoStatusCheck = () =>
     window.postMessage('forceRepoStatusCheck', window.location.href);
+
   return (
     <div className={classes.headerStyling} data-testid='version-control-header'>
       <FetchChangesButton
