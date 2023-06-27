@@ -128,6 +128,10 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+            if(xacmlPolicy == null)
+            {
+                return NotFound();
+            }
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
