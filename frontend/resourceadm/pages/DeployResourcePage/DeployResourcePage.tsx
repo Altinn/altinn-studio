@@ -14,7 +14,7 @@ import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
-  navigateToPage: (page: NavigationBarPageType) => void;
+  navigateToPageWithError: (page: NavigationBarPageType) => void;
 }
 
 /**
@@ -22,7 +22,7 @@ interface Props {
  *
  * @param props.isLocalRepoInSync boolean for if the local repo is in sync or not
  */
-export const DeployResourcePage = ({ navigateToPage }: Props) => {
+export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -104,13 +104,19 @@ export const DeployResourcePage = ({ navigateToPage }: Props) => {
           {hasResourceError && (
             <p className={hasResourceError && hasPolicyError && classes.firstError}>
               Det er en feil i ressursen.{' '}
-              <Link text='Klikk her for å fikse det.' onClick={() => navigateToPage('about')} />
+              <Link
+                text='Klikk her for å fikse det.'
+                onClick={() => navigateToPageWithError('about')}
+              />
             </p>
           )}
           {hasPolicyError && (
             <p>
               Det er en feil i policyen.{' '}
-              <Link text='Klikk her for å fikse det.' onClick={() => navigateToPage('policy')} />
+              <Link
+                text='Klikk her for å fikse det.'
+                onClick={() => navigateToPageWithError('policy')}
+              />
             </p>
           )}
         </div>

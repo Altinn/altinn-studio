@@ -18,10 +18,16 @@ import {
 import { emptyPolicy } from 'resourceadm/utils/policyEditorUtils';
 import { Spinner } from '@digdir/design-system-react';
 
+interface Props {
+  showAllErrors: boolean;
+}
+
 /**
  * Displays the content where a user can add and edit a policy
+ *
+ * @param props.showAllErrors flag to decide if all errors should be shown or not
  */
-export const PolicyEditorPage = () => {
+export const PolicyEditorPage = ({ showAllErrors }: Props) => {
   // TODO - translation
 
   const { resourceId, selectedContext } = useParams();
@@ -125,6 +131,7 @@ export const PolicyEditorPage = () => {
         resourceType={resourceType}
         resourceId={resourceId}
         onSave={handleSavePolicy}
+        showAllErrors={showAllErrors}
       />
     );
   };

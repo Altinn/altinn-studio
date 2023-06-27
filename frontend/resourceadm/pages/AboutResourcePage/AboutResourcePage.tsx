@@ -35,11 +35,17 @@ const resourceTypeOptions = [
  */
 const emptyLangauges = { nb: '', nn: '', en: '' };
 
+interface Props {
+  showAllErrors: boolean;
+}
+
 /**
  * Page that displays information about a resource
+ *
+ * @param props.showAllErrors flag to decide if all errors should be shown or not
  */
-export const AboutResourcePage = () => {
-  // TODO - translatio
+export const AboutResourcePage = ({ showAllErrors }: Props) => {
+  // TODO - translation
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -185,6 +191,10 @@ export const AboutResourcePage = () => {
     return (
       <>
         <h1 className={classes.pageHeader}>Om ressursen</h1>
+        {
+          // TODO HANDLE ERRORS IN RESOURCE
+          showAllErrors && <p>TODO</p>
+        }
         <h2 className={classes.subHeader}>Ressurs type</h2>
         <p className={classes.text}>Velg ett alternativ fra listen under</p>
         <div className={classes.inputWrapper}>

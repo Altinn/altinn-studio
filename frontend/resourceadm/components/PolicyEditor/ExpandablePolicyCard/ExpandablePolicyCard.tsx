@@ -41,6 +41,7 @@ interface Props {
  * @param props.resourceType the type of the resource
  * @param props.handleDuplicateRule function to be executed when clicking duplicate rule
  * @param props.handleDeleteRule function to be executed when clicking delete rule
+ * @param props.showErrors flag to decide if errors should be shown or not
  */
 export const ExpandablePolicyCard = ({
   policyRule,
