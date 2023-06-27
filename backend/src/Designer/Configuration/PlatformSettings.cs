@@ -70,5 +70,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Value is stored as an environment variable in the AKS cluster.
         /// </summary>
         public string SubscriptionKeyHeaderName { get; set; }
+
+        /// <summary>
+        /// The Url used for calling the resourceregistry
+        /// </summary>
+        public string ResourceRegistryUrl { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -17,23 +18,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMaskinportenService _maskinPortenService;
         private readonly IClientDefinition _maskinportenClientDefinition;
+        private readonly PlatformSettings _platformSettings;
 
         public ResourceRegistryService()
         {
 
         }
 
-        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition)
+        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings)
         {
             _httpClient = httpClient;
             _httpClientFactory = httpClientFactory;
             _maskinPortenService = maskinportenService;
             _maskinportenClientDefinition = maskinPortenClientDefinition;
+            _platformSettings = platformSettings;
         }
 
         public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource)
         {
-            string resourceRegistryUrl = $"http://localhost:5100/resourceregistry/api/v1/resource";
+            string resourceRegistryUrl = _platformSettings.ResourceRegistryUrl;
             string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
 
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
