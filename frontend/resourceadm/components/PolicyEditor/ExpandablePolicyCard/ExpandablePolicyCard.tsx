@@ -25,6 +25,7 @@ interface Props {
   resourceType: string;
   handleDuplicateRule: () => void;
   handleDeleteRule: () => void;
+  showErrors: boolean;
 }
 
 /**
@@ -51,6 +52,7 @@ export const ExpandablePolicyCard = ({
   resourceType,
   handleDuplicateRule,
   handleDeleteRule,
+  showErrors,
 }: Props) => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
@@ -345,11 +347,13 @@ export const ExpandablePolicyCard = ({
               Legg til en ressurs
             </Button>
           </div>
-          {hasResourceError && displayWarningCard('Du må legge til en ressurs')}
+          {showErrors && hasResourceError && displayWarningCard('Du må legge til en ressurs')}
           <p className={classes.subHeader}>Hvilke rettigheter skal gis?</p>
           <p className={classes.smallText}>Velg minimum ett alternativ fra listen under</p>
           <div className={classes.chipWrapper}>{displayActions}</div>
-          {hasRightsError && displayWarningCard('Du må legge til hvilken rettigheter som skal gis')}
+          {showErrors &&
+            hasRightsError &&
+            displayWarningCard('Du må legge til hvilken rettigheter som skal gis')}
           <p className={classes.subHeader}>Hvem skal ha disse rettighetene?</p>
           {displaySubjects}
           {subjectOptions.length > 0 && (
@@ -358,7 +362,8 @@ export const ExpandablePolicyCard = ({
               onChange={handleClickSubjectInList}
             />
           )}
-          {hasSubjectsError &&
+          {showErrors &&
+            hasSubjectsError &&
             displayWarningCard('Du må legge til hvem rettighetene skal gjelde for')}
           <p className={classes.subHeader}>Legg til en beskrivelse av regelen</p>
           <div className={classes.textAreaWrapper}>
@@ -372,7 +377,7 @@ export const ExpandablePolicyCard = ({
           </div>
         </ExpandablePolicyElement>
       </div>
-      {getHasRuleError() && (
+      {showErrors && getHasRuleError() && (
         <div className={classes.ruleWarning}>
           <ExclamationmarkTriangleFillIcon title='The rule has a warning' fontSize='2rem' />
         </div>

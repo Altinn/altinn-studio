@@ -55,6 +55,7 @@ export const DeployResourcePage = ({ navigateToPage }: Props) => {
       })
       .catch((err) => {
         console.error(err);
+        // TODO - If we get 404, display message about that the policy is missing
       });
 
     setIsLoading(false);

@@ -81,6 +81,7 @@ export const PolicyEditor = ({
             setVerificationModalOpen(true);
             setRuleIdToDelete(pr.ruleId);
           }}
+          showErrors={i !== policyRules.length - 1}
         />
       </div>
     );

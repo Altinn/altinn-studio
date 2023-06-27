@@ -90,8 +90,6 @@ export const PolicyEditorPage = () => {
 
   const handleSavePolicy = (p: PolicyBackendType) => {
     // TODO - Error handling
-    console.log('Object to be sent as JSON object: \n', JSON.stringify(p, null, 2));
-
     put(getPolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId), p)
       .then((res) => {
         console.log('success', res);
