@@ -76,6 +76,27 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
+        public ActionResult<ServiceResourceStatus> GetPublishStatusById(string org, string repository, string id = "")
+        {
+            ServiceResourceStatus resourceStatus = new ServiceResourceStatus();
+            ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+            if (resource == null)
+            {
+                return StatusCode(204);
+            }
+
+            resourceStatus.ResourceVersion = resource.Version;
+
+            // Todo. Temp test values until we have integration with resource registry in place
+            resourceStatus.PublishedVersions = new List<ResourceVersionInfo>();
+            resourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = "TT02", Version = "2024.2" });
+            resourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = "PROD", Version = "2024.1" });
+
+            return resourceStatus;
+        }
+
+        [HttpGet]
         [Route("designer/api/{org}/resources/repository/validate/{repository}")]
         [Route("designer/api/{org}/resources/repository/validate/{repository}/{id}")]
         public ActionResult<string> GetValidateResource(string org, string repository, string id = "")
