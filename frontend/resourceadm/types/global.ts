@@ -90,3 +90,9 @@ export interface VersionType {
   version: string;
   environment: string;
 }
+
+export interface ResourceVersionStatusType {
+  policyVersion?: string;
+  resourceVersion?: string;
+  publishedVersions: VersionType[];
+}

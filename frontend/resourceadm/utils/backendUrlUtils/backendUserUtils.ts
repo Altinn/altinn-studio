@@ -35,6 +35,23 @@ export const getValidatePolicyUrlBySelectedContextRepoAndId = (
 }
 
 /**
+ * Gets the URL path to the API for getting the publish statuses
+ *
+ * @param selectedContext the organisation
+ * @param repo the repo
+ * @param resourceId the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getPublishStatusUrlBySelectedContextRepoAndId = (
+  selectedContext: string,
+  repo: string,
+  resourceId: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/publishstatus/${repo}/${resourceId}`
+}
+
+/**
  * Gets the URL path to the API for the subject options for a policy
  *
  * @param selectedContext the organisation

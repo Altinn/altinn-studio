@@ -6,8 +6,8 @@ import { ArrowRightIcon, PackageFillIcon } from '@navikt/aksel-icons';
 interface Props {
   isDeployPossible: boolean;
   envName: string;
-  currentEnvVersion: number;
-  newEnvVersion?: number;
+  currentEnvVersion: string;
+  newEnvVersion?: string;
 }
 
 /**

@@ -5,9 +5,12 @@ import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvC
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import { TextField, Button, Spinner } from '@digdir/design-system-react';
 import { get } from 'app-shared/utils/networking';
-import { getValidatePolicyUrlBySelectedContextRepoAndId } from 'resourceadm/utils/backendUrlUtils';
+import {
+  getPublishStatusUrlBySelectedContextRepoAndId,
+  getValidatePolicyUrlBySelectedContextRepoAndId,
+} from 'resourceadm/utils/backendUrlUtils';
 import { useParams } from 'react-router-dom';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { NavigationBarPageType, ResourceVersionStatusType } from 'resourceadm/types/global';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { Link } from 'resourceadm/components/Link';
 import { UploadIcon } from '@navikt/aksel-icons';
@@ -39,33 +42,43 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
 
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
 
-  // TODO - The user MUST save the version number to backend. When the version number
-  // from backend is different than what is in test/prod, then it is valid.
-  // Do not compare it with the text directly, it must first be saved.
-  // TODO - ADD information box.
   const [newVersionText, setNewVersionText] = useState('');
-
-  const [versionInTest, setVersionInTest] = useState<number>();
-  const [versionInProd, setVersionInProd] = useState<number>();
-  const [versionInGitea, setVersionInGitea] = useState<number>();
+  const [versionInTest, setVersionInTest] = useState<string>();
+  const [versionInProd, setVersionInProd] = useState<string>();
+  const [localVersion, setLocalVersion] = useState<string>();
 
   useOnce(() => {
-    get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+    setIsLoading(true);
+    get(getPublishStatusUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
       .then((res) => {
-        // Remove error if status is 200
-        setHasPolicyError(res.status === 200 ? 'none' : 'validationFailed');
+        console.log(res);
+        const versions: ResourceVersionStatusType = res as ResourceVersionStatusType;
+
+        setVersionInTest(versions.publishedVersions.find((v) => v.environment === 'TT02').version);
+        setVersionInProd(versions.publishedVersions.find((v) => v.environment === 'PROD').version);
+        setLocalVersion(versions.resourceVersion);
+        setNewVersionText(versions.resourceVersion ?? '');
+
+        get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+          .then((validatePolicyRes) => {
+            // Remove error if status is 200
+            setHasPolicyError(validatePolicyRes.status === 200 ? 'none' : 'validationFailed');
+            setIsLoading(false);
+          })
+          .catch((err) => {
+            // If the ploicy does not exist, set it
+            if (err.response.status === 404) setHasPolicyError('notExisting');
+            setIsLoading(false);
+          });
       })
       .catch((err) => {
-        console.error(err);
-        console.log('error', err);
-        if (err.response.status === 404) setHasPolicyError('notExisting');
-        // TODO - If we get 404, display message about that the policy is missing
+        console.error('Error getting the publish status', err);
+        setIsLoading(false);
+        setHasError(true);
       });
 
-    setIsLoading(false);
-    setHasError(false);
     setHasResourceError(true);
-
+    // TODO - Validate resource when API is ready
     /*get(getValidateResourceUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
       .then((res) => {
         console.log('res', res);
@@ -73,15 +86,11 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       })
       .catch((err) => console.log(err));
       */
-    // TODO - replace with API call
-    setVersionInGitea(2);
-    setVersionInTest(2);
-    setVersionInProd(1);
-
-    // TODO - Replace with API call - If version exists, set it
-    setNewVersionText('2');
   });
 
+  /**
+   * Constantly check the repostatus to see if we are behind or ahead of master
+   */
   useEffect(() => {
     if (repoStatus) {
       setIsLocalRepoInSync(
@@ -175,7 +184,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       !hasResourceError &&
       !hasPolicyError &&
       isLocalRepoInSync &&
-      versionInTest !== versionInGitea
+      versionInTest !== localVersion
     ) {
       return true;
     }
@@ -184,13 +193,16 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       !hasResourceError &&
       !hasPolicyError &&
       isLocalRepoInSync &&
-      versionInProd !== versionInGitea
+      versionInProd !== localVersion
     ) {
       return true;
     }
     return false;
   };
 
+  /**
+   * Display the content on the page
+   */
   const displayContent = () => {
     if (isLoading) {
       return (
@@ -215,10 +227,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
             <div className={classes.textAndButton}>
               <div className={classes.textfield}>
                 <TextField
-                  placeholder='' // TODO
+                  placeholder=''
                   value={newVersionText}
                   onChange={(e) => setNewVersionText(e.target.value)}
-                  // isValid={hasOnlyNumbers(newVersionText)} // TODO - only numbers??
                   aria-labelledby='versionnumber-field'
                 />
               </div>
@@ -226,7 +237,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
               <Button
                 color='primary'
                 onClick={() => {
-                  // TODO - Save new version number
+                  // TODO - Save new version number - Missing API call
                   alert('todo - Save new version number');
                 }}
                 iconPlacement='left'
@@ -240,15 +251,15 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
           <div className={classes.deployCardsWrapper}>
             <ResourceDeployEnvCard
               isDeployPossible={isDeployPossible('test')}
-              envName='Testmiljø TT-02' //'tt02-miljøet'
+              envName='Testmiljø TT-02'
               currentEnvVersion={versionInTest}
-              newEnvVersion={versionInGitea !== versionInTest ? versionInGitea : undefined}
+              newEnvVersion={localVersion !== versionInTest ? localVersion : undefined}
             />
             <ResourceDeployEnvCard
               isDeployPossible={isDeployPossible('prod')}
-              envName='Produksjonsmiljø' //'production-miljøet'
+              envName='Produksjonsmiljø'
               currentEnvVersion={versionInProd}
-              newEnvVersion={versionInGitea !== versionInProd ? versionInGitea : undefined}
+              newEnvVersion={localVersion !== versionInProd ? localVersion : undefined}
             />
           </div>
         </div>
