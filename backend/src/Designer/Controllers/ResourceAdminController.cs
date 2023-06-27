@@ -81,7 +81,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             ServiceResourceStatus resourceStatus = new ServiceResourceStatus();
             ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
-            if(resource == null)
+            if (resource == null)
             {
                 return StatusCode(204);
             }

@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// The version of the resource
         /// </summary>
-        public string? Version { get; set;  }
+        public string? Version { get; set; }
 
         /// <summary>
         /// The title of service
