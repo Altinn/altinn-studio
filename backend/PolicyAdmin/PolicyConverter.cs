@@ -155,7 +155,6 @@ namespace Altinn.Studio.PolicyAdmin
 
             policyOutput.Version = policyInput.Version;
 
-
             if (policyInput.Rules != null && policyInput.Rules.Count > 0)
             {
                 foreach (PolicyRule rule in policyInput.Rules)
