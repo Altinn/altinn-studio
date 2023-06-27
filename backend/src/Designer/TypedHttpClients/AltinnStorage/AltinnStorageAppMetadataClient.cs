@@ -100,8 +100,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             {
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };
-            string content = await request.Content.ReadAsStringAsync();
-            _logger.LogInformation($"Application metadata sent to storage uri, {uri}, with content: {content}");
             await _httpClient.SendAsync(request);
         }
 
