@@ -128,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
-            if(xacmlPolicy == null)
+            if (xacmlPolicy == null)
             {
                 return NotFound();
             }
