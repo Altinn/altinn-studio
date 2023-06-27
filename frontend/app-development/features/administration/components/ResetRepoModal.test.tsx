@@ -49,6 +49,7 @@ describe('ResetRepoModal', () => {
       onClose: mockFunc,
       open: true,
       repositoryName: mockRepoName,
+      org: 'testOrg',
     };
     return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />);
   };
