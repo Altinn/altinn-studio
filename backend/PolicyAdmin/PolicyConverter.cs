@@ -11,6 +11,7 @@ namespace Altinn.Studio.PolicyAdmin
         public static ResourcePolicy ConvertPolicy(XacmlPolicy xacmlPolicy)
         {
             ResourcePolicy policy = new ResourcePolicy();
+            policy.Version = xacmlPolicy.Version;
             policy.Rules = new List<PolicyRule>();
 
             foreach (XacmlRule xr in xacmlPolicy.Rules)
@@ -146,11 +147,14 @@ namespace Altinn.Studio.PolicyAdmin
         public static XacmlPolicy ConvertPolicy(ResourcePolicy? policyInput)
         {
             XacmlPolicy policyOutput = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
-
+           
             if (policyInput == null)
             {
                 return policyOutput;
             }
+
+            policyOutput.Version = policyInput.Version;
+
 
             if (policyInput.Rules != null && policyInput.Rules.Count > 0)
             {

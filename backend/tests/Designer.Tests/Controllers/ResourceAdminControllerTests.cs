@@ -240,6 +240,51 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetResourceStatusById_Passing_Repository_OK()
+        {
+            // Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/publishstatus/ttd-resources/ttd_testresource";
+
+            _repositoryMock
+                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(
+                    new ServiceResource
+                    {
+                        Identifier = "testresource",
+                        Title = new Dictionary<string, string>(),
+                        Description = new Dictionary<string, string>(),
+                        RightDescription = new Dictionary<string, string>(),
+                        Homepage = "test.no",
+                        Status = string.Empty,
+                        ValidFrom = new System.DateTime(),
+                        ValidTo = new System.DateTime(),
+                        IsPartOf = string.Empty,
+                        IsPublicService = true,
+                        ThematicArea = string.Empty,
+                        ResourceReferences = GetTestResourceReferences(),
+                        IsComplete = true,
+                        Delegable = true,
+                        Visible = true,
+                        Version = "2023.12",
+                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
+                        Keywords = GetTestKeywords(),
+                        Sector = new List<string>(),
+                        ResourceType = ResourceType.Default,
+                        MainLanguage = "en-US",
+                    });
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            // Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+
+        }
+
+
+        [Fact]
         public async Task GetResourceById_NoContent()
         {
             // Arrange
