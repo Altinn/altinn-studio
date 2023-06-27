@@ -264,8 +264,8 @@ export const AboutResourcePage = () => {
             hideLabel
           />
         </div>
-        <h2 className={classes.subHeader}>Hvilke geografiske områder dekker tjenesten?</h2>
-        <p className={classes.text}>En tjeneste kan relateres til flere geografiske områder</p>
+        <h2 className={classes.subHeader}>Hvilket tematiske område dekker tjenesten?</h2>
+        <p className={classes.text}>En tjeneste kan relateres til et geografiske område</p>
         <div className={classes.inputWrapper}>
           <Select
             options={resourceThematicAreaMockOptions}
