@@ -114,7 +114,6 @@ export const ResourcePage = () => {
         .then((res) => {
           // Remove error if status is 200
           // res.status === '200' && setHasPolicyError(false);
-          console.log(res);
           resolve(res.status === 200);
         })
         .catch((err) => {
@@ -133,7 +132,7 @@ export const ResourcePage = () => {
   const validateResourceOK = (): Promise<boolean> => {
     return new Promise<boolean>((resolve) => {
       // TODO validate resource when API is ready
-      resolve(false);
+      resolve(true);
     });
   };
 

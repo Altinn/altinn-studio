@@ -18,6 +18,7 @@ import {
   ResourceBackendType,
   ResourceTypeOptionType,
   ResourceKeywordType,
+  VersionType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
@@ -60,6 +61,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const [rightDescription, setRightDescription] =
     useState<SupportedLanguageKey<string>>(emptyLangauges);
   const [isPublicService, setIsPublicService] = useState(false);
+  const [version, setVersion] = useState<VersionType>();
 
   // To handle the state of the aoge
   const [isLoading, setIsLoading] = useState(false);
@@ -98,6 +100,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     setSector(backendResource.sector ?? []);
     setThematicArea(backendResource.thematicArea ?? '');
     setRightDescription(backendResource.rightDescription ?? emptyLangauges);
+    setVersion(backendResource.version);
 
     // TODO - Find out how to handle the keywords
     setKeywords(backendResource.keywords ? mapKeywordsArrayToString(backendResource.keywords) : '');
@@ -134,6 +137,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
       sector,
       thematicArea,
       rightDescription,
+      version,
     };
 
     // Update the resource

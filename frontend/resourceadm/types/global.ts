@@ -63,6 +63,7 @@ export interface ResourceBackendType {
   sector?: string[];
   thematicArea?: string;
   rightDescription?: SupportedLanguageKey<string>;
+  version?: VersionType;
   // TODO - Missing available languages, organisation types
 }
 
@@ -83,4 +84,9 @@ export interface SupportedLanguageKey<T> {
   nn?: T;
   en?: T;
   // TODO - Samisk
+}
+
+export interface VersionType {
+  version: string;
+  environment: string;
 }
