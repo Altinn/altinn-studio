@@ -33,7 +33,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
 
   // TODO - Find out how the error response looks like
   const [hasResourceError, setHasResourceError] = useState(true);
-  const [hasPolicyError, setHasPolicyError] = useState(true);
+  const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
+    'none'
+  );
 
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
 
@@ -51,11 +53,12 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
       .then((res) => {
         // Remove error if status is 200
-        res.status === '200' && setHasPolicyError(false);
+        setHasPolicyError(res.status === 200 ? 'none' : 'validationFailed');
       })
       .catch((err) => {
         console.error(err);
         console.log('error', err);
+        if (err.response.status === 404) setHasPolicyError('notExisting');
         // TODO - If we get 404, display message about that the policy is missing
       });
 
@@ -99,7 +102,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   */
 
   const displayStatusCardContent = () => {
-    if (hasResourceError || hasPolicyError) {
+    if (hasResourceError || hasPolicyError !== 'none') {
       return (
         <div>
           {hasResourceError && (
@@ -111,11 +114,17 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
               />
             </p>
           )}
-          {hasPolicyError && (
+          {hasPolicyError !== 'none' && (
             <p>
-              Det er en feil i policyen.{' '}
+              {hasPolicyError === 'validationFailed'
+                ? 'Det er en feil i policyen.'
+                : 'Policy mangler.'}
               <Link
-                text='Klikk her for å fikse det.'
+                text={
+                  hasPolicyError === 'validationFailed'
+                    ? 'Klikk her for å fikse det.'
+                    : 'Klikk her for å legge til.'
+                }
                 onClick={() => navigateToPageWithError('policy')}
               />
             </p>
