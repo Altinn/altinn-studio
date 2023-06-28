@@ -295,7 +295,13 @@ export const ExpandablePolicyCard = ({
    */
   const handleDuplicateResourceGroup = (resourceIndex: number) => {
     const resourceGroupToDuplicate: PolicyRuleResourceType[] = policyRule.resources[resourceIndex];
-    const updatedResources = [...policyRule.resources, resourceGroupToDuplicate];
+
+    // Create a deep copy of the object so the objects don't share same object reference
+    const deepCopiedResourceGroupToDuplicate: PolicyRuleResourceType[] = JSON.parse(
+      JSON.stringify(resourceGroupToDuplicate)
+    );
+
+    const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
     updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 

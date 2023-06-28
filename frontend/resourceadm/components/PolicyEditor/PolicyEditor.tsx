@@ -126,7 +126,13 @@ export const PolicyEditor = ({
       ...policyRules[index],
       ruleId: getRuleId().toString(),
     };
-    setPolicyRules([...policyRules, ruleToDuplicate]);
+
+    // Create a deep copy of the object so the objects don't share same object reference
+    const deepCopiedRuleToDuplicate: PolicyRuleCardType = JSON.parse(
+      JSON.stringify(ruleToDuplicate)
+    );
+
+    setPolicyRules([...policyRules, deepCopiedRuleToDuplicate]);
   };
 
   /**
