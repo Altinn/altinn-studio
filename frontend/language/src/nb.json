@@ -749,7 +749,7 @@
   "sync_header.merge_conflict": "Mergekonflikt",
   "sync_header.merge_conflict_btn": "Løs konflikt",
   "sync_header.merge_conflict_occured": "En annen har gjort endringer på appen på samme sted som deg.",
-  "sync_header.merge_conflict_occured_submessage": "Åpne kodeeditoren for å bestemme hvilke endringer du ønsker å beholde",
+  "sync_header.merge_conflict_occured_submessage": "Disse er i konflikt med dine endringer. Trykk på knappen under for å løse konflikten.",
   "sync_header.no_changes_to_share": "Last opp dine endringer",
   "sync_header.nothing_to_push": "Du har delt dine siste endringer",
   "sync_header.repo_is_offline": "Repo er utilgjengelig",
