@@ -3,7 +3,6 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { ProcessActions } from 'src/features/process/processSlice';
@@ -326,7 +325,6 @@ export function* postStatelessData({ field, componentId }: SaveDataParams) {
       );
       const formData = convertModelToDataBinding(response?.data);
       yield put(FormDataActions.fetchFulfilled({ formData }));
-      yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
     } finally {
       if (yield cancelled()) {
         // If the saga were cancelled (takeLatest), we would abort the HTTP request/promise

@@ -5,15 +5,15 @@ import type {
   ISelectedFields,
 } from 'src/features/dynamics';
 import type { IFormData } from 'src/features/formData';
-import type { IRepeatingGroup, IRepeatingGroups } from 'src/types';
+import type { IRepeatingGroups } from 'src/types';
 
-/*
- * Runs conditional rendering rules, returns array of affected layout elements
+/**
+ * Runs conditional rendering rules, returns Set of hidden component IDs
  */
 export function runConditionalRenderingRules(
   rules: IConditionalRenderingRules | null,
   formData: IFormData | null,
-  repeatingGroups?: IRepeatingGroups,
+  repeatingGroups: IRepeatingGroups | null,
 ): Set<string> {
   const componentsToHide = new Set<string>();
   if (!window.conditionalRuleHandlerHelper) {
@@ -25,21 +25,20 @@ export function runConditionalRenderingRules(
     return componentsToHide;
   }
 
-  Object.keys(rules).forEach((key) => {
+  for (const key of Object.keys(rules)) {
     if (!key) {
-      return;
+      continue;
     }
 
     const connection: IConditionalRenderingRule = rules[key];
     if (connection.repeatingGroup) {
-      const repeatingGroup: IRepeatingGroup | undefined =
-        repeatingGroups && repeatingGroups[connection.repeatingGroup.groupId];
+      const repeatingGroup = repeatingGroups && repeatingGroups[connection.repeatingGroup.groupId];
       if (!repeatingGroup) {
-        return;
+        continue;
       }
 
       for (let index = 0; index <= repeatingGroup.index; index++) {
-        const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
+        const connectionCopy = structuredClone(connection);
         connectionCopy.inputParams = mapRepeatingGroupIndex({
           ruleObject: connectionCopy.inputParams,
           index,
@@ -51,11 +50,10 @@ export function runConditionalRenderingRules(
         });
 
         if (connection.repeatingGroup.childGroupId) {
-          const childGroup: IRepeatingGroup | undefined =
-            repeatingGroups && repeatingGroups[`${connection.repeatingGroup.childGroupId}-${index}`];
+          const childGroup = repeatingGroups && repeatingGroups[`${connection.repeatingGroup.childGroupId}-${index}`];
           if (childGroup) {
             for (let childIndex = 0; childIndex <= childGroup?.index; childIndex++) {
-              const connectionNestedCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connectionCopy));
+              const connectionNestedCopy = structuredClone(connectionCopy);
               connectionNestedCopy.inputParams = mapRepeatingGroupIndex({
                 ruleObject: connectionCopy.inputParams,
                 index: childIndex,
@@ -76,7 +74,7 @@ export function runConditionalRenderingRules(
     } else {
       runConditionalRenderingRule(connection, formData, componentsToHide);
     }
-  });
+  }
 
   return componentsToHide;
 }

@@ -2,7 +2,6 @@ import { call, put, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
@@ -42,8 +41,6 @@ export function* updateFormDataSaga({
         }),
       );
     }
-
-    yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
   } catch (error) {
     console.error(error);
     yield put(FormDataActions.updateRejected({ error }));

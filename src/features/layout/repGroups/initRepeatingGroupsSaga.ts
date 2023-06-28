@@ -2,7 +2,6 @@ import { put, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { selectFormData, selectFormLayouts } from 'src/features/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/validation/validationSlice';
@@ -101,5 +100,4 @@ export function* initRepeatingGroupsSaga({
       }
     });
   yield put(FormLayoutActions.initRepeatingGroupsFulfilled({ updated: newGroups }));
-  yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
 }

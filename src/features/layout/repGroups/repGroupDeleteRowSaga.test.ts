@@ -3,7 +3,6 @@ import { expectSaga } from 'redux-saga-test-plan';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { repGroupDeleteRowSaga } from 'src/features/layout/repGroups/repGroupDeleteRowSaga';
@@ -94,7 +93,6 @@ describe('repGroupDeleteRowSaga', function () {
           }),
         ],
       ])
-      .put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}))
       .put(
         AttachmentActions.deleteAttachment({
           attachment,

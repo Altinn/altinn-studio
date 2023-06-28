@@ -61,6 +61,8 @@ export interface IUpdateFocus {
 
 export interface IUpdateHiddenComponents {
   componentsToHide: string[];
+  newlyHidden: string[];
+  newlyVisible: string[];
 }
 
 export interface IUpdateRepeatingGroupsEditIndex {

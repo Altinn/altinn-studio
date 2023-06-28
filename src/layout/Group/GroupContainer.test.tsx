@@ -12,6 +12,7 @@ import { setupStore } from 'src/redux/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { Triggers } from 'src/types';
 import type { ExprUnresolved } from 'src/features/expressions/types';
+import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IUpdateRepeatingGroupsEditIndex } from 'src/features/layout/formLayoutTypes';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup } from 'src/layout/layout';
@@ -82,12 +83,14 @@ function render({ container = mockContainer }: IRender = {}) {
     },
   });
 
-  const mockLayout = {
+  const initialMock = getInitialStateMock();
+  const mockLayout: ILayoutState = {
+    ...initialMock.formLayout,
     layouts: {
       FormLayout: [group, ...mockComponents],
     },
     uiConfig: {
-      hiddenFields: [],
+      ...initialMock.formLayout.uiConfig,
       repeatingGroups: {
         'container-closed-id': {
           index: 3,
@@ -98,10 +101,9 @@ function render({ container = mockContainer }: IRender = {}) {
           editIndex: 0,
         },
       },
-      autosave: false,
       currentView: 'FormLayout',
     },
-  } as any;
+  };
 
   const mockData = {
     formData: {

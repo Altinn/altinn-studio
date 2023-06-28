@@ -120,20 +120,9 @@ describe('PanelGroupContainer', () => {
   });
 
   it('should display nothing if group is hidden', async () => {
-    const stateWithHidden: Partial<RootState> = {
-      formLayout: {
-        ...state,
-        uiConfig: {
-          ...state.uiConfig,
-          hiddenFields: ['group'],
-        },
-      },
-    };
-
     render({
-      container,
+      container: { ...container, hidden: true },
       components: groupComponents,
-      customState: stateWithHidden,
     });
 
     const customIcon = screen.queryByTestId('panel-group-container');

@@ -1,6 +1,15 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 
-import { _private } from 'src/utils/layout/hierarchy';
+import {
+  runExpressionRules,
+  runExpressionsForLayouts,
+  shouldUpdate,
+} from 'src/features/dynamics/conditionalRenderingSagas';
+import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
+import { _private, dataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutNodeFromObj } from 'src/utils/layout/hierarchy.types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -20,6 +29,7 @@ function useLayoutsAsNodes(): LayoutPages | undefined {
 
 export const ExprContextWrapper = (props: React.PropsWithChildren) => {
   const resolvedNodes = useLayoutsAsNodes();
+  useLegacyHiddenComponents(resolvedNodes);
 
   return <ExprContext.Provider value={resolvedNodes}>{props.children}</ExprContext.Provider>;
 };
@@ -59,4 +69,82 @@ export function useResolvedNode<T>(selector: string | undefined | T | LayoutNode
   }
 
   return undefined;
+}
+
+/**
+ * This hook replaces checkIfConditionalRulesShouldRunSaga(), and fixes a problem that was hard to solve in sagas;
+ * namely, that expressions that cause a component to suddenly be visible might also cause other component lookups
+ * to start producing a value, so we don't really know how many times we need to run the expressions to reach
+ * a stable state. As React hooks are...reactive, we can just run the expressions again when the data changes, and
+ * thus continually run the expressions until they stabilize. You _could_ run into an infinite loop if you
+ * have a circular dependency in your expressions, but that's a problem with your form, not this hook.
+ */
+function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
+  const _currentHiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
+  const tracks = useAppSelector((state) => state.formLayout.uiConfig.tracks);
+  const formData = useAppSelector((state) => state.formData.formData);
+  const rules = useAppSelector((state) => state.formDynamics.conditionalRendering);
+  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
+  const dataSources = useAppSelector(dataSourcesFromState);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (!resolvedNodes) {
+      return;
+    }
+
+    const currentHiddenLayouts = new Set(tracks.hidden);
+    const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, tracks.hiddenExpr, dataSources);
+
+    if (shouldUpdate(currentHiddenLayouts, futureHiddenLayouts)) {
+      dispatch(
+        FormLayoutActions.updateHiddenLayouts({
+          hiddenLayouts: [...futureHiddenLayouts.values()],
+        }),
+      );
+    }
+
+    const currentHiddenFields = new Set(_currentHiddenFields);
+
+    let futureHiddenFields: Set<string>;
+    try {
+      futureHiddenFields = runConditionalRenderingRules(rules, formData, repeatingGroups);
+    } catch (err) {
+      console.error('Error while evaluating conditional rendering rules', err);
+      futureHiddenFields = new Set();
+    }
+
+    runExpressionRules(resolvedNodes, futureHiddenFields);
+
+    // Add all fields from hidden layouts to hidden fields
+    for (const layout of futureHiddenLayouts) {
+      for (const node of resolvedNodes.findLayout(layout)?.flat(true) || []) {
+        if (!futureHiddenFields.has(node.item.id)) {
+          futureHiddenFields.add(node.item.id);
+        }
+      }
+    }
+
+    if (shouldUpdate(currentHiddenFields, futureHiddenFields)) {
+      const newlyHidden = Array.from(futureHiddenFields).filter((i) => !currentHiddenFields.has(i));
+      const newlyVisible = Array.from(currentHiddenFields).filter((i) => !futureHiddenFields.has(i));
+      dispatch(
+        FormLayoutActions.updateHiddenComponents({
+          newlyHidden,
+          newlyVisible,
+          componentsToHide: [...futureHiddenFields.values()],
+        }),
+      );
+    }
+  }, [
+    _currentHiddenFields,
+    dataSources,
+    dispatch,
+    formData,
+    repeatingGroups,
+    resolvedNodes,
+    rules,
+    tracks.hidden,
+    tracks.hiddenExpr,
+  ]);
 }

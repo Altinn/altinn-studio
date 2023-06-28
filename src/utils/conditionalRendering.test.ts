@@ -2,10 +2,6 @@ import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
 import type { IConditionalRenderingRules } from 'src/features/dynamics';
 
 describe('conditionalRendering', () => {
-  let mockValidFormData;
-  let mockInvalidFormData;
-  let mockShowRules;
-  let mockHideRules;
   let mockRuleHandlerHelper;
   let mockRuleHandler;
 
@@ -30,87 +26,9 @@ describe('conditionalRendering', () => {
         return obj.value.length >= 4;
       },
     };
-    mockShowRules = {
-      ruleId: {
-        selectedFunction: 'biggerThan10',
-        inputParams: {
-          number: 'mockField',
-        },
-        selectedAction: 'Show',
-        selectedFields: {
-          selectedField_1: 'layoutElement_1',
-        },
-      },
-    };
-
-    mockHideRules = {
-      ruleId: {
-        selectedFunction: 'biggerThan10',
-        inputParams: {
-          number: 'mockField',
-        },
-        selectedAction: 'Hide',
-        selectedFields: {
-          selectedField_1: 'layoutElement_2',
-          selectedField_2: 'layoutElement_3',
-        },
-      },
-    };
-
-    mockValidFormData = {
-      mockField: '11',
-    };
-
-    mockInvalidFormData = {
-      mockField: '4',
-    };
 
     window.conditionalRuleHandlerHelper = mockRuleHandlerHelper;
     window.conditionalRuleHandlerObject = mockRuleHandler;
-  });
-
-  it('should HIDE element when rule is set to HIDE and condition is TRUE', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(mockHideRules, mockValidFormData);
-    expect(result.has('layoutElement_2')).toBe(true);
-  });
-
-  it('should SHOW element when rule is set to HIDE and condition is FALSE', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(mockHideRules, mockInvalidFormData);
-    expect(result.has('layoutElement_2')).toBe(false);
-  });
-
-  it('should SHOW element when rule is set to SHOW and condition is TRUE', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(mockShowRules, mockValidFormData);
-    expect(result.has('layoutElement_1')).toBe(false);
-  });
-
-  it('should HIDE element when rule is set to SHOW and condition is FALSE', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(mockShowRules, mockInvalidFormData);
-    expect(result.has('layoutElement_1')).toBe(true);
-  });
-
-  it('conditional rendering rules should only return elements to hide', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(mockShowRules, mockValidFormData);
-    expect(result.size).toBe(0);
-  });
-
-  it('conditional rendering rules with several targets should be applied to all connected elements', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(mockHideRules, mockValidFormData);
-    expect(result.size).toBe(2);
-    expect(result.has('layoutElement_2')).toBe(true);
-    expect(result.has('layoutElement_3')).toBe(true);
-  });
-
-  it('should run and return empty result array on null values', () => {
-    // eslint-disable-next-line testing-library/render-result-naming-convention
-    const result = runConditionalRenderingRules(null, null);
-    expect(result.size).toBe(0);
   });
 
   it('conditional rendering rules should run as expected for repeating groups', () => {

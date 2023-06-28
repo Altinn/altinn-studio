@@ -1,8 +1,8 @@
-import { call, put, takeLatest } from 'redux-saga/effects';
+import { put, takeLatest } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
-import { checkIfConditionalRulesShouldRunSaga } from 'src/features/dynamics/conditionalRenderingSagas';
+import { removeHiddenValidationsSaga } from 'src/features/dynamics/conditionalRenderingSagas';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import {
   fetchLayoutSetsSaga,
@@ -190,6 +190,7 @@ export const formLayoutSlice = () => {
           },
         }),
         updateHiddenComponents: mkAction<LayoutTypes.IUpdateHiddenComponents>({
+          takeEvery: removeHiddenValidationsSaga,
           reducer: (state, action) => {
             const { componentsToHide } = action.payload;
             state.uiConfig.hiddenFields = componentsToHide;
@@ -327,9 +328,6 @@ export const formLayoutSlice = () => {
           },
         }),
         updateLayouts: mkAction<ILayouts>({
-          *takeEvery() {
-            yield call(checkIfConditionalRulesShouldRunSaga, { payload: {}, type: '' });
-          },
           reducer: (state, action) => {
             state.layouts = { ...state.layouts, ...action.payload };
           },

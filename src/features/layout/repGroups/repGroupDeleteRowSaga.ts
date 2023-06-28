@@ -3,7 +3,6 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import {
@@ -181,8 +180,6 @@ export function* repGroupDeleteRowSaga({
     } else {
       yield put(FormLayoutActions.repGroupDeleteRowCancelled({ groupId, index }));
     }
-
-    yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
   } catch (error) {
     yield put(FormLayoutActions.repGroupDeleteRowRejected({ error }));
   }

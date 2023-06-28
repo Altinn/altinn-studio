@@ -2,7 +2,6 @@ import { put, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { selectFormLayoutState } from 'src/features/layout/update/updateFormLayoutSagas';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
@@ -61,7 +60,6 @@ export function* repGroupAddRowSaga({ payload: { groupId } }: PayloadAction<{ gr
     });
 
     yield put(FormLayoutActions.repGroupAddRowFulfilled({ updated: updatedRepeatingGroups }));
-    yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
   } catch (error) {
     yield put(FormLayoutActions.repGroupAddRowRejected({ error }));
   }

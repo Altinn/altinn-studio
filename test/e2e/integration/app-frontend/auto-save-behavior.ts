@@ -92,6 +92,7 @@ describe('Auto save behavior', () => {
     cy.intercept('PUT', '**/data/**').as('putFormData');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
 
+    // This test relies on Cypress being fast enough to click the 'next' button before the next page is hidden
     cy.get(appFrontend.group.prefill.stor).dsCheck();
     cy.get(appFrontend.nextButton).click();
 
@@ -99,9 +100,13 @@ describe('Auto save behavior', () => {
     cy.wait('@getPageOrder');
     cy.wait('@putFormData');
 
-    // Both pages the 'repeating' and 'hide' pages are now hidden
-    cy.get(appFrontend.navMenuCurrent).should('have.text', '2. summary');
+    // Clicking the next button above did nothing, because the next page was hidden as a result of clicking the
+    // checkbox. We'll click again to make sure navigation works again.
     cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+    cy.get(appFrontend.navMenuCurrent).should('have.text', '1. prefill');
+
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuCurrent).should('have.text', '2. summary');
   });
 
   [Triggers.ValidatePage, Triggers.ValidateAllPages].forEach((trigger) => {

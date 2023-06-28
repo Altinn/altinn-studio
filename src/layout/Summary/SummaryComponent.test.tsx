@@ -74,7 +74,12 @@ describe('SummaryComponent', () => {
     const otherLayout = {
       ...layoutMock(),
     };
-    otherLayout.uiConfig.hiddenFields = ['Input'];
+    const components = (otherLayout.layouts && otherLayout.layouts[pageId]) || [];
+    for (const component of components) {
+      if (component.id === 'Input') {
+        component.hidden = true;
+      }
+    }
     const { container } = renderHelper({ componentRef: 'Input' }, {}, otherLayout);
     // eslint-disable-next-line testing-library/no-node-access
     expect(container.firstChild).toBeNull();

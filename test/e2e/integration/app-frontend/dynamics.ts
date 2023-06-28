@@ -92,4 +92,52 @@ describe('Dynamics', () => {
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible');
     cy.get(appFrontend.navMenuButtons).should('have.length', 2);
   });
+
+  it('Interdependent dynamics with component lookups', () => {
+    cy.interceptLayout('changename', (component) => {
+      // When three fields depend on each other in a chain, we need to run the expressions multiple times in order
+      // for the last field to be shown in some cases. This is because the component lookup returns null when the
+      // field is hidden, and the expression is not run again when the field is shown again.
+      if (component.type === 'Dropdown') {
+        // We'll reset these dropdown fields to have basic A, B, C options, removing mapping, so that changing the
+        // first field does not reset the second field to have other options.
+        component.source = undefined;
+        component.optionsId = undefined;
+        component.mapping = undefined;
+        component.preselectedOptionIndex = undefined;
+        component.options = [
+          { label: 'Value A', value: 'a' },
+          { label: 'Value B', value: 'b' },
+          { label: 'Value C', value: 'c' },
+        ];
+      }
+      if (component.id === 'reference') {
+        component.hidden = ['notEquals', ['component', 'sources'], 'a'];
+      }
+      if (component.id === 'reference2') {
+        component.hidden = ['notEquals', ['component', 'reference'], 'b'];
+      }
+    });
+    cy.goto('changename');
+
+    // Filling out fields that depend on each other to be visible
+    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    cy.get(appFrontend.changeOfName.reference).should('not.exist');
+    cy.get(appFrontend.changeOfName.reference2).should('not.exist');
+
+    cy.get(appFrontend.changeOfName.sources).dsSelect('Value A');
+    cy.get(appFrontend.changeOfName.reference).should('be.visible');
+    cy.get(appFrontend.changeOfName.reference2).should('not.exist');
+
+    cy.get(appFrontend.changeOfName.reference).dsSelect('Value B');
+    cy.get(appFrontend.changeOfName.reference2).should('be.visible');
+
+    // Going back and changing something should hide both fields, and changing it back should show both fields
+    cy.get(appFrontend.changeOfName.sources).dsSelect('Value B');
+    cy.get(appFrontend.changeOfName.reference).should('not.exist');
+    cy.get(appFrontend.changeOfName.reference2).should('not.exist');
+    cy.get(appFrontend.changeOfName.sources).dsSelect('Value A');
+    cy.get(appFrontend.changeOfName.reference).should('be.visible');
+    cy.get(appFrontend.changeOfName.reference2).should('be.visible');
+  });
 });
