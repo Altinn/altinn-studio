@@ -6,7 +6,8 @@ import { CalculationsTab } from './CalculationsTab';
 import { ContentTab } from './ContentTab';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import {DynamicsTab} from "./DynamicsTab";
+import { DynamicsTab } from './DynamicsTab';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
 export interface RightMenuProps {
   className?: string;
@@ -14,14 +15,15 @@ export interface RightMenuProps {
 
 export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
-  const [showOldDynamics, setShowOldDynamics] = React.useState<boolean>(false);
+  const [showNewDynamics, setShowNewDynamics] = React.useState<boolean>(false);
   return (
     <div className={cn(className, classes.main)} data-testid={'ux-editor.right-menu'}>
+      { !_useIsProdHack() &&
       <Checkbox
-        label={t('right_menu.show_old_dynamics')}
-        name="checkbox-name"
-        checked={showOldDynamics}
-        onChange={() => setShowOldDynamics(!showOldDynamics)}/>
+        label={t('right_menu.show_new_dynamics')}
+        name={'checkbox-name'}
+        checked={showNewDynamics}
+        onChange={() => setShowNewDynamics(!showNewDynamics)}/>}
       <Tabs
         items={[
           {
@@ -29,8 +31,8 @@ export const RightMenu = ({ className }: RightMenuProps) => {
             content: <ContentTab />,
           },
           {
-            name: showOldDynamics ? t('right_menu.conditional_rendering') : t('right_menu.dynamics'),
-            content: showOldDynamics ? <ConditionalRenderingTab /> : <DynamicsTab />,
+            name: showNewDynamics ?  t('right_menu.dynamics') : t('right_menu.conditional_rendering'),
+            content: showNewDynamics ? <DynamicsTab /> : <ConditionalRenderingTab />,
           },
           {
             name: t('right_menu.calculations'),

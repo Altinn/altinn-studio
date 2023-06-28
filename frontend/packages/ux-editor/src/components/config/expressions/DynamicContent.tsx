@@ -1,48 +1,42 @@
-import React, {useEffect} from 'react';
-import {ExpressionPropertyBase, ExpressionPropertyForGroup} from '../../../types/Expressions';
-import {Button, ButtonColor, ButtonVariant, Select} from '@digdir/design-system-react';
-import {XMarkIcon, PencilIcon} from '@navikt/aksel-icons';
-import {ExpressionContent, ExpressionElement} from './ExpressionContent';
-import {Dynamic} from "../../rightMenu/DynamicsTab";
-import {FormComponent} from "../../../types/FormComponent";
-import {FormContainer} from "../../../types/FormContainer";
-import {LayoutItemType} from "../../../types/global";
+import React, { useEffect } from 'react';
+import { ExpressionPropertyBase } from '../../../types/Expressions';
+import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
+import { XMarkIcon, PencilIcon } from '@navikt/aksel-icons';
+import { ExpressionContent, ExpressionElement } from './ExpressionContent';
+import { Dynamic } from '../../rightMenu/DynamicsTab';
+import { FormComponent } from '../../../types/FormComponent';
+import { FormContainer } from '../../../types/FormContainer';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ExpressionProps {
   component: FormComponent | FormContainer;
   dynamic: Dynamic;
+  properties: {availableProperties: string[], expressionProperties: string[]}; // actions?
   setShowAddDynamicButton: (value: any) => void;
   showRemoveDynamicButton: boolean;
   onRemoveDynamic: (dynamic: Dynamic) => void;
   onEditDynamic: (dynamic: Dynamic) => void;
 }
 
-export const DynamicContent = ({component, dynamic, setShowAddDynamicButton, showRemoveDynamicButton, onRemoveDynamic, onEditDynamic}: ExpressionProps) => {
-  const [selectedAction, setSelectedAction] = React.useState<string>('Velg handling');
-  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>([...dynamic.expressionElements] || []); // default state should be already existing expressions
+export const DynamicContent = ({ component, dynamic, properties, setShowAddDynamicButton, showRemoveDynamicButton, onRemoveDynamic, onEditDynamic }: ExpressionProps) => {
+  const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'Velg handling');
+  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>([...dynamic.expressionElements]); // default state should be already existing expressions
 
-  //const currentExpressionElements: ExpressionElement[] = dynamic.expressionElements.length && dynamic.expressionElements;
-  // adapt list of actions if component is group
-  // need an interface for the expression
-  // need an intermediate object that represents the expression
-  // Add a useState to see if specific expression is in viewMode or editMode - viewMode only possible if expression is fully configured
-
-  const expressionProperties = component.itemType === LayoutItemType.Container ?
-    (Object.values(ExpressionPropertyBase) as string[])
-      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase);
-
-  const allowToSpecifyExpression = Object.values(expressionProperties).includes(selectedAction);
+  const allowToSpecifyExpression = Object.values(properties.expressionProperties).includes(selectedAction);
+  const propertiesList = dynamic.expressionElements.length > 0 ? properties.expressionProperties : properties.availableProperties;
 
   const addActionToDynamic = (action: string) => {
     setSelectedAction(action);
     dynamic.property = action as ExpressionPropertyBase;
-    dynamic.expressionElements.push({} as ExpressionElement); // add id?
+    const newExpressionElement: ExpressionElement = { id: uuidv4() };
+    dynamic.expressionElements.push(newExpressionElement); // add id?
     setExpressionElements(dynamic.expressionElements);
   };
 
   const addExpressionElement = () => {
-    const updatedExpressionElements = [...dynamic.expressionElements, {} as ExpressionElement];
-    dynamic.expressionElements.push({} as ExpressionElement);
+    const newExpressionElement: ExpressionElement = { id: uuidv4() };
+    const updatedExpressionElements = [...dynamic.expressionElements, newExpressionElement];
+    dynamic.expressionElements.push(newExpressionElement);
     setExpressionElements(updatedExpressionElements);
   };
 
@@ -53,23 +47,28 @@ export const DynamicContent = ({component, dynamic, setShowAddDynamicButton, sho
 
   const removeExpressionElement = (expressionElement: ExpressionElement) => {
     if (dynamic.expressionElements.length < 2){
-      dynamic.expressionElements = [{} as ExpressionElement];
-      setExpressionElements([{} as ExpressionElement]);
+      const newExpressionElement: ExpressionElement = { id: uuidv4() };
+      dynamic.expressionElements = [newExpressionElement];
+      setExpressionElements([newExpressionElement]);
     }
     else {
       const updatedExpressionElements = dynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
       const lastExpressionElement = updatedExpressionElements[updatedExpressionElements.length - 1];
-      dynamic.expressionElements = [...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), {...lastExpressionElement,  expressionOperatorForPrevExpression: null}];
-      setExpressionElements([...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), {...lastExpressionElement,  expressionOperatorForPrevExpression: null}]);
+      dynamic.expressionElements = [...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement,  expressionOperatorForNextExpression: undefined }];
+      setExpressionElements([...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement,  expressionOperatorForNextExpression: undefined }]);
     }
   };
 
   useEffect(() => {
-    if (dynamic.expressionElements.length > 0 && Object.keys(dynamic.expressionElements[dynamic.expressionElements.length - 1]).length > 4) {
+    if (dynamic.expressionElements.length > 0 && !Object.values(dynamic.expressionElements).find(expEl => Object.keys(expEl).length < 6)) {
       setShowAddDynamicButton(true);
     }
-  }, [dynamic, expressionElements]);
+    else {
+      setShowAddDynamicButton(false);
+    }
+  }, [dynamic, expressionElements, setShowAddDynamicButton]);
 
+  console.log('dynamic', dynamic);
   return (
     <>
       {dynamic.editMode ? (
@@ -85,41 +84,43 @@ export const DynamicContent = ({component, dynamic, setShowAddDynamicButton, sho
           <span>Velg hva som skal skje med {component.id}</span>
           <Select
             onChange={(action) => addActionToDynamic(action)}
-            options={expressionProperties.map((property: string) => ({
+            options={propertiesList.map((property: string) => ({
               label: property,
               value: property
-            }))} // Reduce this list based on existing dynamics on the component; hidden, required, readOnly...
-            value={selectedAction}
+            }))}
+            value={dynamic.property}
           />
           {expressionElements.map((expEl: ExpressionElement) => (
-            <ExpressionContent // context?
-              expressionAction={allowToSpecifyExpression}
-              expressionElement={expEl}
-              onAddExpressionElement={addExpressionElement}
-              onUpdateExpressionElement={updateExpressionElement}
-              onRemoveExpressionElement={() => removeExpressionElement(expEl)}
-            />
+            <li key={expEl.id}>
+              <ExpressionContent // context?
+                expressionAction={allowToSpecifyExpression}
+                expressionElement={expEl}
+                onAddExpressionElement={addExpressionElement}
+                onUpdateExpressionElement={updateExpressionElement}
+                onRemoveExpressionElement={() => removeExpressionElement(expEl)}
+              />
+            </li>
           ))}
         </div>) : (
         <>
           <Button
             color={ButtonColor.Secondary}
             icon={<XMarkIcon />}
-            onClick={() => onRemoveDynamic(dynamic)} // delete dynamic
+            onClick={() => onRemoveDynamic(dynamic)}
             variant={ButtonVariant.Filled}
           />
           <Button
             icon={<PencilIcon />}
-            onClick={() => onEditDynamic(dynamic)} // edit dynamic
+            onClick={() => onEditDynamic(dynamic)}
             variant={ButtonVariant.Outline}
           />
-          <span>{selectedAction} {component.id} hvis</span>
+          <span>{dynamic.property} {component.id} hvis</span>
           {expressionElements.map((expEl: ExpressionElement) => (
-            <div>
+            <li key={expEl.id}>
               <span>{expEl.dataSource} {expEl.value}</span>
               <span>{expEl.function}</span>
               <span>{expEl.comparableDataSource} {expEl.comparableValue}</span>
-            </div> // add a green checkmark
+            </li> // add a green checkmark
           ))}
         </>
       )

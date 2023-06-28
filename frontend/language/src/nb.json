@@ -588,7 +588,7 @@
   "right_menu.rules_conditional_rendering": "Regel for vis/skjul felt",
   "right_menu.rules_conditional_rendering_add_alt": "Legg til regel for vis/skjul felt",
   "right_menu.rules_empty": "Ingen regler lagt til...",
-  "right_menu.show_old_dynamics": "Vis gammel dynamikk",
+  "right_menu.show_new_dynamics": "Vis ny dynamikk",
   "schema_editor.add": "Legg til",
   "schema_editor.add_combination": "Legg til kombinasjon",
   "schema_editor.add_element": "Legg til element",
