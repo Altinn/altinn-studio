@@ -1,4 +1,4 @@
-import { PolicyActionType, PolicyBackendType, PolicyErrorType, PolicyRuleErrorType, PolicySubjectType, ResourceType } from "resourceadm/types/global";
+import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceType } from "resourceadm/types/global";
 
 /**
  * Maps from an uknown response object from backend to the correct policy type
@@ -94,33 +94,4 @@ const sortByDateAndMap = (resourceList: any[]): ResourceType[] => {
     lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
     title: r.title.nb // TODO
   }))
-}
-
-/**
- * Maps a policy error object from backend to a list of the PolicyErrorType.
- *
- * @param errorObj the unknown object to map
- *
- * @returns a list of objects of type PolicyErrorType
- */
-export const mapPolicyErrorsFromBackend = (errorObj: unknown): PolicyErrorType[] => {
-  // If errorObj or errorObj.errors is not object type, return empty list
-  if (!(
-    typeof errorObj === 'object' &&
-    'errors' in errorObj &&
-    typeof errorObj.errors === 'object'
-  )) {
-    return []
-  }
-
-  // Map the object and return it
-  return Object.keys(errorObj.errors).map((key) => {
-    const ruleNumber = Number(key.split("[")[1].replace("]", "")) + 1;
-    const errors: PolicyRuleErrorType[] = errorObj.errors[key]
-
-    return {
-      ruleNumber,
-      errors
-    };
-  });
 }
