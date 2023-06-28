@@ -5,6 +5,7 @@ import classes from './SyncModal.module.css';
 import { Button, TextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
 import { AltinnSpinner } from 'app-shared/components';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 export interface ISyncModalComponentProps {
   anchorEl: Element;
@@ -66,7 +67,18 @@ export const SyncModal = (props: ISyncModalComponentProps) => {
           </div>
         )}
         {props.shouldShowCommitBox && (
-          <TextArea id='test' value={commitMessage} rows={4} onChange={handleChange} />
+          <>
+            <TextArea
+              value={commitMessage}
+              rows={4}
+              onChange={handleChange}
+              aria-labelledby='commit-box'
+            />
+            <ScreenReaderSpan
+              id='commit-box'
+              label='Legg inn en beskrivelse for endringene du har gjort'
+            />
+          </>
         )}
 
         {props.btnText && (
