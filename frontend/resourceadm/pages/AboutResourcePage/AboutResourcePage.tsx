@@ -197,7 +197,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
         <h1 className={classes.pageHeader}>Om ressursen</h1>
         {
           // TODO HANDLE ERRORS IN RESOURCE
-          showAllErrors && <p>TODO</p>
+          showAllErrors && <p>TODO - alert errors when validate resource is implemented</p>
         }
         <h2 className={classes.subHeader}>Ressurs type</h2>
         <p className={classes.text}>Velg ett alternativ fra listen under</p>
