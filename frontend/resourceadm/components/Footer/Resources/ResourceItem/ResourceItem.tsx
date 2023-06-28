@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './ResourceItem.module.css';
 import { useTranslation } from 'react-i18next';
 
-export interface ResourceItemProps {
+interface ResourceItemProps {
   link: string;
   label: string;
   description: string;
