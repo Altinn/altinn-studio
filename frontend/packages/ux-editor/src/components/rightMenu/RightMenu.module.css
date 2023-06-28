@@ -6,3 +6,9 @@
   overflow-y: scroll;
   padding-bottom: 8rem;
 }
+
+.main CheckBox {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
