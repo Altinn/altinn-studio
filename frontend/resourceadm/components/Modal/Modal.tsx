@@ -41,7 +41,7 @@ export const Modal = ({ isOpen, title, onClose, children }: Props) => {
       style={modalStyles}
       ariaHideApp={false}
     >
-      <h2 className={classes.modalTitle}>Opprett en ny ressurs</h2>
+      <h2 className={classes.modalTitle}>{title}</h2>
       <div className={classes.contentDivider} />
       {children}
     </ReactModal>

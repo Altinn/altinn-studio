@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import classes from './ResourceDeployStatus.module.css';
 import { XMarkOctagonFillIcon, CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 
 interface Props {
   type: 'danger' | 'success';
-  message: string;
+  children: ReactNode;
 }
 
 /**
@@ -13,7 +13,7 @@ interface Props {
  * @param props.type danger or success
  * @param props.message the message to display
  */
-export const ResourceDeployStatus = ({ type, message }: Props) => {
+export const ResourceDeployStatus = ({ type, children }: Props) => {
   // TODO - Translate
   const displayIcon = () => {
     if (type === 'success') {
@@ -29,7 +29,7 @@ export const ResourceDeployStatus = ({ type, message }: Props) => {
   return (
     <div className={`${classes[type]} ${classes.card}`}>
       {displayIcon()}
-      <p>{message}</p>
+      {children}
     </div>
   );
 };

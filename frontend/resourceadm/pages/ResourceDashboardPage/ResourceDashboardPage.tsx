@@ -8,10 +8,7 @@ import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { ResourceType } from 'resourceadm/types/global';
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import { get, post } from 'app-shared/utils/networking';
-import {
-  getCreateResourceUrlBySelectedContext,
-  getResourcesUrlBySelectedContext,
-} from 'resourceadm/utils/backendUrlUtils';
+import { getCreateResourceUrl, getResourcesUrl } from 'resourceadm/utils/backendUrlUtils';
 import { mapResourceListBackendResultToResourceList } from 'resourceadm/utils/mapperUtils';
 import { Footer } from 'resourceadm/components/Footer';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
@@ -54,7 +51,7 @@ export const ResourceDashboardPage = () => {
   useOnce(() => {
     setLoading(true);
 
-    get(getResourcesUrlBySelectedContext(selectedContext))
+    get(getResourcesUrl(selectedContext))
       .then((res: unknown) => {
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
@@ -92,7 +89,7 @@ export const ResourceDashboardPage = () => {
     };
 
     // TODO - missing API connection - not working atm
-    post(getCreateResourceUrlBySelectedContext(selectedContext), idAndTitle)
+    post(getCreateResourceUrl(selectedContext), idAndTitle)
       .then(() => {
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
       })

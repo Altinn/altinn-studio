@@ -12,6 +12,10 @@
   font-size: 30px;
 }
 
+.contentWrapper {
+  width: 630px;
+}
+
 .subHeader {
   font-weight: 500;
   margin-top: 40px;
@@ -22,28 +26,32 @@
 .deployCardsWrapper {
   display: flex;
   justify-content: space-between;
-  width: 800px;
   margin-top: 20px;
 }
 
 .newVersionWrapper {
   margin-top: 40px;
-  width: 550px;
+  width: 100%;
 }
 
-.newVersionText {
+.text {
   margin-bottom: 5px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .textAndButton {
   display: flex;
-  justify-content: space-between;
+  width: 100%;
 }
 
 .textfield {
-  width: 300px;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.firstError {
+  margin-bottom: 20px;
 }
 
 p, h1, h2 {
