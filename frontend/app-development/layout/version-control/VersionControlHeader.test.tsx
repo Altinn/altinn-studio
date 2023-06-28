@@ -45,7 +45,7 @@ const mergeConflictRepoStatus: RepoStatus = {
   behindBy: 1,
   contentStatus: [],
   hasMergeConflict: true,
-  repositoryStatus: 'Ok',
+  repositoryStatus: 'CheckoutConflict',
 };
 
 const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
@@ -177,5 +177,72 @@ describe('Shared > Version Control > VersionControlHeader', () => {
       )
     );
     await waitFor(() => expect(commitAndPushChanges).toHaveBeenCalledTimes(1));
+  });
+
+  it('should should call repoPull when commitAndPush is rejected', async () => {
+    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
+    const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const mockQueries: ServicesContextProps = {
+      ...queries,
+      getRepoStatus: mockGetRepoStatus,
+      commitAndPushChanges: mockCommitAndPushChanges,
+    };
+    render(
+      <ServicesContextProvider {...mockQueries}>
+        <VersionControlHeader hasPushRight={true} />
+      </ServicesContextProvider>
+    );
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.no_changes_to_share'),
+    });
+    await act(() => user.click(shareButton));
+
+    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
+    await act(() =>
+      user.click(
+        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') })
+      )
+    );
+    await waitFor(() => expect(mockCommitAndPushChanges).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockConsoleError).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(2));
+  });
+
+  it('should should show mergeconflict message when commitAndPush is rejected and repoPull returns mergeconflict status', async () => {
+    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
+    const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
+    const mockRepoPull = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(mergeConflictRepoStatus));
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const mockQueries: ServicesContextProps = {
+      ...queries,
+      getRepoStatus: mockGetRepoStatus,
+      commitAndPushChanges: mockCommitAndPushChanges,
+      getRepoPull: mockRepoPull,
+    };
+    render(
+      <ServicesContextProvider {...mockQueries}>
+        <VersionControlHeader hasPushRight={true} />
+      </ServicesContextProvider>
+    );
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.no_changes_to_share'),
+    });
+    await act(() => user.click(shareButton));
+
+    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
+    await act(() =>
+      user.click(
+        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') })
+      )
+    );
+    expect(mockConsoleError).toHaveBeenCalled();
+    expect(
+      await screen.findByText(textMock('sync_header.merge_conflict_occured'))
+    ).toBeInTheDocument();
   });
 });
