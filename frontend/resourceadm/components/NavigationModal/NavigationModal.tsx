@@ -19,19 +19,21 @@ interface Props {
  * @param props.title the title of the modal
  */
 export const NavigationModal = ({ isOpen, onClose, onNavigate, title }: Props) => {
+  // TODO - translation
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <p className={classes.text}>
-        Er du sikker på at du vil gå videre til en annen side før du har fikset feilene du har?
+        Noen felt på siden har manglende informasjon eller feil i utfylling. Du kan endre eller
+        fikse informasjonen når som helst før ressursen publiseres.
       </p>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
           <Button onClick={onClose} color='primary' variant='quiet'>
-            Gå tilbake
+            Bli på siden
           </Button>
         </div>
         <Button onClick={onNavigate} color='primary'>
-          Videre
+          Gå videre
         </Button>
       </div>
     </Modal>

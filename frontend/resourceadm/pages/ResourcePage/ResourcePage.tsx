@@ -184,7 +184,7 @@ export const ResourcePage = () => {
           isOpen={policyErrorModalOpen}
           onClose={() => setPolicyErrorModalOpen(false)}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Du har en eller flere feil i policyen'
+          title='Manglende informasjon i policy'
         />
       )}
       {resourceErrorModalOpen && (
@@ -192,7 +192,7 @@ export const ResourcePage = () => {
           isOpen={resourceErrorModalOpen}
           onClose={() => setResourceErrorModalOpen(false)}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Du har en eller flere feil i ressursen'
+          title='Manglende informasjon i ressurs'
         />
       )}
     </div>
