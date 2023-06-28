@@ -260,7 +260,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant={ButtonVariant.Filled}
                   color={ButtonColor.Primary}
                 >
-                  {lang(texts?.save_and_next_button ?? 'general.save_and_next')}
+                  {lang(texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next')}
                 </Button>
               </Grid>
             )}
@@ -272,7 +272,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant={saveAndNextButtonVisible ? ButtonVariant.Outline : ButtonVariant.Filled}
                   color={ButtonColor.Primary}
                 >
-                  {lang(texts?.save_button ?? 'general.save_and_close')}
+                  {lang(texts?.save_button ? texts?.save_button : 'general.save_and_close')}
                 </Button>
               </Grid>
             )}

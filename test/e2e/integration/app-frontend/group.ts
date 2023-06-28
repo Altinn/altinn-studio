@@ -591,4 +591,57 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     cy.get(appFrontend.group.addNewItem).should('have.text', 'Hello World');
   });
+
+  it('should be possible to set text resource bindings to empty string to use default values', () => {
+    cy.interceptLayout('group', (c) => {
+      if (c.type === 'Group' && c.id === 'mainGroup' && c.textResourceBindings && c.edit) {
+        // A bit special for repeating groups and these text resource bindings: They should use the default texts when
+        // set to empty strings, so as to make it easy to default to conditionally set the text so something else, but
+        // still be able to fall back to the default texts. This is usually not expected behavior for other components.
+        c.textResourceBindings.save_and_next_button = 'next-btn-text';
+        c.textResourceBindings.save_button = '';
+        c.textResourceBindings.edit_button_open = '';
+        c.textResourceBindings.edit_button_close = '';
+        c.edit.saveAndNextButton = true;
+      }
+      if (c.id === 'currentValue') {
+        c.textResourceBindings.tableTitle = 'currentValue tableTitle';
+      }
+      if (c.id === 'newValue') {
+        c.textResourceBindings.tableTitle = '';
+        c.textResourceBindings.title = 'newValue title';
+      }
+    });
+
+    cy.goto('group');
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.get(appFrontend.group.prefill.middels).dsCheck();
+    cy.get(appFrontend.group.prefill.enorm).dsCheck();
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.addNewItem).click();
+
+    cy.get('#group-mainGroup table th').eq(0).should('have.text', 'currentValue tableTitle');
+    cy.get('#group-mainGroup table th').eq(1).should('have.text', 'newValue title');
+
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').as('rows');
+    cy.get('@rows').eq(0).find('td').last().should('contain.text', 'Rediger');
+    cy.get('@rows').eq(3).find('td').eq(4).should('contain.text', 'Lagre og lukk');
+    cy.get('@rows').eq(3).find('td').eq(5).should('contain.text', 'Slett');
+
+    cy.get(appFrontend.group.editContainer).findAllByRole('button').last().should('have.text', 'Lagre og lukk');
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.group.addNewItem).clickAndGone();
+    cy.get(appFrontend.group.row(3).editBtn).click();
+    cy.get(appFrontend.group.editContainer).findAllByRole('button').eq(1).should('have.text', 'next-btn-text');
+
+    cy.changeLayout((c) => {
+      if (c.type === 'Group' && c.id === 'mainGroup' && c.textResourceBindings) {
+        c.textResourceBindings.save_and_next_button = '';
+      }
+    });
+    cy.get(appFrontend.group.editContainer).findAllByRole('button').eq(1).should('have.text', 'Lagre og åpne neste');
+    cy.get(appFrontend.group.editContainer).findAllByRole('button').eq(2).should('have.text', 'Lagre og lukk');
+  });
 });
