@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResourceItem } from '../ResourceItem';
+import { ResourceItem } from './ResourceItem';
 import { Divider, SimpleContainer } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
@@ -217,7 +217,7 @@ export function Resources() {
   return (
     <SimpleContainer>
       <h2>{t('dashboard.resources')}</h2>
-      <Divider marginless/>
+      <Divider marginless />
       <div className={classes.resourcesContainer}>
         {resources.map((resource, index) => (
           <ResourceItem
