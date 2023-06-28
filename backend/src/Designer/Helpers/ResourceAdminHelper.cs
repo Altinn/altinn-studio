@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.PolicyAdmin.Models;
+using IdentityModel.OidcClient;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace Altinn.Studio.Designer.Helpers
@@ -48,7 +53,20 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
-        private static bool ValidDictionaryAttribute(Dictionary<string, string> titleToValidate)
+        public static bool ValidationProblemDetailsListHasNoErrors(List<ValidationProblemDetails> validationProblemDetailsList)
+        {
+            foreach (ValidationProblemDetails vdp in validationProblemDetailsList)
+            {
+                if (vdp.Errors.Count != 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static bool ValidDictionaryAttribute(Dictionary<string, string> titleToValidate)
         {
             if (titleToValidate != null)
             {

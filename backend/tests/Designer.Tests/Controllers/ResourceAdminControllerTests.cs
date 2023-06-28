@@ -372,10 +372,27 @@ namespace Designer.Tests.Controllers
         public async Task ValidateServiceResource_IsValid()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources";
+            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources/ttdresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            _repositoryMock.Setup(r => r.ValidateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(new StatusCodeResult(200));
+            _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            //Assert
+            _repositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task ValidateServiceResource_IsInValid()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources/ttdresource";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
 
             //Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
@@ -393,6 +410,32 @@ namespace Designer.Tests.Controllers
             };
 
             return resourceReferences;
+        }
+
+        private ServiceResource GetServiceResourceForValidationTest(bool valid)
+        {
+            if (valid)
+            {
+                ServiceResource serviceResource = new ServiceResource();
+                serviceResource.Identifier = "ttdresource";
+                serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
+                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
+                serviceResource.ResourceType = ResourceType.Default;
+                serviceResource.IsComplete = true;
+                serviceResource.ThematicArea = "ttdThematicArea";
+                return serviceResource;
+            }
+            else
+            {
+                ServiceResource serviceResource = new ServiceResource();
+                serviceResource.Identifier = null;
+                serviceResource.Title = null;
+                serviceResource.Description = null;
+                serviceResource.ResourceType = ResourceType.Default;
+                serviceResource.IsComplete = false;
+                serviceResource.ThematicArea = string.Empty;
+                return serviceResource;
+            }
         }
     }
 }
