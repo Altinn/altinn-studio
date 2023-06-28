@@ -1,1 +1,0 @@
-export { RessursTypeValg } from './RessursTypeValg';
