@@ -10,7 +10,7 @@ import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { get } from 'app-shared/utils/networking';
-import { getValidatePolicyUrlBySelectedContextRepoAndId } from 'resourceadm/utils/backendUrlUtils';
+import { getValidatePolicyUrl } from 'resourceadm/utils/backendUrlUtils';
 import { NavigationModal } from 'resourceadm/components/NavigationModal';
 
 /**
@@ -47,7 +47,7 @@ export const ResourcePage = () => {
     if (repoStatus) {
       setHasMergeConflict(repoStatus.hasMergeConflict);
     }
-  }, [repoStatus, currentPage]);
+  }, [repoStatus]);
 
   /**
    * Check if the pageType parameter has changed and update the currentPage
@@ -110,7 +110,7 @@ export const ResourcePage = () => {
    */
   const validatePolicyOK = (): Promise<boolean> => {
     return new Promise<boolean>((resolve) => {
-      get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+      get(getValidatePolicyUrl(selectedContext, repo, resourceId))
         .then((res) => {
           // Remove error if status is 200
           // res.status === '200' && setHasPolicyError(false);

@@ -74,7 +74,10 @@ export const SyncModal = (props: ISyncModalComponentProps) => {
               onChange={handleChange}
               aria-labelledby='commit-box'
             />
-            <ScreenReaderSpan id='commit-box' label='Bokd for å commite endringer' />
+            <ScreenReaderSpan
+              id='commit-box'
+              label='Legg inn en beskrivelse for endringene du har gjort'
+            />
           </>
         )}
 

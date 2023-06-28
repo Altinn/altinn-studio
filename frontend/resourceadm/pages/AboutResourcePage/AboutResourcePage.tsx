@@ -9,10 +9,7 @@ import {
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import { get, put } from 'app-shared/utils/networking';
 import { useParams } from 'react-router-dom';
-import {
-  getEditResourceUrlBySelectedContextAndId,
-  getResourceUrlBySelectedContextRepoAndId,
-} from 'resourceadm/utils/backendUrlUtils';
+import { getEditResourceUrl, getResourceUrl } from 'resourceadm/utils/backendUrlUtils';
 import {
   SupportedLanguageKey,
   ResourceBackendType,
@@ -72,7 +69,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
    */
   useOnce(() => {
     setIsLoading(true);
-    get(getResourceUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+    get(getResourceUrl(selectedContext, repo, resourceId))
       .then((res) => {
         handlePopulateResource(res);
         setIsLoading(false);
@@ -141,7 +138,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     };
 
     // Update the resource
-    put(getEditResourceUrlBySelectedContextAndId(selectedContext, resourceId), editedResourceObject)
+    put(getEditResourceUrl(selectedContext, resourceId), editedResourceObject)
       .then(() => {
         // TODO - Display success message that it was saved
         // TODO - Display areas with errors

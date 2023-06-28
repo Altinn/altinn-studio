@@ -5,9 +5,9 @@ import { useParams } from 'react-router-dom';
 import { get, put } from 'app-shared/utils/networking';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
 import {
-  getActionOptionsUrlBySelectedContextAndRepo,
-  getPolicyUrlBySelectedContextRepoAndId,
-  getSubjectOptionsUrlBySelectedContextAndRepo,
+  getActionOptionsUrl,
+  getPolicyUrl,
+  getSubjectOptionsUrl,
 } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import {
@@ -48,19 +48,19 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
     setLoading(true);
 
     // Get the ations when page loads
-    get(getActionOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
+    get(getActionOptionsUrl(selectedContext, repo))
       .then((actionResult: unknown) => {
         // Set the actions
         setActions(mapPolicyActionResultToPolicyActions(actionResult));
 
         // Get the subjects when page loads
-        get(getSubjectOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
+        get(getSubjectOptionsUrl(selectedContext, repo))
           .then((subjectResult: unknown) => {
             // Set the subjects
             setSubjects(mapPolicySubjectResultToPolicySubjects(subjectResult));
 
             // E.g., http://studio.localhost/designer/api/ttd/ttd-resources/policy/resource_id_7
-            get(getPolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+            get(getPolicyUrl(selectedContext, repo, resourceId))
               .then((policyResult: unknown) => {
                 // Set the policy
                 setPolicy(mapPolicyResultToPolicyObject(policyResult));
@@ -96,7 +96,7 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
 
   const handleSavePolicy = (p: PolicyBackendType) => {
     // TODO - Error handling
-    put(getPolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId), p)
+    put(getPolicyUrl(selectedContext, repo, resourceId), p)
       .then((res) => {
         console.log('success', res);
         // TODO - maybe add a success message / card?

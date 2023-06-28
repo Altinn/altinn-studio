@@ -17,6 +17,7 @@ interface Props {
  * @returns
  */
 export const Link = ({ text, href, onClick, icon }: Props) => {
+  // TODO - Move the button to its own component to separate the button from the link
   if (onClick) {
     return (
       <button className={classes.link} onClick={onClick}>

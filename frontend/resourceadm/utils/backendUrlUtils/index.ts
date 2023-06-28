@@ -1,12 +1,12 @@
 export {
-  getPolicyUrlBySelectedContextRepoAndId,
-  getActionOptionsUrlBySelectedContextAndRepo,
-  getSubjectOptionsUrlBySelectedContextAndRepo,
-  getResourcesUrlBySelectedContext,
-  getCreateResourceUrlBySelectedContext,
-  getResourceUrlBySelectedContextRepoAndId,
-  getValidatePolicyUrlBySelectedContextRepoAndId,
-  getValidateResourceUrlBySelectedContextRepoAndId,
-  getEditResourceUrlBySelectedContextAndId,
-  getPublishStatusUrlBySelectedContextRepoAndId
+  getPolicyUrl,
+  getActionOptionsUrl,
+  getSubjectOptionsUrl,
+  getResourcesUrl,
+  getCreateResourceUrl,
+  getResourceUrl,
+  getValidatePolicyUrl,
+  getValidateResourceUrl,
+  getEditResourceUrl,
+  getPublishStatusUrl
 } from './backendUserUtils'

@@ -9,7 +9,7 @@ const basePath = 'http://studio.localhost/designer/api'
  *
  * @returns the url path string
  */
-export const getPolicyUrlBySelectedContextRepoAndId = (
+export const getPolicyUrl = (
   selectedContext: string,
   repo: string,
   resourceId: string
@@ -26,7 +26,7 @@ export const getPolicyUrlBySelectedContextRepoAndId = (
  *
  * @returns the url path string
  */
-export const getValidatePolicyUrlBySelectedContextRepoAndId = (
+export const getValidatePolicyUrl = (
   selectedContext: string,
   repo: string,
   resourceId: string
@@ -43,7 +43,7 @@ export const getValidatePolicyUrlBySelectedContextRepoAndId = (
  *
  * @returns the url path string
  */
-export const getPublishStatusUrlBySelectedContextRepoAndId = (
+export const getPublishStatusUrl = (
   selectedContext: string,
   repo: string,
   resourceId: string
@@ -59,7 +59,7 @@ export const getPublishStatusUrlBySelectedContextRepoAndId = (
  *
  * @returns the url path string
  */
-export const getSubjectOptionsUrlBySelectedContextAndRepo = (
+export const getSubjectOptionsUrl = (
   selectedContext: string,
   repo: string
 ): string => {
@@ -74,7 +74,7 @@ export const getSubjectOptionsUrlBySelectedContextAndRepo = (
  *
  * @returns the url path string
  */
-export const getActionOptionsUrlBySelectedContextAndRepo = (
+export const getActionOptionsUrl = (
   selectedContext: string,
   repo: string
 ): string => {
@@ -88,7 +88,7 @@ export const getActionOptionsUrlBySelectedContextAndRepo = (
  *
  * @returns the url path string
  */
-export const getResourcesUrlBySelectedContext = (
+export const getResourcesUrl = (
   selectedContext: string
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/resourcelist`
@@ -102,7 +102,7 @@ export const getResourcesUrlBySelectedContext = (
  *
  * @returns the url path string
  */
-export const getResourceUrlBySelectedContextRepoAndId = (
+export const getResourceUrl = (
   selectedContext: string,
   repo: string,
   id: string
@@ -117,7 +117,7 @@ export const getResourceUrlBySelectedContextRepoAndId = (
  *
  * @returns the url path string
  */
-export const getCreateResourceUrlBySelectedContext = (
+export const getCreateResourceUrl = (
   selectedContext: string
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/addresource`
@@ -131,7 +131,7 @@ export const getCreateResourceUrlBySelectedContext = (
  *
  * @returns the url path string
  */
-export const getEditResourceUrlBySelectedContextAndId = (
+export const getEditResourceUrl = (
   selectedContext: string,
   id: string
 ): string => {
@@ -147,7 +147,7 @@ export const getEditResourceUrlBySelectedContextAndId = (
  *
  * @returns the url path string
  */
-export const getValidateResourceUrlBySelectedContextRepoAndId = (
+export const getValidateResourceUrl = (
   selectedContext: string,
   repo: string,
   resourceId: string

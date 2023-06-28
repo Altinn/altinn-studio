@@ -5,10 +5,7 @@ import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvC
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import { TextField, Button, Spinner } from '@digdir/design-system-react';
 import { get } from 'app-shared/utils/networking';
-import {
-  getPublishStatusUrlBySelectedContextRepoAndId,
-  getValidatePolicyUrlBySelectedContextRepoAndId,
-} from 'resourceadm/utils/backendUrlUtils';
+import { getPublishStatusUrl, getValidatePolicyUrl } from 'resourceadm/utils/backendUrlUtils';
 import { useParams } from 'react-router-dom';
 import { NavigationBarPageType, ResourceVersionStatusType } from 'resourceadm/types/global';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
@@ -43,15 +40,14 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
 
   const [newVersionText, setNewVersionText] = useState('');
-  const [versionInTest, setVersionInTest] = useState<string>();
-  const [versionInProd, setVersionInProd] = useState<string>();
-  const [localVersion, setLocalVersion] = useState<string>();
+  const [versionInTest, setVersionInTest] = useState('');
+  const [versionInProd, setVersionInProd] = useState('');
+  const [localVersion, setLocalVersion] = useState('');
 
   useOnce(() => {
     setIsLoading(true);
-    get(getPublishStatusUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+    get(getPublishStatusUrl(selectedContext, repo, resourceId))
       .then((res) => {
-        console.log(res);
         const versions: ResourceVersionStatusType = res as ResourceVersionStatusType;
 
         setVersionInTest(versions.publishedVersions.find((v) => v.environment === 'TT02').version);
@@ -59,7 +55,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         setLocalVersion(versions.resourceVersion);
         setNewVersionText(versions.resourceVersion ?? '');
 
-        get(getValidatePolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
+        get(getValidatePolicyUrl(selectedContext, repo, resourceId))
           .then((validatePolicyRes) => {
             // Remove error if status is 200
             setHasPolicyError(validatePolicyRes.status === 200 ? 'none' : 'validationFailed');
@@ -77,6 +73,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         setHasError(true);
       });
 
+    // TODO - Change below when connected with API
     setHasResourceError(true);
     // TODO - Validate resource when API is ready
     /*get(getValidateResourceUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
