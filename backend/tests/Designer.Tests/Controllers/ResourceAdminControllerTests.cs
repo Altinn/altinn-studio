@@ -412,7 +412,7 @@ namespace Designer.Tests.Controllers
             return resourceReferences;
         }
 
-        private ServiceResource GetServiceResourceForValidationTest(bool valid)
+        private static ServiceResource GetServiceResourceForValidationTest(bool valid)
         {
             if (valid)
             {
