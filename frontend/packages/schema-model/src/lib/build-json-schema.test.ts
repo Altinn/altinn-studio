@@ -2,6 +2,7 @@ import { buildJsonSchema } from '@altinn/schema-model';
 import { expect } from '@jest/globals';
 import type { UiSchemaNodes } from '../types';
 
+
 describe('buildJsonSchema', () => {
   it("should return valid output", () => {
     testCases.forEach(testCase => {
