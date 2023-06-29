@@ -95,9 +95,10 @@ namespace Altinn.Studio.Designer.Controllers
             else
             {
                 List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+                resourceToValidate = repositoryResourceList.FirstOrDefault();
                 if (repositoryResourceList.Count > 0)
                 {
-                    validationProblemDetails = ValidateResource(repositoryResourceList.FirstOrDefault());
+                    validationProblemDetails = ValidateResource(resourceToValidate);
                 }
             }
 
