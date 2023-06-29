@@ -1,0 +1,118 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Altinn text resource file",
+  "description": "Schema that describes a set of text resources for Altinn applications.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The schema that this file adheres to"
+    },
+    "language": {
+      "type": "string",
+      "title": "Language",
+      "description": "The language of these text resources. Must match the file name, using ISO 639-1 two letter language codes.",
+      "pattern": "^[a-z]{2}$"
+    },
+    "resources": {
+      "type": "array",
+      "title": "Text resources",
+      "description": "A list of text resources",
+      "items": { "$ref": "#/definitions/resource" }
+    }
+  },
+  "required": [
+    "language",
+    "resources"
+  ],
+  "definitions": {
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A text resource",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Text resource ID",
+          "description": "Must be unique within the file"
+        },
+        "value": {
+          "type": "string",
+          "title": "Text resource value",
+          "description": "The text resource value. Variables should be enclosed in curly brackets, e.g. {0}, {1}, etc."
+        },
+        "variables": {
+          "type": "array",
+          "title": "Variables",
+          "description": "A list of variables that can be used in the text resource value",
+          "items": {
+            "$ref": "#/definitions/variable"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "value"
+      ],
+      "examples": [
+        {
+          "id": "my.id",
+          "value": "Hello world"
+        }
+      ]
+    },
+    "variable": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A variable that can be used in a text resource",
+      "examples": [
+        {
+          "key": "My.Model.Path",
+          "dataSource": "dataModel.default"
+        }
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "Variable lookup location",
+          "description": "Location of the variable in the data source",
+          "pattern": "^[\\w\\p{L}.\\-_{}[\\]]+$"
+        },
+        "dataSource": {
+          "title": "Variable data source",
+          "oneOf": [
+            { "$ref": "#/definitions/dataSource-data-model" },
+            { "$ref": "#/definitions/dataSource-instanceContext" },
+            { "$ref": "#/definitions/dataSource-applicationSettings" }
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "dataSource"
+      ]
+    },
+    "dataSource-data-model": {
+      "type": "string",
+      "title": "Data model",
+      "description": "The variable is fetched from a named data model",
+      "pattern": "^dataModel\\..+$",
+      "examples": [
+        "dataModel.default"
+      ]
+    },
+    "dataSource-instanceContext": {
+      "title": "Instance context",
+      "description": "The variable is fetched from the instance context",
+      "const": "instanceContext"
+    },
+    "dataSource-applicationSettings": {
+      "title": "Application settings",
+      "description": "The variable is fetched from the application settings",
+      "const": "applicationSettings"
+    }
+  }
+}

@@ -19,12 +19,8 @@ interface AppLayoutSet {
  */
 export function getAllLayoutSets(dir: string): AppLayoutSet[] {
   const out: AppLayoutSet[] = [];
-  const apps = fs.readdirSync(dir);
+  const apps = getAllApps(dir);
   for (const app of apps) {
-    if (app.startsWith('.')) {
-      continue;
-    }
-
     const sets = [{ set: 'layouts', plain: true }];
     try {
       const content = fs.readFileSync(path.join(dir, app, 'App/ui/layout-sets.json'));
@@ -69,6 +65,20 @@ export function getAllLayoutSets(dir: string): AppLayoutSet[] {
         entireFiles,
       });
     }
+  }
+
+  return out;
+}
+
+export function getAllApps(dir: string): string[] {
+  const out: string[] = [];
+  const apps = fs.readdirSync(dir);
+  for (const app of apps) {
+    if (app.startsWith('.')) {
+      continue;
+    }
+
+    out.push(app);
   }
 
   return out;
