@@ -7,6 +7,8 @@
     "@navikt/aksel-icons": "3.4.2",
     "@tanstack/react-query": "4.29.12",
     "@tanstack/react-query-devtools": "4.29.12",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
     "react-i18next": "12.3.1",
     "react-router-dom": "6.11.2"
   },

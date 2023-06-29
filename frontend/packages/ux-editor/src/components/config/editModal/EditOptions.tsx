@@ -14,10 +14,11 @@ import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
-import { useText } from '../../../hooks';
+import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
 import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
-
+import { ErrorMessage } from '@digdir/design-system-react';
+import { FormField } from '../../FormField';
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
@@ -49,6 +50,8 @@ export function EditOptions({
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const t = useText();
+
+  const errorMessage = useComponentErrorMessage(component);
 
   useEffect(() => {
     if (editFormId !== previousEditFormId.current) {
@@ -131,52 +134,63 @@ export function EditOptions({
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
-      {selectedOptionsType === SelectedOptionsType.Manual &&
-        component.options?.map((option, index) => {
-          const updateValue = (e: any) => handleUpdateOptionValue(index, e);
-          const removeItem = () => handleRemoveOption(index);
-          const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
-          const optionTitle = `${
-            component.type === 'RadioButtons'
-              ? t('ux_editor.modal_radio_button_increment')
-              : t('ux_editor.modal_check_box_increment')
-          } ${index + 1}`;
-          return (
-            <div className={classes.optionContainer} key={key}>
-              <div className={classes.optionContentWrapper}>
-                <FieldSet legend={optionTitle}>
-                  <div className={classes.optionContent}>
-                    <TextResource
-                      handleIdChange={handleUpdateOptionLabel(index)}
-                      placeholder={
-                        component.type === 'RadioButtons'
-                          ? t('ux_editor.modal_radio_button_add_label')
-                          : t('ux_editor.modal_check_box_add_label')
-                      }
-                      textResourceId={option.label}
-                    />
-                    <div>
-                      <TextField
-                        label={t('general.value')}
-                        onChange={updateValue}
-                        placeholder={t('general.value')}
-                        value={option.value}
-                      />
+      {selectedOptionsType === SelectedOptionsType.Manual && (
+        <FormField
+          value={component.options}
+          propertyPath={`${component.propertyPath}/properties/options`}
+        >
+          {() => (
+            <div>
+              {component.options?.map((option, index) => {
+                  const updateValue = (e: any) => handleUpdateOptionValue(index, e);
+                  const removeItem = () => handleRemoveOption(index);
+                  const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
+                  const optionTitle = `${
+                    component.type === 'RadioButtons'
+                      ? t('ux_editor.modal_radio_button_increment')
+                      : t('ux_editor.modal_check_box_increment')
+                  } ${index + 1}`;
+                  return (
+                    <div className={classes.optionContainer} key={key}>
+                      <div className={classes.optionContentWrapper}>
+                        <FieldSet legend={optionTitle}>
+                          <div className={classes.optionContent}>
+                            <TextResource
+                              handleIdChange={handleUpdateOptionLabel(index)}
+                              placeholder={
+                                component.type === 'RadioButtons'
+                                  ? t('ux_editor.modal_radio_button_add_label')
+                                  : t('ux_editor.modal_check_box_add_label')
+                              }
+                              textResourceId={option.label}
+                            />
+                            <div>
+                              <TextField
+                                label={t('general.value')}
+                                onChange={updateValue}
+                                placeholder={t('general.value')}
+                                value={option.value}
+                              />
+                            </div>
+                          </div>
+                        </FieldSet>
+                      </div>
+                      <div>
+                        <Button
+                          color={ButtonColor.Danger}
+                          icon={<XMarkIcon />}
+                          onClick={removeItem}
+                          variant={ButtonVariant.Quiet}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </FieldSet>
-              </div>
-              <div>
-                <Button
-                  color={ButtonColor.Danger}
-                  icon={<XMarkIcon />}
-                  onClick={removeItem}
-                  variant={ButtonVariant.Quiet}
-                />
-              </div>
+                  );
+                })
+              }
             </div>
-          );
-        })}
+          )}
+        </FormField>
+      )}
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <Button
@@ -190,6 +204,13 @@ export function EditOptions({
           </Button>
         </div>
       )}
+      {
+        errorMessage && (
+          <ErrorMessage size="small">
+            {errorMessage}
+          </ErrorMessage>
+        )
+      }
     </>
   );
 }

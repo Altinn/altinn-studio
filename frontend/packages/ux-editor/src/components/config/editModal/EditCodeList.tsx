@@ -7,6 +7,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
 import { ErrorMessage, Button, ButtonVariant } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { FormField } from '../../FormField';
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const { t } = useTranslation();
@@ -43,15 +44,21 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
             </Button>
           </p>
           {!useCustomCodeList && (
-            <Select
-              options={optionListIds.map((option) => ({
-                label: option,
-                value: option,
-              }))}
+            <FormField
               label={t('ux_editor.modal_properties_code_list_id')}
               onChange={handleOptionsIdChange}
               value={component.optionsId}
-            />
+              propertyPath={`${component.propertyPath}/properties/optionsId`}
+            >
+              {
+                () => <Select
+                  options={optionListIds.map((option) => ({
+                    label: option,
+                    value: option,
+                  }))}
+                />
+              }
+            </FormField>
           )}
         </>
       )}
@@ -67,7 +74,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
           )}
         </>
       }
-      <p>
+      <p style={{ marginBottom: 0 }}>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
             href={altinnDocsUrl('app/development/data/options/')}

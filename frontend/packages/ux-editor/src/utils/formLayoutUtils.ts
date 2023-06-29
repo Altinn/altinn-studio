@@ -18,6 +18,21 @@ import { generateFormItem } from './component';
 import { FormItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
 import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import numberFormatSchema from '../schemas/json/layout/number-format.schema.v1.json';
+import expressionSchema from '../schemas/json/layout/expression.schema.v1.json';
+import layoutSchema from '../schemas/json/layout/layout.schema.v1.json';
+import Ajv from "ajv";
+import type { ErrorObject, ValidateFunction } from "ajv";
+import addFormats from "ajv-formats"
+
+const ajv = new Ajv({
+  allErrors: true,
+  strict: false,
+});
+ajv.addSchema(expressionSchema);
+ajv.addSchema(numberFormatSchema);
+ajv.addSchema(layoutSchema);
+addFormats(ajv);
 
 export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();
@@ -226,8 +241,6 @@ export function idExists(
   );
 }
 
-export const validComponentId = /^[0-9a-zA-Z-]+$/;
-
 /**
  * Checks if a layout has navigation buttons.
  * @param layout The layout to check.
@@ -237,6 +250,34 @@ export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
   const { components } = layout;
   return Object.values(components).map(({ type }) => type).includes(ComponentType.NavigationButtons);
 }
+
+export const getPropertyByPath = (path: string) => {
+  return { ...path.split('/').reduce((o, p) => (o || {})[p], layoutSchema) };
+}
+
+export const isPropertyRequired = (propertyPath: string) : boolean => {
+  const parent = getPropertyByPath(propertyPath.substring(0, propertyPath.lastIndexOf('/properties')));
+  return parent?.required?.includes(propertyPath.split('/').pop());
+}
+
+export const getPropertyId = (propertyPath: string) : string => {
+  return `${layoutSchema.$id}#/${propertyPath}`;
+}
+
+export const validateLayout = (layout: ExternalFormLayout) : ErrorObject[] | null => {
+  ajv.validate(layoutSchema, layout);
+  return ajv.errors;
+}
+
+export const validateProperty = (value: any, propertyId: string) :  string => {
+  const validate = ajv.getSchema(propertyId);
+  if (validate) validate(value);
+
+  const firstError = validate?.errors?.[0];
+  const isCurrentComponentError = firstError?.instancePath === '';
+  return isCurrentComponentError ? firstError?.keyword : null;
+}
+
 
 /**
  * Finds the id of a component or a container's parent container.

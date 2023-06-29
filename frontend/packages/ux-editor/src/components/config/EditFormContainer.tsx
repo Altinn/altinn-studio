@@ -1,9 +1,9 @@
-import React, { ChangeEvent, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import '../../styles/index.css';
 import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
-import { idExists, validComponentId } from '../../utils/formLayoutUtils';
+import { idExists } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { Checkbox, CheckboxGroup, FieldSet, TextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
@@ -21,7 +21,7 @@ import {
   selectedLayoutSetSelector,
 } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
-import { TextFieldWithValidation } from '../TextFieldWithValidation';
+import { FormField } from '../FormField';
 import { FormContainer } from '../../types/FormContainer';
 
 export interface IEditFormContainerProps {
@@ -47,7 +47,6 @@ export const EditFormContainer = ({
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
   );
 
-  const [tmpId, setTmpId] = useState<string>(container.id);
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -55,12 +54,7 @@ export const EditFormContainer = ({
 
   const items = layoutOrder[editFormId];
 
-  useEffect(() => {
-    setTmpId(container.id);
-  }, [container.id]);
-
-  const handleChangeRepeatingGroup = (event: ChangeEvent<HTMLInputElement>) => {
-    const isRepeating = event.target.checked;
+  const handleChangeRepeatingGroup = (isRepeating: boolean) => {
     if (isRepeating) {
       handleContainerUpdate({
         ...container,
@@ -78,8 +72,7 @@ export const EditFormContainer = ({
     }
   };
 
-  const handleMaxOccurChange = (event: any) => {
-    let maxOcc = event.target?.value;
+  const handleMaxOccurChange = (maxOcc: number) => {
     if (maxOcc < 2) {
       maxOcc = 2;
     }
@@ -133,60 +126,66 @@ export const EditFormContainer = ({
     });
   };
 
-  const handleIdChange = (event: React.ChangeEvent<HTMLInputElement>, error: string) => {
-    const newId = event.target.value;
-    if (!error) {
-      handleContainerUpdate({
-        ...container,
-        id: newId,
-      });
-    }
-    setTmpId(newId);
+  const handleIdChange = (id: string) => {
+    handleContainerUpdate({
+      ...container,
+      id,
+    });
   };
 
   return (
     <FieldSet className={classes.fieldset}>
-      <div>
-        <TextFieldWithValidation
-          label={t('ux_editor.modal_properties_group_change_id')}
-          name={`group-id${container.id}`}
-          value={tmpId}
-          validation={{
-            required: {
-              message: t('validation_errors.required'),
-            },
-            custom: (value) => {
-              if (idExists(value, components, containers) && value !== container.id) {
-                return t('ux_editor.modal_properties_group_id_not_unique_error');
-              } else if (!value || !validComponentId.test(value)) {
-                return t('ux_editor.modal_properties_group_id_not_valid');
-              }
-            },
-          }}
-          onChange={handleIdChange}
-        />
-      </div>
-      <Checkbox
-        checked={container.maxCount > 1}
+      <FormField
+        label={t('ux_editor.modal_properties_group_change_id')}
+        value={container.id}
+        propertyPath='definitions/component/properties/id'
+        customValidationRules={(value: string) => {
+          if (idExists(value, components, containers) && value !== container.id) {
+            return 'unique';
+          }
+        }}
+        customValidationMessages={(errorCode: string) => {
+          if (errorCode === "unique") {
+            return t('ux_editor.modal_properties_group_id_not_unique_error')
+          }
+          if (errorCode === "pattern") {
+            return t('ux_editor.modal_properties_group_id_not_valid');
+          }
+        }}
+        onChange={handleIdChange}
+      >
+        {({ onChange }) => <TextField name={`group-id${container.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+      </FormField>
+      <FormField
         label={t('ux_editor.modal_properties_group_repeating')}
+        value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
-      />
+      >
+        {({ value, onChange }) => <Checkbox
+          checked={value}
+          onChange={(e) => onChange(e.target.checked, e)}
+        />}
+      </FormField>
       {container.maxCount > 1 && (
         <>
           <EditGroupDataModelBindings
             dataModelBindings={container.dataModelBindings}
             onDataModelChange={handleDataModelGroupChange}
           />
-          <div>
+          <FormField
+            label={t('ux_editor.modal_properties_group_max_occur')}
+            onChange={handleMaxOccurChange}
+            value={container.maxCount}
+            propertyPath={`${container.propertyPath}/properties/maxCount`}
+          >
+            {({ onChange }) =>
             <TextField
+              id='modal-properties-maximum-files'
               disabled={!!container.dataModelBindings?.group}
               formatting={{ number: {} }}
-              id='modal-properties-maximum-files'
-              label={t('ux_editor.modal_properties_group_max_occur')}
-              onChange={handleMaxOccurChange}
-              value={container.maxCount.toString()}
-            />
-          </div>
+              onChange={(e) => onChange(parseInt(e.target.value), e)}
+            />}
+          </FormField>
           <TextResource
             description={t('ux_editor.modal_properties_group_add_button_description')}
             handleIdChange={handleButtonTextChange}
@@ -194,19 +193,24 @@ export const EditFormContainer = ({
             textResourceId={container.textResourceBindings?.add_button}
           />
           {items?.length > 0 && (
-            <CheckboxGroup
-              error={tableHeadersError}
-              items={items
+            <FormField
+              onChange={handleTableHeadersChange}
+              value={items
                 .filter((id) => !!components[id])
                 .map((id) => ({
                   label: getTextResource(components[id]?.textResourceBindings?.title, textResources),
                   name: id,
                   checked:
                     container.tableHeaders === undefined || container.tableHeaders.includes(id),
-                }))}
-              legend={t('ux_editor.modal_properties_group_table_headers')}
-              onChange={handleTableHeadersChange}
-            />
+              }))}
+              propertyPath={`${container.propertyPath}/properties/tableHeaders`}
+            >
+              {({ value }) => <CheckboxGroup
+                error={tableHeadersError}
+                items={value}
+                legend={t('ux_editor.modal_properties_group_table_headers')}
+              />}
+            </FormField>
           )}
         </>
       )}

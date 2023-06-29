@@ -25,6 +25,7 @@ import { useParams } from 'react-router-dom';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
+import { FormField } from './FormField';
 
 export interface TextResourceProps {
   description?: string;
@@ -98,83 +99,92 @@ export const TextResource = ({
   );
 
   return (
-    <span
-      className={cn(
-        classes.root,
-        previewMode && classes.previewMode,
-        isEditing && classes.isEditing,
-        isSearchMode && classes.isSearching
-      )}
+    <FormField
+      value={{ [textResourceId]: textResource?.value }}
+      propertyPath='definitions/component/properties/textResourceBindings'
     >
-      {label && <span className={classes.label}>{label}</span>}
-      {description && <span className={classes.description}>{description}</span>}
-      {isSearchMode && (
-        <span className={classes.searchContainer}>
-          <span className={classes.select}>
-            <Select
-              hideLabel={true}
-              label={t('ux_editor.search_text_resources_label')}
-              onChange={(id) => handleIdChange(id === '' ? undefined : id)}
-              options={searchOptions}
-              value={textResource?.id ?? ''}
-            />
-          </span>
-          <Button
-            aria-label={t('ux_editor.search_text_resources_close')}
-            className={classes.button}
-            color={ButtonColor.Secondary}
-            icon={<XMarkIcon />}
-            onClick={() => setIsSearchMode(false)}
-            title={t('ux_editor.search_text_resources_close')}
-            variant={ButtonVariant.Quiet}
-          />
-        </span>
-      )}
-      <span className={classes.textResource}>
-        {textResource?.value ? (
-          <span>{textResource.value}</span>
-        ) : (
-          <span className={classes.placeholder}>{placeholder}</span>
-        )}
-        <span className={classes.buttonsWrapper}>
-          <span className={classes.buttons}>
-            {textResource?.value ? (
-              <Button
-                aria-label={t('general.edit')}
-                className={classes.button}
-                color={ButtonColor.Secondary}
-                disabled={isEditing}
-                icon={<PencilIcon />}
-                onClick={handleEditButtonClick}
-                title={t('general.edit')}
-                variant={ButtonVariant.Quiet}
-              />
-            ) : (
-              <Button
-                aria-label={t('general.add')}
-                className={classes.button}
-                color={ButtonColor.Secondary}
-                disabled={isEditing}
-                icon={<PlusIcon />}
-                onClick={handleEditButtonClick}
-                title={t('general.add')}
-                variant={ButtonVariant.Quiet}
-              />
+      {
+        () => (
+          <span
+            className={cn(
+              classes.root,
+              previewMode && classes.previewMode,
+              isEditing && classes.isEditing,
+              isSearchMode && classes.isSearching
             )}
-            <Button
-              aria-label={t('general.search')}
-              className={classes.button}
-              color={ButtonColor.Secondary}
-              disabled={isSearchMode}
-              icon={<MagnifyingGlassIcon />}
-              onClick={() => setIsSearchMode(true)}
-              title={t('general.search')}
-              variant={ButtonVariant.Quiet}
-            />
+          >
+            {label && <span className={classes.label}>{label}</span>}
+            {description && <span className={classes.description}>{description}</span>}
+            {isSearchMode && (
+              <span className={classes.searchContainer}>
+                <span className={classes.select}>
+                  <Select
+                    hideLabel={true}
+                    label={t('ux_editor.search_text_resources_label')}
+                    onChange={(id) => handleIdChange(id === '' ? undefined : id)}
+                    options={searchOptions}
+                    value={textResource?.id ?? ''}
+                  />
+                </span>
+                <Button
+                  aria-label={t('ux_editor.search_text_resources_close')}
+                  className={classes.button}
+                  color={ButtonColor.Secondary}
+                  icon={<XMarkIcon />}
+                  onClick={() => setIsSearchMode(false)}
+                  title={t('ux_editor.search_text_resources_close')}
+                  variant={ButtonVariant.Quiet}
+                />
+              </span>
+            )}
+            <span className={classes.textResource}>
+              {textResource?.value ? (
+                <span>{textResource.value}</span>
+              ) : (
+                <span className={classes.placeholder}>{placeholder}</span>
+              )}
+              <span className={classes.buttonsWrapper}>
+                <span className={classes.buttons}>
+                  {textResource?.value ? (
+                    <Button
+                      aria-label={t('general.edit')}
+                      className={classes.button}
+                      color={ButtonColor.Secondary}
+                      disabled={isEditing}
+                      icon={<PencilIcon />}
+                      onClick={handleEditButtonClick}
+                      title={t('general.edit')}
+                      variant={ButtonVariant.Quiet}
+                    />
+                  ) : (
+                    <Button
+                      aria-label={t('general.add')}
+                      className={classes.button}
+                      color={ButtonColor.Secondary}
+                      disabled={isEditing}
+                      icon={<PlusIcon />}
+                      onClick={handleEditButtonClick}
+                      title={t('general.add')}
+                      variant={ButtonVariant.Quiet}
+                    />
+                  )}
+                  <Button
+                    aria-label={t('general.search')}
+                    className={classes.button}
+                    color={ButtonColor.Secondary}
+                    disabled={isSearchMode}
+                    icon={<MagnifyingGlassIcon />}
+                    onClick={() => setIsSearchMode(true)}
+                    title={t('general.search')}
+                    variant={ButtonVariant.Quiet}
+                  />
+                </span>
+              </span>
+            </span>
           </span>
-        </span>
-      </span>
-    </span>
+        )
+      }
+    </FormField>
   );
 };
 
