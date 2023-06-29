@@ -82,7 +82,7 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetValidateResource(string org, string repository, string id = "")
         {
             ValidationProblemDetails validationProblemDetails = new ValidationProblemDetails();
-            ServiceResource resourceToValidate = new ServiceResource();
+            ServiceResource resourceToValidate;
 
             if (id != "")
             {
