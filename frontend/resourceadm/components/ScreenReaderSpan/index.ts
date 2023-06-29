@@ -1,0 +1,1 @@
+export { ScreenReaderSpan } from './ScreenReaderSpan'

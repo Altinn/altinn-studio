@@ -1,1 +1,0 @@
-export { OrgReposList } from './OrgReposList';

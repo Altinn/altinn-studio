@@ -25,6 +25,7 @@ interface Props {
   resourceType: string;
   handleDuplicateRule: () => void;
   handleDeleteRule: () => void;
+  showErrors: boolean;
 }
 
 /**
@@ -40,6 +41,7 @@ interface Props {
  * @param props.resourceType the type of the resource
  * @param props.handleDuplicateRule function to be executed when clicking duplicate rule
  * @param props.handleDeleteRule function to be executed when clicking delete rule
+ * @param props.showErrors flag to decide if errors should be shown or not
  */
 export const ExpandablePolicyCard = ({
   policyRule,
@@ -51,6 +53,7 @@ export const ExpandablePolicyCard = ({
   resourceType,
   handleDuplicateRule,
   handleDeleteRule,
+  showErrors,
 }: Props) => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
@@ -292,7 +295,13 @@ export const ExpandablePolicyCard = ({
    */
   const handleDuplicateResourceGroup = (resourceIndex: number) => {
     const resourceGroupToDuplicate: PolicyRuleResourceType[] = policyRule.resources[resourceIndex];
-    const updatedResources = [...policyRule.resources, resourceGroupToDuplicate];
+
+    // Create a deep copy of the object so the objects don't share same object reference
+    const deepCopiedResourceGroupToDuplicate: PolicyRuleResourceType[] = JSON.parse(
+      JSON.stringify(resourceGroupToDuplicate)
+    );
+
+    const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
     updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 
@@ -345,11 +354,13 @@ export const ExpandablePolicyCard = ({
               Legg til en ressurs
             </Button>
           </div>
-          {hasResourceError && displayWarningCard('Du må legge til en ressurs')}
+          {showErrors && hasResourceError && displayWarningCard('Du må legge til en ressurs')}
           <p className={classes.subHeader}>Hvilke rettigheter skal gis?</p>
           <p className={classes.smallText}>Velg minimum ett alternativ fra listen under</p>
           <div className={classes.chipWrapper}>{displayActions}</div>
-          {hasRightsError && displayWarningCard('Du må legge til hvilken rettigheter som skal gis')}
+          {showErrors &&
+            hasRightsError &&
+            displayWarningCard('Du må legge til hvilken rettigheter som skal gis')}
           <p className={classes.subHeader}>Hvem skal ha disse rettighetene?</p>
           {displaySubjects}
           {subjectOptions.length > 0 && (
@@ -358,7 +369,8 @@ export const ExpandablePolicyCard = ({
               onChange={handleClickSubjectInList}
             />
           )}
-          {hasSubjectsError &&
+          {showErrors &&
+            hasSubjectsError &&
             displayWarningCard('Du må legge til hvem rettighetene skal gjelde for')}
           <p className={classes.subHeader}>Legg til en beskrivelse av regelen</p>
           <div className={classes.textAreaWrapper}>
@@ -372,7 +384,7 @@ export const ExpandablePolicyCard = ({
           </div>
         </ExpandablePolicyElement>
       </div>
-      {getHasRuleError() && (
+      {showErrors && getHasRuleError() && (
         <div className={classes.ruleWarning}>
           <ExclamationmarkTriangleFillIcon title='The rule has a warning' fontSize='2rem' />
         </div>

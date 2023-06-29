@@ -708,7 +708,7 @@
   "sync_header.merge_conflict": "Mergeconflict",
   "sync_header.merge_conflict_btn": "Solve conflict",
   "sync_header.merge_conflict_occured": "Someone else has made changes in the same place as you in the app.",
-  "sync_header.merge_conflict_occured_submessage": "Open the codeeditor to decide which changes you wish to keep",
+  "sync_header.merge_conflict_occured_submessage": "These are in conflict with your changes. Click the button to resolve the conflict.",
   "sync_header.no_changes_to_share": "Push",
   "sync_header.nothing_to_push": "You have pushed your latest changes",
   "sync_header.repo_is_offline": "Repo is offline",

@@ -1,1 +1,0 @@
-export { RessursBeskrivelseInput } from './RessursBeskrivelseInput';

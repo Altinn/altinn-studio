@@ -1,6 +1,8 @@
 .table {
   border: none;
   box-shadow: none;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .tableHeader {
@@ -38,19 +40,6 @@
   border-bottom: 2px solid #BCC7CC;
   padding-block: 5px;
   padding-right: 10px;
-}
-
-.tableHeaderbutton {
-  border: none;
-  background-color: transparent;
-  display: flex;
-  font-size: 16px;
-  font-weight: 300;
-  width: 100%;
-  padding-block: 10px;
-  padding-inline: 20px;
-  border-radius: 50px;
-  background-color: red;
 }
 
 p {

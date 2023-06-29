@@ -46,9 +46,13 @@
 }
 
 .toggleTextInactive {
-  color: #BCBFC5;
+  color: #707173;
 }
 
 p, h2 {
   margin: 0;
+}
+
+.spinnerWrapper {
+  padding: 10%;
 }

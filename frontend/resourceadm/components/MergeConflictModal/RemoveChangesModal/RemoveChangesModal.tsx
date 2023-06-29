@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, TextField } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
   isOpen: boolean;
@@ -49,7 +50,9 @@ export const RemoveChangesModal = ({ isOpen, onClose, handleClickResetRepo, repo
           label='Skriv inn navn på repoet for å bekrefte'
           value={deleteRepoName}
           onChange={(e) => setDeleteRepoName(e.target.value)}
+          aria-labelledby='delete-changes'
         />
+        <ScreenReaderSpan id='delete-changes' label='Skriv inn navn på repoet for å bekrefte' />
       </div>
       <div className={classes.buttonWrapper}>
         <Button
