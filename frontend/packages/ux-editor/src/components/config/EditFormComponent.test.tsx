@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { EditFormComponent } from './EditFormComponent';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
 import { FormComponent } from '../../types/FormComponent';
@@ -57,18 +57,15 @@ describe('EditFormComponent', () => {
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
 
-  test('should return header specific content when type header', () => {
+  test('should return header specific content when type header', async () => {
     render({
       componentProps: {
         type: ComponentType.Header,
       },
     });
 
-    const labels = [
-      'ux_editor.modal_properties_component_change_id *',
-      'ux_editor.modal_header_type_helper',
-    ];
-    labels.map((label) => expect(screen.getByLabelText(label)));
+    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id *'));
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })));
   });
 
   test('should return file uploader specific content when type file uploader', () => {

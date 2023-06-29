@@ -75,7 +75,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
 
   const renderChildren = (childList: React.ReactNode) => {
     let textFieldLabel: string;
-    if (label) textFieldLabel = `${label} ${isRequired ? '*' : ''}`;
+    if (label) textFieldLabel = `${label}${isRequired ? ' *' : ''}`;
 
     return React.Children.map(childList, (child) => {
       if (React.isValidElement(child)) {
@@ -99,7 +99,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
       if (validationMessage) return validationMessage;
     }
 
-    const key = `validation_errors.${errorCode}`  as TranslationKey;
+    const key = `validation_errors.${errorCode}` as TranslationKey;
     const str = t(key);
     if (str !== key) return str;
 

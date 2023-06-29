@@ -22,7 +22,7 @@ import numberFormatSchema from '../schemas/json/layout/number-format.schema.v1.j
 import expressionSchema from '../schemas/json/layout/expression.schema.v1.json';
 import layoutSchema from '../schemas/json/layout/layout.schema.v1.json';
 import Ajv from "ajv";
-import type { ErrorObject, ValidateFunction } from "ajv";
+import type { ErrorObject } from "ajv";
 import addFormats from "ajv-formats"
 
 const ajv = new Ajv({

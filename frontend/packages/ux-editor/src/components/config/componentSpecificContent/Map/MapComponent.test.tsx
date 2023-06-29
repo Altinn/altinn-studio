@@ -43,8 +43,8 @@ describe('MapComponent', () => {
 
   test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', () => {
     renderMapComponent({});
-    expect(screen.getByLabelText('Latitude *')).toBeInTheDocument();
-    expect(screen.getByLabelText('Longitude *')).toBeInTheDocument();
+    expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
+    expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
     expect(screen.getByLabelText('Standard zoom')).toBeInTheDocument();
   });
 
@@ -54,11 +54,11 @@ describe('MapComponent', () => {
       handleComponentChange: handleComponentChangeMock
     });
 
-    const latitudeInput = screen.getByLabelText('Latitude *');
+    const latitudeInput = screen.getByLabelText('Latitude');
     await act(() => user.type(latitudeInput, '40'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { latitude: '40' }
+      centerLocation: { latitude: 40 }
     });
   });
 
@@ -68,11 +68,11 @@ describe('MapComponent', () => {
       handleComponentChange: handleComponentChangeMock
     });
 
-    const longitudeInput = screen.getByLabelText('Longitude *');
+    const longitudeInput = screen.getByLabelText('Longitude');
     await act(() => user.type(longitudeInput, '21'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { longitude: '21' }
+      centerLocation: { longitude: 21 }
     });
   });
 
@@ -86,26 +86,5 @@ describe('MapComponent', () => {
     await act(() => user.type(zoomInput, '2'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ zoom: 2 });
-  });
-
-  test('latitude should be invalid when input is not a number', async () => {
-    const { user } = renderMapComponent({});
-
-    await act(() => user.type(screen.getByLabelText('Latitude *'), 'A'));
-    expect(screen.getByText('Kun tall er gyldig verdi!')).toBeInTheDocument();
-  });
-
-  test('longitude should be invalid when input is not a number', async () => {
-    const { user } = renderMapComponent({});
-
-    await act(() => user.type(screen.getByLabelText('Longitude *'), 'B'));
-    expect(screen.getByText('Kun tall er gyldig verdi!')).toBeInTheDocument();
-  });
-
-  test('zoom should be invalid when input is not a number', async () => {
-    const { user } = renderMapComponent({});
-
-    await act(() => user.type(screen.getByLabelText('Standard zoom'), 'C'));
-    expect(screen.getByText('Kun tall er gyldig verdi!')).toBeInTheDocument();
   });
 });

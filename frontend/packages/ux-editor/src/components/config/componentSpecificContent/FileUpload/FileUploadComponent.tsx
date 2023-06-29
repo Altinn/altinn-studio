@@ -43,9 +43,9 @@ export const FileUploadComponent = ({
       | FormFileUploaderComponent
       | FormFileUploaderWithTagComponent;
     if (type === 'max') {
-      componentCopy.maxNumberOfAttachments = maxNumberOfAttachments;
+      componentCopy.maxNumberOfAttachments = maxNumberOfAttachments >= 1 ? maxNumberOfAttachments : 1;
     } else {
-      componentCopy.minNumberOfAttachments = maxNumberOfAttachments;
+      componentCopy.minNumberOfAttachments = maxNumberOfAttachments >= 0 ? maxNumberOfAttachments : 0;
       componentCopy.required = maxNumberOfAttachments > 0;
     }
     handleComponentChange(componentCopy);
@@ -117,7 +117,7 @@ export const FileUploadComponent = ({
       <FormField
         label={t('ux_editor.modal_properties_minimum_files')}
         onChange={handleNumberOfAttachmentsChange('min')}
-        value={fileUploaderComponent.minNumberOfAttachments}
+        value={fileUploaderComponent.minNumberOfAttachments || 0}
         propertyPath={`${component.propertyPath}/properties/minNumberOfAttachments`}
       >
         {({ onChange }) => <TextField
@@ -129,7 +129,7 @@ export const FileUploadComponent = ({
       <FormField
         label={t('ux_editor.modal_properties_maximum_files')}
         onChange={handleNumberOfAttachmentsChange('max')}
-        value={fileUploaderComponent.maxNumberOfAttachments}
+        value={fileUploaderComponent.maxNumberOfAttachments || 1}
         propertyPath={`${component.propertyPath}/properties/maxNumberOfAttachments`}
       >
         {({ onChange }) => <TextField
@@ -143,7 +143,7 @@ export const FileUploadComponent = ({
           'ux_editor.modal_properties_maximum_file_size_helper'
         )})`}
         onChange={handleMaxFileSizeInMBChange}
-        value={fileUploaderComponent.maxFileSizeInMB}
+        value={fileUploaderComponent.maxFileSizeInMB || 0}
         propertyPath={`${component.propertyPath}/properties/maxFileSizeInMB`}
       >
         {({ onChange }) => <TextField

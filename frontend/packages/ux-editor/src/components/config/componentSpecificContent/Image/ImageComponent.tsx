@@ -69,10 +69,10 @@ export const ImageComponent = ({
       <FormField
         label={t('ux_editor.modal_properties_image_src_value_label')}
         onChange={handleSourceChange}
-        value={{ nb: nbSrc || '' }}
+        value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
-        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value.nb} />}
+        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value?.nb || ''} />}
       </FormField>
       <TextResource
         handleIdChange={handleAltTextChange}
@@ -89,7 +89,7 @@ export const ImageComponent = ({
           className={classes.widthContainer}
           label={t('ux_editor.modal_properties_image_width_label')}
           onChange={handleWidthChange}
-          value={component.image?.width}
+          value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
           {({ onChange }) => <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}

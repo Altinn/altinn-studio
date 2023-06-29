@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
 import { renderWithMockStore } from '../../../testing/mocks';
@@ -18,7 +18,10 @@ jest.mock('react-i18next', () => ({
   })
 }));
 
-const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
+const getComboBox = () => screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' });
+const getComboBoxValue = () => getComboBox().getAttribute("value");
+
+const render = async ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
   renderWithMockStore()(
     <EditHeaderSize
       handleComponentChange={handleComponentChange}
@@ -34,82 +37,55 @@ const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) =>
       }}
     />,
   );
-};
-
-interface IOpenHeaderSelect {
-  selectWrapperTestId: string;
-}
-
-const openHeaderSelect = ({ selectWrapperTestId }: IOpenHeaderSelect) => {
-  const headerSizeSelectWrapper = screen.getByTestId(selectWrapperTestId);
-  const toggle = within(headerSizeSelectWrapper).getByDisplayValue('');
-
-  fireEvent.focus(toggle);
-  fireEvent.keyDown(toggle, { key: 'ArrowDown', keyCode: 40 });
+  await waitFor(getComboBox);
 };
 
 describe('HeaderSizeSelect', () => {
   it('should show selected title size as h4 when no size is set', () => {
     render();
 
-    expect(screen.getByText(h4Text)).toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h4Text);
   });
 
   it('should show selected title size as h4 when "h4" size is set', () => {
     render({ size: 'h4' });
 
-    expect(screen.getByText(h4Text)).toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h4Text);
   });
 
   it('should show selected title size as h4 when "S" size is set', () => {
     render({ size: 'S' });
 
-    expect(screen.getByText(h4Text)).toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h4Text);
   });
 
   it('should show selected title size as h3 when "h3" size is set', () => {
     render({ size: 'h3' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h3Text)).toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h3Text);
   });
 
   it('should show selected title size as h3 when "M" size is set', () => {
     render({ size: 'M' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h3Text)).toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h3Text);
   });
 
   it('should show selected title size as h2 when "h2" size is set', () => {
     render({ size: 'h2' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h2Text)).toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h2Text);
   });
 
   it('should show selected title size as h2 when "L" size is set', () => {
     render({ size: 'L' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h2Text)).toBeInTheDocument();
+    expect(getComboBoxValue()).toBe(h2Text);
   });
 
   it('should call handleUpdateHeaderSize when size is changed', () => {
     const handleComponentChange = jest.fn();
     render({ handleComponentChange, size: 'h4' });
-
-    openHeaderSelect({ selectWrapperTestId: 'header-size-select-wrapper' });
 
     const h2Select = screen.getByText(h2Text);
 
