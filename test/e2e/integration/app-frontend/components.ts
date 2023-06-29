@@ -325,4 +325,27 @@ describe('UI Components', () => {
     cy.get(appFrontend.errorReport).should('not.contain.text', 'Du har overskredet maks antall tegn med 1');
     cy.snapshot('components:text-countdown');
   });
+
+  it('should remember values after refreshing', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.dateOfEffect).should('have.value', '');
+    cy.fillOut('changename');
+    cy.gotoNavPage('form');
+
+    cy.get(appFrontend.changeOfName.sources).dsSelect('Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.reference).dsSelect('Sophie Salt');
+    cy.get(appFrontend.changeOfName.reference2).dsSelect('Dole');
+    cy.reloadAndWait();
+
+    cy.get(appFrontend.changeOfName.newFirstName).should('have.value', 'a');
+    cy.get(appFrontend.changeOfName.newLastName).should('have.value', 'a');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('be.checked');
+    cy.get(appFrontend.changeOfName.reasonRelationship).should('have.value', 'test');
+    cy.get(appFrontend.changeOfName.dateOfEffect).should('not.have.value', '');
+    cy.get('#form-content-fileUpload-changename').find('td').first().should('contain.text', 'test.pdf');
+
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Sophie Salt');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Dole');
+  });
 });
