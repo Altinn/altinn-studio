@@ -97,12 +97,6 @@ namespace Altinn.Studio.Designer.Controllers
             return resourceStatus;
         }
 
-        [HttpGet]
-        [Route("designer/api/{org}/resources/repository/validate/{repository}")]
-        [Route("designer/api/{org}/resources/repository/validate/{repository}/{id}")]
-        public ActionResult<string> GetValidateResource(string org, string repository, string id = "")
-        {
-            return _repository.ValidateServiceResource(org, repository, id);
         [Route("designer/api/{org}/resources/validate/{repository}")]
         [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
         public ActionResult GetValidateResource(string org, string repository, string id = "")
