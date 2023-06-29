@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceRepository_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository";
+            string uri = $"{_versionPrefix}/ttd/resources";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
@@ -54,7 +54,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceRepository_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -69,7 +69,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceList_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/resourcelist";
+            string uri = $"{_versionPrefix}/ttd/resources/resourcelist";
 
             _repositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -113,7 +113,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceList_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/resourcelist";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/resourcelist";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock
@@ -157,7 +157,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-resources/ttd_testresource";
+            string uri = $"{_versionPrefix}/ttd/resources/ttd-resources/ttd_testresource";
 
             _repositoryMock
                 .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -199,7 +199,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_Passing_Repository_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-app-resources";
+            string uri = $"{_versionPrefix}/ttd/resources/ttd-app-resources";
 
             _repositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -243,7 +243,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/ttd-resources/ttd_test_resource";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -258,7 +258,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_Passing_Repository_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/ttd-resources";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/ttd-resources";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -273,7 +273,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_PassingNoValidArgument_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/orgwithoutrepo-resources/notvalidresource";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -288,7 +288,7 @@ namespace Designer.Tests.Controllers
         public async Task UpdateServiceResource_StatusCreated()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/updateresource/resource1";
+            string uri = $"{_versionPrefix}/ttd/resources/updateresource/resource1";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
 
             ServiceResource serviceResource = new ServiceResource
@@ -330,7 +330,7 @@ namespace Designer.Tests.Controllers
         public async Task AddServiceResource_StatusCreated()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/addresource";
+            string uri = $"{_versionPrefix}/ttd/resources/addresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ServiceResource serviceResource = new ServiceResource
@@ -372,7 +372,7 @@ namespace Designer.Tests.Controllers
         public async Task ValidateServiceResourceById_IsValid()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources/ttdresource";
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
@@ -389,7 +389,7 @@ namespace Designer.Tests.Controllers
         public async Task ValidateServiceResourceById_IsInValid()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources/ttdresource";
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
@@ -406,7 +406,7 @@ namespace Designer.Tests.Controllers
         public async Task ValidateServiceResource_IsValid()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources";
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(true));
@@ -423,7 +423,7 @@ namespace Designer.Tests.Controllers
         public async Task ValidateServiceResource_IsInValid()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources";
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(false));
