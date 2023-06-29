@@ -125,6 +125,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
 };
 
 const validateObject = (object: JsonSchema): JsonSchema => {
+  if (!object.properties) { return object; }
   const keys = Object.keys(object.properties);
   const firstKey = keys[0];
   if (object.properties && object.properties[firstKey] && object.properties[firstKey].type === "array") {
