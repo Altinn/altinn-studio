@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - 'frontend/**'
-      - '!frontend/testing/cypress/**'
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
