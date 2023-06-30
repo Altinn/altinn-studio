@@ -36,6 +36,12 @@ context('datamodel', () => {
   it('edit a data model', () => {
     cy.findByText('property1').click();
     cy.findByRole('textbox', { name: 'Navn' }).clear().type('myProperty');
-    cy.findByRole('combobox', { name: 'Type' }).invoke('value', 'integer');
+
+    // Hack to ensure focus. Find out why we need to click twice and fix!
+    cy.findByRole('combobox', { name: 'Type' }).click();
+    cy.findByRole('combobox', { name: 'Type' }).click();
+
+    cy.findByRole('option', { name: 'Heltall' }).click();
+    cy.findByRole('combobox', { name: 'Type' }).invoke('val').should('eq', 'Heltall');
   });
 });

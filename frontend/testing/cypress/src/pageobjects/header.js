@@ -3,7 +3,7 @@ import * as texts from '../../../../language/src/nb.json';
 //Selectors in header of studio common to all pages
 export const header = {
   profileIcon: '#profile-icon-button',
-  profileIconDesigner: "img[aria-label*='profilikon']",
+  profileIconDesigner: "img[alt*='Profilikon']",
   profileIconName: texts['general.profile_icon'],
   menu: {
     item: '[role="menuitem"]',

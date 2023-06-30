@@ -44,8 +44,15 @@ context('Designer', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
     cy.findByRole('link', { name: designer.appMenu.editText }).click();
     cy.get("button[aria-label='Legg til ny side']").click();
+    cy.findByText('Navigasjonsknapper').should('be.visible');
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
     cy.get(designer.dragToArea).trigger('drop');
+    cy.wait(500);
+    cy.get(designer.dragToArea)
+      .find("[role='listitem']")
+      .then(($elements) => {
+        expect($elements.length).eq(2);
+      });
     cy.deletecomponents();
   });
 
