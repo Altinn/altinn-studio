@@ -145,6 +145,17 @@
         "readOnly": false
       },
       {
+        "id": "test-alert5",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Vedrørende navneendring",
+          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+        },
+        "severity": "danger",
+        "useAsAlert": true,
+        "hidden": ["not", ["equals", ["dataModel", "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"], "Ja"]]
+      },
+      {
         "id": "reason",
         "type": "RadioButtons",
         "textResourceBindings": {
@@ -479,6 +490,43 @@
         "validFileEndings": [".jpeg", ".jpg", ".pdf"],
         "optionsId": "tags"
       },
+      {
+        "id": "test-alert1",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Vedrørende navneendring",
+          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+        },
+        "severity": "success"
+      },
+      {
+        "id": "test-alert2",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Vedrørende navneendring",
+          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+        },
+        "severity": "info"
+      },
+      {
+        "id": "test-alert3",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Vedrørende navneendring",
+          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+        },
+        "severity": "warning"
+      },
+      {
+        "id": "test-alert4",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Vedrørende navneendring",
+          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+        },
+        "severity": "danger"
+      },
+
       {
         "id": "pageSummary",
         "type": "Header",
