@@ -23,7 +23,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository")]
+        [Route("designer/api/{org}/resources")]
         public async Task<ActionResult<RepositoryModel>> GetRepository(string org)
         {
             IList<RepositoryModel> repositories = await _giteaApi.GetOrgRepos(org);
@@ -40,7 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/resourcelist")]
+        [Route("designer/api/{org}/resources/resourcelist")]
         public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
         {
             string repository = string.Format("{0}-resources", org);
@@ -59,8 +59,8 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/{repository}")]
-        [Route("designer/api/{org}/resources/repository/{repository}/{id}")]
+        [Route("designer/api/{org}/resources/{repository}")]
+        [Route("designer/api/{org}/resources/{repository}/{id}")]
         public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id = "")
         {
             if (id != "")
@@ -76,29 +76,29 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/validate/{repository}")]
-        [Route("designer/api/{org}/resources/repository/validate/{repository}/{id}")]
+        [Route("designer/api/{org}/resources/validate/{repository}")]
+        [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
         public ActionResult<string> GetValidateResource(string org, string repository, string id = "")
         {
             return _repository.ValidateServiceResource(org, repository, id);
         }
 
         [HttpPut]
-        [Route("designer/api/{org}/resources/repository/updateresource/{id}")]
+        [Route("designer/api/{org}/resources/updateresource/{id}")]
         public ActionResult UpdateResource(string org, string id, [FromBody] ServiceResource resource)
         {
             return _repository.UpdateServiceResource(org, id, resource);
         }
 
         [HttpPost]
-        [Route("designer/api/{org}/resources/repository/addresource")]
+        [Route("designer/api/{org}/resources/addresource")]
         public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
         {
             return _repository.AddServiceResource(org, resource);
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/publish/{repository}/{id}")]
+        [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
         public Task<ActionResult> PublishResource(string org, string repository, string id)
         {
             return _repository.PublishResource(org, repository, id);
