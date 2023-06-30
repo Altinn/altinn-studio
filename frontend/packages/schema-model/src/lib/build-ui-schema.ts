@@ -41,8 +41,8 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
     uiNode.fieldType = findUiFieldType(schemaNode);
     uiNode.implicitType = schemaNode[Keyword.Type] === undefined;
     uiNode.reference = findReference(schemaNode[Keyword.Reference]);
-    uiNode.custom = findCustomAttributes(schemaNode);
-    uiNode.restrictions = findRestrictionsOnNode(schemaNode);
+    Object.assign(uiNode.restrictions, findRestrictionsOnNode(schemaNode));
+    Object.assign(uiNode.custom, findCustomAttributes(schemaNode));
     Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
     const uiSchemaNodes: UiSchemaNode[] = [uiNode];
 
