@@ -367,6 +367,20 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.fieldType).toEqual(stringNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(true);
     });
+
+    it("Updates the childrens' pointers", () => {
+      const { pointer } = parentNodeMock;
+      result = toggleArrayField(uiSchemaMock, pointer);
+      const updatedNode = getNodeByPointer(result, pointer);
+      expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
+      updatedNode.children.forEach((childPointer) => {
+        expect(childPointer.startsWith(`${pointer}/${Keyword.Items}`)).toBe(true);
+      });
+      getChildNodesByPointer(result, pointer).forEach((childNode) => {
+        expect(childNode.pointer.startsWith(`${pointer}/${Keyword.Items}`)).toBe(true);
+      });
+    });
+
   });
 
   describe('changeChildrenOrder', () => {

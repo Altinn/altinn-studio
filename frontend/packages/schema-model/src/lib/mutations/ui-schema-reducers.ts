@@ -24,6 +24,7 @@ import { castRestrictionType } from '../restrictions';
 import { renameNodePointer } from './rename-node';
 import { removeItemByValue, swapArrayElements } from 'app-shared/utils/arrayUtils';
 
+
 export type AddEnumValueArgs = {
   path: string;
   value: string;
@@ -268,13 +269,34 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
     return renameNodePointer(newSchema, nodeToRename.pointer, newPointer);
   };
 
-export const toggleArrayField: UiSchemaReducer<string> =
-  (uiSchema, pointer) => {
-    const newSchema = deepCopy(uiSchema);
-    const node = getNodeByPointer(newSchema, pointer);
-    node.isArray = !node.isArray;
-    return newSchema;
-  };
+
+// update the "children" pointers 
+//include items in the pointer path if isArray is toggled on, or
+// remove items from the pointer path if isArray is toggled off. 
+// if isArray is toggled on, add items to the pointer path
+export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => {
+  const newSchema = deepCopy(uiSchema);
+  const node = getNodeByPointer(newSchema, pointer);
+  node.isArray = !node.isArray;
+
+  if (node.isArray) {
+    node.children.forEach((child) => {
+      const childNode = getNodeByPointer(newSchema, child);
+      childNode.pointer.replace(childNode.pointer, makePointer(
+        childNode.pointer, Keyword.Items));
+    });
+  } else {
+    node.children.forEach((child) => {
+      const childNode = getNodeByPointer(newSchema, child);
+      // childNode.pointer = childNode.pointer.replace('/items/properties/', '/properties/group');
+
+    });
+  }
+
+  return newSchema;
+};
+
+
 
 export type ChangeChildrenOrderArgs = {
   pointerA: string;
