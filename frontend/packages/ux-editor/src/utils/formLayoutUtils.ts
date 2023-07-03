@@ -37,7 +37,7 @@ export const addSchemas = (schemas: any[]) => {
       }
     }
   });
-}
+};
 
 export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();

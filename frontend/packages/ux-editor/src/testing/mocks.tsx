@@ -98,7 +98,8 @@ export const queryClientMock = new QueryClient({
     error: () => {},
   },
   defaultOptions: {
-    queries: { staleTime: Infinity },
+    mutations: { retry: false },
+    queries: { retry: false, staleTime: Infinity },
   },
 });
 

@@ -1,8 +1,9 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent, MapComponentProps } from './MapComponent';
-import { renderWithMockStore, appDataMock } from '../../../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore, appDataMock } from '../../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 const texts: Record<string, string> = {
@@ -23,11 +24,19 @@ jest.mock(
   () => ({ useTranslation: () => mockUseTranslation(texts) }),
 );
 
-const renderMapComponent = ({
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+};
+
+const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = () => {}
 }: Partial<MapComponentProps>) => {
   const user = userEvent.setup();
+
+  await waitForData();
+
   renderWithMockStore({
     appData: { ...appDataMock }
   })(<MapComponent component={component} handleComponentChange={handleComponentChange} />);
@@ -35,14 +44,14 @@ const renderMapComponent = ({
 };
 
 describe('MapComponent', () => {
-  test('should render titles', () => {
-    renderMapComponent({});
+  test('should render titles', async () => {
+    await renderMapComponent({});
     expect(screen.getByRole('heading', { level: 2, name: 'Sentrum av kartet' }));
     expect(screen.getByRole('heading', { level: 2, name: 'Legg til kartlag' }));
   });
 
-  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', () => {
-    renderMapComponent({});
+  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', async () => {
+    await renderMapComponent({});
     expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
     expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
     expect(screen.getByLabelText('Standard zoom')).toBeInTheDocument();
@@ -50,7 +59,7 @@ describe('MapComponent', () => {
 
   test('should be able to set latitude', async () => {
     const handleComponentChangeMock = jest.fn();
-    const { user } = renderMapComponent({
+    const { user } = await renderMapComponent({
       handleComponentChange: handleComponentChangeMock
     });
 
@@ -64,7 +73,7 @@ describe('MapComponent', () => {
 
   test('should be able to set longitude', async () => {
     const handleComponentChangeMock = jest.fn();
-    const { user } = renderMapComponent({
+    const { user } = await renderMapComponent({
       handleComponentChange: handleComponentChangeMock
     });
 
@@ -78,7 +87,7 @@ describe('MapComponent', () => {
 
   test('should be able to set zoom', async () => {
     const handleComponentChangeMock = jest.fn();
-    const { user } = renderMapComponent({
+    const { user } = await renderMapComponent({
       handleComponentChange: handleComponentChangeMock
     });
 

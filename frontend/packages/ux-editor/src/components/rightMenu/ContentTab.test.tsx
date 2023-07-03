@@ -1,6 +1,6 @@
 import React from 'react';
 import { ContentTab } from './ContentTab';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
@@ -10,8 +10,10 @@ import type { ITextResourcesState } from '../../features/appData/textResources/t
 import {
   appDataMock,
   renderWithMockStore,
+  renderHookWithMockStore,
   textResourcesMock,
 } from '../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
 const user = userEvent.setup();
 
@@ -91,6 +93,11 @@ describe('ContentTab', () => {
   });
 });
 
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+};
+
 const render = async (props: Partial<FormContext> = {}, editId?: string) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
@@ -100,6 +107,8 @@ const render = async (props: Partial<FormContext> = {}, editId?: string) => {
     ...appDataMock,
     textResources
   };
+
+  await waitForData();
 
   return renderWithMockStore({ appData })(
     <FormContext.Provider value={{

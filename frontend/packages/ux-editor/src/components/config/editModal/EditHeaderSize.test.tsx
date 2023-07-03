@@ -2,7 +2,8 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -21,8 +22,15 @@ jest.mock('react-i18next', () => ({
 const getComboBox = () => screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' });
 const getComboBoxValue = () => getComboBox().getAttribute("value");
 
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+};
+
 const render = async ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
-  renderWithMockStore()(
+  await waitForData();
+
+  return renderWithMockStore()(
     <EditHeaderSize
       handleComponentChange={handleComponentChange}
       component={{
@@ -37,57 +45,56 @@ const render = async ({ size = undefined, handleComponentChange = jest.fn() } = 
       }}
     />,
   );
-  await waitFor(getComboBox);
 };
 
 describe('HeaderSizeSelect', () => {
-  it('should show selected title size as h4 when no size is set', () => {
-    render();
+  it('should show selected title size as h4 when no size is set', async () => {
+    await render();
 
-    expect(getComboBoxValue()).toBe(h4Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h4Text));
   });
 
-  it('should show selected title size as h4 when "h4" size is set', () => {
-    render({ size: 'h4' });
+  it('should show selected title size as h4 when "h4" size is set', async () => {
+    await render({ size: 'h4' });
 
-    expect(getComboBoxValue()).toBe(h4Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h4Text));
   });
 
-  it('should show selected title size as h4 when "S" size is set', () => {
-    render({ size: 'S' });
+  it('should show selected title size as h4 when "S" size is set', async () => {
+    await render({ size: 'S' });
 
-    expect(getComboBoxValue()).toBe(h4Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h4Text));
   });
 
-  it('should show selected title size as h3 when "h3" size is set', () => {
-    render({ size: 'h3' });
+  it('should show selected title size as h3 when "h3" size is set', async () => {
+    await render({ size: 'h3' });
 
-    expect(getComboBoxValue()).toBe(h3Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h3Text));
   });
 
-  it('should show selected title size as h3 when "M" size is set', () => {
-    render({ size: 'M' });
+  it('should show selected title size as h3 when "M" size is set', async () => {
+    await render({ size: 'M' });
 
-    expect(getComboBoxValue()).toBe(h3Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h3Text));
   });
 
-  it('should show selected title size as h2 when "h2" size is set', () => {
-    render({ size: 'h2' });
+  it('should show selected title size as h2 when "h2" size is set', async () => {
+    await render({ size: 'h2' });
 
-    expect(getComboBoxValue()).toBe(h2Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h2Text));
   });
 
-  it('should show selected title size as h2 when "L" size is set', () => {
-    render({ size: 'L' });
+  it('should show selected title size as h2 when "L" size is set', async () => {
+    await render({ size: 'L' });
 
-    expect(getComboBoxValue()).toBe(h2Text);
+    await waitFor(() => expect(getComboBoxValue()).toBe(h2Text));
   });
 
-  it('should call handleUpdateHeaderSize when size is changed', () => {
+  it('should call handleUpdateHeaderSize when size is changed', async () => {
     const handleComponentChange = jest.fn();
-    render({ handleComponentChange, size: 'h4' });
+    await render({ handleComponentChange, size: 'h4' });
 
-    const h2Select = screen.getByText(h2Text);
+    const h2Select = await screen.findByText(h2Text);
 
     fireEvent.click(h2Select);
 

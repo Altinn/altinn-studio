@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
 import { FormPanelComponent, FormPanelVariant } from '../../../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
@@ -30,8 +31,10 @@ const user = userEvent.setup();
 const waitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
 };
 
 const render = async () => {

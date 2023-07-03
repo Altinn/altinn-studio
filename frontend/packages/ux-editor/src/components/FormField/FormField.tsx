@@ -44,7 +44,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
   const { data: layoutSchema } = useLayoutSchemaQuery();
 
   const [propertyId] = useState(propertyPath ? `${layoutSchema.$id}#/${propertyPath}`: null);
-  const [isRequired] = useState(customRequired || propertyPath && isPropertyRequired(layoutSchema, propertyPath));
+  const [isRequired] = useState(customRequired || (propertyPath ? isPropertyRequired(layoutSchema, propertyPath) : false));
 
   const validate = useCallback((newValue: T | TT) => {
     if (newValue === undefined || newValue === null || newValue === '') {

@@ -101,6 +101,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
   };
 
   const handleChange = (value: string): void => {
+    if (!searchFieldFocused) setSearchFieldFocused(true);
     setAutocompleteText(value);
   };
 
