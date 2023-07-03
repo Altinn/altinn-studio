@@ -67,6 +67,7 @@ export const ImageComponent = ({
   return (
     <FieldSet className={classes.root}>
       <FormField
+        id={component.id}
         label={t('ux_editor.modal_properties_image_src_value_label')}
         onChange={handleSourceChange}
         value={nbSrc && { nb: nbSrc }}
@@ -86,6 +87,7 @@ export const ImageComponent = ({
       />
       <div className={classes.widthAndPlacement}>
         <FormField
+          id={component.id}
           className={classes.widthContainer}
           label={t('ux_editor.modal_properties_image_width_label')}
           onChange={handleWidthChange}
@@ -95,6 +97,7 @@ export const ImageComponent = ({
           {({ onChange }) => <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
         </FormField>
         <FormField
+          id={component.id}
           className={classes.placementContainer}
           label={t('ux_editor.modal_properties_image_placement_label')}
           onChange={handlePlacementChange}

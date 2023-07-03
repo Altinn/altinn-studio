@@ -30,6 +30,7 @@ export const PanelComponent = ({
         placeholderKey='ux_editor.modal_text_resource_body_add'
       />
       <FormField
+        id={component.id}
         label={t('ux_editor.show_icon')}
         value={component?.showIcon}
         onChange={handleShowIconClick}
@@ -41,6 +42,7 @@ export const PanelComponent = ({
         />}
       </FormField>
       <FormField
+        id={component.id}
         label={t('ux_editor.choose_variant')}
         value={component.variant || 'info'}
         onChange={handleVariantClick}

@@ -31,6 +31,7 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
 
   return (
     <FormField
+      id={component.id}
       label={mapComponentTypeToText(component.type as ComponentType)}
       value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex}
       onChange={handlePreselectedOptionChange}

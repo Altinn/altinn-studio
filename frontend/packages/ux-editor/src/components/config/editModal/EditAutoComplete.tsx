@@ -77,7 +77,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
 
   useEffect(() => {
     setAutocompleteText(initialAutocompleteText);
-  }, [initialAutocompleteText]);
+  }, [initialAutocompleteText, component.id]);
 
   const autoCompleteOptions = useMemo((): string[] => {
     const lastWord = getLastWord(autocompleteText);
@@ -107,9 +107,10 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
   return (
     <div>
       <FormField
+        id={component.id}
         label='Autocomplete (WCAG)'
         value={autocompleteText}
-        onChange={handleChange}
+        onChange={handleWordClick}
         propertyPath={`${component.propertyPath}/properties/autocomplete`}
       >
         {
@@ -118,16 +119,20 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
             onBlur={(): void => {
               if (searchFieldFocused) setSearchFieldFocused(false);
             }}
-            onChange={(event) => onChange(event.target.value, event)}
+            onChange={(event) => {
+              const { value } = event.target;
+              handleChange(value);
+              onChange(value);
+            }}
           />
         }
       </FormField>
       <Popover
-      variant={PopoverVariant.Default}
-      open={searchFieldFocused && autoCompleteOptions.length > 0}
-      placement='bottom-start'
-      arrow={false}
-      trigger={<div />}
+        variant={PopoverVariant.Default}
+        open={searchFieldFocused && autoCompleteOptions.length > 0}
+        placement='bottom-start'
+        arrow={false}
+        trigger={<div />}
       >
       {autoCompleteOptions.map(
         (option): JSX.Element => (

@@ -136,6 +136,7 @@ export const EditFormContainer = ({
   return (
     <FieldSet className={classes.fieldset}>
       <FormField
+        id={container.id}
         label={t('ux_editor.modal_properties_group_change_id')}
         value={container.id}
         propertyPath='definitions/component/properties/id'
@@ -157,6 +158,7 @@ export const EditFormContainer = ({
         {({ onChange }) => <TextField name={`group-id${container.id}`} onChange={(e) => onChange(e.target.value, e)} />}
       </FormField>
       <FormField
+        id={container.id}
         label={t('ux_editor.modal_properties_group_repeating')}
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
@@ -173,6 +175,7 @@ export const EditFormContainer = ({
             onDataModelChange={handleDataModelGroupChange}
           />
           <FormField
+            id={container.id}
             label={t('ux_editor.modal_properties_group_max_occur')}
             onChange={handleMaxOccurChange}
             value={container.maxCount}
@@ -194,6 +197,7 @@ export const EditFormContainer = ({
           />
           {items?.length > 0 && (
             <FormField
+              id={container.id}
               onChange={handleTableHeadersChange}
               value={items
                 .filter((id) => !!components[id])

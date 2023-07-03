@@ -15,24 +15,29 @@ import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import { FormItemConfigs } from '../data/formItemConfig';
+import { FormItemConfigs, formItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
 import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import numberFormatSchema from '../schemas/json/layout/number-format.schema.v1.json';
-import expressionSchema from '../schemas/json/layout/expression.schema.v1.json';
-import layoutSchema from '../schemas/json/layout/layout.schema.v1.json';
 import Ajv from "ajv";
-import type { ErrorObject } from "ajv";
 import addFormats from "ajv-formats"
+import type { ErrorObject } from "ajv";
 
 const ajv = new Ajv({
   allErrors: true,
   strict: false,
 });
-ajv.addSchema(expressionSchema);
-ajv.addSchema(numberFormatSchema);
-ajv.addSchema(layoutSchema);
 addFormats(ajv);
+
+export const addSchemas = (schemas: any[]) => {
+  schemas.forEach((schema) => {
+    if (schema) {
+      const validate = ajv.getSchema(schema?.$id);
+      if (!validate) {
+        ajv.addSchema(schema);
+      }
+    }
+  });
+}
 
 export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();
@@ -51,6 +56,7 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
         delete rest.component;
       }
       rest.itemType = 'COMPONENT';
+      rest.propertyPath = formItemConfigs[rest.type].defaultProperties.propertyPath;
       convertedLayout.components[id] = {
         id,
         ...rest
@@ -130,13 +136,14 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
   for (const id of order[BASE_CONTAINER_ID]) {
     if (components[id] && !groupChildren.includes(id)) {
       delete components[id].itemType;
+      delete components[id].propertyPath;
       formLayout.push({
         id,
         type: components[id].type,
         ...components[id],
       });
     } else if (containers[id]) {
-      const { itemType, ...restOfGroup } = containers[id];
+      const { itemType, propertyPath, ...restOfGroup } = containers[id];
       formLayout.push({
         id,
         type: ComponentType.Group,
@@ -146,6 +153,7 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
       order[id].forEach((componentId: string) => {
         if (components[componentId]) {
           delete components[componentId].itemType;
+          delete components[componentId].propertyPath;
           formLayout.push({
             id: componentId,
             type: components[componentId].type,
@@ -168,7 +176,7 @@ function extractChildrenFromGroupInternal(
   groupId: string
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { itemType, ...restOfGroup } = containers[groupId];
+  const { itemType, propertyPath, ...restOfGroup } = containers[groupId];
   formLayout.push({
     id: groupId,
     type: ComponentType.Group,
@@ -178,6 +186,7 @@ function extractChildrenFromGroupInternal(
   order[groupId].forEach((childId: string) => {
     if (components[childId]) {
       delete components[childId].itemType;
+      delete components[childId].propertyPath;
       formLayout.push({
         id: childId,
         ...components[childId],
@@ -197,6 +206,7 @@ export function extractChildrenFromGroup(
   convertedLayout.containers[id] = {
     ...restOfGroup,
     itemType: 'CONTAINER',
+    propertyPath: formItemConfigs[type].defaultProperties.propertyPath,
   };
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
@@ -208,6 +218,7 @@ export function extractChildrenFromGroup(
       convertedLayout.components[componentId] = {
         ...component,
         itemType: 'COMPONENT',
+        propertyPath: formItemConfigs[component.type].defaultProperties.propertyPath,
       } as FormComponent;
     }
   });
@@ -251,21 +262,18 @@ export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
   return Object.values(components).map(({ type }) => type).includes(ComponentType.NavigationButtons);
 }
 
-export const getPropertyByPath = (path: string) => {
-  return { ...path.split('/').reduce((o, p) => (o || {})[p], layoutSchema) };
+export const getPropertyByPath = (schema: any, path: string) => {
+  return { ...path.split('/').reduce((o, p) => (o || {})[p], schema) };
 }
 
-export const isPropertyRequired = (propertyPath: string) : boolean => {
-  const parent = getPropertyByPath(propertyPath.substring(0, propertyPath.lastIndexOf('/properties')));
+export const isPropertyRequired = (schema: any, propertyPath: string) : boolean => {
+  const parent = getPropertyByPath(schema, propertyPath.substring(0, propertyPath.lastIndexOf('/properties')));
   return parent?.required?.includes(propertyPath.split('/').pop());
 }
 
-export const getPropertyId = (propertyPath: string) : string => {
-  return `${layoutSchema.$id}#/${propertyPath}`;
-}
-
-export const validateLayout = (layout: ExternalFormLayout) : ErrorObject[] | null => {
-  ajv.validate(layoutSchema, layout);
+export const validateLayout = (schemaId: string, layout: ExternalFormLayout) : ErrorObject[] | null => {
+  const validate = ajv.getSchema(schemaId);
+  if (validate) validate(layout);
   return ajv.errors;
 }
 
@@ -277,7 +285,6 @@ export const validateProperty = (value: any, propertyId: string) :  string => {
   const isCurrentComponentError = firstError?.instancePath === '';
   return isCurrentComponentError ? firstError?.keyword : null;
 }
-
 
 /**
  * Finds the id of a component or a container's parent container.

@@ -21,6 +21,10 @@ import { PageSpinner } from 'app-shared/components';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { useExpressionSchemaQuery } from '../hooks/queries/useExpressionSchemaQuery';
+import { useNumberFormatSchema } from '../hooks/queries/useNumberFormatSchema';
+import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
+import { addSchemas } from '../utils/formLayoutUtils';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -39,6 +43,11 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const layoutOrder = useMemo(() => formLayouts?.[selectedLayout]?.order || {}, [formLayouts, selectedLayout]);
   const t = useText();
+
+  const { data: expressionSchema } = useExpressionSchemaQuery();
+  const { data: numberFormatSchema } = useNumberFormatSchema();
+  const { data: layoutSchema } = useLayoutSchemaQuery();
+  addSchemas([expressionSchema, numberFormatSchema, layoutSchema]);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 

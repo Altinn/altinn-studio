@@ -45,6 +45,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
           </p>
           {!useCustomCodeList && (
             <FormField
+              id={component.id}
               label={t('ux_editor.modal_properties_code_list_id')}
               onChange={handleOptionsIdChange}
               value={component.optionsId}

@@ -24,6 +24,7 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
 
   return (
     <FormField
+      id={component.id}
       label={t('ux_editor.modal_properties_component_change_id')}
       value={component.id}
       onChange={handleIdChange}

@@ -16,6 +16,7 @@ export const EditRequired = ({ component, handleComponentChange }: IGenericEditC
 
   return (
     <FormField
+      id={component.id}
       label={t('ux_editor.modal_configure_required')}
       value={component.required}
       onChange={handleChange}

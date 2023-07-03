@@ -136,6 +136,7 @@ export function EditOptions({
       )}
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <FormField
+          id={component.id}
           value={component.options}
           propertyPath={`${component.propertyPath}/properties/options`}
         >

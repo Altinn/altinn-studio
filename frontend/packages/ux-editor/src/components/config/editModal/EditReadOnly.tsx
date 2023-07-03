@@ -16,6 +16,7 @@ export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditC
 
   return (
     <FormField
+      id={component.id}
       label={t('ux_editor.modal_configure_read_only')}
       value={component.readOnly}
       onChange={handleChange}

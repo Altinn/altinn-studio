@@ -4,6 +4,7 @@ import classes from './FormField.module.css';
 import { useText } from '../../hooks';
 import { validateProperty, isPropertyRequired, getPropertyId } from '../../utils/formLayoutUtils';
 import { TranslationKey } from 'language/type';
+import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
 export type FormFieldChildProps<TT> = {
   errorCode: string;
@@ -14,6 +15,7 @@ export type FormFieldChildProps<TT> = {
 }
 
 export interface FormFieldProps<T, TT> {
+  id?: string;
   className?: string;
   label?: string;
   value: T;
@@ -26,6 +28,7 @@ export interface FormFieldProps<T, TT> {
 }
 
 export const FormField = <T extends unknown, TT extends unknown>({
+  id,
   className,
   label,
   value,
@@ -38,9 +41,11 @@ export const FormField = <T extends unknown, TT extends unknown>({
 }: FormFieldProps<T, TT>): JSX.Element => {
   const t = useText();
 
+  const { data: layoutSchema } = useLayoutSchemaQuery();
+
   const [tmpValue, setTmpValue] = useState<T | TT>(value);
-  const [isRequired] = useState(customRequired || propertyPath && isPropertyRequired(propertyPath));
-  const [propertyId] = useState(getPropertyId(propertyPath));
+  const [isRequired] = useState(customRequired || propertyPath && isPropertyRequired(layoutSchema, propertyPath));
+  const [propertyId] = useState(`${layoutSchema.$id}#/${propertyPath}`);
 
   const validate = useCallback((newValue: T | TT) => {
     if (newValue === undefined || newValue === null || newValue === '') {
@@ -61,11 +66,8 @@ export const FormField = <T extends unknown, TT extends unknown>({
 
   useEffect(() => {
     setTmpValue(value);
-  }, [value]);
-
-  useEffect(() => {
-    setErrorCode(validate(tmpValue));
-  }, [tmpValue, validate]);
+    setErrorCode(validate(value));
+  }, [value, id, validate]);
 
   const handleOnTextFieldChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
     const errCode = validate(newValue);

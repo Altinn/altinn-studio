@@ -62,6 +62,7 @@ export const FileUploadComponent = ({
   return (
     <FieldSet className={classes.fieldset}>
       <FormField
+        id={component.id}
         onChange={handleHasCustomFileEndingsChange}
         value={fileUploaderComponent.hasCustomFileEndings}
         propertyPath={`${component.propertyPath}/properties/hasCustomFileEndings`}
@@ -84,6 +85,7 @@ export const FileUploadComponent = ({
       </FormField>
       {fileUploaderComponent.hasCustomFileEndings && (
         <FormField
+          id={component.id}
           label={t('ux_editor.modal_properties_valid_file_endings_helper')}
           onChange={handleValidFileEndingsChange}
           value={fileUploaderComponent.validFileEndings}
@@ -94,6 +96,7 @@ export const FileUploadComponent = ({
       )}
       {component.type === ComponentType.FileUpload && (
         <FormField
+          id={component.id}
           onChange={handleDisplayModeChange}
           value={fileUploaderComponent.displayMode}
           propertyPath={`${component.propertyPath}/properties/displayMode`}
@@ -115,6 +118,7 @@ export const FileUploadComponent = ({
         </FormField>
       )}
       <FormField
+        id={component.id}
         label={t('ux_editor.modal_properties_minimum_files')}
         onChange={handleNumberOfAttachmentsChange('min')}
         value={fileUploaderComponent.minNumberOfAttachments || 0}
@@ -127,6 +131,7 @@ export const FileUploadComponent = ({
         />}
       </FormField>
       <FormField
+        id={component.id}
         label={t('ux_editor.modal_properties_maximum_files')}
         onChange={handleNumberOfAttachmentsChange('max')}
         value={fileUploaderComponent.maxNumberOfAttachments || 1}
@@ -139,6 +144,7 @@ export const FileUploadComponent = ({
         />}
       </FormField>
       <FormField
+        id={component.id}
         label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t(
           'ux_editor.modal_properties_maximum_file_size_helper'
         )})`}

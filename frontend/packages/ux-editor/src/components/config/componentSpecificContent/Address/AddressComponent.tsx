@@ -24,6 +24,7 @@ export const AddressComponent = ({
   return (
     <FieldSet className={classes.root}>
       <FormField
+        id={component.id}
         label={t('ux_editor.modal_configure_address_component_simplified')}
         value={(component as FormAddressComponent).simplified}
         onChange={handleToggleAddressSimple}

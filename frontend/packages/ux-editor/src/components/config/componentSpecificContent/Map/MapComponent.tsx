@@ -41,6 +41,7 @@ export const MapComponent = ({
         <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
         <div className={classes.formGroup}>
           <FormField
+            id={component.id}
             label={t('ux_editor.latitude_label')}
             value={component.centerLocation?.latitude}
             onChange={(value: number) => handleCenterLocationChange(value, 'latitude')}
@@ -52,6 +53,7 @@ export const MapComponent = ({
             {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
           </FormField>
           <FormField
+            id={component.id}
             label={t('ux_editor.longitude_label')}
             value={component.centerLocation?.longitude}
             onChange={(value: number) => handleCenterLocationChange(value, 'longitude')}
@@ -66,6 +68,7 @@ export const MapComponent = ({
       </div>
       <div>
         <FormField
+          id={component.id}
           label={t('ux_editor.adjust_zoom')}
           value={component.zoom}
           onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
@@ -156,6 +159,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               />
             </div>
             <FormField
+              id={component.id}
               label={t('ux_editor.url_label')}
               value={layer.url || ''}
               onChange={(value, event) => handleOnLayerChange(index, event)}
@@ -168,6 +172,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
             </FormField>
             <div className={classes.formGroup}>
               <FormField
+                id={component.id}
                 label={t('ux_editor.attribution_label')}
                 value={layer.attribution || ''}
                 onChange={(value, event) => handleOnLayerChange(index, event)}
@@ -176,6 +181,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 {({ onChange }) => <TextField name='attribution' onChange={(e) => onChange(e.target.value, e)} />}
               </FormField>
               <FormField
+                id={component.id}
                 label={t('ux_editor.subdomains_label')}
                 value={layer?.subdomains || []}
                 onChange={(value: FormMapLayer[]) => handleOnSubDomainChange(value)}

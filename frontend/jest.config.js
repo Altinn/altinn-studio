@@ -26,7 +26,7 @@ const config = {
     '\\.(ts|tsx|js)': '@swc/jest',
     [`node_modules(\\\\|/)(${packagesToTransform})(\\\\|/).+\\.(j|t)sx?$`]: '@swc/jest',
   },
-  transformIgnorePatterns: [`node_modules(\\\\|/)(?!${packagesToTransform})`, 'frontend/packages/ux-editor/src/schemas/'],
+  transformIgnorePatterns: [`node_modules(\\\\|/)(?!${packagesToTransform})`, 'frontend/packages/ux-editor/src/testing/schemas/'],
   reporters: ['default', 'jest-junit'],
   moduleNameMapper: {
     // prettier-ignore

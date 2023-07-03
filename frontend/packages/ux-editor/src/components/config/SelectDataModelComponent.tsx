@@ -52,6 +52,7 @@ export const SelectDataModelComponent = ({
 
     return (
       <FormField
+        id={inputId}
         onChange={onChangeSelectedBinding}
         value={selectedElement ? { value: selectedElement, label: selectedElement } : null}
         propertyPath='definitions/component/properties/dataModelBindings'
