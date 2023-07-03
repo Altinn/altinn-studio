@@ -57,6 +57,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         });
       }
 
+
       const startValue = Object.assign({}, customFields);
 
       // Adding combination root array to start
@@ -120,6 +121,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         JSONPointer.set(out, jsonPointer, undefined);
       }
     });
+  console.log(nodes);
 
   return validateObject(out);
 };
