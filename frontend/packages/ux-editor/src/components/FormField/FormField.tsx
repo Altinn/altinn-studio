@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ErrorMessage } from '@digdir/design-system-react';
 import classes from './FormField.module.css';
 import { useText } from '../../hooks';
-import { validateProperty, isPropertyRequired, getPropertyId } from '../../utils/formLayoutUtils';
+import { validateProperty, isPropertyRequired } from '../../utils/formLayoutUtils';
 import { TranslationKey } from 'language/type';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
@@ -43,9 +43,8 @@ export const FormField = <T extends unknown, TT extends unknown>({
 
   const { data: layoutSchema } = useLayoutSchemaQuery();
 
-  const [tmpValue, setTmpValue] = useState<T | TT>(value);
+  const [propertyId] = useState(propertyPath ? `${layoutSchema.$id}#/${propertyPath}`: null);
   const [isRequired] = useState(customRequired || propertyPath && isPropertyRequired(layoutSchema, propertyPath));
-  const [propertyId] = useState(`${layoutSchema.$id}#/${propertyPath}`);
 
   const validate = useCallback((newValue: T | TT) => {
     if (newValue === undefined || newValue === null || newValue === '') {
@@ -57,20 +56,21 @@ export const FormField = <T extends unknown, TT extends unknown>({
       if (customValidation) return customValidation;
     }
 
-    if (propertyPath) return validateProperty(newValue, propertyId);
+    if (propertyId) return validateProperty(newValue, propertyId);
 
     return null;
-  }, [customValidationRules, isRequired, propertyId, propertyPath])
+  }, [customValidationRules, isRequired, propertyId]);
 
-  const [errorCode, setErrorCode] = useState(validate(tmpValue));
+  const [tmpValue, setTmpValue] = useState<T | TT>(value);
+  const [errorCode, setErrorCode] = useState(validate(value));
 
   useEffect(() => {
     setTmpValue(value);
-    setErrorCode(validate(value));
-  }, [value, id, validate]);
+  }, [value, id]);
 
   const handleOnTextFieldChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
     const errCode = validate(newValue);
+    setErrorCode(errCode);
     if (!errCode) onChange(newValue, event, errorCode);
     setTmpValue(newValue);
   };

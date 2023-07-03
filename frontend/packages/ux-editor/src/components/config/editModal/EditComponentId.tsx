@@ -30,7 +30,7 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
       onChange={handleIdChange}
       propertyPath='definitions/component/properties/id'
       customValidationRules={(value: string) => {
-        if (idExists(value, components, containers) && value !== component.id) {
+        if (value !== component.id && idExists(value, components, containers)) {
           return "unique";
         }
       }}

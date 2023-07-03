@@ -141,7 +141,7 @@ export const EditFormContainer = ({
         value={container.id}
         propertyPath='definitions/component/properties/id'
         customValidationRules={(value: string) => {
-          if (idExists(value, components, containers) && value !== container.id) {
+          if (value !== container.id && idExists(value, components, containers)) {
             return 'unique';
           }
         }}
