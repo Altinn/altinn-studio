@@ -101,11 +101,23 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     });
   };
 
-  const handleOnSubDomainChange = (layers: FormMapLayer[]): void => {
+  const handleOnSubDomainChange = (index: number, value: string[]): void => {
+    const layers = updateLayer(index, value);
     handleComponentChange({
       ...component,
       layers,
     });
+  };
+
+  const updateLayer = (index: number, subdomains: string[]): FormMapLayer[] => {
+    return [
+      ...component.layers.slice(0, index),
+      {
+        ...component.layers[index],
+        subdomains,
+      },
+      ...component.layers.slice(index + 1),
+    ]
   };
 
   const handleAddLayer = (): void => {
@@ -129,17 +141,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       layers,
     });
   };
-
-  const convertToLayer = (index: number, value: string): FormMapLayer[] => {
-    return [
-      ...component.layers.slice(0, index),
-      {
-        ...component.layers[index],
-        subdomains: stringToArray(value),
-      },
-      ...component.layers.slice(index + 1),
-    ]
-  }
 
   return (
     <>
@@ -184,13 +185,13 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 id={component.id}
                 label={t('ux_editor.subdomains_label')}
                 value={layer?.subdomains || []}
-                onChange={(value: FormMapLayer[]) => handleOnSubDomainChange(value)}
+                onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
               >
                 {({ value, onChange }) => <TextField
                   name='subdomains'
                   placeholder={t('ux_editor.subdomains_placeholder')}
-                  onChange={(e) => onChange(convertToLayer(index, e.target.value), e)}
+                  onChange={(e) => onChange(stringToArray(e.target.value), e)}
                   value={arrayToString(value) || ''}
                 />}
               </FormField>

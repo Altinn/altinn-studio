@@ -169,7 +169,7 @@ describe('AddMapLayer', () => {
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [{
         attribution: undefined,
-        subdomains: ['[object Object]t'],
+        subdomains: ['test'],
         url: undefined
       }]
     });
