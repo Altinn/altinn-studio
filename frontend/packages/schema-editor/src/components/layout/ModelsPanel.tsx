@@ -5,7 +5,7 @@ import classes from './ModelsPanel.module.css';
 import { IconImage } from '../common/Icon';
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
 import { SchemaEditorTestIds } from '../SchemaEditor';
-import { addRootItem } from '../../features/editor/schemaEditorSlice';
+import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
@@ -13,11 +13,14 @@ import {
   Keyword,
   makePointer,
   ObjectKind,
+  addRootItem,
 } from '@altinn/schema-model';
 import { useDispatch, useSelector } from 'react-redux';
 import type { SchemaState } from '../../types';
 import type { PanelProps } from './layoutTypes';
 import { useTranslation } from 'react-i18next';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
 export type ModelsPanelProps = PanelProps & {
   expandedPropNodes: string[];
@@ -33,6 +36,8 @@ export const ModelsPanel = ({
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
   const selectedPropertyNodeId = useSelector((state: SchemaState) => state.selectedPropertyNodeId);
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newNode: Partial<UiSchemaNode> = { objectKind };
@@ -43,11 +48,12 @@ export const ModelsPanel = ({
       newNode.fieldType = CombinationKind.AllOf;
     }
     newNode.reference = objectKind === ObjectKind.Reference ? '' : undefined;
-    dispatch(
-      addRootItem({
+    mutate(
+      addRootItem(data, {
         name: 'name',
         location: makePointer(Keyword.Properties),
         props: newNode,
+        callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer)),
       })
     );
   };

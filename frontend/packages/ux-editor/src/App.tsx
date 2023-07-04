@@ -85,7 +85,8 @@ export function App() {
         <ErrorMessageComponent />
         <FormDesigner
           selectedLayout={selectedLayout}
-          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}/>
+          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
+        />
       </>
     );
   }

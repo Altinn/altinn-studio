@@ -69,7 +69,6 @@ __metadata:
     react-dom: 18.2.0
     react-redux: 8.0.7
     redux: 4.2.1
-    redux-saga: 1.2.3
   languageName: unknown
   linkType: soft
 

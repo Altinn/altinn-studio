@@ -61,7 +61,7 @@ export const addRootItem: UiSchemaReducer<AddRootItemArgs> =
 export type AddPropertyArgs = {
   pointer: string;
   props: Partial<UiSchemaNode>;
-  callback: (pointer: string) => void;
+  callback?: (pointer: string) => void;
 };
 export const addProperty: UiSchemaReducer<AddPropertyArgs> =
   (uiSchema: UiSchemaNodes, { pointer, props, callback }) => {
@@ -75,7 +75,7 @@ export const addProperty: UiSchemaReducer<AddPropertyArgs> =
       makePointer(pointerBase, Keyword.Properties, 'name')
     );
     addToNode.children.push(newNodePointer);
-    callback(newNodePointer);
+    callback && callback(newNodePointer);
     props.implicitType = false;
     newSchema.push(Object.assign(createNodeBase(newNodePointer), props));
     return newSchema;

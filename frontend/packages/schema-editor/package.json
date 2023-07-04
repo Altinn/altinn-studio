@@ -19,8 +19,7 @@
     "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.2.0",
     "react-redux": "8.0.7",
-    "redux": "4.2.1",
-    "redux-saga": "1.2.3"
+    "redux": "4.2.1"
   },
   "private": true,
   "scripts": {

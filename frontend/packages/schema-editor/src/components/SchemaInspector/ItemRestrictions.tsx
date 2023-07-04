@@ -4,13 +4,12 @@ import { pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import {
-  addEnum,
-  deleteEnum,
+  addEnumValue,
+  deleteEnumValue,
   setRequired,
   setRestriction,
   setRestrictions,
-} from '../../features/editor/schemaEditorSlice';
-import { useDispatch } from 'react-redux';
+} from '@altinn/schema-model';
 import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
 import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
@@ -29,6 +28,8 @@ import { Divider } from 'app-shared/primitives';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -49,33 +50,23 @@ export const ItemRestrictions = ({
   restrictions,
   fieldType,
 }: ItemRestrictionsProps) => {
-  const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
 
   const [enumError, setEnumError] = useState<string>(null);
 
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
     if (checked !== isRequired) {
-      dispatch(
-        setRequired({
-          path: pointer,
-          required: checked,
-        })
-      );
+      mutate(setRequired(data, { path: pointer, required: checked }));
     }
   };
 
   const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
-    dispatch(
-      setRestriction({
-        path,
-        key,
-        value,
-      })
-    );
+    mutate(setRestriction(data, { path, key, value }));
 
   const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
-    dispatch(setRestrictions({ path, restrictions: changedRestrictions }));
+    mutate(setRestrictions(data, { path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     if (value === oldValue) return;
@@ -84,25 +75,15 @@ export const ItemRestrictions = ({
       setEnumError(value);
     } else {
       setEnumError(null);
-      dispatch(
-        addEnum({
-          path: pointer,
-          value,
-          oldValue,
-        })
-      );
+      mutate(addEnumValue(data, { path: pointer, value, oldValue }));
     }
   };
 
-  const onDeleteEnumClick = (path: string, value: string) => dispatch(deleteEnum({ path, value }));
+  const onDeleteEnumClick = (path: string, value: string) =>
+    mutate(deleteEnumValue(data, { path, value }));
 
   const dispatchAddEnum = () =>
-    dispatch(
-      addEnum({
-        path: pointer,
-        value: 'value',
-      })
-    );
+    mutate(addEnumValue(data, { path: pointer, value: 'value' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
