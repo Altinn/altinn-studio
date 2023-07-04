@@ -515,10 +515,26 @@
           "title": "Text",
           "description": "The text or text resource ID to be rendered in the cell",
           "type": "string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "The help text or text resource ID to be rendered in the cell",
+          "type": "string"
         }
       },
       "$ref": "#/definitions/tableColumnOptions",
       "required": ["text"]
+    },
+    "gridLabelText": {
+      "properties": {
+        "labelFrom": {
+          "title": "Label from",
+          "description": "The ID of the component to be used to render text resources in the cell",
+          "type": "string"
+        }
+      },
+      "$ref": "#/definitions/tableColumnOptions",
+      "required": ["labelFrom"]
     },
     "gridCellComponent": {
       "properties": {

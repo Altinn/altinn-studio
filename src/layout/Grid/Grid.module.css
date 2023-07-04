@@ -40,3 +40,21 @@ tr > .fullWidthCellLast {
 .tableCellFormatting:last-child {
   width: calc(var(--cell-width) + 8.15%);
 }
+
+.textCell,
+.textLabel,
+.textLabel div {
+  display: flex;
+}
+
+.textLabel {
+  margin-top: 12px;
+}
+
+.textLabel div {
+  flex-wrap: nowrap;
+}
+
+.textLabel button {
+  align-self: flex-start;
+}

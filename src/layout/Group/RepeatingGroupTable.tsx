@@ -185,6 +185,7 @@ export function RepeatingGroupTable({
             row={{ ...row, cells: [...row.cells, ...extraCells] }}
             isNested={isNested}
             mutableColumnSettings={columnSettings}
+            node={node}
           />
         ))}
       </>
