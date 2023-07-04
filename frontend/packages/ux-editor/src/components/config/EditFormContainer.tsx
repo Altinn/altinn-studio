@@ -199,19 +199,19 @@ export const EditFormContainer = ({
             <FormField
               id={container.id}
               onChange={handleTableHeadersChange}
-              value={items
-                .filter((id) => !!components[id])
-                .map((id) => ({
-                  label: getTextResource(components[id]?.textResourceBindings?.title, textResources),
-                  name: id,
-                  checked:
-                    container.tableHeaders === undefined || container.tableHeaders.includes(id),
-              }))}
+              value={items}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
             >
               {({ value }) => <CheckboxGroup
                 error={tableHeadersError}
-                items={value}
+                items={items
+                  .filter((id) => !!components[id])
+                  .map((id) => ({
+                    label: getTextResource(components[id]?.textResourceBindings?.title, textResources) || id,
+                    name: id,
+                    checked:
+                      container.tableHeaders === undefined || container.tableHeaders.includes(id),
+                }))}
                 legend={t('ux_editor.modal_properties_group_table_headers')}
               />}
             </FormField>
