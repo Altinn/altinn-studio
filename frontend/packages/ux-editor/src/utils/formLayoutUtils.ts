@@ -28,15 +28,13 @@ const ajv = new Ajv({
 });
 addFormats(ajv);
 
-export const addSchemas = (schemas: any[]) => {
-  schemas.forEach((schema) => {
-    if (schema) {
-      const validate = ajv.getSchema(schema?.$id);
-      if (!validate) {
-        ajv.addSchema(schema);
-      }
+export const addSchema = (schema: any) => {
+  if (schema) {
+    const validate = ajv.getSchema(schema?.$id);
+    if (!validate) {
+      ajv.addSchema(schema);
     }
-  });
+  }
 };
 
 export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
@@ -267,6 +265,7 @@ export const getPropertyByPath = (schema: any, path: string) => {
 }
 
 export const isPropertyRequired = (schema: any, propertyPath: string) : boolean => {
+  if (!schema || !propertyPath) return false;
   const parent = getPropertyByPath(schema, propertyPath.substring(0, propertyPath.lastIndexOf('/properties')));
   return parent?.required?.includes(propertyPath.split('/').pop());
 }

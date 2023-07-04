@@ -207,7 +207,7 @@ const waitForData = async (resources: ITextResource[]) => {
   })(() => useTextResourcesQuery(org, app)).renderHookResult;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<TextResourceProps> = {}, resources: ITextResource[] = []) => {

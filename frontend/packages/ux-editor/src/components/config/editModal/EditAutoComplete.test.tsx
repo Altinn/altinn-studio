@@ -6,10 +6,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../types/FormComponent';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import expressionSchema from '../../../testing/schemas/json/layout/expression.schema.v1.json';
-import numberFormatSchema from '../../../testing/schemas/json/layout/number-format.schema.v1.json';
-import layoutSchema from '../../../testing/schemas/json/layout/layout.schema.v1.json';
-import { addSchemas } from '../../../utils/formLayoutUtils';
 
 const componentMock: FormComponent = {
   id: 'random-id',
@@ -21,9 +17,8 @@ const componentMock: FormComponent = {
 };
 
 const waitForData = async () => {
-  addSchemas([expressionSchema, numberFormatSchema, layoutSchema]);
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 export const render = async (handleComponentChangeMock: any = jest.fn(), component: FormComponent = componentMock) => {

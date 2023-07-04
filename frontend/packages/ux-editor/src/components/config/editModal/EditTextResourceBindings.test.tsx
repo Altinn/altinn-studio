@@ -69,7 +69,7 @@ describe('EditTextResourceBindings component', () => {
           }),
       }
     )(() => useTextResourcesQuery(org, app)).renderHookResult;
-    await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+    await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
 

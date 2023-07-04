@@ -41,10 +41,10 @@ export const FormField = <T extends unknown, TT extends unknown>({
 }: FormFieldProps<T, TT>): JSX.Element => {
   const t = useText();
 
-  const { data: layoutSchema } = useLayoutSchemaQuery();
+  const [{ data: layoutSchema }] = useLayoutSchemaQuery();
 
-  const [propertyId] = useState(propertyPath ? `${layoutSchema.$id}#/${propertyPath}`: null);
-  const [isRequired] = useState(customRequired || (propertyPath ? isPropertyRequired(layoutSchema, propertyPath) : false));
+  const [propertyId, setPropertyId] = useState(layoutSchema && propertyPath ? `${layoutSchema.$id}#/${propertyPath}`: null);
+  const [isRequired, setIsRequired] = useState(customRequired || isPropertyRequired(layoutSchema, propertyPath));
 
   const validate = useCallback((newValue: T | TT) => {
     if (newValue === undefined || newValue === null || newValue === '') {
@@ -62,11 +62,23 @@ export const FormField = <T extends unknown, TT extends unknown>({
   }, [customValidationRules, isRequired, propertyId]);
 
   const [tmpValue, setTmpValue] = useState<T | TT>(value);
-  const [errorCode, setErrorCode] = useState(validate(value));
+  const [errorCode, setErrorCode] = useState(layoutSchema ? validate(value) : null);
 
   useEffect(() => {
     setTmpValue(value);
   }, [value, id]);
+
+  useEffect(() => {
+    if (layoutSchema) setErrorCode(validate(value));
+  }, [value, id, layoutSchema, validate]);
+
+  useEffect(() => {
+    if (layoutSchema) setPropertyId(propertyPath ? `${layoutSchema.$id}#/${propertyPath}`: null);
+  }, [layoutSchema, propertyPath]);
+
+  useEffect(() => {
+    if (layoutSchema) setIsRequired(customRequired || isPropertyRequired(layoutSchema, propertyPath));
+  }, [customRequired, layoutSchema, propertyPath]);
 
   const handleOnTextFieldChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
     const errCode = validate(newValue);

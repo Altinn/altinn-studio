@@ -9,10 +9,6 @@ import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mock
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { container1IdMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import expressionSchema from '../../testing/schemas/json/layout/expression.schema.v1.json';
-import numberFormatSchema from '../../testing/schemas/json/layout/number-format.schema.v1.json';
-import layoutSchema from '../../testing/schemas/json/layout/layout.schema.v1.json';
-import { addSchemas } from '../../utils/formLayoutUtils';
 
 const user = userEvent.setup();
 
@@ -41,7 +37,6 @@ describe('EditFormContainer', () => {
   });
 
   it('should display an error when containerId is invalid', async () => {
-    addSchemas([expressionSchema, numberFormatSchema, layoutSchema]);
     await render();
 
     const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
@@ -57,7 +52,7 @@ const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<IEditFormContainerProps> = {}) => {
