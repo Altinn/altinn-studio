@@ -279,10 +279,13 @@ describe('Validation', () => {
 
     cy.get(appFrontend.group.prefill.liten).dsCheck();
     cy.get(appFrontend.group.prefill.stor).dsCheck();
-    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
 
-    // Check that showGroupToContinue is focused
+    // Check that showGroupToContinue can be focused when clicked
     cy.get(appFrontend.nextButton).click();
+    cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
+
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.errorReport).findByText(texts.requiredOpenRepGroup).click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').should('be.focused');
@@ -413,6 +416,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.nextButton).click();
+    cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1.').click();
     cy.get(appFrontend.group.row(2).currentValue).should('be.focused');
@@ -434,6 +438,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(2).find('td').eq(0).should('have.text', '');
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.get(appFrontend.nextButton).click();
+    cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
     cy.get(appFrontend.group.row(2).newValue).should('be.focused');

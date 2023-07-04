@@ -128,12 +128,6 @@ const knownWcagViolations: KnownViolation[] = [
   {
     spec: 'app-frontend/hide-row-in-group.ts',
     test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
-    id: 'aria-valid-attr-value',
-    nodeLength: 3,
-  },
-  {
-    spec: 'app-frontend/hide-row-in-group.ts',
-    test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
     id: 'heading-order',
     nodeLength: 1,
   },
@@ -172,13 +166,24 @@ const knownWcagViolations: KnownViolation[] = [
 Cypress.Commands.add('snapshot', (name: string) => {
   cy.get('#readyForPrint').should('exist');
 
+  // Find focused element and blur it, to ensure that we don't get any focus outlines or styles in the snapshot.
   cy.window().then((win) => {
-    // Find focused element and blur it, to ensure that we don't get any focus outlines or styles in the snapshot.
     const focused = win.document.activeElement;
     if (focused && 'blur' in focused && typeof focused.blur === 'function') {
       focused.blur();
     }
+  });
+  cy.focused().should('not.exist');
 
+  // Wait for elements marked as loading are not loading anymore
+  cy.get('[data-is-loading=true]').should('not.exist');
+
+  // Running wcag tests before taking snapshot, because the resizing of the viewport can cause some elements to
+  // re-render and go slightly out of sync with the proper state of the application. One example is the Dropdown
+  // component, which can sometimes render without all the options (and selected value) a short time after resizing.
+  cy.testWcag();
+
+  cy.window().then((win) => {
     const { innerWidth, innerHeight } = win;
     cy.readFile('test/percy.css').then((percyCSS) => {
       cy.log(`Taking snapshot with Percy: ${name}`);
@@ -203,8 +208,6 @@ Cypress.Commands.add('snapshot', (name: string) => {
       cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
     });
   });
-
-  cy.testWcag();
 });
 
 Cypress.Commands.add('testWcag', () => {

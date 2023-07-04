@@ -3,7 +3,6 @@ import React from 'react';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
-import classes from 'src/layout/Button/WrappedButton.module.css';
 
 export interface BaseButtonProps {
   onClick: (...args) => void;
@@ -39,12 +38,12 @@ export const WrappedButton = ({
   };
   return (
     <Button
-      className={thisIsLoading ? classes.loading : undefined}
+      data-is-loading={thisIsLoading ? 'true' : 'false'}
       variant={variant}
       color={color}
       onClick={handleClick}
       id={id}
-      disabled={disabled}
+      disabled={disabled || thisIsLoading}
     >
       {children}
       {thisIsLoading && <ButtonLoader />}
