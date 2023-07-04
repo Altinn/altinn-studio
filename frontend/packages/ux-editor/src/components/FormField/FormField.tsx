@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ErrorMessage } from '@digdir/design-system-react';
 import classes from './FormField.module.css';
 import { useText } from '../../hooks';
-import { validateProperty, isPropertyRequired } from '../../utils/formLayoutUtils';
+import { validateProperty, isPropertyRequired } from '../../utils/formValidationUtils';
 import { TranslationKey } from 'language/type';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
@@ -56,7 +56,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
       if (customValidation) return customValidation;
     }
 
-    if (propertyId) return validateProperty(newValue, propertyId);
+    if (propertyId) return validateProperty(propertyId, newValue);
 
     return null;
   }, [customValidationRules, isRequired, propertyId]);

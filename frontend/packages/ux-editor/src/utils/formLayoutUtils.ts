@@ -18,24 +18,6 @@ import { generateFormItem } from './component';
 import { FormItemConfigs, formItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
 import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import Ajv from "ajv";
-import addFormats from "ajv-formats"
-import type { ErrorObject } from "ajv";
-
-const ajv = new Ajv({
-  allErrors: true,
-  strict: false,
-});
-addFormats(ajv);
-
-export const addSchema = (schema: any) => {
-  if (schema) {
-    const validate = ajv.getSchema(schema?.$id);
-    if (!validate) {
-      ajv.addSchema(schema);
-    }
-  }
-};
 
 export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();
@@ -258,31 +240,6 @@ export function idExists(
 export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
   const { components } = layout;
   return Object.values(components).map(({ type }) => type).includes(ComponentType.NavigationButtons);
-}
-
-export const getPropertyByPath = (schema: any, path: string) => {
-  return { ...path.split('/').reduce((o, p) => (o || {})[p], schema) };
-}
-
-export const isPropertyRequired = (schema: any, propertyPath: string) : boolean => {
-  if (!schema || !propertyPath) return false;
-  const parent = getPropertyByPath(schema, propertyPath.substring(0, propertyPath.lastIndexOf('/properties')));
-  return parent?.required?.includes(propertyPath.split('/').pop());
-}
-
-export const validateLayout = (schemaId: string, layout: ExternalFormLayout) : ErrorObject[] | null => {
-  const validate = ajv.getSchema(schemaId);
-  if (validate) validate(layout);
-  return ajv.errors;
-}
-
-export const validateProperty = (value: any, propertyId: string) :  string => {
-  const validate = ajv.getSchema(propertyId);
-  if (validate) validate(value);
-
-  const firstError = validate?.errors?.[0];
-  const isCurrentComponentError = firstError?.instancePath === '';
-  return isCurrentComponentError ? firstError?.keyword : null;
 }
 
 /**

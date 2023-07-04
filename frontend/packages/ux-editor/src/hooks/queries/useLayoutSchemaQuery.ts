@@ -1,6 +1,6 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useQueries, UseQueryResult } from '@tanstack/react-query';
-import { addSchema } from '../../utils/formLayoutUtils';
+import { addSchemas } from '../../utils/formValidationUtils';
 
 export const useLayoutSchemaQuery = (): UseQueryResult<any>[] => {
   const { getExpressionSchema, getNumberFormatSchema, getLayoutSchema } = useServicesContext();
@@ -14,7 +14,7 @@ export const useLayoutSchemaQuery = (): UseQueryResult<any>[] => {
       return {
         queryKey: [item.name],
         queryFn: () => item.fn().then((result) => {
-          addSchema(result);
+          addSchemas([result]);
           return result;
         }),
         cacheTime: Infinity,

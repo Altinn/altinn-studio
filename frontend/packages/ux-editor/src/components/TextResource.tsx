@@ -181,6 +181,7 @@ export const TextResource = ({
 
   return previewMode ? renderTextResource() : (
     <FormField
+      id={textResourceId}
       value={{ [textResourceId]: textResource?.value }}
       propertyPath='definitions/component/properties/textResourceBindings'
     >
