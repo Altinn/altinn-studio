@@ -22,6 +22,7 @@ export function* fetchTextResources(): SagaIterator {
       resource = yield call(httpGet, textResourcesUrl(appLanguage));
     } catch (error) {
       if (error.response.status !== 200) {
+        window.logWarn('Failed to fetch text resources, trying legacy method instead:\n', error);
         resource = yield call(httpGet, oldTextResourcesUrl);
       }
     }
@@ -38,8 +39,14 @@ export function* fetchTextResources(): SagaIterator {
       }),
     );
   } catch (error) {
-    yield put(TextResourcesActions.fetchRejected({ error }));
-    yield put(QueueActions.appTaskQueueError({ error }));
+    if (error.message?.includes('404')) {
+      yield put(TextResourcesActions.fetchRejected({ error: null }));
+      window.logWarn('Text resources not found:\n', error);
+    } else {
+      yield put(TextResourcesActions.fetchRejected({ error }));
+      yield put(QueueActions.appTaskQueueError({ error }));
+      window.logError('Fetching text resources failed:\n', error);
+    }
   }
 }
 

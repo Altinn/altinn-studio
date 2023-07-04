@@ -134,5 +134,6 @@ export function* updateRepeatingGroupEditIndexSaga({
     }
   } catch (error) {
     yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error, group }));
+    window.logError(`Updating edit index for repeating group (${group}) failed:\n`, error);
   }
 }

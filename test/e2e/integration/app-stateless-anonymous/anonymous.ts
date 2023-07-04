@@ -35,7 +35,7 @@ describe('Anonymous (stateless)', () => {
     cy.get(appFrontend.stateless.name).type('test');
     cy.get('label:contains("kvinne")').click();
     cy.get('label:contains("mann")').click();
-    cy.get('@console.warn').should('have.been.calledWith', 'Request aborted due to saga cancellation');
+    cy.get('@window.logInfo').should('have.been.calledWith', 'Request aborted due to saga cancellation');
   });
 
   it('should render iframe with srcdoc and the heading text should be "The red title is rendered within an iframe"', () => {

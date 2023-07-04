@@ -23,6 +23,7 @@ export const usePartiesQuery = (enabled: boolean) => {
     onError: (error: HttpClientError) => {
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
       dispatch(QueueActions.userTaskQueueError({ error }));
+      window.logError('Fetching parties failed:\n', error);
     },
   });
 };

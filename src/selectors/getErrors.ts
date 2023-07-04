@@ -2,8 +2,6 @@ import { createSelector } from 'reselect';
 
 import type { IRuntimeState } from 'src/types';
 
-let lastLogged: Error | null = null;
-
 /**
  * Selector for determining if we have an error in one of our api calls.
  * Returns true any errors is set in relevant states, false otherwise
@@ -31,25 +29,14 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.attachments.error ||
     state.dataListState.error ||
     state.pdf.error ||
-    // we have a few special cases where we allow 404 status codes but not other errors
-    exceptIfIncludes(state.applicationSettings.error, '404') ||
-    exceptIfIncludes(state.textResources.error, '404') ||
-    exceptIfIncludes(state.formDynamics.error, '404') ||
-    exceptIfIncludes(state.formRules.error, '404') ||
+    state.applicationSettings.error ||
+    state.textResources.error ||
+    state.formDynamics.error ||
+    state.formRules.error ||
     // 403 in formData handles with MissingRolesError, see Entrypoint.tsx
     exceptIfIncludes(state.formData.error, '403');
 
-  if (error !== null) {
-    // We have an error on something we consider critical
-    if (lastLogged !== error) {
-      typeof jest === 'undefined' && console.error(error);
-      lastLogged = error;
-    }
-
-    return true;
-  }
-
-  return false;
+  return error !== null;
 };
 
 const getHasErrors = () => createSelector([getHasErrorsSelector], (hasErrors: boolean) => hasErrors);

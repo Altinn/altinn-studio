@@ -47,6 +47,7 @@ export function* fetchFormDataSaga(): SagaIterator {
     }
   } catch (error) {
     yield put(FormDataActions.fetchRejected({ error }));
+    window.logError('Fetching form data failed:\n', error);
   }
 }
 
@@ -75,6 +76,11 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
   } catch (error) {
     yield put(FormDataActions.fetchRejected({ error }));
     yield put(QueueActions.dataTaskQueueError({ error }));
+    if (error.message?.includes('403')) {
+      window.logInfo('Current party is missing roles');
+    } else {
+      window.logError('Fetching form data failed:\n', error);
+    }
   }
 }
 

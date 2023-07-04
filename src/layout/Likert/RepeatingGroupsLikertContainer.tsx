@@ -80,7 +80,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
         >
           {node?.children().map((comp) => {
             if (comp.isType('Group') || comp.isType('Summary')) {
-              console.warn('Unexpected Group or Summary inside likert container', comp);
+              window.logWarn('Unexpected Group or Summary inside likert container:\n', comp);
               return;
             }
 
@@ -139,7 +139,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
           >
             {node?.children().map((comp) => {
               if (comp.isType('Group') || comp.isType('Summary')) {
-                console.warn('Unexpected Group or Summary inside likert container', comp);
+                window.logWarn('Unexpected Group or Summary inside likert container:\n', comp);
                 return;
               }
 

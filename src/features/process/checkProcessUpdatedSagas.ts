@@ -68,5 +68,6 @@ export function* checkProcessUpdated(): SagaIterator {
     );
   } catch (error) {
     yield put(ProcessActions.getRejected({ error }));
+    window.logError('Get updated process failed:\n', error);
   }
 }

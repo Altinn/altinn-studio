@@ -63,5 +63,6 @@ export function* completeProcessSaga(action: PayloadAction<ICompleteProcess | un
     }
   } catch (error) {
     yield put(ProcessActions.completeRejected({ error }));
+    window.logError('Process next failed:\n', error);
   }
 }

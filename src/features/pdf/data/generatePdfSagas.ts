@@ -117,6 +117,7 @@ function* generatePdfSaga(): SagaIterator {
     yield put(PdfActions.generateFulfilled());
   } catch (error) {
     yield put(PdfActions.generateRejected({ error }));
+    window.logError('PDF generation failed:\n', error);
   }
 }
 

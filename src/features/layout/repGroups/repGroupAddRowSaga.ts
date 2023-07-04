@@ -62,5 +62,6 @@ export function* repGroupAddRowSaga({ payload: { groupId } }: PayloadAction<{ gr
     yield put(FormLayoutActions.repGroupAddRowFulfilled({ updated: updatedRepeatingGroups }));
   } catch (error) {
     yield put(FormLayoutActions.repGroupAddRowRejected({ error }));
+    window.logError(`Adding row to repeating group (${groupId}) failed:\n`, error);
   }
 }

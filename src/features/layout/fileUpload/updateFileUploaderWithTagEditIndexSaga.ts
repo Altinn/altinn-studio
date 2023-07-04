@@ -42,5 +42,6 @@ export function* updateFileUploaderWithTagEditIndexSaga({
     }
   } catch (error) {
     yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error }));
+    window.logError('Update file upload with tag edit index failed:\n', error);
   }
 }

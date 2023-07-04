@@ -23,6 +23,7 @@ export const useProfileQuery = (enabled: boolean): UseQueryResult<IProfile> => {
     onError: (error: HttpClientError) => {
       dispatch(ProfileActions.fetchRejected({ error }));
       dispatch(QueueActions.userTaskQueueError({ error }));
+      window.logError('Fetching user profile failed:\n', error);
     },
   });
 };

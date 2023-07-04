@@ -6,15 +6,14 @@ import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { DevToolsPanel } from 'src/features/devtools/DevToolsPanel';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-
-const devHostNames = ['local.altinn.cloud', 'dev.altinn.studio', 'altinn.studio', 'studio.localhost'];
-const shouldShowButton = devHostNames.includes(window.location.hostname);
+import { useIsDev } from 'src/hooks/useIsDev';
 
 interface IDevToolsProps {
   children: ReactNode;
 }
 
 export const DevTools = ({ children }: IDevToolsProps) => {
+  const isDev = useIsDev();
   const panelOpen = useAppSelector((state) => state.devTools.isOpen);
   const dispatch = useAppDispatch();
 
@@ -46,7 +45,7 @@ export const DevTools = ({ children }: IDevToolsProps) => {
 
   return (
     <>
-      {shouldShowButton && (
+      {isDev && (
         <OpenDevToolsButton
           isHidden={panelOpen}
           onClick={() => setPanelOpen(true)}

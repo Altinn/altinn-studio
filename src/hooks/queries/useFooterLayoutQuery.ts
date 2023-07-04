@@ -34,6 +34,7 @@ export const useFooterLayoutQuery = (enabled?: boolean): UseQueryResult<IFooterL
       }
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
       dispatch(FooterLayoutActions.fetchRejected({ error }));
+      window.logError('Fetching footer failed:\n', error);
     },
   });
 };

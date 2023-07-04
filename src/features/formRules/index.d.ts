@@ -16,5 +16,5 @@ export interface IFetchRuleModelFulfilled {
 }
 
 export interface IFetchRuleModelRejected {
-  error: Error;
+  error: Error | null;
 }

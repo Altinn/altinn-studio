@@ -145,7 +145,7 @@ export class HierarchyGenerator {
     const fullChildId = `${this.topKey}/${claim.childId}`;
     const fullParentId = `${this.topKey}/${claim.parentId}`;
     if (!this.allIds.has(fullChildId)) {
-      console.warn(
+      window.logWarn(
         `Component ${fullParentId} tried to claim ${fullChildId} as a child, but a component with that ID is not defined`,
       );
       return;
@@ -167,7 +167,7 @@ export class HierarchyGenerator {
        * model in place).
        * @see https://altinndevops.slack.com/archives/CDU1S3NLW/p1679044199116669
        */
-      console.warn(
+      window.logWarn(
         `Component ${fullParentId} tried to claim ${fullChildId} as a child, but that child is already claimed by`,
         parents.values(),
       );
@@ -197,7 +197,7 @@ export class HierarchyGenerator {
     const fullParentId = `${parentPage}/${parentId}`;
     const fullChildId = `${childPage}/${childId}`;
     if (!this.map[fullChildId]) {
-      console.warn(
+      window.logWarn(
         `The component '${fullParentId}' tried to claim '${fullChildId}' as its child, but that component does not exist`,
       );
       return undefined;
@@ -212,7 +212,7 @@ export class HierarchyGenerator {
 
     if (!parentId || !this.claims[fullChildId].has(fullParentId)) {
       const claimedBy = [...this.claims[fullChildId].values()].join(', ');
-      console.warn(
+      window.logWarn(
         `Tried to create a new child object for '${fullChildId}' which is ` +
           `not claimed by '${fullParentId}' (but it is claimed by ${claimedBy})`,
       );
@@ -295,7 +295,7 @@ export class HierarchyGenerator {
     if (!this.instances[type]) {
       const def = this.getLayoutComponentObject(type);
       if (!def) {
-        console.warn(`No component definition found for type '${type}'`);
+        window.logWarn(`No component definition found for type '${type}'`);
         return;
       }
       this.instances[type] = def.hierarchyGenerator();

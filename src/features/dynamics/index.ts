@@ -24,7 +24,7 @@ export interface IFetchServiceConfigFulfilled {
 }
 
 export interface IFetchServiceConfigRejected {
-  error: Error;
+  error: Error | null;
 }
 
 export interface IConditionalRenderingRules {

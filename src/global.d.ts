@@ -18,5 +18,9 @@ declare global {
     conditionalRuleHandlerHelper: IRules;
     ruleHandlerObject: IRuleObject;
     ruleHandlerHelper: IRules;
+
+    logError: (...args: any[]) => void;
+    logWarn: (...args: any[]) => void;
+    logInfo: (...args: any[]) => void;
   }
 }

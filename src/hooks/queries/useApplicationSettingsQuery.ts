@@ -20,8 +20,14 @@ export const useApplicationSettingsQuery = (): UseQueryResult<IApplicationSettin
       dispatch(ApplicationSettingsActions.fetchApplicationSettingsFulfilled({ settings }));
     },
     onError: (error: HttpClientError) => {
-      // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
-      dispatch(ApplicationSettingsActions.fetchApplicationSettingsRejected({ error }));
+      if (error.status === 404) {
+        dispatch(ApplicationSettingsActions.fetchApplicationSettingsRejected({ error: null }));
+        window.logWarn('Application settings not found:\n', error);
+      } else {
+        // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
+        dispatch(ApplicationSettingsActions.fetchApplicationSettingsRejected({ error }));
+        window.logError('Fetching application settings failed:\n', error);
+      }
     },
   });
 };

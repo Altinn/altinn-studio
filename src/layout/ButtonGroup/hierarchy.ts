@@ -9,7 +9,7 @@ export class ButtonGroupHierarchyGenerator extends ComponentHierarchyGenerator<'
     const def = prototype && generator.getLayoutComponentObject(prototype.type);
 
     if (outputWarning && prototype && !def?.canRenderInButtonGroup()) {
-      console.warn(
+      window.logWarn(
         `ButtonGroup component included a component '${childId}', which ` +
           `is a '${prototype.type}' and cannot be rendered in a button group.`,
       );

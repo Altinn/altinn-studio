@@ -42,5 +42,6 @@ export function* instantiationSaga(): SagaIterator {
     );
   } catch (error) {
     yield put(InstantiationActions.instantiateRejected({ error }));
+    window.logError('Instantiation failed:\n', error);
   }
 }

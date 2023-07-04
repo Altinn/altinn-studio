@@ -24,6 +24,13 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
       cy.spy(win.console, 'warn').as('console.warn');
       cy.spy(win.console, 'error').as('console.error');
     },
+    onLoad: (win) => {
+      if (win.logError) {
+        cy.spy(win, 'logError').as('window.logError');
+        cy.spy(win, 'logWarn').as('window.logWarn');
+        cy.spy(win, 'logInfo').as('window.logInfo');
+      }
+    },
   };
 
   // Run this using --env environment=<local|tt02>,responseFuzzing=on to simulate an unreliable network. This might

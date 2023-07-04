@@ -35,5 +35,6 @@ export function* getTasksSaga({ payload: { taskType } }: PayloadAction<IGetTasks
     );
   } catch (error) {
     yield put(ProcessActions.getTasksRejected({ error }));
+    window.logError('Getting next task failed:\n', error);
   }
 }

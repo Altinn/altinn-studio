@@ -37,6 +37,7 @@ function* fetchJsonSchemaSaga(): SagaIterator {
   } catch (error) {
     yield put(DataModelActions.fetchJsonSchemaRejected({ error }));
     yield put(QueueActions.dataTaskQueueError({ error }));
+    window.logError('Fetching JSON schema failed:\n', error);
   }
 }
 

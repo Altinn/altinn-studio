@@ -157,21 +157,6 @@ a:not([href]):not([class]):hover {
   text-decoration: none;
 }
 
-pre,
-code,
-kbd,
-samp {
-  font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-  font-size: 1em;
-}
-
-pre {
-  margin-top: 0;
-  margin-bottom: 0.625rem;
-  overflow: auto;
-  -ms-overflow-style: scrollbar;
-}
-
 figure {
   margin: 0 0 0.625rem;
 }

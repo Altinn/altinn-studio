@@ -12,7 +12,7 @@ export interface IFetchTextResourcesFulfilled {
 }
 
 export interface IFetchTextResourcesRejected {
-  error: Error;
+  error: Error | null;
 }
 
 export interface IReplaceTextResourcesFulfilled {

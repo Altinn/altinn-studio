@@ -68,6 +68,6 @@ export function* deleteAttachmentSaga({
         componentId,
       }),
     );
-    console.error(err);
+    window.logError('Delete attachment:\n', err);
   }
 }

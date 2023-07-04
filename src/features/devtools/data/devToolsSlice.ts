@@ -21,6 +21,7 @@ export const initialState: IDevToolsState = {
     forPage: undefined,
     forComponentId: undefined,
   },
+  logs: [],
 };
 
 export let DevToolsActions: ActionsFromSlice<typeof devToolsSlice>;
@@ -78,6 +79,16 @@ export const devToolsSlice = () => {
       nodeInspectorSet: mkAction<{ selectedNodeId: string | undefined }>({
         reducer: (state, action) => {
           state.nodeInspector.selectedNodeId = action.payload.selectedNodeId;
+        },
+      }),
+      postLog: mkAction<{ index: number; level: 'info' | 'warn' | 'error'; message: string }>({
+        reducer: (state, action) => {
+          state.logs.push(action.payload);
+        },
+      }),
+      logsClear: mkAction<void>({
+        reducer: (state) => {
+          state.logs = [];
         },
       }),
     },

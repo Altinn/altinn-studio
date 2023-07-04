@@ -21,6 +21,7 @@ export function* getInstanceDataSaga({ payload: { instanceId } }: PayloadAction<
       }
     } else {
       yield put(InstanceDataActions.getRejected({ error }));
+      window.logError('Fetching instance data failed:\n', error);
     }
   }
 }

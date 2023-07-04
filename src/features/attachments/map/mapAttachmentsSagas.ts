@@ -60,5 +60,6 @@ export function* mapAttachments(): SagaIterator {
     );
   } catch (error) {
     yield put(AttachmentActions.mapAttachmentsRejected({ error }));
+    window.logError('Mapping attachments failed:\n', error);
   }
 }

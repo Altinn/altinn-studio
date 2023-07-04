@@ -50,7 +50,7 @@ export function MapComponent({ formData, handleDataChange, isValid, node }: IMap
 export function parseLocation(locationString: string): Location | undefined {
   const latLonArray = locationString.split(',');
   if (latLonArray.length != 2) {
-    console.error(`Invalid location string: ${locationString}`);
+    window.logError(`Invalid location string: ${locationString}`);
     return undefined;
   }
   const latString = latLonArray[0];
@@ -58,7 +58,7 @@ export function parseLocation(locationString: string): Location | undefined {
   const lat = parseFloat(latString);
   const lon = parseFloat(lonString);
   if (isNaN(lat) || isNaN(lon)) {
-    console.error(`Invalid location string: ${locationString}`);
+    window.logError(`Invalid location string: ${locationString}`);
     return undefined;
   }
   return {

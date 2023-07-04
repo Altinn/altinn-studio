@@ -43,5 +43,6 @@ export function* getProcessStateSaga(): SagaIterator {
     }
   } catch (error) {
     yield put(ProcessActions.getRejected({ error }));
+    window.logError('Fetching process state failed:\n', error);
   }
 }

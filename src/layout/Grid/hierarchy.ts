@@ -17,7 +17,7 @@ export class GridHierarchyGenerator extends ComponentHierarchyGenerator<'Grid'> 
     const def = prototype && generator.getLayoutComponentObject(prototype.type);
 
     if (outputWarning && prototype && def?.canRenderInTable() === false) {
-      console.warn(
+      window.logWarn(
         `Grid component included a cell with component '${childId}', which ` +
           `is a '${prototype.type}' and cannot be rendered in a table.`,
       );

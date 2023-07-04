@@ -16,6 +16,7 @@ export function* getPartiesSaga(): SagaIterator {
     yield put(PartyActions.getPartiesFulfilled({ parties }));
   } catch (error) {
     yield put(PartyActions.getPartiesRejected({ error }));
+    window.logError('Fetching parties failed:\n', error);
   }
 }
 
@@ -30,5 +31,6 @@ export function* getCurrentPartySaga(): SagaIterator {
     }
   } catch (error) {
     yield put(QueueActions.userTaskQueueError({ error }));
+    window.logError('Getting current party failed:\n', error);
   }
 }

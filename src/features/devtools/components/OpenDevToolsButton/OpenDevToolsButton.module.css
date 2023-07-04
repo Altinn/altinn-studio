@@ -6,14 +6,29 @@
   right: -3px;
 }
 
-.devToolsButton > button {
+.devToolsButton > .button {
   transform: translateX(24px);
   transition: transform 0.2s;
 }
 
-.devToolsButton:hover > button,
-.devToolsButton:active > button {
+.devToolsButton:hover > .button,
+.devToolsButton:active > .button {
   transform: translateX(0px);
+}
+
+.errorIcon {
+  cursor: pointer;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  font-size: 1.25rem;
+  color: crimson;
+  background-color: white;
+  border-radius: 50%;
+}
+
+.errorIcon:hover {
+  color: darkred;
 }
 
 .hidden {

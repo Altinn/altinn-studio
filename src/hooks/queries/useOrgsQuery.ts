@@ -24,6 +24,7 @@ export const useOrgsQuery = (): UseQueryResult<IAltinnOrgs> => {
     onError: (error: HttpClientError) => {
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
       OrgsActions.fetchRejected({ error });
+      window.logError('Fetching organizations failed:\n', error);
     },
   });
 };

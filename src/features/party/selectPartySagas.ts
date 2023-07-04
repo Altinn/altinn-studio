@@ -14,5 +14,6 @@ export function* selectPartySaga({ payload: { party } }: PayloadAction<ISelectPa
     yield put(PartyActions.selectPartyFulfilled({ party }));
   } catch (error) {
     yield put(PartyActions.selectPartyRejected({ error }));
+    window.logError('Selecting party failed:\n', error);
   }
 }

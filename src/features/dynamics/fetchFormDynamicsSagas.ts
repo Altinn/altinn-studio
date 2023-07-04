@@ -32,7 +32,13 @@ export function* fetchDynamicsSaga(): SagaIterator {
       }),
     );
   } catch (error) {
-    yield put(FormDynamicsActions.fetchRejected({ error }));
-    yield put(QueueActions.dataTaskQueueError({ error }));
+    if (error.message?.includes('404')) {
+      yield put(FormDynamicsActions.fetchRejected({ error: null }));
+      window.logWarn('Dynamics not found:\n', error);
+    } else {
+      yield put(FormDynamicsActions.fetchRejected({ error }));
+      yield put(QueueActions.dataTaskQueueError({ error }));
+      window.logError('Fetching dynamics failed:\n', error);
+    }
   }
 }

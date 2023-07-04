@@ -52,6 +52,6 @@ export function* checkIfRuleShouldRunSaga({
       );
     }
   } catch (err) {
-    yield call(console.error, 'Unhandled error when running rule handler', err);
+    yield call(window.logError, 'Unhandled error when running rule handler:\n', err);
   }
 }

@@ -230,6 +230,12 @@ export function asExpression(
   validateRecursively(obj, ctx, []);
 
   if (Object.keys(ctx.errors).length) {
+    const pretty = prettyErrors({
+      input: obj,
+      errors: ctx.errors,
+      indentation: 1,
+    });
+
     if (typeof config !== 'undefined' && !config.errorAsException) {
       const prettyPrinted = prettyErrorsToConsole({
         input: obj,
@@ -250,14 +256,11 @@ export function asExpression(
         ...['', 'color: red;', ''],
       );
 
+      window.logError(`${errorText}:\n${pretty}`);
+
       return config.defaultValue;
     }
 
-    const pretty = prettyErrors({
-      input: obj,
-      errors: ctx.errors,
-      indentation: 1,
-    });
     throw new InvalidExpression(`${errorText}:\n${pretty}`);
   }
 

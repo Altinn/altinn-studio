@@ -5,5 +5,5 @@ export interface IFetchApplicationSettingsFulfilled {
 }
 
 export interface IFetchApplicationSettingsRejected {
-  error: Error;
+  error: Error | null;
 }

@@ -33,7 +33,13 @@ export function* fetchRuleModelSaga(): SagaIterator {
 
     yield put(FormRulesActions.fetchFulfilled({ ruleModel: ruleModelFields }));
   } catch (error) {
-    yield put(FormRulesActions.fetchRejected({ error }));
-    yield put(QueueActions.dataTaskQueueError({ error }));
+    if (error.message?.includes('404')) {
+      yield put(FormRulesActions.fetchRejected({ error: null }));
+      window.logInfo('RuleHandler not found:\n', error);
+    } else {
+      yield put(FormRulesActions.fetchRejected({ error }));
+      yield put(QueueActions.dataTaskQueueError({ error }));
+      window.logError('Fetching RuleHandler failed:\n', error);
+    }
   }
 }

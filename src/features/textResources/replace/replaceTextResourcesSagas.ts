@@ -48,5 +48,6 @@ export function* replaceTextResourcesSaga(): SagaIterator {
     }
   } catch (error) {
     yield put(TextResourcesActions.replaceRejected({ error }));
+    window.logError('Updating text resources failed:\n', error);
   }
 }

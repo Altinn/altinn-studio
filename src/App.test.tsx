@@ -8,7 +8,7 @@ import { renderWithProviders } from 'src/testUtils';
 describe('App', () => {
   test('should render unknown error when hasApplicationSettingsError', async () => {
     const queries = {
-      fetchApplicationSettings: () => Promise.reject(),
+      fetchApplicationSettings: () => Promise.reject(new Error('400 Bad Request')),
     };
     renderWithProviders(<App />, {}, queries);
     await screen.findByRole('heading', { level: 1, name: 'Ukjent feil' });
@@ -16,7 +16,7 @@ describe('App', () => {
 
   test('should render unknown error when hasApplicationMetadataError', async () => {
     const queries = {
-      fetchApplicationMetadata: () => Promise.reject(),
+      fetchApplicationMetadata: () => Promise.reject(new Error('400 Bad Request')),
     };
     renderWithProviders(<App />, {}, queries);
     await screen.findByRole('heading', { level: 1, name: 'Ukjent feil' });
@@ -24,7 +24,7 @@ describe('App', () => {
 
   test('should render unknown error when hasLayoutSetError', async () => {
     const queries = {
-      fetchLayoutSets: () => Promise.reject(),
+      fetchLayoutSets: () => Promise.reject(new Error('400 Bad Request')),
     };
     renderWithProviders(<App />, {}, queries);
     await screen.findByRole('heading', { level: 1, name: 'Ukjent feil' });
@@ -32,7 +32,7 @@ describe('App', () => {
 
   test('should render unknown error when hasOrgsError', async () => {
     const queries = {
-      fetchOrgs: () => Promise.reject(),
+      fetchOrgs: () => Promise.reject(new Error('400 Bad Request')),
     };
     renderWithProviders(<App />, {}, queries);
     await screen.findByRole('heading', { level: 1, name: 'Ukjent feil' });

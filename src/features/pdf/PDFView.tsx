@@ -51,7 +51,7 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
       />
     );
   } else {
-    console.warn(`Type: "${node.item.type}" is not allowed in PDF.`);
+    window.logWarn(`Type: "${node.item.type}" is not allowed in PDF.`);
     return null;
   }
 };

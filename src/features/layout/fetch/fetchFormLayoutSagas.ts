@@ -108,6 +108,7 @@ export function* fetchLayoutSaga(): SagaIterator {
   } catch (error) {
     yield put(FormLayoutActions.fetchRejected({ error }));
     yield put(QueueActions.dataTaskQueueError({ error }));
+    window.logError('Fetching form layout failed:\n', error);
   }
 }
 
@@ -137,6 +138,7 @@ export function* fetchLayoutSettingsSaga(): SagaIterator {
       yield put(FormLayoutActions.fetchSettingsFulfilled({ settings: null }));
     } else {
       yield put(FormLayoutActions.fetchSettingsRejected({ error }));
+      window.logError('Fetching layout settings failed:\n', error);
     }
   }
 }
@@ -158,6 +160,7 @@ export function* fetchLayoutSetsSaga(): SagaIterator {
       yield put(FormLayoutActions.fetchSetsFulfilled({ layoutSets: null }));
     } else {
       yield put(FormLayoutActions.fetchSetsRejected({ error }));
+      window.logError('Fetching layout sets failed:\n', error);
     }
   }
 }

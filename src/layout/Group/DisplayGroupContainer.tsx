@@ -25,7 +25,7 @@ const H = ({ level, children, ...props }) => {
     case 6:
       return <h6 {...props}>{children}</h6>;
     default:
-      console.warn(`Heading level ${level} is not supported`);
+      window.logWarn(`Heading level ${level} is not supported`);
       return <h2 {...props}>{children}</h2>;
   }
 };

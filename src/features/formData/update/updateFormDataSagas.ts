@@ -42,7 +42,7 @@ export function* updateFormDataSaga({
       );
     }
   } catch (error) {
-    console.error(error);
+    window.logError('Update form data failed:\n', error);
     yield put(FormDataActions.updateRejected({ error }));
   }
 }
@@ -60,7 +60,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
   const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts || {});
 
   if (!layoutId) {
-    console.error('Failed to find layout ID for component', componentId);
+    window.logError('Failed to find layout ID for component:\n', componentId);
     return;
   }
 
@@ -134,6 +134,6 @@ export function* deleteAttachmentReferenceSaga({
     yield put(FormDataActions.setFulfilled({ formData: updatedFormData }));
     yield put(FormDataActions.saveEvery({ componentId }));
   } catch (err) {
-    console.error(err);
+    window.logError('Delete attachment reference failed:\n', err);
   }
 }
