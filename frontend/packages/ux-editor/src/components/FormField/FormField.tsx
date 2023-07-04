@@ -80,7 +80,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
     if (layoutSchema) setIsRequired(customRequired || isPropertyRequired(layoutSchema, propertyPath));
   }, [customRequired, layoutSchema, propertyPath]);
 
-  const handleOnTextFieldChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleOnChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
     const errCode = validate(newValue);
     setErrorCode(errCode);
     if (!errCode) onChange(newValue, event, errorCode);
@@ -88,16 +88,16 @@ export const FormField = <T extends unknown, TT extends unknown>({
   };
 
   const renderChildren = (childList: React.ReactNode) => {
-    let textFieldLabel: string;
-    if (label) textFieldLabel = `${label}${isRequired ? ' *' : ''}`;
+    let fieldLabel: string;
+    if (label) fieldLabel = `${label}${isRequired ? ' *' : ''}`;
 
     return React.Children.map(childList, (child) => {
       if (React.isValidElement(child)) {
-        const props = !['span', 'div'].includes(child.type.toString()) ? {
+        const props = typeof child.type !== 'string' ? {
           value: tmpValue,
           required: isRequired,
-          label: textFieldLabel,
-          onChange: handleOnTextFieldChange,
+          label: fieldLabel,
+          onChange: handleOnChange,
           isValid: !errorCode,
           ...child.props,
         } : {};
@@ -126,7 +126,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
         errorCode,
         value: tmpValue,
         label,
-        onChange: handleOnTextFieldChange,
+        onChange: handleOnChange,
         customRequired: isRequired
       }))}
       {errorCode && (
