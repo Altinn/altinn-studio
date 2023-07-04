@@ -1,6 +1,6 @@
 .danger {
   background-color: #F9D5DB;
-  border-left: 8px solid #E02E49;
+  border-radius: 3px;
 }
 
 .success {
@@ -11,7 +11,6 @@
 .card {
   padding-block: 10px;
   padding-inline: 20px;
-  width: 510px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;

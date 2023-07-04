@@ -85,6 +85,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         onClose={onCloseModal}
         open={resetRepoModalOpen}
         repositoryName={props.service.name}
+        org={org}
       />
       {/* Download local repository */}
       <h3>{t('administration.download_repo')}</h3>

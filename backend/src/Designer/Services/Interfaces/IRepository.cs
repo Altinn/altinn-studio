@@ -149,16 +149,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         ServiceResource GetServiceResourceById(string org, string repository, string identifier);
 
         /// <summary>
-        /// Validates that required attributes has value in a given ServiceResource.
-        /// </summary>
-        /// <param name="org">The organisation which owns the repositor</param>
-        /// <param name="repository">The repository where the resource resides</param>
-        /// <param name="id">The id of the resource that should be updated</param>
-        /// <param name="strictMode">A bool indicating whether or not the validation will check extra attributes</param>
-        /// <returns>A string with the validationresult</returns>
-        ActionResult<string> ValidateServiceResource(string org, string repository, string id, bool strictMode = false);
-
-        /// <summary>
         /// Update existing ServiceResource in repository
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
@@ -183,6 +173,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="resource">The resource which is to be checked for policy</param>
         /// <returns>Returns true if resourcefile has a policyfile along with it. If not, returns false</returns>
         bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
+
+        /// <summary>
+        /// Checks if LastChanged and/or CreatedBy was added to the ListviewServiceResource-object. If not sets CreatedBy to the logged in user and LastChanged to current datetime.
+        /// </summary>
+        /// <param name="serviceResource">The ListviewServiceResource that will be enriched if neccessary</param>
+        /// <returns>The enriched ListviewServiceResource-object if CreatedBy and LastChanged was missing, otherwise returns the same object</returns>
+        ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource);
 
         /// <summary>
         /// Returns the path to the app folder

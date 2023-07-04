@@ -1,8 +1,8 @@
 {
   "name": "altinn-studio",
   "dependencies": {
-    "@altinn/altinn-design-system": "0.27.8",
-    "@digdir/design-system-react": "0.15.0",
+    "@altinn/altinn-design-system": "0.29.0",
+    "@digdir/design-system-react": "0.17.0",
     "@microsoft/signalr": "7.0.5",
     "@navikt/aksel-icons": "3.4.2",
     "@tanstack/react-query": "4.29.12",
@@ -64,7 +64,7 @@
     "swc-loader": "0.2.3",
     "terser-webpack-plugin": "5.3.9",
     "ts-loader": "9.4.3",
-    "ts-morph": "18.0.0",
+    "ts-morph": "19.0.0",
     "typescript": "5.1.3",
     "typescript-plugin-css-modules": "5.0.1",
     "webpack": "5.86.0",

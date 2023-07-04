@@ -5,11 +5,10 @@ import { Button } from '@digdir/design-system-react';
 
 const modalStyles = {
   content: {
-    width: 'fit-content',
+    width: '450px',
     height: 'fit-content',
     margin: 'auto',
-    paddingBlock: '40px',
-    paddingInline: '70px',
+    padding: '32px',
   },
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -51,12 +50,16 @@ export const VerificationModal = ({
       style={modalStyles}
       ariaHideApp={false}
     >
+      <h2 className={classes.modalTitle}>Slett regel?</h2>
+      <div className={classes.contentDivider} />
       <p className={classes.modalText}>{text}</p>
       <div className={classes.buttonWrapper}>
-        <Button type='button' onClick={onClose}>
-          {closeButtonText}
-        </Button>
-        <Button type='button' onClick={onPerformAction} color='danger'>
+        <div className={classes.closeButtonWrapper}>
+          <Button onClick={onClose} variant='quiet'>
+            {closeButtonText}
+          </Button>
+        </div>
+        <Button onClick={onPerformAction} color='primary'>
           {actionButtonText}
         </Button>
       </div>

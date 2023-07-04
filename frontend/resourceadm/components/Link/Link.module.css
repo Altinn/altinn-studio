@@ -4,8 +4,14 @@
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
-  text-underline-offset: 5px;
+  text-underline-offset: 4px;
   color: #004E95;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
 }
 
 .link > svg {
@@ -21,7 +27,7 @@
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
   outline: 2px solid #98177E;
-  outline-offset: 5px;
+  outline-offset: 3px;
   border-radius: 2px;
 }
 

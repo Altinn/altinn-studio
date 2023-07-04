@@ -1,21 +1,19 @@
 import React from 'react';
 import classes from './App.module.css';
 import './App.css';
-import { PageSpinner } from 'app-shared/components';
-
-import { PageLayout } from 'resourceadm/pages/PageLayout';
-import { ResourceDashboardOld } from '../pages/ResourceDashboardOld';
-import { TestPage } from '../pages/TestPage';
-
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-
+import { PageSpinner } from 'app-shared/components';
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
+import { PageLayout } from 'resourceadm/pages/PageLayout';
 import { ResourcePage } from 'resourceadm/pages/ResourcePage';
 import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
+import { ErrorPage } from '../pages/ErrorPage';
+import { RedirectPage } from '../pages/RedirectPage';
+import { SearchField } from '@altinn/altinn-design-system';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -58,32 +56,26 @@ export const App = (): JSX.Element => {
   if (componentIsReady) {
     return (
       <div className={classes.root}>
+        {/*
+            This is a "hack" to make sure that the resourceadm doesnt break. We do not
+            use any other dependencies to the old altin-design-system (which for some reason
+            is needed). By hiding the component it can not be seen by the user in the browser.
+        */}
+        <div style={{ display: 'none' }}>
+          <SearchField id='hack' aria-labelledby='hack' />
+          <ScreenReaderSpan id='hack' label='hack' />
+        </div>
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
-          </Route>
-
-          <Route element={<TestPage />}>
-            <Route
-              path={basePath + '/old'}
-              element={<ResourceDashboardOld user={user} organizations={organizations} />}
-            />
-          </Route>
-
-          <Route element={<PageLayout />}>
-            <Route
-              path='/:selectedContext/repo'
-              element={<ResourceDashboardOld user={user} organizations={organizations} />}
-            />
-          </Route>
-
-          <Route element={<PageLayout />}>
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
+            <Route path='/' element={<ErrorPage />} />
+            <Route path='/:selectedContext' element={<RedirectPage />} />
+            <Route path='/:selectedContext/:repo/*' element={<ErrorPage />} />
           </Route>
         </Routes>
       </div>
     );
   }
-
   return <PageSpinner text={t('dashboard.loading')} />;
 };

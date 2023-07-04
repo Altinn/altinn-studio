@@ -1,1 +1,0 @@
-export { RessursTematikkValg } from './RessursTematikkValg';

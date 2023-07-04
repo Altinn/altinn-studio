@@ -15,7 +15,7 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
       const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(layout);
-      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(() => layout)
+      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(() => layout);
     },
     onSuccess: async (savedLayout) => {
       if (previewConnection && previewConnection.state === "Connected") {

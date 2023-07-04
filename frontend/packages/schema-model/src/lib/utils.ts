@@ -14,7 +14,7 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => ({
   isArray: false,
   children: [],
   custom: {},
-  restrictions: [],
+  restrictions: {},
   implicitType: true,
   default: undefined,
   enum: [],

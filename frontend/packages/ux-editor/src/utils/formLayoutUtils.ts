@@ -8,7 +8,7 @@ import type {
   IWidget,
 } from '../types/global';
 import i18next from 'i18next';
-import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
@@ -333,7 +333,7 @@ export const updateContainer = (
     delete oldLayout.order[currentId];
   }
 
-  const newLayout: IInternalLayout = {
+  return {
     ...oldLayout,
     containers: {
       ...oldLayout.containers,
@@ -343,8 +343,6 @@ export const updateContainer = (
       }
     }
   };
-
-  return newLayout;
 }
 
 /**
@@ -464,3 +462,52 @@ export const addItemOfType = <T extends ComponentType>(
   if (newItem.itemType === 'COMPONENT') return addComponent(layout, newItem, parentId, position);
   else return addContainer(layout, newItem, id, parentId, position);
 }
+
+/**
+ * Checks if a given item is a container.
+ * @param layout The layout where the item should be found.
+ * @param itemId The id of the item to check.
+ * @returns True if the item is a container, false otherwise.
+ */
+export const isContainer = (layout: IInternalLayout, itemId: string): boolean =>
+  Object.keys(layout.containers).includes(itemId);
+
+/**
+ * Checks if a given container has sub containers.
+ * @param layout The layout where the container should be found.
+ * @param itemId The id of the container to check.
+ * @returns True if the container has sub containers, false otherwise.
+ */
+export const hasSubContainers = (layout: IInternalLayout, itemId: string): boolean =>
+  isContainer(layout, itemId) && layout.order[itemId].some((id) => isContainer(layout, id));
+
+/**
+ * Calculates the deepness of the given container.
+ * @param layout The layout of interest.
+ * @param itemId The id of the container of interest.
+ * @returns The number of the deepest level within the container.
+ */
+const numberOfContainerLevels = (layout: IInternalLayout, itemId: string): number => {
+  if (!isContainer(layout, itemId) || !hasSubContainers(layout, itemId)) return 0;
+  else return 1 + Math.max(...layout.order[itemId].map((id) => numberOfContainerLevels(layout, id)));
+};
+
+/**
+ * Calculate the deepest level of a nested container in the layout.
+ * @param layout The layout to calculate the deepness of.
+ * @returns The deepest level of a nested container.
+ */
+export const getDepth = (layout: IInternalLayout): number => {
+  const containers = Object.keys(layout.containers);
+  if (containers.length <= 1) return 0;
+  else return Math.max(...containers.map((id) => numberOfContainerLevels(layout, id)));
+};
+
+/**
+ * Checks if the depth of a layout is within the allowed range.
+ * @param layout The layout to check.
+ * @returns True if the depth is within the allowed range, false otherwise.
+ */
+export const validateDepth = (layout: IInternalLayout): boolean =>
+  getDepth(layout) <= MAX_NESTED_GROUP_LEVEL;
+
