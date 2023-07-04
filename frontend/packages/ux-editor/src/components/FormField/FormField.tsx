@@ -106,7 +106,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
     if (str !== key) return str;
 
     return t('validation_errors.pattern');
-  }
+  };
 
   return (
     <div className={className}>
