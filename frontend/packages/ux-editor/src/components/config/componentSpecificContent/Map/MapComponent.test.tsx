@@ -105,8 +105,8 @@ describe('AddMapLayer', () => {
 
   afterEach(() => {
     componentMock = {
-        layers: [{
-        attattribution: undefined,
+      layers: [{
+        attribution: undefined,
         subdomains: undefined,
         url: undefined
       }]
@@ -138,7 +138,7 @@ describe('AddMapLayer', () => {
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [{
-        attattribution: undefined,
+        attribution: undefined,
         subdomains: undefined,
         url: 'test'
       }]
@@ -168,7 +168,7 @@ describe('AddMapLayer', () => {
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [{
-        attattribution: undefined,
+        attribution: undefined,
         subdomains: ['[object Object]t'],
         url: undefined
       }]

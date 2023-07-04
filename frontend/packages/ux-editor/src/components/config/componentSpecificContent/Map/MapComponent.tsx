@@ -112,7 +112,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     const layers = [...(component.layers || [])];
     layers.push({
       url: undefined,
-      attattribution: undefined,
+      attribution: undefined,
       subdomains: undefined,
     });
     handleComponentChange({
