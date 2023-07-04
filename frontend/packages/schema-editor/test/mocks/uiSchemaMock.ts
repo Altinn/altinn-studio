@@ -4,14 +4,14 @@ import {
   ObjectKind,
   ROOT_POINTER,
   UiSchemaNode,
-  UiSchemaNodes
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 
-const parentNodePointer = "#/properties/test";
-const fieldNode1Pointer = "#/properties/test/anyOf/0";
-const fieldNode2Pointer = "#/properties/test/anyOf/1";
-const nodeWithCustomPropsPointer = "#/properties/test2";
-const toggableNodePointer = "#/properties/toggable";
+const parentNodePointer = '#/properties/test';
+const fieldNode1Pointer = '#/properties/test/anyOf/0';
+const fieldNode2Pointer = '#/properties/test/anyOf/1';
+const nodeWithCustomPropsPointer = '#/properties/test2';
+const toggableNodePointer = '#/properties/toggable';
 
 export const nodeMockBase: UiSchemaNode = {
   objectKind: ObjectKind.Field,
@@ -23,9 +23,9 @@ export const nodeMockBase: UiSchemaNode = {
   isArray: false,
   children: [],
   custom: {},
-  restrictions: [],
+  restrictions: {},
   implicitType: true,
-  enum: []
+  enum: [],
 };
 
 export const rootNodeMock: UiSchemaNode = {
@@ -39,10 +39,7 @@ export const parentNodeMock: UiSchemaNode = {
   objectKind: ObjectKind.Combination,
   fieldType: CombinationKind.AnyOf,
   pointer: parentNodePointer,
-  children: [
-    fieldNode1Pointer,
-    fieldNode2Pointer
-  ],
+  children: [fieldNode1Pointer, fieldNode2Pointer],
 };
 
 export const fieldNode1Mock: UiSchemaNode = {
@@ -67,8 +64,8 @@ export const nodeWithCustomPropsMock: UiSchemaNode = {
   pointer: nodeWithCustomPropsPointer,
   custom: {
     customProp1: 'customProp1',
-    customProp2: 'customProp2'
-  }
+    customProp2: 'customProp2',
+  },
 };
 
 export const uiSchemaNodesMock: UiSchemaNodes = [
