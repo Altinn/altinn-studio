@@ -9,25 +9,26 @@ import { ProcessActions } from 'src/features/process/processSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import { Severity } from 'src/types';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
 import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from 'src/utils/databindings';
+import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpPost } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import { waitFor } from 'src/utils/sagas';
 import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from 'src/utils/urls/appUrlHelper';
-import { runClientSideValidation } from 'src/utils/validation/runClientSideValidation';
+import { mapValidationIssues } from 'src/utils/validation/backendValidation';
 import {
-  canFormBeSaved,
-  hasValidationsOfSeverity,
-  mapDataElementValidationToRedux,
-  mergeValidationObjects,
-} from 'src/utils/validation/validation';
+  containsErrors,
+  createValidationResult,
+  validationContextFromState,
+} from 'src/utils/validation/validationHelpers';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IFormData } from 'src/features/formData';
 import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
-import type { IRuntimeState, IRuntimeStore, IUiConfig, IValidationIssue } from 'src/types';
+import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
+import type { IValidationIssue } from 'src/utils/validation/types';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const getApplicationMetaData = (store: IRuntimeState) => store.applicationMetadata?.applicationMetadata;
@@ -40,21 +41,16 @@ const selectUiConfig = (state: IRuntimeState) => state.formLayout.uiConfig;
 export function* submitFormSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const { validationResult, componentSpecificValidations, emptyFieldsValidations } = runClientSideValidation(state);
-
-    validationResult.validations = mergeValidationObjects(
-      validationResult.validations,
-      componentSpecificValidations,
-      emptyFieldsValidations,
-    );
-    const { validations } = validationResult;
-    if (!canFormBeSaved(validationResult)) {
-      yield put(ValidationActions.updateValidations({ validations }));
+    const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
+    const validationObjects = resolvedNodes.runValidations(validationContextFromState(state));
+    const validationResult = createValidationResult(validationObjects);
+    if (containsErrors(validationObjects)) {
+      yield put(ValidationActions.updateValidations({ validationResult, merge: false }));
       return yield put(FormDataActions.submitRejected({ error: null }));
     }
 
     yield call(putFormData, {});
-    yield call(submitComplete, state);
+    yield call(submitComplete, state, resolvedNodes);
     yield put(FormDataActions.submitFulfilled());
   } catch (error) {
     window.logError('Submit form data failed:\n', error);
@@ -62,20 +58,23 @@ export function* submitFormSaga(): SagaIterator {
   }
 }
 
-function* submitComplete(state: IRuntimeState) {
+function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages) {
   // run validations against the datamodel
   const instanceId = state.instanceData.instance?.id;
-  const serverValidation: IValidationIssue[] | undefined = instanceId
+  const serverValidations: IValidationIssue[] | undefined = instanceId
     ? yield call(httpGet, getValidationUrl(instanceId))
     : undefined;
 
   // update validation state
-  const langTools = staticUseLanguageFromState(state);
   const layoutState: ILayoutState = yield select(LayoutSelector);
-  const mappedValidations = mapDataElementValidationToRedux(serverValidation, layoutState.layouts, langTools);
-  yield put(ValidationActions.updateValidations({ validations: mappedValidations }));
-  const hasErrors = hasValidationsOfSeverity(mappedValidations, Severity.Error);
-  if (hasErrors) {
+  const validationObjects = mapValidationIssues(
+    serverValidations ?? [],
+    resolvedNodes,
+    staticUseLanguageFromState(state),
+  );
+  const validationResult = createValidationResult(validationObjects);
+  yield put(ValidationActions.updateValidations({ validationResult, merge: false }));
+  if (containsErrors(validationObjects)) {
     // we have validation errors or warnings that should be shown, do not submit
     return yield put(FormDataActions.submitRejected({ error: null }));
   }

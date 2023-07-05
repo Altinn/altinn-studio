@@ -4,14 +4,18 @@ import { AttachmentSummaryComponent } from 'src/layout/FileUpload/AttachmentSumm
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
 import { FormComponent } from 'src/layout/LayoutComponent';
+import { attachmentsValid } from 'src/utils/validation/validation';
+import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { IFormData } from 'src/features/formData';
+import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class FileUpload extends FormComponent<'FileUpload'> {
+export class FileUpload extends FormComponent<'FileUpload'> implements ComponentValidation {
   render(props: PropsFromGenericComponent<'FileUpload'>): JSX.Element | null {
     return <FileUploadComponent {...props} />;
   }
@@ -32,6 +36,25 @@ export class FileUpload extends FormComponent<'FileUpload'> {
 
   canRenderInTable(): boolean {
     return false;
+  }
+
+  // This component does not have empty field validation, so has to override its inherited method
+  runEmptyFieldValidation(): IValidationObject[] {
+    return [];
+  }
+
+  runComponentValidation(
+    node: LayoutNodeFromType<'FileUpload'>,
+    { attachments, langTools }: IValidationContext,
+    _overrideFormData?: IFormData,
+  ): IValidationObject[] {
+    if (!attachmentsValid(attachments, node.item)) {
+      const message = `${langTools.langAsString('form_filler.file_uploader_validation_error_file_number_1')} ${
+        node.item.minNumberOfAttachments
+      } ${langTools.langAsString('form_filler.file_uploader_validation_error_file_number_2')}`;
+      return [buildValidationObject(node, 'errors', message)];
+    }
+    return [];
   }
 }
 

@@ -8,16 +8,16 @@ import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
-import { Severity } from 'src/types';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import { httpPost } from 'src/utils/network/networking';
 import { fileUploadUrl } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
-import { getValidationMessage } from 'src/utils/validation/validationHelpers';
+import { BackendValidationSeverity, getValidationMessage } from 'src/utils/validation/backendValidation';
 import type { IAttachment } from 'src/features/attachments';
 import type { IUploadAttachmentAction } from 'src/features/attachments/upload/uploadAttachmentActions';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { IComponentValidations, IRuntimeState, IValidationIssue } from 'src/types';
+import type { IRuntimeState } from 'src/types';
+import type { IComponentValidations, IValidationIssue } from 'src/utils/validation/types';
 
 export function* uploadAttachmentSaga({
   payload: { file, attachmentType, tmpAttachmentId, componentId, dataModelBindings, index },
@@ -32,8 +32,8 @@ export function* uploadAttachmentSaga({
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
-        layoutId: currentView,
-        validations: newValidations,
+        pageKey: currentView,
+        validationResult: { validations: newValidations },
       }),
     );
 
@@ -95,10 +95,10 @@ export function* uploadAttachmentSaga({
       validations = {
         simpleBinding: {
           errors: validationIssues
-            .filter((v) => v.severity === Severity.Error)
+            .filter((v) => v.severity === BackendValidationSeverity.Error)
             .map((v) => getValidationMessage(v, langTools)),
           warnings: validationIssues
-            .filter((v) => v.severity === Severity.Warning)
+            .filter((v) => v.severity === BackendValidationSeverity.Warning)
             .map((v) => getValidationMessage(v, langTools)),
         },
       };
@@ -109,8 +109,8 @@ export function* uploadAttachmentSaga({
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
-        layoutId: currentView,
-        validations,
+        pageKey: currentView,
+        validationResult: { validations },
       }),
     );
     yield put(

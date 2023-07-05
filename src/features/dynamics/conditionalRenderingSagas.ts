@@ -11,8 +11,9 @@ import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprConfig, ExprUnresolved } from 'src/features/expressions/types';
 import type { IUpdateHiddenComponents } from 'src/features/layout/formLayoutTypes';
-import type { IHiddenLayoutsExpressions, IRuntimeState, IValidations } from 'src/types';
+import type { IHiddenLayoutsExpressions, IRuntimeState } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
+import type { IValidations } from 'src/utils/validation/types';
 
 export const FormValidationSelector = (state: IRuntimeState) => state.formValidations.validations;
 
@@ -56,7 +57,8 @@ export function* removeHiddenValidationsSaga({
   if (validationsChanged) {
     yield put(
       ValidationActions.updateValidations({
-        validations: newFormValidations,
+        validationResult: { validations: newFormValidations },
+        merge: false,
       }),
     );
   }

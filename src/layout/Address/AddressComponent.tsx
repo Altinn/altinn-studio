@@ -9,7 +9,7 @@ import { AddressLabel } from 'src/layout/Address/AddressLabel';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IComponentValidations } from 'src/types';
+import type { IComponentValidations } from 'src/utils/validation/types';
 
 import 'src/layout/Address/AddressComponent.css';
 

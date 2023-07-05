@@ -2,15 +2,20 @@ import React from 'react';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
+import { getFieldName } from 'src/utils/formComponentUtils';
 import { SimpleComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { buildValidationObject } from 'src/utils/validation/validationHelpers';
+import type { IFormData } from 'src/features/formData';
 import type { ComponentTypeConfigs } from 'src/layout/components';
-import type { PropsFromGenericComponent } from 'src/layout/index';
+import type { EmptyFieldValidation, PropsFromGenericComponent, SchemaValidation } from 'src/layout/index';
 import type { ComponentTypes } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { AnyItem, HierarchyDataSources, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
+import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
 /**
  * This enum is used to distinguish purely presentational components
@@ -25,7 +30,7 @@ export enum ComponentType {
 
 const defaultGenerator = new SimpleComponentHierarchyGenerator();
 
-abstract class AnyComponent<Type extends ComponentTypes> {
+export abstract class AnyComponent<Type extends ComponentTypes> {
   /**
    * Given properties from GenericComponent, render this layout component
    */
@@ -151,8 +156,60 @@ export abstract class ActionComponent<Type extends ComponentTypes> extends AnyCo
   readonly type = ComponentType.Action;
 }
 
-export abstract class FormComponent<Type extends ComponentTypes> extends _FormComponent<Type> {
+export abstract class FormComponent<Type extends ComponentTypes>
+  extends _FormComponent<Type>
+  implements EmptyFieldValidation, SchemaValidation
+{
   readonly type = ComponentType.Form;
+
+  runEmptyFieldValidation(
+    node: LayoutNodeFromType<Type>,
+    { formData, langTools }: IValidationContext,
+    overrideFormData?: IFormData,
+  ): IValidationObject[] {
+    if (!node.item.required) {
+      return [];
+    }
+
+    const formDataToValidate = { ...formData, ...overrideFormData };
+    const validationObjects: IValidationObject[] = [];
+
+    const bindings = Object.entries(node.item.dataModelBindings ?? {});
+    for (const [bindingKey, field] of bindings) {
+      const data = formDataToValidate[field];
+
+      if (!data?.length) {
+        const fieldName = getFieldName(node.item.textResourceBindings, langTools, bindingKey);
+
+        validationObjects.push(
+          buildValidationObject(
+            node,
+            'errors',
+            langTools.langAsString('form_filler.error_required', [fieldName]),
+            bindingKey,
+          ),
+        );
+      }
+    }
+    return validationObjects;
+  }
+
+  runSchemaValidation(node: LayoutNodeFromType<Type>, schemaErrors: ISchemaValidationError[]): IValidationObject[] {
+    const validationObjects: IValidationObject[] = [];
+    for (const error of schemaErrors) {
+      if (node.item.dataModelBindings) {
+        const bindings = Object.entries(node.item.dataModelBindings);
+        for (const [bindingKey, bindingField] of bindings) {
+          if (bindingField === error.bindingField) {
+            validationObjects.push(
+              buildValidationObject(node, 'errors', error.message, bindingKey, error.invalidDataType),
+            );
+          }
+        }
+      }
+    }
+    return validationObjects;
+  }
 }
 
 export abstract class ContainerComponent<Type extends ComponentTypes> extends _FormComponent<Type> {

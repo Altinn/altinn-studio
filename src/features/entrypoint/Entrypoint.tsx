@@ -78,7 +78,7 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
 
   React.useEffect(() => {
     // If user comes back to entrypoint from an active instance we need to clear validation messages
-    dispatch(ValidationActions.updateValidations({ validations: {} }));
+    dispatch(ValidationActions.updateValidations({ validationResult: { validations: {} }, merge: false }));
   }, [dispatch]);
 
   React.useEffect(() => {

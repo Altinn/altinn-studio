@@ -12,8 +12,9 @@ import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
 import type { ILayout, ILayouts } from 'src/layout/layout';
-import type { IRepeatingGroups, IValidations } from 'src/types';
+import type { IRepeatingGroups } from 'src/types';
 import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
+import type { IValidations } from 'src/utils/validation/types';
 
 const { resolvedNodesInLayouts } = _private;
 

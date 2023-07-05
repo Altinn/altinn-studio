@@ -7,8 +7,9 @@ import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
 import type { IPageBreak } from 'src/layout/layout.d';
-import type { IComponentValidations, ITextResourceBindings } from 'src/types';
+import type { ITextResourceBindings } from 'src/types';
 import type { AnyItem } from 'src/utils/layout/hierarchy.types';
+import type { IComponentValidations } from 'src/utils/validation/types';
 
 export interface IComponentFormData {
   [binding: string]: string | undefined;
@@ -112,7 +113,7 @@ export function getFieldName(
 ): string | undefined {
   const { langAsString } = langTools;
 
-  if (fieldKey) {
+  if (fieldKey && fieldKey !== 'simpleBinding') {
     return smartLowerCaseFirst(langAsString(`form_filler.${fieldKey}`));
   }
 

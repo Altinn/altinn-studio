@@ -1,6 +1,6 @@
 import { initialState, ValidationActions, validationSlice } from 'src/features/validation/validationSlice';
 import type { IValidationState } from 'src/features/validation/validationSlice';
-import type { IComponentValidations, IValidations } from 'src/types';
+import type { IComponentValidations, IValidations } from 'src/utils/validation/types';
 
 describe('validationSlice', () => {
   let state: IValidationState;
@@ -27,8 +27,9 @@ describe('validationSlice', () => {
   it('handles runSingleFieldValidationFulfilled action', () => {
     const nextState = slice.reducer(
       state,
-      ValidationActions.runSingleFieldValidationFulfilled({
-        validations: mockValidations,
+      ValidationActions.updateValidations({
+        validationResult: { validations: mockValidations },
+        merge: false,
       }),
     );
     expect(nextState.validations).toEqual(mockValidations);
@@ -54,9 +55,12 @@ describe('validationSlice', () => {
         validations: mockValidations,
       },
       ValidationActions.updateComponentValidations({
-        layoutId: 'formLayout',
+        pageKey: 'formLayout',
         componentId,
-        validations: componentValidations,
+        validationResult: {
+          validations: componentValidations,
+          invalidDataTypes: true,
+        },
         invalidDataTypes,
       }),
     );
@@ -75,7 +79,8 @@ describe('validationSlice', () => {
     const nextState = slice.reducer(
       state,
       ValidationActions.updateValidations({
-        validations: mockValidations,
+        validationResult: { validations: mockValidations },
+        merge: false,
       }),
     );
     expect(nextState.validations).toEqual(mockValidations);

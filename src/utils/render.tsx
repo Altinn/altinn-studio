@@ -4,7 +4,7 @@ import { ErrorMessage } from '@digdir/design-system-react';
 
 import { SoftValidations } from 'src/components/form/SoftValidations';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
-import type { IComponentBindingValidation } from 'src/types';
+import type { IComponentBindingValidation } from 'src/utils/validation/types';
 
 export function renderValidationMessagesForComponent(
   validationMessages: IComponentBindingValidation | undefined | null,

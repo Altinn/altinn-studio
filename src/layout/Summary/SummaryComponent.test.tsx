@@ -11,8 +11,8 @@ import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { ILayoutComponent } from 'src/layout/layout';
-import type { IValidations } from 'src/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { IValidations } from 'src/utils/validation/types';
 
 describe('SummaryComponent', () => {
   const pageId = 'FormLayout';

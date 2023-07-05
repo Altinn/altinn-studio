@@ -6,9 +6,11 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
+import { useExprContext } from 'src/utils/layout/ExprContext';
 import { httpGet } from 'src/utils/network/networking';
 import { getValidationUrl } from 'src/utils/urls/appUrlHelper';
-import { mapDataElementValidationToRedux } from 'src/utils/validation/validation';
+import { mapValidationIssues } from 'src/utils/validation/backendValidation';
+import { createValidationResult } from 'src/utils/validation/validationHelpers';
 import type { BaseButtonProps } from 'src/layout/Button/WrappedButton';
 
 export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: string }) => {
@@ -19,6 +21,7 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
   );
   const { actions } = useAppSelector((state) => state.process);
   const disabled = processActionsFeature && !actions?.confirm;
+  const resolvedNodes = useExprContext();
 
   const dispatch = useAppDispatch();
   const langTools = useLanguage();
@@ -26,17 +29,19 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
   const { instanceId } = window;
 
   const handleConfirmClick = () => {
-    if (!disabled && instanceId) {
+    if (!disabled && instanceId && resolvedNodes) {
       setValidateId(props.id);
       httpGet(getValidationUrl(instanceId))
-        .then((data: any) => {
-          const mappedValidations = mapDataElementValidationToRedux(data, {}, langTools);
+        .then((serverValidations: any) => {
+          const validationObjects = mapValidationIssues(serverValidations, resolvedNodes, langTools);
+          const validationResult = createValidationResult(validationObjects);
           dispatch(
             ValidationActions.updateValidations({
-              validations: mappedValidations,
+              validationResult,
+              merge: false,
             }),
           );
-          if (data.length === 0) {
+          if (serverValidations.length === 0) {
             if (processActionsFeature) {
               dispatch(ProcessActions.complete({ componentId: props.id, action: 'confirm' }));
             } else {

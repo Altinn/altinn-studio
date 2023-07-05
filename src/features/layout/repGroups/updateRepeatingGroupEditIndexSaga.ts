@@ -8,42 +8,39 @@ import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/types';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
-import { splitDashedKey } from 'src/utils/formLayout';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
+import { mapValidationIssues } from 'src/utils/validation/backendValidation';
 import {
-  canFormBeSaved,
-  filterValidationsByRow,
-  mapDataElementValidationToRedux,
-  mergeValidationObjects,
-  validateGroup,
-} from 'src/utils/validation/validation';
+  containsErrors,
+  createLayoutValidationResult,
+  filterValidationObjectsByRowIndex,
+  validationContextFromState,
+} from 'src/utils/validation/validationHelpers';
 import type { IUpdateRepeatingGroupsEditIndex } from 'src/features/layout/formLayoutTypes';
-import type { IRuntimeState, IValidationIssue, IValidations } from 'src/types';
+import type { IRuntimeState } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
+import type { IValidationIssue } from 'src/utils/validation/types';
 
 export function* updateRepeatingGroupEditIndexSaga({
   payload: { group, index, validate, shouldAddRow },
 }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const langTools = staticUseLanguageFromState(state);
     const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
     const rowIndex = state.formLayout.uiConfig.repeatingGroups?.[group].editIndex;
+    const groupNode = resolvedNodes.findById(group);
 
-    if (validate && typeof rowIndex === 'number' && rowIndex > -1) {
-      const validations: IValidations = state.formValidations.validations;
-      const currentView = state.formLayout.uiConfig.currentView;
-
-      const frontendValidations: IValidations = validateGroup(
-        group,
-        state,
+    if (validate && groupNode?.isType('Group') && typeof rowIndex === 'number' && rowIndex > -1) {
+      const frontendValidationObjects = groupNode.def.runGroupValidations(
+        groupNode,
+        validationContextFromState(state),
         validate === Triggers.ValidateRow ? rowIndex : undefined,
       );
 
       // Get group's rowIndices to send to server for validations
-      const { depth: rowIndices } = splitDashedKey(group);
+      const rowIndices = groupNode.getRowIndices();
       rowIndices.push(rowIndex);
 
       const options: AxiosRequestConfig = {
@@ -84,26 +81,20 @@ export function* updateRepeatingGroupEditIndexSaga({
         getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId),
         options,
       );
-      const mappedServerValidations: IValidations = mapDataElementValidationToRedux(
+      const serverValidationObjects = mapValidationIssues(
         serverValidations,
-        state.formLayout.layouts,
-        langTools,
+        resolvedNodes,
+        staticUseLanguageFromState(state),
       );
 
-      const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
+      const validationObjects = [...frontendValidationObjects, ...serverValidationObjects];
+      const validationResult = createLayoutValidationResult(validationObjects);
+      yield put(
+        ValidationActions.updateLayoutValidation({ validationResult, pageKey: groupNode.pageKey(), merge: true }),
+      );
+      const rowValidations = filterValidationObjectsByRowIndex(rowIndex, groupNode.getRowIndices(), validationObjects);
 
-      // only overwrite validtions specific to the group - leave all other untouched
-      const newValidations = {
-        ...validations,
-        [currentView]: {
-          ...validations[currentView],
-          ...combinedValidations[currentView],
-        },
-      };
-      yield put(ValidationActions.updateValidations({ validations: newValidations }));
-      const rowValidations = filterValidationsByRow(resolvedNodes, combinedValidations, group, rowIndex);
-
-      if (canFormBeSaved({ validations: rowValidations, invalidDataTypes: false })) {
+      if (!containsErrors(rowValidations)) {
         if (shouldAddRow) {
           yield put(FormLayoutActions.repGroupAddRow({ groupId: group }));
         }

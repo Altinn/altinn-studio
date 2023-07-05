@@ -15,7 +15,7 @@ import { handleRejectedFiles } from 'src/layout/FileUpload/shared/handleRejected
 import { AttachmentsCounter } from 'src/layout/FileUpload/shared/render';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IComponentValidations } from 'src/types';
+import type { IComponentValidations } from 'src/utils/validation/types';
 
 export type IFileUploadProps = PropsFromGenericComponent<'FileUpload'>;
 

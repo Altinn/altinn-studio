@@ -1,11 +1,11 @@
 import { getLayoutComponentObject } from 'src/layout';
 import { DataBinding } from 'src/utils/databindings/DataBinding';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { runValidationOnNodes } from 'src/utils/validation/validation';
 import type { ComponentClassMap } from 'src/layout';
 import type { HNonRepGroup, HRepGroup } from 'src/layout/Group/types';
 import type { ComponentTypes, IDataModelBindings } from 'src/layout/layout';
 import type { ComponentType } from 'src/layout/LayoutComponent';
-import type { IComponentBindingValidation, IComponentValidations, ValidationKeyOrAny } from 'src/types';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type {
   AnyItem,
@@ -18,6 +18,14 @@ import type {
 } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
+import type {
+  IComponentBindingValidation,
+  IComponentValidations,
+  IValidationContext,
+  IValidationObject,
+  ValidationKeyOrAny,
+} from 'src/utils/validation/types';
+import type { IValidationOptions } from 'src/utils/validation/validation';
 
 /**
  * A LayoutNode wraps a component with information about its parent, allowing you to traverse a component (or an
@@ -54,6 +62,10 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
 
   public isNonRepGroup(): this is LayoutNode<HNonRepGroup, 'Group'> {
     return this.item.type === 'Group' && (!this.item.maxCount || this.item.maxCount <= 1);
+  }
+
+  public pageKey(): string {
+    return this.top.top.myKey;
   }
 
   /**
@@ -264,7 +276,7 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
   public getValidations(binding: keyof IDataModelBindings | string): IComponentBindingValidation;
   public getValidations(binding?: undefined): IComponentValidations;
   public getValidations(binding?: string): IComponentBindingValidation | IComponentValidations {
-    const pageKey = this.top.top.myKey;
+    const pageKey = this.pageKey();
     const page = this.dataSources.validations[pageKey] || {};
     const component = page[this.item.id] || {};
 
@@ -364,5 +376,26 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
     }
 
     return formDataObj;
+  }
+
+  public getRowIndices(): number[] {
+    const rowIndices: number[] = [];
+    if (typeof this.rowIndex !== 'undefined') {
+      rowIndices.splice(0, 0, this.rowIndex);
+    }
+    if (this.parent instanceof LayoutNode) {
+      const parentIndices = this.parent.getRowIndices();
+      if (parentIndices) {
+        rowIndices.splice(0, 0, ...parentIndices);
+      }
+    }
+    return rowIndices;
+  }
+
+  /**
+   * Runs frontend validations for this node and returns an array of IValidationObject
+   */
+  runValidations(validationContext: IValidationContext, options?: IValidationOptions): IValidationObject[] {
+    return runValidationOnNodes([this], validationContext, options);
   }
 }

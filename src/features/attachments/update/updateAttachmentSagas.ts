@@ -27,8 +27,8 @@ export function* updateAttachmentSaga({
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
-        layoutId: currentView,
-        validations: newValidations,
+        pageKey: currentView,
+        validationResult: { validations: newValidations },
       }),
     );
 
@@ -41,8 +41,8 @@ export function* updateAttachmentSaga({
         yield put(
           ValidationActions.updateComponentValidations({
             componentId,
-            layoutId: currentView,
-            validations,
+            pageKey: currentView,
+            validationResult: { validations },
           }),
         );
         yield put(
@@ -82,8 +82,8 @@ export function* updateAttachmentSaga({
       yield put(
         ValidationActions.updateComponentValidations({
           componentId,
-          layoutId: currentView,
-          validations,
+          pageKey: currentView,
+          validationResult: { validations },
         }),
       );
       yield put(
@@ -100,8 +100,8 @@ export function* updateAttachmentSaga({
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
-        layoutId: currentView,
-        validations,
+        pageKey: currentView,
+        validationResult: { validations },
       }),
     );
     yield put(

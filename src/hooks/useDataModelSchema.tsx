@@ -5,7 +5,7 @@ import { Draft07 } from 'json-schema-library';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
-import { getRootElementPath } from 'src/utils/validation/validation';
+import { getRootElementPath } from 'src/utils/schemaUtils';
 
 function useDraft(enabled: boolean) {
   const dataModels = useAppSelector((state) => state.formDataModel.schemas);

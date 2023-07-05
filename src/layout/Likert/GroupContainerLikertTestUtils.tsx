@@ -17,7 +17,8 @@ import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
-import type { ILayoutValidations, IOption, ITextResource } from 'src/types';
+import type { IOption, ITextResource } from 'src/types';
+import type { ILayoutValidations } from 'src/utils/validation/types';
 
 export const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },

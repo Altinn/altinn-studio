@@ -6,15 +6,16 @@ import type { SagaIterator } from 'redux-saga';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
+import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpGet } from 'src/utils/network/networking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
-import { mapDataElementValidationToRedux, mergeValidationObjects } from 'src/utils/validation/validation';
+import { mapValidationIssues } from 'src/utils/validation/backendValidation';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IRunSingleFieldValidation } from 'src/features/validation/validationSlice';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { ILayouts } from 'src/layout/layout';
-import type { ILayoutSets, IRuntimeState, IValidationIssue, IValidations } from 'src/types';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
 import type { IInstance } from 'src/types/shared';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
+import type { IValidationIssue } from 'src/utils/validation/types';
 
 export const selectLayoutsState = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectApplicationMetadataState = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
@@ -24,7 +25,7 @@ export const selectValidationsState = (state: IRuntimeState) => state.formValida
 export const selectHiddenFieldsState = (state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields;
 
 export function* runSingleFieldValidationSaga({
-  payload: { componentId, layoutId, dataModelBinding },
+  payload: { componentId, dataModelBinding },
 }: PayloadAction<IRunSingleFieldValidation>): SagaIterator {
   // Reject validation if field is hidden
   let hiddenFields: string[] = yield select(selectHiddenFieldsState);
@@ -32,17 +33,19 @@ export function* runSingleFieldValidationSaga({
     yield put(ValidationActions.runSingleFieldValidationRejected({}));
     return;
   }
+  const state: IRuntimeState = yield select();
+  const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
+  const node = resolvedNodes.findById(componentId);
 
   const applicationMetadata: IApplicationMetadata = yield select(selectApplicationMetadataState);
   const instance: IInstance = yield select(selectInstanceState);
   const layoutSets: ILayoutSets = yield select(selectLayoutSetsState);
-  const langTools: IUseLanguage = yield select(staticUseLanguageFromState);
 
   const currentTaskDataId: string | undefined =
     applicationMetadata && getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
   const url: string | undefined = instance && currentTaskDataId && getDataValidationUrl(instance.id, currentTaskDataId);
 
-  if (url && dataModelBinding) {
+  if (node && url && dataModelBinding) {
     const options: AxiosRequestConfig = {
       headers: {
         ValidationTriggerField: dataModelBinding,
@@ -50,29 +53,12 @@ export function* runSingleFieldValidationSaga({
     };
 
     try {
-      const layouts: ILayouts = yield select(selectLayoutsState);
-      const serverValidation: IValidationIssue[] = yield call(httpGet, url, options);
-
-      const mappedValidations: IValidations = mapDataElementValidationToRedux(
-        serverValidation,
-        layouts || {},
-        langTools,
+      const serverValidations: IValidationIssue[] = yield call(httpGet, url, options);
+      const validationObjects = mapValidationIssues(
+        serverValidations,
+        resolvedNodes,
+        staticUseLanguageFromState(state),
       );
-      const validationsFromState: IValidations = yield select(selectValidationsState);
-      const validations: IValidations = mergeValidationObjects(validationsFromState, mappedValidations);
-
-      // Replace/reset validations for field that triggered validation
-      if (serverValidation.length === 0 && validations[layoutId]?.[componentId]) {
-        validations[layoutId][componentId].simpleBinding = {
-          errors: [],
-          warnings: [],
-        };
-      } else if (mappedValidations[layoutId]?.[componentId]) {
-        if (!validations[layoutId]) {
-          validations[layoutId] = {};
-        }
-        validations[layoutId][componentId] = mappedValidations[layoutId][componentId];
-      }
 
       // Reject validation if field has been set to hidden in the time after we sent the validation request
       hiddenFields = yield select(selectHiddenFieldsState);
@@ -81,7 +67,7 @@ export function* runSingleFieldValidationSaga({
         return;
       }
 
-      yield put(ValidationActions.runSingleFieldValidationFulfilled({ validations }));
+      yield put(ValidationActions.addValidations({ validationObjects }));
     } catch (error) {
       yield put(ValidationActions.runSingleFieldValidationRejected({ error }));
       window.logError('Single field validation failed:\n', error);

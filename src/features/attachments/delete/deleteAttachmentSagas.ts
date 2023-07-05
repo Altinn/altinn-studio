@@ -26,8 +26,8 @@ export function* deleteAttachmentSaga({
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
-        layoutId: currentView,
-        validations: newValidations,
+        pageKey: currentView,
+        validationResult: { validations: newValidations },
       }),
     );
 
@@ -57,8 +57,8 @@ export function* deleteAttachmentSaga({
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,
-        layoutId: currentView,
-        validations,
+        pageKey: currentView,
+        validationResult: { validations },
       }),
     );
     yield put(

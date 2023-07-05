@@ -1,24 +1,7 @@
-import type Ajv from 'ajv/dist/core';
-
 import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
 import type { RootState } from 'src/redux/store';
-
-export interface IComponentBindingValidation {
-  errors?: string[];
-  warnings?: string[];
-  info?: string[];
-  success?: string[];
-  fixed?: string[];
-}
-
-export type ValidationKey = keyof IComponentBindingValidation;
-export type ValidationKeyOrAny = ValidationKey | 'any';
-
-export interface IComponentValidations {
-  [id: string]: IComponentBindingValidation | undefined;
-}
 
 export interface IFormFileUploaderWithTag {
   chosenOptions: IOptionsChosen;
@@ -134,12 +117,6 @@ export interface IRuleObject {
 export type IRuntimeState = RootState;
 export type IRuntimeStore = IRuntimeState;
 
-export interface ISchemaValidator {
-  rootElementPath: string;
-  schema: any;
-  validator: Ajv;
-}
-
 export interface ISimpleInstance {
   id: string;
   lastChanged: string;
@@ -155,17 +132,6 @@ export interface ITextResource {
 
 export interface ITextResourceBindings {
   [id: string]: string | undefined;
-}
-
-export interface IValidationIssue {
-  code: string;
-  description: string;
-  field: string;
-  scope: string | null;
-  severity: Severity;
-  targetId: string;
-  source?: string;
-  customTextKey?: string;
 }
 
 export interface IHiddenLayoutsExpressions {
@@ -223,19 +189,6 @@ export interface ITracks {
   hiddenExpr: ExprUnresolved<IHiddenLayoutsExpressions>;
 }
 
-export interface IValidationResult {
-  invalidDataTypes: boolean;
-  validations: IValidations;
-}
-
-export interface IValidations {
-  [id: string]: ILayoutValidations;
-}
-
-export interface ILayoutValidations {
-  [id: string]: IComponentValidations;
-}
-
 export interface IVariable {
   dataSource: string;
   key: string;
@@ -257,15 +210,6 @@ export enum LayoutStyle {
   Column = 'column',
   Row = 'row',
   Table = 'table',
-}
-
-export enum Severity {
-  Unspecified = 0,
-  Error = 1,
-  Warning = 2,
-  Informational = 3,
-  Fixed = 4,
-  Success = 5,
 }
 
 export enum Triggers {
@@ -294,32 +238,6 @@ export function reducePageValidations(triggers?: Triggers[]): TriggersPageValida
     : triggers?.includes(Triggers.ValidatePage)
     ? Triggers.ValidatePage
     : undefined;
-}
-
-/**
- * Filters an IValidations object to only include validations for the given TriggersPageValidation trigger.
- */
-export function filterPageValidations(
-  validations: IValidations,
-  trigger: TriggersPageValidation,
-  currentView: string,
-  pageOrder: string[],
-): IValidations {
-  if (trigger === Triggers.ValidateAllPages) {
-    return validations;
-  }
-
-  if (trigger === Triggers.ValidateCurrentAndPreviousPages) {
-    const index = pageOrder.indexOf(currentView);
-    const previousPages = pageOrder.slice(0, index + 1);
-    return Object.fromEntries(Object.entries(validations).filter(([page]) => previousPages.includes(page)));
-  }
-
-  if (trigger === Triggers.ValidatePage) {
-    return { [currentView]: validations[currentView] };
-  }
-
-  return {};
 }
 
 export interface ILabelSettings {

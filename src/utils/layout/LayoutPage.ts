@@ -1,7 +1,9 @@
+import { runValidationOnNodes } from 'src/utils/validation/validation';
 import type { AnyItem, HComponent } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
+import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
 /**
  * The layout page is a class containing an entire page/form layout, with all components/nodes within it. It
@@ -129,5 +131,12 @@ export class LayoutPage implements LayoutObject {
       myKey,
       collection,
     };
+  }
+
+  /**
+   * Runs frontend validations for all nodes in the layout, and returns an array of IValidationObject.
+   */
+  public runValidations(validationContext: IValidationContext): IValidationObject[] {
+    return runValidationOnNodes(this.allChildren, validationContext);
   }
 }

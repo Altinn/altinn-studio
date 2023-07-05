@@ -1,4 +1,4 @@
-import type { IValidations } from 'src/types';
+import type { IValidations } from 'src/utils/validation/types';
 
 export function getMockValidationState(withFixed = false): IValidations {
   const fixed = withFixed ? [] : undefined;
