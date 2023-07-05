@@ -269,23 +269,24 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
   };
 
 export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => {
-  const newSchema = deepCopy(uiSchema);
+  let newSchema = deepCopy(uiSchema);
   const node = getNodeByPointer(newSchema, pointer);
   node.isArray = !node.isArray;
-  const updatedChildren = node.children.map(child => {
-    const childNode = getNodeByPointer(newSchema, child);
+  node.children.forEach((child) => {
     if (node.isArray) {
-      const updatedPointer = childNode.pointer.replace(pointer, makePointer(pointer, Keyword.Items));
-      childNode.pointer = updatedPointer;
+      newSchema = renameNodePointer(
+        newSchema,
+        child,
+        child.replace(pointer, makePointer(pointer, Keyword.Items))
+      );
     } else {
-      const updatedPointer = childNode.pointer.replace(makePointer(pointer, Keyword.Items), pointer);
-      childNode.pointer = updatedPointer;
+      newSchema = renameNodePointer(
+        newSchema,
+        child,
+        child.replace(makePointer(pointer, Keyword.Items), pointer)
+      );
     }
-    return childNode.pointer;
   });
-
-  node.children = updatedChildren;
-
   return newSchema;
 };
 
