@@ -3,10 +3,11 @@ import React, { useMemo } from 'react';
 import { Select } from '@digdir/design-system-react';
 import type { MultiSelectOption } from '@digdir/design-system-react';
 
+import { SelectOptionItem } from 'src/components/form/SelectOptionItem';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useLanguage } from 'src/hooks/useLanguage';
-import { duplicateOptionFilter, formatLabelForSelect } from 'src/utils/options';
+import { duplicateOptionFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 import 'src/layout/MultipleSelect/MultipleSelect.css';
@@ -25,18 +26,26 @@ export function MultipleSelectComponent({
   const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding);
   const { langAsString } = useLanguage();
 
+  const listHasDescription = (apiOptions || options)?.some((option) => option.description) || false;
+
   const calculatedOptions: MultiSelectOption[] = useMemo(
     () =>
       (apiOptions || options)?.filter(duplicateOptionFilter).map((option) => {
         const label = langAsString(option.label ?? option.value);
+
         return {
           label,
-          formattedLabel: formatLabelForSelect(option, langAsString),
+          formattedLabel: (
+            <SelectOptionItem
+              option={option}
+              listHasDescription={listHasDescription}
+            />
+          ),
           value: option.value,
           deleteButtonLabel: `${langAsString('general.delete')} ${label}`,
         };
       }) || [],
-    [apiOptions, langAsString, options],
+    [apiOptions, langAsString, options, listHasDescription],
   );
 
   const handleChange = (values: string[]) => {
