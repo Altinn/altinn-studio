@@ -1,4 +1,4 @@
-.blueUnderline {
+tr.blueUnderline th {
   border-bottom: 2px solid #1eadf7;
 }
 
@@ -18,7 +18,7 @@
 .fileUploadTable {
   width: 100%;
   margin-top: 1.5rem;
-  border-spacing: 0 0.75rem;
+  border-spacing: 0;
   table-layout: fixed;
   box-shadow: none;
 }
