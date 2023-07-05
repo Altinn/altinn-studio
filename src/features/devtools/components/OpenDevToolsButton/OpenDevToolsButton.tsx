@@ -35,7 +35,7 @@ export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonPro
           .
         </p>
         <p style={{ marginBottom: 0 }}>
-          I test- og produksjonsmiljøene er verktøyet kun tilgjengelig gjennom hurtigtasten.
+          I produksjonsmiljøet er knappen skjult og verktøyet er kun tilgjengelig gjennom hurtigtasten.
         </p>
       </div>
 
