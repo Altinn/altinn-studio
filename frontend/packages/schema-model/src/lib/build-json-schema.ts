@@ -121,22 +121,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         JSONPointer.set(out, jsonPointer, undefined);
       }
     });
-  console.log(nodes);
 
-  return validateObject(out);
-};
 
-const validateObject = (object: JsonSchema): JsonSchema => {
-  if (!object.properties) { return object; }
-  const keys = Object.keys(object.properties);
-  const firstKey = keys[0];
-  if (object.properties && object.properties[firstKey] && object.properties[firstKey].type === "array") {
-    const items = object.properties[firstKey].items;
-    const properties = object.properties[firstKey].properties;
-    if (items && properties) {
-      items.properties = properties;
-      delete object.properties[firstKey].properties;
-    }
-  }
-  return object;
+  return out;
 };
