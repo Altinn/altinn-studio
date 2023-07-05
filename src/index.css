@@ -1,4 +1,32 @@
 @import 'src/styles/tjenester3.css';
+@import url('https://altinncdn.no/fonts/inter/inter.css');
+
+/* Font */
+:root {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--semantic-text-neutral-default);
+}
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: 'Inter var', sans-serif;
+  }
+  * {
+    font-feature-settings: 'cv05';
+  }
+}
+
+/* Override design system variables */
+* {
+  --component-panel-font_size-header-breakpoint_sm: 1.4rem;
+  --component-panel-font_size-header-breakpoint_md: 1.6rem;
+  --component-panel-font_size-header-breakpoint_lg: 1.75rem;
+  --component-panel-font_size-body-breakpoint_md: 1rem;
+  --component-panel-font_weight-heading: 500;
+}
 
 /* Global variables */
 :root {
@@ -81,21 +109,6 @@ input:checked + .slider:before {
 
 input:focus + .slider {
   box-shadow: 0 0 1px #1eaef7;
-}
-
-p {
-  font-family: 'Altinn-DIN';
-}
-
-h2 {
-  font-size: 22px;
-  font-weight: normal;
-}
-
-@media only screen and (min-width: 576px) {
-  h2 {
-    font-size: 28px;
-  }
 }
 
 option {

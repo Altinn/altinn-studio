@@ -1,0 +1,7 @@
+.description {
+  margin-bottom: 0.75rem;
+  word-break: break-word;
+  line-height: 1.5rem;
+  color: var(--semantic-text-neutral-subtle);
+  display: inline-block;
+}

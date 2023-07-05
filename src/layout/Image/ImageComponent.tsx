@@ -37,6 +37,7 @@ export function ImageComponent({ node }: IImageProps) {
       container
       direction='row'
       justifyContent={align}
+      spacing={1}
     >
       <Grid item={true}>
         {renderSvg ? (

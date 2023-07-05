@@ -156,7 +156,6 @@ export function ReceiptComponent({
               style={{
                 paddingTop: '2.562rem',
                 paddingBottom: '0.3125rem',
-                fontWeight: 600,
               }}
             >
               {titleSubmitted}

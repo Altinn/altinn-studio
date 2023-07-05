@@ -21,7 +21,7 @@ export class AppFrontend {
 
   //Common
   public loadingAnimation = 'rect[role="presentation"]';
-  public header = '.a-modal-header';
+  public header = '#main-content > header';
   public closeButton = '[data-testid="form-close-button"]';
   public backButton = '[data-testid="form-back-button"]';
   public attachmentIcon = '.reg-attachment';

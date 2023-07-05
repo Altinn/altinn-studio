@@ -22,12 +22,12 @@ describe('Header', () => {
     expect(screen.getByRole('banner')).toHaveTextContent('Test Header');
   });
 
-  it('should render with success modal and custom text when process is archived', () => {
+  it('should render with custom text when process is archived', () => {
     renderWithProviders(<Header type={ProcessTaskType.Archived} />, {
       preloadedState: getInitialStateMock(),
     });
     const header = screen.getByRole('banner');
-    expect(header).toHaveClass('a-modal-background-success');
+    expect(header).toHaveTextContent('Kvittering');
   });
 
   it('should not render progress', () => {

@@ -1,14 +1,5 @@
 .pdf-wrapper h1 {
-  font-size: xx-large;
-  margin-bottom: 0;
-}
-
-.title-margin {
-  margin-bottom: 1.25rem !important;
-}
-
-.pdf-wrapper p[role='doc-subtitle'] {
-  font-size: x-large;
+  margin-top: 0;
 }
 
 .component-container {

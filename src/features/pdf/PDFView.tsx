@@ -1,6 +1,6 @@
 import React from 'react';
 
-import cn from 'classnames';
+import { Heading } from '@digdir/design-system-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
@@ -73,15 +73,13 @@ export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
       id='pdfView'
       className={classes['pdf-wrapper']}
     >
-      <h1 className={cn({ [classes['title-margin']]: !appOwner })}>{appName}</h1>
-      {appOwner && (
-        <p
-          role='doc-subtitle'
-          className={classes['title-margin']}
-        >
-          {appOwner}
-        </p>
-      )}
+      {appOwner && <span role='doc-subtitle'>{appOwner}</span>}
+      <Heading
+        level={1}
+        size='large'
+      >
+        {appName}
+      </Heading>
       {pdfPage.children().map((node) => (
         <div
           key={node.item.id}

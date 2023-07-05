@@ -3,6 +3,7 @@ import React from 'react';
 import { Grid } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
+import classes from 'src/components/form/Label.module.css';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
@@ -30,7 +31,7 @@ export function Label(props: IFormLabelProps) {
     >
       <Grid item={true}>
         <label
-          className='a-form-label title-label'
+          className={classes.label}
           htmlFor={props.id}
           data-testid={`label-${props.id}`}
           id={`label-${props.id}`}

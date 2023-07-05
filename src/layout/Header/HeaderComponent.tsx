@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Heading } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
@@ -9,57 +10,37 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IHeaderProps = PropsFromGenericComponent<'Header'>;
 
-const marginStyling = {
-  marginTop: '0',
-  marginBottom: '0',
+type HeadingProps = {
+  level: Parameters<typeof Heading>[0]['level'];
+  size: Parameters<typeof Heading>[0]['size'];
 };
 
-interface IHeaderSizeProps {
-  id: string;
-  text: React.ReactNode;
-  size?: string;
-}
-
-export const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
+function getHeaderProps(size?: string): HeadingProps {
   switch (size) {
     case 'L':
     case 'h2': {
-      return (
-        <h2
-          id={id}
-          style={marginStyling}
-        >
-          {text}
-        </h2>
-      );
+      return {
+        level: 2,
+        size: 'medium',
+      };
     }
-
     case 'M':
     case 'h3': {
-      return (
-        <h3
-          id={id}
-          style={marginStyling}
-        >
-          {text}
-        </h3>
-      );
+      return {
+        level: 3,
+        size: 'small',
+      };
     }
-
     case 'S':
     case 'h4':
     default: {
-      return (
-        <h4
-          id={id}
-          style={marginStyling}
-        >
-          {text}
-        </h4>
-      );
+      return {
+        level: 4,
+        size: 'xsmall',
+      };
     }
   }
-};
+}
 
 export const HeaderComponent = ({ node }: IHeaderProps) => {
   const { id, size, textResourceBindings } = node.item;
@@ -71,17 +52,15 @@ export const HeaderComponent = ({ node }: IHeaderProps) => {
       alignItems='center'
     >
       <Grid item={true}>
-        <HeaderSize
+        <Heading
           id={id}
-          size={size}
-          text={lang(textResourceBindings?.title)}
-        />
+          {...getHeaderProps(size)}
+        >
+          {lang(textResourceBindings?.title)}
+        </Heading>
       </Grid>
       {textResourceBindings?.help && (
-        <Grid
-          item={true}
-          style={marginStyling}
-        >
+        <Grid item={true}>
           <HelpTextContainer
             helpText={lang(textResourceBindings.help)}
             title={getPlainTextFromNode(lang(textResourceBindings?.title))}

@@ -10,7 +10,7 @@
 }
 
 .fileUploadTextBold {
-  font-weight: bold;
+  font-weight: 500;
   font-size: 1rem;
   margin-bottom: 0.375rem;
 }
@@ -19,7 +19,7 @@
 }
 
 .fileUploadTextBoldSmall {
-  font-weight: bold;
+  font-weight: 500;
   font-size: 0.75rem;
   margin-bottom: 0;
 }

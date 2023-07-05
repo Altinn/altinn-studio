@@ -1,5 +1,6 @@
 import React from 'react';
 
+import classes from 'src/components/form/Description.module.css';
 export interface IDescriptionProps {
   description: React.ReactNode;
   id: string;
@@ -11,7 +12,7 @@ export function Description(props: IDescriptionProps) {
   }
   return (
     <span
-      className='a-form-label description-label'
+      className={classes.description}
       id={`description-${props.id}`}
       data-testid={`description-${props.id}`}
     >

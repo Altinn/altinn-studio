@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Heading } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
@@ -10,32 +11,22 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { HGroups } from 'src/layout/Group/types';
 
-const H = ({ level, children, ...props }) => {
-  switch (level) {
-    case 1:
-      return <h1 {...props}>{children}</h1>;
-    case 2:
-      return <h2 {...props}>{children}</h2>;
-    case 3:
-      return <h3 {...props}>{children}</h3>;
-    case 4:
-      return <h4 {...props}>{children}</h4>;
-    case 5:
-      return <h5 {...props}>{children}</h5>;
-    case 6:
-      return <h6 {...props}>{children}</h6>;
-    default:
-      window.logWarn(`Heading level ${level} is not supported`);
-      return <h2 {...props}>{children}</h2>;
-  }
-};
-
 export interface IDisplayGroupContainer {
   groupNode: LayoutNode<HGroups, 'Group'>;
   id?: string;
   onlyRowIndex?: number | undefined;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
+
+type HeadingLevel = 2 | 3 | 4 | 5 | 6;
+
+const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size'] } = {
+  [2]: 'medium',
+  [3]: 'small',
+  [4]: 'xsmall',
+  [5]: 'xsmall',
+  [6]: 'xsmall',
+};
 
 export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayoutNode }: IDisplayGroupContainer) {
   const { lang, langAsString } = useLanguage();
@@ -48,7 +39,8 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
   }
 
   const isNested = groupNode.parent instanceof LayoutNode;
-  const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6);
+  const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel;
+  const headingSize = headingSizes[headingLevel];
 
   return (
     <Grid
@@ -70,12 +62,12 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
           xs={12}
         >
           {title && (
-            <H
+            <Heading
               level={headingLevel}
-              className={classes.groupTitle}
+              size={headingSize}
             >
               {title}
-            </H>
+            </Heading>
           )}
           {body && <p className={classes.groupBody}>{body}</p>}
         </Grid>

@@ -38,14 +38,14 @@ const useStyles = makeStyles((theme) => ({
   buttonBase: {
     cursor: 'pointer',
     background: 'none',
-    font: 'inherit',
+    fontFamily: 'inherit',
     border: 'none',
     outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     width: '100%',
     height: '100%',
     display: 'block',
     textAlign: 'left',
-    padding: '6px 12px',
+    padding: '8px 14px',
     borderRadius: '40px',
     fontSize: '1rem',
 

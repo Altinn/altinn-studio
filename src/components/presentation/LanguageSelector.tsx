@@ -34,7 +34,7 @@ export const LanguageSelector = () => {
 
   if (appLanguages) {
     return (
-      <div style={{ minWidth: 150 }}>
+      <div style={{ minWidth: 160 }}>
         <Select
           label={langAsString('language.selector.label')}
           options={optionsMap || []}
