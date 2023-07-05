@@ -1,9 +1,10 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { useQueries, UseQueryResult } from '@tanstack/react-query';
+import { useQueries, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { addSchemas } from '../../utils/formValidationUtils';
 
 export const useLayoutSchemaQuery = (): UseQueryResult<any>[] => {
   const { getExpressionSchema, getNumberFormatSchema, getLayoutSchema } = useServicesContext();
+  const queryClient = useQueryClient();
 
   const [expressionSchemaQuery, numberFormatSchemaQuery, layoutSchemaQuery] = useQueries({
     queries: [
@@ -19,6 +20,7 @@ export const useLayoutSchemaQuery = (): UseQueryResult<any>[] => {
         }),
         cacheTime: Infinity,
         staleTime: Infinity,
+        enabled: item.name === 'layoutSchema' ? !!queryClient.getQueryData(['expressionSchema']) && !!queryClient.getQueryData(['numberFormatSchema']) : true
       }
     })
   });
