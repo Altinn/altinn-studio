@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
@@ -16,11 +17,13 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IGitea _giteaApi;
         private readonly IRepository _repository;
+        private readonly IResourceRegistryOptions _resourceRegistryOptions;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions)
         {
             _giteaApi = gitea;
             _repository = repository;
+            _resourceRegistryOptions = resourceRegistryOptions;
         }
 
         [HttpGet]
@@ -150,6 +153,24 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
         {
             return _repository.AddServiceResource(org, resource);
+        }
+
+
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/sectors")]
+        public async Task<ActionResult<List<DataTheme>>> GetSectors()
+        {
+            DataThemesContainer dataThemesContainer = await _resourceRegistryOptions.GetSectors();
+            return dataThemesContainer.DataThemes;
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/losterms")]
+        public async Task<ActionResult<List<LosTerm>>> GetGetLosTerms()
+        {
+            LosTerms losTerms = await _resourceRegistryOptions.GetLosTerms();
+            return losTerms.LosNodes;
         }
 
         private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)

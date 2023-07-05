@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -69,6 +69,9 @@
     <Watch Remove="Enums\ReferenceType.cs" />
     <Watch Remove="Enums\ResourceType.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
+    <Watch Remove="Models\ConceptSchema.cs" />
+    <Watch Remove="Models\DataTheme.cs" />
+    <Watch Remove="Models\DataThemesContainer.cs" />
     <Watch Remove="Models\GiteaCommit.cs" />
     <Watch Remove="Models\GiteaRepoCommitInfo.cs" />
     <Watch Remove="Models\GiteaRepoCommitMeta.cs" />
@@ -78,6 +81,8 @@
     <Watch Remove="Models\GiteaUser.cs" />
     <Watch Remove="Models\Keyword.cs" />
     <Watch Remove="Models\ListviewServiceResource.cs" />
+    <Watch Remove="Models\LosTerm.cs" />
+    <Watch Remove="Models\LosTerms.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ResourceVersionInfo.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
@@ -87,10 +92,14 @@
     <Watch Remove="RepositoryClient\Model\FileLinksResponse.cs" />
     <Watch Remove="RepositoryClient\Model\GiteaRepoCommitStats.cs" />
     <Watch Remove="Services\Implementation\PolicyOptionsService.cs" />
+    <Watch Remove="Services\Implementation\ResourceRegistryAdminService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
+    <Watch Remove="Services\Interfaces\IResourceRegistryAdmin.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
+    <Watch Remove="TypedHttpClients\ResourceRegistryOptions\IResourceRegistryOptions.cs" />
+    <Watch Remove="TypedHttpClients\ResourceRegistryOptions\ResourceRegistryOptionsClient.cs" />
   </ItemGroup>
 
   <ItemGroup>
