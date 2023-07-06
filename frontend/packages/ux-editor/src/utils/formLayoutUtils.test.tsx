@@ -159,6 +159,7 @@ describe('formLayoutUtils', () => {
             dataModelBindings: {},
             id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
             itemType: 'COMPONENT',
+            propertyPath: 'definitions/inputComponent',
             readOnly: false,
             required: false,
             textResourceBindings: {
@@ -170,6 +171,7 @@ describe('formLayoutUtils', () => {
             dataModelBindings: {},
             id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
             itemType: 'COMPONENT',
+            propertyPath: 'definitions/inputComponent',
             readOnly: false,
             required: false,
             textResourceBindings: {
@@ -257,6 +259,7 @@ describe('formLayoutUtils', () => {
             someProp: '2',
             type: ComponentType.Header,
             itemType: 'COMPONENT',
+            propertyPath: 'definitions/headerComponent',
             size: 'normal',
             dataModelBindings: {},
           },
@@ -265,6 +268,7 @@ describe('formLayoutUtils', () => {
             someProp: '4',
             type: ComponentType.Paragraph,
             itemType: 'COMPONENT',
+            propertyPath: undefined,
             dataModelBindings: {},
           },
           mockChildID_5: {
@@ -272,6 +276,7 @@ describe('formLayoutUtils', () => {
             someProp: '5',
             type: ComponentType.Dropdown,
             itemType: 'COMPONENT',
+            propertyPath: 'definitions/selectionComponents',
             optionsId: 'mockChildID_5_options',
             dataModelBindings: {},
           },
@@ -280,6 +285,7 @@ describe('formLayoutUtils', () => {
             someProp: '7',
             type: ComponentType.Input,
             itemType: 'COMPONENT',
+            propertyPath: 'definitions/inputComponent',
             dataModelBindings: {},
           },
         },
@@ -384,11 +390,12 @@ describe('formLayoutUtils', () => {
         customDataProperties: {},
       };
       const expectedConvertedLayoutResult: IInternalLayout = {
-        containers: { 'mock-group-id': { itemType: 'CONTAINER' } },
+        containers: { 'mock-group-id': { itemType: 'CONTAINER', propertyPath: 'definitions/groupComponent' } },
         components: {
           'mock-component-1': {
             someProp: '1',
             itemType: 'COMPONENT',
+            propertyPath: 'definitions/headerComponent',
             type: ComponentType.Header,
             id: 'mock-component-1',
             size: 'normal',
@@ -397,6 +404,7 @@ describe('formLayoutUtils', () => {
           'mock-component-2': {
             someProp: '2',
             itemType: 'COMPONENT',
+            propertyPath: undefined,
             type: ComponentType.Paragraph,
             id: 'mock-component-2',
             dataModelBindings: {}

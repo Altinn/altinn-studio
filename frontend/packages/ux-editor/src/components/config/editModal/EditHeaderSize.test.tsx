@@ -1,8 +1,9 @@
 import React from 'react';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -18,8 +19,18 @@ jest.mock('react-i18next', () => ({
   })
 }));
 
-const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
-  renderWithMockStore()(
+const getComboBox = () => screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' });
+const getComboBoxValue = () => getComboBox().getAttribute("value");
+
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+};
+
+const render = async ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
+  await waitForData();
+
+  return renderWithMockStore()(
     <EditHeaderSize
       handleComponentChange={handleComponentChange}
       component={{
@@ -36,82 +47,54 @@ const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) =>
   );
 };
 
-interface IOpenHeaderSelect {
-  selectWrapperTestId: string;
-}
-
-const openHeaderSelect = ({ selectWrapperTestId }: IOpenHeaderSelect) => {
-  const headerSizeSelectWrapper = screen.getByTestId(selectWrapperTestId);
-  const toggle = within(headerSizeSelectWrapper).getByDisplayValue('');
-
-  fireEvent.focus(toggle);
-  fireEvent.keyDown(toggle, { key: 'ArrowDown', keyCode: 40 });
-};
-
 describe('HeaderSizeSelect', () => {
-  it('should show selected title size as h4 when no size is set', () => {
-    render();
+  it('should show selected title size as h4 when no size is set', async () => {
+    await render();
 
-    expect(screen.getByText(h4Text)).toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h4Text));
   });
 
-  it('should show selected title size as h4 when "h4" size is set', () => {
-    render({ size: 'h4' });
+  it('should show selected title size as h4 when "h4" size is set', async () => {
+    await render({ size: 'h4' });
 
-    expect(screen.getByText(h4Text)).toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h4Text));
   });
 
-  it('should show selected title size as h4 when "S" size is set', () => {
-    render({ size: 'S' });
+  it('should show selected title size as h4 when "S" size is set', async () => {
+    await render({ size: 'S' });
 
-    expect(screen.getByText(h4Text)).toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h4Text));
   });
 
-  it('should show selected title size as h3 when "h3" size is set', () => {
-    render({ size: 'h3' });
+  it('should show selected title size as h3 when "h3" size is set', async () => {
+    await render({ size: 'h3' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h3Text)).toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h3Text));
   });
 
-  it('should show selected title size as h3 when "M" size is set', () => {
-    render({ size: 'M' });
+  it('should show selected title size as h3 when "M" size is set', async () => {
+    await render({ size: 'M' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h3Text)).toBeInTheDocument();
-    expect(screen.queryByText(h2Text)).not.toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h3Text));
   });
 
-  it('should show selected title size as h2 when "h2" size is set', () => {
-    render({ size: 'h2' });
+  it('should show selected title size as h2 when "h2" size is set', async () => {
+    await render({ size: 'h2' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h2Text)).toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h2Text));
   });
 
-  it('should show selected title size as h2 when "L" size is set', () => {
-    render({ size: 'L' });
+  it('should show selected title size as h2 when "L" size is set', async () => {
+    await render({ size: 'L' });
 
-    expect(screen.queryByText(h4Text)).not.toBeInTheDocument();
-    expect(screen.queryByText(h3Text)).not.toBeInTheDocument();
-    expect(screen.getByText(h2Text)).toBeInTheDocument();
+    await waitFor(() => expect(getComboBoxValue()).toBe(h2Text));
   });
 
-  it('should call handleUpdateHeaderSize when size is changed', () => {
+  it('should call handleUpdateHeaderSize when size is changed', async () => {
     const handleComponentChange = jest.fn();
-    render({ handleComponentChange, size: 'h4' });
+    await render({ handleComponentChange, size: 'h4' });
 
-    openHeaderSelect({ selectWrapperTestId: 'header-size-select-wrapper' });
-
-    const h2Select = screen.getByText(h2Text);
+    const h2Select = await screen.findByText(h2Text);
 
     fireEvent.click(h2Select);
 
