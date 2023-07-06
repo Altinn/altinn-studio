@@ -1,11 +1,10 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore } from '../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
@@ -31,20 +30,12 @@ const texts = {
   'ux_editor.modal_properties_image_placement_center': 'Center',
   'ux_editor.modal_properties_image_placement_right': 'Right',
 };
-
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
-
-const render = async (props: Partial<IGenericEditComponent> = {}) => {
+const render = (props: Partial<IGenericEditComponent> = {}) => {
   const allProps: IGenericEditComponent = {
     component: componentData,
     handleComponentChange: jest.fn(),
     ...props,
   };
-
-  await waitForData();
 
   return renderWithMockStore()(<ImageComponent {...allProps} />);
 };
@@ -59,7 +50,7 @@ describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {
     const handleUpdate = jest.fn();
     const imgSrc = 'placekitten.com/500/500';
-    await render({ handleComponentChange: handleUpdate });
+    render({ handleComponentChange: handleUpdate });
 
     const srcInput = screen.getByRole('textbox', {
       name: /source/i,
@@ -81,7 +72,7 @@ describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image width value when image width input is changed', async () => {
     const handleUpdate = jest.fn();
     const size = '250px';
-    await render({ handleComponentChange: handleUpdate });
+    render({ handleComponentChange: handleUpdate });
 
     const widthInput = screen.getByRole('textbox', {
       name: /width/i,
@@ -100,7 +91,7 @@ describe('ImageComponent', () => {
 
   it('should call handleComponentUpdate callback with alignment when placement select is changed', async () => {
     const handleUpdate = jest.fn();
-    await render({ handleComponentChange: handleUpdate });
+    render({ handleComponentChange: handleUpdate });
 
     const placementInput = screen.getByRole('combobox', {
       name: /placement/i,

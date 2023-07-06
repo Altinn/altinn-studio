@@ -6,7 +6,6 @@ import { IGenericEditComponent } from '../../componentConfig';
 import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/component';
 import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
-import { FormField } from '../../../FormField';
 
 export const AddressComponent = ({
   component,
@@ -23,18 +22,13 @@ export const AddressComponent = ({
 
   return (
     <FieldSet className={classes.root}>
-      <FormField
-        id={component.id}
-        label={t('ux_editor.modal_configure_address_component_simplified')}
-        value={(component as FormAddressComponent).simplified}
-        onChange={handleToggleAddressSimple}
-        propertyPath={`${component.propertyPath}/properties/simplified`}
-      >
-        {({ value, onChange }) => <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-        />}
-      </FormField>
+      <div>
+        <Checkbox
+          checked={(component as FormAddressComponent).simplified}
+          label={t('ux_editor.modal_configure_address_component_simplified')}
+          onChange={(e) => handleToggleAddressSimple(e.target.checked)}
+        />
+      </div>
       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
         const simple: boolean = (component as FormAddressComponent).simplified;
         if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {

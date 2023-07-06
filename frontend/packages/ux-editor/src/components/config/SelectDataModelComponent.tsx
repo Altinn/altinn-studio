@@ -2,7 +2,6 @@ import React from 'react';
 import Select from 'react-select';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useParams } from 'react-router-dom';
-import { FormField } from '../FormField';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -51,19 +50,13 @@ export const SelectDataModelComponent = ({
     }));
 
     return (
-      <FormField
-        id={inputId}
+      <Select
+        inputId={inputId}
+        styles={selectStyles}
+        options={dataModelElementNames}
+        value={{ value: selectedElement, label: selectedElement }}
         onChange={onChangeSelectedBinding}
-        value={selectedElement ? { value: selectedElement, label: selectedElement } : null}
-        propertyPath='definitions/component/properties/dataModelBindings'
-      >
-        {({ onChange }) => <Select
-          inputId={inputId}
-          styles={selectStyles}
-          options={dataModelElementNames}
-          onChange={(e) => onChange(e)}
-          noOptionsMessage={(): string => noOptionsMessage}
-        />}
-      </FormField>
+        noOptionsMessage={(): string => noOptionsMessage}
+      />
     );
 }

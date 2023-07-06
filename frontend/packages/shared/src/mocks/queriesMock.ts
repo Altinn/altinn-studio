@@ -54,7 +54,4 @@ export const queriesMock: ServicesContextProps = {
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
   upsertTextResources: jest.fn(),
-  getExpressionSchema: jest.fn(),
-  getLayoutSchema: jest.fn(),
-  getNumberFormatSchema: jest.fn(),
 };

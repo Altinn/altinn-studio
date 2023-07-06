@@ -25,7 +25,6 @@ import { useParams } from 'react-router-dom';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
-import { FormField } from './FormField';
 
 export interface TextResourceProps {
   description?: string;
@@ -98,8 +97,7 @@ export const TextResource = ({
     { label: t('ux_editor.search_text_resources_none'), value: '' }
   );
 
-
-  const renderTextResource = () => (
+  return (
     <span
       className={cn(
         classes.root,
@@ -177,16 +175,6 @@ export const TextResource = ({
         </span>
       </span>
     </span>
-  );
-
-  return previewMode ? renderTextResource() : (
-    <FormField
-      id={textResourceId}
-      value={{ [textResourceId]: textResource?.value }}
-      propertyPath='definitions/component/properties/textResourceBindings'
-    >
-      {() => renderTextResource()}
-    </FormField>
   );
 };
 

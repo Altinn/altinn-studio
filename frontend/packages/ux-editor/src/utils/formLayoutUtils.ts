@@ -15,7 +15,7 @@ import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import { FormItemConfigs, formItemConfigs } from '../data/formItemConfig';
+import { FormItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
 import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
@@ -36,7 +36,6 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
         delete rest.component;
       }
       rest.itemType = 'COMPONENT';
-      rest.propertyPath = formItemConfigs[rest.type].defaultProperties.propertyPath;
       convertedLayout.components[id] = {
         id,
         ...rest
@@ -116,14 +115,13 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
   for (const id of order[BASE_CONTAINER_ID]) {
     if (components[id] && !groupChildren.includes(id)) {
       delete components[id].itemType;
-      delete components[id].propertyPath;
       formLayout.push({
         id,
         type: components[id].type,
         ...components[id],
       });
     } else if (containers[id]) {
-      const { itemType, propertyPath, ...restOfGroup } = containers[id];
+      const { itemType, ...restOfGroup } = containers[id];
       formLayout.push({
         id,
         type: ComponentType.Group,
@@ -133,7 +131,6 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
       order[id].forEach((componentId: string) => {
         if (components[componentId]) {
           delete components[componentId].itemType;
-          delete components[componentId].propertyPath;
           formLayout.push({
             id: componentId,
             type: components[componentId].type,
@@ -156,7 +153,7 @@ function extractChildrenFromGroupInternal(
   groupId: string
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { itemType, propertyPath, ...restOfGroup } = containers[groupId];
+  const { itemType, ...restOfGroup } = containers[groupId];
   formLayout.push({
     id: groupId,
     type: ComponentType.Group,
@@ -166,7 +163,6 @@ function extractChildrenFromGroupInternal(
   order[groupId].forEach((childId: string) => {
     if (components[childId]) {
       delete components[childId].itemType;
-      delete components[childId].propertyPath;
       formLayout.push({
         id: childId,
         ...components[childId],
@@ -186,7 +182,6 @@ export function extractChildrenFromGroup(
   convertedLayout.containers[id] = {
     ...restOfGroup,
     itemType: 'CONTAINER',
-    propertyPath: formItemConfigs[type].defaultProperties.propertyPath,
   };
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
@@ -198,7 +193,6 @@ export function extractChildrenFromGroup(
       convertedLayout.components[componentId] = {
         ...component,
         itemType: 'COMPONENT',
-        propertyPath: formItemConfigs[component.type].defaultProperties.propertyPath,
       } as FormComponent;
     }
   });
@@ -231,6 +225,8 @@ export function idExists(
     Object.keys(components || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1
   );
 }
+
+export const validComponentId = /^[0-9a-zA-Z-]+$/;
 
 /**
  * Checks if a layout has navigation buttons.

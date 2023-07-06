@@ -5,7 +5,6 @@ import {
 } from './EditTextResourceBindings';
 import { screen, waitFor } from '@testing-library/react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -56,8 +55,11 @@ describe('EditTextResourceBindings component', () => {
     });
   });
 
-  const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const renderEditTextResourceBindingsComponent = async ({
+    component = mockComponent,
+    handleComponentChange = () => {},
+    textResourceBindingKeys = [],
+  }: Partial<EditTextResourceBindingsProps>) => {
     const { result } = renderHookWithMockStore(
       {},
       {
@@ -69,16 +71,7 @@ describe('EditTextResourceBindings component', () => {
           }),
       }
     )(() => useTextResourcesQuery(org, app)).renderHookResult;
-    await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  };
-
-  const renderEditTextResourceBindingsComponent = async ({
-    component = mockComponent,
-    handleComponentChange = () => {},
-    textResourceBindingKeys = [],
-  }: Partial<EditTextResourceBindingsProps>) => {
-    await waitForData();
 
     return renderWithMockStore()(
       <EditTextResourceBindings

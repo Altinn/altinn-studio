@@ -13,8 +13,6 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 
-import '@digdir/design-system-tokens/brand/altinn/tokens.css';
-
 /**
  * This is the main React component responsible for controlling
  * the mode of the application and loading initial data for the

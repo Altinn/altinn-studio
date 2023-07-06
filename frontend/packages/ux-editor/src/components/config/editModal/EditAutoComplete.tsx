@@ -11,7 +11,6 @@ import {
 } from '@digdir/design-system-react';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
 import { replaceLastItem } from 'app-shared/utils/arrayUtils';
-import { FormField } from '../../FormField';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -77,7 +76,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
 
   useEffect(() => {
     setAutocompleteText(initialAutocompleteText);
-  }, [initialAutocompleteText, component.id]);
+  }, [initialAutocompleteText]);
 
   const autoCompleteOptions = useMemo((): string[] => {
     const lastWord = getLastWord(autocompleteText);
@@ -100,34 +99,22 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
     setSearchFieldFocused(false);
   };
 
-  const handleChange = (value: string): void => {
-    if (!searchFieldFocused) setSearchFieldFocused(true);
-    setAutocompleteText(value);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setAutocompleteText(event.target.value);
   };
 
   return (
     <div>
-      <FormField
-        id={component.id}
+      <TextField
+        id={`component-id-input${component.id}`}
         label='Autocomplete (WCAG)'
+        onChange={handleChange}
         value={autocompleteText}
-        onChange={handleWordClick}
-        propertyPath={`${component.propertyPath}/properties/autocomplete`}
-      >
-        {
-          ({ onChange }) => <TextField
-            onFocus={(): void => setSearchFieldFocused(true)}
-            onBlur={(): void => {
-              if (searchFieldFocused) setSearchFieldFocused(false);
-            }}
-            onChange={(event) => {
-              const { value } = event.target;
-              handleChange(value);
-              onChange(value);
-            }}
-          />
-        }
-      </FormField>
+        onFocus={(): void => setSearchFieldFocused(true)}
+        onBlur={(): void => {
+          if (searchFieldFocused) setSearchFieldFocused(false);
+        }}
+      />
       <Popover
         variant={PopoverVariant.Default}
         open={searchFieldFocused && autoCompleteOptions.length > 0}
@@ -135,20 +122,20 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         arrow={false}
         trigger={<div />}
       >
-      {autoCompleteOptions.map(
-        (option): JSX.Element => (
-          <Button
-            role='option'
-            key={option}
-            size={ButtonSize.Small}
-            color={ButtonColor.Secondary}
-            variant={ButtonVariant.Quiet}
-            onMouseDown={() => handleWordClick(option)}
-          >
-            {option}
-          </Button>
-        )
-      )}
+        {autoCompleteOptions.map(
+          (option): JSX.Element => (
+            <Button
+              role='option'
+              key={option}
+              size={ButtonSize.Small}
+              color={ButtonColor.Secondary}
+              variant={ButtonVariant.Quiet}
+              onMouseDown={() => handleWordClick(option)}
+            >
+              {option}
+            </Button>
+          )
+        )}
       </Popover>
     </div>
   );

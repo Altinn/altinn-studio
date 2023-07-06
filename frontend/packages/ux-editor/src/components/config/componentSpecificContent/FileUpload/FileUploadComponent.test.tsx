@@ -1,11 +1,9 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../componentConfig';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore } from '../../../../testing/mocks';
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
-import { waitFor } from '@testing-library/react';
 
 // Test data:
 const component: FormFileUploaderComponent = {
@@ -28,19 +26,11 @@ const defaultProps: IGenericEditComponent = {
 };
 
 describe('FileUploadComponent', () => {
-  it('Renders without errors', async () => {
-    await render();
+  it('Renders without errors', () => {
+    render();
   });
 });
 
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
-
-const render = async (props?: Partial<IGenericEditComponent>) => {
-  await waitForData();
-
-  return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);
-}
+const render = (props?: Partial<IGenericEditComponent>) =>
+  renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);
 

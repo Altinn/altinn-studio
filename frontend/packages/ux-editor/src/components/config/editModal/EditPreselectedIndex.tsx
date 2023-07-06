@@ -4,15 +4,14 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
-import { FormField } from '../../FormField';
 
 export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
   const t = useText();
 
-  const handlePreselectedOptionChange = (preselectedOptionIndex: number) => {
+  const handlePreselectedOptionChange = (e: any) => {
     handleComponentChange({
       ...component,
-      preselectedOptionIndex,
+      preselectedOptionIndex: Number(e.target.value),
     });
   };
 
@@ -30,18 +29,14 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
   }
 
   return (
-    <FormField
-      id={component.id}
-      label={mapComponentTypeToText(component.type as ComponentType)}
-      value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex}
-      onChange={handlePreselectedOptionChange}
-      propertyPath={`${component.propertyPath}/properties/preselectedOptionIndex`}
-    >
-      {({ onChange }) => <TextField
+    <div>
+      <TextField
+        value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex?.toString() || ''}
         formatting={{ number: {} }}
+        label={mapComponentTypeToText(component.type as ComponentType)}
+        onChange={handlePreselectedOptionChange}
         placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
-        onChange={(e) => onChange(parseInt(e.target.value), e)}
-      />}
-    </FormField>
+      />
+    </div>
   );
 }

@@ -1,8 +1,9 @@
+import Select from 'react-select';
 import React from 'react';
-import { Select } from '@digdir/design-system-react';
+import { selectStyles } from '../../../utils/render';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { FormField } from '../../FormField';
+import { Label } from 'app-shared/components/Label';
 
 enum HeaderSize {
   S = 'h4',
@@ -20,26 +21,25 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
   ];
   const selectedHeaderSize = HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
-  const onSizeChange = (size: string) => {
+  const onSizeChange = (e: any) => {
     handleComponentChange({
       ...component,
-      size,
+      size: e.value,
     });
   };
 
   return (
     <div data-testid='header-size-select-wrapper'>
-      <FormField
-        id={component.id}
-        label={t('ux_editor.modal_header_type_helper')}
+      <Label htmlFor={`edit-header-size-select-${component.id}`}>
+        {t('ux_editor.modal_header_type_helper')}
+      </Label>
+      <Select
+        inputId={`edit-header-size-select-${component.id}`}
+        styles={selectStyles}
+        value={selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0]}
         onChange={onSizeChange}
-        value={(selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0])?.value}
-        propertyPath={`${component.propertyPath}/properties/size`}
-      >
-        {
-          () => <Select options={sizes} />
-        }
-      </FormField>
+        options={sizes}
+      />
     </div>
   );
 };

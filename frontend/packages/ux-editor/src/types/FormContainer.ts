@@ -8,5 +8,4 @@ export interface FormContainer {
   maxCount?: number;
   tableHeaders?: string[];
   textResourceBindings?: ITextResourceBindings;
-  propertyPath?: string;
 }

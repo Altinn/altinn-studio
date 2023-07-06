@@ -3,7 +3,6 @@ import { EditTextResourceBinding, EditTextResourceBindingProps } from './EditTex
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -86,8 +85,13 @@ describe('EditTextResourceBindings component', () => {
     });
   });
 
-  const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const renderEditTextResourceBindingsComponent = async ({
+    component = mockComponent,
+    handleComponentChange = () => {},
+    textKey = 'test',
+    labelKey = 'ux_editor.modal_text',
+  }: Partial<EditTextResourceBindingProps>) => {
+
     const { result } = renderHookWithMockStore({}, {
       getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
       getTextResources: (_o, _a, lang) => Promise.resolve<ITextResourcesWithLanguage>({
@@ -95,17 +99,7 @@ describe('EditTextResourceBindings component', () => {
         resources: textResources
       }),
     })(() => useTextResourcesQuery(org, app)).renderHookResult;
-    await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  };
-
-  const renderEditTextResourceBindingsComponent = async ({
-    component = mockComponent,
-    handleComponentChange = () => {},
-    textKey = 'test',
-    labelKey = 'ux_editor.modal_text',
-  }: Partial<EditTextResourceBindingProps>) => {
-    await waitForData();
 
     return renderWithMockStore()(<EditTextResourceBinding
       component={component}

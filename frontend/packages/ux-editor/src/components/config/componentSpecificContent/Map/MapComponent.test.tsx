@@ -1,9 +1,8 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent, MapComponentProps } from './MapComponent';
-import { renderWithMockStore, renderHookWithMockStore, appDataMock } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore, appDataMock } from '../../../../testing/mocks';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 const texts: Record<string, string> = {
@@ -14,32 +13,21 @@ const texts: Record<string, string> = {
   'ux_editor.map_layer': 'Kartlag',
   'ux_editor.latitude_label': 'Latitude',
   'ux_editor.longitude_label': 'Longitude',
-  'ux_editor.url_label': 'Lenke *',
+  'ux_editor.url_label': 'Lenke',
   'ux_editor.adjust_zoom': 'Standard zoom',
-  'ux_editor.add_map_layer': 'Legg til kartlag',
-  'ux_editor.attribution_label': 'Opphav',
-  'ux_editor.subdomains_label': 'Subdomener (kommaseparert)',
+  'ux_editor.add_map_layer': 'Legg til kartlag'
 };
 
 jest.mock(
   'react-i18next',
   () => ({ useTranslation: () => mockUseTranslation(texts) }),
 );
-const handleComponentChangeMock = jest.fn();
 
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
-
-const renderMapComponent = async ({
+const renderMapComponent = ({
   component = {} as any,
-  handleComponentChange = handleComponentChangeMock
+  handleComponentChange = () => {}
 }: Partial<MapComponentProps>) => {
   const user = userEvent.setup();
-
-  await waitForData();
-
   renderWithMockStore({
     appData: { ...appDataMock }
   })(<MapComponent component={component} handleComponentChange={handleComponentChange} />);
@@ -47,49 +35,50 @@ const renderMapComponent = async ({
 };
 
 describe('MapComponent', () => {
-  afterEach(() => jest.resetAllMocks());
-
-  test('should render titles', async () => {
-    await renderMapComponent({});
+  test('should render titles', () => {
+    renderMapComponent({});
     expect(screen.getByRole('heading', { level: 2, name: 'Sentrum av kartet' }));
     expect(screen.getByRole('heading', { level: 2, name: 'Legg til kartlag' }));
   });
 
-  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', async () => {
-    await renderMapComponent({});
-    expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
+  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', () => {
+    renderMapComponent({});
+    expect(screen.getByLabelText('Latitude *')).toBeInTheDocument();
+    expect(screen.getByLabelText('Longitude *')).toBeInTheDocument();
     expect(screen.getByLabelText('Standard zoom')).toBeInTheDocument();
   });
 
   test('should be able to set latitude', async () => {
-    const { user } = await renderMapComponent({
+    const handleComponentChangeMock = jest.fn();
+    const { user } = renderMapComponent({
       handleComponentChange: handleComponentChangeMock
     });
 
-    const latitudeInput = screen.getByLabelText('Latitude');
+    const latitudeInput = screen.getByLabelText('Latitude *');
     await act(() => user.type(latitudeInput, '40'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { latitude: 40 }
+      centerLocation: { latitude: '40' }
     });
   });
 
   test('should be able to set longitude', async () => {
-    const { user } = await renderMapComponent({
+    const handleComponentChangeMock = jest.fn();
+    const { user } = renderMapComponent({
       handleComponentChange: handleComponentChangeMock
     });
 
-    const longitudeInput = screen.getByLabelText('Longitude');
+    const longitudeInput = screen.getByLabelText('Longitude *');
     await act(() => user.type(longitudeInput, '21'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { longitude: 21 }
+      centerLocation: { longitude: '21' }
     });
   });
 
   test('should be able to set zoom', async () => {
-    const { user } = await renderMapComponent({
+    const handleComponentChangeMock = jest.fn();
+    const { user } = renderMapComponent({
       handleComponentChange: handleComponentChangeMock
     });
 
@@ -98,94 +87,25 @@ describe('MapComponent', () => {
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ zoom: 2 });
   });
-});
 
-describe('AddMapLayer', () => {
-  let componentMock;
+  test('latitude should be invalid when input is not a number', async () => {
+    const { user } = renderMapComponent({});
 
-  afterEach(() => {
-    componentMock = {
-      layers: [{
-        attribution: undefined,
-        subdomains: undefined,
-        url: undefined
-      }]
-    };
+    await act(() => user.type(screen.getByLabelText('Latitude *'), 'A'));
+    expect(screen.getByText('Kun tall er gyldig verdi!')).toBeInTheDocument();
   });
 
-  it('renders correctly when layers are empty', async () => {
-    await renderMapComponent({});
+  test('longitude should be invalid when input is not a number', async () => {
+    const { user } = renderMapComponent({});
 
-    const button = screen.getByRole('button');
-
-    expect(button).toBeInTheDocument();
-    expect(button).not.toBeDisabled();
+    await act(() => user.type(screen.getByLabelText('Longitude *'), 'B'));
+    expect(screen.getByText('Kun tall er gyldig verdi!')).toBeInTheDocument();
   });
 
-  it('renders correctly when layers are not empty', async () => {
-    await renderMapComponent({ component: componentMock });
+  test('zoom should be invalid when input is not a number', async () => {
+    const { user } = renderMapComponent({});
 
-    expect(screen.getByLabelText(texts['ux_editor.url_label'])).toBeInTheDocument();
-    expect(screen.getByLabelText(texts['ux_editor.attribution_label'])).toBeInTheDocument();
-    expect(screen.getByLabelText(texts['ux_editor.subdomains_label'])).toBeInTheDocument();
-  });
-
-  test('should be able to set link', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
-
-    const input = screen.getByLabelText(texts['ux_editor.url_label']);
-    await act(() => user.type(input, 'test'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      layers: [{
-        attribution: undefined,
-        subdomains: undefined,
-        url: 'test'
-      }]
-    });
-  });
-
-  test('should be able to set attribution', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
-
-    const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
-    await act(() => user.type(input, 'test'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      layers: [{
-        attribution: 'test',
-        subdomains: undefined,
-        url: undefined
-      }]
-    });
-  });
-
-  test('should be able to set subdomains', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
-
-    const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
-    await act(() => user.type(input, 'test'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      layers: [{
-        attribution: undefined,
-        subdomains: ['test'],
-        url: undefined
-      }]
-    });
-  });
-
-  it('calls handleAddLayer on button click', async () => {
-    const { user } = await renderMapComponent({});
-
-    const button = screen.getByRole('button');
-
-    await act(() => user.click(button));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ layers: [{
-      attribution: undefined,
-      subdomains: undefined,
-      url: undefined
-    }] });
+    await act(() => user.type(screen.getByLabelText('Standard zoom'), 'C'));
+    expect(screen.getByText('Kun tall er gyldig verdi!')).toBeInTheDocument();
   });
 });

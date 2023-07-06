@@ -1,18 +1,17 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore } from '../../../testing/mocks';
 
 describe('EditCodeList', () => {
   it('should render the component', async () => {
-    await render();
+    render();
     expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();
   });
 
   it('should render the component when optionListIds is undefined', async () => {
-    await render({
+    render({
       queries: { getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(undefined)) },
     });
 
@@ -20,14 +19,7 @@ describe('EditCodeList', () => {
   });
 });
 
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
-
-const render = async ({ handleComponentChange = jest.fn(), queries = {} } = {}) => {
-  await waitForData();
-
+const render = ({ handleComponentChange = jest.fn(), queries = {} } = {}) => {
   renderWithMockStore(
     {},
     queries
