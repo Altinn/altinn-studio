@@ -9,8 +9,12 @@ import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-const render = (props?: Partial<AppDeploymentComponentProps>) => {
+const render = (
+  props?: Partial<AppDeploymentComponentProps>,
+  queries?: Partial<ServicesContextProps>
+) => {
   const defaultProps: AppDeploymentComponentProps = {
     deployHistory: [],
     deployPermission: true,
@@ -21,7 +25,7 @@ const render = (props?: Partial<AppDeploymentComponentProps>) => {
   };
   const merged = { ...defaultProps, ...props };
 
-  return renderWithMockStore({}, {})(<AppDeploymentComponent {...merged} />);
+  return renderWithMockStore({}, queries)(<AppDeploymentComponent {...merged} />);
 };
 describe('AppDeploymentComponent', () => {
   const user = userEvent.setup();
@@ -164,5 +168,36 @@ describe('AppDeploymentComponent', () => {
     expect(
       screen.getByText(`${textMock('app_publish.deployment_in_progress')}...`)
     ).toBeInTheDocument();
+  });
+
+  it('should render error message if call to deployment endpoint fails', async () => {
+    const imageOptions: ImageOption[] = [
+      {
+        label: 'test1',
+        value: 'test1',
+      },
+      {
+        label: 'test2',
+        value: 'test2',
+      },
+    ];
+    const queries: Partial<ServicesContextProps> = {
+      createDeployment: jest.fn().mockRejectedValue(new Error('test error')),
+    };
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    render({ imageOptions }, queries);
+    expect(screen.getByText(textMock('app_deploy_messages.choose_version'))).toBeInTheDocument();
+    const dropdown = screen.getByRole('combobox');
+    expect(dropdown).toBeInTheDocument();
+    await act(() => user.click(dropdown));
+    await act(() => user.click(screen.getByText('test1')));
+    await act(() =>
+      user.click(
+        screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') })
+      )
+    );
+    await act(() => user.click(screen.getByRole('button', { name: 'Ja' })));
+    expect(mockConsoleError).toHaveBeenCalled();
+    expect(screen.getByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
   });
 });
