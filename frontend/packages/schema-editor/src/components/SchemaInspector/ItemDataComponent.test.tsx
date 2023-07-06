@@ -154,16 +154,11 @@ describe('ItemDataComponent', () => {
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
   });
 
-  test('should handleChangeNodeName prevent showing an error message when there is no changing in text ', async () => {
+  test('should handleChangeNodeName prevent showing an error message when there is no changing in text', async () => {
     renderItemDataComponent();
     const inputField = screen.getByLabelText(textMock('schema_editor.name'));
     await act(() => user.type(inputField, 'test'));
-    async () => {
-      fireEvent.focus(inputField);
-    };
-    async () => {
-      fireEvent.blur(inputField);
-    };
+    fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
   });
   
