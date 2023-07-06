@@ -69,7 +69,6 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
-  const [isTextModified, setIsTextModified] = useState(false);
 
   const [nameError, setNameError] = useState(NameError.NoError);
   const [itemDescription, setItemItemDescription] = useState<string>(description || '');
@@ -99,7 +98,6 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   }, [nodeName]);
 
   const onNameChange = ({ target }: ChangeEvent) => {
-   setIsTextModified(true); 
     const { value } = target as HTMLInputElement;
     setNodeName(value);
   };
@@ -146,15 +144,12 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
 
   const handleChangeNodeName = () => {
-     if (!isTextModified) {
-      return;
-    } 
-    const error = hardValidateName();
-    if (error !== NameError.NoError) {
+    const staleName = getNameFromPointer({ pointer });
+    if (staleName === nodeName) {
       return;
     }
-    const staleName = getNameFromPointer({ pointer });
-    if (staleName !== nodeName) {
+    const error = hardValidateName();
+    if (error === NameError.NoError) {
       mutate(
         setPropertyName(data, {
           path: pointer,
