@@ -13,6 +13,7 @@ export interface IRadioGroupProps {
   error?: React.ReactNode;
   children: React.ReactElement<typeof RadioButton> | React.ReactElement<typeof RadioButton>[];
   shouldDisplayHorizontally?: boolean;
+  disabled?: boolean;
 }
 
 export const RadioGroup = ({
@@ -22,12 +23,14 @@ export const RadioGroup = ({
   children,
   error,
   shouldDisplayHorizontally,
+  disabled = false,
 }: IRadioGroupProps) => (
   <FieldSet
     legend={legend}
     description={description}
     helpText={helpText}
     error={error}
+    disabled={disabled}
   >
     <div
       role='radiogroup'

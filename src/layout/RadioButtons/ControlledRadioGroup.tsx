@@ -45,6 +45,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
             description={textResourceBindings?.description && lang(textResourceBindings.description)}
             helpText={textResourceBindings?.help && lang(textResourceBindings.help)}
             error={!isValid}
+            disabled={readOnly}
             shouldDisplayHorizontally={shouldUseRowLayout({
               layout,
               optionsCount: calculatedOptions.length,
