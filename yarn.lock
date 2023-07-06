@@ -1647,9 +1647,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.17.0":
-  version: 0.17.0
-  resolution: "@digdir/design-system-react@npm:0.17.0"
+"@digdir/design-system-react@npm:0.18.0":
+  version: 0.18.0
+  resolution: "@digdir/design-system-react@npm:0.18.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
     "@digdir/design-system-tokens": ^0.1.4
@@ -1660,7 +1660,7 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: ab411ed54430a66a8dbe83c3a955bf03c6f0fa942fc7fbf146c8267f4228b1ab4d114e3518b8260658079d01b3fb32b336abe1193ce2f08511388391c86c0d31
+  checksum: cfbd9be484c44e46474993e570abb8ba957e78317e043c217684c13007b2229f35b40034d3864fba6f3ffb6640046430e7cf130a30e7bef451caa9b751ae2800
   languageName: node
   linkType: hard
 
@@ -5073,7 +5073,7 @@ __metadata:
   resolution: "altinn-studio@workspace:."
   dependencies:
     "@altinn/altinn-design-system": 0.29.0
-    "@digdir/design-system-react": 0.17.0
+    "@digdir/design-system-react": 0.18.0
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.5
