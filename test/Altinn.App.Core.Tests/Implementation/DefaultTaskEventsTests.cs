@@ -570,7 +570,7 @@ public class DefaultTaskEventsTests: IDisposable
                 Person = true,
                 SubUnit = true
             },
-            OnEntry = new OnEntryConfig()
+            OnEntry = new OnEntry()
             {
                 Show = "select-instance"
             }

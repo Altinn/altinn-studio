@@ -40,6 +40,12 @@ namespace Altinn.App.Core.Models
         public Dictionary<string, bool>? Features { get; set; }
 
         /// <summary>
+        /// Configure options for handling what happens when entering the application
+        /// </summary>
+        [JsonProperty(PropertyName = "onEntry")]
+        public new OnEntry OnEntry { get; set; }
+
+        /// <summary>
         /// Get AppIdentifier based on ApplicationMetadata.Id
         /// Updated by setting ApplicationMetadata.Id
         /// </summary>

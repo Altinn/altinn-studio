@@ -57,7 +57,7 @@ namespace Altinn.App.Core.Tests.Internal.App
                     Person = true,
                     SubUnit = true
                 },
-                OnEntry = new OnEntryConfig()
+                OnEntry = new OnEntry()
                 {
                     Show = "select-instance"
                 },
@@ -127,7 +127,7 @@ namespace Altinn.App.Core.Tests.Internal.App
                         "372c7af5-71e1-4e99-8e05-4716711a8b53",
                     }
                 },
-                OnEntry = new OnEntryConfig()
+                OnEntry = new OnEntry()
                 {
                     Show = "select-instance"
                 },
@@ -179,7 +179,7 @@ namespace Altinn.App.Core.Tests.Internal.App
                     Person = true,
                     SubUnit = true
                 },
-                OnEntry = new OnEntryConfig()
+                OnEntry = new OnEntry()
                 {
                     Show = "select-instance"
                 },

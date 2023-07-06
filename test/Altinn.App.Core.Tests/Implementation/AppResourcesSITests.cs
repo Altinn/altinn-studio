@@ -2,6 +2,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -57,7 +58,7 @@ public class AppResourcesSITests
                 Person = true,
                 SubUnit = true
             },
-            OnEntry = new OnEntryConfig()
+            OnEntry = new OnEntry()
             {
                 Show = "select-instance"
             }
@@ -110,7 +111,7 @@ public class AppResourcesSITests
                 Person = true,
                 SubUnit = true
             },
-            OnEntry = new OnEntryConfig()
+            OnEntry = new OnEntry()
             {
                 Show = "select-instance"
             },
