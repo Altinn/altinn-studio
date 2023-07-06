@@ -7,7 +7,7 @@ RUN yarn --immutable
 RUN yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS generate-studio-backend
 WORKDIR /build
 COPY backend .
 RUN dotnet build src/Designer/Designer.csproj -c Release -o /app_output
