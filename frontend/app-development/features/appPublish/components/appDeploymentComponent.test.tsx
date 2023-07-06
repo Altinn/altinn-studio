@@ -139,4 +139,30 @@ describe('AppDeploymentComponent', () => {
     await act(() => user.click(dropdown));
     expect(screen.getAllByRole('option')).toHaveLength(2);
   });
+
+  it('should render spinner when deployment is in progress', () => {
+    const deployHistory: IDeployment[] = [
+      {
+        app: 'test-app',
+        created: new Date().toDateString(),
+        createdBy: 'test-user',
+        envName: 'test',
+        id: 'test-id',
+        org: 'test-org',
+        tagName: 'test',
+        build: {
+          id: 'test-id',
+          finished: null,
+          result: 'inProgress',
+          status: 'inProgress',
+          started: new Date().toDateString(),
+        },
+        deployedInEnv: true,
+      },
+    ];
+    render({ deployHistory });
+    expect(
+      screen.getByText(`${textMock('app_publish.deployment_in_progress')}...`)
+    ).toBeInTheDocument();
+  });
 });
