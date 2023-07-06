@@ -173,6 +173,14 @@ namespace Altinn.Studio.Designer.Controllers
             return losTerms.LosNodes;
         }
 
+        [HttpGet]
+        [Route("designer/api/{org}/resources/eurovoc")]
+        public async Task<ActionResult<List<EuroVocTerm>>> GetEuroVoc()
+        {
+            EuroVocTerms euroVocTerms = await _resourceRegistryOptions.GetEuroVocTerms();
+            return euroVocTerms.EuroVocs;
+        }
+
         private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
         {
             if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))

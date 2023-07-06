@@ -9,5 +9,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
         Task<DataThemesContainer> GetSectors();
 
         Task<LosTerms> GetLosTerms();
+
+        Task<EuroVocTerms> GetEuroVocTerms();
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -72,6 +72,8 @@
     <Watch Remove="Models\ConceptSchema.cs" />
     <Watch Remove="Models\DataTheme.cs" />
     <Watch Remove="Models\DataThemesContainer.cs" />
+    <Watch Remove="Models\EuroVocTerm.cs" />
+    <Watch Remove="Models\EuroVocTerms.cs" />
     <Watch Remove="Models\GiteaCommit.cs" />
     <Watch Remove="Models\GiteaRepoCommitInfo.cs" />
     <Watch Remove="Models\GiteaRepoCommitMeta.cs" />
