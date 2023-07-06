@@ -381,6 +381,18 @@ describe('ui-schema-reducers', () => {
       });
     });
 
+    it("should  not update the children's pointers with /Items/ when isArray OFF", () => {
+      const { pointer } = parentNodeMock;
+      result = toggleArrayField(uiSchemaMock, pointer);
+      const updatedNode = getNodeByPointer(result, pointer);
+      expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
+      updatedNode.children.forEach((childPointer) => {
+        expect(childPointer.startsWith(`${pointer}`)).toBe(true);
+      });
+      getChildNodesByPointer(result, pointer).forEach((childNode) => {
+        expect(childNode.pointer.startsWith(`${pointer}`)).toBe(true);
+      });
+    });
   });
 
   describe('changeChildrenOrder', () => {
