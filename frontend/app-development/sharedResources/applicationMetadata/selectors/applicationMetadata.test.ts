@@ -1,4 +1,4 @@
-import { makeGetApplicationMetadata } from './applicationMetadataSelector';
+import { applicationMetadataSelector } from './applicationMetadataSelector';
 
 describe('ApplicationMetadata', () => {
   let mockApplicationMetadata: any;
@@ -18,8 +18,7 @@ describe('ApplicationMetadata', () => {
   });
 
   it('applicationMetadataSelector should return correct state', () => {
-    const getApplicationMetadata = makeGetApplicationMetadata();
-    const applicationMetadata = getApplicationMetadata(mockState);
+    const applicationMetadata = applicationMetadataSelector(mockState);
     expect(applicationMetadata).toBe(mockApplicationMetadata);
   });
 });

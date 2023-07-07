@@ -3,12 +3,12 @@ import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttac
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationMetadataActions } from '../../../../../app-development/sharedResources/applicationMetadata/applicationMetadataSlice';
-import { makeGetApplicationMetadata } from '../../../../../app-development/sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
+import { applicationMetadataSelector } from '../../../../../app-development/sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 export const useAddAppAttachmentMetadataMutation = (org: string, app: string) => {
   const { addAppAttachmentMetadata } = useServicesContext();
   const dispatch = useDispatch();
-  const applicationMetadata = useSelector(makeGetApplicationMetadata);
+  const applicationMetadata = useSelector(applicationMetadataSelector);
   return useMutation({
     mutationFn: async (metadata: ApplicationAttachmentMetadata) => {
       await addAppAttachmentMetadata(org, app, metadata);
