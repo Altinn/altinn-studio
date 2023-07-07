@@ -94,7 +94,8 @@ describe('Auto save behavior', () => {
 
     // This test relies on Cypress being fast enough to click the 'next' button before the next page is hidden
     cy.get(appFrontend.group.prefill.stor).dsCheck();
-    cy.get(appFrontend.nextButton).click();
+    // Double click to check that the request is cancelled and still navigates to next page
+    cy.get(appFrontend.nextButton).dblclick();
 
     // Wait for both endpoints to be called
     cy.wait('@getPageOrder');

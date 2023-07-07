@@ -169,9 +169,10 @@ export function* putFormData({ field, componentId }: SaveDataParams) {
 
   const url = dataElementUrl(defaultDataElementGuid);
   let lastSavedModel = state.formData.formData;
+  const abortController = new AbortController();
   try {
     const { data, options } = createFormDataRequest(state, model, field, componentId);
-    const responseData = yield call(httpPut, url, data, options);
+    const responseData = yield call(httpPut, url, data, { ...options, signal: abortController.signal });
     lastSavedModel = yield call(handleChangedFields, responseData?.changedFields, formDataCopy);
   } catch (error) {
     if (error.response && error.response.status === 303) {
@@ -187,9 +188,15 @@ export function* putFormData({ field, componentId }: SaveDataParams) {
     } else {
       throw error;
     }
+  } finally {
+    if (yield cancelled()) {
+      // If the saga were cancelled (takeLatest), we would abort the HTTP request/promise
+      // to ensure we do not update the redux-state with staled data.
+      abortController.abort();
+      window.logInfo('Request aborted due to saga cancellation');
+    }
+    yield put(FormDataActions.savingEnded({ model: lastSavedModel }));
   }
-
-  yield put(FormDataActions.savingEnded({ model: lastSavedModel }));
 }
 
 /**
