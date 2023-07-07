@@ -1,14 +1,14 @@
 import { createDataModelMetadataOptions } from './createDataModelMetadataOptions';
 import { LoadingState } from '../sagas/metadata';
+import { RootState } from 'app-development/store';
+import { rootStateMock } from 'app-development/test/rootStateMock';
 
 describe('createDataModelMetadataOptions', () => {
-  const state = {
-    dataModelsMetadataState: {
-      dataModelsMetadata: [],
-      loadState: LoadingState.Idle,
-    }
+  const state: RootState = {
+    ...rootStateMock,
   };
-  const stateWithData = {
+  const stateWithData: RootState = {
+    ...rootStateMock,
     dataModelsMetadataState: {
       dataModelsMetadata: [
         {
