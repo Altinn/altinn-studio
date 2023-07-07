@@ -39,7 +39,7 @@ export const getFieldNodesSelector =
 
 export const getRootNodes: SchemaSelector<Map<string, UiSchemaNode>> = (schema: UiSchemaNodes) => {
   const nodesmap = new Map();
-  if (schema.length) {
+  if (schema?.length) {
     getChildNodesByPointer(schema, ROOT_POINTER).forEach((node) => {
       nodesmap.set(node.pointer, node);
     });
@@ -49,4 +49,4 @@ export const getRootNodes: SchemaSelector<Map<string, UiSchemaNode>> = (schema: 
 
 export const getRootChildren: SchemaSelector<string[] | undefined> =
   (schema: UiSchemaNodes) =>
-    schema.length ? getNodeByPointer(schema, ROOT_POINTER).children : undefined;
+    schema?.length ? getNodeByPointer(schema, ROOT_POINTER).children : undefined;
