@@ -144,12 +144,12 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
 
   const handleChangeNodeName = () => {
-    const error = hardValidateName();
-    if (error !== NameError.NoError) {
+    const staleName = getNameFromPointer({ pointer });
+    if (staleName === nodeName) {
       return;
     }
-    const staleName = getNameFromPointer({ pointer });
-    if (staleName !== nodeName) {
+    const error = hardValidateName();
+    if (error === NameError.NoError) {
       mutate(
         setPropertyName(data, {
           path: pointer,

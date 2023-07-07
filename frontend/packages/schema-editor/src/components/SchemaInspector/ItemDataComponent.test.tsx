@@ -2,7 +2,7 @@ import type { IItemDataComponentProps } from './ItemDataComponent';
 import { ItemDataComponent } from './ItemDataComponent';
 import { getNodeByPointer, UiSchemaNode } from '@altinn/schema-model';
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { SchemaState } from '@altinn/schema-editor/types';
 import { deepCopy } from 'app-shared/pure';
@@ -153,4 +153,13 @@ describe('ItemDataComponent', () => {
     );
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
   });
+
+  test('should handleChangeNodeName prevent showing an error message when there is no changing in text', async () => {
+    renderItemDataComponent();
+    const inputField = screen.getByLabelText(textMock('schema_editor.name'));
+    await act(() => user.type(inputField, 'test'));
+    fireEvent.blur(inputField);
+    expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
+  });
+  
 });
