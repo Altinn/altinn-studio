@@ -1,9 +1,7 @@
-import Ajv from 'ajv';
-import Ajv2020 from 'ajv/dist/2020';
 import type { ErrorObject } from 'ajv';
 
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
-import { createValidator, isOneOfError } from 'src/utils/validation/schemaValidation';
+import { isOneOfError } from 'src/utils/validation/schemaValidation';
 import * as validation from 'src/utils/validation/validation';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IRepeatingGroups, ITextResource } from 'src/types';
@@ -288,43 +286,6 @@ describe('utils > validation', () => {
 
       oldConsoleWarn(...args);
     };
-  });
-
-  describe('createValidator', () => {
-    const schema = {
-      id: 'schema.json',
-      type: 'object',
-      properties: {
-        test: {
-          $ref: '#/$defs/Test',
-        },
-      },
-      $defs: {
-        Test: {
-          type: 'string',
-        },
-      },
-    };
-
-    describe('when receiving a 2020-12 draft schema', () => {
-      it('should create ajv2020 validator instance', () => {
-        const result = createValidator({
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          ...schema,
-        });
-        expect(result.validator).toBeInstanceOf(Ajv2020);
-      });
-    });
-
-    describe('when receiving anything but 2020-12 draft schema', () => {
-      it('should create ajv validator instance', () => {
-        const result = createValidator({
-          $schema: 'http://json-schema.org/schema#',
-          ...schema,
-        });
-        expect(result.validator).toBeInstanceOf(Ajv);
-      });
-    });
   });
 
   describe('canFormBeSaved', () => {
