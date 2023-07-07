@@ -26,10 +26,11 @@ export const useRadioStyles = makeStyles(() => ({
 export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButtonsContainerProps) => {
   const { optionsId, options, preselectedOptionIndex, mapping, source } = node.item;
   const apiOptions = useGetOptions({ optionsId, mapping, source });
-  const calculatedOptions = useMemo(() => apiOptions || options || [], [apiOptions, options]);
+  const _calculatedOptions = useMemo(() => apiOptions || options, [apiOptions, options]);
+  const calculatedOptions = _calculatedOptions || [];
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
-  const fetchingOptions =
+  const _fetchingOptions =
     useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading) || undefined;
   const {
     value: selected,
@@ -37,18 +38,22 @@ export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButt
     saveValue,
   } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '', 200);
 
+  const shouldPreselectItem =
+    !formData?.simpleBinding &&
+    typeof preselectedOptionIndex !== 'undefined' &&
+    preselectedOptionIndex >= 0 &&
+    _calculatedOptions &&
+    preselectedOptionIndex < _calculatedOptions.length;
+
+  const fetchingOptions =
+    _fetchingOptions ?? (_calculatedOptions === undefined ? true : shouldPreselectItem ? true : undefined);
+
   React.useEffect(() => {
-    const shouldPreselectItem =
-      !formData?.simpleBinding &&
-      typeof preselectedOptionIndex !== 'undefined' &&
-      preselectedOptionIndex >= 0 &&
-      calculatedOptions &&
-      preselectedOptionIndex < calculatedOptions.length;
     if (shouldPreselectItem) {
-      const preSelectedValue = calculatedOptions[preselectedOptionIndex].value;
+      const preSelectedValue = _calculatedOptions[preselectedOptionIndex].value;
       setValue(preSelectedValue, true);
     }
-  }, [formData?.simpleBinding, calculatedOptions, setValue, preselectedOptionIndex]);
+  }, [_calculatedOptions, setValue, preselectedOptionIndex, shouldPreselectItem]);
 
   React.useEffect(() => {
     if (optionsHasChanged && formData.simpleBinding) {

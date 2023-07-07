@@ -163,7 +163,7 @@ const knownWcagViolations: KnownViolation[] = [
   },
 ];
 
-Cypress.Commands.add('snapshot', (name: string) => {
+Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   cy.get('#readyForPrint').should('exist');
 
   // Find focused element and blur it, to ensure that we don't get any focus outlines or styles in the snapshot.
@@ -177,6 +177,56 @@ Cypress.Commands.add('snapshot', (name: string) => {
 
   // Wait for elements marked as loading are not loading anymore
   cy.get('[data-is-loading=true]').should('not.exist');
+
+  if (viewport) {
+    cy.get(`html.viewport-is-${viewport}`).should('be.visible');
+  }
+
+  // Work around slow state updates in Dropdown (possibly in combination with preselectedOptionIndex)
+  cy.window().then((win) => {
+    const state = win.reduxStore.getState();
+    cy.waitUntil(() => {
+      const allDropdowns = win.document.querySelectorAll('[data-componenttype="Dropdown"]');
+      const asArray = Array.from(allDropdowns);
+      for (const dropdown of asArray) {
+        const inputInside = dropdown.querySelector('input');
+        if (!inputInside) {
+          return false;
+        }
+        const baseId = dropdown.getAttribute('data-componentbaseid');
+        const currentPageName = state.formLayout.uiConfig.currentView;
+        const currentPage = state.formLayout.layouts && state.formLayout.layouts[currentPageName];
+        const componentDef = currentPage?.find((c) => c.id === baseId);
+        if (!componentDef) {
+          throw new Error(`Could not find component definition for dropdown with id ${baseId}`);
+        }
+        if (
+          componentDef.type === 'Dropdown' &&
+          componentDef.preselectedOptionIndex !== undefined &&
+          !inputInside.value
+        ) {
+          return false;
+        }
+
+        const activeDescendant = dropdown.getAttribute('aria-activedescendant');
+        if (!activeDescendant) {
+          return true;
+        }
+        const activeDescendantElement = win.document.getElementById(activeDescendant);
+        if ((activeDescendant && !inputInside.value) || !activeDescendantElement) {
+          // Dropdown has selected value, but this has not yet been reflected in the input field value.
+          // We should wait until this has happened.
+          return false;
+        }
+      }
+
+      return true;
+    });
+  });
+});
+
+Cypress.Commands.add('snapshot', (name: string) => {
+  cy.clearSelectionAndWait();
 
   // Running wcag tests before taking snapshot, because the resizing of the viewport can cause some elements to
   // re-render and go slightly out of sync with the proper state of the application. One example is the Dropdown
@@ -197,7 +247,7 @@ Cypress.Commands.add('snapshot', (name: string) => {
       };
       for (const [viewport, { width, height }] of Object.entries(viewportSizes)) {
         cy.viewport(width, height);
-        cy.get(`html.viewport-is-${viewport}`).should('be.visible');
+        cy.clearSelectionAndWait(viewport as keyof typeof viewportSizes);
         cy.percySnapshot(`${name} (${viewport})`, { percyCSS, widths: [width] });
       }
 
@@ -208,6 +258,8 @@ Cypress.Commands.add('snapshot', (name: string) => {
       cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
     });
   });
+
+  cy.clearSelectionAndWait();
 });
 
 Cypress.Commands.add('testWcag', () => {

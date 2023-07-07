@@ -157,8 +157,6 @@ export type ITextResourceBindings<T extends ComponentTypes = ComponentTypes> =
   | UnionToIntersection<TRBAsMap<T, string>>
   | undefined;
 
-type Test1 = ITextResourceBindings<'TextArea'>;
-
 export type TextBindingsForSummarizableComponents = 'summaryTitle' | 'summaryDescription' | 'summaryAccessibleTitle';
 export type TextBindingsForFormComponents = TextBindingsForSummarizableComponents | 'tableTitle' | 'shortName';
 export type TextBindingsForLabel = 'title' | 'description' | 'help';

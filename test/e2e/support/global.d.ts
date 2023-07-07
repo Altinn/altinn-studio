@@ -189,6 +189,11 @@ declare global {
        * Runs the wcag tests on the app and notifies us of any violations (using axe/ally)
        */
       testWcag(): Chainable<null>;
+
+      /**
+       * Useful when taking snapshots; clear all selections and wait for the app to finish loading and stabilizing.
+       */
+      clearSelectionAndWait(viewport?: 'desktop' | 'tablet' | 'mobile'): Chainable<null>;
     }
   }
 }
