@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { useSelector } from 'react-redux';
-import { IFormLayouts, IInternalLayout } from '../types/global';
+import { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
 import { createEmptyLayout } from '../utils/formLayoutUtils';
 
@@ -20,12 +20,7 @@ export const useSelectedFormLayout = (): IInternalLayout => {
   return data?.[layoutName] || createEmptyLayout();
 }
 
-interface SelectedLayoutWithName {
-  layout: IInternalLayout;
-  layoutName: string;
-}
-
-export const useSelectedFormLayoutWithName = (): SelectedLayoutWithName => {
+export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
   const layout = useSelectedFormLayout();
   const layoutName = useSelector(selectedLayoutNameSelector);
   return {

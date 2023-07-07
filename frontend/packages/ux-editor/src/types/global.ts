@@ -39,6 +39,11 @@ export interface IInternalLayout {
   customDataProperties: KeyValuePairs;
 }
 
+export interface IInternalLayoutWithName {
+  layout: IInternalLayout;
+  layoutName: string;
+}
+
 export type IFormLayoutOrder = KeyValuePairs<string[]>;
 
 export interface IRuleModelFieldElement {
