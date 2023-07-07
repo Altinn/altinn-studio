@@ -268,13 +268,27 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
     return renameNodePointer(newSchema, nodeToRename.pointer, newPointer);
   };
 
-export const toggleArrayField: UiSchemaReducer<string> =
-  (uiSchema, pointer) => {
-    const newSchema = deepCopy(uiSchema);
-    const node = getNodeByPointer(newSchema, pointer);
-    node.isArray = !node.isArray;
-    return newSchema;
-  };
+export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => {
+  let newSchema = deepCopy(uiSchema);
+  const node = getNodeByPointer(newSchema, pointer);
+  node.isArray = !node.isArray;
+  node.children.forEach((child) => {
+    if (node.isArray) {
+      newSchema = renameNodePointer(
+        newSchema,
+        child,
+        child.replace(pointer, makePointer(pointer, Keyword.Items))
+      );
+    } else {
+      newSchema = renameNodePointer(
+        newSchema,
+        child,
+        child.replace(makePointer(pointer, Keyword.Items), pointer)
+      );
+    }
+  });
+  return newSchema;
+};
 
 export type ChangeChildrenOrderArgs = {
   pointerA: string;
