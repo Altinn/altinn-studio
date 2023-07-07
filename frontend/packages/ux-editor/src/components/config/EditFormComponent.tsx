@@ -6,8 +6,8 @@ import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
-import { useFormLayoutsSelector } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { useSelector } from 'react-redux';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -20,7 +20,7 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
 

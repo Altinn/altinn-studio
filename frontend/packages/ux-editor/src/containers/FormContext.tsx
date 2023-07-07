@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useCallback, createContext, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { useFormLayoutsSelector } from '../hooks';
-import { selectedLayoutSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { useSelectedFormLayout } from '../hooks';
+import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 
 export type FormContext = {
@@ -37,7 +37,7 @@ type FormContextProviderProps = {
 export const FormContextProvider = ({ children }: FormContextProviderProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
-  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
+  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
   const containerTimeoutRef = useRef(null);
   const componentTimeoutRef = useRef(null);
@@ -47,7 +47,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
 
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app, selectedLayoutSetName);
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutSetName);
-  const { components } = useFormLayoutsSelector(selectedLayoutSelector);
+  const { components } = useSelectedFormLayout();
 
   const handleUpdateFormContainer = useCallback(
     updateFormContainer,

@@ -2,8 +2,7 @@ import { generateComponentId } from '../../utils/generateId';
 import { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
+import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { FormContainer } from '../../types/FormContainer';
@@ -18,7 +17,7 @@ export interface AddFormContainerMutationArgs {
 
 export const useAddFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
-  const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
+  const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
 
   return useMutation({

@@ -78,6 +78,6 @@ export enum LayoutItemType {
 
 export type AppStateSelector<T> = (state: IAppState) => T;
 
-export type FormLayoutsSelector<T> = (state: IAppState, formLayoutsData: IFormLayouts) => T;
+export type FormLayoutsSelector<T> = (formLayoutsData: IFormLayouts) => T;
 
 export type TextResourcesSelector<T> = (textResources: ITextResources) => T;
