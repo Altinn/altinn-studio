@@ -15,8 +15,7 @@ import { ComponentType } from 'src/layout/LayoutComponent';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { GridComponent, GridRow } from 'src/layout/Grid/types';
 import type { HRepGroup } from 'src/layout/Group/types';
-import type { ITableColumnFormatting } from 'src/layout/layout';
-import type { ITextResourceBindings } from 'src/types';
+import type { ITableColumnFormatting, ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupTableProps {
@@ -34,11 +33,11 @@ export interface IRepeatingGroupTableProps {
 }
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
-  if (textResourceBindings.tableTitle) {
-    return textResourceBindings.tableTitle;
+  if (textResourceBindings?.tableTitle) {
+    return textResourceBindings?.tableTitle;
   }
-  if (textResourceBindings.title) {
-    return textResourceBindings.title;
+  if (textResourceBindings?.title) {
+    return textResourceBindings?.title;
   }
   return '';
 }
@@ -217,13 +216,13 @@ export function RepeatingGroupTable({
                 <TableCell
                   key={n.item.id}
                   className={classes.tableCellFormatting}
-                  style={getColumnStylesRepeatingGroups(n.item, columnSettings)}
+                  style={getColumnStylesRepeatingGroups(n, columnSettings)}
                 >
                   <span
                     className={classes.contentFormatting}
-                    style={getColumnStylesRepeatingGroups(n.item, columnSettings)}
+                    style={getColumnStylesRepeatingGroups(n, columnSettings)}
                   >
-                    {lang(getTableTitle(n.item.textResourceBindings || {}))}
+                    {lang(getTableTitle(n.item.textResourceBindings))}
                   </span>
                 </TableCell>
               ))}

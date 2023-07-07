@@ -19,10 +19,13 @@ export class InstanceInformation extends PresentationComponent<'InstanceInformat
 
 export const Config = {
   def: new InstanceInformation(),
+  rendersWithLabel: true as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompInstanceInformation;
   nodeItem: ExprResolved<ILayoutCompInstanceInformation>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: undefined;
 };

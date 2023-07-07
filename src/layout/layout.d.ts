@@ -1,16 +1,16 @@
 import type { TextField } from '@digdir/design-system-react';
 import type { GridSize } from '@material-ui/core';
+import type { UnionToIntersection } from 'utility-types';
 
 import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
-import type { IDataModelBindingsForAddress } from 'src/layout/Address/types';
 import type { ILayoutCompCheckboxes } from 'src/layout/Checkboxes/types';
 import type { ComponentConfigs, ComponentTypeConfigs } from 'src/layout/components';
 import type { ILayoutCompDropdown } from 'src/layout/Dropdown/types';
-import type { IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
-import type { IDataModelBindingsForList } from 'src/layout/List/types';
 import type { ILayoutCompRadioButtons } from 'src/layout/RadioButtons/types';
-import type { ILabelSettings, IMapping, IOption, IOptionSource, LayoutStyle, Triggers } from 'src/types';
+import type { ILabelSettings, IMapping, IOption, IOptionSource, Triggers } from 'src/types';
+import type { UnifyDMB, UnifyTRB } from 'src/utils/layout/hierarchy.types';
 
 export interface ILayouts {
   [id: string]: ILayout | undefined;
@@ -21,14 +21,14 @@ export interface ILayoutEntry<T extends ComponentTypes = ComponentTypes> {
   type: T;
 }
 
-export interface ILayoutCompBase<Type extends ComponentTypes = ComponentTypes> extends ILayoutEntry<Type> {
-  dataModelBindings?: IDataModelBindings;
+export interface ILayoutCompBase<Type extends ComponentTypes> extends ILayoutEntry<Type> {
+  dataModelBindings?: IDataModelBindings<Type>;
   maxLength?: number;
   readOnly?: ExprVal.Boolean;
   renderAsSummary?: ExprVal.Boolean;
   required?: ExprVal.Boolean;
   hidden?: ExprVal.Boolean;
-  textResourceBindings?: ITextResourceBindings;
+  textResourceBindings?: UnionToIntersection<TRBAsMap<Type, ExprVal.String>>;
   grid?: IGrid;
   triggers?: Triggers[];
   labelSettings?: ILabelSettings;
@@ -46,19 +46,6 @@ interface ISelectionComponent {
   secure?: boolean;
   source?: IOptionSource;
   preselectedOptionIndex?: number;
-}
-
-export interface IComponentCheckbox<T extends Extract<ComponentTypes, 'Checkboxes'>>
-  extends ILayoutCompBase<T>,
-    ISelectionComponent {
-  layout?: LayoutStyle;
-}
-
-export interface IComponentRadioOrLikert<T extends Extract<ComponentTypes, 'RadioButtons' | 'Likert'>>
-  extends ILayoutCompBase<T>,
-    ISelectionComponent {
-  layout?: LayoutStyle;
-  showAsCard?: boolean;
 }
 
 export type NumberFormatProps = Exclude<Parameters<typeof TextField>[0]['formatting'], undefined>['number'];
@@ -98,7 +85,7 @@ export interface ITableColumnProperties {
  */
 
 export type ComponentTypes = keyof typeof ComponentConfigs & keyof ComponentTypeConfigs;
-type AllComponents = ComponentLayoutTypeMap[ComponentTypes];
+type AllComponents = ComponentTypeConfigs[ComponentTypes]['layout'];
 
 export type ComponentExceptGroup = Exclude<ComponentTypes, 'Group'>;
 export type ComponentInGroup = ILayoutComponent | ILayoutGroup;
@@ -117,20 +104,23 @@ export type ComponentInGroup = ILayoutComponent | ILayoutGroup;
  * @see AnyItem
  * @see LayoutNode
  */
-export type ILayoutComponent<Type extends ComponentExceptGroup = ComponentExceptGroup> = Extract<
-  AllComponents,
-  { type: Type }
+export type ILayoutComponent<Type extends ComponentExceptGroup = ComponentExceptGroup> = UnifyDMB<
+  UnifyTRB<Extract<AllComponents, { type: Type }>>
 >;
 
 /**
  * Alternative version of the one above
  */
-export type ILayoutComponentExact<Type extends ComponentTypes> = Map[Type];
+export type ILayoutComponentExact<Type extends ComponentTypes> = UnifyDMB<
+  UnifyTRB<ComponentTypeConfigs[Type]['layout']>
+>;
 
 export type ILayoutComponentOrGroup = ILayoutGroup | ILayoutComponent;
 
+export type ComponentRendersLabel<T extends ComponentTypes> = (typeof ComponentConfigs)[T]['rendersWithLabel'];
+
 export interface IDataModelBindingsSimple {
-  simpleBinding: string;
+  simpleBinding?: string;
 }
 
 /**
@@ -138,19 +128,40 @@ export interface IDataModelBindingsSimple {
  * store a list of primitive values, like string[].
  */
 export interface IDataModelBindingsList {
-  list: string;
+  list?: string;
 }
 
-export type IDataModelBindings =
-  | (Partial<IDataModelBindingsSimple> &
-      Partial<IDataModelBindingsList> &
-      Partial<IDataModelBindingsForGroup> &
-      Partial<IDataModelBindingsForAddress>)
-  | IDataModelBindingsForList;
+type InnerDMB<T extends ComponentTypes> = ComponentTypeConfigs[T]['validDataModelBindings'];
 
-export interface ITextResourceBindings {
-  [id: string]: ExprVal.String | undefined;
-}
+/**
+ * This is the type you should use when referencing a specific component type, and will give
+ * you the correct data model bindings for that component.
+ */
+export type IDataModelBindings<T extends ComponentTypes = ComponentTypes> =
+  | UnionToIntersection<Exclude<InnerDMB<T>, undefined>>
+  | undefined;
+
+type InnerTRB<T extends ComponentTypes> = ComponentRendersLabel<T> extends true
+  ? ComponentTypeConfigs[T]['validTextResourceBindings'] | TextBindingsForLabel
+  : ComponentTypeConfigs[T]['validTextResourceBindings'];
+
+type TRBAsUnion<T extends ComponentTypes> = Exclude<InnerTRB<T>, undefined> extends never
+  ? undefined
+  : Exclude<InnerTRB<T>, undefined>;
+
+type TRBAsMap<T extends ComponentTypes, V> = {
+  [Binding in TRBAsUnion<T>]?: V;
+};
+
+export type ITextResourceBindings<T extends ComponentTypes = ComponentTypes> =
+  | UnionToIntersection<TRBAsMap<T, string>>
+  | undefined;
+
+type Test1 = ITextResourceBindings<'TextArea'>;
+
+export type TextBindingsForSummarizableComponents = 'summaryTitle' | 'summaryDescription' | 'summaryAccessibleTitle';
+export type TextBindingsForFormComponents = TextBindingsForSummarizableComponents | 'tableTitle' | 'shortName';
+export type TextBindingsForLabel = 'title' | 'description' | 'help';
 
 export type ILayout = ExprUnresolved<ILayoutComponentOrGroup>[];
 

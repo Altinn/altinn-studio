@@ -1,3 +1,8 @@
-import type { IComponentRadioOrLikert } from 'src/layout/layout';
+import type { ILayoutCompBase, ISelectionComponent } from 'src/layout/layout';
+import type { LayoutStyle } from 'src/types';
 
-export type ILayoutCompLikert = IComponentRadioOrLikert<'Likert'>;
+export type ILayoutCompLikert = ILayoutCompBase<'Likert'> &
+  ISelectionComponent & {
+    layout?: LayoutStyle;
+    showAsCard?: boolean;
+  };

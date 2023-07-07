@@ -11,18 +11,17 @@ export class Header extends PresentationComponent<'Header'> {
   render(props: PropsFromGenericComponent<'Header'>): JSX.Element | null {
     return <HeaderComponent {...props} />;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new Header(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompHeader;
   nodeItem: ExprResolved<ILayoutCompHeader>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title' | 'help';
+  validDataModelBindings: undefined;
 };

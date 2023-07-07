@@ -38,10 +38,13 @@ export class Summary extends ContainerComponent<'Summary'> {
 
 export const Config = {
   def: new Summary(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompSummary;
   nodeItem: ExprResolved<ILayoutCompSummary>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: undefined;
 };

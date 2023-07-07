@@ -11,7 +11,7 @@ import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { ILayout, ILayouts } from 'src/layout/layout';
+import type { IDataModelBindings, ILayout, ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
 import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 import type { IValidations } from 'src/utils/validation/types';
@@ -688,7 +688,10 @@ describe('Hierarchical layout tools', () => {
       };
       state.formLayout.uiConfig.currentView = 'page1';
       const resolved = resolvedLayoutsFromState(state);
-      const dataBindingFor = (id: string) => resolved?.findById(id)?.item.dataModelBindings?.simpleBinding;
+      const dataBindingFor = (id: string) => {
+        const dmBindings = (resolved?.findById(id)?.item.dataModelBindings as IDataModelBindings) || undefined;
+        return dmBindings?.simpleBinding;
+      };
 
       expect(dataBindingFor('child-2')).toEqual('MyModel.MainGroup[2].Child');
       expect(resolved?.findById('child-3')).toBeUndefined();

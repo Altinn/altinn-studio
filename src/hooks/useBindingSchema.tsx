@@ -11,10 +11,10 @@ type AsSchema<T> = {
 
 export function useBindingSchema<T extends IDataModelBindings | undefined>(bindings: T): AsSchema<T> | undefined {
   const currentSchema = useDataModelSchema();
-
   const resolvedBindings = bindings && Object.values(bindings).length ? { ...bindings } : undefined;
 
   if (resolvedBindings && currentSchema) {
+    const out = {} as AsSchema<T>;
     for (const [key, value] of Object.entries(resolvedBindings)) {
       // Converts dot-notation to JsonPointer (including support for repeating groups)
       const schemaPath = `/${value.replace(/\./g, '/')}`.replace(/\[(\d+)]\//g, (...a) => `/${a[1]}/`);
@@ -22,16 +22,16 @@ export function useBindingSchema<T extends IDataModelBindings | undefined>(bindi
       try {
         const bindingSchema = currentSchema?.getSchema(schemaPath);
         if (bindingSchema?.type === 'error') {
-          resolvedBindings[key] = null;
+          out[key] = null;
         } else {
-          resolvedBindings[key] = bindingSchema;
+          out[key] = bindingSchema;
         }
       } catch {
-        resolvedBindings[key] = null;
+        out[key] = null;
       }
     }
 
-    return resolvedBindings as AsSchema<T>;
+    return out;
   }
 
   return undefined;

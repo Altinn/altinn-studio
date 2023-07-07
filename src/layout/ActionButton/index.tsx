@@ -15,18 +15,17 @@ export class ActionButton extends ActionComponent<'ActionButton'> {
   canRenderInButtonGroup(): boolean {
     return true;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new ActionButton(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompActionButton;
   nodeItem: ExprResolved<ILayoutCompActionButton>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title';
+  validDataModelBindings: undefined;
 };

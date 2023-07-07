@@ -16,6 +16,7 @@ export function NodeInspectorDataModelBindings({ dataModelBindings }: Props) {
   const schema = useBindingSchema(dataModelBindings);
   const formData = useAppSelector((state) => state.formData.formData);
   const asObject = dot.object(structuredClone(formData || {}));
+  const bindings = dataModelBindings || {};
 
   return (
     <Value
@@ -24,19 +25,17 @@ export function NodeInspectorDataModelBindings({ dataModelBindings }: Props) {
       className={classes.typeObject}
     >
       <dl className={classes.propertyList}>
-        {Object.keys(dataModelBindings).map((key) => (
+        {Object.keys(bindings).map((key) => (
           <Value
             key={key}
             property={key}
             className={classes.typeLongString}
           >
             <em>Råverdi: </em>
-            {dataModelBindings[key]}
+            {bindings[key]}
             <br />
             <em>Resultat: </em>
-            <div className={classes.json}>
-              {JSON.stringify(dot.pick(dataModelBindings[key], asObject) || null, null, 2)}
-            </div>
+            <div className={classes.json}>{JSON.stringify(dot.pick(bindings[key], asObject) || null, null, 2)}</div>
             <br />
             <em>Datamodell: </em>
             <div className={classes.json}>{JSON.stringify(schema?.[key] || null, null, 2)}</div>

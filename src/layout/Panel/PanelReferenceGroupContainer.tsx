@@ -11,25 +11,21 @@ import { getVariant } from 'src/components/form/Panel';
 import { SuccessIconButton } from 'src/components/SuccessIconButton';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
-import { makeGetHidden } from 'src/selectors/getLayoutData';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 export interface IPanelGroupContainerProps {
-  id: string;
+  node: LayoutNodeFromType<'Group'>;
 }
 
-export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) {
+export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps) {
   const dispatch = useAppDispatch();
-  const GetHiddenSelector = makeGetHidden();
-  const node = useResolvedNode(id) as LayoutNodeFromType<'Group'>;
+
   const container = node.item.panel ? node.item : undefined;
   const [open, setOpen] = useState<boolean>(!container?.panel?.groupReference);
-  const hidden = useAppSelector((state) => GetHiddenSelector(state, { id }));
+  const hidden = node.isHidden();
   const textResourceBindings = node?.item.textResourceBindings;
   const { lang } = useLanguage();
 
@@ -54,7 +50,7 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
     setOpen(true);
   };
 
-  if (hidden || !container || !node) {
+  if (hidden || !container) {
     return null;
   }
 

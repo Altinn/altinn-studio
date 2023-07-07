@@ -15,18 +15,17 @@ export class InstantiationButton extends ActionComponent<'InstantiationButton'> 
   canRenderInButtonGroup(): boolean {
     return true;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new InstantiationButton(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompInstantiationButton;
   nodeItem: ExprResolved<ILayoutCompInstantiationButton>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title';
+  validDataModelBindings: undefined;
 };

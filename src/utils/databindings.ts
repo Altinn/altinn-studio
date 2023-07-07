@@ -4,6 +4,7 @@ import { getParentGroup } from 'src/utils/validation/validation';
 import type { IAttachment, IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
+import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { IDataModelBindings, ILayout } from 'src/layout/layout';
 import type { IMapping, IRepeatingGroup, IRepeatingGroups } from 'src/types';
 
@@ -234,7 +235,7 @@ export function removeAttachmentReference(
   formData: IFormData,
   attachmentId: string,
   attachments: IAttachments,
-  dataModelBindings: IDataModelBindings,
+  dataModelBindings: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'>,
   componentId: string,
 ): IFormData {
   if (!dataModelBindings || (!dataModelBindings.simpleBinding && !dataModelBindings.list)) {
@@ -304,7 +305,7 @@ export function deleteGroupData(
 
 interface FoundAttachment {
   attachment: IAttachment;
-  component: ILayoutCompFileUpload;
+  component: ILayoutCompFileUpload | ILayoutCompFileUploadWithTag;
   componentId: string;
   index: number;
 }
@@ -330,11 +331,11 @@ export function findChildAttachments(
     const dataBinding = getKeyWithoutIndex(key);
     const component = components.find(
       (c) => c.dataModelBindings?.simpleBinding === dataBinding || c.dataModelBindings?.list === dataBinding,
-    ) as unknown as ILayoutCompFileUpload;
+    ) as unknown as ILayoutCompFileUpload | ILayoutCompFileUploadWithTag;
 
     if (component) {
       const groupKeys = getKeyIndex(key);
-      if (component.dataModelBindings?.list) {
+      if (component.dataModelBindings && 'list' in component.dataModelBindings) {
         groupKeys.pop();
       }
 
@@ -370,34 +371,4 @@ export function mapFormData(formData: IFormData, mapping: IMapping | undefined) 
     mappedFormData[target] = formData[source];
   });
   return mappedFormData;
-}
-
-export function getFormDataFromFieldKey(
-  fieldKey: string,
-  dataModelBindings: IDataModelBindings | undefined,
-  formData: any,
-  groupDataBinding?: string,
-  index?: number,
-) {
-  let dataModelBindingKey = dataModelBindings && dataModelBindings[fieldKey];
-  if (groupDataBinding) {
-    dataModelBindingKey = dataModelBindingKey.replace(groupDataBinding, `${groupDataBinding}[${index}]`);
-  }
-  let value = formData[dataModelBindingKey];
-  if (fieldKey === 'list') {
-    value = [];
-    for (const key of Object.keys(formData)) {
-      if (key.startsWith(dataModelBindingKey) && key.substring(dataModelBindingKey.length).match(/^\[\d+]$/)) {
-        const lastIndex = getKeyIndex(key).pop();
-        if (lastIndex !== undefined) {
-          value[lastIndex] = formData[key];
-        }
-      }
-    }
-    if (!value.length) {
-      value = undefined;
-    }
-  }
-
-  return value;
 }

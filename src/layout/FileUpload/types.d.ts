@@ -1,5 +1,6 @@
 import type { ExprVal } from 'src/features/expressions/types';
 import type { ComponentTypes, ILayoutCompBase } from 'src/layout/layout';
+
 export interface ILayoutCompFileUploadBase<T extends Extract<ComponentTypes, 'FileUpload' | 'FileUploadWithTag'>>
   extends ILayoutCompBase<T> {
   maxFileSizeInMB: number;

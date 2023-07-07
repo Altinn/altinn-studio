@@ -11,18 +11,17 @@ export class Paragraph extends PresentationComponent<'Paragraph'> {
   render(props: PropsFromGenericComponent<'Paragraph'>): JSX.Element | null {
     return <ParagraphComponent {...props} />;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new Paragraph(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompParagraph;
   nodeItem: ExprResolved<ILayoutCompParagraph>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title' | 'help';
+  validDataModelBindings: undefined;
 };

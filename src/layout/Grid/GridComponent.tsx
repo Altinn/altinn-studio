@@ -21,7 +21,7 @@ import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { GridComponent, GridRow } from 'src/layout/Grid/types';
-import type { ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
+import type { ITableColumnFormatting, ITableColumnProperties, ITextResourceBindings } from 'src/layout/layout';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { node } = props;
@@ -218,7 +218,7 @@ function CellWithText({ children, className, columnStyleOptions, help }: CellWit
 
 function CellWithLabel({ className, columnStyleOptions, referenceComponent }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const { title, help, description } = referenceComponent?.item.textResourceBindings || {};
+  const { title, help, description } = (referenceComponent?.item.textResourceBindings as ITextResourceBindings) || {};
   const { required } = referenceComponent?.item || {};
   const componentId = referenceComponent?.item.id ?? referenceComponent?.item.baseComponentId;
 

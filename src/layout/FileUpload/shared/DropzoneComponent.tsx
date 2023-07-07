@@ -7,7 +7,7 @@ import classes from 'src/layout/FileUpload/shared/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/shared/mapExtensionToAcceptMime';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
-import type { ITextResourceBindings } from 'src/types';
+import type { ITextResourceBindings } from 'src/layout/layout';
 
 export interface IDropzoneComponentProps {
   id: string;
@@ -19,7 +19,7 @@ export interface IDropzoneComponentProps {
   hasValidationMessages: boolean;
   hasCustomFileEndings?: boolean;
   validFileEndings?: ILayoutCompFileUpload['validFileEndings'];
-  textResourceBindings?: ITextResourceBindings;
+  textResourceBindings?: ITextResourceBindings<'FileUpload' | 'FileUploadWithTag'>;
 }
 
 export const bytesInOneMB = 1048576;

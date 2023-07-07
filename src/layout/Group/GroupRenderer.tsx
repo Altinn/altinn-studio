@@ -28,7 +28,7 @@ export function GroupRenderer({ node }: GroupRendererProps) {
     return (
       <PanelReferenceGroupContainer
         key={node.item.id}
-        id={node.item.id}
+        node={node}
       />
     );
   }

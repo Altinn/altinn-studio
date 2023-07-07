@@ -7,6 +7,7 @@ import { FormComponent } from 'src/layout/LayoutComponent';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindingsSimple, TextBindingsForFormComponents } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ILayoutCompMultipleSelect } from 'src/layout/MultipleSelect/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -39,10 +40,13 @@ export class MultipleSelect extends FormComponent<'MultipleSelect'> {
 
 export const Config = {
   def: new MultipleSelect(),
+  rendersWithLabel: true as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompMultipleSelect;
   nodeItem: ExprResolved<ILayoutCompMultipleSelect>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: TextBindingsForFormComponents;
+  validDataModelBindings: IDataModelBindingsSimple;
 };

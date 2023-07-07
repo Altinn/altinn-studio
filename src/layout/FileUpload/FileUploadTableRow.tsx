@@ -21,7 +21,7 @@ class IFileUploadTableRowProps {
   index: number;
   alertOnDelete?: boolean;
   baseComponentId?: string;
-  dataModelBindings?: IDataModelBindings;
+  dataModelBindings?: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'>;
 }
 
 export const bytesInOneMB = 1048576;

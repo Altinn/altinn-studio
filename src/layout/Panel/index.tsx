@@ -12,10 +12,6 @@ export class Panel extends PresentationComponent<'Panel'> {
     return <PanelComponent {...props} />;
   }
 
-  renderWithLabel(): boolean {
-    return false;
-  }
-
   canRenderInTable(): boolean {
     return false;
   }
@@ -23,10 +19,13 @@ export class Panel extends PresentationComponent<'Panel'> {
 
 export const Config = {
   def: new Panel(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompPanel;
   nodeItem: ExprResolved<ILayoutCompPanel>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title' | 'body';
+  validDataModelBindings: undefined;
 };

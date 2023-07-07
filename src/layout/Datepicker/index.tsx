@@ -14,6 +14,7 @@ import type { ExprResolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
+import type { IDataModelBindingsSimple } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -107,10 +108,13 @@ export class Datepicker extends FormComponent<'Datepicker'> implements Component
 
 export const Config = {
   def: new Datepicker(),
+  rendersWithLabel: true as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompDatepicker;
   nodeItem: ExprResolved<ILayoutCompDatepicker>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: IDataModelBindingsSimple;
 };

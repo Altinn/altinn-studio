@@ -5,10 +5,14 @@ import { AsciiUnitSeparator } from 'src/utils/attachment';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
+import type {
+  IGridStyling,
+  ITableColumnFormatting,
+  ITableColumnProperties,
+  ITextResourceBindings,
+} from 'src/layout/layout';
 import type { IPageBreak } from 'src/layout/layout.d';
-import type { ITextResourceBindings } from 'src/types';
-import type { AnyItem } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IComponentValidations } from 'src/utils/validation/types';
 
 export interface IComponentFormData {
@@ -107,7 +111,7 @@ export const atleastOneTagExists = (attachments: IAttachment[]): boolean => {
 };
 
 export function getFieldName(
-  textResourceBindings: ITextResourceBindings | undefined,
+  textResourceBindings: ITextResourceBindings,
   langTools: IUseLanguage,
   fieldKey?: string,
 ): string | undefined {
@@ -217,11 +221,11 @@ export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined)
   };
 };
 
-export function getTextAlignment(component: AnyItem): 'left' | 'center' | 'right' {
-  if (component.type !== 'Input') {
+export function getTextAlignment(node: LayoutNode): 'left' | 'center' | 'right' {
+  if (!node.isType('Input')) {
     return 'left';
   }
-  const formatting = component.formatting;
+  const formatting = node.item.formatting;
   if (formatting && formatting.align) {
     return formatting.align;
   }
@@ -231,8 +235,11 @@ export function getTextAlignment(component: AnyItem): 'left' | 'center' | 'right
   return 'left';
 }
 
-export function getColumnStylesRepeatingGroups(tableItem: AnyItem, columnSettings: ITableColumnFormatting | undefined) {
-  const column = columnSettings && columnSettings[tableItem.baseComponentId || tableItem.id];
+export function getColumnStylesRepeatingGroups(
+  tableItem: LayoutNode,
+  columnSettings: ITableColumnFormatting | undefined,
+) {
+  const column = columnSettings && columnSettings[tableItem.item.baseComponentId || tableItem.item.id];
   if (!column) {
     return;
   }

@@ -16,10 +16,6 @@ export class NavigationButtons extends ActionComponent<'NavigationButtons'> {
     return true;
   }
 
-  renderWithLabel(): boolean {
-    return false;
-  }
-
   canRenderInTable(): boolean {
     return false;
   }
@@ -27,10 +23,13 @@ export class NavigationButtons extends ActionComponent<'NavigationButtons'> {
 
 export const Config = {
   def: new NavigationButtons(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompNavButtons;
   nodeItem: ExprResolved<ILayoutCompNavButtons>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'back' | 'next';
+  validDataModelBindings: undefined;
 };

@@ -15,7 +15,7 @@ import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { HRepGroup, ILayoutGroup } from 'src/layout/Group/types';
-import type { ITextResourceBindings } from 'src/types';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupTableRowProps {
@@ -36,7 +36,7 @@ export interface IRepeatingGroupTableRowProps {
 }
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
-  return textResourceBindings.tableTitle ?? textResourceBindings.title ?? '';
+  return textResourceBindings?.tableTitle ?? textResourceBindings?.title ?? '';
 }
 
 function getEditButtonText(
@@ -148,7 +148,7 @@ export function RepeatingGroupTableRow({
             <TableCell key={`${n.item.id}-${index}`}>
               <span
                 className={classes.contentFormatting}
-                style={getColumnStylesRepeatingGroups(n.item, columnSettings)}
+                style={getColumnStylesRepeatingGroups(n, columnSettings)}
               >
                 {isEditingRow ? null : displayData[idx]}
               </span>
@@ -185,7 +185,7 @@ export function RepeatingGroupTableRow({
                     key={n.item.id}
                   >
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                      {lang(getTableTitle(n.item.textResourceBindings || {}))}:
+                      {lang(getTableTitle(n.item.textResourceBindings))}:
                     </b>
                     <span className={classes.contentFormatting}>{displayData[i]}</span>
                     {i < length - 1 && <div style={{ height: 8 }} />}

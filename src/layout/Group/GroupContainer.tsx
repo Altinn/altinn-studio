@@ -165,7 +165,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const isNested = node.parent instanceof LayoutNode;
 
   if (edit?.mode === 'likert') {
-    return <RepeatingGroupsLikertContainer id={id} />;
+    return <RepeatingGroupsLikertContainer node={node} />;
   }
 
   const displayBtn =

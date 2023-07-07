@@ -16,18 +16,17 @@ export class Link extends ActionComponent<'Link'> {
   canRenderInButtonGroup(): boolean {
     return true;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new Link(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompLink;
   nodeItem: ExprResolved<ILayoutCompLink>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'target' | 'title';
+  validDataModelBindings: undefined;
 };

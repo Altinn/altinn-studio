@@ -8,6 +8,7 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { LayoutStyle } from 'src/types';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindingsSimple } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -20,10 +21,6 @@ export class Likert extends FormComponent<'Likert'> {
 
   directRender(props: PropsFromGenericComponent<'Likert'>): boolean {
     return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
-  }
-
-  renderWithLabel(): boolean {
-    return false;
   }
 
   useDisplayData(node: LayoutNodeFromType<'Likert'>): string {
@@ -48,10 +45,16 @@ export class Likert extends FormComponent<'Likert'> {
 
 export const Config = {
   def: new Likert(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompLikert;
   nodeItem: ExprResolved<ILayoutCompLikert>;
   nodeObj: LayoutNode;
+  // TODO: description/help only works on mobile, as it uses the ControlledRadioGroup component
+  // Ideally, it should be possible to use it on desktop as well, or the mobile mode should also not display
+  // anything here. Fixing this requires some refactoring.
+  validTextResourceBindings: 'title' | 'description' | 'help';
+  validDataModelBindings: IDataModelBindingsSimple;
 };

@@ -46,7 +46,7 @@ export interface IGroupColumnFormatting extends ITableColumnProperties {
 }
 
 export interface IDataModelBindingsForGroup {
-  group: string;
+  group?: string;
 }
 
 export interface IGroupPanel extends ILayoutCompPanelBase {

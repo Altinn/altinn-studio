@@ -11,18 +11,17 @@ export class IFrame extends PresentationComponent<'IFrame'> {
   render(props: IFrameComponentProps): JSX.Element | null {
     return <IFrameComponent {...props} />;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new IFrame(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompIFrame;
   nodeItem: ExprResolved<ILayoutCompIFrame>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title';
+  validDataModelBindings: undefined;
 };

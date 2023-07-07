@@ -12,10 +12,6 @@ export class NavigationBar extends ActionComponent<'NavigationBar'> {
     return <NavigationBarComponent {...props} />;
   }
 
-  renderWithLabel(): boolean {
-    return false;
-  }
-
   canRenderInTable(): boolean {
     return false;
   }
@@ -23,10 +19,13 @@ export class NavigationBar extends ActionComponent<'NavigationBar'> {
 
 export const Config = {
   def: new NavigationBar(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompNavBar;
   nodeItem: ExprResolved<ILayoutCompNavBar>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: undefined;
 };

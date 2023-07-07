@@ -24,7 +24,7 @@ import type {
   FuncDef,
 } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutComponent } from 'src/layout/layout';
+import type { IDataModelBindings, ILayoutComponent } from 'src/layout/layout';
 import type { IAuthContext, IInstanceContext } from 'src/types/shared';
 
 export interface EvalExprOptions {
@@ -476,7 +476,8 @@ export const ExprFunctions = {
       const node = this.failWithoutNode();
       const closestComponent = node.closest((c) => c.id === id || c.baseComponentId === id);
       const component = closestComponent ?? (node instanceof LayoutPage ? node.findById(id) : node.top.findById(id));
-      const binding = component?.item?.dataModelBindings?.simpleBinding;
+      const dataModelBindings = (component?.item.dataModelBindings as IDataModelBindings) || undefined;
+      const binding = dataModelBindings?.simpleBinding;
       if (component && binding) {
         if (component.isHidden()) {
           return null;

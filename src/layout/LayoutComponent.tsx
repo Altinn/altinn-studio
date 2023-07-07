@@ -9,7 +9,7 @@ import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentTypeConfigs } from 'src/layout/components';
 import type { EmptyFieldValidation, PropsFromGenericComponent, SchemaValidation } from 'src/layout/index';
-import type { ComponentTypes } from 'src/layout/layout';
+import type { ComponentTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { AnyItem, HierarchyDataSources, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
@@ -49,13 +49,6 @@ export abstract class AnyComponent<Type extends ComponentTypes> {
    */
   directRender(_props: PropsFromGenericComponent<Type>): boolean {
     return false;
-  }
-
-  /**
-   * Return false to render this component without the label (in GenericComponent.tsx)
-   */
-  renderWithLabel(): boolean {
-    return true;
   }
 
   /**
@@ -179,7 +172,7 @@ export abstract class FormComponent<Type extends ComponentTypes>
       const data = formDataToValidate[field];
 
       if (!data?.length) {
-        const fieldName = getFieldName(node.item.textResourceBindings, langTools, bindingKey);
+        const fieldName = getFieldName(node.item.textResourceBindings as ITextResourceBindings, langTools, bindingKey);
 
         validationObjects.push(
           buildValidationObject(

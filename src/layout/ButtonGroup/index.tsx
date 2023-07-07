@@ -36,10 +36,13 @@ export class ButtonGroup extends ContainerComponent<'ButtonGroup'> {
 
 export const Config = {
   def: new ButtonGroup(),
+  rendersWithLabel: true as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompButtonGroup;
   nodeItem: ILayoutCompButtonGroupInHierarchy;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title';
+  validDataModelBindings: undefined;
 };

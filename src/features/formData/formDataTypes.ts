@@ -40,5 +40,5 @@ export interface IUpdateFormData {
 export interface IDeleteAttachmentReference {
   attachmentId: string;
   componentId: string;
-  dataModelBindings: IDataModelBindings;
+  dataModelBindings: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'>;
 }

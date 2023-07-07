@@ -16,18 +16,17 @@ export class PrintButton extends ActionComponent<'PrintButton'> {
   canRenderInButtonGroup(): boolean {
     return true;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new PrintButton(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompPrintButton;
   nodeItem: ExprResolved<ILayoutCompPrintButton>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title';
+  validDataModelBindings: undefined;
 };

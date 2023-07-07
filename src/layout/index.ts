@@ -3,7 +3,7 @@ import { createContext } from 'react';
 import { ComponentConfigs } from 'src/layout/components';
 import type { IFormData } from 'src/features/formData';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
-import type { ComponentTypes, IGrid } from 'src/layout/layout';
+import type { ComponentRendersLabel, ComponentTypes, IGrid } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -71,6 +71,10 @@ export function getLayoutComponentObject<T extends keyof ComponentClassMap>(type
     return ComponentConfigs[type as keyof typeof ComponentConfigs].def as any;
   }
   return undefined as any;
+}
+
+export function shouldComponentRenderLabel<T extends ComponentTypes>(type: T): ComponentRendersLabel<T> {
+  return ComponentConfigs[type].rendersWithLabel;
 }
 
 export type DefGetter = typeof getLayoutComponentObject;

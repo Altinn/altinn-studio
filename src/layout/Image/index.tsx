@@ -11,18 +11,17 @@ export class Image extends PresentationComponent<'Image'> {
   render(props: PropsFromGenericComponent<'Image'>): JSX.Element | null {
     return <ImageComponent {...props} />;
   }
-
-  renderWithLabel(): boolean {
-    return false;
-  }
 }
 
 export const Config = {
   def: new Image(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompImage;
   nodeItem: ExprResolved<ILayoutCompImage>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'altTextImg' | 'help';
+  validDataModelBindings: undefined;
 };

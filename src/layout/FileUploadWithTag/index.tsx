@@ -11,6 +11,11 @@ import type { ExprResolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
+import type {
+  IDataModelBindingsList,
+  IDataModelBindingsSimple,
+  TextBindingsForFormComponents,
+} from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -77,10 +82,13 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implem
 
 export const Config = {
   def: new FileUploadWithTag(),
+  rendersWithLabel: true as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompFileUploadWithTag;
   nodeItem: ExprResolved<ILayoutCompFileUploadWithTag>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: TextBindingsForFormComponents | 'tagTitle';
+  validDataModelBindings: IDataModelBindingsSimple | IDataModelBindingsList;
 };

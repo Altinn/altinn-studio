@@ -5,7 +5,7 @@ import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ILayoutCompAddress } from 'src/layout/Address/types';
+import type { IDataModelBindingsForAddress, ILayoutCompAddress } from 'src/layout/Address/types';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -13,10 +13,6 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export class Address extends FormComponent<'AddressComponent'> {
   render(props: PropsFromGenericComponent<'AddressComponent'>): JSX.Element | null {
     return <AddressComponent {...props} />;
-  }
-
-  renderWithLabel(): boolean {
-    return false;
   }
 
   useDisplayData(node: LayoutNodeFromType<'AddressComponent'>): string {
@@ -36,10 +32,13 @@ export class Address extends FormComponent<'AddressComponent'> {
 
 export const Config = {
   def: new Address(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompAddress;
   nodeItem: ExprResolved<ILayoutCompAddress>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: IDataModelBindingsForAddress;
 };

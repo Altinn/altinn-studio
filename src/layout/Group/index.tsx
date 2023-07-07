@@ -8,7 +8,8 @@ import { runValidationOnNodes } from 'src/utils/validation/validation';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentValidation, GroupValidation, PropsFromGenericComponent } from 'src/layout';
-import type { HGroups, ILayoutGroup } from 'src/layout/Group/types';
+import type { HGroups, IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/types';
+import type { TextBindingsForSummarizableComponents } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
@@ -100,10 +101,28 @@ export class Group extends ContainerComponent<'Group'> implements GroupValidatio
 
 export const Config = {
   def: new Group(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutGroup;
   nodeItem: HGroups;
   nodeObj: LayoutNode;
+  validTextResourceBindings:
+    | TextBindingsForSummarizableComponents
+    | 'title'
+    // Used in repeating groups:
+    | 'add_button_full'
+    | 'add_button'
+    | 'save_button'
+    | 'save_and_next_button'
+    | 'edit_button_close'
+    | 'edit_button_open'
+    // Used when rendered as Panel:
+    | 'add_label'
+    | 'body'
+    // Used when in Likert mode:
+    | 'leftColumnHeader'
+    | 'description';
+  validDataModelBindings: IDataModelBindingsForGroup;
 };

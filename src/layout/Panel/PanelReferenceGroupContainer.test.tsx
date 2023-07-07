@@ -6,11 +6,13 @@ import userEvent from '@testing-library/user-event';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PanelReferenceGroupContainer } from 'src/layout/Panel/PanelReferenceGroupContainer';
 import { renderWithProviders } from 'src/testUtils';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout } from 'src/layout/layout';
 import type { RootState } from 'src/redux/store';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 describe('PanelGroupContainer', () => {
   const initialState = getInitialStateMock();
@@ -155,5 +157,14 @@ const render = ({ container, components, customState }: TestProps) => {
     children: [],
   });
 
-  renderWithProviders(<PanelReferenceGroupContainer id={'group'} />, { preloadedState });
+  renderWithProviders(<WrappedComponent id={'group'} />, { preloadedState });
+};
+
+const WrappedComponent = ({ id }: { id: string }) => {
+  const node = useResolvedNode(id);
+  if (!node) {
+    throw new Error('Node not found');
+  }
+
+  return <PanelReferenceGroupContainer node={node as LayoutNodeFromType<'Group'>} />;
 };

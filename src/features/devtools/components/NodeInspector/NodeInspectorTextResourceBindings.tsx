@@ -5,7 +5,7 @@ import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspec
 import { canBeExpression } from 'src/features/expressions/validation';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
-import type { ITextResourceBindings } from 'src/types';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
@@ -17,7 +17,7 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
   const textResources = useAppSelector((state) => state.textResources.resources);
   const { langAsString } = useLanguage();
 
-  let actualTextResourceBindings = textResourceBindings;
+  let actualTextResourceBindings = textResourceBindings || {};
   let isRepGroup = false;
   if (node.isRepGroup()) {
     // Text resource bindings are resolved per-row for repeating groups. We'll show the
@@ -44,7 +44,7 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
           </div>
         )}
         {Object.keys(actualTextResourceBindings).map((key) => {
-          const inResources = textResources.find((resource) => resource.id === textResourceBindings[key]);
+          const inResources = textResources.find((resource) => resource.id === actualTextResourceBindings[key]);
           const value = actualTextResourceBindings[key];
           const isExpression = canBeExpression(value, true);
 

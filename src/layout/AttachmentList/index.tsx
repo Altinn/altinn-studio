@@ -12,10 +12,6 @@ export class AttachmentList extends PresentationComponent<'AttachmentList'> {
     return <AttachmentListComponent {...props} />;
   }
 
-  renderWithLabel(): boolean {
-    return false;
-  }
-
   canRenderInTable(): boolean {
     return false;
   }
@@ -23,10 +19,13 @@ export class AttachmentList extends PresentationComponent<'AttachmentList'> {
 
 export const Config = {
   def: new AttachmentList(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompAttachmentList;
   nodeItem: ExprResolved<ILayoutCompAttachmentList>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: 'title';
+  validDataModelBindings: undefined;
 };

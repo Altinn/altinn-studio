@@ -130,10 +130,6 @@ export interface ITextResource {
   variables?: IVariable[];
 }
 
-export interface ITextResourceBindings {
-  [id: string]: string | undefined;
-}
-
 export interface IHiddenLayoutsExpressions {
   [layoutKey: string]: ExprVal.Boolean | undefined;
 }

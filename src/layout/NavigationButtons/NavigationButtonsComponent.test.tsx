@@ -14,7 +14,6 @@ describe('NavigationButton', () => {
     id: 'nav-button1',
     type: 'NavigationButtons',
     textResourceBindings: {},
-    dataModelBindings: {},
     readOnly: false,
     required: false,
   };
@@ -22,7 +21,6 @@ describe('NavigationButton', () => {
     id: 'nav-button2',
     type: 'NavigationButtons',
     textResourceBindings: {},
-    dataModelBindings: {},
     readOnly: false,
     required: false,
   };

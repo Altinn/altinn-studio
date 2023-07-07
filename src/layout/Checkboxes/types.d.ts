@@ -1,3 +1,7 @@
-import type { IComponentCheckbox } from 'src/layout/layout';
+import type { ILayoutCompBase, ISelectionComponent } from 'src/layout/layout';
+import type { LayoutStyle } from 'src/types';
 
-export type ILayoutCompCheckboxes = IComponentCheckbox<'Checkboxes'>;
+export type ILayoutCompCheckboxes = ILayoutCompBase<'Checkboxes'> &
+  ISelectionComponent & {
+    layout?: LayoutStyle;
+  };

@@ -40,7 +40,7 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useIsMobileOrTablet();
   const attachments = useAppSelector((state) => state.attachments.attachments[id] || emptyArray);
-  const alertOnDelete = node.item?.alertOnDelete;
+  const alertOnDelete = node.item.alertOnDelete;
   const langTools = useLanguage();
   const { lang, langAsString } = langTools;
   const getComponentValidations = (): IComponentValidations => {

@@ -42,7 +42,7 @@ export function EditWindowComponent({
   setEditIndex,
 }: EditWindowProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const { id, baseComponentId, dataModelBindings, readOnly, textResourceBindings, alertOnDelete } = node.item;
+  const { id, baseComponentId, dataModelBindings, textResourceBindings, readOnly, alertOnDelete } = node.item;
   const { lang, langAsString } = useLanguage();
   const [popoverOpen, setPopoverOpen] = useState(false);
 

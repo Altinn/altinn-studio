@@ -254,7 +254,7 @@ export class HierarchyGenerator {
       throw new Error(`Could not find definition for component type '${item.type}'`);
     }
 
-    const node = def.makeNode(item as AnyItem<any>, parent || this.top, this.top, this.dataSources, rowIndex);
+    const node = def.makeNode(item as any, parent || this.top, this.top, this.dataSources, rowIndex);
     this.top._addChild(node);
 
     return node as LayoutNodeFromType<T>;

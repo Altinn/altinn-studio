@@ -5,9 +5,12 @@ export interface ILayoutCompAddress extends ILayoutCompBase<'AddressComponent'>,
 }
 
 export interface IDataModelBindingsForAddress {
-  address: string;
-  zipCode: string;
-  postPlace: string;
+  // Usually required, but we need to check
+  address?: string;
+  zipCode?: string;
+  postPlace?: string;
+
+  // Optional fields
   careOf?: string;
   houseNumber?: string;
 }

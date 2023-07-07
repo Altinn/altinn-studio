@@ -4,7 +4,7 @@ import ReactDOMServer from 'react-dom/server';
 import { useLanguage } from 'src/hooks/useLanguage';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ITextResourceBindings } from 'src/types';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
@@ -58,7 +58,7 @@ export function CustomWebComponent({
   React.useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
-      current.texts = getTextsForComponent(textResourceBindings || {}, langTools);
+      current.texts = getTextsForComponent(textResourceBindings, langTools);
       current.dataModelBindings = dataModelBindings;
       current.language = language;
     }
@@ -98,10 +98,11 @@ export function CustomWebComponent({
   );
 }
 
-function getTextsForComponent(textResourceBindings: ITextResourceBindings, langTools: IUseLanguage) {
+function getTextsForComponent(textResourceBindings: ITextResourceBindings<'Custom'>, langTools: IUseLanguage) {
   const result: any = {};
-  Object.keys(textResourceBindings).forEach((key) => {
-    result[key] = langTools.langAsString(textResourceBindings[key]);
+  const bindings = textResourceBindings || {};
+  Object.keys(bindings).forEach((key) => {
+    result[key] = langTools.langAsString(bindings[key]);
   });
   return result;
 }

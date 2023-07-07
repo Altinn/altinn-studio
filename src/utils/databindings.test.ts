@@ -2,7 +2,6 @@ import {
   filterOutInvalidData,
   flattenObject,
   getBaseGroupDataModelBindingFromKeyWithIndexIndicators,
-  getFormDataFromFieldKey,
   getIndexCombinations,
   getKeyIndex,
   getKeyWithoutIndex,
@@ -333,23 +332,6 @@ describe('utils/databindings.ts', () => {
         someOtherField: 'someOtherValue',
       };
       expect(mapFormData(formData, mapping as any)).toEqual(formData);
-    });
-  });
-
-  describe('getFormDataFromFieldKey', () => {
-    const formData = {
-      field1: 'value1',
-      'group[0].field': 'someValue',
-      'group[1].field': 'another value',
-    };
-    it('should return correct form data for a field not in a group', () => {
-      const result = getFormDataFromFieldKey('simpleBinding', { simpleBinding: 'field1' }, formData);
-      expect(result).toEqual('value1');
-    });
-
-    it('should return correct form data for a field in a group', () => {
-      const result = getFormDataFromFieldKey('simpleBinding', { simpleBinding: 'group.field' }, formData, 'group', 1);
-      expect(result).toEqual('another value');
     });
   });
 

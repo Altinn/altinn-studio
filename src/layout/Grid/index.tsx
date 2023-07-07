@@ -41,10 +41,13 @@ export class Grid extends ContainerComponent<'Grid'> {
 
 export const Config = {
   def: new Grid(),
+  rendersWithLabel: true as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompGrid;
   nodeItem: ILayoutGridHierarchy;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: undefined;
 };

@@ -8,7 +8,7 @@ import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { ILayoutCompList } from 'src/layout/List/types';
+import type { IDataModelBindingsForList, ILayoutCompList } from 'src/layout/List/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
@@ -16,10 +16,6 @@ import type { IValidationContext, IValidationObject } from 'src/utils/validation
 export class List extends FormComponent<'List'> {
   render(props: PropsFromGenericComponent<'List'>): JSX.Element | null {
     return <ListComponent {...props} />;
-  }
-
-  renderWithLabel(): boolean {
-    return false;
   }
 
   useDisplayData(node: LayoutNodeFromType<'List'>): string {
@@ -73,10 +69,13 @@ export class List extends FormComponent<'List'> {
 
 export const Config = {
   def: new List(),
+  rendersWithLabel: false as const,
 };
 
 export type TypeConfig = {
   layout: ILayoutCompList;
   nodeItem: ExprResolved<ILayoutCompList>;
   nodeObj: LayoutNode;
+  validTextResourceBindings: undefined;
+  validDataModelBindings: IDataModelBindingsForList;
 };

@@ -11,7 +11,7 @@ import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ITextResourceBindings } from 'src/types';
+import type { ITextResourceBindings } from 'src/layout/layout';
 
 export interface IMobileTableItem {
   key: React.Key;
