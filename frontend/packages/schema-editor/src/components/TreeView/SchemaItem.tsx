@@ -19,7 +19,6 @@ import type { DragItem } from './dnd-helpers';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 
 type SchemaItemProps = {
   selectedNode: UiSchemaNode;
@@ -47,7 +46,7 @@ export function SchemaItem({
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = useSchemaSelector(getRefNodeSelector(selectedNode));
+  const refNode = getRefNodeSelector(selectedNode)(data);
   const childNodes = getChildNodesByPointer(data, (refNode || selectedNode).pointer);
   const referredNodes = getReferredNodes(data, selectedNode.pointer);
   const focusedNode = refNode ?? selectedNode;
