@@ -379,7 +379,12 @@ describe('ui-schema-reducers', () => {
         if (!uiSchemaCopy.isArray) {
           expect(childPointer).not.toContain(Keyword.Items);
           getChildNodesByPointer(result, pointer).forEach((childNode) => {
-            expect(childNode).not.toContain(Keyword.Items);
+            expect(childNode.pointer).not.toContain(Keyword.Items);
+          });
+        } else {
+          expect(childPointer).toContain(Keyword.Items);
+          getChildNodesByPointer(result, pointer).forEach((childNode) => {
+            expect(childNode.pointer).toContain(Keyword.Items);
           });
         }
       });
