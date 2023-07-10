@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/footer.schema.v1.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Altinn footer",
   "description": "Schema that describes the footer configuration for Altinn applications.",
   "type": "object",
@@ -12,21 +12,28 @@
       "description": "Array of components to be presented in the footer.",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/footerLayout"
+        "$ref": "#/$defs/footerLayout"
       }
     }
   },
-  "definitions": {
+  "$defs": {
     "footerLayout": {
       "properties": {
         "type": {
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["Email", "Link", "Phone", "Text"]
+          "enum": [
+            "Email",
+            "Link",
+            "Phone",
+            "Text"
+          ]
         }
       },
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "allOf": [
         {
           "if": {
@@ -37,7 +44,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/emailComponent"
+            "$ref": "#/$defs/emailComponent"
           }
         },
         {
@@ -49,7 +56,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/linkComponent"
+            "$ref": "#/$defs/linkComponent"
           }
         },
         {
@@ -61,7 +68,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/phoneComponent"
+            "$ref": "#/$defs/phoneComponent"
           }
         },
         {
@@ -73,7 +80,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/textComponent"
+            "$ref": "#/$defs/textComponent"
           }
         }
       ]
@@ -82,7 +89,11 @@
       "type": "string",
       "title": "Icon",
       "description": "Icon to show next to the component.",
-      "enum": ["information", "email", "phone"]
+      "enum": [
+        "information",
+        "email",
+        "phone"
+      ]
     },
     "title": {
       "type": "string",
@@ -94,7 +105,7 @@
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/definitions/title"
+          "$ref": "#/$defs/title"
         },
         "target": {
           "type": "string",
@@ -102,14 +113,17 @@
           "description": "The email to link to. Can be a text resource."
         }
       },
-      "required": ["title", "target"]
+      "required": [
+        "title",
+        "target"
+      ]
     },
     "linkComponent": {
       "additionalProperties": false,
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/definitions/title"
+          "$ref": "#/$defs/title"
         },
         "target": {
           "type": "string",
@@ -117,17 +131,20 @@
           "description": "The URL to link to. Can be a text resource."
         },
         "icon": {
-          "$ref": "#/definitions/icon"
+          "$ref": "#/$defs/icon"
         }
       },
-      "required": ["title", "target"]
+      "required": [
+        "title",
+        "target"
+      ]
     },
     "phoneComponent": {
       "additionalProperties": false,
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/definitions/title"
+          "$ref": "#/$defs/title"
         },
         "target": {
           "type": "string",
@@ -135,17 +152,22 @@
           "description": "The phone number to link to. Can be a text resource."
         }
       },
-      "required": ["title", "target"]
+      "required": [
+        "title",
+        "target"
+      ]
     },
     "textComponent": {
       "additionalProperties": false,
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/definitions/title"
+          "$ref": "#/$defs/title"
         }
       },
-      "required": ["title"]
+      "required": [
+        "title"
+      ]
     }
   }
 }

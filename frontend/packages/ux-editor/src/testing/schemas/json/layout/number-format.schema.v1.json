@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Input number formatting",
   "description": "Schema that describes the options that can be configured for number formatting on an `input` component, based on react-number-format package. For complete list of available options, see https://s-yadav.github.io/react-number-format/docs/props",
   "type": "object",
@@ -16,9 +16,18 @@
             "type": "string",
             "maxLength": 1
           },
-          "examples": [[",", ".", "/"]]
+          "examples": [
+            [
+              ",",
+              ".",
+              "/"
+            ]
+          ]
         },
-        "allowEmptyFormatting": false,
+        "allowEmptyFormatting": {
+          "type": "boolean",
+          "default": false
+        },
         "allowLeadingZeros": {
           "title": "Allow leading zeros",
           "description": "Allow leading zeros at beginning of number",
@@ -35,7 +44,11 @@
           "title": "Decimal scale",
           "description": "If defined it limits to given decimal scale.",
           "type": "number",
-          "examples": [1, 2, 3]
+          "examples": [
+            1,
+            2,
+            3
+          ]
         },
         "decimalSeparator": {
           "title": "Decimal separator",
@@ -50,30 +63,54 @@
           "type": "boolean",
           "default": false
         },
-        "format": false,
-        "mask": false,
+        "format": {
+          "type": "boolean",
+          "default": false
+        },
+        "mask": {
+          "type": "boolean",
+          "default": false
+        },
         "prefix": {
           "title": "Prefix",
           "description": "Add a prefix before the number",
           "type": "string",
-          "examples": ["$", "kr", "-", "(+47) "]
+          "examples": [
+            "$",
+            "kr",
+            "-",
+            "(+47) "
+          ]
         },
         "suffix": {
           "title": "Suffix",
           "description": "Add a suffix after the number",
           "type": "string",
-          "examples": ["%", "kr", "kg"]
+          "examples": [
+            "%",
+            "kr",
+            "kg"
+          ]
         },
         "thousandSeparator": {
           "title": "Thousand separator",
           "description": "Add thousand separators on number. Single character string or boolean true (true is default to ,)",
-          "type": ["string", "boolean"],
+          "type": [
+            "string",
+            "boolean"
+          ],
           "maxLength": 1,
-          "examples": [true, ",", "."]
+          "examples": [
+            true,
+            ",",
+            "."
+          ]
         }
       },
       "if": {
-        "required": ["fixedDecimalScale"],
+        "required": [
+          "fixedDecimalScale"
+        ],
         "properties": {
           "fixedDecimalScale": {
             "const": true
@@ -81,52 +118,93 @@
         }
       },
       "then": {
-        "required": ["decimalScale"]
+        "required": [
+          "decimalScale"
+        ]
       }
     },
     {
       "properties": {
-        "allowedDecimalSeparators": false,
+        "allowedDecimalSeparators": {
+          "type": "boolean",
+          "default": false
+        },
         "allowEmptyFormatting": {
           "title": "Allow empty formatting",
           "description": "Apply formatting to empty inputs",
           "type": "boolean",
           "default": false
         },
-        "allowLeadingZeros": false,
-        "allowNegative": false,
-        "decimalScale": false,
-        "decimalSeparator": false,
-        "fixedDecimalScale": false,
+        "allowLeadingZeros": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowNegative": {
+          "type": "boolean",
+          "default": false
+        },
+        "decimalScale": {
+          "type": "boolean",
+          "default": false
+        },
+        "decimalSeparator": {
+          "type": "boolean",
+          "default": false
+        },
+        "fixedDecimalScale": {
+          "type": "boolean",
+          "default": false
+        },
         "format": {
           "title": "Format",
           "description": "Format given as hash string, to allow number input in place of hash.",
           "type": "string",
-          "examples": ["### ### ###", "+47 ### ## ###", "##-##-##-##"]
+          "examples": [
+            "### ### ###",
+            "+47 ### ## ###",
+            "##-##-##-##"
+          ]
         },
         "mask": {
           "title": "Mask",
           "description": "Mask to show in place of non-entered values",
           "type": "string",
-          "examples": ["_"],
+          "examples": [
+            "_"
+          ],
           "default": " "
         },
-        "prefix": false,
-        "suffix": false,
-        "thousandSeparator": false
+        "prefix": {
+          "type": "boolean",
+          "default": false
+        },
+        "suffix": {
+          "type": "boolean",
+          "default": false
+        },
+        "thousandSeparator": {
+          "type": "boolean",
+          "default": false
+        }
       },
       "if": {
         "anyOf": [
           {
-            "required": ["mask"]
+            "required": [
+              "mask"
+            ]
           },
           {
-            "required": ["allowEmptyFormatting"]
+            "required": [
+              "allowEmptyFormatting"
+            ]
           }
         ]
       },
       "then": {
-        "required": ["format"]
+        "required": [
+          "format"
+        ]
       }
     }
   ]

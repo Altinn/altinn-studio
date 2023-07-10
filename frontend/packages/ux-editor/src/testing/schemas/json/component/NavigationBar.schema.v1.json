@@ -1,0 +1,37 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/NavigationBar.schema.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NavigationBar component",
+  "description": "Schema that describes the layout configuration for a NavigationBar component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common-defs.schema.v1.json#/$defs/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "NavigationBar"
+    },
+    "textResourceBindings": {
+      "$ref": "common-defs.schema.v1.json#/$defs/basicTextResources"
+    },
+    "compact": {
+      "type": "boolean",
+      "title": "Compact navbar menu",
+      "description": "Change appearance of navbar as compact in desktop view"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+    }
+  },
+  "required": [
+    "id",
+    "type"
+  ],
+  "additionalProperties": false
+}

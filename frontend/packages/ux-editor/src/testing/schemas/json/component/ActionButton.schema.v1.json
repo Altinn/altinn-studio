@@ -1,0 +1,53 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/ActionButton.schema.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ActionButton component",
+  "description": "Schema that describes the layout configuration for a ActionButton component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common-defs.schema.v1.json#/$defs/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "ActionButton"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": true
+    },
+    "action": {
+      "type": "string",
+      "title": "Action",
+      "description": "The action to be triggered when the button is clicked.",
+      "examples": [
+        "sign, confirm, reject"
+      ]
+    },
+    "buttonStyle": {
+      "type": "string",
+      "title": "Button style",
+      "description": "The style of the button.",
+      "enum": [
+        "primary",
+        "secondary"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "action"
+  ],
+  "additionalProperties": false
+}

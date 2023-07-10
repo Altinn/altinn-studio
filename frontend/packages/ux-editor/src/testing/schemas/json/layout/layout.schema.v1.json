@@ -1,23 +1,23 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Altinn layout",
   "description": "Schema that describes the layout configuration for Altinn applications.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
     "data": {
-      "$ref": "#/definitions/data"
+      "$ref": "#/$defs/data"
     }
   },
-  "definitions": {
+  "$defs": {
     "data": {
       "title": "The layout data",
       "description": "Contains data describing the layout configuration.",
       "type": "object",
       "properties": {
         "layout": {
-          "$ref": "#/definitions/layout"
+          "$ref": "#/$defs/layout"
         }
       }
     },
@@ -26,7 +26,7 @@
       "description": "Array of components to be presented in the layout.",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/component"
+        "$ref": "#/$defs/component"
       }
     },
     "component": {
@@ -81,32 +81,32 @@
           "title": "Required",
           "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "readOnly": {
           "title": "Read only",
           "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "renderAsSummary": {
           "title": "Render as summary",
           "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "hidden": {
           "title": "Hidden",
           "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "textResourceBindings": {
           "type": "object",
           "title": "Text resource bindings",
           "description": "Text resource bindings for a component.",
           "additionalProperties": {
-            "$ref": "expression.schema.v1.json#/definitions/string"
+            "$ref": "expression.schema.v1.json#/$defs/string"
           },
           "examples": [
             {
@@ -129,7 +129,7 @@
           ]
         },
         "triggers": {
-          "$ref": "#/definitions/triggers"
+          "$ref": "#/$defs/triggers"
         },
         "labelSettings": {
           "type": "object",
@@ -148,7 +148,7 @@
           "type": "object",
           "title": "Grid",
           "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-          "$ref": "#/definitions/gridSettings",
+          "$ref": "#/$defs/gridSettings",
           "examples": [
             {
               "xs": 12
@@ -156,10 +156,13 @@
           ]
         },
         "pageBreak": {
-          "$ref": "#/definitions/pageBreak"
+          "$ref": "#/$defs/pageBreak"
         }
       },
-      "required": ["id", "type"],
+      "required": [
+        "id",
+        "type"
+      ],
       "allOf": [
         {
           "if": {
@@ -170,7 +173,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/actionButtonComponent"
+            "$ref": "#/$defs/actionButtonComponent"
           }
         },
         {
@@ -182,7 +185,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/addressComponent"
+            "$ref": "#/$defs/addressComponent"
           }
         },
         {
@@ -194,7 +197,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/attachmentListComponent"
+            "$ref": "#/$defs/attachmentListComponent"
           }
         },
         {
@@ -206,7 +209,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/buttonGroupComponent"
+            "$ref": "#/$defs/buttonGroupComponent"
           }
         },
         {
@@ -218,7 +221,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/radioAndCheckboxComponents"
+            "$ref": "#/$defs/radioAndCheckboxComponents"
           }
         },
         {
@@ -230,7 +233,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/customComponent"
+            "$ref": "#/$defs/customComponent"
           }
         },
         {
@@ -242,7 +245,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/datepickerComponent"
+            "$ref": "#/$defs/datepickerComponent"
           }
         },
         {
@@ -254,7 +257,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/selectionComponents"
+            "$ref": "#/$defs/selectionComponents"
           }
         },
         {
@@ -266,7 +269,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/fileUploadComponent"
+            "$ref": "#/$defs/fileUploadComponent"
           }
         },
         {
@@ -278,7 +281,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/fileUploadWithTagComponent"
+            "$ref": "#/$defs/fileUploadWithTagComponent"
           }
         },
         {
@@ -290,7 +293,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/gridComponent"
+            "$ref": "#/$defs/gridComponent"
           }
         },
         {
@@ -302,7 +305,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/groupComponent"
+            "$ref": "#/$defs/groupComponent"
           }
         },
         {
@@ -314,7 +317,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/imageComponent"
+            "$ref": "#/$defs/imageComponent"
           }
         },
         {
@@ -326,7 +329,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/iframeComponent"
+            "$ref": "#/$defs/iframeComponent"
           }
         },
         {
@@ -338,7 +341,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/inputComponent"
+            "$ref": "#/$defs/inputComponent"
           }
         },
         {
@@ -350,7 +353,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/textAreaComponent"
+            "$ref": "#/$defs/textAreaComponent"
           }
         },
         {
@@ -362,7 +365,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/instanceInformationComponent"
+            "$ref": "#/$defs/instanceInformationComponent"
           }
         },
         {
@@ -374,7 +377,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/instantiationButtonComponent"
+            "$ref": "#/$defs/instantiationButtonComponent"
           }
         },
         {
@@ -386,7 +389,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/radioAndCheckboxComponents"
+            "$ref": "#/$defs/radioAndCheckboxComponents"
           }
         },
         {
@@ -398,7 +401,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/linkComponent"
+            "$ref": "#/$defs/linkComponent"
           }
         },
         {
@@ -410,7 +413,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/selectionComponents"
+            "$ref": "#/$defs/selectionComponents"
           }
         },
         {
@@ -422,7 +425,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/navigationButtonsComponent"
+            "$ref": "#/$defs/navigationButtonsComponent"
           }
         },
         {
@@ -434,7 +437,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/navigationBarComponent"
+            "$ref": "#/$defs/navigationBarComponent"
           }
         },
         {
@@ -446,7 +449,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/radioAndCheckboxComponents"
+            "$ref": "#/$defs/radioAndCheckboxComponents"
           }
         },
         {
@@ -458,7 +461,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/summaryComponent"
+            "$ref": "#/$defs/summaryComponent"
           }
         },
         {
@@ -470,7 +473,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/headerComponent"
+            "$ref": "#/$defs/headerComponent"
           }
         },
         {
@@ -482,7 +485,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/panelComponent"
+            "$ref": "#/$defs/panelComponent"
           }
         },
         {
@@ -494,7 +497,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/listComponent"
+            "$ref": "#/$defs/listComponent"
           }
         },
         {
@@ -506,7 +509,7 @@
             }
           },
           "then": {
-            "$ref": "#/definitions/mapComponent"
+            "$ref": "#/$defs/mapComponent"
           }
         }
       ]
@@ -517,10 +520,19 @@
           "title": "Header size",
           "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
           "type": "string",
-          "enum": ["L", "M", "S", "h2", "h3", "h4"]
+          "enum": [
+            "L",
+            "M",
+            "S",
+            "h2",
+            "h3",
+            "h4"
+          ]
         }
       },
-      "required": ["size"]
+      "required": [
+        "size"
+      ]
     },
     "panelComponent": {
       "properties": {
@@ -528,7 +540,11 @@
           "title": "Panel variant",
           "description": "Change the look of the panel.",
           "type": "string",
-          "enum": ["info", "warning", "success"],
+          "enum": [
+            "info",
+            "warning",
+            "success"
+          ],
           "default": "info"
         },
         "showIcon": {
@@ -563,7 +579,10 @@
           "title": "Display mode",
           "description": "Sets the display mode for the file upload component.",
           "type": "string",
-          "enum": ["simple", "list"]
+          "enum": [
+            "simple",
+            "list"
+          ]
         },
         "hasCustomFileEndings": {
           "title": "Has custom file endings",
@@ -573,7 +592,15 @@
         "validFileEndings": {
           "title": "Valid file endings",
           "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
-          "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
+          "examples": [
+            ".csv",
+            ".doc",
+            ".docx",
+            ".gif",
+            ".jpeg",
+            ".pdf",
+            ".txt"
+          ],
           "anyOf": [
             {
               "type": "string"
@@ -597,7 +624,7 @@
     "fileUploadWithTagComponent": {
       "allOf": [
         {
-          "$ref": "#/definitions/fileUploadComponent"
+          "$ref": "#/$defs/fileUploadComponent"
         }
       ],
       "properties": {
@@ -607,11 +634,13 @@
           "description": "Reference to connected options by id."
         },
         "mapping": {
-          "$ref": "#/definitions/mapping",
+          "$ref": "#/$defs/mapping",
           "description": "Optionally used to map options"
         }
       },
-      "required": ["optionsId"]
+      "required": [
+        "optionsId"
+      ]
     },
     "datepickerComponent": {
       "properties": {
@@ -637,7 +666,11 @@
           "type": "string",
           "title": "Date format",
           "description": "Long date format used when displaying the date to the user. The user date format from the locale will be prioritized over this setting.",
-          "examples": ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"],
+          "examples": [
+            "DD/MM/YYYY",
+            "MM/DD/YYYY",
+            "YYYY-MM-DD"
+          ],
           "default": "DD.MM.YYYY"
         }
       },
@@ -699,7 +732,7 @@
     "instantiationButtonComponent": {
       "properties": {
         "mapping": {
-          "$ref": "#/definitions/mapping",
+          "$ref": "#/$defs/mapping",
           "description": "Creates a new app instance with data collected from a stateless part of the app."
         }
       }
@@ -710,7 +743,9 @@
           "type": "object",
           "title": "Layers",
           "description": "Map layer",
-          "required": ["url"],
+          "required": [
+            "url"
+          ],
           "properties": {
             "url": {
               "type": "string",
@@ -760,12 +795,14 @@
       "type": "integer",
       "maximum": 12,
       "minimum": 1,
-      "examples": [12]
+      "examples": [
+        12
+      ]
     },
     "gridSettings": {
       "allOf": [
         {
-          "$ref": "#/definitions/gridProps"
+          "$ref": "#/$defs/gridProps"
         }
       ],
       "properties": {
@@ -777,7 +814,7 @@
               "xs": 12
             }
           ],
-          "$ref": "#/definitions/gridProps"
+          "$ref": "#/$defs/gridProps"
         },
         "innerGrid": {
           "title": "innerGrid",
@@ -787,34 +824,34 @@
               "xs": 12
             }
           ],
-          "$ref": "#/definitions/gridProps"
+          "$ref": "#/$defs/gridProps"
         }
       }
     },
     "gridProps": {
       "properties": {
         "xs": {
-          "$ref": "#/definitions/gridValue",
+          "$ref": "#/$defs/gridValue",
           "title": "xs",
           "description": "Grid breakpoint at 0px"
         },
         "sm": {
-          "$ref": "#/definitions/gridValue",
+          "$ref": "#/$defs/gridValue",
           "title": "sm",
           "description": "Grid breakpoint at 600px"
         },
         "md": {
-          "$ref": "#/definitions/gridValue",
+          "$ref": "#/$defs/gridValue",
           "title": "md",
           "description": "Grid breakpoint at 960px"
         },
         "lg": {
-          "$ref": "#/definitions/gridValue",
+          "$ref": "#/$defs/gridValue",
           "title": "lg",
           "description": "Grid breakpoint at 1280px"
         },
         "xl": {
-          "$ref": "#/definitions/gridValue",
+          "$ref": "#/$defs/gridValue",
           "title": "xl",
           "description": "Grid breakpoint at 1920px"
         }
@@ -827,11 +864,13 @@
           "description": "An array of rows to be rendered in the grid.",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/gridRow"
+            "$ref": "#/$defs/gridRow"
           }
         }
       },
-      "required": ["rows"]
+      "required": [
+        "rows"
+      ]
     },
     "gridRow": {
       "properties": {
@@ -854,13 +893,13 @@
           "items": {
             "anyOf": [
               {
-                "$ref": "#/definitions/gridCellText"
+                "$ref": "#/$defs/gridCellText"
               },
               {
-                "$ref": "#/definitions/gridCellComponent"
+                "$ref": "#/$defs/gridCellComponent"
               },
               {
-                "$ref": "#/definitions/tableColumnOptions"
+                "$ref": "#/$defs/tableColumnOptions"
               },
               {
                 "type": "null",
@@ -870,7 +909,9 @@
           }
         }
       },
-      "required": ["cells"]
+      "required": [
+        "cells"
+      ]
     },
     "gridCellText": {
       "properties": {
@@ -880,8 +921,10 @@
           "type": "string"
         }
       },
-      "$ref": "#/definitions/tableColumnOptions",
-      "required": ["text"]
+      "$ref": "#/$defs/tableColumnOptions",
+      "required": [
+        "text"
+      ]
     },
     "gridCellComponent": {
       "properties": {
@@ -891,8 +934,10 @@
           "type": "string"
         }
       },
-      "$ref": "#/definitions/tableColumnOptions",
-      "required": ["component"]
+      "$ref": "#/$defs/tableColumnOptions",
+      "required": [
+        "component"
+      ]
     },
     "buttonGroupComponent": {
       "properties": {
@@ -906,7 +951,9 @@
           "uniqueItems": true
         }
       },
-      "required": ["children"]
+      "required": [
+        "children"
+      ]
     },
     "groupComponent": {
       "properties": {
@@ -922,17 +969,17 @@
         "hiddenRow": {
           "title": "Hidden row",
           "description": "Boolean to decide whether the row should be displayed.",
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "edit": {
           "title": "Edit",
           "description": "Alternatives for edit view of repeating group",
-          "$ref": "#/definitions/groupEditOptions"
+          "$ref": "#/$defs/groupEditOptions"
         },
         "panel": {
           "title": "Panel",
           "description": "Alternatives for panel view of repeating group",
-          "$ref": "#/definitions/groupPanelOptions"
+          "$ref": "#/$defs/groupPanelOptions"
         },
         "showGroupingIndicator": {
           "title": "Show grouping indicator",
@@ -951,7 +998,7 @@
           "description": "An array of rows to be rendered before the group table (using Grid component configuration)",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/gridRow"
+            "$ref": "#/$defs/gridRow"
           }
         },
         "rowsAfter": {
@@ -959,7 +1006,7 @@
           "description": "An array of rows to be rendered after the group table (using Grid component configuration)",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/gridRow"
+            "$ref": "#/$defs/gridRow"
           }
         },
         "tableHeaders": {
@@ -979,7 +1026,7 @@
             "type": "object",
             "allOf": [
               {
-                "$ref": "#/definitions/tableColumnOptions"
+                "$ref": "#/$defs/tableColumnOptions"
               },
               {
                 "type": "object",
@@ -1002,7 +1049,9 @@
           }
         }
       },
-      "required": ["children"]
+      "required": [
+        "children"
+      ]
     },
     "groupEditOptions": {
       "properties": {
@@ -1010,35 +1059,41 @@
           "title": "Edit mode",
           "description": "Mode for how repeating group table is displayed in edit mode",
           "type": "string",
-          "enum": ["hideTable", "likert", "showAll", "showTable", "onlyTable"]
+          "enum": [
+            "hideTable",
+            "likert",
+            "showAll",
+            "showTable",
+            "onlyTable"
+          ]
         },
         "filter": {
           "title": "Filter",
           "description": "Conditions for filtering visible items in repeating group",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/groupFilterItem"
+            "$ref": "#/$defs/groupFilterItem"
           }
         },
         "saveButton": {
           "title": "Save button",
           "description": "Boolean or expression indicating whether save button should be shown or not for a given row",
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "saveAndNextButton": {
           "title": "Save and open next button",
           "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button",
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "deleteButton": {
           "title": "Delete button",
           "description": "Boolean or expression indicating whether delete button should be shown or not for a given row",
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "editButton": {
           "title": "Edit button",
           "description": "Boolean or expression indicating whether edit button should be shown or not for a given row",
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "multiPage": {
           "title": "Multi-page",
@@ -1048,7 +1103,7 @@
         "addButton": {
           "title": "Add button",
           "description": "Boolean or expression indicating whether add new button should be shown or not under the table.",
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
+          "$ref": "expression.schema.v1.json#/$defs/boolean"
         },
         "alwaysShowAddButton": {
           "title": "Show add button on open group",
@@ -1065,7 +1120,10 @@
             },
             {
               "type": "string",
-              "enum": ["first", "last"]
+              "enum": [
+                "first",
+                "last"
+              ]
             }
           ]
         },
@@ -1079,7 +1137,7 @@
     "groupPanelOptions": {
       "allOf": [
         {
-          "$ref": "#/definitions/panelComponent"
+          "$ref": "#/$defs/panelComponent"
         }
       ],
       "properties": {
@@ -1087,7 +1145,10 @@
           "title": "Icon url",
           "description": "Url of the icon to be shown in panel. Can be relative if hosted by app or full if referencing a cdn or other hosting.",
           "type": "string",
-          "examples": ["fancyIcon.svg", "https://cdn.example.com/fancyIcon.svg"]
+          "examples": [
+            "fancyIcon.svg",
+            "https://cdn.example.com/fancyIcon.svg"
+          ]
         },
         "iconAlt": {
           "title": "Icon alt",
@@ -1103,7 +1164,10 @@
               "type": "string",
               "title": "Group",
               "description": "Group reference. Can be either the group id or the group data model binding.",
-              "examples": ["the-group-id", "some.model.theGroup"]
+              "examples": [
+                "the-group-id",
+                "some.model.theGroup"
+              ]
             }
           }
         }
@@ -1129,7 +1193,7 @@
       "type": "object",
       "allOf": [
         {
-          "$ref": "#/definitions/tableColumnTextOptions"
+          "$ref": "#/$defs/tableColumnTextOptions"
         },
         {
           "type": "object",
@@ -1150,7 +1214,11 @@
           "title": "Align Text",
           "description": "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
           "type": "string",
-          "enum": ["left", "center", "right"]
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
         },
         "textOverflow": {
           "title": "Text Overflow",
@@ -1193,7 +1261,10 @@
           "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding."
         }
       },
-      "required": ["label", "value"]
+      "required": [
+        "label",
+        "value"
+      ]
     },
     "triggers": {
       "title": "Triggers",
@@ -1222,7 +1293,7 @@
           "title": "Options",
           "description": "An array of options. Only relevant if no optionsId is set.",
           "items": {
-            "$ref": "#/definitions/options"
+            "$ref": "#/$defs/options"
           }
         },
         "preselectedOptionIndex": {
@@ -1245,54 +1316,74 @@
               "type": "string",
               "title": "Group",
               "description": "The repeating group to base options on.",
-              "examples": ["model.some.group"]
+              "examples": [
+                "model.some.group"
+              ]
             },
             "label": {
               "type": "string",
               "title": "Label",
               "description": "Reference to a text resource to be used as the option label.",
-              "examples": ["some.text.key"]
+              "examples": [
+                "some.text.key"
+              ]
             },
             "value": {
               "type": "string",
               "title": "Label",
               "description": "Field in the group that should be used as value",
-              "examples": ["model.some.group[{0}].someField"]
+              "examples": [
+                "model.some.group[{0}].someField"
+              ]
             },
             "description": {
               "type": "string",
               "title": "Description",
               "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
-              "examples": ["some.text.key", "My Description"]
+              "examples": [
+                "some.text.key",
+                "My Description"
+              ]
             },
             "helpText": {
               "type": "string",
               "title": "Help Text",
               "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
-              "examples": ["some.text.key", "My Help Text"]
+              "examples": [
+                "some.text.key",
+                "My Help Text"
+              ]
             }
           },
-          "required": ["group", "label", "value"]
+          "required": [
+            "group",
+            "label",
+            "value"
+          ]
         },
         "mapping": {
-          "$ref": "#/definitions/mapping",
+          "$ref": "#/$defs/mapping",
           "description": "Optionally used to map options"
         },
         "autocomplete": {
-          "$ref": "#/definitions/autocomplete"
+          "$ref": "#/$defs/autocomplete"
         }
       }
     },
     "radioAndCheckboxComponents": {
       "allOf": [
         {
-          "$ref": "#/definitions/selectionComponents"
+          "$ref": "#/$defs/selectionComponents"
         }
       ],
       "properties": {
         "layout": {
           "type": "string",
-          "enum": ["column", "row", "table"],
+          "enum": [
+            "column",
+            "row",
+            "table"
+          ],
           "title": "Layout",
           "description": "Define the layout style for the options"
         }
@@ -1304,7 +1395,11 @@
           "type": "string",
           "title": "Style",
           "description": "The style of the button",
-          "enum": ["primary", "secondary", "link"]
+          "enum": [
+            "primary",
+            "secondary",
+            "link"
+          ]
         },
         "openInNewTab": {
           "type": "boolean",
@@ -1312,7 +1407,9 @@
           "description": "Boolean value indicating if the link should be opened in a new tab. Defaults to false."
         }
       },
-      "required": ["style"]
+      "required": [
+        "style"
+      ]
     },
     "addressComponent": {
       "properties": {
@@ -1323,7 +1420,7 @@
           "default": false
         },
         "saveWhileTyping": {
-          "$ref": "#/definitions/saveWhileTyping"
+          "$ref": "#/$defs/saveWhileTyping"
         }
       }
     },
@@ -1335,7 +1432,9 @@
           "description": "Web component tag name to use"
         }
       },
-      "required": ["tagName"]
+      "required": [
+        "tagName"
+      ]
     },
     "actionButtonComponent": {
       "properties": {
@@ -1343,13 +1442,18 @@
           "type": "string",
           "title": "Action",
           "description": "The action to be triggered when the button is clicked.",
-          "examples": ["sign, confirm, reject"]
+          "examples": [
+            "sign, confirm, reject"
+          ]
         },
         "buttonStyle": {
           "type": "string",
           "title": "Button style",
           "description": "The style of the button.",
-          "enum": ["primary", "secondary"]
+          "enum": [
+            "primary",
+            "secondary"
+          ]
         }
       }
     },
@@ -1408,7 +1512,12 @@
           },
           "title": "Data type IDs",
           "description": "List of data type IDs for the attachment list to show.",
-          "examples": [["SomeDataType", "SomeOtherDataType"]]
+          "examples": [
+            [
+              "SomeDataType",
+              "SomeOtherDataType"
+            ]
+          ]
         },
         "includePDF": {
           "type": "boolean",
@@ -1448,7 +1557,9 @@
             "width": {
               "type": "string",
               "title": "Image width",
-              "examples": ["100%"]
+              "examples": [
+                "100%"
+              ]
             },
             "align": {
               "type": "string",
@@ -1463,7 +1574,11 @@
               ]
             }
           },
-          "required": ["src", "width", "align"]
+          "required": [
+            "src",
+            "width",
+            "align"
+          ]
         }
       }
     },
@@ -1472,35 +1587,38 @@
         "formatting": {
           "title": "Input formatting",
           "description": "Set of options for formatting input fields.",
-          "$ref": "#/definitions/inputFormatting"
+          "$ref": "#/$defs/inputFormatting"
         },
         "saveWhileTyping": {
-          "$ref": "#/definitions/saveWhileTyping"
+          "$ref": "#/$defs/saveWhileTyping"
         },
         "variant": {
           "type": "string",
           "title": "Input Variant",
           "description": "An enum to choose if the inputfield it is a normal textfield or a searchbar",
-          "enum": ["text", "search"]
+          "enum": [
+            "text",
+            "search"
+          ]
         },
         "autocomplete": {
-          "$ref": "#/definitions/autocomplete"
+          "$ref": "#/$defs/autocomplete"
         },
         "maxLength": {
-          "$ref": "#/definitions/maxLength"
+          "$ref": "#/$defs/maxLength"
         }
       }
     },
     "textAreaComponent": {
       "properties": {
         "saveWhileTyping": {
-          "$ref": "#/definitions/saveWhileTyping"
+          "$ref": "#/$defs/saveWhileTyping"
         },
         "autocomplete": {
-          "$ref": "#/definitions/autocomplete"
+          "$ref": "#/$defs/autocomplete"
         },
         "maxLength": {
-          "$ref": "#/definitions/maxLength"
+          "$ref": "#/$defs/maxLength"
         }
       }
     },
@@ -1735,7 +1853,10 @@
           "type": "string",
           "title": "Position of the currency/unit symbol (only when using currency or unit options)",
           "description": "Display the unit as prefix or suffix. Default is prefix",
-          "enum": ["prefix", "suffix"]
+          "enum": [
+            "prefix",
+            "suffix"
+          ]
         },
         "number": {
           "$ref": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json"
@@ -1744,7 +1865,11 @@
           "type": "string",
           "title": "Align input",
           "description": "The alignment for Input field (eg. right aligning a series of numbers).",
-          "enum": ["left", "center", "right"]
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
         }
       }
     },
@@ -1817,7 +1942,7 @@
         },
         "pagination": {
           "title": "Pagination",
-          "$ref": "#/definitions/paginationProperties"
+          "$ref": "#/$defs/paginationProperties"
         },
         "dataListId": {
           "type": "string",
@@ -1835,11 +1960,13 @@
           "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings."
         },
         "mapping": {
-          "$ref": "#/definitions/mapping",
+          "$ref": "#/$defs/mapping",
           "description": "(Optional) Used to map data model paths to query parameters when fetching list data."
         }
       },
-      "required": ["dataListId"]
+      "required": [
+        "dataListId"
+      ]
     },
     "paginationProperties": {
       "type": "object",
@@ -1858,7 +1985,10 @@
           "description": "The pagination size that is set to default."
         }
       },
-      "required": ["alternatives", "default"]
+      "required": [
+        "alternatives",
+        "default"
+      ]
     },
     "pageBreak": {
       "type": "object",
@@ -1866,16 +1996,24 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": ["auto", "always", "avoid"],
+          "examples": [
+            "auto",
+            "always",
+            "avoid"
+          ],
           "default": "auto",
-          "$ref": "expression.schema.v1.json#/definitions/string"
+          "$ref": "expression.schema.v1.json#/$defs/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": ["auto", "always", "avoid"],
+          "examples": [
+            "auto",
+            "always",
+            "avoid"
+          ],
           "default": "auto",
-          "$ref": "expression.schema.v1.json#/definitions/string"
+          "$ref": "expression.schema.v1.json#/$defs/string"
         }
       }
     },

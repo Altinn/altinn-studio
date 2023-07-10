@@ -1,0 +1,114 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Map.schema.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Map component",
+  "description": "Schema that describes the layout configuration for a Map component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common-defs.schema.v1.json#/$defs/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Map"
+    },
+    "dataModelBindings": {
+      "$ref": "common-defs.schema.v1.json#/$defs/basicDataModelBindings"
+    },
+    "textResourceBindings": {
+      "$ref": "common-defs.schema.v1.json#/$defs/basicTextResources"
+    },
+    "triggers": {
+      "$ref": "common-defs.schema.v1.json#/$defs/triggers"
+    },
+    "required": {
+      "$ref": "common-defs.schema.v1.json#/$defs/required"
+    },
+    "readOnly": {
+      "$ref": "common-defs.schema.v1.json#/$defs/readOnly"
+    },
+    "layers": {
+      "type": "object",
+      "title": "Layers",
+      "description": "Map layer",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "Map layer url",
+          "description": "Url to a map tile. {z}/{x}/{y} will be replaced with tile coordinates, {s} will be replaced with a random subdomain if subdomains are given"
+        },
+        "attribution": {
+          "type": "string",
+          "title": "Attribution",
+          "description": "Ascribing a work or remark to a particular unit for recognition"
+        },
+        "subdomains": {
+          "type": "array",
+          "title": "Subdomains",
+          "description": "List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "centerLocation": {
+      "type": "object",
+      "title": "Center location",
+      "description": "Center location of the map",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "title": "latitude",
+          "description": "Set the latitude coordinate"
+        },
+        "longitude": {
+          "type": "number",
+          "title": "longitude",
+          "description": "Set the longitude coordinate"
+        }
+      }
+    },
+    "zoom": {
+      "type": "number",
+      "title": "Zoom",
+      "description": "adjusts the default map-zoom"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+    }
+  },
+  "required": [
+    "id",
+    "type"
+  ],
+  "additionalProperties": false
+}

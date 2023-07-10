@@ -1,0 +1,69 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Button.schema.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Button component",
+  "description": "Schema that describes the layout configuration for a Button component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common-defs.schema.v1.json#/$defs/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Button"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "required": {
+      "$ref": "common-defs.schema.v1.json#/$defs/required"
+    },
+    "readOnly": {
+      "$ref": "common-defs.schema.v1.json#/$defs/readOnly"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+    }
+  },
+  "required": [
+    "id",
+    "type"
+  ],
+  "additionalProperties": false
+}

@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Altinn layout settings",
   "description": "Schema that describes settings for the layout configuration for Altinn applications.",
   "type": "object",
@@ -8,21 +8,21 @@
   "properties": {
     "components": {
       "type": "object",
-      "$ref": "#/definitions/components"
+      "$ref": "#/$defs/components"
     },
     "pages": {
       "type": "object",
-      "$ref": "#/definitions/pages"
+      "$ref": "#/$defs/pages"
     }
   },
-  "definitions": {
+  "$defs": {
     "components": {
       "type": "object",
       "additionalProperties": false,
       "description": "Settings regarding components",
       "properties": {
         "excludeFromPdf": {
-          "$ref": "#/definitions/excludeFromPdf"
+          "$ref": "#/$defs/excludeFromPdf"
         }
       }
     },
@@ -32,27 +32,27 @@
       "description": "Settings regarding layout pages",
       "properties": {
         "order": {
-          "$ref": "#/definitions/order"
+          "$ref": "#/$defs/order"
         },
         "excludeFromPdf": {
-          "$ref": "#/definitions/excludeFromPdf"
+          "$ref": "#/$defs/excludeFromPdf"
         },
         "triggers": {
-          "$ref": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json#/definitions/triggers",
+          "$ref": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json#/$defs/triggers",
           "title": "Triggers",
           "description": "Triggers that apply for all navigation components across all pages. Can be overrided at the component level."
         },
         "hideCloseButton": {
-          "$ref": "#/definitions/hideCloseButton"
+          "$ref": "#/$defs/hideCloseButton"
         },
         "showLanguageSelector": {
-          "$ref": "#/definitions/showLanguageSelector"
+          "$ref": "#/$defs/showLanguageSelector"
         },
         "showExpandWidthButton": {
-          "$ref": "#/definitions/showExpandWidthButton"
+          "$ref": "#/$defs/showExpandWidthButton"
         },
         "pdfLayoutName": {
-          "$ref": "#/definitions/pdfLayoutName"
+          "$ref": "#/$defs/pdfLayoutName"
         },
         "showProgress": {
           "type": "boolean",
