@@ -368,7 +368,7 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.isArray).toBe(true);
     });
 
-    it("should update the children's pointers, and add /Items/ when isArray true", () => {
+    it("should update the children's pointers, and add /Items/ when isArray is true", () => {
       const { pointer } = parentNodeMock;
       const uiSchemaCopy = JSON.parse(JSON.stringify(uiSchemaMock));
       uiSchemaCopy.isArray = true;
@@ -376,7 +376,7 @@ describe('ui-schema-reducers', () => {
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
       updatedNode.children.forEach((childPointer) => {
-        if (uiSchemaCopy.isArray) {
+        if (uiSchemaCopy.isArray = true) {
           expect(childPointer).toContain(Keyword.Items);
           getChildNodesByPointer(result, pointer).forEach((childNode) => {
             expect(childNode.pointer).toContain(Keyword.Items);
@@ -385,7 +385,7 @@ describe('ui-schema-reducers', () => {
       });
     });
 
-    it("should update the children's pointers, and should not add /Items/ when isArray false", () => {
+    it("should update the children's pointers without adding /Items/ when isArray is false", () => {
       const { pointer } = parentNodeMock;
       const uiSchemaCopy = JSON.parse(JSON.stringify(uiSchemaMock));
       uiSchemaCopy.isArray = false;
@@ -393,7 +393,7 @@ describe('ui-schema-reducers', () => {
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
       updatedNode.children.forEach((childPointer) => {
-        if (uiSchemaCopy.isArray) {
+        if (uiSchemaCopy.isArray = false) {
           expect(childPointer).not.toContain(Keyword.Items);
           getChildNodesByPointer(result, pointer).forEach((childNode) => {
             expect(childNode.pointer).not.toContain(Keyword.Items);
