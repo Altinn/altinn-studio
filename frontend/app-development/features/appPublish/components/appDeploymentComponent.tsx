@@ -19,7 +19,7 @@ export type ImageOption = {
   label: string;
 };
 
-interface IAppDeploymentComponentProps {
+export interface AppDeploymentComponentProps {
   envName: string;
   urlToApp?: string;
   urlToAppLinkTxt?: string;
@@ -49,7 +49,7 @@ export const AppDeploymentComponent = ({
   urlToAppLinkTxt,
   orgName,
   showLinkToApp,
-}: IAppDeploymentComponentProps) => {
+}: AppDeploymentComponentProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
@@ -71,7 +71,7 @@ export const AppDeploymentComponent = ({
     [deployHistory]
   );
   const latestDeploy = deployHistory ? deployHistory[0] : null;
-  const deploymentInEnv = deployHistory ? deployHistory.find(d => d.deployedInEnv) : false;
+  const deploymentInEnv = deployHistory ? deployHistory.find((d) => d.deployedInEnv) : false;
   const { deployInProgress, deploymentStatus } = useMemo(() => {
     if (latestDeploy && latestDeploy.build.finished === null) {
       return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
@@ -84,7 +84,8 @@ export const AppDeploymentComponent = ({
 
   const appDeployedAndReachable = !!deploymentInEnv;
   const deployFailed = latestDeploy && deploymentStatus === DeploymentStatus.failed;
-  const deployedVersionNotReachable = latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
+  const deployedVersionNotReachable =
+    latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
   const noAppDeployed = !latestDeploy || deployInProgress;
 
   return (
@@ -92,12 +93,12 @@ export const AppDeploymentComponent = ({
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
         <div className={classes.gridItem}>
-          {appDeployedAndReachable && !deployInProgress &&
+          {appDeployedAndReachable &&
+            !deployInProgress &&
             t('app_deploy.deployed_version', { appDeployedVersion: deploymentInEnv.tagName })}
           {(noAppDeployed || (deployFailed && !appDeployedAndReachable)) &&
             t('app_deploy.no_app_deployed')}
-          {deployedVersionNotReachable &&
-            t('app_deploy.deployed_version_unavailable')}
+          {deployedVersionNotReachable && t('app_deploy.deployed_version_unavailable')}
         </div>
         <div className={classes.gridItem}>
           {showLinkToApp && (
@@ -120,8 +121,7 @@ export const AppDeploymentComponent = ({
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
           )}
-          {deployPermission && imageOptions.length > 0 &&
-            !deployInProgress && (
+          {deployPermission && imageOptions.length > 0 && !deployInProgress && (
             <DeployDropdown
               appDeployedVersion={latestDeploy ? latestDeploy.tagName : undefined}
               envName={envName}
@@ -134,7 +134,9 @@ export const AppDeploymentComponent = ({
               startDeploy={startDeploy}
             />
           )}
-          {deployInProgress && <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />}
+          {deployInProgress && (
+            <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+          )}
           {deployPermission && latestDeploy && deployedVersionNotReachable && (
             <Panel variant={PanelVariant.Error}>
               <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
@@ -142,7 +144,7 @@ export const AppDeploymentComponent = ({
               </Trans>
             </Panel>
           )}
-          {deployPermission && deployFailed && (
+          {deployPermission && (deployFailed || mutation.isError) && (
             <Panel variant={PanelVariant.Error}>
               <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
                 <a href='mailto:tjenesteeier@altinn.no' />
