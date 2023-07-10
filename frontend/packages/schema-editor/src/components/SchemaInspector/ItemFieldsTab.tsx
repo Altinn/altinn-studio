@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
 import { PropertyItem } from './PropertyItem';
-import { removeSelection, setSelectedNode } from '../../features/editor/schemaEditorSlice';
+import { removeSelection } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import {
@@ -51,7 +51,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       setPropertyName(data, {
         path,
         name: value,
-        callback: (newPointer) => dispatch(setSelectedNode(newPointer)),
       })
     );
 
