@@ -6,7 +6,6 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../../../testin
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ButtonComponent } from './ButtonComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
 
 // Test data:
@@ -35,8 +34,8 @@ describe('ButtonComponent', () => {
       type: ComponentType.NavigationButtons,
       showBackButton: true,
       textResourceBindings: {
-        next: 'next',
-        back: 'back',
+        next: undefined,
+        back: undefined,
       },
     });
   });
@@ -56,9 +55,7 @@ describe('ButtonComponent', () => {
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
       type: ComponentType.Button,
-      textResourceBindings: {
-        title: textMock('ux_editor.modal_properties_button_type_submit'),
-      },
+      textResourceBindings: {},
     });
   });
 });
