@@ -137,7 +137,7 @@ const render = async (resources: ITextResources = {}, editId?: string) => {
     textResources
   };
 
-  const { result } = renderHookWithMockStore({ appData },{
+  const { result } = renderHookWithMockStore({ appData }, {
     getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
     getTextResources: (_o, _a, lang) => Promise.resolve<ITextResourcesWithLanguage>({
       language: lang,
@@ -146,5 +146,5 @@ const render = async (resources: ITextResources = {}, editId?: string) => {
   })(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-  return renderWithMockStore({ appData })(<TextResourceEdit />);
+  return renderWithMockStore({ appData })(<TextResourceEdit/>);
 };
