@@ -46,6 +46,7 @@ export const TextRow = ({
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
+  const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const { t } = useTranslation();
@@ -74,6 +75,7 @@ export const TextRow = ({
 
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
+  debugger;
   return (
     <TableRow data-testid={'lang-row'}>
       {selectedLanguages.map((lang) => {
@@ -121,7 +123,7 @@ export const TextRow = ({
         </ButtonContainer>
       </TableCell>
       <TableCell>
-        <Variables variables={variables} />
+        <Variables variables={textVariables} />
       </TableCell>
       <TableCell>
         <Popover
