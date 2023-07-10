@@ -10,7 +10,7 @@ import {
   queryClientMock,
   renderHookWithMockStore,
   renderWithMockStore,
-  textResourcesMock,
+  textResourcesMock
 } from '../testing/mocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
@@ -37,9 +37,13 @@ const texts = {
 };
 
 // Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
+jest.mock(
+  'react-i18next', 
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('TextResourceEdit', () => {
+
   afterEach(() => {
     jest.clearAllMocks();
     queryClientMock.clear();
@@ -58,7 +62,7 @@ describe('TextResourceEdit', () => {
     const resources: ITextResources = {
       nb: [{ id, value: valueNb }],
       nn: [{ id, value: valueNn }],
-      en: [{ id, value: valueEn }],
+      en: [{ id, value: valueEn }]
     };
     await render(resources, id);
     expect(screen.getByText(legendText)).toBeInTheDocument();
@@ -123,27 +127,24 @@ describe('TextResourceEdit', () => {
 });
 
 const render = async (resources: ITextResources = {}, editId?: string) => {
+
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
-    currentEditId: editId,
+    currentEditId: editId
   };
 
   const appData: IAppDataState = {
     ...appDataMock,
-    textResources,
+    textResources
   };
 
-  const { result } = renderHookWithMockStore(
-    { appData },
-    {
-      getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
-      getTextResources: (_o, _a, lang) =>
-        Promise.resolve<ITextResourcesWithLanguage>({
-          language: lang,
-          resources: resources[lang] || [],
-        }),
-    }
-  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const { result } = renderHookWithMockStore({ appData },{
+    getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
+    getTextResources: (_o, _a, lang) => Promise.resolve<ITextResourcesWithLanguage>({
+      language: lang,
+      resources: resources[lang] || []
+    }),
+  })(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
   return renderWithMockStore({ appData })(<TextResourceEdit />);
