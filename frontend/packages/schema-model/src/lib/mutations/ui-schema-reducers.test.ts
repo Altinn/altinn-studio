@@ -368,7 +368,7 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.isArray).toBe(true);
     });
 
-    it("should  not update the children's pointers with /Items/ when isArray OFF", () => {
+    it("should update the children's pointers, and add /Items/ when isArray true", () => {
       const { pointer } = parentNodeMock;
       const uiSchemaCopy = JSON.parse(JSON.stringify(uiSchemaMock));
       uiSchemaCopy.isArray = true;
@@ -376,12 +376,7 @@ describe('ui-schema-reducers', () => {
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
       updatedNode.children.forEach((childPointer) => {
-        if (!uiSchemaCopy.isArray) {
-          expect(childPointer).not.toContain(Keyword.Items);
-          getChildNodesByPointer(result, pointer).forEach((childNode) => {
-            expect(childNode.pointer).not.toContain(Keyword.Items);
-          });
-        } else {
+        if (uiSchemaCopy.isArray) {
           expect(childPointer).toContain(Keyword.Items);
           getChildNodesByPointer(result, pointer).forEach((childNode) => {
             expect(childNode.pointer).toContain(Keyword.Items);
@@ -389,6 +384,23 @@ describe('ui-schema-reducers', () => {
         }
       });
     });
+
+    it("should update the children's pointers, and should not add /Items/ when isArray false", () => {
+      const { pointer } = parentNodeMock;
+      const uiSchemaCopy = JSON.parse(JSON.stringify(uiSchemaMock));
+      uiSchemaCopy.isArray = false;
+      result = toggleArrayField((uiSchemaCopy), pointer);
+      const updatedNode = getNodeByPointer(result, pointer);
+      expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
+      updatedNode.children.forEach((childPointer) => {
+        if (uiSchemaCopy.isArray) {
+          expect(childPointer).not.toContain(Keyword.Items);
+          getChildNodesByPointer(result, pointer).forEach((childNode) => {
+            expect(childNode.pointer).not.toContain(Keyword.Items);
+          });
+        }
+      });
+    })
   });
 
   describe('changeChildrenOrder', () => {
