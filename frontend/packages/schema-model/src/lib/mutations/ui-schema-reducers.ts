@@ -253,7 +253,7 @@ export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> =
 export type SetPropertyNameArgs = {
   path: string;
   name: string;
-  callback: (pointer: string) => void;
+  callback?: (pointer: string) => void;
 };
 export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
   (uiSchema, { path, name, callback }) => {
@@ -264,7 +264,7 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
     const nodeToRename = getNodeByPointer(newSchema, path);
     const oldPointer = nodeToRename.pointer;
     const newPointer = replaceLastPointerSegment(oldPointer, name);
-    callback(newPointer);
+    callback?.(newPointer);
     return renameNodePointer(newSchema, nodeToRename.pointer, newPointer);
   };
 
