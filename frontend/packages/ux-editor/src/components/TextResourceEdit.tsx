@@ -71,10 +71,9 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
 
   const updateTextResource = (text: string) => {
     if (textResource) {
-      const variables = textResource.variables || [];
       mutate({
         language,
-        textResources: [{ id: textResourceId, value: text, variables }],
+        textResources: [{ id: textResourceId, value: text, variables:textResource?.variables }],
       });
     }
   };
@@ -82,8 +81,8 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const [value, setValue] = useState<string>(textResource?.value || '');
 
   useEffect(() => {
-    setValue(textResource?.value || '');
-  }, [textResource?.value, textResource?.variables]);
+    setValue(textResource?.value || '')
+  }, [textResource?.value]);
 
   return (
     <div>

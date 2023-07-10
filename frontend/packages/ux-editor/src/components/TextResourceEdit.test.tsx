@@ -87,7 +87,7 @@ describe('TextResourceEdit', () => {
 additionalValue });
   });
 
-  it('Calls upsertTextResources with correct parameters when a text is NOT changed', async () => {
+  it('upsertTextResources should not be called when the text is NOT changed', async () => {
     const id = 'some-id';
     const oldValue = 'Lorem';
     const newValue = `${oldValue} ipsum`;
