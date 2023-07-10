@@ -38,7 +38,7 @@ const texts = {
 
 // Mocks:
 jest.mock(
-  'react-i18next', 
+  'react-i18next',
   () => ({ useTranslation: () => mockUseTranslation(texts) }),
 );
 
@@ -83,9 +83,8 @@ describe('TextResourceEdit', () => {
     await act(() => user.type(textBox, additionalValue));
     await act(() => user.tab());
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
-      [id]: value + additionalValue,
-    });
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', { [id]: value + 
+additionalValue });
   });
 
   it('Calls upsertTextResources with correct parameters when a text is NOT changed', async () => {
