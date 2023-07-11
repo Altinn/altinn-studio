@@ -3,7 +3,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
-import { ImageComponent } from './ImageComponent';
+import { ImageComponent, ImageComponentProps } from './ImageComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -33,14 +33,16 @@ const texts = {
 };
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<IGenericEditComponent> = {}) => {
-  const allProps: IGenericEditComponent = {
+const render = async (props: Partial<ImageComponentProps> = {}) => {
+  const allProps: ImageComponentProps = {
     component: componentData,
     handleComponentChange: jest.fn(),
+    isProd: true,
     ...props,
   };
 
@@ -50,10 +52,7 @@ const render = async (props: Partial<IGenericEditComponent> = {}) => {
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {

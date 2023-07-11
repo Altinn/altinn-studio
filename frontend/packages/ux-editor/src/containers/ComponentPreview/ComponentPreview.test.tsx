@@ -74,7 +74,7 @@ describe('ComponentPreview', () => {
     ComponentType.Panel,
     ComponentType.Paragraph,
     ComponentType.TextArea,
-    ComponentType.ThirdParty,
+    ComponentType.Custom,
   ])('Renders error text when component type is %s', (type: ComponentType) => {
     render({ component: componentMocks[type] });
     expect(
@@ -83,4 +83,5 @@ describe('ComponentPreview', () => {
   });
 });
 
-const render = (props: Partial<ComponentPreviewProps> = {}) => renderWithMockStore({}, )(<ComponentPreview {...defaultProps} {...props} />);
+const render = (props: Partial<ComponentPreviewProps> = {}) =>
+  renderWithMockStore({})(<ComponentPreview {...defaultProps} {...props} />);

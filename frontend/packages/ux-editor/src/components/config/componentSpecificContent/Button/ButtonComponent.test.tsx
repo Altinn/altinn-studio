@@ -1,10 +1,9 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { ButtonComponent } from './ButtonComponent';
+import { ButtonComponent, ButtonComponentProps } from './ButtonComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
@@ -18,9 +17,10 @@ const component: FormButtonComponent = {
   dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
-const defaultProps: IGenericEditComponent = {
+const defaultProps: ButtonComponentProps = {
   component,
   handleComponentChange,
+  isProd: true,
 };
 
 describe('ButtonComponent', () => {
@@ -64,11 +64,12 @@ describe('ButtonComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props?: Partial<IGenericEditComponent>) => {
+const render = async (props?: Partial<ButtonComponentProps>) => {
   const user = userEvent.setup();
 
   await waitForData();
