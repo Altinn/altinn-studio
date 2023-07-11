@@ -13,7 +13,10 @@ import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ConditionalRenderingConnection, ConditionalRenderingConnections } from 'app-shared/types/RuleConfig';
+import {
+  ConditionalRenderingConnection,
+  ConditionalRenderingConnections,
+} from 'app-shared/types/RuleConfig';
 import i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 
@@ -328,6 +331,7 @@ class ConditionalRendering extends React.Component<
 
                           <div>
                             <SelectDataModelComponent
+                              label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                               selectedElement={
                                 this.state.conditionalRendering.inputParams[paramName]
