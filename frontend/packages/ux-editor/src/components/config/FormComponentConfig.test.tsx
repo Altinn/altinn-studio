@@ -49,7 +49,7 @@ describe('isPropertyTypeSupported', () => {
       isPropertyTypeSupported({
         $ref: 'test',
       })
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 
