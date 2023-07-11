@@ -101,7 +101,7 @@ export const RightMenu = ({
                           onClick={() => handleDeleteLanguage(langCode)}
                           color={ButtonColor.Danger}
                         >
-                          {t('schema_editor.language_conferm_deletion')}
+                          {t('schema_editor.language_confirm_deletion')}
                         </Button>
                         <Button
                           variant={ButtonVariant.Quiet}

@@ -98,21 +98,17 @@ export const autosize = (element) => {
 
   const computed = window.getComputedStyle(element);
 
-  const adjustTextareaHeight = () => {
-    let newHeight;
+  let newHeight;
 
-    if (computed.boxSizing === 'content-box') {
-      newHeight = element.scrollHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom));
-    } else {
-      newHeight = element.scrollHeight + parseFloat(computed.borderTopWidth) + parseFloat(computed.borderBottomWidth);
-    }
+  if (computed.boxSizing === 'content-box') {
+    newHeight = element.scrollHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom));
+  } else {
+    newHeight = element.scrollHeight + parseFloat(computed.borderTopWidth) + parseFloat(computed.borderBottomWidth);
+  }
 
-    if (computed.maxHeight !== 'none' && newHeight > parseFloat(computed.maxHeight)) {
-      newHeight = parseFloat(computed.maxHeight);
-    }
+  if (computed.maxHeight !== 'none' && newHeight > parseFloat(computed.maxHeight)) {
+    newHeight = parseFloat(computed.maxHeight);
+  }
 
-    element.style.height = newHeight + 'px';
-  };
-
-  element.addEventListener('input', adjustTextareaHeight);
+  element.style.height = newHeight + 'px';
 }

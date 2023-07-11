@@ -12,6 +12,7 @@ export interface TextEntryProps extends TextTableRowEntry {
 
 export const TextEntry = ({ textId, lang, translation, upsertTextResource, className }: TextEntryProps) => {
   const [textEntryValue, setTextEntryValue] = useState(translation);
+
   const variables = [];
 
   const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
