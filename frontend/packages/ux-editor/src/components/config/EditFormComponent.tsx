@@ -1,29 +1,35 @@
 import React from 'react';
-import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { EditComponentId } from './editModal/EditComponentId';
-import { componentSpecificEditConfig, configComponents } from './componentConfig';
+import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
+import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { FieldSet } from '@digdir/design-system-react';
+import { FieldSet, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { useFormLayoutsSelector } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
+import { AltinnSpinner } from 'app-shared/components';
+import { FormComponentConfig } from './FormComponentConfig';
+import { EditComponentId } from './editModal/EditComponentId';
 
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormComponent;
   handleComponentUpdate: (component: FormComponent) => void;
+  isProd: boolean;
 }
 
 export const EditFormComponent = ({
   editFormId,
   component,
+  isProd,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
+
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
-
     return configDef.map((configType) => {
       const Tag = configComponents[configType];
       if (!Tag) return null;
@@ -42,13 +48,38 @@ export const EditFormComponent = ({
 
   return (
     <FieldSet className={classes.root}>
-      <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
-      {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
-      <ComponentSpecificContent
-        component={component}
-        handleComponentChange={handleComponentUpdate}
-        layoutName={selectedLayout}
-      />
+      <Heading level={2} size='xsmall'>
+        {component.type}
+      </Heading>
+      {!isProd && isLoading && <AltinnSpinner spinnerText='Loading...' />}
+      {!isProd && (
+        <>
+          <FormComponentConfig
+            schema={isLoading ? {} : schema}
+            component={component}
+            editFormId={editFormId}
+            handleComponentUpdate={handleComponentUpdate}
+          />
+          <ComponentSpecificContent
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            layoutName={selectedLayout}
+            isProd={isProd}
+          />
+        </>
+      )}
+      {isProd && (
+        <>
+          <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
+          {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
+          <ComponentSpecificContent
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            layoutName={selectedLayout}
+            isProd={isProd}
+          />
+        </>
+      )}
     </FieldSet>
   );
 };

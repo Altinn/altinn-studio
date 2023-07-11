@@ -6,30 +6,40 @@ import { getCurrentEditId } from '../../selectors/textResourceSelectors';
 import { useSelector } from 'react-redux';
 import { LayoutItemType } from '../../types/global';
 import { FormContext } from '../../containers/FormContext';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
-export const ContentTab = () => {
-  const { formId, form, handleUpdate, handleContainerSave, handleComponentSave } = useContext(FormContext);
+export const ContentTab = ({ isProd }: { isProd: boolean }) => {
+  const { formId, form, handleUpdate, handleContainerSave, handleComponentSave } =
+    useContext(FormContext);
   const editId = useSelector(getCurrentEditId);
 
-  if (editId) return (<TextResourceEdit/>);
+  if (editId) return <TextResourceEdit />;
   if (!formId || !form) return null;
 
   const isContainer = form.itemType === LayoutItemType.Container;
 
   return (
-  <>
-    {
-      isContainer ? (
-        <EditFormContainer editFormId={formId} container={form} handleContainerUpdate={async (updatedContainer) => {
-          handleUpdate(updatedContainer);
-          await handleContainerSave(formId, updatedContainer);
-        }} />
+    <>
+      {isContainer ? (
+        <EditFormContainer
+          editFormId={formId}
+          container={form}
+          handleContainerUpdate={async (updatedContainer) => {
+            handleUpdate(updatedContainer);
+            await handleContainerSave(formId, updatedContainer);
+          }}
+        />
       ) : (
-        <EditFormComponent editFormId={formId} component={form} handleComponentUpdate={async (updatedComponent) => {
-          handleUpdate(updatedComponent);
-          await handleComponentSave(formId, updatedComponent);
-        }} />
-      )
-    }
-  </>
-)};
+        <EditFormComponent
+          editFormId={formId}
+          component={form}
+          isProd={isProd}
+          handleComponentUpdate={async (updatedComponent) => {
+            handleUpdate(updatedComponent);
+            await handleComponentSave(formId, updatedComponent);
+          }}
+        />
+      )}
+    </>
+  );
+};

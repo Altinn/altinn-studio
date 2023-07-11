@@ -9,12 +9,18 @@ import type {
   FormFileUploaderWithTagComponent,
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+
+export interface FileUploadComponentProps extends IGenericEditComponent {
+  isProd: boolean;
+}
 
 export const FileUploadComponent = ({
   component,
   handleComponentChange,
   layoutName,
-}: IGenericEditComponent) => {
+  isProd,
+}: FileUploadComponentProps) => {
   const t = useText();
 
   const fileUploaderComponent = component as FormFileUploaderComponent;
@@ -43,9 +49,11 @@ export const FileUploadComponent = ({
       | FormFileUploaderComponent
       | FormFileUploaderWithTagComponent;
     if (type === 'max') {
-      componentCopy.maxNumberOfAttachments = maxNumberOfAttachments >= 1 ? maxNumberOfAttachments : 1;
+      componentCopy.maxNumberOfAttachments =
+        maxNumberOfAttachments >= 1 ? maxNumberOfAttachments : 1;
     } else {
-      componentCopy.minNumberOfAttachments = maxNumberOfAttachments >= 0 ? maxNumberOfAttachments : 0;
+      componentCopy.minNumberOfAttachments =
+        maxNumberOfAttachments >= 0 ? maxNumberOfAttachments : 0;
       componentCopy.required = maxNumberOfAttachments > 0;
     }
     handleComponentChange(componentCopy);
@@ -59,6 +67,8 @@ export const FileUploadComponent = ({
     handleComponentChange(componentCopy);
   };
 
+  if (!isProd) return null;
+
   return (
     <FieldSet className={classes.fieldset}>
       <FormField
@@ -67,21 +77,23 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.hasCustomFileEndings}
         propertyPath={`${component.propertyPath}/properties/hasCustomFileEndings`}
       >
-        {({ value }) => <RadioGroup
-          items={[
-            {
-              label: t('ux_editor.modal_properties_valid_file_endings_all'),
-              value: 'false',
-            },
-            {
-              label: t('ux_editor.modal_properties_valid_file_endings_custom'),
-              value: 'true',
-            },
-          ]}
-          name={`${component.id}-valid-file-endings`}
-          variant={RadioGroupVariant.Horizontal}
-          value={value === true ? 'true' : 'false'}
-        />}
+        {({ value }) => (
+          <RadioGroup
+            items={[
+              {
+                label: t('ux_editor.modal_properties_valid_file_endings_all'),
+                value: 'false',
+              },
+              {
+                label: t('ux_editor.modal_properties_valid_file_endings_custom'),
+                value: 'true',
+              },
+            ]}
+            name={`${component.id}-valid-file-endings`}
+            variant={RadioGroupVariant.Horizontal}
+            value={value === true ? 'true' : 'false'}
+          />
+        )}
       </FormField>
       {fileUploaderComponent.hasCustomFileEndings && (
         <FormField
@@ -91,7 +103,12 @@ export const FileUploadComponent = ({
           value={fileUploaderComponent.validFileEndings}
           propertyPath={`${component.propertyPath}/properties/validFileEndings`}
         >
-          {({ onChange }) => <TextField name='modal-properties-valid-file-endings' onChange={(e) => onChange(e.target.value, e)} />}
+          {({ onChange }) => (
+            <TextField
+              name='modal-properties-valid-file-endings'
+              onChange={(e) => onChange(e.target.value, e)}
+            />
+          )}
         </FormField>
       )}
       {component.type === ComponentType.FileUpload && (
@@ -101,20 +118,22 @@ export const FileUploadComponent = ({
           value={fileUploaderComponent.displayMode}
           propertyPath={`${component.propertyPath}/properties/displayMode`}
         >
-          {() => <RadioGroup
-            items={[
-              {
-                label: t('ux_editor.modal_properties_file_upload_simple'),
-                value: 'simple',
-              },
-              {
-                label: t('ux_editor.modal_properties_file_upload_list'),
-                value: 'list',
-              },
-            ]}
-            name={`${component.id}-display-mode`}
-            variant={RadioGroupVariant.Horizontal}
-          />}
+          {() => (
+            <RadioGroup
+              items={[
+                {
+                  label: t('ux_editor.modal_properties_file_upload_simple'),
+                  value: 'simple',
+                },
+                {
+                  label: t('ux_editor.modal_properties_file_upload_list'),
+                  value: 'list',
+                },
+              ]}
+              name={`${component.id}-display-mode`}
+              variant={RadioGroupVariant.Horizontal}
+            />
+          )}
         </FormField>
       )}
       <FormField
@@ -124,11 +143,13 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.minNumberOfAttachments || 0}
         propertyPath={`${component.propertyPath}/properties/minNumberOfAttachments`}
       >
-        {({ onChange }) => <TextField
-          name={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
-          formatting={{ number: {} }}
-          onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
-        />}
+        {({ onChange }) => (
+          <TextField
+            name={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
+            formatting={{ number: {} }}
+            onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+          />
+        )}
       </FormField>
       <FormField
         id={component.id}
@@ -137,11 +158,13 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.maxNumberOfAttachments || 1}
         propertyPath={`${component.propertyPath}/properties/maxNumberOfAttachments`}
       >
-        {({ onChange }) => <TextField
-          name={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
-          formatting={{ number: {} }}
-          onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
-        />}
+        {({ onChange }) => (
+          <TextField
+            name={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
+            formatting={{ number: {} }}
+            onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+          />
+        )}
       </FormField>
       <FormField
         id={component.id}
@@ -152,11 +175,13 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.maxFileSizeInMB || 0}
         propertyPath={`${component.propertyPath}/properties/maxFileSizeInMB`}
       >
-        {({ onChange }) => <TextField
-          name='modal-properties-file-size'
-          formatting={{ number: {} }}
-          onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
-        />}
+        {({ onChange }) => (
+          <TextField
+            name='modal-properties-file-size'
+            formatting={{ number: {} }}
+            onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+          />
+        )}
       </FormField>
     </FieldSet>
   );

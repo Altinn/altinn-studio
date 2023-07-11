@@ -7,11 +7,17 @@ import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/comp
 import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+
+export interface AddressComponentProps extends IGenericEditComponent {
+  isProd: boolean;
+}
 
 export const AddressComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent) => {
+  isProd,
+}: AddressComponentProps) => {
   const t = useText();
 
   const handleToggleAddressSimple = (isChecked: boolean) => {
@@ -21,8 +27,10 @@ export const AddressComponent = ({
     });
   };
 
+  if (!isProd) return null;
+
   return (
-    <FieldSet className={classes.root}>
+    <FieldSet className={classes.root} data-testid='address-component-container'>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_configure_address_component_simplified')}
@@ -30,10 +38,9 @@ export const AddressComponent = ({
         onChange={handleToggleAddressSimple}
         propertyPath={`${component.propertyPath}/properties/simplified`}
       >
-        {({ value, onChange }) => <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-        />}
+        {({ value, onChange }) => (
+          <Checkbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+        )}
       </FormField>
       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
         const simple: boolean = (component as FormAddressComponent).simplified;
@@ -56,4 +63,4 @@ export const AddressComponent = ({
       })}
     </FieldSet>
   );
-}
+};

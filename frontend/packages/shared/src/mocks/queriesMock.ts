@@ -1,4 +1,6 @@
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import inputComponentSchema from '../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json';
+import commonDefsComponentSchema from '../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json';
 
 export const queriesMock: ServicesContextProps = {
   addAppAttachmentMetadata: jest.fn(),
@@ -16,8 +18,8 @@ export const queriesMock: ServicesContextProps = {
   deleteLanguageCode: jest.fn(),
   getAppReleases: jest.fn(),
   getBranchStatus: jest.fn(),
-  getComponentSchema: jest.fn(),
-  getComponentsCommonDefsSchema: jest.fn(),
+  getComponentSchema: jest.fn().mockResolvedValue(inputComponentSchema),
+  getComponentsCommonDefsSchema: jest.fn().mockResolvedValue(commonDefsComponentSchema),
   getDatamodel: jest.fn(),
   getDatamodelMetadata: jest.fn(),
   getDatamodelsXsd: jest.fn(),

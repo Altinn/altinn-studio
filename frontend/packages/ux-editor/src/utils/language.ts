@@ -144,5 +144,6 @@ export const getComponentPropertyLabel = (propertyKey: string, t: UseText): stri
   //   return t(translationKey as TranslationKey);
   // }
   // return propertyKey;
-  return t(translationKey as TranslationKey);
+  const translation = t(translationKey as TranslationKey);
+  return translation === translationKey ? propertyKey : translation;
 };

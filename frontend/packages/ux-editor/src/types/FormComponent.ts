@@ -98,7 +98,7 @@ export type FormGroupComponent = FormComponentBase<ComponentType.Group>;
 export type FormNavigationBarComponent = FormComponentBase<ComponentType.NavigationBar>;
 export type FormAttachmentListComponent = FormComponentBase<ComponentType.AttachmentList>;
 
-export interface FormThirdPartyComponent extends FormComponentBase<ComponentType.ThirdParty> {
+export interface FormThirdPartyComponent extends FormComponentBase<ComponentType.Custom> {
   tagName: string;
   framework: string;
   [id: string]: any;
@@ -131,24 +131,36 @@ export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
 }
 
 export type FormComponent<T extends ComponentType = ComponentType> = {
+  [ComponentType.ActionButton]: FormComponentBase<ComponentType.ActionButton>;
   [ComponentType.AddressComponent]: FormAddressComponent;
   [ComponentType.AttachmentList]: FormAttachmentListComponent;
   [ComponentType.Button]: FormButtonComponent;
+  [ComponentType.ButtonGroup]: FormComponentBase<ComponentType.ButtonGroup>;
   [ComponentType.Checkboxes]: FormCheckboxesComponent;
+  [ComponentType.Custom]: FormThirdPartyComponent;
   [ComponentType.Datepicker]: FormDatepickerComponent;
   [ComponentType.Dropdown]: FormDropdownComponent;
   [ComponentType.FileUploadWithTag]: FormFileUploaderWithTagComponent;
   [ComponentType.FileUpload]: FormFileUploaderComponent;
+  [ComponentType.Grid]: FormComponentBase<ComponentType.Grid>;
   [ComponentType.Group]: FormGroupComponent;
   [ComponentType.Header]: FormHeaderComponent;
+  [ComponentType.IFrame]: FormComponentBase<ComponentType.IFrame>;
   [ComponentType.Image]: FormImageComponent;
   [ComponentType.Input]: FormInputComponent;
+  [ComponentType.InstanceInformation]: FormComponentBase<ComponentType.InstanceInformation>;
+  [ComponentType.InstantiationButton]: FormComponentBase<ComponentType.InstantiationButton>;
+  [ComponentType.Likert]: FormComponentBase<ComponentType.Likert>;
+  [ComponentType.Link]: FormComponentBase<ComponentType.Link>;
+  [ComponentType.List]: FormComponentBase<ComponentType.List>;
   [ComponentType.Map]: FormMapComponent;
+  [ComponentType.MultipleSelect]: FormComponentBase<ComponentType.MultipleSelect>;
   [ComponentType.NavigationBar]: FormNavigationBarComponent;
   [ComponentType.NavigationButtons]: FormButtonComponent;
   [ComponentType.Panel]: FormPanelComponent;
   [ComponentType.Paragraph]: FormParagraphComponent;
+  [ComponentType.PrintButton]: FormComponentBase<ComponentType.PrintButton>;
   [ComponentType.RadioButtons]: FormRadioButtonsComponent;
+  [ComponentType.Summary]: FormComponentBase<ComponentType.Summary>;
   [ComponentType.TextArea]: FormTextareaComponent;
-  [ComponentType.ThirdParty]: FormThirdPartyComponent;
 }[T];

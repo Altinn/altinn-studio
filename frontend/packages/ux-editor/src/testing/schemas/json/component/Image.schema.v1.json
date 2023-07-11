@@ -30,43 +30,55 @@
       ],
       "additionalProperties": true
     },
-    "src": {
-      "title": "Image source",
-      "description": "",
+    "image": {
       "type": "object",
+      "title": "Image properties",
+      "description": "Set of options for image field.",
       "properties": {
-        "nb": {
-          "type": "string",
-          "title": "Bokmål"
+        "src": {
+          "title": "Image source",
+          "description": "",
+          "type": "object",
+          "properties": {
+            "nb": {
+              "type": "string",
+              "title": "Bokmål"
+            },
+            "nn": {
+              "type": "string",
+              "title": "Nynorsk"
+            },
+            "en": {
+              "type": "string",
+              "title": "English"
+            }
+          },
+          "additionalProperties": true
         },
-        "nn": {
+        "width": {
           "type": "string",
-          "title": "Nynorsk"
+          "title": "Image width",
+          "examples": [
+            "100%"
+          ]
         },
-        "en": {
+        "align": {
           "type": "string",
-          "title": "English"
+          "title": "Align image",
+          "enum": [
+            "flex-start",
+            "center",
+            "flex-end",
+            "space-between",
+            "space-around",
+            "space-evenly"
+          ]
         }
       },
-      "additionalProperties": true
-    },
-    "width": {
-      "type": "string",
-      "title": "Image width",
-      "examples": [
-        "100%"
-      ]
-    },
-    "align": {
-      "type": "string",
-      "title": "Align image",
-      "enum": [
-        "flex-start",
-        "center",
-        "flex-end",
-        "space-between",
-        "space-around",
-        "space-evenly"
+      "required": [
+        "src",
+        "width",
+        "align"
       ]
     },
     "renderAsSummary": {

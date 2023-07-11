@@ -6,6 +6,7 @@ import { CalculationsTab } from './CalculationsTab';
 import { ContentTab } from './ContentTab';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
 export interface RightMenuProps {
   className?: string;
@@ -19,7 +20,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
         items={[
           {
             name: t('right_menu.content'),
-            content: <ContentTab />,
+            content: <ContentTab isProd={_useIsProdHack()} />,
           },
           {
             name: t('right_menu.conditional_rendering'),

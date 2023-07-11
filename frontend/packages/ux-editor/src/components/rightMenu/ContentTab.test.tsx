@@ -45,7 +45,7 @@ describe('ContentTab', () => {
 
   describe('when editing a text resource', () => {
     it('should render the component', async () => {
-      await render(null, textResourceEditTestId);
+      await render({ props: {}, editId: textResourceEditTestId });
 
       expect(screen.getByTestId(textResourceEditTestId)).toBeInTheDocument();
     });
@@ -58,7 +58,7 @@ describe('ContentTab', () => {
     };
 
     it('should render the component', async () => {
-      await render(props);
+      await render({ props });
 
       expect(
         screen.getByText(textMock('ux_editor.modal_properties_group_change_id') + ' *')
@@ -66,7 +66,7 @@ describe('ContentTab', () => {
     });
 
     it('should auto-save when updating a field', async () => {
-      await render(props);
+      await render({ props });
 
       const idInput = screen.getByLabelText(
         textMock('ux_editor.modal_properties_group_change_id') + ' *'
@@ -86,7 +86,7 @@ describe('ContentTab', () => {
 
     it('should render the component', async () => {
       jest.spyOn(console, 'error').mockImplementation(); // Silence error from Select component
-      await render(props);
+      await render({ props });
 
       expect(
         screen.getByText(textMock('ux_editor.modal_properties_component_change_id') + ' *')
@@ -94,7 +94,7 @@ describe('ContentTab', () => {
     });
 
     it('should auto-save when updating a field', async () => {
-      await render(props);
+      await render({ props });
 
       const idInput = screen.getByLabelText(
         textMock('ux_editor.modal_properties_component_change_id') + ' *'
@@ -113,7 +113,15 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<FormContext> = {}, editId?: string) => {
+const render = async ({
+  props = {},
+  editId,
+  isProd = true,
+}: {
+  props: Partial<FormContext>;
+  editId?: string;
+  isProd?: boolean;
+}) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
     currentEditId: editId,
@@ -132,7 +140,7 @@ const render = async (props: Partial<FormContext> = {}, editId?: string) => {
         ...props,
       }}
     >
-      <ContentTab />
+      <ContentTab isProd={isProd} />
     </FormContext.Provider>
   );
 };

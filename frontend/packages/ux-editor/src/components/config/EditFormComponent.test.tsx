@@ -8,6 +8,7 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
+// import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 
 const user = userEvent.setup();
 
@@ -208,16 +209,22 @@ const waitForData = async () => {
     { getDatamodelMetadata }
   )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
+  // const componentSchemaResult = renderHookWithMockStore()(() => useComponentSchemaQuery('Input'))
+  //   .renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+  // await waitFor(() => expect(componentSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({
   componentProps = {},
   handleComponentUpdate = jest.fn(),
+  isProd = true,
 }: {
   componentProps?: Partial<FormComponent>;
   handleComponentUpdate?: (component: FormComponent) => {
     allComponentProps: FormComponent;
   };
+  isProd?: boolean;
 }) => {
   const allComponentProps: FormComponent = {
     dataModelBindings: {},
@@ -242,6 +249,7 @@ const render = async ({
       editFormId={''}
       component={allComponentProps}
       handleComponentUpdate={handleComponentUpdate}
+      isProd={isProd}
     />
   );
 

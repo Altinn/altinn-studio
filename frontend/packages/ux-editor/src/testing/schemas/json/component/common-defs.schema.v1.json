@@ -171,25 +171,25 @@
       "properties": {
         "breakBefore": {
           "title": "Page break before",
+          "type": "string",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
+          "enum": [
             "auto",
             "always",
             "avoid"
           ],
-          "default": "auto",
-          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/string"
+          "default": "auto"
         },
         "breakAfter": {
           "title": "Page break after",
+          "type": "string",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
+          "enum": [
             "auto",
             "always",
             "avoid"
           ],
-          "default": "auto",
-          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/string"
+          "default": "auto"
         }
       }
     },

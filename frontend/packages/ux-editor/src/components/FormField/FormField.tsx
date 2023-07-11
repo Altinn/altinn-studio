@@ -5,6 +5,7 @@ import { useText } from '../../hooks';
 import { validateProperty, isPropertyRequired } from '../../utils/formValidationUtils';
 import { TranslationKey } from 'language/type';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
+// import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 
 export type FormFieldChildProps<TT> = {
   errorCode: string;
@@ -46,6 +47,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
   const t = useText();
 
   const [{ data: layoutSchema }] = useLayoutSchemaQuery();
+  // const { data: layoutSchema } = useComponentSchemaQuery(componentType);
 
   const [propertyId, setPropertyId] = useState(
     layoutSchema && propertyPath ? `${layoutSchema.$id}#/${propertyPath}` : null

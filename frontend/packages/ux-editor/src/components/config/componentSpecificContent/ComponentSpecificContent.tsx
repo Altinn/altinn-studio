@@ -8,20 +8,28 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 
+export interface ComponentSpecificContentProps extends IGenericEditComponent {
+  isProd: boolean;
+}
 
 export function ComponentSpecificContent({
   component,
   handleComponentChange,
   layoutName,
-}: IGenericEditComponent) {
+  isProd,
+}: ComponentSpecificContentProps) {
   switch (component.type) {
     case ComponentType.NavigationButtons:
     case ComponentType.Button:
+    case ComponentType.ActionButton:
+    case ComponentType.PrintButton:
+    case ComponentType.InstantiationButton:
       return (
         <ButtonComponent
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
+          isProd={isProd}
         />
       );
 
@@ -31,6 +39,7 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
+          isProd={isProd}
         />
       );
 
@@ -41,6 +50,7 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
+          isProd={isProd}
         />
       );
 
@@ -50,6 +60,7 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
+          isProd={isProd}
         />
       );
     }
@@ -59,6 +70,7 @@ export function ComponentSpecificContent({
         <PanelComponent
           component={component}
           handleComponentChange={handleComponentChange}
+          isProd={isProd}
         />
       );
     }
@@ -67,6 +79,7 @@ export function ComponentSpecificContent({
       return (
         <MapComponent
           component={component}
+          isProd={isProd}
           handleComponentChange={handleComponentChange}
         />
       );

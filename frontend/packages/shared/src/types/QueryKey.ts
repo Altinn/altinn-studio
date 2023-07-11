@@ -11,6 +11,7 @@ export enum QueryKey {
   FormLayoutSettings = 'FormLayoutSettings',
   FormLayouts = 'FormLayouts',
   InstanceId = 'InstanceId',
+  LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
   OrgList = 'OrgList',
   Organizations = 'Organizations',

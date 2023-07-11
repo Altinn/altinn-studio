@@ -29,18 +29,29 @@ const mockHandleComponentChange = jest.fn();
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet)
+  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet)
+  ).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async () => {
+const render = async (isProd = true) => {
   await waitForData();
-  renderWithMockStore()(<PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />);
-}
+  renderWithMockStore()(
+    <PanelComponent
+      component={component}
+      handleComponentChange={mockHandleComponentChange}
+      isProd={isProd}
+    />
+  );
+};
 
 describe('PanelComponent', () => {
   afterEach(jest.clearAllMocks);
@@ -66,6 +77,15 @@ describe('PanelComponent', () => {
     await act(() => user.click(screen.getAllByRole('option')[1]));
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
-    expect(mockHandleComponentChange).toHaveBeenCalledWith({ ...component, variant: FormPanelVariant.Warning });
+    expect(mockHandleComponentChange).toHaveBeenCalledWith({
+      ...component,
+      variant: FormPanelVariant.Warning,
+    });
+  });
+
+  it('should render null when isProd is false', async () => {
+    await render(false);
+
+    expect(screen.queryByTestId('panel-component-container')).not.toBeInTheDocument();
   });
 });

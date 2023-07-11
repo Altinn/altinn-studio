@@ -35,7 +35,7 @@ export const EditStringValue = ({
       label={getComponentPropertyLabel(propertyKey, t)}
       value={component[propertyKey]}
       onChange={handleValueChange}
-      propertyPath={component.propertyPath}
+      propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
       helpText={helpText}
       customValidationMessages={(errorCode: string) => {
         if (errorCode === 'pattern') {
