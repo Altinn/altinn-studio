@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TextTableRowEntry, UpsertTextResourceMutation } from './types';
 import { TextArea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
-import autosize from 'autosize';
+import { autosize } from './utils';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;

@@ -5,7 +5,7 @@
 
 .chip {
   border-radius: 20px;
-  width: 100%;
+  width: 90%;
   margin: 5px;
   background-color: gray;
   display: inline-block;
@@ -14,7 +14,6 @@
   white-space: nowrap;
   color: white;
   padding-left: 10px;
-  padding-right: 10px;
   font-size: 14px;
   vertical-align: text-bottom;
 }

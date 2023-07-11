@@ -13,16 +13,17 @@
 }
 
 .textId {
+  max-width: 160px;
   overflow: scroll;
   overflow-wrap: break-word;
 }
 
 .textAreaCell {
-  min-width: 310px;
+  min-width: 350px;
   vertical-align: top;
 }
 
 .textEntryComponent textArea {
   margin: 10px 0 10px 0;
-  min-width: 300px;
+  min-width: 340px;
 }

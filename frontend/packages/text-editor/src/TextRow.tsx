@@ -75,9 +75,45 @@ export const TextRow = ({
 
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
-  debugger;
   return (
     <TableRow data-testid={'lang-row'}>
+      <TableCell>
+        <Popover
+          title={'Slett_rad'}
+          variant={PopoverVariant.Warning}
+          placement={'left'}
+          open={isConfirmDeleteOpen}
+          trigger={
+            <Button
+              className={classes.deleteButton}
+              icon={<TrashIcon title={`Slett ${textId}`} />}
+              variant={ButtonVariant.Quiet}
+              onClick={toggleConfirmDeletePopover}
+              aria-label={t('schema_editor.delete')}
+            >
+              {t('schema_editor.delete')}
+            </Button>
+          }
+        >
+          {isConfirmDeleteOpen && (
+            <div>
+              <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
+              <div className={classes.popoverButtons}>
+                <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
+                  <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
+                </Button>
+                <Button
+                  variant={ButtonVariant.Quiet}
+                  onClick={toggleConfirmDeletePopover}
+                  color={ButtonColor.Secondary}
+                >
+                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                </Button>
+              </div>
+            </div>
+          )}
+        </Popover>
+      </TableCell>
       {selectedLanguages.map((lang) => {
         let translation = textRowEntries.find((e) => e.lang === lang);
         if (!translation) {
@@ -124,43 +160,6 @@ export const TextRow = ({
       </TableCell>
       <TableCell>
         <Variables variables={textVariables} />
-      </TableCell>
-      <TableCell>
-        <Popover
-          title={'Slett_rad'}
-          variant={PopoverVariant.Warning}
-          placement={'left'}
-          open={isConfirmDeleteOpen}
-          trigger={
-            <Button
-              className={classes.deleteButton}
-              icon={<TrashIcon title={`Slett ${textId}`} />}
-              variant={ButtonVariant.Quiet}
-              onClick={toggleConfirmDeletePopover}
-              aria-label={t('schema_editor.delete')}
-            >
-              {t('schema_editor.delete')}
-            </Button>
-          }
-        >
-          {isConfirmDeleteOpen && (
-            <div>
-              <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
-              <div className={classes.popoverButtons}>
-                <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
-                  <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
-                </Button>
-                <Button
-                  variant={ButtonVariant.Quiet}
-                  onClick={toggleConfirmDeletePopover}
-                  color={ButtonColor.Secondary}
-                >
-                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
-                </Button>
-              </div>
-            </div>
-          )}
-        </Popover>
       </TableCell>
     </TableRow>
   );
