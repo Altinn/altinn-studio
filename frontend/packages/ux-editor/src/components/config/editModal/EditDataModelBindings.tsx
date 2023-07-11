@@ -52,7 +52,7 @@ export const EditDataModelBindings = ({
           : t('ux_editor.modal_properties_data_model_helper')}
       </Label>
       <SelectDataModelComponent
-        propertyPath={`$defs/component/properties/dataModelBindings/properties/${
+        propertyPath={`definitions/component/properties/dataModelBindings/properties/${
           key || 'simpleBinding'
         }`}
         componentType={component.type}

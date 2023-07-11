@@ -33,7 +33,7 @@ export const EditComponentId = ({
       label={t('ux_editor.modal_properties_component_change_id')}
       value={component.id}
       onChange={handleIdChange}
-      propertyPath='$defs/component/properties/id'
+      propertyPath='definitions/component/properties/id'
       componentType={component.type}
       helpText={helpText}
       customValidationRules={(value: string) => {
