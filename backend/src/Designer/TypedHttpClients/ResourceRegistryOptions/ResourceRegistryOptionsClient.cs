@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using PolicyAdmin.Models;
@@ -10,6 +11,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
     public class ResourceRegistryOptionsClients : IResourceRegistryOptions
     {
         HttpClient _client;
+
+        private readonly JsonSerializerOptions DataNorgeSerilizerOptions = new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
 
         public ResourceRegistryOptionsClients(HttpClient client)
         {
@@ -26,7 +29,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url);
                 string content = await response.Content.ReadAsStringAsync();
-                eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, DataNorgeSerilizerOptions);
                 return eurovoc;
             }
             catch (Exception ex)
@@ -45,7 +48,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url);
                 string content = await response.Content.ReadAsStringAsync();
-                losTerms = System.Text.Json.JsonSerializer.Deserialize<LosTerms>(content, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                losTerms = System.Text.Json.JsonSerializer.Deserialize<LosTerms>(content, DataNorgeSerilizerOptions);
                 return losTerms;
             }
             catch (Exception ex)
@@ -64,7 +67,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url);
                 string sectorscontent = await response.Content.ReadAsStringAsync();
-                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, DataNorgeSerilizerOptions);
                 return dataThemes;
             }
             catch (Exception ex)
