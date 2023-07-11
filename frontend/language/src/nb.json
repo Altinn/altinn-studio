@@ -907,6 +907,8 @@
   "ux_editor.modal_properties_button_type_helper": "Type knapp",
   "ux_editor.modal_properties_button_type_navigation": "Navigasjon",
   "ux_editor.modal_properties_button_type_submit": "Send inn",
+  "ux_editor.modal_properties_button_type_back": "Forrige",
+  "ux_editor.modal_properties_button_type_next": "Neste",
   "ux_editor.modal_properties_code_list_id": "Kodeliste-ID",
   "ux_editor.modal_properties_custom_code_list_id": "ID til egendefinert kodeliste",
   "ux_editor.modal_properties_code_list_read_more": "<0 href=\"{{optionsDocs}}\" >Les mer om kodelister</0>",

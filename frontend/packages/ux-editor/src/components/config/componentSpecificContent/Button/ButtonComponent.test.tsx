@@ -55,7 +55,9 @@ describe('ButtonComponent', () => {
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
       type: ComponentType.Button,
-      textResourceBindings: {},
+      textResourceBindings: {
+        title: undefined,
+      },
     });
   });
 });
