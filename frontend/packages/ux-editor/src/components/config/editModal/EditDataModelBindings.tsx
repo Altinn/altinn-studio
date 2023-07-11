@@ -15,12 +15,14 @@ export interface EditDataModelBindingsProps extends IGenericEditComponent {
     key?: string;
     uniqueKey?: any;
   };
+  helpText?: string;
 }
 
 export const EditDataModelBindings = ({
   component,
   handleComponentChange,
   renderOptions,
+  helpText,
 }: EditDataModelBindingsProps) => {
   const { org, app } = useParams();
   const { data } = useDatamodelMetadataQuery(org, app);
@@ -43,20 +45,27 @@ export const EditDataModelBindings = ({
 
   const { uniqueKey, key, label } = renderOptions || {};
   return (
-     <div key={uniqueKey || ''}>
+    <div key={uniqueKey || ''}>
       <Label htmlFor={`selectDataModelSelect-${label}`}>
-        {
-          label
-            ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
-            : t('ux_editor.modal_properties_data_model_helper')
-        }
+        {label
+          ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
+          : t('ux_editor.modal_properties_data_model_helper')}
       </Label>
       <SelectDataModelComponent
+        propertyPath={`$defs/component/properties/dataModelBindings/properties/${
+          key || 'simpleBinding'
+        }`}
+        componentType={component.type}
         inputId={`selectDataModelSelect-${label}`}
-        selectedElement={component.dataModelBindings[key || 'simpleBinding']}
+        selectedElement={
+          component.dataModelBindings
+            ? component.dataModelBindings[key || 'simpleBinding']
+            : undefined
+        }
         onDataModelChange={(dataModelField: string) => handleDataModelChange(dataModelField, key)}
         noOptionsMessage={t('general.no_options')}
+        helpText={helpText}
       />
     </div>
-  )
+  );
 };

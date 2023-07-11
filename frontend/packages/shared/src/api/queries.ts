@@ -1,38 +1,6 @@
 import { get } from 'app-shared/utils/networking';
-import {
-  branchStatusPath,
-  datamodelMetadataPath,
-  datamodelsXsdPath,
-  deployPermissionsPath,
-  deploymentsPath,
-  envConfigPath,
-  formLayoutsPath,
-  instanceIdForPreviewPath,
-  layoutSetsPath,
-  layoutSettingsPath,
-  orgsListPath,
-  releasesPath,
-  repoMetaPath,
-  repoPullPath,
-  repoSearchPath,
-  repoStatusPath,
-  ruleConfigPath,
-  ruleHandlerPath,
-  textLanguagesPath,
-  textResourcesPath,
-  userCurrentPath,
-  userStarredListPath,
-  widgetSettingsPath,
-  optionListIdsPath,
-  datamodelPath,
-} from './paths';
-import {
-  AppDeploymentsResponse,
-  AppReleasesResponse,
-  DatamodelMetadataResponse,
-  SearchRepoFilterParams,
-  SearchRepositoryResponse,
-} from 'app-shared/types/api';
+import { branchStatusPath, datamodelMetadataPath, datamodelsXsdPath, deployPermissionsPath, deploymentsPath, envConfigPath, formLayoutsPath, instanceIdForPreviewPath, layoutSetsPath, layoutSettingsPath, orgsListPath, releasesPath, repoMetaPath, repoPullPath, repoSearchPath, repoStatusPath, ruleConfigPath, ruleHandlerPath, textLanguagesPath, textResourcesPath, userCurrentPath, userStarredListPath, widgetSettingsPath, optionListIdsPath, datamodelPath } from './paths';
+import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelsXsd } from 'app-shared/types/DatamodelsXsd';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -47,7 +15,7 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { User } from 'app-shared/types/User';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { orgsListUrl } from '../cdn-paths';
+import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 
@@ -81,3 +49,5 @@ export const getOptionListIds = (owner: string, app: string) => get<string[]>(op
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
 export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl());
+export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
+export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));

@@ -10,8 +10,13 @@ import { TextField } from '@digdir/design-system-react';
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
   component: FormComponent;
+  helpText?: string;
 }
-export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {
+export const EditComponentId = ({
+  component,
+  handleComponentUpdate,
+  helpText,
+}: IEditComponentId) => {
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const { t } = useTranslation();
 
@@ -28,22 +33,29 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
       label={t('ux_editor.modal_properties_component_change_id')}
       value={component.id}
       onChange={handleIdChange}
-      propertyPath='definitions/component/properties/id'
+      propertyPath='$defs/component/properties/id'
+      componentType={component.type}
+      helpText={helpText}
       customValidationRules={(value: string) => {
         if (value !== component.id && idExists(value, components, containers)) {
-          return "unique";
+          return 'unique';
         }
       }}
       customValidationMessages={(errorCode: string) => {
-        if (errorCode === "unique") {
+        if (errorCode === 'unique') {
           return t('ux_editor.modal_properties_component_id_not_unique_error');
         }
-        if (errorCode === "pattern") {
+        if (errorCode === 'pattern') {
           return t('ux_editor.modal_properties_component_id_not_valid');
         }
       }}
     >
-      {({ onChange }) => <TextField name={`component-id-input${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+      {({ onChange }) => (
+        <TextField
+          name={`component-id-input${component.id}`}
+          onChange={(e) => onChange(e.target.value, e)}
+        />
+      )}
     </FormField>
   );
 };
