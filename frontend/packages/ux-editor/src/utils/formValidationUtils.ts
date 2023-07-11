@@ -55,7 +55,7 @@ export const getFullyQualifiedComponentSchemaId = (component: string): string =>
   return `https://altinncdn.no/schemas/json/component/${component}.schema.v1.json`;
 };
 
-export const getFullyQualifiedComponentSchemaIdFromRef = (ref: string): string => {
+export const getFullyQualifiedSchemaIdFromRef = (ref: string): string => {
   if (!ref) return null;
   if (ref.startsWith('../layout')) {
     return `https://altinncdn.no/schemas/json/${ref.replace('../', '')}`;
@@ -71,10 +71,13 @@ export const dereferenceSchema = (schema: any): any => {
     if (ref.includes('layout/expression.schema.v1.json')) {
       return schema;
     }
-    const refId = getFullyQualifiedComponentSchemaIdFromRef(ref);
-    const refSchema = ajv.getSchema(refId);
+    const refId = getFullyQualifiedSchemaIdFromRef(ref);
+    const refBase = refId.substring(0, ref.indexOf('#'));
+    const refPath = refId.substring(ref.indexOf('#') + 1);
+    const refName = refPath.substring(refPath.lastIndexOf('/') + 1);
+    const refSchema = ajv.getSchema(refBase);
     if (refSchema) {
-      return dereferenceSchema(refSchema.schema);
+      return dereferenceSchema(refSchema.schema['definitions'][refName]);
     }
   }
   if (schema.properties) {

@@ -64,7 +64,7 @@ describe('formValidationUtils', () => {
     it('should return the dereferenced schema', () => {
       expect(
         dereferenceSchema({
-          $ref: 'common-defs.schema.v1.json#/$defs/basicDataModelBindings',
+          $ref: 'common-defs.schema.v1.json#/definitions/basicDataModelBindings',
         })
       ).toEqual({
         title: 'Data model bindings',
@@ -92,34 +92,18 @@ describe('formValidationUtils', () => {
               description:
                 'Boolean or expression indicating if the component is required when filling in the form. Defaults to false.',
               default: false,
-              $ref: '../layout/expression.schema.v1.json#/$defs/boolean',
+              $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
             },
           },
         })
       ).toEqual({
         properties: {
           required: {
-            title: 'Any expression returning boolean',
-            anyOf: [
-              {
-                type: 'null',
-                title: 'Null/missing value',
-              },
-              {
-                $ref: '#/$defs/strict-boolean',
-              },
-              {
-                $ref: '#/$defs/func-if',
-              },
-              {
-                $ref: '#/$defs/strict-string',
-                description: 'Stringy true/false/0/1 can be cast to boolean',
-              },
-              {
-                $ref: '#/$defs/strict-number',
-                description: 'Numeric 0/1 can be cast to boolean',
-              },
-            ],
+            title: 'Required',
+            description:
+              'Boolean or expression indicating if the component is required when filling in the form. Defaults to false.',
+            default: false,
+            $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
           },
         },
       });
