@@ -376,12 +376,10 @@ describe('ui-schema-reducers', () => {
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
       updatedNode.children.forEach((childPointer) => {
-        if (uiSchemaCopy.isArray = true) {
-          expect(childPointer).toContain(Keyword.Items);
-          getChildNodesByPointer(result, pointer).forEach((childNode) => {
-            expect(childNode.pointer).toContain(Keyword.Items);
-          });
-        }
+        expect(childPointer).toContain(Keyword.Items);
+        getChildNodesByPointer(result, pointer).forEach((childNode) => {
+          expect(childNode.pointer).toContain(Keyword.Items);
+        });
       });
     });
 
@@ -393,12 +391,10 @@ describe('ui-schema-reducers', () => {
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
       updatedNode.children.forEach((childPointer) => {
-        if (uiSchemaCopy.isArray = false) {
-          expect(childPointer).not.toContain(Keyword.Items);
-          getChildNodesByPointer(result, pointer).forEach((childNode) => {
-            expect(childNode.pointer).not.toContain(Keyword.Items);
-          });
-        }
+        expect(childPointer).not.toContain(Keyword.Items);
+        getChildNodesByPointer(result, pointer).forEach((childNode) => {
+          expect(childNode.pointer).not.toContain(Keyword.Items);
+        });
       });
     })
   });
