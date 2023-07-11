@@ -64,7 +64,7 @@ describe('formValidationUtils', () => {
     it('should return the dereferenced schema', () => {
       expect(
         dereferenceSchema({
-          $ref: 'common-defs.schema.v1.json#/definitions/basicDataModelBindings',
+          $ref: 'https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings',
         })
       ).toEqual({
         title: 'Data model bindings',

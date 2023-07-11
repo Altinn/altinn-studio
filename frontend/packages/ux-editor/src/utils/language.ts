@@ -140,8 +140,9 @@ export function getTextResource(resourceKey: string, textResources: ITextResourc
 
 export const getComponentPropertyLabel = (propertyKey: string, t: UseText): string => {
   const translationKey: string = `ux_editor.component_properties.${propertyKey}`;
-  if (allTranslationKeys.includes(translationKey)) {
-    return t(translationKey as TranslationKey);
-  }
-  return propertyKey;
+  // if (allTranslationKeys.includes(translationKey)) {
+  //   return t(translationKey as TranslationKey);
+  // }
+  // return propertyKey;
+  return t(translationKey as TranslationKey);
 };
