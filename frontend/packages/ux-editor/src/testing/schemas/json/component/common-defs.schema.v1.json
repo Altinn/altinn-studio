@@ -1,10 +1,10 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Common $defs",
-  "description": "Schema that contains common $defs used by components",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Common definitions",
+  "description": "Schema that contains common definitions used by components",
   "type": "object",
-  "$defs": {
+  "definitions": {
     "id": {
       "type": "string",
       "title": "id",
@@ -15,25 +15,25 @@
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "renderAsSummary": {
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "required": {
       "title": "Required",
       "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "readOnly": {
       "title": "Read only",
       "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "basicTextResources": {
       "type": "object",
@@ -90,27 +90,27 @@
     "gridProps": {
       "properties": {
         "xs": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "xs",
           "description": "Grid breakpoint at 0px"
         },
         "sm": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "sm",
           "description": "Grid breakpoint at 600px"
         },
         "md": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "md",
           "description": "Grid breakpoint at 960px"
         },
         "lg": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "lg",
           "description": "Grid breakpoint at 1280px"
         },
         "xl": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "xl",
           "description": "Grid breakpoint at 1920px"
         }
@@ -119,7 +119,7 @@
     "gridSettings": {
       "allOf": [
         {
-          "$ref": "#/$defs/gridProps"
+          "$ref": "#/definitions/gridProps"
         }
       ],
       "properties": {
@@ -131,7 +131,7 @@
               "xs": 12
             }
           ],
-          "$ref": "#/$defs/gridProps"
+          "$ref": "#/definitions/gridProps"
         },
         "innerGrid": {
           "title": "innerGrid",
@@ -141,7 +141,7 @@
               "xs": 12
             }
           ],
-          "$ref": "#/$defs/gridProps"
+          "$ref": "#/definitions/gridProps"
         }
       }
     },
@@ -178,7 +178,7 @@
             "avoid"
           ],
           "default": "auto",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/string"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
@@ -189,7 +189,7 @@
             "avoid"
           ],
           "default": "auto",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/string"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/string"
         }
       }
     },
@@ -338,13 +338,13 @@
           "items": {
             "anyOf": [
               {
-                "$ref": "#/$defs/gridCellText"
+                "$ref": "#/definitions/gridCellText"
               },
               {
-                "$ref": "#/$defs/gridCellComponent"
+                "$ref": "#/definitions/gridCellComponent"
               },
               {
-                "$ref": "#/$defs/tableColumnOptions"
+                "$ref": "#/definitions/tableColumnOptions"
               },
               {
                 "type": "null",
@@ -366,7 +366,7 @@
           "type": "string"
         }
       },
-      "$ref": "#/$defs/tableColumnOptions",
+      "$ref": "#/definitions/tableColumnOptions",
       "required": [
         "text"
       ]
@@ -379,7 +379,7 @@
           "type": "string"
         }
       },
-      "$ref": "#/$defs/tableColumnOptions",
+      "$ref": "#/definitions/tableColumnOptions",
       "required": [
         "component"
       ]
@@ -403,28 +403,28 @@
           "description": "Conditions for filtering visible items in repeating group",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/groupFilterItem"
+            "$ref": "#/definitions/groupFilterItem"
           }
         },
         "saveButton": {
           "title": "Save button",
           "description": "Boolean or expression indicating whether save button should be shown or not for a given row",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
         },
         "saveAndNextButton": {
           "title": "Save and open next button",
           "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
         },
         "deleteButton": {
           "title": "Delete button",
           "description": "Boolean or expression indicating whether delete button should be shown or not for a given row",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
         },
         "editButton": {
           "title": "Edit button",
           "description": "Boolean or expression indicating whether edit button should be shown or not for a given row",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
         },
         "multiPage": {
           "title": "Multi-page",
@@ -434,7 +434,7 @@
         "addButton": {
           "title": "Add button",
           "description": "Boolean or expression indicating whether add new button should be shown or not under the table.",
-          "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
         },
         "alwaysShowAddButton": {
           "title": "Show add button on open group",
@@ -558,7 +558,7 @@
       "type": "object",
       "allOf": [
         {
-          "$ref": "#/$defs/tableColumnTextOptions"
+          "$ref": "#/definitions/tableColumnTextOptions"
         },
         {
           "type": "object",

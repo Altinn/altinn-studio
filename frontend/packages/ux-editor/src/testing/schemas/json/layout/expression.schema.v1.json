@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Expression",
   "description": "Multi-purpose expression mini-language used to declare dynamic behaviour in Altinn 3 apps",
   "examples": [
@@ -84,8 +84,8 @@
       "?"
     ]
   ],
-  "$ref": "#/$defs/any",
-  "$defs": {
+  "$ref": "#/definitions/any",
+  "definitions": {
     "any": {
       "title": "Any expression",
       "anyOf": [
@@ -94,16 +94,16 @@
           "title": "Null/missing value"
         },
         {
-          "$ref": "#/$defs/strict-string"
+          "$ref": "#/definitions/strict-string"
         },
         {
-          "$ref": "#/$defs/strict-boolean"
+          "$ref": "#/definitions/strict-boolean"
         },
         {
-          "$ref": "#/$defs/strict-number"
+          "$ref": "#/definitions/strict-number"
         },
         {
-          "$ref": "#/$defs/func-if"
+          "$ref": "#/definitions/func-if"
         }
       ]
     },
@@ -115,17 +115,17 @@
           "title": "Null/missing value"
         },
         {
-          "$ref": "#/$defs/strict-string"
+          "$ref": "#/definitions/strict-string"
         },
         {
-          "$ref": "#/$defs/func-if"
+          "$ref": "#/definitions/func-if"
         },
         {
-          "$ref": "#/$defs/strict-number",
+          "$ref": "#/definitions/strict-number",
           "description": "Numbers can be cast to strings"
         },
         {
-          "$ref": "#/$defs/strict-boolean",
+          "$ref": "#/definitions/strict-boolean",
           "description": "Booleans can be cast to strings"
         }
       ]
@@ -138,34 +138,34 @@
           "title": "String constant"
         },
         {
-          "$ref": "#/$defs/func-component"
+          "$ref": "#/definitions/func-component"
         },
         {
-          "$ref": "#/$defs/func-dataModel"
+          "$ref": "#/definitions/func-dataModel"
         },
         {
-          "$ref": "#/$defs/func-instanceContext"
+          "$ref": "#/definitions/func-instanceContext"
         },
         {
-          "$ref": "#/$defs/func-frontendSettings"
+          "$ref": "#/definitions/func-frontendSettings"
         },
         {
-          "$ref": "#/$defs/func-concat"
+          "$ref": "#/definitions/func-concat"
         },
         {
-          "$ref": "#/$defs/func-round"
+          "$ref": "#/definitions/func-round"
         },
         {
-          "$ref": "#/$defs/func-text"
+          "$ref": "#/definitions/func-text"
         },
         {
-          "$ref": "#/$defs/func-language"
+          "$ref": "#/definitions/func-language"
         },
         {
-          "$ref": "#/$defs/func-lowerCase"
+          "$ref": "#/definitions/func-lowerCase"
         },
         {
-          "$ref": "#/$defs/func-upperCase"
+          "$ref": "#/definitions/func-upperCase"
         }
       ]
     },
@@ -177,17 +177,17 @@
           "title": "Null/missing value"
         },
         {
-          "$ref": "#/$defs/strict-boolean"
+          "$ref": "#/definitions/strict-boolean"
         },
         {
-          "$ref": "#/$defs/func-if"
+          "$ref": "#/definitions/func-if"
         },
         {
-          "$ref": "#/$defs/strict-string",
+          "$ref": "#/definitions/strict-string",
           "description": "Stringy true/false/0/1 can be cast to boolean"
         },
         {
-          "$ref": "#/$defs/strict-number",
+          "$ref": "#/definitions/strict-number",
           "description": "Numeric 0/1 can be cast to boolean"
         }
       ]
@@ -200,49 +200,49 @@
           "title": "Boolean constant"
         },
         {
-          "$ref": "#/$defs/func-equals"
+          "$ref": "#/definitions/func-equals"
         },
         {
-          "$ref": "#/$defs/func-notEquals"
+          "$ref": "#/definitions/func-notEquals"
         },
         {
-          "$ref": "#/$defs/func-greaterThan"
+          "$ref": "#/definitions/func-greaterThan"
         },
         {
-          "$ref": "#/$defs/func-greaterThanEq"
+          "$ref": "#/definitions/func-greaterThanEq"
         },
         {
-          "$ref": "#/$defs/func-lessThan"
+          "$ref": "#/definitions/func-lessThan"
         },
         {
-          "$ref": "#/$defs/func-lessThanEq"
+          "$ref": "#/definitions/func-lessThanEq"
         },
         {
-          "$ref": "#/$defs/func-not"
+          "$ref": "#/definitions/func-not"
         },
         {
-          "$ref": "#/$defs/func-and"
+          "$ref": "#/definitions/func-and"
         },
         {
-          "$ref": "#/$defs/func-or"
+          "$ref": "#/definitions/func-or"
         },
         {
-          "$ref": "#/$defs/func-authContext"
+          "$ref": "#/definitions/func-authContext"
         },
         {
-          "$ref": "#/$defs/func-contains"
+          "$ref": "#/definitions/func-contains"
         },
         {
-          "$ref": "#/$defs/func-notContains"
+          "$ref": "#/definitions/func-notContains"
         },
         {
-          "$ref": "#/$defs/func-endsWith"
+          "$ref": "#/definitions/func-endsWith"
         },
         {
-          "$ref": "#/$defs/func-startsWith"
+          "$ref": "#/definitions/func-startsWith"
         },
         {
-          "$ref": "#/$defs/func-commaContains"
+          "$ref": "#/definitions/func-commaContains"
         }
       ]
     },
@@ -254,13 +254,13 @@
           "title": "Null/missing value"
         },
         {
-          "$ref": "#/$defs/strict-number"
+          "$ref": "#/definitions/strict-number"
         },
         {
-          "$ref": "#/$defs/func-if"
+          "$ref": "#/definitions/func-if"
         },
         {
-          "$ref": "#/$defs/strict-string",
+          "$ref": "#/definitions/strict-string",
           "description": "Numeric strings can be cast to numbers"
         }
       ]
@@ -273,7 +273,7 @@
           "title": "Numeric constant"
         },
         {
-          "$ref": "#/$defs/func-stringLength"
+          "$ref": "#/definitions/func-stringLength"
         }
       ]
     },
@@ -282,10 +282,10 @@
       "description": "This function will evaluate and return the result of either branch. If else is not given, null will be returned instead.",
       "anyOf": [
         {
-          "$ref": "#/$defs/func-if-with-else"
+          "$ref": "#/definitions/func-if-with-else"
         },
         {
-          "$ref": "#/$defs/func-if-without-else"
+          "$ref": "#/definitions/func-if-without-else"
         }
       ]
     },
@@ -296,10 +296,10 @@
           "const": "if"
         },
         {
-          "$ref": "#/$defs/boolean"
+          "$ref": "#/definitions/boolean"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         }
       ],
       "additionalItems": false
@@ -312,17 +312,17 @@
           "const": "if"
         },
         {
-          "$ref": "#/$defs/boolean"
+          "$ref": "#/definitions/boolean"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         },
         {
           "type": "string",
           "const": "else"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         }
       ],
       "additionalItems": false
@@ -337,7 +337,7 @@
           "const": "component"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -352,7 +352,7 @@
           "const": "dataModel"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -408,7 +408,7 @@
           "const": "frontendSettings"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -424,7 +424,7 @@
         }
       ],
       "additionalItems": {
-        "$ref": "#/$defs/string"
+        "$ref": "#/definitions/string"
       }
     },
     "func-equals": {
@@ -436,10 +436,10 @@
           "const": "equals"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         }
       ],
       "additionalItems": false
@@ -454,10 +454,10 @@
           "const": "notEquals"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         },
         {
-          "$ref": "#/$defs/any"
+          "$ref": "#/definitions/any"
         }
       ],
       "additionalItems": false
@@ -472,7 +472,7 @@
           "const": "not"
         },
         {
-          "$ref": "#/$defs/boolean"
+          "$ref": "#/definitions/boolean"
         }
       ],
       "additionalItems": false
@@ -487,10 +487,10 @@
           "const": "greaterThan"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         }
       ],
       "additionalItems": false
@@ -505,10 +505,10 @@
           "const": "greaterThanEq"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         }
       ],
       "additionalItems": false
@@ -523,10 +523,10 @@
           "const": "lessThan"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         }
       ],
       "additionalItems": false
@@ -541,10 +541,10 @@
           "const": "lessThanEq"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         }
       ],
       "additionalItems": false
@@ -559,11 +559,11 @@
           "const": "and"
         },
         {
-          "$ref": "#/$defs/boolean"
+          "$ref": "#/definitions/boolean"
         }
       ],
       "additionalItems": {
-        "$ref": "#/$defs/boolean"
+        "$ref": "#/definitions/boolean"
       }
     },
     "func-or": {
@@ -576,11 +576,11 @@
           "const": "or"
         },
         {
-          "$ref": "#/$defs/boolean"
+          "$ref": "#/definitions/boolean"
         }
       ],
       "additionalItems": {
-        "$ref": "#/$defs/boolean"
+        "$ref": "#/definitions/boolean"
       }
     },
     "func-round": {
@@ -593,10 +593,10 @@
           "const": "round"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         },
         {
-          "$ref": "#/$defs/number"
+          "$ref": "#/definitions/number"
         }
       ],
       "additionalItems": false
@@ -611,7 +611,7 @@
           "const": "text"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -638,10 +638,10 @@
           "const": "contains"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -656,10 +656,10 @@
           "const": "notContains"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -674,10 +674,10 @@
           "const": "startsWith"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -692,10 +692,10 @@
           "const": "endsWith"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -710,7 +710,7 @@
           "const": "stringLength"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -725,10 +725,10 @@
           "const": "commaContains"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -743,7 +743,7 @@
           "const": "lowerCase"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
@@ -758,7 +758,7 @@
           "const": "upperCase"
         },
         {
-          "$ref": "#/$defs/string"
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false

@@ -1,12 +1,12 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/Input.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Input component",
   "description": "Schema that describes the layout configuration for an input component.",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common-defs.schema.v1.json#/$defs/id"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
     },
     "type": {
       "type": "string",
@@ -34,13 +34,13 @@
       "title": "Required",
       "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "readOnly": {
       "title": "Read only",
       "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "textResourceBindings": {
       "type": "object",
@@ -69,28 +69,28 @@
       "additionalProperties": true
     },
     "triggers": {
-      "$ref": "common-defs.schema.v1.json#/$defs/triggers"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/triggers"
     },
     "grid": {
-      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings"
     },
     "labelSettings": {
-      "$ref": "common-defs.schema.v1.json#/$defs/labelSettings"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/labelSettings"
     },
     "pageBreak": {
-      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "renderAsSummary": {
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "formatting": {
       "title": "Input formatting",
@@ -347,7 +347,7 @@
       ]
     },
     "autocomplete": {
-      "$ref": "common-defs.schema.v1.json#/$defs/autocomplete"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/autocomplete"
     },
     "maxLength": {
       "title": "Maximum length",

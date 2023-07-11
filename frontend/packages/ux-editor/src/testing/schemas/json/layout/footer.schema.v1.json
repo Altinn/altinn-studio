@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/footer.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Altinn footer",
   "description": "Schema that describes the footer configuration for Altinn applications.",
   "type": "object",
@@ -12,11 +12,11 @@
       "description": "Array of components to be presented in the footer.",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/footerLayout"
+        "$ref": "#/definitions/footerLayout"
       }
     }
   },
-  "$defs": {
+  "definitions": {
     "footerLayout": {
       "properties": {
         "type": {
@@ -44,7 +44,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/emailComponent"
+            "$ref": "#/definitions/emailComponent"
           }
         },
         {
@@ -56,7 +56,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/linkComponent"
+            "$ref": "#/definitions/linkComponent"
           }
         },
         {
@@ -68,7 +68,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/phoneComponent"
+            "$ref": "#/definitions/phoneComponent"
           }
         },
         {
@@ -80,7 +80,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/textComponent"
+            "$ref": "#/definitions/textComponent"
           }
         }
       ]
@@ -105,7 +105,7 @@
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/$defs/title"
+          "$ref": "#/definitions/title"
         },
         "target": {
           "type": "string",
@@ -123,7 +123,7 @@
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/$defs/title"
+          "$ref": "#/definitions/title"
         },
         "target": {
           "type": "string",
@@ -131,7 +131,7 @@
           "description": "The URL to link to. Can be a text resource."
         },
         "icon": {
-          "$ref": "#/$defs/icon"
+          "$ref": "#/definitions/icon"
         }
       },
       "required": [
@@ -144,7 +144,7 @@
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/$defs/title"
+          "$ref": "#/definitions/title"
         },
         "target": {
           "type": "string",
@@ -162,7 +162,7 @@
       "properties": {
         "type": true,
         "title": {
-          "$ref": "#/$defs/title"
+          "$ref": "#/definitions/title"
         }
       },
       "required": [

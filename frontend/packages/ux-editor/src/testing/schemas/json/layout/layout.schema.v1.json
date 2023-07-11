@@ -1,23 +1,23 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Altinn layout",
   "description": "Schema that describes the layout configuration for Altinn applications.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
     "data": {
-      "$ref": "#/$defs/data"
+      "$ref": "#/definitions/data"
     }
   },
-  "$defs": {
+  "definitions": {
     "data": {
       "title": "The layout data",
       "description": "Contains data describing the layout configuration.",
       "type": "object",
       "properties": {
         "layout": {
-          "$ref": "#/$defs/layout"
+          "$ref": "#/definitions/layout"
         }
       }
     },
@@ -26,7 +26,7 @@
       "description": "Array of components to be presented in the layout.",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/component"
+        "$ref": "#/definitions/component"
       }
     },
     "component": {
@@ -81,32 +81,32 @@
           "title": "Required",
           "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "readOnly": {
           "title": "Read only",
           "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "renderAsSummary": {
           "title": "Render as summary",
           "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "hidden": {
           "title": "Hidden",
           "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
           "default": false,
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "textResourceBindings": {
           "type": "object",
           "title": "Text resource bindings",
           "description": "Text resource bindings for a component.",
           "additionalProperties": {
-            "$ref": "expression.schema.v1.json#/$defs/string"
+            "$ref": "expression.schema.v1.json#/definitions/string"
           },
           "examples": [
             {
@@ -129,7 +129,7 @@
           ]
         },
         "triggers": {
-          "$ref": "#/$defs/triggers"
+          "$ref": "#/definitions/triggers"
         },
         "labelSettings": {
           "type": "object",
@@ -148,7 +148,7 @@
           "type": "object",
           "title": "Grid",
           "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-          "$ref": "#/$defs/gridSettings",
+          "$ref": "#/definitions/gridSettings",
           "examples": [
             {
               "xs": 12
@@ -156,7 +156,7 @@
           ]
         },
         "pageBreak": {
-          "$ref": "#/$defs/pageBreak"
+          "$ref": "#/definitions/pageBreak"
         }
       },
       "required": [
@@ -173,7 +173,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/actionButtonComponent"
+            "$ref": "#/definitions/actionButtonComponent"
           }
         },
         {
@@ -185,7 +185,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/addressComponent"
+            "$ref": "#/definitions/addressComponent"
           }
         },
         {
@@ -197,7 +197,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/attachmentListComponent"
+            "$ref": "#/definitions/attachmentListComponent"
           }
         },
         {
@@ -209,7 +209,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/buttonGroupComponent"
+            "$ref": "#/definitions/buttonGroupComponent"
           }
         },
         {
@@ -221,7 +221,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/radioAndCheckboxComponents"
+            "$ref": "#/definitions/radioAndCheckboxComponents"
           }
         },
         {
@@ -233,7 +233,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/customComponent"
+            "$ref": "#/definitions/customComponent"
           }
         },
         {
@@ -245,7 +245,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/datepickerComponent"
+            "$ref": "#/definitions/datepickerComponent"
           }
         },
         {
@@ -257,7 +257,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/selectionComponents"
+            "$ref": "#/definitions/selectionComponents"
           }
         },
         {
@@ -269,7 +269,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/fileUploadComponent"
+            "$ref": "#/definitions/fileUploadComponent"
           }
         },
         {
@@ -281,7 +281,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/fileUploadWithTagComponent"
+            "$ref": "#/definitions/fileUploadWithTagComponent"
           }
         },
         {
@@ -293,7 +293,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/gridComponent"
+            "$ref": "#/definitions/gridComponent"
           }
         },
         {
@@ -305,7 +305,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/groupComponent"
+            "$ref": "#/definitions/groupComponent"
           }
         },
         {
@@ -317,7 +317,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/imageComponent"
+            "$ref": "#/definitions/imageComponent"
           }
         },
         {
@@ -329,7 +329,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/iframeComponent"
+            "$ref": "#/definitions/iframeComponent"
           }
         },
         {
@@ -341,7 +341,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputComponent"
+            "$ref": "#/definitions/inputComponent"
           }
         },
         {
@@ -353,7 +353,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/textAreaComponent"
+            "$ref": "#/definitions/textAreaComponent"
           }
         },
         {
@@ -365,7 +365,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/instanceInformationComponent"
+            "$ref": "#/definitions/instanceInformationComponent"
           }
         },
         {
@@ -377,7 +377,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/instantiationButtonComponent"
+            "$ref": "#/definitions/instantiationButtonComponent"
           }
         },
         {
@@ -389,7 +389,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/radioAndCheckboxComponents"
+            "$ref": "#/definitions/radioAndCheckboxComponents"
           }
         },
         {
@@ -401,7 +401,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/linkComponent"
+            "$ref": "#/definitions/linkComponent"
           }
         },
         {
@@ -413,7 +413,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/selectionComponents"
+            "$ref": "#/definitions/selectionComponents"
           }
         },
         {
@@ -425,7 +425,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/navigationButtonsComponent"
+            "$ref": "#/definitions/navigationButtonsComponent"
           }
         },
         {
@@ -437,7 +437,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/navigationBarComponent"
+            "$ref": "#/definitions/navigationBarComponent"
           }
         },
         {
@@ -449,7 +449,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/radioAndCheckboxComponents"
+            "$ref": "#/definitions/radioAndCheckboxComponents"
           }
         },
         {
@@ -461,7 +461,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/summaryComponent"
+            "$ref": "#/definitions/summaryComponent"
           }
         },
         {
@@ -473,7 +473,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/headerComponent"
+            "$ref": "#/definitions/headerComponent"
           }
         },
         {
@@ -485,7 +485,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/panelComponent"
+            "$ref": "#/definitions/panelComponent"
           }
         },
         {
@@ -497,7 +497,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/listComponent"
+            "$ref": "#/definitions/listComponent"
           }
         },
         {
@@ -509,7 +509,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/mapComponent"
+            "$ref": "#/definitions/mapComponent"
           }
         }
       ]
@@ -624,7 +624,7 @@
     "fileUploadWithTagComponent": {
       "allOf": [
         {
-          "$ref": "#/$defs/fileUploadComponent"
+          "$ref": "#/definitions/fileUploadComponent"
         }
       ],
       "properties": {
@@ -634,7 +634,7 @@
           "description": "Reference to connected options by id."
         },
         "mapping": {
-          "$ref": "#/$defs/mapping",
+          "$ref": "#/definitions/mapping",
           "description": "Optionally used to map options"
         }
       },
@@ -732,7 +732,7 @@
     "instantiationButtonComponent": {
       "properties": {
         "mapping": {
-          "$ref": "#/$defs/mapping",
+          "$ref": "#/definitions/mapping",
           "description": "Creates a new app instance with data collected from a stateless part of the app."
         }
       }
@@ -802,7 +802,7 @@
     "gridSettings": {
       "allOf": [
         {
-          "$ref": "#/$defs/gridProps"
+          "$ref": "#/definitions/gridProps"
         }
       ],
       "properties": {
@@ -814,7 +814,7 @@
               "xs": 12
             }
           ],
-          "$ref": "#/$defs/gridProps"
+          "$ref": "#/definitions/gridProps"
         },
         "innerGrid": {
           "title": "innerGrid",
@@ -824,34 +824,34 @@
               "xs": 12
             }
           ],
-          "$ref": "#/$defs/gridProps"
+          "$ref": "#/definitions/gridProps"
         }
       }
     },
     "gridProps": {
       "properties": {
         "xs": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "xs",
           "description": "Grid breakpoint at 0px"
         },
         "sm": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "sm",
           "description": "Grid breakpoint at 600px"
         },
         "md": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "md",
           "description": "Grid breakpoint at 960px"
         },
         "lg": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "lg",
           "description": "Grid breakpoint at 1280px"
         },
         "xl": {
-          "$ref": "#/$defs/gridValue",
+          "$ref": "#/definitions/gridValue",
           "title": "xl",
           "description": "Grid breakpoint at 1920px"
         }
@@ -864,7 +864,7 @@
           "description": "An array of rows to be rendered in the grid.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/gridRow"
+            "$ref": "#/definitions/gridRow"
           }
         }
       },
@@ -893,13 +893,13 @@
           "items": {
             "anyOf": [
               {
-                "$ref": "#/$defs/gridCellText"
+                "$ref": "#/definitions/gridCellText"
               },
               {
-                "$ref": "#/$defs/gridCellComponent"
+                "$ref": "#/definitions/gridCellComponent"
               },
               {
-                "$ref": "#/$defs/tableColumnOptions"
+                "$ref": "#/definitions/tableColumnOptions"
               },
               {
                 "type": "null",
@@ -921,7 +921,7 @@
           "type": "string"
         }
       },
-      "$ref": "#/$defs/tableColumnOptions",
+      "$ref": "#/definitions/tableColumnOptions",
       "required": [
         "text"
       ]
@@ -934,7 +934,7 @@
           "type": "string"
         }
       },
-      "$ref": "#/$defs/tableColumnOptions",
+      "$ref": "#/definitions/tableColumnOptions",
       "required": [
         "component"
       ]
@@ -969,17 +969,17 @@
         "hiddenRow": {
           "title": "Hidden row",
           "description": "Boolean to decide whether the row should be displayed.",
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "edit": {
           "title": "Edit",
           "description": "Alternatives for edit view of repeating group",
-          "$ref": "#/$defs/groupEditOptions"
+          "$ref": "#/definitions/groupEditOptions"
         },
         "panel": {
           "title": "Panel",
           "description": "Alternatives for panel view of repeating group",
-          "$ref": "#/$defs/groupPanelOptions"
+          "$ref": "#/definitions/groupPanelOptions"
         },
         "showGroupingIndicator": {
           "title": "Show grouping indicator",
@@ -998,7 +998,7 @@
           "description": "An array of rows to be rendered before the group table (using Grid component configuration)",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/gridRow"
+            "$ref": "#/definitions/gridRow"
           }
         },
         "rowsAfter": {
@@ -1006,7 +1006,7 @@
           "description": "An array of rows to be rendered after the group table (using Grid component configuration)",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/gridRow"
+            "$ref": "#/definitions/gridRow"
           }
         },
         "tableHeaders": {
@@ -1026,7 +1026,7 @@
             "type": "object",
             "allOf": [
               {
-                "$ref": "#/$defs/tableColumnOptions"
+                "$ref": "#/definitions/tableColumnOptions"
               },
               {
                 "type": "object",
@@ -1072,28 +1072,28 @@
           "description": "Conditions for filtering visible items in repeating group",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/groupFilterItem"
+            "$ref": "#/definitions/groupFilterItem"
           }
         },
         "saveButton": {
           "title": "Save button",
           "description": "Boolean or expression indicating whether save button should be shown or not for a given row",
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "saveAndNextButton": {
           "title": "Save and open next button",
           "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button",
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "deleteButton": {
           "title": "Delete button",
           "description": "Boolean or expression indicating whether delete button should be shown or not for a given row",
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "editButton": {
           "title": "Edit button",
           "description": "Boolean or expression indicating whether edit button should be shown or not for a given row",
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "multiPage": {
           "title": "Multi-page",
@@ -1103,7 +1103,7 @@
         "addButton": {
           "title": "Add button",
           "description": "Boolean or expression indicating whether add new button should be shown or not under the table.",
-          "$ref": "expression.schema.v1.json#/$defs/boolean"
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "alwaysShowAddButton": {
           "title": "Show add button on open group",
@@ -1137,7 +1137,7 @@
     "groupPanelOptions": {
       "allOf": [
         {
-          "$ref": "#/$defs/panelComponent"
+          "$ref": "#/definitions/panelComponent"
         }
       ],
       "properties": {
@@ -1193,7 +1193,7 @@
       "type": "object",
       "allOf": [
         {
-          "$ref": "#/$defs/tableColumnTextOptions"
+          "$ref": "#/definitions/tableColumnTextOptions"
         },
         {
           "type": "object",
@@ -1293,7 +1293,7 @@
           "title": "Options",
           "description": "An array of options. Only relevant if no optionsId is set.",
           "items": {
-            "$ref": "#/$defs/options"
+            "$ref": "#/definitions/options"
           }
         },
         "preselectedOptionIndex": {
@@ -1362,18 +1362,18 @@
           ]
         },
         "mapping": {
-          "$ref": "#/$defs/mapping",
+          "$ref": "#/definitions/mapping",
           "description": "Optionally used to map options"
         },
         "autocomplete": {
-          "$ref": "#/$defs/autocomplete"
+          "$ref": "#/definitions/autocomplete"
         }
       }
     },
     "radioAndCheckboxComponents": {
       "allOf": [
         {
-          "$ref": "#/$defs/selectionComponents"
+          "$ref": "#/definitions/selectionComponents"
         }
       ],
       "properties": {
@@ -1420,7 +1420,7 @@
           "default": false
         },
         "saveWhileTyping": {
-          "$ref": "#/$defs/saveWhileTyping"
+          "$ref": "#/definitions/saveWhileTyping"
         }
       }
     },
@@ -1587,10 +1587,10 @@
         "formatting": {
           "title": "Input formatting",
           "description": "Set of options for formatting input fields.",
-          "$ref": "#/$defs/inputFormatting"
+          "$ref": "#/definitions/inputFormatting"
         },
         "saveWhileTyping": {
-          "$ref": "#/$defs/saveWhileTyping"
+          "$ref": "#/definitions/saveWhileTyping"
         },
         "variant": {
           "type": "string",
@@ -1602,23 +1602,23 @@
           ]
         },
         "autocomplete": {
-          "$ref": "#/$defs/autocomplete"
+          "$ref": "#/definitions/autocomplete"
         },
         "maxLength": {
-          "$ref": "#/$defs/maxLength"
+          "$ref": "#/definitions/maxLength"
         }
       }
     },
     "textAreaComponent": {
       "properties": {
         "saveWhileTyping": {
-          "$ref": "#/$defs/saveWhileTyping"
+          "$ref": "#/definitions/saveWhileTyping"
         },
         "autocomplete": {
-          "$ref": "#/$defs/autocomplete"
+          "$ref": "#/definitions/autocomplete"
         },
         "maxLength": {
-          "$ref": "#/$defs/maxLength"
+          "$ref": "#/definitions/maxLength"
         }
       }
     },
@@ -1942,7 +1942,7 @@
         },
         "pagination": {
           "title": "Pagination",
-          "$ref": "#/$defs/paginationProperties"
+          "$ref": "#/definitions/paginationProperties"
         },
         "dataListId": {
           "type": "string",
@@ -1960,7 +1960,7 @@
           "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings."
         },
         "mapping": {
-          "$ref": "#/$defs/mapping",
+          "$ref": "#/definitions/mapping",
           "description": "(Optional) Used to map data model paths to query parameters when fetching list data."
         }
       },
@@ -2002,7 +2002,7 @@
             "avoid"
           ],
           "default": "auto",
-          "$ref": "expression.schema.v1.json#/$defs/string"
+          "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
@@ -2013,7 +2013,7 @@
             "avoid"
           ],
           "default": "auto",
-          "$ref": "expression.schema.v1.json#/$defs/string"
+          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },

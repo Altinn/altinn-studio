@@ -1,12 +1,12 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/List.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "List component",
   "description": "Schema that describes the layout configuration for a List component.",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common-defs.schema.v1.json#/$defs/id"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
     },
     "type": {
       "type": "string",
@@ -63,7 +63,7 @@
     },
     "pagination": {
       "title": "Pagination",
-      "$ref": "common-defs.schema.v1.json#/$defs"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions"
     },
     "dataListId": {
       "type": "string",
@@ -81,26 +81,26 @@
       "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings."
     },
     "mapping": {
-      "$ref": "common-defs.schema.v1.json#/$defs/mapping",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/mapping",
       "description": "(Optional) Used to map data model paths to query parameters when fetching list data."
     },
     "renderAsSummary": {
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
       "type": "object",
       "title": "Grid",
       "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
       "examples": [
         {
           "xs": 12
@@ -108,7 +108,7 @@
       ]
     },
     "pageBreak": {
-      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
   "required": [

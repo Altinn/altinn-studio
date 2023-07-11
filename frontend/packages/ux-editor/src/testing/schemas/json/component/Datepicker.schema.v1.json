@@ -1,12 +1,12 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/Datepicker.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Datepicker component",
   "description": "Schema that describes the layout configuration for a Datepicker component.",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common-defs.schema.v1.json#/$defs/id"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
     },
     "type": {
       "type": "string",
@@ -15,16 +15,16 @@
       "const": "Datepicker"
     },
     "textResourceBindings": {
-      "$ref": "common-defs.schema.v1.json#/$defs/basicTextResources"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicTextResources"
     },
     "dataModelBindings": {
-      "$ref": "common-defs.schema.v1.json#/$defs/basicDataModelBindings"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings"
     },
     "required": {
-      "$ref": "common-defs.schema.v1.json#/$defs/required"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/required"
     },
     "readOnly": {
-      "$ref": "common-defs.schema.v1.json#/$defs/readOnly"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/readOnly"
     },
     "minDate": {
       "type": "string",
@@ -59,19 +59,19 @@
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
       "type": "object",
       "title": "Grid",
       "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
       "examples": [
         {
           "xs": 12
@@ -79,7 +79,7 @@
       ]
     },
     "pageBreak": {
-      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
   "required": [

@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Input number formatting",
   "description": "Schema that describes the options that can be configured for number formatting on an `input` component, based on react-number-format package. For complete list of available options, see https://s-yadav.github.io/react-number-format/docs/props",
   "type": "object",

@@ -1,12 +1,12 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/FileUpload.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "FileUpload component",
   "description": "Schema that describes the layout configuration for a FileUpload component.",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common-defs.schema.v1.json#/$defs/id"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
     },
     "type": {
       "type": "string",
@@ -15,7 +15,7 @@
       "const": "FileUpload"
     },
     "dataModelBindings": {
-      "$ref": "common-defs.schema.v1.json#/$defs/basicDataModelBindings"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings"
     },
     "textResourceBindings": {
       "type": "object",
@@ -65,7 +65,7 @@
     },
     "validFileEndings": {
       "title": "Valid file endings",
-      "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
+      "description": "A comma separated string of valid file endings to upload. If not set all endings are accepted.",
       "examples": [
         ".csv",
         ".doc",
@@ -91,19 +91,19 @@
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
       "type": "object",
       "title": "Grid",
       "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
       "examples": [
         {
           "xs": 12
@@ -111,7 +111,7 @@
       ]
     },
     "pageBreak": {
-      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
   "required": [

@@ -1,12 +1,12 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/Group.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Group component",
   "description": "Schema that describes the layout configuration for a Group component.",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common-defs.schema.v1.json#/$defs/id"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
     },
     "type": {
       "type": "string",
@@ -95,17 +95,17 @@
     "hiddenRow": {
       "title": "Hidden row",
       "description": "Boolean to decide whether the row should be displayed.",
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "edit": {
       "title": "Edit",
       "description": "Alternatives for edit view of repeating group",
-      "$ref": "common-defs.schema.v1.json#/$defs/groupEditOptions"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/groupEditOptions"
     },
     "panel": {
       "title": "Panel",
       "description": "Alternatives for panel view of repeating group",
-      "$ref": "common-defs.schema.v1.json#/$defs/groupPanelOptions"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/groupPanelOptions"
     },
     "showGroupingIndicator": {
       "title": "Show grouping indicator",
@@ -124,7 +124,7 @@
       "description": "An array of rows to be rendered before the group table (using Grid component configuration)",
       "type": "array",
       "items": {
-        "$ref": "common-defs.schema.v1.json#/$defs/gridRow"
+        "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridRow"
       }
     },
     "rowsAfter": {
@@ -132,7 +132,7 @@
       "description": "An array of rows to be rendered after the group table (using Grid component configuration)",
       "type": "array",
       "items": {
-        "$ref": "common-defs.schema.v1.json#/$defs/gridRow"
+        "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridRow"
       }
     },
     "tableHeaders": {
@@ -152,7 +152,7 @@
         "type": "object",
         "allOf": [
           {
-            "$ref": "common-defs.schema.v1.json#/$defs/tableColumnOptions"
+            "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/tableColumnOptions"
           },
           {
             "type": "object",
@@ -178,19 +178,19 @@
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "../layout/expression.schema.v1.json#/$defs/boolean"
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
       "type": "object",
       "title": "Grid",
       "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "common-defs.schema.v1.json#/$defs/gridSettings",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
       "examples": [
         {
           "xs": 12
@@ -198,7 +198,7 @@
       ]
     },
     "pageBreak": {
-      "$ref": "common-defs.schema.v1.json#/$defs/pageBreak"
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
   "required": [

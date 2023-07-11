@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/layout-sets.schema.v1.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Altinn layout sets",
   "description": "Schema that describes the different layout sets for an Altinn application and when to use them",
   "type": "object",
@@ -9,11 +9,11 @@
     "sets": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/layoutset"
+        "$ref": "#/definitions/layoutset"
       }
     }
   },
-  "$defs": {
+  "definitions": {
     "layoutset": {
       "type": "object",
       "additionalProperties": false,
@@ -30,7 +30,7 @@
           "description": "The datatype to use this layoyut."
         },
         "tasks": {
-          "$ref": "#/$defs/tasks"
+          "$ref": "#/definitions/tasks"
         }
       }
     },
