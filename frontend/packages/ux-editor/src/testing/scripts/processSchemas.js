@@ -30,6 +30,7 @@ const processSchemaFiles = (folderPath) => {
 };
 
 const run = () => {
+  processSchemaFiles(componentSchemaDirPath);
   processSchemaFiles(layoutSchemaDirPath);
 };
 
