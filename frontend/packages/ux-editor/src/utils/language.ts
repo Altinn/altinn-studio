@@ -2,6 +2,8 @@ import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import i18next from 'i18next';
+import { UseText } from '../hooks';
+import { allTranslationKeys, TranslationKey } from 'app-shared/types/language';
 
 export function getComponentHelperTextByComponentType(type: ComponentType, language: any): string {
   switch (type) {
@@ -96,7 +98,7 @@ export function getComponentTitleByComponentType(type: ComponentType, t: typeof 
       return t('ux_editor.component_map');
     }
     default: {
-      return '';
+      return type;
     }
   }
 }
@@ -135,3 +137,11 @@ export function getTextResource(resourceKey: string, textResources: ITextResourc
   const textResource = textResources?.find((resource) => resource.id === resourceKey);
   return textResource ? textResource.value : resourceKey;
 }
+
+export const getComponentPropertyLabel = (propertyKey: string, t: UseText): string => {
+  const translationKey: string = `ux_editor.component_properties.${propertyKey}`;
+  if (allTranslationKeys.includes(translationKey)) {
+    return t(translationKey as TranslationKey);
+  }
+  return propertyKey;
+};
