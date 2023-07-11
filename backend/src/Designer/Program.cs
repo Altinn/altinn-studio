@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Health;
@@ -190,6 +191,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
+
+    services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
     // Add application insight telemetry
     if (!string.IsNullOrEmpty(applicationInsightsKey))
