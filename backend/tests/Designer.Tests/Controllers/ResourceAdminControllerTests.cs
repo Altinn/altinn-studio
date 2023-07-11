@@ -392,7 +392,7 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/ttd/resources/publish/ttd-resources/testresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            _repositoryMock.Setup(r => r.PublishResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
+            _repositoryMock.Setup(r => r.PublishResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
 
             //Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);

@@ -75,5 +75,15 @@ namespace Altinn.Studio.Designer.Configuration
         /// The Url used for calling the resourceregistry
         /// </summary>
         public string ResourceRegistryUrl { get; set; }
+
+        /// <summary>
+        /// The environment-specific baseUrl
+        /// </summary>
+        public string ResourceRegistryEnvBaseUrl { get; set; }
+
+        /// <summary>
+        /// Base Url used in dev
+        /// </summary>
+        public string ResourceRegistryDevBaseUrl { get; set; }
     }
 }

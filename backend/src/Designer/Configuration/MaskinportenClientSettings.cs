@@ -11,5 +11,7 @@ namespace Altinn.Studio.Designer.Configuration
         public string Scope { get; set; }
 
         public string EncodedJwk { get; set; }
+
+        public bool ExhangeToAltinnToken { get; set; }
     }
 }

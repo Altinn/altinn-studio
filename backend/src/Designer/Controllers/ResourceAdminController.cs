@@ -99,9 +99,9 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
-        public Task<ActionResult> PublishResource(string org, string repository, string id)
+        public Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {
-            return _repository.PublishResource(org, repository, id);
+            return _repository.PublishResource(org, repository, id, env);
         }
     }
 }

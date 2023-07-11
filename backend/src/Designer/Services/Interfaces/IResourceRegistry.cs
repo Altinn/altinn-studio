@@ -10,7 +10,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Pushing ServiceResource to the ResourceRegistry
         /// </summary>
         /// <param name="serviceResource">The ServiceResource that should be added to the ResourceRegistry</param>
+        /// <param name="env">The environment the resource should be published to</param>
         /// <returns></returns>
-        Task<ActionResult> PublishServiceResource(ServiceResource serviceResource);
+        Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env);
     }
 }

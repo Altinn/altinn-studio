@@ -873,10 +873,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
-        public async Task<ActionResult> PublishResource(string org, string repository, string id)
+        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {
             ServiceResource resource = GetServiceResourceById(org, repository, id);
-            return await _resourceRegistryService.PublishServiceResource(resource);
+            return await _resourceRegistryService.PublishServiceResource(resource, env);
         }
 
         public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)

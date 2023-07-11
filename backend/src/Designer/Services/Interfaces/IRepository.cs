@@ -198,8 +198,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">The organisation that owns the repository</param>
         /// <param name="repository">The repository where the resource resides</param>
         /// <param name="id">The id of the resource that should be published</param>
+        /// <param name="env">The environment the resource will be published to</param>
         /// <returns></returns>
-        public Task<ActionResult> PublishResource(string org, string repository, string id);
+        public Task<ActionResult> PublishResource(string org, string repository, string id, string env);
 
         /// <summary>
         /// Returns the path to the app folder

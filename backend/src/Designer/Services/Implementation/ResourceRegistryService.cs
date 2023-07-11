@@ -34,16 +34,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
         }
 
-        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource)
+        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env = null)
         {
-            string resourceRegistryUrl = _platformSettings.ResourceRegistryUrl;
-            string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
-
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-            _httpClientFactory.CreateClient("myHttpClient");
+            
+            string fullResourceRegistryUrl;
+            if (env != null)
+            {
+                fullResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
+                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
+            }
+            else
+            {
+                fullResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDevBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
+            }
 
+            string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
+            _httpClientFactory.CreateClient("myHttpClient");
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
-            HttpResponseMessage response = await _httpClient.PostAsync(resourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+
+            HttpResponseMessage response = await _httpClient.PostAsync(fullResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
             if (response.StatusCode == HttpStatusCode.Created)
             {
                 return new StatusCodeResult(201);
