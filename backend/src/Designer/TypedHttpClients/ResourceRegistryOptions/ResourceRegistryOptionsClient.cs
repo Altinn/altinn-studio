@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url);
                 string sectorscontent = await response.Content.ReadAsStringAsync();
-                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, new System.Text.Json.JsonSerializerOptions() {  PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase});
+                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
                 return dataThemes;
             }
             catch (Exception ex)

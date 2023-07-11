@@ -204,7 +204,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
             }
-         
+
             return sectors;
         }
 

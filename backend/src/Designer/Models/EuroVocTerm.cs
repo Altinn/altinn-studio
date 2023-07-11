@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.Models
 
         public string Code { get; set; }
 
-        public Dictionary<string,string> Label { get; set; }
+        public Dictionary<string, string> Label { get; set; }
 
         public List<object> Children { get; set; }
 

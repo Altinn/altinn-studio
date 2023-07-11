@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Models
         public List<string> Parents { get; set; }
         public bool isTheme { get; set; }
         public List<string> LosPaths { get; set; }
-        public Dictionary<string,string> Name { get; set; }
+        public Dictionary<string, string> Name { get; set; }
         public string Definition { get; set; }
         public string Uri { get; set; }
         public List<string> Synonyms { get; set; }
