@@ -17,16 +17,11 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
     }
     if (selected === ComponentType.NavigationButtons) {
       componentCopy.type = ComponentType.NavigationButtons;
-      componentCopy.textResourceBindings = {
-        next: undefined,
-        back: undefined,
-      };
       componentCopy.showBackButton = true;
     } else if (selected === ComponentType.Button) {
       componentCopy.type = ComponentType.Button;
       delete componentCopy.showPrev;
       delete componentCopy.showBackButton;
-      componentCopy.textResourceBindings = {};
     }
     handleComponentChange(componentCopy);
   };
