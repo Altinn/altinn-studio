@@ -4,7 +4,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
-import { Label } from 'app-shared/components/Label';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useParams } from 'react-router-dom';
 
@@ -46,15 +45,15 @@ export const EditDataModelBindings = ({
   const { uniqueKey, key, label } = renderOptions || {};
   return (
     <div key={uniqueKey || ''}>
-      <Label htmlFor={`selectDataModelSelect-${label}`}>
-        {label
-          ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
-          : t('ux_editor.modal_properties_data_model_helper')}
-      </Label>
       <SelectDataModelComponent
         propertyPath={`definitions/component/properties/dataModelBindings/properties/${
           key || 'simpleBinding'
         }`}
+        label={
+          label
+            ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
+            : t('ux_editor.modal_properties_data_model_helper')
+        }
         componentType={component.type}
         inputId={`selectDataModelSelect-${label}`}
         selectedElement={

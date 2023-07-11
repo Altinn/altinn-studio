@@ -1,11 +1,16 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
-import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
-import { IAppDataState } from '../../../features/appData/appDataReducers';
-import { EditDataModelBindings } from './EditDataModelBindings';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import {
+  appDataMock,
+  renderWithMockStore,
+  renderHookWithMockStore,
+  textResourcesMock,
+} from '../../testing/mocks';
+import { IAppDataState } from '../../features/appData/appDataReducers';
+import { SelectDataModelComponent } from './SelectDataModelComponent';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 
 const getDatamodelMetadata = () =>
   Promise.resolve({
@@ -47,6 +52,16 @@ const getDatamodelMetadata = () =>
     },
   });
 
+const waitForData = async () => {
+  const datamodelMetadatResult = renderHookWithMockStore(
+    {},
+    {
+      getDatamodelMetadata,
+    }
+  )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
+  await waitFor(() => expect(datamodelMetadatResult.current.isSuccess).toBe(true));
+};
+
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
@@ -55,25 +70,16 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
     },
   };
 
+  await waitForData();
+
   renderWithMockStore(
     { appData },
     { getDatamodelMetadata }
   )(
-    <EditDataModelBindings
-      handleComponentChange={handleComponentChange}
-      component={{
-        id: 'someComponentId',
-        type: ComponentType.Input,
-        textResourceBindings: {
-          title: 'ServiceName',
-        },
-        dataModelBindings,
-        itemType: 'COMPONENT',
-      }}
-      renderOptions={{
-        uniqueKey: 'someComponentId-datamodel-select',
-        key: 'simpleBinding',
-      }}
+    <SelectDataModelComponent
+      label={textMock('ux_editor.modal_properties_data_model_helper')}
+      onDataModelChange={handleComponentChange}
+      selectedElement={undefined}
     />
   );
 };
@@ -87,7 +93,7 @@ describe('EditDataModelBindings', () => {
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
   });
 
-  it('should show select with provided data model binding', async () => {
+  it('should show select with provided value', async () => {
     await render({
       dataModelBindings: {
         simpleBinding: 'testModel.field1',

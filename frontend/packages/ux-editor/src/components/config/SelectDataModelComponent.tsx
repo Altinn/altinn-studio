@@ -1,13 +1,14 @@
-import React from 'react';
-// import Select from 'react-select';
+import React, { useEffect } from 'react';
 import { Select } from '@digdir/design-system-react';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useParams } from 'react-router-dom';
 import { FormField } from '../FormField';
+import { Option } from 'packages/text-editor/src/types';
 
 export interface ISelectDataModelProps {
   inputId?: string;
   selectedElement: string;
+  label: string;
   onDataModelChange: (dataModelField: string) => void;
   noOptionsMessage?: string;
   hideRestrictions?: boolean;
@@ -20,6 +21,7 @@ export interface ISelectDataModelProps {
 export const SelectDataModelComponent = ({
   inputId,
   selectedElement,
+  label,
   onDataModelChange,
   noOptionsMessage,
   selectGroup,
@@ -28,32 +30,27 @@ export const SelectDataModelComponent = ({
   propertyPath,
 }: ISelectDataModelProps) => {
   const { org, app } = useParams();
-  const datamodelQuery = useDatamodelMetadataQuery(org, app);
-  const dataModelElements = datamodelQuery?.data ?? [];
+  const { data } = useDatamodelMetadataQuery(org, app);
+  const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
+
+  useEffect(() => {
+    if (!data) return;
+    const elementNames = data
+      .filter(
+        (element) =>
+          element.dataBindingName &&
+          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))
+      )
+      .map((element) => ({
+        value: element.dataBindingName,
+        label: element.dataBindingName,
+      }));
+    setDataModelElementNames(elementNames);
+  }, [data, selectGroup]);
 
   const onChangeSelectedBinding = (e: any) => {
     onDataModelChange(e);
   };
-
-  const StyledSelect = (props: any) => {
-    console.log('props: ', props);
-    return (
-      <span style={{ width: '90%' }}>
-        <Select {...props} />
-      </span>
-    );
-  };
-
-  const dataModelElementNames = dataModelElements
-    .filter(
-      (element) =>
-        element.dataBindingName &&
-        ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))
-    )
-    .map((element) => ({
-      value: element.dataBindingName,
-      label: element.dataBindingName,
-    }));
 
   return (
     <FormField
@@ -63,13 +60,10 @@ export const SelectDataModelComponent = ({
       propertyPath={propertyPath}
       componentType={componentType}
       helpText={helpText}
+      label={label}
     >
       {({ onChange }) => (
-        <StyledSelect
-          value={selectedElement}
-          onChange={(e: any) => onChange(e)}
-          options={dataModelElementNames}
-        />
+        <Select onChange={(e: any) => onChange(e)} options={dataModelElementNames} />
       )}
     </FormField>
   );
