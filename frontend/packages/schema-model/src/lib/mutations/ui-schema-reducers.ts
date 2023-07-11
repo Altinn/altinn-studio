@@ -61,7 +61,7 @@ export const addRootItem: UiSchemaReducer<AddRootItemArgs> =
 export type AddPropertyArgs = {
   pointer: string;
   props: Partial<UiSchemaNode>;
-  callback: (pointer: string) => void;
+  callback?: (pointer: string) => void;
 };
 export const addProperty: UiSchemaReducer<AddPropertyArgs> =
   (uiSchema: UiSchemaNodes, { pointer, props, callback }) => {
@@ -75,7 +75,7 @@ export const addProperty: UiSchemaReducer<AddPropertyArgs> =
       makePointer(pointerBase, Keyword.Properties, 'name')
     );
     addToNode.children.push(newNodePointer);
-    callback(newNodePointer);
+    callback && callback(newNodePointer);
     props.implicitType = false;
     newSchema.push(Object.assign(createNodeBase(newNodePointer), props));
     return newSchema;
@@ -253,7 +253,7 @@ export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> =
 export type SetPropertyNameArgs = {
   path: string;
   name: string;
-  callback: (pointer: string) => void;
+  callback?: (pointer: string) => void;
 };
 export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
   (uiSchema, { path, name, callback }) => {
@@ -264,7 +264,7 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
     const nodeToRename = getNodeByPointer(newSchema, path);
     const oldPointer = nodeToRename.pointer;
     const newPointer = replaceLastPointerSegment(oldPointer, name);
-    callback(newPointer);
+    callback?.(newPointer);
     return renameNodePointer(newSchema, nodeToRename.pointer, newPointer);
   };
 

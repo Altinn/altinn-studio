@@ -14,7 +14,7 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => ({
   isArray: false,
   children: [],
   custom: {},
-  restrictions: [],
+  restrictions: {},
   implicitType: true,
   default: undefined,
   enum: [],
@@ -77,3 +77,10 @@ export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: strin
   }
   return newPointer;
 };
+
+/**
+ * Checks if the model is empty (contains only the root node).
+ * @param model The model to check.
+ * @returns True if the model is empty, false otherwise.
+ */
+export const isEmpty = (model: UiSchemaNodes) => !model || model.length < 2;

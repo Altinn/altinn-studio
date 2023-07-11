@@ -1,22 +1,25 @@
 import React from 'react';
 import { TreeItem } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { changeChildrenOrder, setSelectedId } from '../../features/editor/schemaEditorSlice';
+import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   getChildNodesByPointer,
-  getNodeByPointer,
   getReferredNodes,
   ObjectKind,
+  changeChildrenOrder,
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
-import type { SchemaState } from '../../types';
 import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
 import { DndItem } from './DnDWrapper';
 import type { DragItem } from './dnd-helpers';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 
 type SchemaItemProps = {
   selectedNode: UiSchemaNode;
@@ -39,32 +42,21 @@ export function SchemaItem({
   index,
 }: SchemaItemProps) {
   const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
+
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = useSelector((state: SchemaState) =>
-    selectedNode.objectKind === ObjectKind.Reference && selectedNode.reference
-      ? getNodeByPointer(state.uiSchema, selectedNode.reference)
-      : undefined
-  );
-  const childNodes = useSelector((state: SchemaState) =>
-    refNode
-      ? getChildNodesByPointer(state.uiSchema, refNode.pointer)
-      : getChildNodesByPointer(state.uiSchema, selectedNode.pointer)
-  );
-  const referredNodes = useSelector((state: SchemaState) =>
-    getReferredNodes(state.uiSchema, selectedNode.pointer)
-  );
+  const refNode = useSchemaSelector(getRefNodeSelector(selectedNode));
+  const childNodes = getChildNodesByPointer(data, (refNode || selectedNode).pointer);
+  const referredNodes = getReferredNodes(data, selectedNode.pointer);
   const focusedNode = refNode ?? selectedNode;
   const childNodesSorted: UiSchemaNodes = [];
   focusedNode.children.forEach((childPointer) => {
     const node = childNodes.find((childNode) => childNode.pointer === childPointer);
     node && childNodesSorted.push(node);
   });
-  const selectedPointer = useSelector((state: SchemaState) =>
-    state.selectedEditorTab === 'definitions'
-      ? state.selectedDefinitionNodeId
-      : state.selectedPropertyNodeId
-  );
+  const selectedPointer = useSelector(selectedIdSelector);
   const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
     if (selectedPointer !== schemaItem.pointer) {
@@ -74,7 +66,7 @@ export function SchemaItem({
   const isRef = selectedNode.objectKind === ObjectKind.Reference;
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
   const onMove = (from: DragItem, to: DragItem) =>
-    dispatch(changeChildrenOrder({ pointerA: from.itemId, pointerB: to.itemId }));
+    mutate(changeChildrenOrder(data, { pointerA: from.itemId, pointerB: to.itemId }));
   return (
     <DndItem index={index} itemId={selectedNode.pointer} containerId={base} onMove={onMove}>
       <TreeItem

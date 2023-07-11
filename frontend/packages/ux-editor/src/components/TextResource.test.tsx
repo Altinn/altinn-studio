@@ -7,6 +7,7 @@ import {
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../testing/mocks';
+import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
 import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -197,15 +198,20 @@ const renderAndOpenSearchSection = async () => {
   await act(() => user.click(screen.getByLabelText(searchText)));
 };
 
-const render = async (props: Partial<TextResourceProps> = {}, resources: ITextResource[] = []) => {
-
+const waitForData = async (resources: ITextResource[]) => {
   const { result } = renderHookWithMockStore({}, {
     getTextResources: jest.fn().mockImplementation(() => Promise.resolve<ITextResourcesWithLanguage>({
       language: DEFAULT_LANGUAGE,
       resources,
     })),
   })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+};
+
+const render = async (props: Partial<TextResourceProps> = {}, resources: ITextResource[] = []) => {
+  await waitForData(resources);
 
   return renderWithMockStore()(<TextResource {...defaultProps} {...props} />);
 };

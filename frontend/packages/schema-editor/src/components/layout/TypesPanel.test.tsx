@@ -1,13 +1,14 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import { dataMock } from '../../mockData';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
-import userEvent from '@testing-library/user-event';
 import { TypesPanel, TypesPanelProps } from './TypesPanel';
 import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../test/renderWithProviders';
+import { SchemaState } from '@altinn/schema-editor/types';
+import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const typesText = 'Typer';
 const texts = {
@@ -21,15 +22,16 @@ const texts = {
   'schema_editor.types': typesText,
 };
 const uiSchema = buildUiSchema(dataMock);
+const org = 'org';
+const app = 'app';
+const modelPath = 'test';
+queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const render = (props?: Partial<TypesPanelProps>, editMode?: boolean) => {
-  const mockInitialState = {
+  const mockInitialState: SchemaState = {
     name: 'test',
-    saveSchemaUrl: '',
-    schema: dataMock,
-    uiSchema: uiSchema,
     selectedDefinitionNodeId: '',
     selectedPropertyNodeId: '',
     selectedEditorTab: 'properties',
@@ -53,16 +55,10 @@ const render = (props?: Partial<TypesPanelProps>, editMode?: boolean) => {
     expandedDefNodes: [],
     setExpandedDefNodes: () => {},
   };
-  const store = configureStore()({
-    ...mockInitialState,
-  });
-  const user = userEvent.setup();
-  rtlRender(
-    <Provider store={store}>
-      <TypesPanel {...defaultProps} {...props} />
-    </Provider>
-  );
-  return { store, user };
+  return renderWithProviders({
+    state: mockInitialState,
+    appContextProps: { modelPath },
+  })(<TypesPanel {...defaultProps} {...props} />);
 };
 
 describe('TypesPanel', () => {

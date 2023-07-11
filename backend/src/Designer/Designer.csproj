@@ -82,6 +82,7 @@
     <Watch Remove="Models\Keyword.cs" />
     <Watch Remove="Models\ListviewServiceResource.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
+    <Watch Remove="Models\ResourceVersionInfo.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
     <Watch Remove="RepositoryClient\Client\PolicyOptionsClient.cs" />
     <Watch Remove="RepositoryClient\Model\CommitAffectedFile.cs" />

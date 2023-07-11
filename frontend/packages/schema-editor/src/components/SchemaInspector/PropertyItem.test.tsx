@@ -2,9 +2,12 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import type { IPropertyItemProps } from './PropertyItem';
 import { PropertyItem } from './PropertyItem';
-import { renderWithRedux } from '../../../test/renderWithRedux';
 import { FieldType } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../test/renderWithProviders';
+import userEvent from '@testing-library/user-event';
+
+const user = userEvent.setup();
 
 // Test data:
 const textDeleteField = 'Slett felt';
@@ -48,7 +51,7 @@ const defaultProps: IPropertyItemProps = {
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
-  renderWithRedux(<PropertyItem {...defaultProps} {...props} />);
+  renderWithProviders()(<PropertyItem {...defaultProps} {...props} />);
 
 describe('PropertyItem', () => {
   test('Text input field appears', async () => {
@@ -84,7 +87,7 @@ describe('PropertyItem', () => {
 
   test('onChangeValue is called on blur when text changes', async () => {
     const onChangeValue = jest.fn();
-    const { user } = renderPropertyItem({ onChangeValue });
+    renderPropertyItem({ onChangeValue });
     await act(() => user.type(screen.getByLabelText(textFieldName), 'test'));
     await act(() => user.tab());
     expect(onChangeValue).toHaveBeenCalledTimes(1);
@@ -92,7 +95,7 @@ describe('PropertyItem', () => {
 
   test('onChangeValue is not called when there is no change', async () => {
     const onChangeValue = jest.fn();
-    const { user } = renderPropertyItem({ onChangeValue });
+    renderPropertyItem({ onChangeValue });
     await act(() => user.click(screen.getByLabelText(textFieldName)));
     await act(() => user.tab());
     expect(onChangeValue).not.toHaveBeenCalled();
@@ -100,7 +103,7 @@ describe('PropertyItem', () => {
 
   test('onEnterKeyPress is called when the Enter key is pressed in the input field', async () => {
     const onEnterKeyPress = jest.fn();
-    const { user } = renderPropertyItem({ onEnterKeyPress });
+    renderPropertyItem({ onEnterKeyPress });
     const textbox = screen.getByLabelText(textFieldName);
     await act(() => user.click(textbox));
     await act(() => user.keyboard('{Enter}'));
@@ -109,7 +112,7 @@ describe('PropertyItem', () => {
 
   test('onEnterKeyPress is not called when another key but Enter is pressed in the input field', async () => {
     const onEnterKeyPress = jest.fn();
-    const { user } = renderPropertyItem({ onEnterKeyPress });
+    renderPropertyItem({ onEnterKeyPress });
     const textbox = screen.getByLabelText(textFieldName);
     await act(() => user.click(textbox));
     await act(() => user.keyboard('a'));
@@ -128,7 +131,7 @@ describe('PropertyItem', () => {
 
   test('onChangeType is called with correct parameters when type changes', async () => {
     const onChangeType = jest.fn();
-    const { user } = renderPropertyItem({ onChangeType });
+    renderPropertyItem({ onChangeType });
     const newType = FieldType.Integer;
     await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: fieldTypeNames[newType] })));
@@ -188,7 +191,7 @@ describe('PropertyItem', () => {
 
   test('onDeleteField is called when the delete button is clicked', async () => {
     const onDeleteField = jest.fn();
-    const { user } = renderPropertyItem({ onDeleteField });
+    renderPropertyItem({ onDeleteField });
     const deleteButton = await screen.findByRole('button', { name: textDeleteField });
     await act(() => user.click(deleteButton));
     expect(onDeleteField).toHaveBeenCalledTimes(1);

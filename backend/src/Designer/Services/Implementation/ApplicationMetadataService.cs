@@ -244,8 +244,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // It's used to avoid sensibility to BOM
             using var fileStream = new MemoryStream(Convert.FromBase64String(file.Content));
-            using StreamReader utf8Reader = new StreamReader(fileStream, Encoding.UTF8);
-            return JsonSerializer.Deserialize<Application>(await utf8Reader.ReadToEndAsync(), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+            using StreamReader utf8Reader = new(fileStream, Encoding.UTF8);
+            return JsonSerializer.Deserialize<Application>(await utf8Reader.ReadToEndAsync(),
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
         }
 
         public bool ApplicationMetadataExistsInRepository(string org, string app)

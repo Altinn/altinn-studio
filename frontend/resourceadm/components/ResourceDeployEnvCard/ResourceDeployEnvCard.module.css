@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 40%;
+  width: 260px;
   padding: 20px;
   margin: 0;
   background-color: #FFFFFF;
@@ -27,4 +27,37 @@
 
 .buttonWrapper {
   margin-top: 20px;
+}
+
+.envWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.currentEnv {
+  display: flex;
+  align-items: center;
+  background-color: #B3D0EA;
+  border-radius: 2px;
+  padding-block: 5px;
+  padding-inline: 10px;
+}
+
+.currentEnvText {
+  font-size: 16px;
+  padding-left: 10px;
+}
+
+.arrowWrapper {
+  padding-inline: 10px;
+}
+
+.newEnv {
+  display: flex;
+  align-items: center;
+  background-color: #F4F5F6;
+  border: 1px solid #68707C;
+  border-radius: 2px;
+  padding-block: 5px;
+  padding-inline: 10px;
 }

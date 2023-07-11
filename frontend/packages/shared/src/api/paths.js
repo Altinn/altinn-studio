@@ -10,7 +10,7 @@ export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/conf
 
 // Datamodel
 export const createDatamodelPath = (org, app) => `/designer/api/${org}/${app}/datamodels/new`; // Post
-export const datamodelPath = (org, app, modelPath) => `/designer/api/${org}/${app}/datamodels/datamodel?${s({ modelPath })}`; // Get, Put, Delete
+export const datamodelPath = (org, app, modelPath, saveOnly = false) => `/designer/api/${org}/${app}/datamodels/datamodel?${s({ modelPath, saveOnly })}`; // Get, Put, Delete
 export const datamodelsPath = (org, app) => `/designer/api/${org}/${app}/datamodels/all-json`; // Get
 export const datamodelsXsdPath = (org, app) => `/designer/api/${org}/${app}/datamodels/all-xsd`; // Get
 export const datamodelsUploadPath = (org, app) => `/designer/api/${org}/${app}/datamodels/upload`; // Post

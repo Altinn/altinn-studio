@@ -9,12 +9,46 @@ const basePath = 'http://studio.localhost/designer/api'
  *
  * @returns the url path string
  */
-export const getPolicyUrlBySelectedContextRepoAndId = (
+export const getPolicyUrl = (
   selectedContext: string,
   repo: string,
   resourceId: string
 ): string => {
   return `${basePath}/${selectedContext}/${repo}/policy/${resourceId}`
+}
+
+/**
+ * Gets the URL path to the API for validating a policy
+ *
+ * @param selectedContext the organisation
+ * @param repo the repo
+ * @param resourceId the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getValidatePolicyUrl = (
+  selectedContext: string,
+  repo: string,
+  resourceId: string
+): string => {
+  return `${basePath}/${selectedContext}/${repo}/policy/validate/${resourceId}`
+}
+
+/**
+ * Gets the URL path to the API for getting the publish statuses
+ *
+ * @param selectedContext the organisation
+ * @param repo the repo
+ * @param resourceId the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getPublishStatusUrl = (
+  selectedContext: string,
+  repo: string,
+  resourceId: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/publishstatus/${repo}/${resourceId}`
 }
 
 /**
@@ -25,7 +59,7 @@ export const getPolicyUrlBySelectedContextRepoAndId = (
  *
  * @returns the url path string
  */
-export const getSubjectOptionsUrlBySelectedContextAndRepo = (
+export const getSubjectOptionsUrl = (
   selectedContext: string,
   repo: string
 ): string => {
@@ -40,7 +74,7 @@ export const getSubjectOptionsUrlBySelectedContextAndRepo = (
  *
  * @returns the url path string
  */
-export const getActionOptionsUrlBySelectedContextAndRepo = (
+export const getActionOptionsUrl = (
   selectedContext: string,
   repo: string
 ): string => {
@@ -54,10 +88,26 @@ export const getActionOptionsUrlBySelectedContextAndRepo = (
  *
  * @returns the url path string
  */
-export const getResourcesUrlBySelectedContext = (
+export const getResourcesUrl = (
   selectedContext: string
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/resourcelist`
+}
+
+/**
+ * Gets the URL path to the API fora single resource
+ *
+ * @param selectedContext the organisation
+ * @param id the id of the selected resource
+ *
+ * @returns the url path string
+ */
+export const getResourceUrl = (
+  selectedContext: string,
+  repo: string,
+  id: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/${repo}/${id}`
 }
 
 /**
@@ -67,8 +117,40 @@ export const getResourcesUrlBySelectedContext = (
  *
  * @returns the url path string
  */
-export const getCreateResourceUrlBySelectedContext = (
+export const getCreateResourceUrl = (
   selectedContext: string
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/addresource`
+}
+
+/**
+ * Gets the URL path to the API for the editing of an exisitng resource
+ *
+ * @param selectedContext the organisation
+ * @param id the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getEditResourceUrl = (
+  selectedContext: string,
+  id: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/updateresource/${id}`
+}
+
+/**
+ * Gets the URL path to the API for validating a resource
+ *
+ * @param selectedContext the organisation
+ * @param repo the repo
+ * @param resourceId the id of the resource
+ *
+ * @returns the url path string
+ */
+export const getValidateResourceUrl = (
+  selectedContext: string,
+  repo: string,
+  resourceId: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/validate/${repo}/${resourceId}`
 }

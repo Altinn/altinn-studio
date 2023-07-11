@@ -5,6 +5,7 @@ export const queriesMock: ServicesContextProps = {
   addLanguageCode: jest.fn(),
   addRepo: jest.fn(),
   addLayoutSet: jest.fn(),
+  commitAndPushChanges: jest.fn(),
   configureLayoutSet: jest.fn(),
   copyApp: jest.fn(),
   createDeployment: jest.fn(),
@@ -53,4 +54,7 @@ export const queriesMock: ServicesContextProps = {
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
   upsertTextResources: jest.fn(),
+  getExpressionSchema: jest.fn(),
+  getLayoutSchema: jest.fn(),
+  getNumberFormatSchema: jest.fn(),
 };

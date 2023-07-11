@@ -65,6 +65,24 @@ Cypress.Commands.add('deletecomponents', () => {
 });
 
 /**
+ * Delete all the added components with specified test in ux-editor
+ */
+Cypress.Commands.add('deletecomponentsWithText', (text) => {
+  cy.get(designer.dragToArea)
+    .find("[role='listitem']")
+    .then(($elements) => {
+      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
+        cy.get($elements).each(($element) => {
+          if ($element.get(text)) {
+            cy.wrap($element).trigger('mouseover');
+          }
+        });
+        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
+      }
+    });
+});
+
+/**
  * Delete local changes of an app for a logged in user
  */
 Cypress.Commands.add('deleteLocalChanges', (appId) => {

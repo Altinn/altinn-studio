@@ -1,77 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import { AltinnSpinner } from 'app-shared/components';
-import type { SchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
-  setJsonSchema,
-  setSaveSchemaUrl,
   setSchemaName,
   setSelectedId,
   setUiSchema,
-  updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
 import { SchemaInspector } from './SchemaInspector';
 import { TopToolbar } from './TopToolbar';
-import { getNameFromPointer, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
-  getChildNodesByPointer,
-  getNodeByPointer,
+  buildJsonSchema,
+  getNameFromPointer,
+  isEmpty,
   pointerIsDefinition,
-  ROOT_POINTER,
+  UiSchemaNode,
+  UiSchemaNodes
 } from '@altinn/schema-model';
 
-import { createSelector } from '@reduxjs/toolkit';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { ModelsPanel, TypesPanel } from './layout';
 import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
-import { GenerateSchemaState } from 'app-shared/types/global';
 import {
+  rootChildrenSelector,
+  rootNodesSelector,
   selectedDefinitionParentSelector,
   selectedItemSelector,
   selectedPropertyParentSelector
 } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { Toolbar, ToolbarProps } from 'app-shared/features/dataModelling/components/Toolbar';
+import { JsonSchema } from 'app-shared/types/JsonSchema';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface IEditorProps {
-  Toolbar: JSX.Element;
-  LandingPagePanel: JSX.Element;
-  loading?: boolean;
-  name?: string;
-  onSaveSchema: (payload: any) => void;
-  saveUrl: string;
-  schema: JsonSchema;
-  schemaState: GenerateSchemaState;
+  LandingPagePanel: ReactNode;
   editMode: boolean;
+  name?: string;
+  onSaveSchema: (payload: JsonSchema) => void;
+  schemaState: GenerateSchemaState;
   toggleEditMode: () => void;
+  toolbarProps: Omit<ToolbarProps, 'disabled'>;
 }
 
-const rootNodesSelector = createSelector(
-  (state: SchemaState) => state.uiSchema,
-  (uiSchema) => {
-    const nodesmap = new Map();
-    if (uiSchema.length) {
-      getChildNodesByPointer(uiSchema, ROOT_POINTER).forEach((node) => {
-        nodesmap.set(node.pointer, node);
-      });
-    }
-    return nodesmap;
-  }
-);
-
-const rootChildrenSelector = createSelector(
-  (state: SchemaState) => state.uiSchema,
-  (uiSchema) => {
-    if (uiSchema.length) {
-      return getNodeByPointer(uiSchema, ROOT_POINTER).children;
-    } else {
-      return undefined;
-    }
-  }
-);
 export enum SchemaEditorTestIds {
   menuAddReference = 'action-menu-add-reference',
   menuAddField = 'action-menu-add-field',
@@ -83,26 +58,23 @@ export enum SchemaEditorTestIds {
 }
 
 export const SchemaEditor = ({
-  Toolbar,
   LandingPagePanel,
-  loading,
-  schema,
-  schemaState,
-  onSaveSchema,
-  saveUrl,
   name,
   editMode,
+  onSaveSchema,
+  schemaState,
   toggleEditMode,
+  toolbarProps,
 }: IEditorProps) => {
   const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+
   useEffect(() => {
-    if (name && schema) {
-      dispatch(setJsonSchema({ schema }));
+    if (name) {
       dispatch(setUiSchema({ name }));
       dispatch(setSchemaName({ name }));
-      dispatch(setSaveSchemaUrl({ saveUrl }));
     }
-  }, [dispatch, schema, name, saveUrl]);
+  }, [dispatch, name]);
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
@@ -110,20 +82,20 @@ export const SchemaEditor = ({
   const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
 
   const translation = useTranslation();
-  const t = (key: string) => translation.t('schema_editor.' + key);
+  const t = (key: string, options: KeyValuePairs) => translation.t('schema_editor.' + key, options);
 
-  const rootNodeMap = useSelector(rootNodesSelector);
-  const rootChildren = useSelector(rootChildrenSelector);
+  const rootNodeMap = useSchemaSelector(rootNodesSelector);
+  const rootChildren = useSchemaSelector(rootChildrenSelector);
   const properties: UiSchemaNodes = [];
   const definitions: UiSchemaNodes = [];
-  rootChildren?.forEach((childPointer) =>
-    pointerIsDefinition(childPointer)
+  rootChildren?.forEach(
+    (childPointer) => pointerIsDefinition(childPointer)
       ? definitions.push(rootNodeMap.get(childPointer))
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useSelector(selectedPropertyParentSelector);
-  const selectedItem = useSelector(selectedItemSelector);
+  const selectedPropertyParent = useSchemaSelector(selectedPropertyParentSelector);
+  const selectedItem = useSchemaSelector(selectedItemSelector);
 
   useEffect(() => {
     if (selectedType) {
@@ -143,14 +115,14 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSelector(selectedDefinitionParentSelector);
+  const selectedDefinitionParent = useSchemaSelector(selectedDefinitionParentSelector);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
+  const handleSaveSchema = () => onSaveSchema(buildJsonSchema(data));
 
   const handleSelectType = (node: UiSchemaNode) => {
     setSelectedType(node);
@@ -162,20 +134,17 @@ export const SchemaEditor = ({
     dispatch(setSelectedId({ pointer: '' }));
   };
 
-  const loadingIndicator = loading ? <AltinnSpinner spinnerText={t('general.loading')} /> : null;
   return (
     <div className={classes.root}>
       <TopToolbar
-        Toolbar={Toolbar}
-        saveAction={name ? handleSaveSchema : undefined}
-        toggleEditMode={name ? toggleEditMode : undefined}
+        Toolbar={(<Toolbar {...toolbarProps} disabled={isEmpty(data)}/>)}
         editMode={editMode}
-        schema={schema}
+        saveAction={name ? handleSaveSchema : undefined}
         schemaState={schemaState}
+        toggleEditMode={name ? toggleEditMode : undefined}
       />
       <main className={classes.main}>
-        {LandingPagePanel}
-        {schema && (
+        {isEmpty(data) ? LandingPagePanel : (
           <aside className={classes.inspector}>
             <TypesInspector
               schemaItems={definitions}
@@ -185,7 +154,7 @@ export const SchemaEditor = ({
             />
           </aside>
         )}
-        {name && schema && selectedType && (
+        {name && !isEmpty(data) && selectedType && (
           <div
             data-testid='types-editor'
             id='types-editor'
@@ -193,9 +162,10 @@ export const SchemaEditor = ({
           >
             <div className={classes.typeInfo}>
               <span>
-                {`${t('types_editing')} ${getNameFromPointer({
-                  pointer: selectedType.pointer,
-                })}`}
+                {t(
+                  'types_editing',
+                  { type: getNameFromPointer({ pointer: selectedType.pointer }) }
+                )}
               </span>
               <Button
                 onClick={handleResetSelectedType}
@@ -216,7 +186,7 @@ export const SchemaEditor = ({
             />
           </div>
         )}
-        {name && schema && !selectedType ? (
+        {name && !isEmpty(data) && !selectedType && (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <ModelsPanel
               editMode={editMode}
@@ -225,10 +195,8 @@ export const SchemaEditor = ({
               properties={properties}
             />
           </div>
-        ) : (
-          loadingIndicator
         )}
-        {schema && editMode && (
+        {!isEmpty(data) && editMode && (
           <aside className={classes.inspector}>
             <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
           </aside>

@@ -6,6 +6,12 @@ import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { LOCAL_STORAGE_KEY, setLocalStorageItem } from './functions/localStorage';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { JsonSchema } from 'app-shared/types/JsonSchema';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { uiSchemaMock } from '../../../../schema-model/test/uiSchemaMock';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -24,16 +30,18 @@ Object.defineProperty(window, 'matchMedia', {
 
 const modelName = 'some-existing-model';
 const modelName2 = 'some-other-model';
-const defaultInitialState = {
+const modelPath = `/App/models/${modelName}.schema.json`;
+const modelPath2 = `/App/models/${modelName2}.schema.json`;
+  const defaultInitialState = {
   dataModelsMetadataState: {
     dataModelsMetadata: [
       {
-        repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
+        repositoryRelativeUrl: modelPath,
         fileName: `${modelName}.schema.json`,
         fileType: '.json',
       },
       {
-        repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
+        repositoryRelativeUrl: modelPath2,
         fileName: `${modelName2}.schema.json`,
         fileType: '.json',
       },
@@ -45,6 +53,8 @@ const defaultInitialState = {
     saving: false,
   },
 };
+const org = 'org';
+const app = 'app';
 const initialStoreCall = {
   type: 'dataModelling/fetchDataModel',
   payload: {
@@ -52,18 +62,21 @@ const initialStoreCall = {
       label: modelName,
       value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
     },
-    org: 'test-org',
-    app: 'test-repo'
+    org,
+    app,
   },
 };
+
+// Mocks:
+const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const render = (
   state: {
     [K in keyof typeof defaultInitialState]?: Partial<(typeof defaultInitialState)[K]>;
-  } = {}
+  } = {},
+  modelResponse: JsonSchema = {},
 ) => {
   const dataModelsMetadataState = state?.dataModelsMetadataState;
-  const dataModelling = state?.dataModelling;
 
   const initialState = {
     dataModelsMetadataState: {
@@ -72,20 +85,23 @@ const render = (
     },
     dataModelling: {
       ...defaultInitialState.dataModelling,
-      ...dataModelling,
     },
   };
 
   const store = configureStore()(initialState);
   store.dispatch = jest.fn();
 
+  const queries = {
+    ...queriesMock,
+    getDatamodel,
+  };
+
   rtlRender(
-    <Provider store={store}>
-      <DataModelling
-        org='test-org'
-        repo='test-repo'
-      />
-    </Provider>
+    <ServicesContextProvider {...queries} client={queryClientMock}>
+      <Provider store={store}>
+        <DataModelling org={org} repo={app}/>
+      </Provider>
+    </ServicesContextProvider>
   );
 
   return { store };
@@ -93,6 +109,8 @@ const render = (
 
 
 describe('DataModelling', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should fetch models on mount', () => {
     const { store } = render();
 
@@ -190,7 +208,6 @@ describe('DataModelling', () => {
   it('should display no data-models message when schema is undefined and loadState is loaded', async () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     render({
-      dataModelling: { schema: undefined },
       dataModelsMetadataState: { loadState: LoadingState.ModelsLoaded },
     });
     const dialogHeader = screen.queryByText(textMock('schema_editor.info_dialog_title'));
@@ -208,7 +225,7 @@ describe('DataModelling', () => {
   it('Should show start dialog when no models are present and intro page is closed', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render({ dataModelling: { schema: undefined } });
+    render();
     expect(screen.getByText(textMock('app_data_modelling.landing_dialog_header'))).toBeInTheDocument();
   });
 
@@ -233,11 +250,8 @@ describe('DataModelling', () => {
   it('Should not show start dialog when there are models present', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    const schema = {
-      properties: { SomeSchema: { $ref: '#/$defs/Something' } },
-      $defs: { Something: { type: 'string' } },
-    };
-    render({ dataModelling: { schema } });
+    queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchemaMock)
+    render();
     expect(screen.queryByText(textMock('app_data_modelling.landing_dialog_header'))).not.toBeInTheDocument();
   });
 });

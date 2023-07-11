@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -76,11 +77,65 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
+        public ActionResult<ServiceResourceStatus> GetPublishStatusById(string org, string repository, string id = "")
+        {
+            ServiceResourceStatus resourceStatus = new ServiceResourceStatus();
+            ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+            if (resource == null)
+            {
+                return StatusCode(204);
+            }
+
+            resourceStatus.ResourceVersion = resource.Version;
+
+            // Todo. Temp test values until we have integration with resource registry in place
+            resourceStatus.PublishedVersions = new List<ResourceVersionInfo>();
+            resourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = "TT02", Version = "2024.2" });
+            resourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = "PROD", Version = "2024.1" });
+
+            return resourceStatus;
+        }
+
         [Route("designer/api/{org}/resources/validate/{repository}")]
         [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
-        public ActionResult<string> GetValidateResource(string org, string repository, string id = "")
+        public ActionResult GetValidateResource(string org, string repository, string id = "")
         {
-            return _repository.ValidateServiceResource(org, repository, id);
+            ValidationProblemDetails validationProblemDetails = new ValidationProblemDetails();
+            ServiceResource resourceToValidate;
+
+            if (id != "")
+            {
+                resourceToValidate = _repository.GetServiceResourceById(org, repository, id);
+                if (resourceToValidate != null)
+                {
+                    validationProblemDetails = ValidateResource(resourceToValidate);
+                }
+            }
+            else
+            {
+                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+                resourceToValidate = repositoryResourceList.FirstOrDefault();
+                if (repositoryResourceList.Count > 0)
+                {
+                    validationProblemDetails = ValidateResource(resourceToValidate);
+                }
+            }
+
+            if (resourceToValidate != null)
+            {
+                if (validationProblemDetails.Errors.Count == 0)
+                {
+                    validationProblemDetails.Status = 200;
+                    validationProblemDetails.Title = "No validation errors occurred.";
+                }
+
+                return Ok(validationProblemDetails);
+            }
+            else
+            {
+                return StatusCode(400);
+            }
         }
 
         [HttpPut]
@@ -95,6 +150,38 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
         {
             return _repository.AddServiceResource(org, resource);
+        }
+
+        private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
+        {
+            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.title", "resourceerror.missingtitle");
+            }
+
+            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Description))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.description", "resourceerror.missingdescription");
+            }
+
+            if (resource.ResourceType == null)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.resourcetype", "resourceerror.missingresourcetype");
+            }
+
+            if (resource.IsComplete == null || resource.IsComplete == false)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.iscomplete", "resourceerror.missingiscomplete");
+            }
+
+            if (strictMode && (resource.ThematicArea == null || string.IsNullOrEmpty(resource.ThematicArea)))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.thematicarea", "resourceerror.missingthematicarea");
+            }
+
+            ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+
+            return details;
         }
 
         [HttpGet]

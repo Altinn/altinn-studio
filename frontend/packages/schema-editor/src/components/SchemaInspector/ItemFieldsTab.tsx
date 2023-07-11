@@ -1,22 +1,25 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
-import type { SchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
+import { removeSelection } from '../../features/editor/schemaEditorSlice';
+import { useDispatch } from 'react-redux';
+import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import {
   addProperty,
-  deleteProperty,
+  deleteNode,
+  getNameFromPointer,
   setPropertyName,
   setType,
-} from '../../features/editor/schemaEditorSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
-import { getChildNodesByPointer, getNameFromPointer } from '@altinn/schema-model';
+} from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
@@ -25,13 +28,10 @@ export interface ItemFieldsTabProps {
 export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const readonly = selectedItem.reference !== undefined;
   const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
 
-  const fieldNodes = useSelector((state: SchemaState) =>
-    getChildNodesByPointer(state.uiSchema, selectedItem.pointer).map((node) => ({
-      ...node,
-      domId: getDomFriendlyID(node.pointer),
-    }))
-  );
+  const fieldNodes = useSchemaSelector(getFieldNodesSelector(selectedItem));
 
   const numberOfChildNodes = fieldNodes.length;
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;
@@ -47,25 +47,22 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   }, [numberOfChildNodes, prevNumberOfChildNodes, fieldNodes]);
 
   const onChangePropertyName = (path: string, value: string) =>
-    dispatch(
-      setPropertyName({
+    mutate(
+      setPropertyName(data, {
         path,
         name: value,
       })
     );
 
-  const onChangeType = (path: string, type: FieldType) => dispatch(setType({ path, type }));
+  const onChangeType = (path: string, type: FieldType) => mutate(setType(data, { path, type }));
 
-  const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({ path }));
+  const onDeleteObjectClick = (path: string) => {
+    mutate(deleteNode(data, path));
+    dispatch(removeSelection(path));
+  };
 
   const dispatchAddProperty = () =>
-    dispatch(
-      addProperty({
-        pointer: selectedItem.pointer,
-        keepSelection: true,
-        props: {},
-      })
-    );
+    mutate(addProperty(data, { pointer: selectedItem.pointer, props: {} }));
 
   const onAddPropertyClicked = (event: BaseSyntheticEvent) => {
     event.preventDefault();
