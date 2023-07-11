@@ -47,6 +47,8 @@ import {
   requiredNodeMock,
   stringNodeMock,
   uiSchemaMock,
+  simpleParentNodeMock,
+  simpleArrayMock,
 } from '../../../test/uiSchemaMock';
 import { getChildNodesByPointer, getNodeByPointer } from '../selectors';
 import { expect } from '@jest/globals';
@@ -368,13 +370,11 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.isArray).toBe(true);
     });
 
-    it("should update the children's pointers, and add /Items/ when isArray is true", () => {
-      const { pointer } = parentNodeMock;
-      const uiSchemaCopy = JSON.parse(JSON.stringify(uiSchemaMock));
-      uiSchemaCopy.isArray = true;
-      result = toggleArrayField((uiSchemaCopy), pointer);
+    it("should update the children's pointers, and add /Items/ when isArray toggles to true", () => {
+      const { pointer } = simpleParentNodeMock;
+      result = toggleArrayField(uiSchemaMock, pointer);
       const updatedNode = getNodeByPointer(result, pointer);
-      expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
+      expect(updatedNode.children.length).toEqual(simpleParentNodeMock.children.length);
       updatedNode.children.forEach((childPointer) => {
         expect(childPointer).toContain(Keyword.Items);
         getChildNodesByPointer(result, pointer).forEach((childNode) => {
@@ -383,13 +383,11 @@ describe('ui-schema-reducers', () => {
       });
     });
 
-    it("should update the children's pointers without adding /Items/ when isArray is false", () => {
-      const { pointer } = parentNodeMock;
-      const uiSchemaCopy = JSON.parse(JSON.stringify(uiSchemaMock));
-      uiSchemaCopy.isArray = false;
-      result = toggleArrayField((uiSchemaCopy), pointer);
+    it("should update the children's pointers without adding /Items/ when isArray toggles to false", () => {
+      const { pointer } = simpleArrayMock;
+      result = toggleArrayField(uiSchemaMock, pointer);
       const updatedNode = getNodeByPointer(result, pointer);
-      expect(updatedNode.children.length).toEqual(parentNodeMock.children.length);
+      expect(updatedNode.children.length).toEqual(simpleArrayMock.children.length);
       updatedNode.children.forEach((childPointer) => {
         expect(childPointer).not.toContain(Keyword.Items);
         getChildNodesByPointer(result, pointer).forEach((childNode) => {
