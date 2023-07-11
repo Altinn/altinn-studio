@@ -3,7 +3,7 @@ import { CollapsableMenus } from '../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import i18next from 'i18next';
 import { UseText } from '../hooks';
-import { allTranslationKeys, TranslationKey } from 'app-shared/types/language';
+import { TranslationKey } from 'app-shared/types/language';
 
 export function getComponentHelperTextByComponentType(type: ComponentType, language: any): string {
   switch (type) {
