@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -10,6 +11,7 @@ using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -22,13 +24,15 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IRepository _repository;
         private readonly IResourceRegistryOptions _resourceRegistryOptions;
         private readonly IMemoryCache _memoryCache;
+        private readonly CacheSettings _cacheSettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings)
         {
             _giteaApi = gitea;
             _repository = repository;
             _resourceRegistryOptions = resourceRegistryOptions;
             _memoryCache = memoryCache;
+            _cacheSettings = cacheSettings.Value;
         }
 
         [HttpGet]
@@ -173,7 +177,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, 3600, 0));
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 sectors = dataThemesContainer.DataThemes;
 
@@ -194,7 +198,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, 3600, 0));
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 sectors = losTerms.LosNodes;
 
@@ -216,7 +220,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, 3600, 0));
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 sectors = euroVocTerms.EuroVocs;
                 _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
