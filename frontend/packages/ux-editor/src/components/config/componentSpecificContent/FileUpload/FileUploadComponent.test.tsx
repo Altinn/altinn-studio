@@ -1,5 +1,4 @@
 import React from 'react';
-import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { FileUploadComponent, FileUploadComponentProps } from './FileUploadComponent';

@@ -7,6 +7,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormField } from '../../../FormField';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
+import { FormComponent, FormNavigationButtonsComponent } from '../../../../types/FormComponent';
 
 export interface ButtonComponentProps extends IGenericEditComponent {
   isProd: boolean;
@@ -20,7 +21,7 @@ export const ButtonComponent = ({
   const t = useText();
 
   const handleButtonTypeChange = (selected: string) => {
-    const componentCopy = { ...component, type: selected };
+    const componentCopy = { ...component, type: selected as ComponentType };
     if (!componentCopy.textResourceBindings) {
       componentCopy.textResourceBindings = {};
     }
@@ -30,16 +31,16 @@ export const ButtonComponent = ({
         next: 'next',
         back: 'back',
       };
-      componentCopy.showBackButton = true;
+      (componentCopy as FormNavigationButtonsComponent).showBackButton = true;
     } else if (selected === ComponentType.Button) {
       componentCopy.type = ComponentType.Button;
-      delete componentCopy.showPrev;
-      delete componentCopy.showBackButton;
+      delete (componentCopy as FormNavigationButtonsComponent).showPrev;
+      delete (componentCopy as FormNavigationButtonsComponent).showBackButton;
       componentCopy.textResourceBindings = {
         title: t('ux_editor.modal_properties_button_type_submit'),
       };
     }
-    handleComponentChange(componentCopy);
+    handleComponentChange(componentCopy as FormComponent);
   };
 
   const types = !isProd

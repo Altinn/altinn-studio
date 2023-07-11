@@ -90,6 +90,11 @@ export interface FormButtonComponent
   onClickAction: () => void;
 }
 
+export interface FormNavigationButtonsComponent extends FormButtonComponent {
+  showBackButton?: boolean;
+  showPrev?: boolean;
+}
+
 export interface FormAddressComponent extends FormComponentBase<ComponentType.AddressComponent> {
   simplified: boolean;
 }
@@ -156,7 +161,7 @@ export type FormComponent<T extends ComponentType = ComponentType> = {
   [ComponentType.Map]: FormMapComponent;
   [ComponentType.MultipleSelect]: FormComponentBase<ComponentType.MultipleSelect>;
   [ComponentType.NavigationBar]: FormNavigationBarComponent;
-  [ComponentType.NavigationButtons]: FormButtonComponent;
+  [ComponentType.NavigationButtons]: FormNavigationButtonsComponent;
   [ComponentType.Panel]: FormPanelComponent;
   [ComponentType.Paragraph]: FormParagraphComponent;
   [ComponentType.PrintButton]: FormComponentBase<ComponentType.PrintButton>;
