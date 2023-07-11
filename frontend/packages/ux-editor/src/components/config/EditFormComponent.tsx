@@ -11,6 +11,7 @@ import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQ
 import { AltinnSpinner } from 'app-shared/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
+import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -26,6 +27,7 @@ export const EditFormComponent = ({
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
 
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {

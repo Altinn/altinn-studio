@@ -3,6 +3,7 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { TextField } from '@digdir/design-system-react';
+import { getComponentPropertyLabel } from '../../../utils/language';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -27,7 +28,7 @@ export const EditNumberValue = ({
   return (
     <FormField
       id={component.id}
-      label={propertyKey}
+      label={getComponentPropertyLabel(propertyKey, t)}
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
