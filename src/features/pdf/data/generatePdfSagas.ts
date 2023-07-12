@@ -24,8 +24,7 @@ import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IPdfFormat, IPdfMethod } from 'src/features/pdf/data/types';
 import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
-import type { ILayout, ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
-import type { ILayoutCompSummary } from 'src/layout/Summary/types.d';
+import type { ILayout, ILayouts } from 'src/layout/layout';
 import type { ILayoutSets, IRuntimeState, IUiConfig } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
@@ -69,17 +68,15 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
       pageRef,
       topLevelComponents(layout ?? []).filter((component) => !excludedComponents.has(component.id)),
     ])
-    .flatMap(
-      ([pageRef, components]: [string, ILayout]) =>
-        components?.map((component) => [pageRef, component]) as [string, ILayoutComponentOrGroup][],
-    )
+    .flatMap(([pageRef, components]: [string, ILayout]) => components?.map((component) => [pageRef, component]))
     .map(([pageRef, component]) => {
       const layoutComponent = getLayoutComponentObject(component.type);
 
       if (
-        component.type === 'Group' ||
-        layoutComponent.type === ComponentType.Form ||
-        layoutComponent.type === ComponentType.Presentation
+        !component.renderAsSummary &&
+        (component.type === 'Group' ||
+          layoutComponent.type === ComponentType.Form ||
+          layoutComponent.type === ComponentType.Presentation)
       ) {
         return {
           id: `__pdf__${component.id}`,
@@ -88,7 +85,7 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
           pageRef,
           excludedChildren: pdfFormat?.excludedComponents,
           largeGroup: component.type === 'Group' && (!component.maxCount || component.maxCount <= 1),
-        } as ExprUnresolved<ILayoutCompSummary>;
+        };
       }
       return null;
     })

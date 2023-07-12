@@ -11,6 +11,7 @@ import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { ComponentType } from 'src/layout/LayoutComponent';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { useExprContext } from 'src/utils/layout/ExprContext';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface PDFViewProps {
@@ -19,7 +20,17 @@ interface PDFViewProps {
 }
 
 const PDFComponent = ({ node }: { node: LayoutNode }) => {
-  if (node.isNonRepGroup()) {
+  if (node.isType('Summary') || node.item.renderAsSummary) {
+    return (
+      <SummaryComponent
+        summaryNode={node as LayoutNodeFromType<'Summary'>}
+        overrides={{
+          grid: { xs: 12 },
+          display: { hideChangeButton: true, hideValidationMessages: true },
+        }}
+      />
+    );
+  } else if (node.isNonRepGroup()) {
     return (
       <DisplayGroupContainer
         groupNode={node}
@@ -29,16 +40,6 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
             node={child}
           />
         )}
-      />
-    );
-  } else if (node.isType('Summary')) {
-    return (
-      <SummaryComponent
-        summaryNode={node}
-        overrides={{
-          grid: { xs: 12 },
-          display: { hideChangeButton: true, hideValidationMessages: true },
-        }}
       />
     );
   } else if (node.isComponentType(ComponentType.Presentation)) {
