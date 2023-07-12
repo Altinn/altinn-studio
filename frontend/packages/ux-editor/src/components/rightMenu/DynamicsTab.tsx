@@ -7,6 +7,7 @@ import { FormContext } from '../../containers/FormContext';
 import { ExpressionElement } from '../config/expressions/ExpressionContent';
 import { ExpressionPropertyBase, ExpressionPropertyForGroup } from '../../types/Expressions';
 import { LayoutItemType } from '../../types/global';
+import classes from './RightMenu.module.css';
 
 export interface Dynamic {
   id?: string;
@@ -79,9 +80,9 @@ export const DynamicsTab = () => {
 
   // Need to collect all existing expressions and list them here - or send a state prop to all the mapped expressions
   return (
-    <div>
+    <div className={classes.dynamics}>
       {Object.values(dynamics).map((dynamic: Dynamic) => (
-        <li key={dynamic.id}>
+        <div key={dynamic.id}>
           <DynamicContent
             component={form}
             dynamic={dynamic}
@@ -91,7 +92,7 @@ export const DynamicsTab = () => {
             onRemoveDynamic={() => removeDynamic(dynamic)}
             onEditDynamic={() => editDynamic(dynamic)}
           />
-        </li>
+        </div>
       ))}
       {showAddDynamicButton &&
         <Button

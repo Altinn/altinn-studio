@@ -19,11 +19,11 @@ export const RightMenu = ({ className }: RightMenuProps) => {
   return (
     <div className={cn(className, classes.main)} data-testid={'ux-editor.right-menu'}>
       { !_useIsProdHack() &&
-      <Checkbox
-        label={t('right_menu.show_new_dynamics')}
-        name={'checkbox-name'}
-        checked={showNewDynamics}
-        onChange={() => setShowNewDynamics(!showNewDynamics)}/>}
+        <Checkbox
+          label={t('right_menu.show_new_dynamics')}
+          name={'checkbox-name'}
+          checked={showNewDynamics}
+          onChange={() => setShowNewDynamics(!showNewDynamics)}/>}
       <Tabs
         items={[
           {

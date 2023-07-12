@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
-import { ExpressionPropertyBase } from '../../../types/Expressions';
+import {expressionFunctionTexts, ExpressionPropertyBase, expressionPropertyTexts} from '../../../types/Expressions';
 import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
-import { XMarkIcon, PencilIcon } from '@navikt/aksel-icons';
+import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { ExpressionContent, ExpressionElement } from './ExpressionContent';
 import { Dynamic } from '../../rightMenu/DynamicsTab';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { v4 as uuidv4 } from 'uuid';
+import { Trans, useTranslation } from 'react-i18next';
+import classes from './DynamicContent.module.css';
 
 interface ExpressionProps {
   component: FormComponent | FormContainer;
@@ -21,6 +23,7 @@ interface ExpressionProps {
 export const DynamicContent = ({ component, dynamic, properties, setShowAddDynamicButton, showRemoveDynamicButton, onRemoveDynamic, onEditDynamic }: ExpressionProps) => {
   const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'Velg handling');
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>([...dynamic.expressionElements]); // default state should be already existing expressions
+  const { t } = useTranslation();
 
   const allowToSpecifyExpression = Object.values(properties.expressionProperties).includes(selectedAction);
   const propertiesList = dynamic.expressionElements.length > 0 ? properties.expressionProperties : properties.availableProperties;
@@ -29,7 +32,7 @@ export const DynamicContent = ({ component, dynamic, properties, setShowAddDynam
     setSelectedAction(action);
     dynamic.property = action as ExpressionPropertyBase;
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
-    dynamic.expressionElements.push(newExpressionElement); // add id?
+    dynamic.expressionElements.push(newExpressionElement); // TODO: add id and check if dynamic is already in list and change property value if so
     setExpressionElements(dynamic.expressionElements);
   };
 
@@ -68,30 +71,32 @@ export const DynamicContent = ({ component, dynamic, properties, setShowAddDynam
     }
   }, [dynamic, expressionElements, setShowAddDynamicButton]);
 
-  console.log('dynamic', dynamic);
+  console.log('dynamic', dynamic); // TODO: Remove when fully tested
   return (
     <>
       {dynamic.editMode ? (
         <div>
           {showRemoveDynamicButton &&
             <Button
-              color={ButtonColor.Secondary}
+              color={ButtonColor.Danger}
               icon={<XMarkIcon/>}
               onClick={() => onRemoveDynamic(dynamic)} // delete dynamic - should also set expression element state back to default
-              variant={ButtonVariant.Filled}
+              variant={ButtonVariant.Quiet}
             />
           }
-          <span>Velg hva som skal skje med {component.id}</span>
+          <p>
+            <Trans i18nKey={'right_menu.dynamics_action_on_component'} values={{componentName: component.id}} components={{bold: <strong/>}}/>
+          </p>
           <Select
             onChange={(action) => addActionToDynamic(action)}
-            options={propertiesList.map((property: string) => ({
-              label: property,
+            options={[{label: 'Velg handling...', value: 'default'}].concat(propertiesList.map((property: string) => ({
+              label: expressionPropertyTexts(t)[property],
               value: property
-            }))}
-            value={dynamic.property}
+            })))}
+            value={dynamic.property || 'default'}
           />
           {expressionElements.map((expEl: ExpressionElement) => (
-            <li key={expEl.id}>
+            <div key={expEl.id}>
               <ExpressionContent // context?
                 expressionAction={allowToSpecifyExpression}
                 expressionElement={expEl}
@@ -99,30 +104,35 @@ export const DynamicContent = ({ component, dynamic, properties, setShowAddDynam
                 onUpdateExpressionElement={updateExpressionElement}
                 onRemoveExpressionElement={() => removeExpressionElement(expEl)}
               />
-            </li>
+            </div>
           ))}
         </div>) : (
-        <>
-          <Button
-            color={ButtonColor.Secondary}
-            icon={<XMarkIcon />}
-            onClick={() => onRemoveDynamic(dynamic)}
-            variant={ButtonVariant.Filled}
-          />
-          <Button
-            icon={<PencilIcon />}
-            onClick={() => onEditDynamic(dynamic)}
-            variant={ButtonVariant.Outline}
-          />
-          <span>{dynamic.property} {component.id} hvis</span>
-          {expressionElements.map((expEl: ExpressionElement) => (
-            <li key={expEl.id}>
-              <span>{expEl.dataSource} {expEl.value}</span>
-              <span>{expEl.function}</span>
-              <span>{expEl.comparableDataSource} {expEl.comparableValue}</span>
-            </li> // add a green checkmark
-          ))}
-        </>
+        <div className={classes.dynamicInPreview}>
+          <div className={classes.dynamicDetails}>
+          <span>{expressionPropertyTexts(t)[dynamic.property]} <span>{component.id}</span> hvis</span>
+              {expressionElements.map((expEl: ExpressionElement) => (
+                <div key={expEl.id}>
+                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
+                  <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
+                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '} <span>{expEl.comparableValue}</span></p>
+                  <p className={classes.bold}>{expEl.expressionOperatorForNextExpression}</p>
+                </div> // add a green checkmark
+              ))}
+          </div>
+          <div>
+            <Button
+              color={ButtonColor.Danger}
+              icon={<XMarkIcon />}
+              onClick={() => onRemoveDynamic(dynamic)}
+              variant={ButtonVariant.Quiet}
+            />
+            <Button
+              icon={<PencilIcon />}
+              onClick={() => onEditDynamic(dynamic)}
+              variant={ButtonVariant.Quiet}
+            />
+          </div>
+        </div>
       )
       }
     </>
