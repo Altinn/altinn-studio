@@ -3,7 +3,6 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-
 import {
   Button,
   ButtonColor,
@@ -34,10 +33,9 @@ export const RightMenu = ({
 }: RightMenuProps) => {
   const addLangOptions = langOptions.filter((x) => !availableLanguages.includes(x.value));
   const canDeleteLang = (code) => availableLanguages.length > 1 && code !== defaultLangCode;
-
   const { t } = useTranslation();
-
   const [confirmDeleteState, setConfirmDeleteState] = useState<{ [key: string]: boolean }>({});
+
   const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>
     target.checked
       ? setSelectedLanguages([...selectedLanguages, target.name])
