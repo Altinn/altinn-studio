@@ -3,7 +3,7 @@ import classes from './CalculationsTab.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { RuleModal } from '../toolbar/RuleModal';
-import { Dynamics } from './Dynamics';
+import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
 
@@ -27,6 +27,6 @@ export const CalculationsTab = () => {
         handleOpen={() => setModalOpen(true)} />
     </div>
     <Divider marginless/>
-    <Dynamics />
+    <OldDynamicsInfo />
   </div>;
 };

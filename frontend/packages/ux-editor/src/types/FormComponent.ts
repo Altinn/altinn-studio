@@ -18,10 +18,10 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleDeleteElement?: () => void;
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
-  disabled?: boolean;
-  required?: boolean;
-  hidden?: boolean;
-  readOnly?: boolean;
+  disabled?: boolean; // Add expression type?
+  required?: boolean; // Add expression type?
+  hidden?: boolean; // Add expression type?
+  readOnly?: boolean; // Add expression type?
   [id: string]: any;
   propertyPath?: string;
 }
