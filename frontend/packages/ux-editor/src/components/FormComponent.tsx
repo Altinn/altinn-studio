@@ -70,6 +70,8 @@ export const FormComponent = memo(function FormComponent({
     setIsPreviewMode(previous => !previous);
   };
 
+  const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
+
   return (
     <div
       className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
@@ -96,11 +98,8 @@ export const FormComponent = memo(function FormComponent({
           ) : (
             <div className={classes.formComponentTitle}>
               <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
-              {component.textResourceBindings?.title
-                ? truncate(
-                    getTextResource(component.textResourceBindings.title, textResources),
-                    80
-                  )
+              {textResource
+                ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||
                   t('ux_editor.component_unknown')}
             </div>

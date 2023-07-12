@@ -14,7 +14,13 @@ const app = 'app';
 const sendInnKey = 'sendinn';
 const sendInnText = 'Send inn';
 const sendInnTextResource: ITextResource = { id: sendInnKey, value: sendInnText };
-const nbTextResources: ITextResource[] = [sendInnTextResource];
+const backKey = 'back';
+const backText = 'Back';
+const backTextResource: ITextResource = { id: backKey, value: backText };
+const nextKey = 'next';
+const nextText = 'Next';
+const nextTextResource: ITextResource = { id: nextKey, value: nextText };
+const nbTextResources: ITextResource[] = [sendInnTextResource, backTextResource, nextTextResource];
 
 describe('ButtonPreview', () => {
   describe('Submit button', () => {
@@ -49,8 +55,8 @@ describe('ButtonPreview', () => {
     const navigationButtons: FormButtonComponent = {
       id: 'PreviewNavigationButton',
       textResourceBindings: {
-        next: 'next',
-        back: 'back',
+        next: nextKey,
+        back: backKey,
       },
       showBackButton: true,
       type: ComponentType.NavigationButtons,
@@ -64,18 +70,18 @@ describe('ButtonPreview', () => {
         ...navigationButtons,
         showBackButton: false,
       });
-      expect(screen.getByRole('button', { name: 'next' }));
+      expect(screen.getByRole('button', { name: nextText }));
     });
 
     test('should render back navigation button', async () => {
       await renderWithMock(navigationButtons);
-      expect(screen.getByRole('button', { name: 'back' }));
+      expect(screen.getByRole('button', { name: backText }));
     });
 
     test('Should render back and next buttons', async () => {
       await renderWithMock(navigationButtons);
-      expect(screen.getByRole('button', { name: 'back' }));
-      expect(screen.getByRole('button', { name: 'next' }));
+      expect(screen.getByRole('button', { name: nextText }));
+      expect(screen.getByRole('button', { name: backText }));
     });
 
     test('Should render back and next buttons with a default value when the text resource is empty', async () => {
