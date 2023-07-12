@@ -4,7 +4,7 @@ import { getTextResource } from '../../../utils/language';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './ButtonPreview.module.css';
 import { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesSelector } from '../../../hooks';
+import { useText, useTextResourcesSelector } from '../../../hooks';
 import { textResourcesByLanguageSelector } from '../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { FormButtonComponent } from '../../../types/FormComponent';
@@ -14,6 +14,7 @@ export interface ButtonPreviewProps {
 }
 
 export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => {
+  const t = useText();
   const texts: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
   const isNavigationButton = component.type === ComponentType.NavigationButtons;
@@ -29,19 +30,19 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
         {
           variant: ButtonVariant.Filled,
           color: buttonColor,
-          text: getTextResource(component.textResourceBindings?.back, texts),
+          text: getTextResource(component.textResourceBindings?.back, texts) || t('ux_editor.modal_properties_button_type_back'),
         },
         {
           variant: ButtonVariant.Filled,
           color: buttonColor,
-          text: getTextResource(component.textResourceBindings?.next, texts),
+          text: getTextResource(component.textResourceBindings?.next, texts) || t('ux_editor.modal_properties_button_type_next'),
         },
       ]
     : [
         {
           variant: ButtonVariant.Filled,
           color: buttonColor,
-          text: getTextResource(buttonText, texts),
+          text: getTextResource(buttonText, texts) || t('ux_editor.modal_properties_button_type_submit'),
         },
       ];
 

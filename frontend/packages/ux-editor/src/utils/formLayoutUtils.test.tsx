@@ -555,7 +555,7 @@ describe('formLayoutUtils', () => {
       const layout = addNavigationButtons(mockInternal, id);
       expect(layout.components[id]).toBeDefined();
       expect(layout.components[id].type).toEqual(ComponentType.NavigationButtons);
-      expect(layout.components[id].textResourceBindings).toEqual({ next: 'next', back: 'back' });
+      expect(layout.components[id].textResourceBindings).toEqual({ next: undefined, back: undefined });
       expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(id);
       expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
     });
