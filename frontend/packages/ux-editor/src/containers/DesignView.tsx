@@ -5,7 +5,6 @@ import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
-import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
@@ -30,7 +29,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const { org, app } = useParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const layoutName = useSelector(selectedLayoutNameSelector);
   const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
   const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);

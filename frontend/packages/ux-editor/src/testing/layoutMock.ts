@@ -16,7 +16,7 @@ export const component1Mock: FormComponent = {
   id: component1IdMock,
   type: component1TypeMock,
   itemType: 'COMPONENT',
-  dataModelBindings: {},
+  propertyPath: 'definitions/inputComponent',
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
@@ -24,7 +24,7 @@ export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
   itemType: 'COMPONENT',
-  dataModelBindings: {},
+  propertyPath: undefined,
 };
 export const container1IdMock = 'Container-1';
 export const customRootPropertiesMock: KeyValuePairs = {
@@ -43,9 +43,11 @@ export const layoutMock: IInternalLayout = {
   containers: {
     [baseContainerIdMock]: {
       itemType: 'CONTAINER',
+      index: 0,
     },
     [container1IdMock]: {
       itemType: 'CONTAINER',
+      propertyPath: 'definitions/groupComponent',
     },
   },
   order: {

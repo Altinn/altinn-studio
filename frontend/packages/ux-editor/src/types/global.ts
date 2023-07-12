@@ -39,6 +39,11 @@ export interface IInternalLayout {
   customDataProperties: KeyValuePairs;
 }
 
+export interface IInternalLayoutWithName {
+  layout: IInternalLayout;
+  layoutName: string;
+}
+
 export type IFormLayoutOrder = KeyValuePairs<string[]>;
 
 export interface IRuleModelFieldElement {
@@ -78,6 +83,6 @@ export enum LayoutItemType {
 
 export type AppStateSelector<T> = (state: IAppState) => T;
 
-export type FormLayoutsSelector<T> = (state: IAppState, formLayoutsData: IFormLayouts) => T;
+export type FormLayoutsSelector<T> = (formLayoutsData: IFormLayouts) => T;
 
 export type TextResourcesSelector<T> = (textResources: ITextResources) => T;
