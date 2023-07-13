@@ -167,7 +167,7 @@ namespace Altinn.Studio.Designer.Controllers
             return _repository.AddServiceResource(org, resource);
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}")]
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition)
         {

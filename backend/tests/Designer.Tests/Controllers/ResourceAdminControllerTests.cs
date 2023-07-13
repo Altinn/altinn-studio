@@ -143,7 +143,20 @@ namespace Designer.Tests.Controllers
             Assert.Contains("resourceadm.js", contenthtml);
         }
 
+        [Fact]
+        public async Task ExportAltinn2Resource()
+        {
+            // Arrange
+            string uri = $"designer/api/ttd/resources/importresource/5065/2222";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
+            // Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string contenthtml = await res.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
 
         private static List<Keyword> GetTestKeywords()
         {

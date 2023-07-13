@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
         public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode)
         {
             // Temp location. Will be moved to CDN
-            string url = $"https://at21.altinn.cloud/sblbridge/metadata/api/resourceregisterresource/?serviceCode={serviceCode}&serviceEdition={serviceEditionCode}";
+            string url = $"https://at23.altinn.cloud/sblbridge/metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             ServiceResource serviceResource;
 
