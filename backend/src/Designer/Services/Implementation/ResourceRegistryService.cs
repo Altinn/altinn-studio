@@ -37,7 +37,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env = null)
         {
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-            
             string fullResourceRegistryUrl;
             if (env != null)
             {
