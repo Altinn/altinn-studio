@@ -8,9 +8,13 @@ namespace Altinn.Studio.Designer.Configuration
 
         public string ClientId { get; set; }
 
+        public string ClientIdProd { get; set; }
+
         public string Scope { get; set; }
 
         public string EncodedJwk { get; set; }
+
+        public string EncodedJwkProd { get; set; }
 
         public bool ExhangeToAltinnToken { get; set; }
     }

@@ -46,7 +46,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                fullResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDevBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
+                fullResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
+
+                if (!_platformSettings.ResourceRegistryDefaultBaseUrl.Contains("localhost") && _platformSettings.ResourceRegistryDefaultBaseUrl.Contains("platform"))
+                {
+                    string[] splittedBaseUrl = _platformSettings.ResourceRegistryDefaultBaseUrl.Split('.');
+                    env = splittedBaseUrl[1];
+                    tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
+                }
             }
 
             string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
@@ -57,6 +64,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.Created)
             {
                 return new StatusCodeResult(201);
+            }
+            else if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                return new StatusCodeResult(409);
             }
             else
             {

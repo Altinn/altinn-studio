@@ -84,6 +84,6 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Base Url used in dev
         /// </summary>
-        public string ResourceRegistryDevBaseUrl { get; set; }
+        public string ResourceRegistryDefaultBaseUrl { get; set; }
     }
 }
