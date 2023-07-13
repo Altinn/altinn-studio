@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button, Checkbox, FieldSet, HelpText, TextField } from '@digdir/design-system-react';
-import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -15,6 +14,7 @@ import classes from './CustomProperties.module.css';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -26,7 +26,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
   const { t } = useTranslation();
-  const { custom } = useSchemaSelector(selectedItemSelector);
+  const { custom } = useSchemaSelector(selectedIdSelector);
 
   function changeProperties(properties: KeyValuePairs) {
     mutate(setCustomProperties(data, { path, properties }));

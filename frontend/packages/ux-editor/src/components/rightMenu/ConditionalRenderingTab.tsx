@@ -3,7 +3,7 @@ import { Button, ButtonVariant } from '@digdir/design-system-react';
 import classes from './ConditionalRenderingTab.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
-import { Dynamics } from './Dynamics';
+import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
 
@@ -32,7 +32,7 @@ export const ConditionalRenderingTab = () => {
         </div>
       </div>
       <Divider marginless/>
-      <Dynamics />
+      <OldDynamicsInfo />
     </div>
   );
 };

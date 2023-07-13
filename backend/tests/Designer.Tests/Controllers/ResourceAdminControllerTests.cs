@@ -481,6 +481,58 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
 
+
+        [Fact]
+        public async Task GetSectors()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/sectors";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string sectorscontent = await res.Content.ReadAsStringAsync();
+            List<DataTheme> dataThemes = System.Text.Json.JsonSerializer.Deserialize<List<DataTheme>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotEmpty(dataThemes);
+        }
+
+        [Fact]
+        public async Task GetLosTerms()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/losterms";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string sectorscontent = await res.Content.ReadAsStringAsync();
+            List<LosTerm> losTerms = System.Text.Json.JsonSerializer.Deserialize<List<LosTerm>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotEmpty(losTerms);
+        }
+
+        [Fact]
+        public async Task GetEuroVocs()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/eurovoc";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string eurovocscontent = await res.Content.ReadAsStringAsync();
+            List<EuroVocTerm> eurovocs = System.Text.Json.JsonSerializer.Deserialize<List<EuroVocTerm>>(eurovocscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotEmpty(eurovocs);
+        }
+
         [Fact]
         public async Task PublishResource_Success()
         {

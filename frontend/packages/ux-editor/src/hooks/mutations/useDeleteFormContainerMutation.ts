@@ -1,12 +1,11 @@
 import { IInternalLayout } from '../../types/global';
-import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
+import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { deepCopy } from 'app-shared/pure';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) =>  {
-  const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
+  const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   return useMutation({
     mutationFn: (id: string) => {

@@ -113,4 +113,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="_TestData\DataNorge\" />
+  </ItemGroup>
 </Project>

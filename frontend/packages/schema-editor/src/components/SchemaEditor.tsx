@@ -24,13 +24,13 @@ import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
 import {
-  rootChildrenSelector,
-  rootNodesSelector,
-  selectedDefinitionParentSelector,
-  selectedItemSelector,
-  selectedPropertyParentSelector
+  selectedPropertyNodeIdSelector,
+  selectedDefinitionNodeIdSelector,
+  selectedIdSelector,
+  getRootChildren,
+  getRootNodes
 } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { useSchemaSelector, useParentSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { Toolbar, ToolbarProps } from 'app-shared/features/dataModelling/components/Toolbar';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -84,8 +84,8 @@ export const SchemaEditor = ({
   const translation = useTranslation();
   const t = (key: string, options: KeyValuePairs) => translation.t('schema_editor.' + key, options);
 
-  const rootNodeMap = useSchemaSelector(rootNodesSelector);
-  const rootChildren = useSchemaSelector(rootChildrenSelector);
+  const rootNodeMap = getRootNodes(data);
+  const rootChildren = getRootChildren(data);
   const properties: UiSchemaNodes = [];
   const definitions: UiSchemaNodes = [];
   rootChildren?.forEach(
@@ -94,8 +94,8 @@ export const SchemaEditor = ({
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useSchemaSelector(selectedPropertyParentSelector);
-  const selectedItem = useSchemaSelector(selectedItemSelector);
+  const selectedPropertyParent = useParentSchemaSelector(selectedPropertyNodeIdSelector);
+  const selectedItem = useSchemaSelector(selectedIdSelector);
 
   useEffect(() => {
     if (selectedType) {
@@ -115,7 +115,7 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSchemaSelector(selectedDefinitionParentSelector);
+  const selectedDefinitionParent = useParentSchemaSelector(selectedDefinitionNodeIdSelector);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);

@@ -1,13 +1,30 @@
 import { useParams } from 'react-router-dom';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { useSelector } from 'react-redux';
-import { FormLayoutsSelector, IAppState } from '../types/global';
-import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
+import { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
+import { createEmptyLayout } from '../utils/formLayoutUtils';
 
-export const useFormLayoutsSelector = <T>(selector: FormLayoutsSelector<T>): T => {
+export const useFormLayouts = (): IFormLayouts => {
   const { org, app } = useParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data } = formLayoutsQuery;
-  return useSelector((state: IAppState) => selector(state, data));
+  return data;
+}
+
+export const useSelectedFormLayout = (): IInternalLayout => {
+  const data = useFormLayouts();
+
+  const layoutName = useSelector(selectedLayoutNameSelector);
+  return data?.[layoutName] || createEmptyLayout();
+}
+
+export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
+  const layout = useSelectedFormLayout();
+  const layoutName = useSelector(selectedLayoutNameSelector);
+  return {
+    layout,
+    layoutName,
+  };
 }

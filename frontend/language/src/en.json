@@ -850,6 +850,8 @@
   "ux_editor.modal_properties_button_type_helper": "Button type",
   "ux_editor.modal_properties_button_type_navigation": "Navigation",
   "ux_editor.modal_properties_button_type_submit": "Submit",
+  "ux_editor.modal_properties_button_type_back": "Back",
+  "ux_editor.modal_properties_button_type_next": "Next",
   "ux_editor.modal_properties_code_list_id": "Code list ID",
   "ux_editor.modal_properties_custom_code_list_id": "Custom code list ID",
   "ux_editor.modal_properties_code_list_read_more": "\"<0 href=\\\"{{optionsDocs}}\\\" >Read more about code lists</0>\",",

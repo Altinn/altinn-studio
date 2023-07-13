@@ -3,7 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Panel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
-import { createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
+import { IDataModellingState, createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
 import { createDataModelMetadataOptions } from './functions/createDataModelMetadataOptions';
 import { findPreferredMetadataOption } from './functions/findPreferredMetadataOption';
 import { schemaPathIsSame } from './functions/schemaPathIsSame';
@@ -15,6 +15,8 @@ import { getLocalStorageItem, setLocalStorageItem } from './functions/localStora
 import classes from './DataModelling.module.css';
 import { useTranslation } from 'react-i18next';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
+import { createSelector } from '@reduxjs/toolkit';
+import { RootState } from 'app-development/store';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   org: string;
@@ -40,6 +42,12 @@ export const shouldSelectFirstEntry = ({
   );
 };
 
+export const jsonSchemaStateSelector = createSelector
+(
+  (state: RootState) => state.dataModelling,
+  (dataModelling: IDataModellingState) => ({ error: dataModelling.error, saving: dataModelling.saving })
+);
+
 export function DataModelling({
   org,
   repo,
@@ -47,10 +55,7 @@ export function DataModelling({
 }: IDataModellingContainerProps): ReactNode {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const jsonSchemaState = useSelector((state: any) => {
-    const { error, saving } = state.dataModelling;
-    return { error, saving };
-  });
+  const jsonSchemaState = useSelector(jsonSchemaStateSelector);
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
   const [selectedOption, setSelectedOption] = useState(undefined);

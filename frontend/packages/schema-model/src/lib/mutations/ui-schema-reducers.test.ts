@@ -47,6 +47,8 @@ import {
   requiredNodeMock,
   stringNodeMock,
   uiSchemaMock,
+  simpleParentNodeMock,
+  simpleArrayMock,
 } from '../../../test/uiSchemaMock';
 import { getChildNodesByPointer, getNodeByPointer } from '../selectors';
 import { expect } from '@jest/globals';
@@ -367,6 +369,32 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.fieldType).toEqual(stringNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(true);
     });
+
+    it("should update the children's pointers, and add /Items/ when isArray toggles to true", () => {
+      const { pointer } = simpleParentNodeMock;
+      result = toggleArrayField(uiSchemaMock, pointer);
+      const updatedNode = getNodeByPointer(result, pointer);
+      expect(updatedNode.children.length).toEqual(simpleParentNodeMock.children.length);
+      updatedNode.children.forEach((childPointer) => {
+        expect(childPointer).toContain(Keyword.Items);
+        getChildNodesByPointer(result, pointer).forEach((childNode) => {
+          expect(childNode.pointer).toContain(Keyword.Items);
+        });
+      });
+    });
+
+    it("should update the children's pointers without adding /Items/ when isArray toggles to false", () => {
+      const { pointer } = simpleArrayMock;
+      result = toggleArrayField(uiSchemaMock, pointer);
+      const updatedNode = getNodeByPointer(result, pointer);
+      expect(updatedNode.children.length).toEqual(simpleArrayMock.children.length);
+      updatedNode.children.forEach((childPointer) => {
+        expect(childPointer).not.toContain(Keyword.Items);
+        getChildNodesByPointer(result, pointer).forEach((childNode) => {
+          expect(childNode.pointer).not.toContain(Keyword.Items);
+        });
+      });
+    })
   });
 
   describe('changeChildrenOrder', () => {

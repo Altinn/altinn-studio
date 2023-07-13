@@ -205,6 +205,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
 
+    services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
+
     // Add application insight telemetry
     if (!string.IsNullOrEmpty(applicationInsightsKey))
     {
