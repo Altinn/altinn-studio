@@ -6,6 +6,7 @@ import { DevHiddenFunctionality } from 'src/features/devtools/components/DevHidd
 import { DevLanguageSelector } from 'src/features/devtools/components/DevLanguageSelector/DevLanguageSelector';
 import { DevNavigationButtons } from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons';
 import { DevToolsLogs } from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs';
+import { DownloadXMLButton } from 'src/features/devtools/components/DownloadXMLButton/DownloadXMLButton';
 import { ExpressionPlayground } from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground';
 import { FeatureToggles } from 'src/features/devtools/components/FeatureToggles/FeatureToggles';
 import { LayoutInspector } from 'src/features/devtools/components/LayoutInspector/LayoutInspector';
@@ -42,6 +43,7 @@ export const DevToolsControls = () => {
                 <VersionSwitcher />
                 <PermissionsEditor />
                 <DevLanguageSelector />
+                <DownloadXMLButton />
               </div>
             ),
           },
