@@ -13,11 +13,6 @@ describe('RightMenu', () => {
     setSelectedLanguages: jest.fn(),
   };
 
-  beforeEach(() => {
-    jest.spyOn(console, 'error').mockImplementation();
-    rtlRender(<RightMenu {...defaultProps} />);
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -27,6 +22,9 @@ describe('RightMenu', () => {
   });
 
   test('displays and handles popover for deleting a language', () => {
+    jest.spyOn(console, 'error').mockImplementation();
+    rtlRender(<RightMenu {...defaultProps} />);
+
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
     const popoverContent = screen.getByText(/schema_editor.language_display_confirm_delete/);
@@ -39,6 +37,9 @@ describe('RightMenu', () => {
   });
 
   test('calls deleteLanguage with the correct language code when confirm deletion button is clicked', () => {
+    jest.spyOn(console, 'error').mockImplementation();
+    rtlRender(<RightMenu {...defaultProps} />);
+
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
     const confirmButton = screen.getByText(/schema_editor.language_conferm_deletion/);
@@ -47,6 +48,9 @@ describe('RightMenu', () => {
   });
 
   test('closes the popover when cancel button is clicked', () => {
+    jest.spyOn(console, 'error').mockImplementation();
+    rtlRender(<RightMenu {...defaultProps} />);
+
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
     const cancelButton = screen.getByText(/schema_editor.textRow-cancel-popover/);
