@@ -36,9 +36,14 @@ describe('On Entry', () => {
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', instanceIdExamples.length);
 
     // Verify order of rows (they should be sorted with the latest instance at the bottom)
-    cy.get(appFrontend.selectInstance.tableBody).find('tr').eq(0).should('contain.text', 'Bar Baz');
-    cy.get(appFrontend.selectInstance.tableBody).find('tr').eq(1).should('contain.text', 'Ola Nordmann');
-    cy.get(appFrontend.selectInstance.tableBody).find('tr').eq(2).should('contain.text', 'Foo Bar');
+    cy.get(appFrontend.selectInstance.tableBody).find('tr').eq(0).find('td').eq(1).should('contain.text', 'Bar Baz');
+    cy.get(appFrontend.selectInstance.tableBody)
+      .find('tr')
+      .eq(1)
+      .find('td')
+      .eq(1)
+      .should('contain.text', 'Ola Nordmann');
+    cy.get(appFrontend.selectInstance.tableBody).find('tr').eq(2).find('td').eq(1).should('contain.text', 'Foo Bar');
 
     cy.get(appFrontend.selectInstance.tableBody).find('tr').eq(1).as('tableRow');
     cy.get('@tableRow')

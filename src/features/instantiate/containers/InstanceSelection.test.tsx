@@ -124,12 +124,12 @@ describe('InstanceSelection', () => {
     });
 
     const row = screen.getByRole('row', {
-      name: /sist endret 05\/13\/2021/i,
+      name: /Sist endret: 05\/13\/2021 Endret av: Kåre Nordmannsen/i,
     });
     expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-id');
 
     const button = within(row).getByRole('button', {
-      name: /fortsett her-05\/13\/2021/i,
+      name: /fortsett her/i,
     });
 
     await act(() => user.click(button));

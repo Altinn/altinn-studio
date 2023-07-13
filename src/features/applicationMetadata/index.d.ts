@@ -23,9 +23,16 @@ export interface IApplicationMetadataState {
 
 export interface IOnEntry {
   show: ShowTypes;
+  instanceSelection?: IInstanceSelection;
 }
 
 export type ShowTypes = 'new-instance' | 'select-instance' | 'startpage' | string;
+
+export type IInstanceSelection = {
+  rowsPerPageOptions: number[];
+  defaultRowsPerPage: number;
+  sortDirection: 'asc' | 'desc';
+};
 
 interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;

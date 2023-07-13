@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Grid, TableCell, Typography } from '@material-ui/core';
+import { Pagination } from '@altinn/altinn-design-system';
+import {
+  Button,
+  Heading,
+  Paragraph,
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHeader,
+  TableRow,
+} from '@digdir/design-system-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
+import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 
-import { AltinnTable } from 'src/components/organisms/AltinnTable';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { AltinnMobileTable } from 'src/components/table/AltinnMobileTable';
-import { AltinnMobileTableItem } from 'src/components/table/AltinnMobileTableItem';
-import { AltinnTableBody } from 'src/components/table/AltinnTableBody';
-import { AltinnTableHeader } from 'src/components/table/AltinnTableHeader';
-import { AltinnTableRow } from 'src/components/table/AltinnTableRow';
+import classes from 'src/features/instantiate/containers/InstanceSelection.module.css';
+import { useApplicationMetadataQuery } from 'src/hooks/queries/useApplicationMetadataQuery';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
@@ -33,136 +40,184 @@ function getDateDisplayString(timeStamp: string) {
   });
 }
 
-const marginTop12 = {
-  marginTop: '12px',
-};
-
-const marginTop26 = {
-  marginTop: '26px',
-};
-
-const tableButtonWrapper = {
-  display: 'flex',
-  justifyContent: 'right',
-};
-
-const buttonCell = {
-  padding: '4px 36px 4px 4px',
-};
-
 export function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
-  const { lang, langAsString } = useLanguage();
+  const { data: applicationMetadata } = useApplicationMetadataQuery();
+  const instanceSelectionOptions = applicationMetadata?.onEntry?.instanceSelection;
+  const { lang, langAsString, language } = useLanguage();
   const mobileView = useIsMobileOrTablet();
+  const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(
+    (instanceSelectionOptions?.defaultRowsPerPage &&
+      rowsPerPageOptions[instanceSelectionOptions?.defaultRowsPerPage]) ??
+      rowsPerPageOptions[0],
+  );
+
+  if (instanceSelectionOptions?.sortDirection === 'desc') {
+    instances = instances.slice().reverse();
+  }
+  const paginatedInstances = instances.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
 
   const openInstance = (instanceId: string) => {
     window.location.href = getInstanceUiUrl(instanceId);
   };
 
+  function handleRowsPerPageChanged(newRowsPerPage: number) {
+    setRowsPerPage(newRowsPerPage);
+    if (instances.length < currentPage * newRowsPerPage) {
+      setCurrentPage(Math.floor(instances.length / newRowsPerPage));
+    }
+  }
+
   const renderMobileTable = () => (
     <>
-      <Typography variant='h3'>{lang('instance_selection.left_of')}</Typography>
-      <AltinnMobileTable id='instance-selection-mobile-table'>
-        {instances.map((instance) => (
-          <AltinnMobileTableItem
-            items={[
-              {
-                key: 1,
-                label: langAsString('instance_selection.last_changed'),
-                value: getDateDisplayString(instance.lastChanged),
-              },
-              {
-                key: 2,
-                label: langAsString('instance_selection.changed_by'),
-                value: instance.lastChangedBy,
-              },
-            ]}
-            tableItemIndex={-2}
-            editIndex={-2}
-            onEditClick={() => openInstance(instance.id)}
-            key={instance.id}
-            editButtonText={langAsString('instance_selection.continue')}
-          />
-        ))}
-      </AltinnMobileTable>
+      <Heading
+        size='xsmall'
+        level={3}
+        className={classes.leftOffHeading}
+      >
+        {lang('instance_selection.left_of')}
+      </Heading>
+      <Table id='instance-selection-mobile-table'>
+        <TableBody>
+          {paginatedInstances.map((instance) => (
+            <TableRow key={instance.id}>
+              <TableCell className={classes.mobileTableCell}>
+                <div>
+                  <b>{langAsString('instance_selection.last_changed')}:</b>
+                  <br />
+                  <span>{getDateDisplayString(instance.lastChanged)}</span>
+                </div>
+                <div>
+                  <b>{langAsString('instance_selection.changed_by')}:</b>
+                  <br />
+                  <span>{instance.lastChangedBy}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className={classes.tableButtonWrapper}>
+                  <Button
+                    variant='quiet'
+                    color='secondary'
+                    icon={<EditIcon />}
+                    iconPlacement='right'
+                    onClick={() => openInstance(instance.id)}
+                    aria-label={`${langAsString('instance_selection.continue')}`}
+                  />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+        {instances.length > rowsPerPageOptions[0] && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={2}>
+                <div className={classes.paginationWrapperMobile}>
+                  <Pagination
+                    numberOfRows={instances.length}
+                    rowsPerPageOptions={rowsPerPageOptions}
+                    rowsPerPage={rowsPerPage}
+                    currentPage={currentPage}
+                    onRowsPerPageChange={(changeEvent) =>
+                      handleRowsPerPageChanged(parseInt(changeEvent.currentTarget.value))
+                    }
+                    setCurrentPage={(page) => setCurrentPage(page)}
+                    descriptionTexts={language && (language['list_component'] as DescriptionText)}
+                  />
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
     </>
   );
 
   const renderTable = () => (
-    <AltinnTable id='instance-selection-table'>
-      <AltinnTableHeader id='instance-selection-table-header'>
-        <AltinnTableRow>
-          <TableCell>{lang('instance_selection.last_changed')}</TableCell>
-          <TableCell>{lang('instance_selection.changed_by')}</TableCell>
-        </AltinnTableRow>
-      </AltinnTableHeader>
-      <AltinnTableBody id='instance-selection-table-body'>
-        {instances.map((instance: ISimpleInstance) => (
-          <AltinnTableRow key={instance.id}>
-            <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
-            <TableCell>{instance.lastChangedBy}</TableCell>
-            <TableCell style={buttonCell}>
-              <div style={tableButtonWrapper}>
-                <Button
-                  variant={ButtonVariant.Quiet}
-                  color={ButtonColor.Secondary}
-                  icon={<EditIcon />}
-                  iconPlacement='right'
-                  onClick={() => openInstance(instance.id)}
-                >
-                  {lang('instance_selection.continue')}
-                </Button>
-              </div>
-            </TableCell>
-          </AltinnTableRow>
-        ))}
-      </AltinnTableBody>
-    </AltinnTable>
+    <div className={classes.tableContainer}>
+      <Table id='instance-selection-table'>
+        <TableHeader id='instance-selection-table-header'>
+          <TableRow>
+            <TableCell>{lang('instance_selection.last_changed')}</TableCell>
+            <TableCell>{lang('instance_selection.changed_by')}</TableCell>
+            <TableCell />
+          </TableRow>
+        </TableHeader>
+        <TableBody id='instance-selection-table-body'>
+          {paginatedInstances.map((instance: ISimpleInstance) => (
+            <TableRow key={instance.id}>
+              <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
+              <TableCell>{instance.lastChangedBy}</TableCell>
+              <TableCell className={classes.buttonCell}>
+                <div className={classes.tableButtonWrapper}>
+                  <Button
+                    variant='quiet'
+                    color='secondary'
+                    icon={<EditIcon />}
+                    iconPlacement='right'
+                    onClick={() => openInstance(instance.id)}
+                  >
+                    {lang('instance_selection.continue')}
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+        {instances.length > rowsPerPageOptions[0] && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={3}>
+                <div className={classes.paginationWrapper}>
+                  <Pagination
+                    numberOfRows={instances.length}
+                    rowsPerPageOptions={rowsPerPageOptions}
+                    rowsPerPage={rowsPerPage}
+                    currentPage={currentPage}
+                    onRowsPerPageChange={(changeEvent) =>
+                      handleRowsPerPageChanged(parseInt(changeEvent.currentTarget.value))
+                    }
+                    setCurrentPage={(page) => setCurrentPage(page)}
+                    descriptionTexts={language && (language['list_component'] as DescriptionText)}
+                  />
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+    </div>
   );
 
   return (
     <>
-      <Grid
-        container
-        id='instance-selection-container'
-      >
-        <Grid item>
-          <Typography
-            variant='h2'
+      <div id='instance-selection-container'>
+        <div>
+          <Heading
+            level={2}
+            size='medium'
             id='instance-selection-header'
           >
             {lang('instance_selection.header')}
-          </Typography>
-        </Grid>
-        <Grid
-          item
-          id='instance-selection-description'
-        >
-          <Typography
-            variant='body1'
-            style={marginTop12}
-          >
-            {lang('instance_selection.description')}
-          </Typography>
-        </Grid>
-        <Grid
-          item
-          style={marginTop26}
-        >
-          {mobileView && renderMobileTable()}
-          {!mobileView && renderTable()}
-        </Grid>
-        <Grid
-          item
-          style={marginTop12}
-        >
+          </Heading>
+        </div>
+        <div id='instance-selection-description'>
+          <Paragraph className={classes.descriptionParagraph}>{lang('instance_selection.description')}</Paragraph>
+        </div>
+
+        {mobileView && renderMobileTable()}
+        {!mobileView && renderTable()}
+        <div className={classes.startNewButtonContainer}>
           <Button
             onClick={onNewInstance}
             id='new-instance-button'
           >
             {lang('instance_selection.new_instance')}
           </Button>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
       <ReadyForPrint />
     </>
   );

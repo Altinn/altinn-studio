@@ -1,3 +1,4 @@
+import type { IOnEntry } from 'src/features/applicationMetadata';
 import type { IProcessPermissions } from 'src/features/process';
 import type { FixedLanguageList } from 'src/language/languages';
 
@@ -31,10 +32,6 @@ export interface IApplicationLogic {
   autoCreate?: boolean;
   classRef?: string;
   schemaRef?: string;
-}
-
-export interface IOnEntry {
-  show: 'new-instance' | 'startpage' | string;
 }
 
 export interface IAttachment {

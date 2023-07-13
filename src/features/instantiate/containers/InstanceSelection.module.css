@@ -1,0 +1,42 @@
+.buttonCell {
+  /* using !important because the table component from the designsystem overrides this */
+  padding: 4px 36px 4px 4px !important;
+}
+
+.tableButtonWrapper {
+  display: flex;
+  justify-content: right;
+}
+
+.tableContainer {
+  margin-top: 26px;
+}
+
+.startNewButtonContainer {
+  margin-top: 12px;
+}
+
+.descriptionParagraph {
+  /* using !important because the paragraph component from the designsystem overrides this */
+  margin-top: 12px !important;
+}
+
+.paginationWrapper {
+  display: flex;
+  justify-content: left;
+}
+
+.paginationWrapperMobile {
+  display: flex;
+  justify-content: center;
+}
+
+.mobileTableCell {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.leftOffHeading {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
