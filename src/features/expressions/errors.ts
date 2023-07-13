@@ -1,7 +1,10 @@
 import type { ExprContext } from 'src/features/expressions/ExprContext';
 
 export class ExprRuntimeError extends Error {
-  public constructor(public context: ExprContext, message: string) {
+  public constructor(
+    public context: ExprContext,
+    message: string,
+  ) {
     super(message);
   }
 }

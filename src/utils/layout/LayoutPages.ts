@@ -16,7 +16,10 @@ export class LayoutPages<
 > {
   private readonly objects: Collection;
 
-  public constructor(private currentView?: keyof Collection, objects?: Collection) {
+  public constructor(
+    private currentView?: keyof Collection,
+    objects?: Collection,
+  ) {
     this.objects = objects || ({} as any);
     for (const layoutKey of Object.keys(this.objects)) {
       const layout = this.objects[layoutKey];

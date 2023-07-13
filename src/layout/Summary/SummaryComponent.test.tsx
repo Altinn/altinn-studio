@@ -29,7 +29,7 @@ describe('SummaryComponent', () => {
                 textResourceBindings: {},
                 children: [],
                 maxCount: 10,
-              } as ExprUnresolved<ILayoutComponent>),
+              }) as ExprUnresolved<ILayoutComponent>,
           ),
         ],
       },

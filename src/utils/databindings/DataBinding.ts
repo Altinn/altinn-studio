@@ -22,7 +22,11 @@ export class DataBindingPart {
   public readonly base: string;
   public arrayIndex: number | undefined = undefined;
 
-  public constructor(public readonly parent: DataBinding, public readonly parentIndex: number, raw: string) {
+  public constructor(
+    public readonly parent: DataBinding,
+    public readonly parentIndex: number,
+    raw: string,
+  ) {
     const arrayIndex = raw.match(/(\[\d+])?$/);
     if (arrayIndex && arrayIndex[1]) {
       this.arrayIndex = parseInt(arrayIndex[1].substring(1, arrayIndex[1].length - 1));

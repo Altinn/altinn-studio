@@ -108,8 +108,9 @@ export function getParentGroup(groupId: string, layout: ILayout): ILayoutGroup |
  */
 export function getGroupChildren(groupId: string, layout: ILayout): ExprUnresolved<ILayoutGroup | ILayoutComponent>[] {
   const layoutGroup = layout.find((element) => element.id === groupId) as ILayoutGroup;
-  return layout.filter((element) =>
-    layoutGroup?.children?.map((id) => (layoutGroup.edit?.multiPage ? id.split(':')[1] : id)).includes(element.id),
+  return layout.filter(
+    (element) =>
+      layoutGroup?.children?.map((id) => (layoutGroup.edit?.multiPage ? id.split(':')[1] : id)).includes(element.id),
   );
 }
 
@@ -136,17 +137,18 @@ export function canFormBeSaved(validationResult: IValidationResult | null): bool
   if (!validations) {
     return true;
   }
-  return Object.keys(validations).every((layoutId: string) =>
-    Object.keys(validations[layoutId])?.every((componentId: string) => {
-      const componentValidations: IComponentValidations = validations[layoutId][componentId];
-      if (componentValidations === null) {
-        return true;
-      }
-      return Object.keys(componentValidations).every((bindingKey: string) => {
-        const componentErrors = componentValidations[bindingKey]?.errors;
-        return !componentErrors || componentErrors.length === 0;
-      });
-    }),
+  return Object.keys(validations).every(
+    (layoutId: string) =>
+      Object.keys(validations[layoutId])?.every((componentId: string) => {
+        const componentValidations: IComponentValidations = validations[layoutId][componentId];
+        if (componentValidations === null) {
+          return true;
+        }
+        return Object.keys(componentValidations).every((bindingKey: string) => {
+          const componentErrors = componentValidations[bindingKey]?.errors;
+          return !componentErrors || componentErrors.length === 0;
+        });
+      }),
   );
 }
 

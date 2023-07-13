@@ -316,10 +316,12 @@ export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIter
     const pageTriggers = state.formLayout.uiConfig.pageTriggers;
     const appHasCalculateTrigger =
       pageTriggers?.includes(Triggers.CalculatePageOrder) ||
-      Object.keys(layouts).some((layout) =>
-        layouts[layout]?.some(
-          (element) => element.type === 'NavigationButtons' && element.triggers?.includes(Triggers.CalculatePageOrder),
-        ),
+      Object.keys(layouts).some(
+        (layout) =>
+          layouts[layout]?.some(
+            (element) =>
+              element.type === 'NavigationButtons' && element.triggers?.includes(Triggers.CalculatePageOrder),
+          ),
       );
     if (appHasCalculateTrigger) {
       yield put(
