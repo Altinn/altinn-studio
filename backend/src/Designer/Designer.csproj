@@ -91,6 +91,10 @@
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
+    <Watch Remove="TypedHttpClients\Altinn2Metadata\Altinn2MetadataClient.cs" />
+    <Watch Remove="TypedHttpClients\Altinn2Metadata\IAltinn2MetadataClient.cs" />
+    <Watch Remove="TypedHttpClients\ResourceRegistryOptions\IResourceRegistryOptions.cs" />
+    <Watch Remove="TypedHttpClients\ResourceRegistryOptions\ResourceRegistryOptionsClient.cs" />
   </ItemGroup>
 
   <ItemGroup>
