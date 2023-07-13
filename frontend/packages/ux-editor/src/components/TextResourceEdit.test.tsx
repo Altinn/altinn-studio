@@ -89,12 +89,22 @@ additionalValue });
 
   it('upsertTextResources should not be called when the text is NOT changed', async () => {
     const id = 'some-id';
-    const oldValue = 'Lorem';
-    const newValue = `${oldValue} ipsum`;
-    const resources: ITextResources = { nb: [{ id, value: oldValue }] };
+    const value = 'Lorem';
+    const resources: ITextResources = { nb: [{ id, value }] };
     await render(resources, id);
     const textBox = screen.getByLabelText(nbText);
-    fireEvent.change(textBox, { target: { value: newValue } });
+    await act(() => user.clear(textBox));
+    await act(() => user.type(textBox, value));
+    await act(() => user.tab());
+    expect(queriesMock.upsertTextResources).not.toHaveBeenCalled();
+  });
+
+  it('upsertTextResources should not be called when the text resource does not exist and the text is empty', async () => {
+    const id = 'some-id';
+    const resources: ITextResources = { nb: [] };
+    await render(resources, id);
+    const textBox = screen.getByLabelText(nbText);
+    await act(() => user.clear(textBox));
     await act(() => user.tab());
     expect(queriesMock.upsertTextResources).not.toHaveBeenCalled();
   });

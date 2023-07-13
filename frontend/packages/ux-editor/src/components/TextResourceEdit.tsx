@@ -69,8 +69,10 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { org, app } = useParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
+  const textResourceValue = textResource?.value || '';
+
   const updateTextResource = (text: string) => {
-    if (!textResource && !text) return;
+    if (text === textResourceValue) return;
 
     mutate({
       language,
@@ -78,11 +80,11 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
     });
   };
 
-  const [value, setValue] = useState<string>(textResource?.value || '');
+  const [value, setValue] = useState<string>(textResourceValue);
 
   useEffect(() => {
-    setValue(textResource?.value || '')
-  }, [textResource?.value]);
+    setValue(textResourceValue)
+  }, [textResourceValue]);
 
   return (
     <div>
