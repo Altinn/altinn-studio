@@ -42,10 +42,11 @@ export const RightMenu = ({
       : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
 
   const handleDeleteLanguage = (langCode: LangCode) => {
-    deleteLanguage(langCode);
-    setSelectedLanguages(removeItemByValue(selectedLanguages, langCode));
+    if (confirmDeleteState[langCode]) {
+      setSelectedLanguages(removeItemByValue(selectedLanguages, langCode));
+      deleteLanguage(langCode);
+    }
   };
-
   const toggleConfirmDeletePopover = (langCode: LangCode) => {
     setConfirmDeleteState((prevState) => ({
       ...prevState,
@@ -73,7 +74,7 @@ export const RightMenu = ({
                   checked={selectedLanguages.includes(langCode)}
                 />
                 <Popover
-                  title={'Slett_rad'}
+                  title={'delete'}
                   variant={PopoverVariant.Warning}
                   placement={'left'}
                   open={confirmDeleteState[langCode] || false}
@@ -86,6 +87,7 @@ export const RightMenu = ({
                       color={ButtonColor.Danger}
                       onClick={() => toggleConfirmDeletePopover(langCode)}
                       disabled={!canDeleteLang(langCode)}
+                      aria-label={t('schema_editor.language_delete_button')}
                     >
                       {t('schema_editor.language_delete_button')}
                     </Button>
