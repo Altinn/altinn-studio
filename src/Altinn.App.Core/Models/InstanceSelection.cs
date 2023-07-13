@@ -14,6 +14,12 @@ namespace Altinn.App.Core.Models
         public List<int>? RowsPerPageOptions { get; set; }
 
         /// <summary>
+        /// The default amount of rows per page to show for pagination
+        /// </summary>
+        [JsonProperty(PropertyName = "defaultRowsPerPage")]
+        public int? DefaultRowsPerPage { get; set; }
+
+        /// <summary>
         /// The direction of sorting the list of instances, asc or desc
         /// </summary>
         [JsonProperty(PropertyName = "sortDirection")]
