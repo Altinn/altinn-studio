@@ -1,10 +1,11 @@
 import React from 'react';
 import { TopToolbar, TopToolbarProps } from './TopToolbar';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
-import { dataMock } from '@altinn/schema-editor/mockData';
+import { renderWithProviders } from '../../test/renderWithProviders';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
@@ -29,12 +30,13 @@ const defaultProps: TopToolbarProps = {
   saveAction,
   toggleEditMode,
   editMode: true,
-  schema: dataMock,
-  schemaState: { saving: false },
+  schemaState: { saving: false, error: null },
 }
 
-const renderToolbar = (props: Partial<TopToolbarProps> = {}) =>
-  render(<TopToolbar {...defaultProps} {...props} />);
+const renderToolbar = (
+  props: Partial<TopToolbarProps> = {},
+  servicesContextProps: Partial<ServicesContextProps> = {},
+) => renderWithProviders({ servicesContextProps })(<TopToolbar {...defaultProps} {...props} />);
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
@@ -95,7 +97,7 @@ describe('TopToolbar', () => {
     const { rerender } = renderToolbar({ schemaState });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     await act(() => user.click(screen.getByRole('button', { name: closeText })));
-    rerender(<TopToolbar {...defaultProps} />);
+    rerender()(<TopToolbar {...defaultProps} />);
     expect(screen.queryAllByRole('dialog')).toHaveLength(0);
   });
 
@@ -113,12 +115,5 @@ describe('TopToolbar', () => {
     renderToolbar();
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     expect(screen.getByRole('dialog')).toHaveTextContent(savedText);
-  });
-
-  it('Hides generation status popover when switching schema', async () => {
-    const { rerender } = renderToolbar();
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
-    rerender(<TopToolbar {...defaultProps} schema={{ ...dataMock, $id: 'New id' }} />);
-    expect(screen.queryAllByRole('dialog')).toHaveLength(0);
   });
 });

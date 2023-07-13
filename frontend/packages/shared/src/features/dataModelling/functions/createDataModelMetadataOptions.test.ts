@@ -1,26 +1,16 @@
 import { createDataModelMetadataOptions } from './createDataModelMetadataOptions';
-import type { IDataModelsMetadataState } from '../sagas/metadata';
 import { LoadingState } from '../sagas/metadata';
+import { RootState } from 'app-development/store';
+import { rootStateMock } from 'app-development/test/rootStateMock';
 
 describe('createDataModelMetadataOptions', () => {
-  const dataModelsMetadataState: IDataModelsMetadataState = {
-    dataModelsMetadata: [],
-    loadState: LoadingState.Idle,
+  const state: RootState = {
+    ...rootStateMock,
   };
-  const state = {
-    dataModelsMetadataState,
-  };
-
-  it('should return empty if no metadata is set', () => {
-    const result = createDataModelMetadataOptions(state);
-    expect(result).toHaveLength(2);
-    expect(result[0].options).toHaveLength(0);
-    expect(result[1].options).toHaveLength(0);
-  });
-
-  describe('with data', () => {
-    beforeEach(() => {
-      state.dataModelsMetadataState.dataModelsMetadata = [
+  const stateWithData: RootState = {
+    ...rootStateMock,
+    dataModelsMetadataState: {
+      dataModelsMetadata: [
         {
           fileName: `first-schema.schema.json`,
           fileType: '.json',
@@ -51,11 +41,21 @@ describe('createDataModelMetadataOptions', () => {
           fileType: '.xsd',
           repositoryRelativeUrl: '',
         },
-      ];
-    });
+      ],
+      loadState: LoadingState.Idle,
+    }
+  };
 
+  it('should return empty if no metadata is set', () => {
+    const result = createDataModelMetadataOptions(state);
+    expect(result).toHaveLength(2);
+    expect(result[0].options).toHaveLength(0);
+    expect(result[1].options).toHaveLength(0);
+  });
+
+  describe('with data', () => {
     it('creates expected options out of the provided metadata', () => {
-      const options = createDataModelMetadataOptions(state);
+      const options = createDataModelMetadataOptions(stateWithData);
       expect(options).toHaveLength(2);
       const [jsonOptions, xsdOptions] = options;
 

@@ -1,14 +1,13 @@
-import type { IDataModelMetadataItem, IDataModelsMetadataState } from '../sagas/metadata';
+import type { IDataModelMetadataItem } from '../sagas/metadata';
 import type { GroupedOption } from '../components/SchemaSelect';
 import type { IMetadataOption } from './types';
+import { createSelector } from '@reduxjs/toolkit';
+import { RootState } from 'app-development/store';
 
-export function createDataModelMetadataOptions({
-  dataModelsMetadataState,
-}: {
-  dataModelsMetadataState: IDataModelsMetadataState;
-}): GroupedOption[] {
-  const { dataModelsMetadata } = dataModelsMetadataState;
-
+export const createDataModelMetadataOptions = createSelector
+(
+  (state: RootState) => state.dataModelsMetadataState.dataModelsMetadata,
+  (dataModelsMetadata: IDataModelMetadataItem[]): GroupedOption[] => {
   if (!dataModelsMetadata?.length) {
     return makeGroupedOptions({ jsonOptions: [], xsdOptions: [] });
   }
@@ -20,7 +19,7 @@ export function createDataModelMetadataOptions({
     dataModelsMetadata.filter((option) => option.fileType === '.xsd')
   );
   return makeGroupedOptions({ jsonOptions, xsdOptions });
-}
+});
 
 const mapModelsMetadataToOptions = (metadata: IDataModelMetadataItem[]): IMetadataOption[] => {
   if (!metadata?.length) {

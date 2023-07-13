@@ -1,11 +1,14 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { createNodeBase, Keyword, ObjectKind } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from '../../../test/renderWithProviders';
+import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
 
 const user = userEvent.setup();
 
@@ -29,6 +32,9 @@ const rootNode = {
   children: [selectedNode, type1, type2].map((node) => node.pointer),
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedNode, type1, type2];
+const org = 'org';
+const app = 'app';
+const modelPath = 'test';
 
 const defaultProps: IReferenceSelectionProps = {
   buttonText,
@@ -39,10 +45,16 @@ const defaultProps: IReferenceSelectionProps = {
   selectedNode,
 };
 
-const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) =>
-  renderWithRedux(<ReferenceSelectionComponent {...defaultProps} {...props} />, { uiSchema });
+const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) => {
+  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
+  return renderWithProviders({
+    appContextProps: { modelPath },
+  })(<ReferenceSelectionComponent {...defaultProps} {...props} />);
+};
 
 describe('ReferenceSelectionComponent', () => {
+  beforeEach(() => validateTestUiSchema(uiSchema));
+
   test('Select box appears', async () => {
     renderReferenceSelectionComponent();
     expect(await screen.findByRole('combobox')).toBeDefined();

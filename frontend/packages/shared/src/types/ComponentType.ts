@@ -18,5 +18,5 @@ export enum ComponentType {
   AttachmentList = 'AttachmentList',
   ThirdParty = 'ThirdParty',
   Panel = 'Panel',
-  Map = 'Map',
+  Map = 'MapComponent',
 }

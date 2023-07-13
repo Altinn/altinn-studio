@@ -7,8 +7,7 @@ import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachment
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
+import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
@@ -21,7 +20,7 @@ export interface UpdateFormComponentArgs {
 }
 
 export const useUpdateFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
-  const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
+  const { layout, layoutName } = useSelectedFormLayoutWithName();
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);

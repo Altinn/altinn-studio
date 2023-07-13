@@ -8,10 +8,11 @@ import {
   TextField,
 } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { TextFieldWithValidation } from '../../../TextFieldWithValidation';
+import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
+import type { FormMapLayer } from '../../../../types/FormComponent';
 
 export interface MapComponentProps extends IGenericEditComponent {}
 export const MapComponent = ({
@@ -20,18 +21,17 @@ export const MapComponent = ({
 }: MapComponentProps): JSX.Element => {
   const t = useText();
 
-  const handleCenterLocationChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleCenterLocationChange = (value: number, propertyName: string): void => {
     handleComponentChange({
       ...component,
-      centerLocation: { ...component.centerLocation, [event.target.name]: event.target.value },
+      centerLocation: { ...component.centerLocation, [propertyName]: value },
     });
   };
 
-  const handleNumberInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const parsedValue = parseInt(event.target.value, 10);
+  const handleNumberInputChange = (value: number, propertyName: string): void => {
     handleComponentChange({
       ...component,
-      [event.target.name]: parsedValue || undefined,
+      [propertyName]: value || undefined,
     });
   };
 
@@ -40,55 +40,45 @@ export const MapComponent = ({
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
         <div className={classes.formGroup}>
-          <div>
-            <TextFieldWithValidation
-              label={t('ux_editor.latitude_label')}
-              name='latitude'
-              value={component.centerLocation?.latitude}
-              inputMode='numeric'
-              validation={{
-                required: {
-                  message: t('validation_errors.required'),
-                },
-                valueAsNumber: {
-                  message: t('validation_errors.numbers_only'),
-                },
-              }}
-              onChange={handleCenterLocationChange}
-            />
-          </div>
-          <div>
-            <TextFieldWithValidation
-              label={t('ux_editor.longitude_label')}
-              name='longitude'
-              value={component.centerLocation?.longitude}
-              inputMode='numeric'
-              validation={{
-                required: {
-                  message: t('validation_errors.required'),
-                },
-                valueAsNumber: {
-                  message: t('validation_errors.numbers_only'),
-                },
-              }}
-              onChange={handleCenterLocationChange}
-            />
-          </div>
+          <FormField
+            id={component.id}
+            label={t('ux_editor.latitude_label')}
+            value={component.centerLocation?.latitude}
+            onChange={(value: number) => handleCenterLocationChange(value, 'latitude')}
+            propertyPath={`${component.propertyPath}/properties/centerLocation/properties/latitude`}
+            customValidationMessages={(errorCode: string) => {
+              if (errorCode === 'type') return t('validation_errors.numbers_only');
+            }}
+          >
+            {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
+          </FormField>
+          <FormField
+            id={component.id}
+            label={t('ux_editor.longitude_label')}
+            value={component.centerLocation?.longitude}
+            onChange={(value: number) => handleCenterLocationChange(value, 'longitude')}
+            propertyPath={`${component.propertyPath}/properties/centerLocation/properties/longitude`}
+            customValidationMessages={(errorCode: string) => {
+              if (errorCode === 'type') return t('validation_errors.numbers_only');
+            }}
+          >
+            {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
+          </FormField>
         </div>
       </div>
       <div>
-        <TextFieldWithValidation
+        <FormField
+          id={component.id}
           label={t('ux_editor.adjust_zoom')}
-          name='zoom'
           value={component.zoom}
-          inputMode='numeric'
-          validation={{
-            valueAsNumber: {
-              message: t('validation_errors.numbers_only'),
-            },
+          onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
+          propertyPath={`${component.propertyPath}/properties/zoom`}
+          customValidationMessages={(errorCode: string) => {
+            if (errorCode === 'type') return t('validation_errors.numbers_only');
           }}
-          onChange={handleNumberInputChange}
-        />
+        >
+          {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
+        </FormField>
       </div>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
@@ -111,23 +101,30 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     });
   };
 
-  const handleOnSubDomainChange = (
-    index: number,
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    const layers = [...component.layers];
-    layers[index][event.target.name] = stringToArray(event.target.value);
+  const handleOnSubDomainChange = (index: number, value: string[]): void => {
+    const layers = updateLayer(index, value);
     handleComponentChange({
       ...component,
       layers,
     });
   };
 
+  const updateLayer = (index: number, subdomains: string[]): FormMapLayer[] => {
+    return [
+      ...component.layers.slice(0, index),
+      {
+        ...component.layers[index],
+        subdomains,
+      },
+      ...component.layers.slice(index + 1),
+    ]
+  };
+
   const handleAddLayer = (): void => {
     const layers = [...(component.layers || [])];
     layers.push({
       url: undefined,
-      attattribution: undefined,
+      attribution: undefined,
       subdomains: undefined,
     });
     handleComponentChange({
@@ -162,34 +159,42 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 variant={ButtonVariant.Quiet}
               />
             </div>
-            <TextFieldWithValidation
-              name='url'
+            <FormField
+              id={component.id}
               label={t('ux_editor.url_label')}
-              validation={{
-                required: { message: t('validation_errors.required') },
-                valueAsUrl: { message: t('validation_errors.value_as_url') },
+              value={layer.url || ''}
+              onChange={(value, event) => handleOnLayerChange(index, event)}
+              propertyPath={`${component.propertyPath}/properties/layers/properties/url`}
+              customValidationMessages={(errorCode: string) => {
+                if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
-              value={layer.url}
-              onChange={(event) => handleOnLayerChange(index, event)}
-            />
+            >
+              {({ onChange }) => <TextField name='url' onChange={(e) => onChange(e.target.value, e)} />}
+            </FormField>
             <div className={classes.formGroup}>
-              <div>
-                <TextField
-                  name='attribution'
-                  label={t('ux_editor.attribution_label')}
-                  value={layer.attribution}
-                  onChange={(event) => handleOnLayerChange(index, event)}
-                />
-              </div>
-              <div>
-                <TextField
+              <FormField
+                id={component.id}
+                label={t('ux_editor.attribution_label')}
+                value={layer.attribution || ''}
+                onChange={(value, event) => handleOnLayerChange(index, event)}
+                propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
+              >
+                {({ onChange }) => <TextField name='attribution' onChange={(e) => onChange(e.target.value, e)} />}
+              </FormField>
+              <FormField
+                id={component.id}
+                label={t('ux_editor.subdomains_label')}
+                value={layer?.subdomains || []}
+                onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
+                propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
+              >
+                {({ value, onChange }) => <TextField
                   name='subdomains'
-                  label={t('ux_editor.subdomains_label')}
-                  value={arrayToString(layer.subdomains)}
                   placeholder={t('ux_editor.subdomains_placeholder')}
-                  onChange={(event) => handleOnSubDomainChange(index, event)}
-                />
-              </div>
+                  onChange={(e) => onChange(stringToArray(e.target.value), e)}
+                  value={arrayToString(value) || ''}
+                />}
+              </FormField>
             </div>
           </FieldSet>
         )

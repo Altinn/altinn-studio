@@ -1,14 +1,11 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import { EditFormComponent } from './EditFormComponent';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IAppState } from '../../types/global';
 import { FormComponent } from '../../types/FormComponent';
-import { appStateMock, queriesMock } from '../../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 const user = userEvent.setup();
@@ -39,8 +36,8 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
 }));
 
 describe('EditFormComponent', () => {
-  test('should return input specific content when type input', () => {
-    render({
+  test('should return input specific content when type input', async () => {
+    await render({
       componentProps: {
         type: ComponentType.Input,
       },
@@ -57,22 +54,19 @@ describe('EditFormComponent', () => {
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
 
-  test('should return header specific content when type header', () => {
-    render({
+  test('should return header specific content when type header', async () => {
+    await render({
       componentProps: {
         type: ComponentType.Header,
       },
     });
 
-    const labels = [
-      'ux_editor.modal_properties_component_change_id *',
-      'ux_editor.modal_header_type_helper',
-    ];
-    labels.map((label) => expect(screen.getByLabelText(label)));
+    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id *'));
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })));
   });
 
-  test('should return file uploader specific content when type file uploader', () => {
-    render({
+  test('should return file uploader specific content when type file uploader', async () => {
+    await render({
       componentProps: {
         type: ComponentType.FileUpload,
       },
@@ -94,7 +88,7 @@ describe('EditFormComponent', () => {
 
   test('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
     const handleUpdate = jest.fn();
-    const { allComponentProps } = render({
+    const { allComponentProps } = await render({
       componentProps: {
         maxNumberOfAttachments: 3,
         type: ComponentType.FileUpload,
@@ -113,7 +107,7 @@ describe('EditFormComponent', () => {
 
   test('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
     const handleUpdate = jest.fn();
-    const { allComponentProps } = render({
+    const { allComponentProps } = await render({
       componentProps: {
         required: true,
         minNumberOfAttachments: 1,
@@ -133,7 +127,7 @@ describe('EditFormComponent', () => {
   });
 
   test('should return button specific content when type button', async () => {
-    render({
+    await render({
       componentProps: {
         type: ComponentType.Button,
       },
@@ -142,7 +136,7 @@ describe('EditFormComponent', () => {
   });
 
   test('should render Image component when component type is Image', async () => {
-    render({
+    await render({
       componentProps: {
         type: ComponentType.Image,
       },
@@ -151,7 +145,7 @@ describe('EditFormComponent', () => {
   });
 
   it('should not render Image component when component type is not Image', async () => {
-    render({
+    await render({
       componentProps: {
         type: ComponentType.Button,
       },
@@ -160,27 +154,17 @@ describe('EditFormComponent', () => {
   });
 });
 
-const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+};
+
+const render = async ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
   componentProps?: Partial<FormComponent>;
-  handleComponentUpdate?: (component: FormComponent) => void;
-}) => {
-  const createStore = configureStore();
-  const initialState: IAppState = {
-    ...appStateMock,
-    formDesigner: {
-      layout: {
-        error: null,
-        invalidLayouts: [],
-        saving: false,
-        selectedLayout: 'FormLayout',
-        selectedLayoutSet: 'test-layout-set',
-        unSavedChanges: false,
-      },
-    },
+  handleComponentUpdate?: (component: FormComponent) => {
+    allComponentProps: FormComponent;
   };
-
-  const store = createStore(initialState);
-
+}) => {
   const allComponentProps: FormComponent = {
     dataModelBindings: {},
     readOnly: false,
@@ -194,18 +178,13 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
     ...componentProps,
   } as FormComponent;
 
-  return {
-    rendered: rtlRender(
-      <Provider store={store}>
-        <ServicesContextProvider {...queriesMock}>
-          <EditFormComponent
-            editFormId={''}
-            component={allComponentProps}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        </ServicesContextProvider>
-      </Provider>
-    ),
-    allComponentProps,
-  };
+  await waitForData();
+
+  renderWithMockStore()(<EditFormComponent
+    editFormId={''}
+    component={allComponentProps}
+    handleComponentUpdate={handleComponentUpdate}
+  />);
+
+  return { allComponentProps };
 };

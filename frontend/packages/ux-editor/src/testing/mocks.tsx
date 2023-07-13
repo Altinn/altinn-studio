@@ -21,6 +21,9 @@ import {
 } from './layoutMock';
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
 import { QueryClient } from '@tanstack/react-query';
+import expressionSchema from './schemas/json/layout/expression.schema.v1.json';
+import numberFormatSchema from './schemas/json/layout/number-format.schema.v1.json';
+import layoutSchema from './schemas/json/layout/layout.schema.v1.json';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -83,6 +86,9 @@ export const queriesMock: ServicesContextProps = {
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
   upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
+  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve(expressionSchema)),
+  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve(layoutSchema)),
+  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve(numberFormatSchema)),
 };
 
 export const queryClientMock = new QueryClient({

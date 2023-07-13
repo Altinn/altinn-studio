@@ -5,10 +5,12 @@ import classNames from 'classnames';
 import type { IMetadataOption } from '../functions/types';
 import classes from './SchemaSelect.module.css';
 
+export type OnChangeSchema = (optionWithMetadata: { value: any; label: string }) => void;
+
 export interface ISchemaSelectProps {
   disabled: boolean;
   selectedOption: IMetadataOption | null;
-  onChange: (optionWithMetadata: { value: any; label: string }) => void;
+  onChange: OnChangeSchema;
   options: GroupedOption[];
 }
 

@@ -1,11 +1,5 @@
-import type { UiSchemaNodes } from '@altinn/schema-model';
-import type { JsonSchema } from 'app-shared/types/JsonSchema';
-
 export interface SchemaState {
-  schema: JsonSchema;
-  uiSchema: UiSchemaNodes;
   name: string;
-  saveSchemaUrl: string;
   selectedDefinitionNodeId: string;
   selectedPropertyNodeId: string;
   focusNameField?: string; // used to trigger focus of name field in inspector.

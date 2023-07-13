@@ -1,20 +1,33 @@
 import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../types/FormComponent';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 
 const componentMock: FormComponent = {
   id: 'random-id',
   autocomplete: '',
   type: ComponentType.Input,
   itemType: 'COMPONENT',
+  propertyPath: 'definitions/inputComponent',
   dataModelBindings: {},
 };
 
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+};
+
+export const render = async (handleComponentChangeMock: any = jest.fn(), component: FormComponent = componentMock) => {
+  await waitForData();
+  return renderWithMockStore()(<EditAutoComplete handleComponentChange={handleComponentChangeMock} component={component} />);
+};
+
 test('should render first 6 suggestions on search field focused', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  await render();
   const user = userEvent.setup();
 
   const inputField = screen.getByRole('textbox');
@@ -27,19 +40,19 @@ test('should render first 6 suggestions on search field focused', async () => {
 });
 
 test('should filter options while typing in search field', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  await render();
   const user = userEvent.setup();
 
-  await act(() => user.type(screen.getByRole('textbox'), 'off'));
+  await act(() => user.type(screen.getByRole('textbox'), 'of'));
 
-  await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('off'));
+  await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('of'));
 
   expect(screen.getByRole('option', { name: 'off' })).toBeInTheDocument();
   expect(screen.queryByRole('option', { name: 'given-name' })).not.toBeInTheDocument();
 });
 
 test('should set the chosen options within the search field', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  await render();
   const user = userEvent.setup();
 
   const searchField = screen.getByRole('textbox');
@@ -53,7 +66,7 @@ test('should set the chosen options within the search field', async () => {
 });
 
 test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  await render();
   const user = userEvent.setup();
   await act(() => user.click(screen.getByRole('textbox')));
 
@@ -65,9 +78,7 @@ test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
 
 test('should call handleComponentChangeMock callback ', async () => {
   const handleComponentChangeMock = jest.fn();
-  render(
-    <EditAutoComplete handleComponentChange={handleComponentChangeMock} component={componentMock} />
-  );
+  await render(handleComponentChangeMock);
 
   const user = userEvent.setup();
 
@@ -84,6 +95,7 @@ test('should call handleComponentChangeMock callback ', async () => {
     dataModelBindings: {},
     id: 'random-id',
     itemType: 'COMPONENT',
+    propertyPath: 'definitions/inputComponent',
     type: 'Input',
   });
 });

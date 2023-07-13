@@ -1,16 +1,21 @@
 import { CombinationKind, FieldType, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../src';
 
 const rootNodePointer = '#';
-const parentNodePointer = "#/properties/test";
-const stringNodePointer = "#/properties/test/anyOf/stringNode";
-const numberNodePointer = "#/properties/test/anyOf/numberNode";
-const enumNodePointer = "#/properties/test/anyOf/enumNode";
-const arrayNodePointer = "#/properties/test/anyOf/arrayNode";
-const optionalNodePointer = "#/properties/test/anyOf/optionalNode";
-const requiredNodePointer = "#/properties/test/anyOf/requiredNode";
+const parentNodePointer = '#/properties/test';
+const stringNodePointer = '#/properties/test/anyOf/stringNode';
+const numberNodePointer = '#/properties/test/anyOf/numberNode';
+const enumNodePointer = '#/properties/test/anyOf/enumNode';
+const arrayNodePointer = '#/properties/test/anyOf/arrayNode';
+const optionalNodePointer = '#/properties/test/anyOf/optionalNode';
+const requiredNodePointer = '#/properties/test/anyOf/requiredNode';
 const defNodePointer = '#/$defs/testDef';
 const allOfNodePointer = '#/properties/allOfNode';
 const allOfNodeChildPointer = '#/properties/allOfNode/allOf/someNode';
+
+const simpleParentNodePointer = '#/properties/simpleParent';
+const simpleChildNodePointer = '#/properties/simpleParent/properties/simpleChild';
+const simpleArrayPointer = '#/properties/simpleArray';
+const simpleArrayItemsPointer = '#/properties/simpleArray/items/properties/simpleChild';
 
 export const nodeMockBase: UiSchemaNode = {
   objectKind: ObjectKind.Field,
@@ -24,7 +29,7 @@ export const nodeMockBase: UiSchemaNode = {
   custom: {},
   restrictions: [],
   implicitType: true,
-  enum: []
+  enum: [],
 };
 
 export const rootNodeMock: UiSchemaNode = {
@@ -32,7 +37,13 @@ export const rootNodeMock: UiSchemaNode = {
   pointer: rootNodePointer,
   objectKind: ObjectKind.Combination,
   fieldType: FieldType.Object,
-  children: [parentNodePointer, defNodePointer, allOfNodePointer],
+  children: [
+    parentNodePointer,
+    defNodePointer,
+    allOfNodePointer,
+    simpleParentNodePointer,
+    simpleArrayPointer,
+  ],
   implicitType: false,
 };
 
@@ -110,6 +121,31 @@ export const allOfNodeChildMock: UiSchemaNode = {
   isCombinationItem: true,
 };
 
+export const simpleParentNodeMock: UiSchemaNode = {
+  ...nodeMockBase,
+  pointer: simpleParentNodePointer,
+  fieldType: FieldType.Object,
+  children: [simpleChildNodePointer],
+};
+
+export const simpleChildNodeMock: UiSchemaNode = {
+  ...nodeMockBase,
+  pointer: simpleChildNodePointer,
+};
+
+export const simpleArrayMock: UiSchemaNode = {
+  ...nodeMockBase,
+  pointer: simpleArrayPointer,
+  fieldType: FieldType.Object,
+  isArray: true,
+  children: [simpleArrayItemsPointer],
+};
+
+export const simpleArrayItemsMock: UiSchemaNode = {
+  ...nodeMockBase,
+  pointer: simpleArrayItemsPointer,
+};
+
 export const uiSchemaMock: UiSchemaNodes = [
   rootNodeMock,
   parentNodeMock,
@@ -122,4 +158,8 @@ export const uiSchemaMock: UiSchemaNodes = [
   requiredNodeMock,
   allOfNodeMock,
   allOfNodeChildMock,
+  simpleParentNodeMock,
+  simpleChildNodeMock,
+  simpleArrayMock,
+  simpleArrayItemsMock,
 ];
