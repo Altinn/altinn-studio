@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 
 describe('RightMenu', () => {
@@ -15,7 +15,7 @@ describe('RightMenu', () => {
 
   beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation();
-    render(<RightMenu {...defaultProps} />);
+    rtlRender(<RightMenu {...defaultProps} />);
   });
 
   afterEach(() => {
