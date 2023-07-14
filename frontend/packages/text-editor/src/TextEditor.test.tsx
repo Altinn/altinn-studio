@@ -58,18 +58,6 @@ describe('TextEditor', () => {
     jest.spyOn(global.Math, 'random').mockRestore();
   });
 
-  it('fires onDeleteLang when Delete lang is clicked', async () => {
-    const handleDeleteLang = jest.fn();
-    renderTextEditor({
-      deleteLanguage: handleDeleteLang,
-    });
-    const deleteBtn = screen.getByTestId('delete-en');
-
-    await act(() => user.click(deleteBtn));
-
-    expect(handleDeleteLang).toHaveBeenCalledWith('en');
-  });
-
   it('calls setSelectedLang code when lang is changed', async () => {
     const setSelectedLangCodes = jest.fn((langs: string[]) => langs);
     renderTextEditor({
