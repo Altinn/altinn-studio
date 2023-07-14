@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -172,6 +173,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition)
         {
             ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition);
+            _repository.AddServiceResource(org, resource);
+            XacmlPolicy policy = await _altinn2MetadataClient.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier);
+            await _repository.SavePolicy(org, "org-resources", resource.Identifier, policy);
             return Ok(resource);
         }
 

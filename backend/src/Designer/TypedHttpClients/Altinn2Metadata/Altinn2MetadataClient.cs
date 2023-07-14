@@ -4,6 +4,10 @@ using System;
 using Altinn.Studio.Designer.Models;
 using PolicyAdmin.Models;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Utils;
+using System.IO;
+using System.Xml;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 {
@@ -35,5 +39,31 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
                 throw new Exception($"Something went wrong when retrieving service resource", ex);
             }
         }
+
+        public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier)
+        {
+            string url = $"https://at23.altinn.cloud/sblbridge/authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                string contentString = await response.Content.ReadAsStringAsync();
+                XacmlPolicy policy;
+                using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
+                {
+                    policy = XacmlParser.ParseXacmlPolicy(reader);
+                }
+
+                return policy;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Something went wrong when retrieving service resource", ex);
+            }
+
+            return null;
+
+        }
+
     }
 }
