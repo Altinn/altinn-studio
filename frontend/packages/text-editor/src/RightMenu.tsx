@@ -95,20 +95,20 @@ export const RightMenu = ({
                 >
                   {confirmDeleteState[langCode] && (
                     <div>
-                      <p>{t('schema_editor.language_display_confirm_delete')}</p>
+                      {t('schema_editor.language_display_confirm_delete')}
                       <div className={classes.popoverButtons}>
                         <Button
                           onClick={() => handleDeleteLanguage(langCode)}
                           color={ButtonColor.Danger}
                         >
-                          <p>{t('schema_editor.language_conferm_deletion')}</p>
+                          {t('schema_editor.language_conferm_deletion')}
                         </Button>
                         <Button
                           variant={ButtonVariant.Quiet}
                           onClick={() => toggleConfirmDeletePopover(langCode)}
                           color={ButtonColor.Secondary}
                         >
-                          <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                          {t('schema_editor.textRow-cancel-popover')}
                         </Button>
                       </div>
                     </div>

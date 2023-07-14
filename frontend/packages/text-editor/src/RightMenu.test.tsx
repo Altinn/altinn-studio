@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor, render } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 
 describe('RightMenu', () => {
@@ -21,9 +21,11 @@ describe('RightMenu', () => {
     jest.restoreAllMocks();
   });
 
-  test('displays and handles popover for deleting a language', () => {
-    jest.spyOn(console, 'error').mockImplementation();
-    rtlRender(<RightMenu {...defaultProps} />);
+  test('displays and handles popover for deleting a language', async () => {
+    render(<RightMenu {...defaultProps} />);
+    await waitFor(() => {
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
 
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
@@ -36,9 +38,11 @@ describe('RightMenu', () => {
     fireEvent.click(cancelButton);
   });
 
-  test('calls deleteLanguage with the correct language code when confirm deletion button is clicked', () => {
-    jest.spyOn(console, 'error').mockImplementation();
-    rtlRender(<RightMenu {...defaultProps} />);
+  test('calls deleteLanguage with the correct language code when confirm deletion button is clicked', async () => {
+    render(<RightMenu {...defaultProps} />);
+    await waitFor(() => {
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
 
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
@@ -49,7 +53,7 @@ describe('RightMenu', () => {
 
   test('closes the popover when cancel button is clicked', () => {
     jest.spyOn(console, 'error').mockImplementation();
-    rtlRender(<RightMenu {...defaultProps} />);
+    render(<RightMenu {...defaultProps} />);
 
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
