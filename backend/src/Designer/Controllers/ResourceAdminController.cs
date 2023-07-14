@@ -172,10 +172,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{environment}")]
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment)
         {
+            string repository = string.Format("{0}-resources", org);
             ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition);
             _repository.AddServiceResource(org, resource);
             XacmlPolicy policy = await _altinn2MetadataClient.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier);
-            await _repository.SavePolicy(org, "org-resources", resource.Identifier, policy);
+            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);
         }
 
