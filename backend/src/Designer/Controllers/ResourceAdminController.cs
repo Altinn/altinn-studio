@@ -169,8 +169,8 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}")]
-        public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition)
+        [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{environment}")]
+        public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment)
         {
             ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition);
             _repository.AddServiceResource(org, resource);

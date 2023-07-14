@@ -147,7 +147,7 @@ namespace Designer.Tests.Controllers
         public async Task ExportAltinn2Resource()
         {
             // Arrange
-            string uri = $"designer/api/ttd/resources/importresource/5065/2222";
+            string uri = $"designer/api/ttd/resources/importresource/5065/2222/tt02";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
