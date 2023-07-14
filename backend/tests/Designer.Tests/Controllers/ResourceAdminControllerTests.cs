@@ -158,6 +158,22 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
 
+
+        [Fact]
+        public async Task GetFilteredLinkServices()
+        {
+            // Arrange
+            string uri = $"designer/api/brg/resources/altinn2linkservices/at23";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            // Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string contenthtml = await res.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
         private static List<Keyword> GetTestKeywords()
         {
             List<Keyword> keywords = new List<Keyword>();

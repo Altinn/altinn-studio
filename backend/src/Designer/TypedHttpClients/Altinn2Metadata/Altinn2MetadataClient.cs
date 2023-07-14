@@ -8,6 +8,7 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Utils;
 using System.IO;
 using System.Xml;
+using Altinn.ResourceRegistry.Core.Models.Altinn2;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 {
@@ -20,7 +21,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             _httpClient = httpClient;
         }
 
-        public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode)
+        public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
         {
             // Temp location. Will be moved to CDN
             string url = $"https://at23.altinn.cloud/sblbridge/metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
@@ -40,7 +41,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             }
         }
 
-        public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier)
+        public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
         {
             string url = $"https://at23.altinn.cloud/sblbridge/authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
 
@@ -63,6 +64,29 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
             return null;
 
+        }
+
+        public async Task<List<AvailableService>> AvailableServices(int languageId, string environment)
+        {
+            List<AvailableService>? availableServices = null;
+            string availabbleServicePath = $"https://at23.altinn.cloud/sblbridge/metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(availabbleServicePath);
+
+                string availableServiceString = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(availableServiceString))
+                {
+                    availableServices = System.Text.Json.JsonSerializer.Deserialize<List<AvailableService>>(availableServiceString, new System.Text.Json.JsonSerializerOptions());
+                }
+
+                return availableServices;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Something went wrong when retrieving Action options", ex);
+            }
         }
 
     }

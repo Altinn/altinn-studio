@@ -69,7 +69,9 @@
     <Watch Remove="Enums\ReferenceSource.cs" />
     <Watch Remove="Enums\ReferenceType.cs" />
     <Watch Remove="Enums\ResourceType.cs" />
+    <Watch Remove="Enums\ServiceType.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
+    <Watch Remove="Models\AvailableService.cs" />
     <Watch Remove="Models\ConceptSchema.cs" />
     <Watch Remove="Models\DataTheme.cs" />
     <Watch Remove="Models\DataThemesContainer.cs" />

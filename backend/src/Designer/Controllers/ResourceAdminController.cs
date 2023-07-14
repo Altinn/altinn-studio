@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.ResourceRegistry.Core.Enums.Altinn2;
+using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -173,9 +175,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment)
         {
             string repository = string.Format("{0}-resources", org);
-            ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition);
+            ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition, environment);
             _repository.AddServiceResource(org, resource);
-            XacmlPolicy policy = await _altinn2MetadataClient.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier);
+            XacmlPolicy policy = await _altinn2MetadataClient.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment);
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);
         }
@@ -242,6 +244,28 @@ namespace Altinn.Studio.Designer.Controllers
 
             return sectors;
         }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/altinn2linkservices/{environment}")]
+        public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string enviroment)
+        {
+            string cacheKey = "availablelinkservices:" + org;
+            if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
+            {
+
+                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, enviroment);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                linkServices = unfiltered.Where(a=> a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
+            }
+
+            return linkServices;
+        }
+
 
         private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
         {
