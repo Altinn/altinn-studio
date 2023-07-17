@@ -2,13 +2,33 @@
   padding-top: 12px;
 }
 
-.likertTableHeader {
-  white-space: normal;
-  font-weight: 400;
-  border-bottom: 1px solid rgb(0, 143, 214);
-  padding-left: 12px;
+.likertTableContainer {
+  display: block;
+  width: 100%;
+  padding: 12px;
+}
+
+.likertTableHeaderTop {
+  text-align: center !important; /* remove important after https://github.com/Altinn/app-frontend-react/pull/1330*/
+}
+
+.likertTableRowHeader {
+  border-top: 1px solid #dde3e5;
+  border-bottom: 1px solid #dde3e5;
+  background-color: transparent !important; /* remove important after https://github.com/Altinn/app-frontend-react/pull/1330*/
 }
 
 .likertTableCell {
   padding: 4px 12px;
+}
+
+.radioButtonContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.likertTableRow:hover {
+  background-color: #e3f7ff;
 }
