@@ -2,6 +2,7 @@ import Ajv from 'ajv';
 import dotenv from 'dotenv';
 import JsonPointer from 'jsonpointer';
 import fs from 'node:fs';
+import applicationMetadataSchema from 'schemas/json/application/application-metadata.schema.v1.json';
 import numberFormatSchema from 'schemas/json/component/number-format.schema.v1.json';
 import expressionSchema from 'schemas/json/layout/expression.schema.v1.json';
 import layoutSchema from 'schemas/json/layout/layout.schema.v1.json';
@@ -103,6 +104,55 @@ describe('Layout schema', () => {
       const resourceFiles = fs.readdirSync(folder);
       for (const resourceFile of resourceFiles) {
         if (!resourceFile.match(/^resource\.[a-z]{2}\.json$/)) {
+          continue;
+        }
+        let resources: any;
+        try {
+          const content = fs.readFileSync(`${folder}/${resourceFile}`, 'utf-8');
+          resources = JSON.parse(content);
+        } catch (e) {
+          console.error(`Failed to parse ${folder}/${resourceFile}`, e);
+          continue;
+        }
+
+        it(`${app}/${resourceFile}`, () => {
+          validate(resources);
+          expect(
+            (validate.errors || []).map((err) => {
+              const pointer = JsonPointer.compile(err.instancePath);
+              const value = pointer.get(resources);
+              return { ...err, value };
+            }),
+          ).toEqual([]);
+        });
+      }
+    }
+  });
+
+  describe('All known applicationmetadata files should validate against the applicationmetadata schema', () => {
+    const env = dotenv.config();
+    const dir = env.parsed?.ALTINN_ALL_APPS_DIR;
+    if (!dir) {
+      it('did not find any apps', () => {
+        expect(true).toBeTruthy();
+      });
+      console.warn(
+        'ALTINN_ALL_APPS_DIR should be set, please create a .env file and point it to a directory containing all known apps',
+      );
+      return;
+    }
+
+    const ajv = new Ajv();
+    const validate = ajv.compile(applicationMetadataSchema);
+
+    for (const app of getAllApps(dir)) {
+      const folder = `${dir}/${app}/App/config/applicationmetadata/`;
+      if (!fs.existsSync(folder)) {
+        continue;
+      }
+      const resourceFiles = fs.readdirSync(folder);
+      for (const resourceFile of resourceFiles) {
+        if (!resourceFile.match(/^applicationmetadata\.json$/)) {
           continue;
         }
         let resources: any;
