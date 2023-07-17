@@ -1687,6 +1687,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digdir/design-system-tokens@npm:^0.1.5":
+  version: 0.1.5
+  resolution: "@digdir/design-system-tokens@npm:0.1.5"
+  checksum: aa378c0f975d5dd462617c9312a7129f95ad07ecc5b6c4a6f1066526f613ab6c34687b71ce378107fb8b3f471ee25318e8be905ad0444cde05e218bd699a5d17
+  languageName: node
+  linkType: hard
+
 "@discoveryjs/json-ext@npm:^0.5.0":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
@@ -4992,7 +4999,9 @@ __metadata:
   resolution: "altinn-studio@workspace:."
   dependencies:
     "@altinn/altinn-design-system": 0.29.0
+    "@altinn/figma-design-tokens": ^6.0.1
     "@digdir/design-system-react": 0.18.0
+    "@digdir/design-system-tokens": ^0.1.5
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.9
