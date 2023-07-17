@@ -1,4 +1,5 @@
 {
+  "$schema": "https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json",
   "id": "tdd/bestilling",
   "org": "tdd",
   "created": "2019-09-16T22:22:22",
@@ -9,18 +10,18 @@
       "id": "vedlegg",
       "allowedContentTypes": [ "application/pdf", "image/png", "image/jpeg" ],
       "minCount": 0,
-      "taskId":  "Task_1",
+      "taskId":  "Task_1"
     },
     {
       "id": "ref-data-as-pdf",
       "allowedContentTypes": [ "application/pdf" ],
       "minCount":  0,
-      "taskId":  "Task_1",
+      "taskId":  "Task_1"
     }
   ],
   "partyTypesAllowed": {
     "bankruptcyEstate": true,
-    "organization": true,
+    "organisation": true,
     "person": true,
     "subUnit": true
   },
