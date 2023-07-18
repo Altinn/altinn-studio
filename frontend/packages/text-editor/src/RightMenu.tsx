@@ -46,6 +46,11 @@ export const RightMenu = ({
       setSelectedLanguages(removeItemByValue(selectedLanguages, langCode));
       deleteLanguage(langCode);
     }
+    setConfirmDeleteState((prevState) => {
+      const newState = { ...prevState };
+      delete newState[langCode];
+      return newState;
+    });
   };
   const toggleConfirmDeletePopover = (langCode: LangCode) => {
     setConfirmDeleteState((prevState) => ({

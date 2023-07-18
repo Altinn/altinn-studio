@@ -34,8 +34,6 @@ describe('RightMenu', () => {
     const confirmButton = screen.getByText(/schema_editor.language_conferm_deletion/);
     fireEvent.click(confirmButton);
     expect(defaultProps.deleteLanguage).toHaveBeenCalledWith('en');
-    const cancelButton = screen.getByText(/schema_editor.textRow-cancel-popover/);
-    fireEvent.click(cancelButton);
   });
 
   test('calls deleteLanguage with the correct language code when confirm deletion button is clicked', async () => {
