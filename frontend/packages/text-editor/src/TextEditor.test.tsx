@@ -174,7 +174,8 @@ describe('TextEditor', () => {
     it('reverts to the previous IDs if an entry could not be deleted', async () => {
       const { error, onTextIdChange } = setupError();
       await deleteSomething(onTextIdChange);
-      expect(error).toHaveBeenCalledWith('Deleting text failed:\n', 'some error');
+      const errorMessage = textMock('schema_editor.delete_text_id_error');
+      expect(error).toHaveBeenCalledWith(errorMessage);
       const resultAfter = screen.getAllByRole('button', {
         name: textMock('schema_editor.delete'),
       });

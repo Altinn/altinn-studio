@@ -617,6 +617,7 @@
   "schema_editor.definitions": "Definisjoner",
   "schema_editor.delete": "Slett",
   "schema_editor.delete_field": "Slett felt",
+  "schema_editor.delete_text_id_error": "Det oppsto en feil under sletting av teksten.",
   "schema_editor.depth_error": "Det er ikke mulig å plassere gruppen her fordi det vil føre til at skjemaet får for mange nivåer.",
   "schema_editor.description": "Tekst",
   "schema_editor.descriptive_fields": "Beskrivende felter",
