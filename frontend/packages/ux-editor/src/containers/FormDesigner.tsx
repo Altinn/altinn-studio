@@ -122,5 +122,5 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
       </DndProvider>
     );
   }
-  return <PageSpinner text={t('general.loading')}/>;
+  return <PageSpinner />;
 };

@@ -3,7 +3,7 @@ import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { AltinnSpinner } from 'app-shared/components';
+import { PageSpinner } from 'app-shared/components';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
@@ -77,7 +77,7 @@ export const TextEditor = () => {
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   if (isInitialLoadingLang || isFetchingTranslations || !textResources) {
-    return <AltinnSpinner />;
+    return <PageSpinner />;
   }
 
   return (
