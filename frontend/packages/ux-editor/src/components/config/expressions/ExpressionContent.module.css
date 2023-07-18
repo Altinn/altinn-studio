@@ -33,3 +33,7 @@
 .addExpression {
   margin-bottom: 20px;
 }
+
+.andOrToggleButtons {
+  width: fit-content;
+}

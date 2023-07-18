@@ -1,10 +1,10 @@
 import React from 'react';
-import {Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup} from '@digdir/design-system-react';
-import {ExpressionFunction, expressionFunctionTexts} from '../../../types/Expressions';
-import {XMarkIcon} from '@navikt/aksel-icons';
+import { Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { ExpressionFunction, expressionFunctionTexts } from '../../../types/Expressions';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 export interface IExpressionContentProps {
   expressionAction: boolean;
@@ -33,7 +33,7 @@ export const ExpressionContent = ({
                                     onRemoveExpressionElement
                                   }: IExpressionContentProps) => {
   const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
@@ -86,7 +86,7 @@ export const ExpressionContent = ({
       <p>{t('right_menu.dynamics_function_on_action')}</p>
       <Select
         onChange={(func: string) => addFunctionToExpressionElement(func)}
-        options={[{label: 'Velg oppsett...', value: 'default'}].concat(Object.values(ExpressionFunction).map((func: string) => ({label: expressionFunctionTexts(t)[func], value: func})))}
+        options={[{ label: 'Velg oppsett...', value: 'default' }].concat(Object.values(ExpressionFunction).map((func: string) => ({ label: expressionFunctionTexts(t)[func], value: func })))}
         value={expressionElement.function || 'default'}
       />
       {allowToSpecifyExpression &&
@@ -103,9 +103,9 @@ export const ExpressionContent = ({
               <Select
                 onChange={(dataSource: string) => addTriggerDataSource(dataSource)}
                 options={[
-                  {label: 'Velg...', value: 'default'},
-                  {label: 'Komponent', value: 'komponent'},
-                  {label: 'Datamodell', value: 'datamodell'}
+                  { label: 'Velg...', value: 'default' },
+                  { label: 'Komponent', value: 'komponent' },
+                  { label: 'Datamodell', value: 'datamodell' }
                 ]}
                 value={expressionElement.dataSource || 'default'} // Is it necessary with the first check?
               />
@@ -113,9 +113,9 @@ export const ExpressionContent = ({
                 <Select
                   onChange={(dataSourceKind: string) => specifyTriggerDataSource(dataSourceKind)}
                   options={[
-                    {label: 'Velg...', value: 'default'},
-                    {label: 'Alder', value: 'alder'},
-                    {label: 'Fornavn', value: 'fornavn'}
+                    { label: 'Velg...', value: 'default' },
+                    { label: 'Alder', value: 'alder' },
+                    { label: 'Fornavn', value: 'fornavn' }
                   ]}
                   value={expressionElement.value || 'default'}
                 />}
@@ -124,9 +124,9 @@ export const ExpressionContent = ({
                 // Should be possible to enter custom values for the comparables
                 onChange={(compDataSource: string) => addComparableTriggerDataSource(compDataSource)}
                 options={[
-                  {label: 'Velg...', value: 'default'},
-                  {label: 'Komponent', value: 'komponent'},
-                  {label: 'Datamodell', value: 'datamodell'}
+                  { label: 'Velg...', value: 'default' },
+                  { label: 'Komponent', value: 'komponent' },
+                  { label: 'Datamodell', value: 'datamodell' }
                 ]}
                 value={expressionElement.comparableDataSource || 'default'}
               />
@@ -134,9 +134,9 @@ export const ExpressionContent = ({
                 <Select
                   onChange={(compDataSourceKind: string) => specifyComparableTriggerDataSource(compDataSourceKind)}
                   options={[
-                    {label: 'Velg...', value: 'default'},
-                    {label: 'Alder', value: 'alder'},
-                    {label: 'Fornavn', value: 'fornavn'}
+                    { label: 'Velg...', value: 'default' },
+                    { label: 'Alder', value: 'alder' },
+                    { label: 'Fornavn', value: 'fornavn' }
                   ]}
                   value={expressionElement.comparableValue || 'default'}
                 />}
@@ -157,14 +157,17 @@ export const ExpressionContent = ({
                   {t('right_menu.dynamics_add_expression')}
                 </Button>)
               : (
+                <div className={classes.andOrToggleButtons}>
                 <ToggleButtonGroup
                   items={[
-                    {label: 'Og', value: 'og'},
-                    {label: 'Eller', value: 'eller'}
+                    { label: 'Og', value: 'og' },
+                    { label: 'Eller', value: 'eller' }
                   ]}
                   onChange={(value) => addExpressionOperatorForPrevExpression(value as 'og' | 'eller')}
                   selectedValue={expressionElement.expressionOperatorForNextExpression || 'og'}
-                />)
+                />
+                </div>
+              )
             }
           </div>
         </>

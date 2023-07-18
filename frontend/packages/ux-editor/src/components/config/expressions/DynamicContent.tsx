@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import {expressionFunctionTexts, ExpressionPropertyBase, expressionPropertyTexts} from '../../../types/Expressions';
+import React, { useEffect, useRef } from 'react';
+import { expressionFunctionTexts, ExpressionPropertyBase, expressionPropertyTexts } from '../../../types/Expressions';
 import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { ExpressionContent, ExpressionElement } from './ExpressionContent';
@@ -13,24 +13,48 @@ import classes from './DynamicContent.module.css';
 interface ExpressionProps {
   component: FormComponent | FormContainer;
   dynamic: Dynamic;
-  properties: {availableProperties: string[], expressionProperties: string[]}; // actions?
-  setShowAddDynamicButton: (value: any) => void;
+  onGetProperties: (dynamic: Dynamic) => {availableProperties: string[], expressionProperties: string[]}; // actions?
   showRemoveDynamicButton: boolean;
+  onAddDynamic: () => void;
   onRemoveDynamic: (dynamic: Dynamic) => void;
   onEditDynamic: (dynamic: Dynamic) => void;
 }
 
-export const DynamicContent = ({ component, dynamic, properties, setShowAddDynamicButton, showRemoveDynamicButton, onRemoveDynamic, onEditDynamic }: ExpressionProps) => {
-  const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'Velg handling');
+export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynamic, showRemoveDynamicButton, onRemoveDynamic, onEditDynamic }: ExpressionProps) => {
+  const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>([...dynamic.expressionElements]); // default state should be already existing expressions
   const { t } = useTranslation();
+  const dynamicInEditStateRef = useRef(null);
 
-  const allowToSpecifyExpression = Object.values(properties.expressionProperties).includes(selectedAction);
-  const propertiesList = dynamic.expressionElements.length > 0 ? properties.expressionProperties : properties.availableProperties;
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isDropDown = event.target.tagName === 'BUTTON' && event.target.getAttribute('role') === 'option';
+      const clickTargetIsNotInDynamic = dynamicInEditStateRef.current && !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) && !isDropDown;
+      if (clickTargetIsNotInDynamic && dynamic.editMode) {
+        // Click occurred outside the dynamic in edit mode
+        onAddDynamic();
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside, true);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside, true);
+    }
+  }, [dynamicInEditStateRef, dynamic]);
+
+  const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
+  const propertiesList = onGetProperties(dynamic).availableProperties;
 
   const addActionToDynamic = (action: string) => {
+    if (action === 'default') {
+      return;
+    }
     setSelectedAction(action);
     dynamic.property = action as ExpressionPropertyBase;
+    if (dynamic.expressionElements.length > 0) {
+      return;
+    }
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
     dynamic.expressionElements.push(newExpressionElement); // TODO: add id and check if dynamic is already in list and change property value if so
     setExpressionElements(dynamic.expressionElements);
@@ -62,22 +86,14 @@ export const DynamicContent = ({ component, dynamic, properties, setShowAddDynam
     }
   };
 
-  useEffect(() => {
-    if (dynamic.expressionElements.length > 0 && !Object.values(dynamic.expressionElements).find(expEl => Object.keys(expEl).length < 6)) {
-      setShowAddDynamicButton(true);
-    }
-    else {
-      setShowAddDynamicButton(false);
-    }
-  }, [dynamic, expressionElements, setShowAddDynamicButton]);
-
   console.log('dynamic', dynamic); // TODO: Remove when fully tested
   return (
     <>
       {dynamic.editMode ? (
-        <div>
+        <div className={showRemoveDynamicButton ? classes.dynamicInEdit : null} ref={dynamicInEditStateRef}>
           {showRemoveDynamicButton &&
             <Button
+              className={classes.removeDynamicButton}
               color={ButtonColor.Danger}
               icon={<XMarkIcon/>}
               onClick={() => onRemoveDynamic(dynamic)} // delete dynamic - should also set expression element state back to default
@@ -85,11 +101,11 @@ export const DynamicContent = ({ component, dynamic, properties, setShowAddDynam
             />
           }
           <p>
-            <Trans i18nKey={'right_menu.dynamics_action_on_component'} values={{componentName: component.id}} components={{bold: <strong/>}}/>
+            <Trans i18nKey={'right_menu.dynamics_action_on_component'} values={{ componentName: component.id }} components={{ bold: <strong/> }}/>
           </p>
           <Select
             onChange={(action) => addActionToDynamic(action)}
-            options={[{label: 'Velg handling...', value: 'default'}].concat(propertiesList.map((property: string) => ({
+            options={[{ label: 'Velg handling...', value: 'default' }].concat(propertiesList.map((property: string) => ({
               label: expressionPropertyTexts(t)[property],
               value: property
             })))}

@@ -14,6 +14,8 @@ export enum ExpressionPropertyForGroup {
   EditSaveAndNextButton = 'edit.saveAndNextButton',
 }
 
+export type ExpressionProperty = ExpressionPropertyBase | ExpressionPropertyForGroup;
+
 export enum ExpressionFunction {
   Equals = 'equals',
   NotEquals = 'notEquals',
@@ -49,4 +51,8 @@ export const expressionPropertyTexts = (t: typeof i18next.t) => ({
   [ExpressionPropertyBase.Hidden]: t('right_menu.dynamics_property_hidden'),
   [ExpressionPropertyBase.ReadOnly]: t('right_menu.dynamics_property_read_only'),
   [ExpressionPropertyBase.Required]: t('right_menu.dynamics_property_required'),
+  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.dynamics_group_property_show_add_button'),
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.dynamics_group_property_show_edit_button'),
+  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.dynamics_group_property_show_delete_button'),
+  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.dynamics_group_property_show_save_button'),
 });
