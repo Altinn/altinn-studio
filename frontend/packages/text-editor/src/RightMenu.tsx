@@ -34,7 +34,7 @@ export const RightMenu = ({
   const addLangOptions = langOptions.filter((x) => !availableLanguages.includes(x.value));
   const canDeleteLang = (code) => availableLanguages.length > 1 && code !== defaultLangCode;
   const { t } = useTranslation();
-  const [confirmDeleteState, setConfirmDeleteState] = useState<{ [key: string]: boolean }>({});
+  const [langCodeToDelete, setLangCodeToDelete] = useState<LangCode>();
 
   const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>
     target.checked
@@ -42,21 +42,14 @@ export const RightMenu = ({
       : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
 
   const handleDeleteLanguage = (langCode: LangCode) => {
-    if (confirmDeleteState[langCode]) {
+    if (langCodeToDelete === langCode) {
       setSelectedLanguages(removeItemByValue(selectedLanguages, langCode));
       deleteLanguage(langCode);
     }
-    setConfirmDeleteState((prevState) => {
-      const newState = { ...prevState };
-      delete newState[langCode];
-      return newState;
-    });
+    setLangCodeToDelete(null);
   };
   const toggleConfirmDeletePopover = (langCode: LangCode) => {
-    setConfirmDeleteState((prevState) => ({
-      ...prevState,
-      [langCode]: !prevState[langCode],
-    }));
+    setLangCodeToDelete((prevState) => (prevState === langCode ? null : langCode));
   };
 
   return (
@@ -82,7 +75,7 @@ export const RightMenu = ({
                   title={'delete'}
                   variant={PopoverVariant.Warning}
                   placement={'left'}
-                  open={confirmDeleteState[langCode] || false}
+                  open={langCodeToDelete === langCode || false}
                   trigger={
                     <Button
                       variant={
@@ -98,7 +91,7 @@ export const RightMenu = ({
                     </Button>
                   }
                 >
-                  {confirmDeleteState[langCode] && (
+                  {langCodeToDelete === langCode && (
                     <div>
                       {t('schema_editor.language_display_confirm_delete')}
                       <div className={classes.popoverButtons}>
