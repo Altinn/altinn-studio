@@ -667,7 +667,7 @@
   "schema_editor.loading": "Laster",
   "schema_editor.language": "Språk",
   "schema_editor.language_add_language": "Legg til språk:",
-  "schema_editor.language_conferm_deletion": "Ja, slett språket",
+  "schema_editor.language_confirm_deletion": "Ja, slett språket",
   "schema_editor.language_display_confirm_delete": "Er du sikker på at du vil slette dette språket?",
   "schema_editor.language_delete_button": "Slett",
   "schema_editor.language_info_melding": "Vi anbefaler å legge til oversettelser for bokmål, nynorsk og engelsk. Ved behov kan du også legge til andre språk.",

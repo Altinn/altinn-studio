@@ -70,4 +70,38 @@ describe('mapResourceFilesToTableRows', () => {
     expect(rows[0].textKey).toBe(id);
     expect(rows[0].translations).toHaveLength(2);
   });
+
+  test('Maintains variables if only present in a single language that is last in alphabetical order', () => {
+    const id = 'some-key';
+    const textResources: ITextResources = {
+      nb: [
+        { id, value: 'Min nøkkel' },
+        { id: 'some-other-key', value: 'en tekst med variabel {0}', variables: [ { key: 'some-key-in-data-model', dataSource: 'dataModel' } ] }
+      ],
+      en: [
+        { id, value: 'My key' },
+        { id: 'some-other-key', value: '' }
+      ]
+    };
+    const rows = mapResourceFilesToTableRows(textResources);
+    expect(rows).toHaveLength(2);
+    expect(rows[1].variables).toHaveLength(1);
+  });
+
+  test('Maintains variables if only present in a single language that is first in alphabetical order', () => {
+    const id = 'some-key';
+    const textResources: ITextResources = {
+      nb: [
+        { id, value: 'Min nøkkel' },
+        { id: 'some-other-key', value: '' }
+      ],
+      en: [
+        { id, value: 'My key' },
+        { id: 'some-other-key', value: 'en tekst med variabel {0}', variables: [ { key: 'some-key-in-data-model', dataSource: 'dataModel' } ] }
+      ]
+    };
+    const rows = mapResourceFilesToTableRows(textResources);
+    expect(rows).toHaveLength(2);
+    expect(rows[1].variables).toHaveLength(1);
+  });
 })

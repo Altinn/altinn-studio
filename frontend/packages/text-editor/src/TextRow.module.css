@@ -1,21 +1,3 @@
-.textRow {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  align-items: start;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #c9c9c9;
-  padding-bottom: 1rem;
-}
-.leftCol {
-  flex-grow: 1;
-}
-.leftCol textarea {
-  width: 100%;
-}
-.rightCol {
-  padding-top: 25px;
-}
 .deleteButton {
   border: none;
   background: transparent;
@@ -30,12 +12,18 @@
   gap: 8px;
 }
 
-.smallIcon {
-  height: 16px;
-  width: 16px;
-}
-
 .textId {
+  max-width: 160px;
   overflow: scroll;
   overflow-wrap: break-word;
+}
+
+.textAreaCell {
+  min-width: 350px;
+  vertical-align: top;
+}
+
+.textEntryComponent textArea {
+  margin: 10px 0 10px 0;
+  min-width: 340px;
 }

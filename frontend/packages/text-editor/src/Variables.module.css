@@ -4,13 +4,16 @@
 }
 
 .chip {
-  border-radius: 50px;
+  border-radius: 20px;
+  width: 90%;
   margin: 5px;
   background-color: gray;
   display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: white;
   padding-left: 10px;
-  padding-right: 10px;
   font-size: 14px;
   vertical-align: text-bottom;
 }

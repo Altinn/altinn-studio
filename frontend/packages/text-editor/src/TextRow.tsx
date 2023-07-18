@@ -46,6 +46,7 @@ export const TextRow = ({
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
+  const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const { t } = useTranslation();
@@ -76,53 +77,6 @@ export const TextRow = ({
 
   return (
     <TableRow data-testid={'lang-row'}>
-      {selectedLanguages.map((lang) => {
-        let translation = textRowEntries.find((e) => e.lang === lang);
-        if (!translation) {
-          translation = {
-            lang,
-            translation: '',
-          };
-        }
-        return (
-          <TableCell key={translation.lang + '-' + textId}>
-            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
-          </TableCell>
-        );
-      })}
-      <TableCell>
-        <ButtonContainer>
-          {textIdEditOpen ? (
-            <div>
-              <TextField
-                aria-label={'tekst key edit'}
-                isValid={!keyError}
-                value={textIdValue}
-                type='text'
-                onBlur={handleTextIdBlur}
-                onChange={handleTextIdChange}
-              />
-              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
-            </div>
-          ) : (
-            <div role='text' aria-readonly className={classes.textId}>
-              <span>{textIdValue}</span>
-            </div>
-          )}
-          {showButton && (
-            <Button
-              aria-label={'toggle-textkey-edit'}
-              icon={<PencilIcon className={classes.smallIcon} />}
-              variant={ButtonVariant.Quiet}
-              size={ButtonSize.Small}
-              onClick={() => setTextIdEditOpen(!textIdEditOpen)}
-            />
-          )}
-        </ButtonContainer>
-      </TableCell>
-      <TableCell>
-        <Variables variables={variables} />
-      </TableCell>
       <TableCell>
         <Popover
           title={'Slett_rad'}
@@ -159,6 +113,53 @@ export const TextRow = ({
             </div>
           )}
         </Popover>
+      </TableCell>
+      {selectedLanguages.map((lang) => {
+        let translation = textRowEntries.find((e) => e.lang === lang);
+        if (!translation) {
+          translation = {
+            lang,
+            translation: '',
+          };
+        }
+        return (
+          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
+            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} className={classes.textEntryComponent}/>
+          </TableCell>
+        );
+      })}
+      <TableCell>
+        <ButtonContainer>
+          {textIdEditOpen ? (
+            <div>
+              <TextField
+                aria-label={'tekst key edit'}
+                isValid={!keyError}
+                value={textIdValue}
+                type='text'
+                onBlur={handleTextIdBlur}
+                onChange={handleTextIdChange}
+              />
+              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
+            </div>
+          ) : (
+            <div role='text' aria-readonly className={classes.textId}>
+              <span>{textIdValue}</span>
+            </div>
+          )}
+          {showButton && (
+            <Button
+              aria-label={'toggle-textkey-edit'}
+              icon={<PencilIcon className={classes.smallIcon} />}
+              variant={ButtonVariant.Quiet}
+              size={ButtonSize.Small}
+              onClick={() => setTextIdEditOpen(!textIdEditOpen)}
+            />
+          )}
+        </ButtonContainer>
+      </TableCell>
+      <TableCell>
+        <Variables variables={textVariables} />
       </TableCell>
     </TableRow>
   );

@@ -31,7 +31,7 @@ describe('RightMenu', () => {
     fireEvent.click(deleteButton);
     const popoverContent = screen.getByText(/schema_editor.language_display_confirm_delete/);
     expect(popoverContent).toBeInTheDocument();
-    const confirmButton = screen.getByText(/schema_editor.language_conferm_deletion/);
+    const confirmButton = screen.getByText(/schema_editor.language_confirm_deletion/);
     fireEvent.click(confirmButton);
     expect(defaultProps.deleteLanguage).toHaveBeenCalledWith('en');
     const cancelButton = screen.getByText(/schema_editor.textRow-cancel-popover/);
@@ -46,7 +46,7 @@ describe('RightMenu', () => {
 
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
-    const confirmButton = screen.getByText(/schema_editor.language_conferm_deletion/);
+    const confirmButton = screen.getByText(/schema_editor.language_confirm_deletion/);
     fireEvent.click(confirmButton);
     expect(defaultProps.deleteLanguage).toHaveBeenCalledWith('en');
   });
