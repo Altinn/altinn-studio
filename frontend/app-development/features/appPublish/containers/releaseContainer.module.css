@@ -8,17 +8,16 @@
   height: calc(100vh - var(--header-height));
   max-width: 78.6rem;
   min-width: 34.6rem;
-  overflow-x: hidden;
   overflow-y: scroll;
 }
 
 .appReleaseCreateRelease {
   flex-grow: 1;
 }
-
+/* 
 .appReleaseHistory {
   overflow-y: scroll;
-}
+} */
 
 .appReleaseHistoryTitle {
   font-size: 1.2rem;
