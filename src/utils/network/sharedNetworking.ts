@@ -16,6 +16,6 @@ export async function httpPut(url: string, data: any, config?: AxiosRequestConfi
   return response.data;
 }
 
-export function isAxiosError(error: any): error is AxiosError {
-  return error && (error as AxiosError).config !== undefined;
+export function isAxiosError(error: any): error is AxiosError<any, any> {
+  return error?.name === 'AxiosError';
 }

@@ -68,7 +68,7 @@ describe('fetchFormDataSagas', () => {
     const error: AxiosError = {
       isAxiosError: true,
       message: 'error',
-      name: 'error',
+      name: 'AxiosError',
       toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
@@ -115,7 +115,7 @@ describe('fetchFormDataSagas', () => {
     const error: AxiosError = {
       isAxiosError: true,
       message: 'error',
-      name: 'error',
+      name: 'AxiosError',
       toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
@@ -228,7 +228,7 @@ describe('fetchFormDataSagas', () => {
     const error: AxiosError = {
       isAxiosError: true,
       message: 'error',
-      name: 'error',
+      name: 'AxiosError',
       toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
@@ -274,7 +274,7 @@ describe('fetchFormDataSagas', () => {
     const error: AxiosError = {
       isAxiosError: true,
       message: 'error',
-      name: 'error',
+      name: 'AxiosError',
       toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },

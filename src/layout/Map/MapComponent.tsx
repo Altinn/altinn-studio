@@ -5,6 +5,7 @@ import { makeStyles, Typography } from '@material-ui/core';
 import type { Location } from '@altinn/altinn-design-system';
 
 import { useLanguage } from 'src/hooks/useLanguage';
+import { useLogs } from 'src/hooks/useLogs';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -19,7 +20,8 @@ export const useStyles = makeStyles(() => ({
 export function MapComponent({ formData, handleDataChange, isValid, node }: IMapComponentProps) {
   const { readOnly, layers, centerLocation, zoom } = node.item;
   const classes = useStyles();
-  const location = formData.simpleBinding ? parseLocation(formData.simpleBinding) : undefined;
+  const { logError } = useLogs();
+  const location = parseLocation(formData.simpleBinding, logError);
   const { lang } = useLanguage();
 
   const footerText = location
@@ -47,10 +49,16 @@ export function MapComponent({ formData, handleDataChange, isValid, node }: IMap
   );
 }
 
-export function parseLocation(locationString: string): Location | undefined {
+export function parseLocation(
+  locationString: string | undefined,
+  logError: (message: string) => void,
+): Location | undefined {
+  if (!locationString) {
+    return undefined;
+  }
   const latLonArray = locationString.split(',');
   if (latLonArray.length != 2) {
-    window.logError(`Invalid location string: ${locationString}`);
+    logError(`Invalid location string: ${locationString}`);
     return undefined;
   }
   const latString = latLonArray[0];
@@ -58,7 +66,7 @@ export function parseLocation(locationString: string): Location | undefined {
   const lat = parseFloat(latString);
   const lon = parseFloat(lonString);
   if (isNaN(lat) || isNaN(lon)) {
-    window.logError(`Invalid location string: ${locationString}`);
+    logError(`Invalid location string: ${locationString}`);
     return undefined;
   }
   return {

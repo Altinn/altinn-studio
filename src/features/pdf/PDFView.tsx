@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 
 import { Heading } from '@digdir/design-system-react';
 
@@ -6,6 +6,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
 import classes from 'src/features/pdf/PDFView.module.css';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLogs } from 'src/hooks/useLogs';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { ComponentType } from 'src/layout/LayoutComponent';
@@ -20,7 +21,7 @@ interface PDFViewProps {
 }
 
 const PDFComponent = ({ node }: { node: LayoutNode }) => {
-  const logRef = useRef(false);
+  const { logWarn } = useLogs();
 
   if (node.isType('Summary') || node.item.renderAsSummary) {
     return (
@@ -54,11 +55,7 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
       />
     );
   } else {
-    // Prevent triggering this warning multiple times
-    if (!logRef.current) {
-      logRef.current = true;
-      window.logWarn(`Component type: "${node.item.type}" is not allowed in PDF. Component id: "${node.item.id}"`);
-    }
+    logWarn(`Component type: "${node.item.type}" is not allowed in PDF. Component id: "${node.item.id}"`);
     return null;
   }
 };

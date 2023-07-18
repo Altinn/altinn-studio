@@ -1,18 +1,16 @@
-import { AxiosError } from 'axios';
+import { isAxiosError } from 'src/utils/network/sharedNetworking';
 
-let index = -1;
-function postLog(level: string, args: any[]) {
+function postLog(level: 'info' | 'warn' | 'error', args: any[]) {
   if (window.reduxStore) {
-    index++;
     const message = parseErrorArgs(args);
-    window.reduxStore.dispatch({ type: 'devTools/postLog', payload: { index, level, message } });
+    window.reduxStore.dispatch({ type: 'devTools/postLog', payload: { level, message } });
   }
 }
 
 export function parseErrorArgs(args: any[]): string {
   return args
     .map((arg) => {
-      if (arg instanceof AxiosError) {
+      if (isAxiosError(arg)) {
         return `Request failed, check the server logs for more details. ${arg.config?.method?.toUpperCase()} '${arg
           .config?.url}': ${arg.message}`;
       }

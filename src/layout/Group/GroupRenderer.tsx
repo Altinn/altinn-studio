@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useLogs } from 'src/hooks/useLogs';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { GroupContainer } from 'src/layout/Group/GroupContainer';
@@ -11,6 +12,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type GroupRendererProps = PropsFromGenericComponent<'Group'>;
 
 export function GroupRenderer({ node }: GroupRendererProps) {
+  const { logError } = useLogs();
   const isRepeatingGroup = node.isRepGroup();
   if (isRepeatingGroup) {
     return (
@@ -60,6 +62,6 @@ export function GroupRenderer({ node }: GroupRendererProps) {
   }
 
   // Invalid configuration
-  window.logError(`Group ${node.item.id} has an invalid configuration.`);
+  logError(`Group ${node.item.id} has an invalid configuration.`);
   return null;
 }

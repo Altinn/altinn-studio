@@ -103,7 +103,7 @@ describe('InstantiateContainer', () => {
   it('should show unknown error for generic errors', async () => {
     const error = {
       message: 'instantiation error',
-      name: 'instantiation error',
+      name: 'AxiosError',
       config: {},
       isAxiosError: true,
       response: {
@@ -125,7 +125,7 @@ describe('InstantiateContainer', () => {
   it('should show missing access when http status is forbidden', async () => {
     const error = {
       message: 'instantiation error',
-      name: 'instantiation error',
+      name: 'AxiosError',
       config: {},
       isAxiosError: true,
       response: {
@@ -148,7 +148,7 @@ describe('InstantiateContainer', () => {
   it('should show instantiation error page when axios error contains a message', async () => {
     const error = {
       message: 'instantiation error',
-      name: 'instantiation error',
+      name: 'AxiosError',
       config: {},
       isAxiosError: true,
       response: {

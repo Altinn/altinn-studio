@@ -16,6 +16,7 @@ export type IDevToolsState = {
     forComponentId: string | undefined;
   };
   logs: IDevToolsLog[];
+  logIndex: number;
 };
 
 export type IDevToolsLog = {
