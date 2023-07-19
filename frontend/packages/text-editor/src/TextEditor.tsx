@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
@@ -14,7 +14,6 @@ import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
 import { ITextResources } from 'app-shared/types/global';
-import { useTranslation } from 'react-i18next';
 
 export interface TextEditorProps {
   addLanguage: (language: LangCode) => void;
@@ -42,9 +41,6 @@ export const TextEditor = ({
   upsertTextResource,
 }: TextEditorProps) => {
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const { t } = useTranslation();
-
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages]
@@ -58,16 +54,11 @@ export const TextEditor = ({
     setSearchQuery('');
   };
 
-  const removeEntry = async ({ textId }: TextResourceEntryDeletion) => {
+  const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
     try {
       updateTextId({ oldId: textId });
     } catch (e: unknown) {
-      let errorMessage = t('schema_editor.delete_text_id_error');
-      console.error(errorMessage);
-      if (e instanceof Error) {
-        errorMessage = (t('schema_editor.delete_text_id_error:'), `${e.toString()}`);
-      }
-      setDeleteError(errorMessage);
+      console.error('Deleting text failed:\n', e);
     }
   };
 
@@ -101,7 +92,6 @@ export const TextEditor = ({
           </div>
         </div>
         <div className={classes.TextEditor__body}>
-          {deleteError && <p>{deleteError}</p>}
           <TextList
             removeEntry={removeEntry}
             resourceRows={resourceRows}
