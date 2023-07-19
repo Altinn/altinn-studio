@@ -16,7 +16,6 @@ export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
   const [showNewDynamics, setShowNewDynamics] = React.useState<boolean>(false);
 
-  debugger
   return (
     <div className={cn(className, classes.main)} data-testid={'ux-editor.right-menu'}>
       <Tabs

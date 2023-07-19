@@ -53,7 +53,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
     // Set editMode fields for all prev dynamics to false
     const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
     const nonEditableDynamics: Dynamic[] = [...dynamics.filter(prevDynamic => prevDynamic.expressionElements.length > 0)].map(prevDynamic => ({ ...prevDynamic, editMode: false }));
-    setDynamics( dynamics.length < 3 ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
+    setDynamics( dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
   };
 
   const editDynamic = (dynamic: Dynamic) => {
@@ -93,7 +93,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
             dynamic={dynamic}
             onGetProperties={() => getProperties(dynamic)}
             showRemoveDynamicButton={showRemoveDynamicButton}
-            onAddDynamic={() => addDynamic()}
+            onAddDynamic={addDynamic}
             onRemoveDynamic={() => removeDynamic(dynamic)}
             onEditDynamic={() => editDynamic(dynamic)}
           />
@@ -106,7 +106,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
           fullWidth
           icon={<PlusIcon/>}
           id='right_menu.dynamics_add'
-          onClick={() => addDynamic()}
+          onClick={addDynamic}
           size={ButtonSize.Small}
           variant={ButtonVariant.Outline}
         >

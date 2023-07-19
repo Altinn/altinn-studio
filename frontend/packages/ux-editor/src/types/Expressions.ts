@@ -14,8 +14,6 @@ export enum ExpressionPropertyForGroup {
   EditSaveAndNextButton = 'edit.saveAndNextButton',
 }
 
-export type ExpressionProperty = ExpressionPropertyBase | ExpressionPropertyForGroup;
-
 export enum ExpressionFunction {
   Equals = 'equals',
   NotEquals = 'notEquals',

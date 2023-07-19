@@ -25,23 +25,25 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>([...dynamic.expressionElements]); // default state should be already existing expressions
   const { t } = useTranslation();
   const dynamicInEditStateRef = useRef(null);
+  const dynamicInPreviewStateRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Need to check for dropdown explicit because it is rendered in a portal outside the component
       const isDropDown = event.target.tagName === 'BUTTON' && event.target.getAttribute('role') === 'option';
-      const clickTargetIsNotInDynamic = dynamicInEditStateRef.current && !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) && !isDropDown;
-      if (clickTargetIsNotInDynamic && dynamic.editMode) {
+      // Check for buttons since clicks outside the dynamic on other buttons should not trigger add dynamic
+      const isButton = event.target.tagName === 'BUTTON' || event.target.tagName === 'path' || event.target.tagName === 'svg';
+      const clickTargetIsNotInDynamic = (dynamicInEditStateRef.current && !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) && !isDropDown);
+      if (clickTargetIsNotInDynamic && !isButton && dynamic.editMode) {
         // Click occurred outside the dynamic in edit mode
         onAddDynamic();
       }
     };
-
-    document.addEventListener('click', handleClickOutside, true);
-
+    document.addEventListener('click', handleClickOutside);
     return () => {
-      document.removeEventListener('click', handleClickOutside, true);
+      document.removeEventListener('click', handleClickOutside);
     }
-  }, [dynamicInEditStateRef, dynamic]);
+  }, [dynamicInEditStateRef.current]);
 
   const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
   const propertiesList = onGetProperties(dynamic).availableProperties;
@@ -123,7 +125,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
             </div>
           ))}
         </div>) : (
-        <div className={classes.dynamicInPreview}>
+        <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
           <span>{expressionPropertyTexts(t)[dynamic.property]} <span>{component.id}</span> hvis</span>
               {expressionElements.map((expEl: ExpressionElement) => (
