@@ -44,7 +44,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
   if (isLoadingStarredRepos) {
-    return <PageSpinner text={t('dashboard.loading')} />;
+    return <PageSpinner />;
   }
 
   return (

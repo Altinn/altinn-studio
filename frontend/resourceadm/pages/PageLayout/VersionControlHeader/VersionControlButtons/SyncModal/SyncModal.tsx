@@ -60,7 +60,7 @@ export const SyncModal = (props: ISyncModalComponentProps) => {
             })}
           </div>
         )}
-        {props.isLoading && <AltinnSpinner className={classNames(classes.spinner)} />}
+        {props.isLoading && <AltinnSpinner />}
         {props.shouldShowDoneIcon && (
           <div className={classNames(classes.doneLoadingIcon)}>
             <i className={classNames('fa fa-circlecheck')} />

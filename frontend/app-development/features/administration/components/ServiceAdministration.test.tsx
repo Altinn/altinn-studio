@@ -91,6 +91,22 @@ describe('Administration', () => {
     error: null,
   };
 
+  it('should render the spinner when loading', () => {
+    renderWithProviders(<ServiceAdministration repository={mockService} />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+      preloadedState: {
+        serviceInformation: {
+          ...mockServiceInformation,
+          serviceNameObj: {
+            ...mockServiceInformation.serviceNameObj,
+            name: null,
+          }
+        }
+      },
+    });
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+  });
+
   it('should handle sucessfully updating app name', async () => {
     const utils = renderWithProviders(<ServiceAdministration repository={mockService} />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,

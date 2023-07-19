@@ -90,5 +90,5 @@ export function App() {
       </>
     );
   }
-  return <PageSpinner text={t('general.loading')} />;
+  return <PageSpinner />;
 }

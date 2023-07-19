@@ -89,8 +89,7 @@ describe('Administration', () => {
     renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     });
-    const contentLoader = screen.queryByText('Laster siden');
-    expect(contentLoader).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('should show Apps view when repository is app repository', () => {
