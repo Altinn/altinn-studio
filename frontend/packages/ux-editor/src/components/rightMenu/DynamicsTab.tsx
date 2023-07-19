@@ -99,7 +99,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
           />
         </div>
       ))}
-      {dynamics.length < 3 ?
+      {dynamics.length < expressionProperties.length ?
         (<Button
           aria-label={t('right_menu.dynamics_add')}
           color={ButtonColor.Secondary}
@@ -118,14 +118,16 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
           </Alert>
         )
       }
-      <Divider />
-      { !_useIsProdHack() &&
-        <Checkbox
-          label={t('right_menu.show_new_dynamics')}
-          name={'checkbox-name'}
-          checked={showNewDynamicsTab}
-          onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
-      }
+      <div className={classes.dynamicsVersionCheckBox}>
+        <Divider />
+        { !_useIsProdHack() &&
+          <Checkbox
+            label={t('right_menu.show_new_dynamics')}
+            name={'checkbox-name'}
+            checked={showNewDynamicsTab}
+            onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
+        }
+      </div>
   </div>
   );
 };

@@ -544,7 +544,6 @@
   "receipt_platform.sender": "Sender",
   "receipt_platform.sent_content": "The following is submitted:",
   "right_menu.calculations": "Calculations",
-  "right_menu.conditional_rendering": "Show/hide",
   "right_menu.content": "Content",
   "right_menu.dynamics": "Dynamics",
   "right_menu.dynamics_description": "Edit dynamics that can be used in the rules for calculations and show/hide fields.",

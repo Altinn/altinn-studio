@@ -17,6 +17,7 @@ export const ConditionalRenderingTab = ({ onShowNewDynamicsTab, showNewDynamicsT
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const t = useText();
   return (
+    <>
     <div className={classes.conditionalRendering}>
       <div>
         <div className={classes.header}>
@@ -39,13 +40,17 @@ export const ConditionalRenderingTab = ({ onShowNewDynamicsTab, showNewDynamicsT
       </div>
       <Divider marginless/>
       <OldDynamicsInfo />
-      { !_useIsProdHack() &&
-        <Checkbox
-          label={t('right_menu.show_new_dynamics')}
-          name={'checkbox-name'}
-          checked={showNewDynamicsTab}
-          onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
-      }
     </div>
+  <div className={classes.dynamicsVersionCheckBox}>
+    <Divider />
+    { !_useIsProdHack() &&
+      <Checkbox
+        label={t('right_menu.show_new_dynamics')}
+        name={'checkbox-name'}
+        checked={showNewDynamicsTab}
+        onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
+    }
+  </div>
+    </>
   );
 };
