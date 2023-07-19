@@ -65,7 +65,7 @@ export const TextEditor = ({
       let errorMessage = t('schema_editor.delete_text_id_error');
       console.error(errorMessage);
       if (e instanceof Error) {
-        errorMessage = (t('schema_editor.delete_text_id_typr_error:'), `${e.toString()}`);
+        errorMessage = (t('schema_editor.delete_text_id_error:'), `${e.toString()}`);
       }
       setDeleteError(errorMessage);
     }
