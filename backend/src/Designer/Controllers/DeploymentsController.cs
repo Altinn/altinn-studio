@@ -69,11 +69,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("permissions")]
         public async Task<ActionResult<List<string>>> Permissions([FromRoute] string org)
         {
+            // Add Owners to permitted environments so that users in Owners team can see deploy page with
+            // all environments even though they are not in Deploy-<env> team and cannot deploy to the environment.
             List<Team> teams = await _giteaService.GetTeams();
             List<string> permittedEnvironments = teams.Where(t =>
                         t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
-                        && t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase))
-                    .Select(t => t.Name.Split('-')[1])
+                        && (t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase) || t.Name.Equals("Owners")))
+                    .Select(t => t.Name.Equals("Owners") ? t.Name : t.Name.Split('-')[1])
                     .ToList();
 
             return Ok(permittedEnvironments);
