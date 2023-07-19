@@ -54,3 +54,13 @@ export const expressionPropertyTexts = (t: typeof i18next.t) => ({
   [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.dynamics_group_property_show_delete_button'),
   [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.dynamics_group_property_show_save_button'),
 });
+
+export const expressionInPreviewPropertyTexts = (t: typeof i18next.t) => ({
+  [ExpressionPropertyBase.Hidden]: t('right_menu.dynamics_property_preview_hidden'),
+  [ExpressionPropertyBase.ReadOnly]: t('right_menu.dynamics_property_preview_read_only'),
+  [ExpressionPropertyBase.Required]: t('right_menu.dynamics_property_preview_required'),
+  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.dynamics_group_property_preview_show_add_button'),
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.dynamics_group_property_preview_show_edit_button'),
+  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.dynamics_group_property_preview_show_delete_button'),
+  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.dynamics_group_property_preview_show_save_button'),
+});

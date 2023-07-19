@@ -1,5 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { expressionFunctionTexts, ExpressionPropertyBase, expressionPropertyTexts } from '../../../types/Expressions';
+import {
+  expressionFunctionTexts,
+  expressionInPreviewPropertyTexts,
+  ExpressionPropertyBase,
+  expressionPropertyTexts
+} from '../../../types/Expressions';
 import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { ExpressionContent, ExpressionElement } from './ExpressionContent';
@@ -127,7 +132,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
         </div>) : (
         <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
-          <span>{expressionPropertyTexts(t)[dynamic.property]} <span>{component.id}</span> hvis</span>
+            <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]} values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
               {expressionElements.map((expEl: ExpressionElement) => (
                 <div key={expEl.id}>
                   <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
