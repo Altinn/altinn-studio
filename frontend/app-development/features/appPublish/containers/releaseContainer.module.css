@@ -14,10 +14,6 @@
 .appReleaseCreateRelease {
   flex-grow: 1;
 }
-/* 
-.appReleaseHistory {
-  overflow-y: scroll;
-} */
 
 .appReleaseHistoryTitle {
   font-size: 1.2rem;
