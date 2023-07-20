@@ -67,6 +67,53 @@ public class AppResourcesSITests
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
+    
+    [Fact]
+    public void GetApplication_handles_onEntry_null()
+    {
+        AppSettings appSettings = GetAppSettings("AppMetadata", "no-on-entry.applicationmetadata.json");
+        var settings = Options.Create<AppSettings>(appSettings);
+        IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
+        IAppResources appResources = new AppResourcesSI(settings, appMetadata, null, new NullLogger<AppResourcesSI>());
+        Application expected = new Application()
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>()
+            {
+                { "nb", "Bestillingseksempelapp" }
+            },
+            DataTypes = new List<DataType>()
+            {
+                new()
+                {
+                    Id = "vedlegg",
+                    AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
+                    MinCount = 0,
+                    TaskId = "Task_1"
+                },
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = new List<string>() { "application/pdf" },
+                    MinCount = 1,
+                    TaskId = "Task_1"
+                }
+            },
+            PartyTypesAllowed = new PartyTypesAllowed()
+            {
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true
+            }
+        };
+        var actual = appResources.GetApplication();
+        actual.Should().NotBeNull();
+        actual.Should().BeEquivalentTo(expected);
+    }
 
     [Fact]
     public void GetApplication_second_read_from_cache()

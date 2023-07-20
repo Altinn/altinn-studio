@@ -113,10 +113,14 @@ namespace Altinn.App.Core.Implementation
             {
                 ApplicationMetadata applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
                 Application application = applicationMetadata;
-                application.OnEntry = new OnEntryConfig()
+                if (applicationMetadata.OnEntry != null)
                 {
-                    Show = applicationMetadata.OnEntry.Show
-                };
+                    application.OnEntry = new OnEntryConfig()
+                    {
+                        Show = applicationMetadata.OnEntry.Show
+                    };
+                }
+                
                 return application;
             }
             catch (AggregateException ex)

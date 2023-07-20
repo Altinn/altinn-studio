@@ -43,7 +43,7 @@ namespace Altinn.App.Core.Models
         /// Configure options for handling what happens when entering the application
         /// </summary>
         [JsonProperty(PropertyName = "onEntry")]
-        public new OnEntry OnEntry { get; set; }
+        public new OnEntry? OnEntry { get; set; }
 
         /// <summary>
         /// Get AppIdentifier based on ApplicationMetadata.Id
