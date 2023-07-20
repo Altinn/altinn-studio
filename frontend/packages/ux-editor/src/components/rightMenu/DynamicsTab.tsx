@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Button, ButtonColor, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Alert, Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox } from '@digdir/design-system-react';
 import { DynamicContent } from '../config/expressions/DynamicContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../hooks';
@@ -7,6 +7,10 @@ import { FormContext } from '../../containers/FormContext';
 import { ExpressionElement } from '../config/expressions/ExpressionContent';
 import { ExpressionPropertyBase, ExpressionPropertyForGroup } from '../../types/Expressions';
 import { LayoutItemType } from '../../types/global';
+import classes from './RightMenu.module.css';
+import { v4 as uuidv4 } from 'uuid';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+import { Divider } from 'app-shared/primitives';
 
 export interface Dynamic {
   id?: string;
@@ -15,23 +19,24 @@ export interface Dynamic {
   expressionElements?: ExpressionElement[];
 }
 
-export const DynamicsTab = () => {
+type DynamicsTabProps = {
+  onShowNewDynamicsTab: (value: boolean) => void;
+  showNewDynamicsTab: boolean;
+};
+
+export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsTabProps) => {
   const { form, formId } = useContext(FormContext);
 
-  const defaultDynamic: Dynamic = { editMode: true, expressionElements: [] };
+  const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
   const [dynamics, setDynamics] = React.useState<Dynamic[]>([defaultDynamic]); // default state should be already existing dynamics
-  const [showAddDynamicButton, setShowAddDynamicButton] = React.useState<boolean>(false);
   const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
   const t = useText();
 
   useEffect(() => {
-    // Check if there are existing dynamics - should it be less than 1?
     if (dynamics && dynamics.length < 2) {
-      setShowAddDynamicButton(false);
       setShowRemoveDynamicButton(false);
     }
     else {
-      setShowAddDynamicButton(true);
       setShowRemoveDynamicButton(true);
     }
   }, [dynamics]);
@@ -46,14 +51,15 @@ export const DynamicsTab = () => {
   const addDynamic = () => {
     // Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
-    const dynamic: Dynamic = { editMode: true, expressionElements: [] };
-    setDynamics(prevDynamics => prevDynamics.map(prevDynamic => ({ ...prevDynamic, editMode: false })).concat(dynamic));
+    const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
+    const nonEditableDynamics: Dynamic[] = [...dynamics.filter(prevDynamic => prevDynamic.expressionElements.length > 0)].map(prevDynamic => ({ ...prevDynamic, editMode: false }));
+    setDynamics( dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
   };
 
   const editDynamic = (dynamic: Dynamic) => {
     // Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
-    const updatedDynamics = dynamics.map(prevDynamic => {
+    const updatedDynamics = [...dynamics.filter(prevDynamic => prevDynamic.expressionElements.length > 0)].map(prevDynamic => {
       if (prevDynamic === dynamic) return { ...prevDynamic, editMode: true }
     else return { ...prevDynamic, editMode: false } });
 
@@ -71,30 +77,30 @@ export const DynamicsTab = () => {
     }
   };
 
-  const getProperties = () => {
-    const alreadyUsedProperties = dynamics.map(dynamic => dynamic.property) as string[];
+  const getProperties = (dynamic: Dynamic) => {
+    const alreadyUsedProperties = dynamics.map(prevDynamic => {if (dynamic !== prevDynamic) return prevDynamic.property}) as string[];
     const availableProperties = expressionProperties.filter(expressionProperty => !Object.values(alreadyUsedProperties).includes(expressionProperty));
     return { availableProperties, expressionProperties }
   };
 
   // Need to collect all existing expressions and list them here - or send a state prop to all the mapped expressions
   return (
-    <div>
+    <div className={classes.dynamics}>
       {Object.values(dynamics).map((dynamic: Dynamic) => (
-        <li key={dynamic.id}>
+        <div key={dynamic.id}>
           <DynamicContent
             component={form}
             dynamic={dynamic}
-            properties={getProperties()}
-            setShowAddDynamicButton={setShowAddDynamicButton}
+            onGetProperties={() => getProperties(dynamic)}
             showRemoveDynamicButton={showRemoveDynamicButton}
+            onAddDynamic={addDynamic}
             onRemoveDynamic={() => removeDynamic(dynamic)}
             onEditDynamic={() => editDynamic(dynamic)}
           />
-        </li>
+        </div>
       ))}
-      {showAddDynamicButton &&
-        <Button
+      {dynamics.length < expressionProperties.length ?
+        (<Button
           aria-label={t('right_menu.dynamics_add')}
           color={ButtonColor.Secondary}
           fullWidth
@@ -106,7 +112,22 @@ export const DynamicsTab = () => {
         >
           {t('right_menu.dynamics_add')}
         </Button>
+        ) : (
+          <Alert className={classes.dynamicsAlert}>
+            {t('right_menu.dynamics_dynamics_limit_reached_alert')}
+          </Alert>
+        )
       }
+      <div className={classes.dynamicsVersionCheckBox}>
+        <Divider />
+        { !_useIsProdHack() &&
+          <Checkbox
+            label={t('right_menu.show_new_dynamics')}
+            name={'checkbox-name'}
+            checked={showNewDynamicsTab}
+            onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
+        }
+      </div>
   </div>
   );
 };
