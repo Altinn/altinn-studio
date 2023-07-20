@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Button, ButtonColor } from '@digdir/design-system-react';
+import { Button, ButtonColor, FieldSet } from '@digdir/design-system-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
@@ -17,13 +17,22 @@ export const PDFPreviewButton = () => {
   }
 
   return (
-    <Button
-      onClick={handler}
-      disabled={taskType !== ProcessTaskType.Data}
-      color={ButtonColor.Secondary}
-      icon={<FilePdfIcon aria-hidden />}
+    <FieldSet
+      legend='Forhåndsvis PDF'
+      description={
+        !(window as any).chrome
+          ? 'Vær oppmerksom på at forhåndsvisningen ikke vil se riktig ut i andre nettlesere enn Google Chrome.'
+          : undefined
+      }
     >
-      Forhåndsvis PDF
-    </Button>
+      <Button
+        onClick={handler}
+        disabled={taskType !== ProcessTaskType.Data}
+        color={ButtonColor.Secondary}
+        icon={<FilePdfIcon aria-hidden />}
+      >
+        Forhåndsvis PDF
+      </Button>
+    </FieldSet>
   );
 };

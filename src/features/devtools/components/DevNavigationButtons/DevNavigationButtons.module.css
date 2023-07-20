@@ -6,7 +6,7 @@
   min-width: 200px;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 400px) {
   .responsiveDropdown {
     display: none;
   }
@@ -19,9 +19,10 @@
   display: none;
 }
 
-.visiblePage {
+.chipGroup {
+  flex-wrap: wrap;
 }
 
-.hiddenPage {
+.hiddenPage span {
   font-style: italic;
 }

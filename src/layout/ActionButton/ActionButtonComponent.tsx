@@ -45,16 +45,21 @@ export function ActionButtonComponent({ node }: IActionButton) {
   const { color, variant } = buttonStyles[buttonStyle];
 
   return (
-    <Button
-      id={`action-button-${id}`}
-      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined, opacity: isLoading ? 0.8 : undefined }}
-      variant={variant}
-      color={color}
-      disabled={disabled}
-      onClick={handleClick}
+    <ButtonLoader
+      isLoading={isLoading}
+      style={{
+        marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined,
+      }}
     >
-      {buttonText}
-      {isLoading && <ButtonLoader />}
-    </Button>
+      <Button
+        id={`action-button-${id}`}
+        variant={variant}
+        color={color}
+        disabled={disabled || isLoading}
+        onClick={handleClick}
+      >
+        {buttonText}
+      </Button>
+    </ButtonLoader>
   );
 }

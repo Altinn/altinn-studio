@@ -1,7 +1,12 @@
+.wrapper {
+  position: relative;
+}
 .button-loader {
   width: 0;
   height: 0;
   position: absolute;
-  margin-top: -1.8rem;
-  margin-left: -0.6rem;
+  top: 50%;
+  left: 50%;
+  margin-top: -0.9rem;
+  margin-left: -0.3rem;
 }

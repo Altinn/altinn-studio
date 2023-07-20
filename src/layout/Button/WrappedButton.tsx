@@ -37,16 +37,17 @@ export const WrappedButton = ({
     }
   };
   return (
-    <Button
-      data-is-loading={thisIsLoading ? 'true' : 'false'}
-      variant={variant}
-      color={color}
-      onClick={handleClick}
-      id={id}
-      disabled={disabled || thisIsLoading}
-    >
-      {children}
-      {thisIsLoading && <ButtonLoader />}
-    </Button>
+    <ButtonLoader isLoading={thisIsLoading}>
+      <Button
+        data-is-loading={thisIsLoading ? 'true' : 'false'}
+        variant={variant}
+        color={color}
+        onClick={handleClick}
+        id={id}
+        disabled={disabled || thisIsLoading}
+      >
+        {children}
+      </Button>
+    </ButtonLoader>
   );
 };

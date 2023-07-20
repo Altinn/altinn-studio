@@ -69,9 +69,12 @@
 }
 
 .page {
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  max-height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
+  justify-items: flex-start;
+  gap: 32px;
+  padding: 16px;
 }

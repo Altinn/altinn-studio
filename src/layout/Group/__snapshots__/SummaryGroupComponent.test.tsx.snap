@@ -21,7 +21,11 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
         class="Button-module_button__2ZuB7 i__imported_focusable_0 Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_secondary__R0waJ"
         type="button"
       >
-        Change
+        <span
+          class="Paragraph-module_paragraph__Q65gR Paragraph-module_small__nw9qP Button-module_typography__AgYmL"
+        >
+          Change
+        </span>
         <svg
           aria-hidden="true"
           class="Button-module_icon__-43u5"

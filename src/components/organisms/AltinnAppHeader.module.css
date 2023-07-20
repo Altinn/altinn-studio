@@ -1,5 +1,6 @@
 .appBar {
   box-shadow: none !important;
+  z-index: 800 !important;
 }
 
 .appBarText {
