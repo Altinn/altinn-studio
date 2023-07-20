@@ -14,7 +14,6 @@ export const useTextIdMutation = (owner, app) => {
       try {
         await updateTextId(owner, app, payload);
       } catch (error) {
-        console.error(t('schema_editor.delete_text_id_error'));
         alert(t('schema_editor.delete_text_id_error'));
       }
     },
