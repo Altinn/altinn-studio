@@ -582,6 +582,7 @@
   "schema_editor.definitions": "Definitions",
   "schema_editor.delete": "Delete",
   "schema_editor.delete_field": "Delete field",
+  "schema_editor.delete_text_id_error": "An error occurred while deleting the text.",
   "schema_editor.depth_error": "It is not possible to put the group here because it will make the form exceed the maximum allowed depth.",
   "schema_editor.description": "Description",
   "schema_editor.descriptive_fields": "Descriptive fields",

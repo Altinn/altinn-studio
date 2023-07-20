@@ -71,6 +71,7 @@ export const TextRow = ({
 
   const handleDeleteClick = () => {
     removeEntry({ textId });
+    setIsConfirmDeleteOpen(false);
   };
 
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
