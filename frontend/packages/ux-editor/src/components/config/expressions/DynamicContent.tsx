@@ -41,7 +41,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
       const clickTargetIsNotInDynamic = (dynamicInEditStateRef.current && !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) && !isDropDown);
       if (clickTargetIsNotInDynamic && !isButton && dynamic.editMode) {
         // Click occurred outside the dynamic in edit mode
-        onAddDynamic();
+        //onAddDynamic();  // TODO: enable this after testing
       }
     };
     document.addEventListener('click', handleClickOutside);

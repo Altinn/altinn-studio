@@ -1,10 +1,17 @@
 import React from 'react';
-import { Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
-import { ExpressionFunction, expressionFunctionTexts } from '../../../types/Expressions';
+import { useParams } from 'react-router-dom';
+import { Button, ButtonColor, ButtonVariant, Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
+import {
+  DataSource,
+  expressionDataSourceTexts,
+  ExpressionFunction,
+  expressionFunctionTexts
+} from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
 import { useTranslation } from 'react-i18next';
+import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 
 export interface IExpressionContentProps {
   expressionAction: boolean;
@@ -18,9 +25,9 @@ export interface ExpressionElement {
   id: string;
   expressionOperatorForNextExpression?: 'og' | 'eller';
   function?: ExpressionFunction;
-  dataSource?: string;
+  dataSource?: DataSource;
   value?: string;
-  comparableDataSource?: string;
+  comparableDataSource?: DataSource;
   comparableValue?: string;
 }
 
@@ -34,6 +41,9 @@ export const ExpressionContent = ({
                                   }: IExpressionContentProps) => {
   const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
   const { t } = useTranslation();
+  const { org, app } = useParams();
+  const datamodelQuery = useDatamodelMetadataQuery(org, app);
+  const dataModelElements = datamodelQuery?.data ?? [];
 
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
@@ -43,7 +53,16 @@ export const ExpressionContent = ({
   }
 
   const addTriggerDataSource = (dataSource: string) => {
-    expressionElement.dataSource = dataSource;
+    if (dataSource === 'default') {
+      delete expressionElement.dataSource
+      delete expressionElement.value
+      handleUpdateExpressionElement();
+      return;
+    }
+    if (dataSource === DataSource.Null) {
+      delete expressionElement.value;
+    }
+    expressionElement.dataSource = dataSource as DataSource
     handleUpdateExpressionElement();
   };
 
@@ -53,7 +72,16 @@ export const ExpressionContent = ({
   };
 
   const addComparableTriggerDataSource = (compDataSource: string) => {
-    expressionElement.comparableDataSource = compDataSource;
+    if (compDataSource === 'default') {
+      delete expressionElement.comparableDataSource
+      delete expressionElement.comparableValue
+      handleUpdateExpressionElement();
+      return;
+    }
+    if (compDataSource === DataSource.Null) {
+      delete expressionElement.comparableValue;
+    }
+    expressionElement.comparableDataSource = compDataSource as DataSource
     handleUpdateExpressionElement();
   };
 
@@ -81,6 +109,59 @@ export const ExpressionContent = ({
     onRemoveExpressionElement(expressionElement);
   }
 
+  const dataModelElementNames = dataModelElements
+    .filter(element => element.dataBindingName)
+    .map((element) => ({
+      value: element.dataBindingName,
+      label: element.dataBindingName,
+    }));
+
+  const getCorrespondingDataSourceValues = (dataSource: DataSource) => {
+    switch (dataSource) {
+      case DataSource.Component:
+        // Should be an en endpoint for getting all components in a given layout set
+        return ['comp0', 'comp1', 'comp2'].map((dsv: string) => ({ label: dsv, value: dsv }));
+      case DataSource.DataModel:
+        return dataModelElementNames;
+      case DataSource.InstanceContext:
+        return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({ label: dsv, value: dsv }));
+      case DataSource.ApplicationSettings:
+        // Should be an en endpoint for getting these settings
+        return ['setting0', 'setting1', 'setting2'].map((dsv: string) => ({ label: dsv, value: dsv }));
+      default:
+        return [];
+    }
+  };
+
+  const DataSourceValueComponent: React.FC<{ dataSource: DataSource; isComparableValue: boolean }> = ({ dataSource, isComparableValue }) => {
+    switch (dataSource) {
+      case DataSource.Component: case DataSource.DataModel: case DataSource.InstanceContext: case DataSource.ApplicationSettings:
+        return (<Select
+          onChange={(dataSourceValue: string) => isComparableValue ? specifyComparableTriggerDataSource(dataSourceValue) : specifyTriggerDataSource(dataSourceValue)}
+          options={[{ label: 'Velg...', value: 'default' }].concat(getCorrespondingDataSourceValues(dataSource))}
+          value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'default'}
+        />);
+      case DataSource.String: case DataSource.Number:
+        return (<TextField
+          onChange={(e) => isComparableValue ? specifyComparableTriggerDataSource(e.target.value) : specifyTriggerDataSource(e.target.value)}
+          value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || ''}
+        />);
+      case DataSource.Boolean:
+        return (<ToggleButtonGroup
+          items={[
+            { label: 'True', value: 'true' },
+            { label: 'False', value: 'false' }
+          ]}
+          onChange={(value) => isComparableValue ? specifyComparableTriggerDataSource(value) : specifyTriggerDataSource(value)}
+          selectedValue={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'true'}
+        />);
+      case DataSource.Null:
+        return (<div></div>);
+      default:
+        return null;
+    }
+  };
+
   return (
     <div>
       <p>{t('right_menu.dynamics_function_on_action')}</p>
@@ -102,44 +183,19 @@ export const ExpressionContent = ({
             <div className={classes.expressionDetails}>
               <Select
                 onChange={(dataSource: string) => addTriggerDataSource(dataSource)}
-                options={[
-                  { label: 'Velg...', value: 'default' },
-                  { label: 'Komponent', value: 'komponent' },
-                  { label: 'Datamodell', value: 'datamodell' }
-                ]}
-                value={expressionElement.dataSource || 'default'} // Is it necessary with the first check?
+                options={[{ label: 'Velg...', value: 'default' }].concat(Object.values(DataSource).map((ds: string) => ({ label: expressionDataSourceTexts(t)[ds], value: ds })))}
+                value={expressionElement.dataSource || 'default'}
               />
               {expressionElement.dataSource &&
-                <Select
-                  onChange={(dataSourceKind: string) => specifyTriggerDataSource(dataSourceKind)}
-                  options={[
-                    { label: 'Velg...', value: 'default' },
-                    { label: 'Alder', value: 'alder' },
-                    { label: 'Fornavn', value: 'fornavn' }
-                  ]}
-                  value={expressionElement.value || 'default'}
-                />}
+                <DataSourceValueComponent dataSource={expressionElement.dataSource} isComparableValue={false}/>}
               <p className={classes.expressionFunction}>{expressionFunctionTexts(t)[expressionElement.function]}</p>
               <Select
-                // Should be possible to enter custom values for the comparables
                 onChange={(compDataSource: string) => addComparableTriggerDataSource(compDataSource)}
-                options={[
-                  { label: 'Velg...', value: 'default' },
-                  { label: 'Komponent', value: 'komponent' },
-                  { label: 'Datamodell', value: 'datamodell' }
-                ]}
+                options={[{ label: 'Velg...', value: 'default' }].concat(Object.values(DataSource).map((cds: string) => ({ label: expressionDataSourceTexts(t)[cds], value: cds })))}
                 value={expressionElement.comparableDataSource || 'default'}
               />
               {expressionElement.comparableDataSource &&
-                <Select
-                  onChange={(compDataSourceKind: string) => specifyComparableTriggerDataSource(compDataSourceKind)}
-                  options={[
-                    { label: 'Velg...', value: 'default' },
-                    { label: 'Alder', value: 'alder' },
-                    { label: 'Fornavn', value: 'fornavn' }
-                  ]}
-                  value={expressionElement.comparableValue || 'default'}
-                />}
+                <DataSourceValueComponent dataSource={expressionElement.comparableDataSource} isComparableValue={true}/>}
             </div>
           </div>
           <div className={classes.addExpression}>
