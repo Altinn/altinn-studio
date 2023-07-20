@@ -30,7 +30,7 @@ export type ShowTypes = 'new-instance' | 'select-instance' | 'startpage' | strin
 
 export type IInstanceSelection = {
   rowsPerPageOptions: number[];
-  defaultRowsPerPage: number;
+  defaultSelectedOption: number;
   sortDirection: 'asc' | 'desc';
 };
 

@@ -49,8 +49,8 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
 
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(
-    (instanceSelectionOptions?.defaultRowsPerPage &&
-      rowsPerPageOptions[instanceSelectionOptions?.defaultRowsPerPage]) ??
+    (instanceSelectionOptions?.defaultSelectedOption &&
+      rowsPerPageOptions[instanceSelectionOptions?.defaultSelectedOption]) ??
       rowsPerPageOptions[0],
   );
 

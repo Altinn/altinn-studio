@@ -142,9 +142,9 @@
             "type": "integer"
           }
         },
-        "defaultRowsPerPage": {
+        "defaultSelectedOption": {
           "type": "integer",
-          "title": "Default rows per page",
+          "title": "Default selected option",
           "description": "The default selected option for rows per page. This value must be a valid index for the rowsPerPageOptions array."
         }
       }
