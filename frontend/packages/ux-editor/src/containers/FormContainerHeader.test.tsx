@@ -12,7 +12,6 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 const user = userEvent.setup();
 
 const handleDeleteMock = jest.fn();
-const handleEditMock = jest.fn();
 
 describe('FormContainerHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -42,7 +41,6 @@ const render = async (props: Partial<IFormContainerHeaderProps> = {}) => {
     isEditMode: false,
     handleExpanded: jest.fn(),
     handleDelete: handleDeleteMock,
-    handleEdit: handleEditMock,
     dragHandleRef: null,
     ...props
   };

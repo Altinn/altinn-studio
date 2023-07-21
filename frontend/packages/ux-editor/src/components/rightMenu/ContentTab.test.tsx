@@ -24,7 +24,7 @@ const FormContextProviderMock = {
   formId: null,
   form: null,
   handleDiscard: jest.fn(),
-  handleEdit: jest.fn(),
+  handleEdit: jest.fn().mockImplementation(() => Promise.resolve()),
   handleUpdate: jest.fn(),
   handleContainerSave: jest.fn().mockImplementation(() => Promise.resolve()),
   handleComponentSave: jest.fn().mockImplementation(() => Promise.resolve()),

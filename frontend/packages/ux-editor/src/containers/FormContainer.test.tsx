@@ -8,7 +8,7 @@ import { renderWithMockStore } from '../testing/mocks';
 import { container1IdMock, layoutMock } from '../testing/layoutMock';
 
 const handleDiscardMock = jest.fn();
-const handleEditMock = jest.fn();
+const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
 
 describe('FormContainer', () => {
   afterEach(jest.clearAllMocks);

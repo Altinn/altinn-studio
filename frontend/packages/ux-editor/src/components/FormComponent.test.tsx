@@ -22,8 +22,8 @@ const emptyTextResourceKey = 'empty-key';
 const testTextResource: ITextResource = { id: testTextResourceKey, value: testTextResourceValue };
 const emptyTextResource: ITextResource = { id: emptyTextResourceKey, value: '' };
 const nbTextResources: ITextResource[] = [testTextResource, emptyTextResource];
-const handleEditMock = jest.fn();
-const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
+const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
+const handleSaveMock = jest.fn();
 const handleDiscardMock = jest.fn();
 
 describe('FormComponent', () => {

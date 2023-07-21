@@ -7,7 +7,6 @@ import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { useText } from '../hooks';
-import type { FormContainer } from '../types/FormContainer';
 
 export interface IFormContainerHeaderProps {
   id: string;
@@ -15,7 +14,6 @@ export interface IFormContainerHeaderProps {
   isEditMode: boolean;
   handleExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   handleDelete: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  handleEdit: (component: FormContainer) => void;
   dragHandleRef: ConnectDragSource
 }
 

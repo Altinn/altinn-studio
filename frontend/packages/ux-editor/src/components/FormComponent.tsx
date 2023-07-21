@@ -25,8 +25,8 @@ export interface IFormComponentProps {
   component: IFormComponent;
   dragHandleRef?: ConnectDragSource;
   handleDiscard: () => void;
-  handleEdit: (component: IFormComponent) => void;
-  handleSave: (id: string, updatedComponent: IFormComponent) => Promise<void>;
+  handleEdit: (component: IFormComponent) => Promise<void>;
+  handleSave: (id: string, updatedComponent: IFormComponent) => void;
   id: string;
   isEditMode: boolean;
 }
@@ -77,9 +77,10 @@ export const FormComponent = memo(function FormComponent({
     <div
       className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
       role='listitem'
-      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+      onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        if (!isEditMode) handleEdit(component);
+        if (isEditMode) return;
+        await handleEdit(component);
       }}
     >
       <div className={classes.formComponentWithHandle}>
@@ -91,8 +92,8 @@ export const FormComponent = memo(function FormComponent({
             <ComponentPreview
               component={component}
               handleComponentChange={async (updatedComponent) => {
-                handleEdit(updatedComponent);
-                await handleSave(id, updatedComponent);
+                await handleEdit(updatedComponent);
+                handleSave(id, updatedComponent);
               }}
               layoutName={selectedLayout}
             />

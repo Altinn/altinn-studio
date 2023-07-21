@@ -22,12 +22,12 @@ export const ContentTab = () => {
       isContainer ? (
         <EditFormContainer editFormId={formId} container={form} handleContainerUpdate={async (updatedContainer) => {
           handleUpdate(updatedContainer);
-          await handleContainerSave(formId, updatedContainer);
+          handleContainerSave(formId, updatedContainer);
         }} />
       ) : (
         <EditFormComponent editFormId={formId} component={form} handleComponentUpdate={async (updatedComponent) => {
           handleUpdate(updatedComponent);
-          await handleComponentSave(formId, updatedComponent);
+          handleComponentSave(formId, updatedComponent);
         }} />
       )
     }
