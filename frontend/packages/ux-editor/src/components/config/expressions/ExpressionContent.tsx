@@ -1,7 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { Alert, Button, ButtonColor, ButtonVariant, Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Alert, Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
@@ -12,18 +10,13 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
-import {useFormLayoutsQuery} from "../../../hooks/queries/useFormLayoutsQuery";
-import {selectedLayoutSetSelector} from "../../../selectors/formLayoutSelectors";
-import {FormComponent} from "../../../types/FormComponent";
-import {IFormLayouts} from "../../../types/global";
-import {DatamodelFieldElement} from "app-shared/types/DatamodelFieldElement";
+import { DataSourceValue } from './DataSourceValue';
 
-export interface IExpressionContentProps {
+interface IExpressionContentProps {
   expressionAction: boolean;
   expressionElement: ExpressionElement;
   onAddExpressionElement: () => void;
-  onUpdateExpressionElement: (expressionElement: ExpressionElement) => void;
+  onUpdateExpressionElement: () => void;
   onRemoveExpressionElement: (expressionElement: ExpressionElement) => void;
 }
 
@@ -45,15 +38,9 @@ export const ExpressionContent = ({
                                     onUpdateExpressionElement,
                                     onRemoveExpressionElement
                                   }: IExpressionContentProps) => {
-  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
   const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] = React.useState<boolean>(false);
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
-  const datamodelQuery = useDatamodelMetadataQuery(org, app);
-  const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const dataModelElements = datamodelQuery?.data ?? [];
-  const formLayouts = formLayoutsQuery?.data ?? [];
 
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
@@ -77,6 +64,12 @@ export const ExpressionContent = ({
   };
 
   const specifyTriggerDataSource = (dataSourceKind: string) => {
+    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
+    if (dataSourceKind === 'default' || dataSourceKind === 'NotImplementedYet') {
+      delete expressionElement.value
+      handleUpdateExpressionElement();
+      return;
+    }
     expressionElement.value = dataSourceKind;
     handleUpdateExpressionElement();
   };
@@ -96,6 +89,12 @@ export const ExpressionContent = ({
   };
 
   const specifyComparableTriggerDataSource = (compDataSourceKind: string) => {
+    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
+    if (compDataSourceKind === 'default' || compDataSourceKind === 'NotImplementedYet') {
+      delete expressionElement.comparableValue
+      handleUpdateExpressionElement();
+      return;
+    }
     expressionElement.comparableValue = compDataSourceKind;
     handleUpdateExpressionElement();
   };
@@ -115,90 +114,12 @@ export const ExpressionContent = ({
     if (expressionElement.dataSource !== DataSource.Component && expressionElement.comparableDataSource !== DataSource.Component) {
       setDuplicatedComponentIdsDiscovered(false);
     }
-    onUpdateExpressionElement(expressionElement);
+    onUpdateExpressionElement();
   };
 
   const handleRemoveExpressionElement = () => {
     onRemoveExpressionElement(expressionElement);
   }
-
-  const getDataModelElementNames =(dataModelElements: DatamodelFieldElement[]) => {
-    return dataModelElements
-    .filter(element => element.dataBindingName)
-    .map((element) => ({
-      value: element.dataBindingName,
-      label: element.dataBindingName,
-    }))};
-
-  const findDuplicatedIds = (arr) => {
-    const idOccurrences = arr.reduce((occurrences, compId) => {
-      occurrences[compId] = (occurrences[compId] || 0) + 1;
-      return occurrences;
-    }, {});
-
-    return Object.keys(idOccurrences).filter(id => idOccurrences[id] > 1);
-  };
-
-  const getUniqueComponentIds = (formLayouts: IFormLayouts) => {
-    const components = Object.values(formLayouts).flatMap(layout => Object.values(layout.components));
-    const componentIds = Object.values(components).map((comp: FormComponent) => comp.id);
-    const duplicatedComponentIds = findDuplicatedIds(componentIds);
-    return [ ...new Set(componentIds)].map(compId => {
-    if (Object.values(duplicatedComponentIds).includes(compId))
-    {
-      // Mark duplicated ids with a star so add developer know that there are multiple components with the same id across layouts
-      setDuplicatedComponentIdsDiscovered(true);
-      return { label: `${compId} *`, value: compId };
-    }
-    else {
-      return { label: compId, value: compId };
-    }
-  })};
-
-  const getCorrespondingDataSourceValues = (dataSource: DataSource) => {
-    switch (dataSource) {
-      case DataSource.Component:
-        return getUniqueComponentIds(formLayouts as IFormLayouts);
-      case DataSource.DataModel:
-        return getDataModelElementNames(dataModelElements as DatamodelFieldElement[]);
-      case DataSource.InstanceContext:
-        return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({ label: dsv, value: dsv }));
-      case DataSource.ApplicationSettings:
-        // Should be an en endpoint for getting these settings
-        return ['setting0', 'setting1', 'setting2'].map((dsv: string) => ({ label: dsv, value: dsv }));
-      default:
-        return [];
-    }
-  };
-
-  const DataSourceValueComponent: React.FC<{ dataSource: DataSource; isComparableValue: boolean }> = ({ dataSource, isComparableValue }) => {
-    switch (dataSource) {
-      case DataSource.Component: case DataSource.DataModel: case DataSource.InstanceContext: case DataSource.ApplicationSettings:
-        return (<Select
-          onChange={(dataSourceValue: string) => isComparableValue ? specifyComparableTriggerDataSource(dataSourceValue) : specifyTriggerDataSource(dataSourceValue)}
-          options={[{ label: 'Velg...', value: 'default' }].concat(getCorrespondingDataSourceValues(dataSource))}
-          value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'default'}
-        />);
-      case DataSource.String: case DataSource.Number:
-        return (<TextField
-          onChange={(e) => isComparableValue ? specifyComparableTriggerDataSource(e.target.value) : specifyTriggerDataSource(e.target.value)}
-          value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || ''}
-        />);
-      case DataSource.Boolean:
-        return (<ToggleButtonGroup
-          items={[
-            { label: 'True', value: 'true' },
-            { label: 'False', value: 'false' }
-          ]}
-          onChange={(value) => isComparableValue ? specifyComparableTriggerDataSource(value) : specifyTriggerDataSource(value)}
-          selectedValue={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'true'}
-        />);
-      case DataSource.Null:
-        return (<div></div>);
-      default:
-        return null;
-    }
-  };
 
   return (
     <div>
@@ -225,7 +146,13 @@ export const ExpressionContent = ({
                 value={expressionElement.dataSource || 'default'}
               />
               {expressionElement.dataSource &&
-                <DataSourceValueComponent dataSource={expressionElement.dataSource} isComparableValue={false}/>}
+                <DataSourceValue
+                  expressionElement={expressionElement}
+                  currentDataSource={expressionElement.dataSource}
+                  specifyDataSourceValue={specifyTriggerDataSource}
+                  isComparableValue={false}
+                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
+                />}
               <p className={classes.expressionFunction}>{expressionFunctionTexts(t)[expressionElement.function]}</p>
               <Select
                 onChange={(compDataSource: string) => addComparableTriggerDataSource(compDataSource)}
@@ -233,12 +160,17 @@ export const ExpressionContent = ({
                 value={expressionElement.comparableDataSource || 'default'}
               />
               {expressionElement.comparableDataSource &&
-                <DataSourceValueComponent dataSource={expressionElement.comparableDataSource} isComparableValue={true}/>}
+                <DataSourceValue
+                  expressionElement={expressionElement}
+                  currentDataSource={expressionElement.comparableDataSource}
+                  specifyDataSourceValue={specifyComparableTriggerDataSource}
+                  isComparableValue={true}
+                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
+                />}
               {duplicatedComponentIdsDiscovered &&
                 <Alert severity='warning'>
                   {t('right_menu.dynamics_duplicated_component_ids_warning')}
                 </Alert>}
-              {expressionElement.value && expressionElement.value.includes('*') && 'HALLO'}
             </div>
           </div>
           <div className={classes.addExpression}>

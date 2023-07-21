@@ -48,7 +48,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
     return () => {
       document.removeEventListener('click', handleClickOutside);
     }
-  }, [dynamicInEditStateRef.current]);
+  }, [dynamic.editMode, onAddDynamic]);
 
   const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
   const propertiesList = onGetProperties(dynamic).availableProperties;
