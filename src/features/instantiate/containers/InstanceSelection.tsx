@@ -46,13 +46,10 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
   const { lang, langAsString, language } = useLanguage();
   const mobileView = useIsMobileOrTablet();
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
+  const defaultSelectedOption = instanceSelectionOptions?.defaultSelectedOption ?? 0;
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(
-    (instanceSelectionOptions?.defaultSelectedOption &&
-      rowsPerPageOptions[instanceSelectionOptions?.defaultSelectedOption]) ??
-      rowsPerPageOptions[0],
-  );
+  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
   if (instanceSelectionOptions?.sortDirection === 'desc') {
     instances = instances.slice().reverse();

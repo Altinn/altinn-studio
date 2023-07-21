@@ -271,6 +271,7 @@ export class AppFrontend {
     table: '#instance-selection-table',
     tableBody: '#instance-selection-table-body',
     newInstance: '#new-instance-button',
+    nexPageButton: 'button[aria-label="Neste side i tabell"]',
   };
 
   public signingTest = {
