@@ -586,6 +586,7 @@
   "right_menu.dynamics_data_source_number": "Tall",
   "right_menu.dynamics_data_source_boolean": "Boolsk",
   "right_menu.dynamics_data_source_null": "Null",
+  "right_menu.dynamics_duplicated_component_ids_warning": "* Det finnes flere komponenter med samme ID",
   "right_menu.dynamics_dynamics_limit_reached_alert": "Du har nådd grensen for antall dynamikker",
   "right_menu.dynamics_property_hidden": "Skjul feltet dersom",
   "right_menu.dynamics_property_read_only": "Sett felt som read only dersom",

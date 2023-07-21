@@ -41,7 +41,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
       const clickTargetIsNotInDynamic = (dynamicInEditStateRef.current && !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) && !isDropDown);
       if (clickTargetIsNotInDynamic && !isButton && dynamic.editMode) {
         // Click occurred outside the dynamic in edit mode
-        //onAddDynamic();  // TODO: enable this after testing
+        onAddDynamic();
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -63,7 +63,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
       return;
     }
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
-    dynamic.expressionElements.push(newExpressionElement); // TODO: add id and check if dynamic is already in list and change property value if so
+    dynamic.expressionElements.push(newExpressionElement);
     setExpressionElements(dynamic.expressionElements);
   };
 

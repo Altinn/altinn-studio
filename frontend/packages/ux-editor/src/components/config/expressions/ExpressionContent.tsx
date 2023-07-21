@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, ButtonColor, ButtonVariant, Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
+import { useSelector } from 'react-redux';
+import { Alert, Button, ButtonColor, ButtonVariant, Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
@@ -12,6 +13,11 @@ import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
+import {useFormLayoutsQuery} from "../../../hooks/queries/useFormLayoutsQuery";
+import {selectedLayoutSetSelector} from "../../../selectors/formLayoutSelectors";
+import {FormComponent} from "../../../types/FormComponent";
+import {IFormLayouts} from "../../../types/global";
+import {DatamodelFieldElement} from "app-shared/types/DatamodelFieldElement";
 
 export interface IExpressionContentProps {
   expressionAction: boolean;
@@ -42,8 +48,12 @@ export const ExpressionContent = ({
   const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
   const { t } = useTranslation();
   const { org, app } = useParams();
+  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] = React.useState<boolean>(false);
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const datamodelQuery = useDatamodelMetadataQuery(org, app);
+  const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const dataModelElements = datamodelQuery?.data ?? [];
+  const formLayouts = formLayoutsQuery?.data ?? [];
 
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
@@ -102,6 +112,9 @@ export const ExpressionContent = ({
   }
 
   const handleUpdateExpressionElement = () => {
+    if (expressionElement.dataSource !== DataSource.Component && expressionElement.comparableDataSource !== DataSource.Component) {
+      setDuplicatedComponentIdsDiscovered(false);
+    }
     onUpdateExpressionElement(expressionElement);
   };
 
@@ -109,20 +122,45 @@ export const ExpressionContent = ({
     onRemoveExpressionElement(expressionElement);
   }
 
-  const dataModelElementNames = dataModelElements
+  const getDataModelElementNames =(dataModelElements: DatamodelFieldElement[]) => {
+    return dataModelElements
     .filter(element => element.dataBindingName)
     .map((element) => ({
       value: element.dataBindingName,
       label: element.dataBindingName,
-    }));
+    }))};
+
+  const findDuplicatedIds = (arr) => {
+    const idOccurrences = arr.reduce((occurrences, compId) => {
+      occurrences[compId] = (occurrences[compId] || 0) + 1;
+      return occurrences;
+    }, {});
+
+    return Object.keys(idOccurrences).filter(id => idOccurrences[id] > 1);
+  };
+
+  const getUniqueComponentIds = (formLayouts: IFormLayouts) => {
+    const components = Object.values(formLayouts).flatMap(layout => Object.values(layout.components));
+    const componentIds = Object.values(components).map((comp: FormComponent) => comp.id);
+    const duplicatedComponentIds = findDuplicatedIds(componentIds);
+    return [ ...new Set(componentIds)].map(compId => {
+    if (Object.values(duplicatedComponentIds).includes(compId))
+    {
+      // Mark duplicated ids with a star so add developer know that there are multiple components with the same id across layouts
+      setDuplicatedComponentIdsDiscovered(true);
+      return { label: `${compId} *`, value: compId };
+    }
+    else {
+      return { label: compId, value: compId };
+    }
+  })};
 
   const getCorrespondingDataSourceValues = (dataSource: DataSource) => {
     switch (dataSource) {
       case DataSource.Component:
-        // Should be an en endpoint for getting all components in a given layout set
-        return ['comp0', 'comp1', 'comp2'].map((dsv: string) => ({ label: dsv, value: dsv }));
+        return getUniqueComponentIds(formLayouts as IFormLayouts);
       case DataSource.DataModel:
-        return dataModelElementNames;
+        return getDataModelElementNames(dataModelElements as DatamodelFieldElement[]);
       case DataSource.InstanceContext:
         return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({ label: dsv, value: dsv }));
       case DataSource.ApplicationSettings:
@@ -196,6 +234,11 @@ export const ExpressionContent = ({
               />
               {expressionElement.comparableDataSource &&
                 <DataSourceValueComponent dataSource={expressionElement.comparableDataSource} isComparableValue={true}/>}
+              {duplicatedComponentIdsDiscovered &&
+                <Alert severity='warning'>
+                  {t('right_menu.dynamics_duplicated_component_ids_warning')}
+                </Alert>}
+              {expressionElement.value && expressionElement.value.includes('*') && 'HALLO'}
             </div>
           </div>
           <div className={classes.addExpression}>
