@@ -38,7 +38,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           onClick={() => handleExpanded((previous) => !previous)}
           variant={ButtonVariant.Quiet}
         />
-        Gruppe - ${id}
+        {t('ux_editor.component_group')} - ${id}
       </div>
       <div className={classes.formGroupButtons}>
         <Button

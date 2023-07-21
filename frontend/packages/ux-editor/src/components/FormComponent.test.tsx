@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -42,6 +42,15 @@ describe('FormComponent', () => {
     await act(() => user.click(button));
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+  });
+
+  it('should edit the component when clicking on the component', async () => {
+    await render();
+
+    const component = screen.getByText(textMock('ux_editor.component_input'));
+    await act(() => user.click(component));
+
+    expect(handleEditMock).toBeCalledTimes(1);
   });
 
   describe('title', () => {

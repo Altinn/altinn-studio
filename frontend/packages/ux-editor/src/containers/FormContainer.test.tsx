@@ -1,14 +1,18 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormContainerProps } from './FormContainer';
 import { FormContainer } from './FormContainer';
 import { renderWithMockStore } from '../testing/mocks';
 import { container1IdMock, layoutMock } from '../testing/layoutMock';
+import userEvent from '@testing-library/user-event';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const handleDiscardMock = jest.fn();
 const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
+
+const user = userEvent.setup();
 
 describe('FormContainer', () => {
   afterEach(jest.clearAllMocks);
@@ -18,6 +22,15 @@ describe('FormContainer', () => {
     const childComponent = <div data-testid={childComponentTestid}/>;
     await render({ children: childComponent });
     expect(screen.getByTestId(childComponentTestid)).toBeInTheDocument();
+  });
+
+  it('should edit the container when clicking on the container', async () => {
+    await render();
+
+    const container = screen.getByText(`${textMock('ux_editor.component_group')} - $${container1IdMock}`);
+    await act(() => user.click(container));
+
+    expect(handleEditMock).toBeCalledTimes(1);
   });
 });
 
