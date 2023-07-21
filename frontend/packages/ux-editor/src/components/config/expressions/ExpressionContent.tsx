@@ -4,7 +4,8 @@ import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
-  expressionFunctionTexts,
+  ExpressionElement,
+  expressionFunctionTexts
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -18,16 +19,6 @@ interface IExpressionContentProps {
   onAddExpressionElement: () => void;
   onUpdateExpressionElement: () => void;
   onRemoveExpressionElement: (expressionElement: ExpressionElement) => void;
-}
-
-export interface ExpressionElement {
-  id: string;
-  expressionOperatorForNextExpression?: 'og' | 'eller';
-  function?: ExpressionFunction;
-  dataSource?: DataSource;
-  value?: string;
-  comparableDataSource?: DataSource;
-  comparableValue?: string;
 }
 
 // change name to CreateExpressionElement?
@@ -165,7 +156,7 @@ export const ExpressionContent = ({
               {expressionElement.dataSource && (
                 <DataSourceValue
                   expressionElement={expressionElement}
-                  currentDataSource={expressionElement.dataSource}
+                  currentDataSource={expressionElement.dataSource as DataSource}
                   specifyDataSourceValue={specifyTriggerDataSource}
                   isComparableValue={false}
                   onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
@@ -189,7 +180,7 @@ export const ExpressionContent = ({
               {expressionElement.comparableDataSource && (
                 <DataSourceValue
                   expressionElement={expressionElement}
-                  currentDataSource={expressionElement.comparableDataSource}
+                  currentDataSource={expressionElement.comparableDataSource as DataSource}
                   specifyDataSourceValue={specifyComparableTriggerDataSource}
                   isComparableValue={true}
                   onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}

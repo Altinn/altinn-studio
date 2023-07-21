@@ -4,27 +4,19 @@ import { DynamicContent } from '../config/expressions/DynamicContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../hooks';
 import { FormContext } from '../../containers/FormContext';
-import { ExpressionElement } from '../config/expressions/ExpressionContent';
-import { ExpressionPropertyBase, ExpressionPropertyForGroup } from '../../types/Expressions';
+import { ExpressionPropertyBase, ExpressionPropertyForGroup, Dynamic } from '../../types/Expressions';
 import { LayoutItemType } from '../../types/global';
 import classes from './RightMenu.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Divider } from 'app-shared/primitives';
 
-export interface Dynamic {
-  id?: string;
-  editMode: boolean;
-  property?: ExpressionPropertyBase | ExpressionPropertyForGroup; // action?
-  expressionElements?: ExpressionElement[];
-}
-
-type DynamicsProps = {
-  onShowNewDynamics: (value: boolean) => void;
-  showNewDynamics: boolean;
+type DynamicsTabProps = {
+  onShowNewDynamicsTab: (value: boolean) => void;
+  showNewDynamicsTab: boolean;
 };
 
-export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) => {
+export const Dynamics = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsTabProps) => {
   const { form, formId } = useContext(FormContext);
 
   const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
@@ -51,8 +43,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
       : Object.values(ExpressionPropertyBase);
 
   const addDynamic = () => {
-    // Convert dynamic object to correct format and save dynamic to layout with api call
-    // Set editMode fields for all prev dynamics to false
+    // Convert dynamics object to correct format and save dynamic to layout with api call
     const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
     const nonEditableDynamics: Dynamic[] = [
       ...dynamics.filter((prevDynamic) => prevDynamic.expressionElements.length > 0),

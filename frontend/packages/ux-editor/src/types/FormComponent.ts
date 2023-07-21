@@ -1,5 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
+import { Dynamic } from './Expressions';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
@@ -18,10 +19,11 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleDeleteElement?: () => void;
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
-  disabled?: boolean; // Add expression type?
-  required?: boolean; // Add expression type?
-  hidden?: boolean; // Add expression type?
-  readOnly?: boolean; // Add expression type?
+  disabled?: boolean; // Add dynamic type?
+  required?: boolean | Dynamic;
+  hidden?: boolean | Dynamic;
+  readOnly?: boolean | Dynamic;
+  // TODO: Add dynamic type to the additional properties that need them for the group component - but where?
   [id: string]: any;
   propertyPath?: string;
 }
