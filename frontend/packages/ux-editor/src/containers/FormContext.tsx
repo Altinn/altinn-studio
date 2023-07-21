@@ -43,6 +43,7 @@ const debounceAutoSave = (
 ): void => {
   clearTimeout(timeoutRef.current);
   timeoutRef.current = setTimeout(async () => {
+    clearTimeout(timeoutRef.current);
     await callback(id, updatedForm);
   }, AUTOSAVE_DEBOUNCE_INTERVAL);
 };
@@ -52,8 +53,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { org, app } = useParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
-  const containerTimeoutRef = useRef(null);
-  const componentTimeoutRef = useRef(null);
+  const autoSaveTimeoutRef = useRef(null);
 
   const [formId, setFormId] = useState<string>();
   const [form, setForm] = useState<FormContainer | FormComponent>();
@@ -68,8 +68,6 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   );
 
   const handleContainerSave = useCallback(async (id: string, updatedContainer: FormContainer): Promise<void> => {
-    clearTimeout(containerTimeoutRef.current);
-
     await handleUpdateFormContainer({
       id,
       updatedContainer,
@@ -80,8 +78,6 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   }, [handleUpdateFormContainer]);
 
   const handleComponentSave = useCallback(async (id: string, updatedComponent: FormComponent): Promise<void> => {
-    clearTimeout(componentTimeoutRef.current);
-
     const component: FormComponent = components[id];
 
     if (JSON.stringify(updatedComponent) !== JSON.stringify(component)) {
@@ -96,6 +92,13 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   }, [components, updateFormComponent]);
 
   const handleEdit = useCallback(async (component: FormContainer | FormComponent): Promise<void> => {
+    dispatch(setCurrentEditId(undefined));
+    setFormId(component?.id);
+    setForm(component);
+  }, [dispatch]);
+
+  const handleSaveAndEdit = useCallback(async (component: FormContainer | FormComponent): Promise<void> => {
+    clearTimeout(autoSaveTimeoutRef.current);
     if (form) {
       if (form.itemType === LayoutItemType.Container) {
         await handleContainerSave(formId, form as FormContainer);
@@ -103,12 +106,11 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         await handleComponentSave(formId, form as FormComponent);
       }
     }
-    dispatch(setCurrentEditId(undefined));
-    setFormId(component?.id);
-    setForm(component);
-  }, [dispatch, form, formId, handleComponentSave, handleContainerSave]);
+    handleEdit(component);
+  }, [form, formId, handleComponentSave, handleContainerSave, handleEdit]);
 
   const handleDiscard = useCallback((): void => {
+    clearTimeout(autoSaveTimeoutRef.current);
     handleEdit(null);
   }, [handleEdit]);
 
@@ -117,10 +119,10 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     form,
     handleDiscard,
     handleUpdate: setForm,
-    handleEdit,
-    handleContainerSave: (id: string, container: FormContainer) => debounceAutoSave(containerTimeoutRef, handleContainerSave, id, container),
-    handleComponentSave: (id: string, component: FormComponent) => debounceAutoSave(componentTimeoutRef, handleComponentSave, id, component),
-  }), [formId, form, handleDiscard, handleEdit, handleContainerSave, handleComponentSave]);
+    handleEdit: handleSaveAndEdit,
+    handleContainerSave: (id: string, container: FormContainer) => debounceAutoSave(autoSaveTimeoutRef, handleContainerSave, id, container),
+    handleComponentSave: (id: string, component: FormComponent) => debounceAutoSave(autoSaveTimeoutRef, handleComponentSave, id, component),
+  }), [formId, form, handleDiscard, handleSaveAndEdit, handleContainerSave, handleComponentSave]);
 
   return (
     <FormContext.Provider value={value}>
