@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
@@ -36,10 +36,12 @@ export const RightMenu = ({
   const { t } = useTranslation();
   const [langCodeToDelete, setLangCodeToDelete] = useState<LangCode>();
 
-  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>
+  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>{
     target.checked
-      ? setSelectedLanguages([...selectedLanguages, target.name])
-      : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
+    ? setSelectedLanguages([...selectedLanguages, target.name])
+    : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
+  }
+   
 
   const handleDeleteLanguage = (langCode: LangCode) => {
     if (langCodeToDelete === langCode) {
@@ -51,6 +53,10 @@ export const RightMenu = ({
   const toggleConfirmDeletePopover = (langCode: LangCode) => {
     setLangCodeToDelete((prevState) => (prevState === langCode ? null : langCode));
   };
+
+  useEffect(() => {
+    localStorage.setItem('selectedLanguages', JSON.stringify(selectedLanguages));
+  }, [selectedLanguages]);
 
   return (
     <aside className={classes.RightMenu__sidebar}>
