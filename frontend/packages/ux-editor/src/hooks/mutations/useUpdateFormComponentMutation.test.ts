@@ -1,6 +1,6 @@
 import { queriesMock, queryClientMock, renderHookWithMockStore } from '../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
+import { UpdateFormComponentMutationArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type {
   FormCheckboxesComponent,
@@ -25,7 +25,7 @@ const updatedComponent: FormComponent = {
   type: ComponentType.TextArea,
   dataModelBindings,
 }
-const defaultArgs: UpdateFormComponentArgs = { id, updatedComponent };
+const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
 
 describe('useUpdateFormComponentMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -85,7 +85,7 @@ describe('useUpdateFormComponentMutation', () => {
       minNumberOfAttachments: 1,
       type: ComponentType.FileUpload,
     };
-    const args: UpdateFormComponentArgs = {
+    const args: UpdateFormComponentMutationArgs = {
       ...defaultArgs,
       updatedComponent: newComponent,
     }
@@ -108,7 +108,7 @@ describe('useUpdateFormComponentMutation', () => {
           ...optionsProp,
         } as FormRadioButtonsComponent | FormCheckboxesComponent;
 
-        const args: UpdateFormComponentArgs = {
+        const args: UpdateFormComponentMutationArgs = {
           ...defaultArgs,
           updatedComponent: newComponent,
         }

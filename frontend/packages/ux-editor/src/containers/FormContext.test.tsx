@@ -47,7 +47,7 @@ const render = () => {
   );
 }
 
-describe('FormContextProvider', () => {
+describe('FormContext', () => {
   it('should save the container when calling save', async () => {
     render();
 
