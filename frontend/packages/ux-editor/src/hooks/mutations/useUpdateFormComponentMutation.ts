@@ -14,7 +14,7 @@ import type { FormComponent, FormFileUploaderComponent } from '../../types/FormC
 import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
-export interface UpdateFormComponentArgs {
+export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
   id: string;
 }
@@ -29,7 +29,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   return useMutation({
-    mutationFn: ({ updatedComponent, id }: UpdateFormComponentArgs) => {
+    mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
 
       const updatedLayout: IInternalLayout = deepCopy(layout);
       const { components, order } = updatedLayout;
