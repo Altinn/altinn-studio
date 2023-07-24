@@ -276,7 +276,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
           />
         </div>
         <h2 className={classes.subHeader}>Hvilket tematiske område dekker tjenesten?</h2>
-        <p className={classes.text}>En tjeneste kan relateres til et geografiske område</p>
+        <p className={classes.text}>En tjeneste kan relateres til et tematisk område</p>
         <div className={classes.inputWrapper}>
           <Select
             options={resourceThematicAreaMockOptions}

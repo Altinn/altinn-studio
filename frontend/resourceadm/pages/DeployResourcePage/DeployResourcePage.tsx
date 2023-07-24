@@ -5,7 +5,11 @@ import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvC
 import { useOnce } from 'resourceadm/hooks/useOnce';
 import { TextField, Button, Spinner } from '@digdir/design-system-react';
 import { get } from 'app-shared/utils/networking';
-import { getPublishStatusUrl, getValidatePolicyUrl } from 'resourceadm/utils/backendUrlUtils';
+import {
+  getPublishStatusUrl,
+  getValidatePolicyUrl,
+  getValidateResourceUrl,
+} from 'resourceadm/utils/backendUrlUtils';
 import { useParams } from 'react-router-dom';
 import { NavigationBarPageType, ResourceVersionStatusType } from 'resourceadm/types/global';
 import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
@@ -55,15 +59,25 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         setLocalVersion(versions.resourceVersion);
         setNewVersionText(versions.resourceVersion ?? '');
 
+        // Validate policy
         get(getValidatePolicyUrl(selectedContext, repo, resourceId))
           .then((validatePolicyRes) => {
             // Remove error if status is 200
             setHasPolicyError(validatePolicyRes.status === 200 ? 'none' : 'validationFailed');
-            setIsLoading(false);
           })
           .catch((err) => {
             // If the ploicy does not exist, set it
             if (err.response.status === 404) setHasPolicyError('notExisting');
+            setIsLoading(false);
+          });
+
+        // Validate resource
+        get(getValidateResourceUrl(selectedContext, repo, resourceId))
+          .then((validateResourceRes) => {
+            // Remove error if status is 200
+            validateResourceRes.status === 200 && setHasResourceError(false);
+          })
+          .catch(() => {
             setIsLoading(false);
           });
       })
@@ -72,17 +86,6 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         setIsLoading(false);
         setHasError(true);
       });
-
-    // TODO - Change below when connected with API
-    setHasResourceError(true);
-    // TODO - Validate resource when API is ready
-    /*get(getValidateResourceUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
-      .then((res) => {
-        console.log('res', res);
-        res.status === '200' && setHasResourceError(false);
-      })
-      .catch((err) => console.log(err));
-      */
   });
 
   /**
@@ -123,8 +126,8 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
           {hasPolicyError !== 'none' && (
             <p>
               {hasPolicyError === 'validationFailed'
-                ? 'Det er en feil i policyen.'
-                : 'Policy mangler.'}
+                ? 'Det er en feil i policyen. '
+                : 'Policy mangler. '}
               <Link
                 text={
                   hasPolicyError === 'validationFailed'
