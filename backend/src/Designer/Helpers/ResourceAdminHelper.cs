@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Altinn.Studio.Designer.Models;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -14,41 +11,7 @@ namespace Altinn.Studio.Designer.Helpers
             return simplifiedResource;
         }
 
-        public static string ValidateServiceResource(ServiceResource resourceToValidate, bool strictMode = false)
-        {
-            List<string> missingResourceAttributes = new List<string>();
-
-            if (!ValidDictionaryAttribute(resourceToValidate.Title))
-            {
-                missingResourceAttributes.Add("Title");
-            }
-
-            if (!ValidDictionaryAttribute(resourceToValidate.Description))
-            {
-                missingResourceAttributes.Add("Description");
-            }
-
-            if (resourceToValidate.ResourceType == null)
-            {
-                missingResourceAttributes.Add("ResourceType");
-            }
-
-            if (strictMode && (resourceToValidate.ThematicArea == null || string.IsNullOrEmpty(resourceToValidate.ThematicArea)))
-            {
-                missingResourceAttributes.Add("ThematicArea");
-            }
-
-            if (missingResourceAttributes.Count > 0)
-            {
-                return $"Validation of resource failed because of missing attribute(s)";
-            }
-            else
-            {
-                return $"Validation of resource completed. Resource is valid";
-            }
-        }
-
-        private static bool ValidDictionaryAttribute(Dictionary<string, string> titleToValidate)
+        public static bool ValidDictionaryAttribute(Dictionary<string, string> titleToValidate)
         {
             if (titleToValidate != null)
             {

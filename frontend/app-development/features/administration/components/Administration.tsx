@@ -1,7 +1,6 @@
 import React from 'react';
-import classes from './Administration.module.css';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import { AltinnSpinner } from 'app-shared/components';
+import { PageSpinner } from 'app-shared/components';
 import { DatamodelsAdministration } from './DatamodelsAdministration';
 import { RepositoryType } from 'app-shared/types/global';
 import { ServiceAdministration } from './ServiceAdministration';
@@ -40,7 +39,7 @@ export function AdministrationComponent() {
         </AltinnColumnLayout>
       )}
       {!repository && (
-        <AltinnSpinner spinnerText='Laster siden' className={classes.spinnerLocation} />
+        <PageSpinner />
       )}
     </div>
   );

@@ -7,8 +7,8 @@ import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteForm
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
-import { useFormLayoutsSelector } from "../hooks/useFormLayoutsSelector";
 import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
+import { useSelector } from 'react-redux';
 
 export interface IFormContainerProps {
   children: ReactNode;
@@ -32,7 +32,7 @@ export const FormContainer = ({
   isEditMode,
 } : IFormContainerProps) => {
   const { org, app } = useParams();
-  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
+  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app, selectedLayoutSetName);
 

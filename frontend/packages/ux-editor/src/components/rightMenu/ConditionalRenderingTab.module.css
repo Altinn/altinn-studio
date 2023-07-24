@@ -11,3 +11,10 @@
   gap: 1rem;
   margin-bottom: 1rem;
 }
+
+.dynamicsVersionCheckBox {
+  z-index: 1;
+  position: fixed;
+  bottom: 40px;
+  width: 100%;
+}

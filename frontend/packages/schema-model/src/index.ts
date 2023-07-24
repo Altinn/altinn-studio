@@ -13,6 +13,7 @@ export {
   splitPointerInBaseAndName,
   getNameFromPointer,
   getUniqueNodePath,
+  isEmpty,
 } from './lib/utils';
 export { createChildNode } from './lib/mutations/create-node';
 export { removeNodeByPointer } from './lib/mutations/remove-node';

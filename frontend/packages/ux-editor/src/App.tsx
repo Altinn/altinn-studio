@@ -85,9 +85,10 @@ export function App() {
         <ErrorMessageComponent />
         <FormDesigner
           selectedLayout={selectedLayout}
-          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}/>
+          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
+        />
       </>
     );
   }
-  return <PageSpinner text={t('general.loading')} />;
+  return <PageSpinner />;
 }

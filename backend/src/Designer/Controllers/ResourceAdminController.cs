@@ -1,10 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
+using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -15,15 +22,21 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IGitea _giteaApi;
         private readonly IRepository _repository;
+        private readonly IResourceRegistryOptions _resourceRegistryOptions;
+        private readonly IMemoryCache _memoryCache;
+        private readonly CacheSettings _cacheSettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings)
         {
             _giteaApi = gitea;
             _repository = repository;
+            _resourceRegistryOptions = resourceRegistryOptions;
+            _memoryCache = memoryCache;
+            _cacheSettings = cacheSettings.Value;
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository")]
+        [Route("designer/api/{org}/resources")]
         public async Task<ActionResult<RepositoryModel>> GetRepository(string org)
         {
             IList<RepositoryModel> repositories = await _giteaApi.GetOrgRepos(org);
@@ -40,7 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/resourcelist")]
+        [Route("designer/api/{org}/resources/resourcelist")]
         public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
         {
             string repository = string.Format("{0}-resources", org);
@@ -59,8 +72,8 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/{repository}")]
-        [Route("designer/api/{org}/resources/repository/{repository}/{id}")]
+        [Route("designer/api/{org}/resources/{repository}")]
+        [Route("designer/api/{org}/resources/{repository}/{id}")]
         public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id = "")
         {
             if (id != "")
@@ -96,26 +109,156 @@ namespace Altinn.Studio.Designer.Controllers
             return resourceStatus;
         }
 
-        [HttpGet]
-        [Route("designer/api/{org}/resources/repository/validate/{repository}")]
-        [Route("designer/api/{org}/resources/repository/validate/{repository}/{id}")]
-        public ActionResult<string> GetValidateResource(string org, string repository, string id = "")
+        [Route("designer/api/{org}/resources/validate/{repository}")]
+        [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
+        public ActionResult GetValidateResource(string org, string repository, string id = "")
         {
-            return _repository.ValidateServiceResource(org, repository, id);
+            ValidationProblemDetails validationProblemDetails = new ValidationProblemDetails();
+            ServiceResource resourceToValidate;
+
+            if (id != "")
+            {
+                resourceToValidate = _repository.GetServiceResourceById(org, repository, id);
+                if (resourceToValidate != null)
+                {
+                    validationProblemDetails = ValidateResource(resourceToValidate);
+                }
+            }
+            else
+            {
+                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+                resourceToValidate = repositoryResourceList.FirstOrDefault();
+                if (repositoryResourceList.Count > 0)
+                {
+                    validationProblemDetails = ValidateResource(resourceToValidate);
+                }
+            }
+
+            if (resourceToValidate != null)
+            {
+                if (validationProblemDetails.Errors.Count == 0)
+                {
+                    validationProblemDetails.Status = 200;
+                    validationProblemDetails.Title = "No validation errors occurred.";
+                }
+
+                return Ok(validationProblemDetails);
+            }
+            else
+            {
+                return StatusCode(400);
+            }
         }
 
         [HttpPut]
-        [Route("designer/api/{org}/resources/repository/updateresource/{id}")]
+        [Route("designer/api/{org}/resources/updateresource/{id}")]
         public ActionResult UpdateResource(string org, string id, [FromBody] ServiceResource resource)
         {
             return _repository.UpdateServiceResource(org, id, resource);
         }
 
         [HttpPost]
-        [Route("designer/api/{org}/resources/repository/addresource")]
+        [Route("designer/api/{org}/resources/addresource")]
         public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
         {
             return _repository.AddServiceResource(org, resource);
+        }
+
+
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/sectors")]
+        public async Task<ActionResult<List<DataTheme>>> GetSectors()
+        {
+            string cacheKey = "sectors";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<DataTheme> sectors))
+            {
+                DataThemesContainer dataThemesContainer = await _resourceRegistryOptions.GetSectors();
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                sectors = dataThemesContainer.DataThemes;
+
+                _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
+            }
+
+            return sectors;
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/losterms")]
+        public async Task<ActionResult<List<LosTerm>>> GetGetLosTerms()
+        {
+            string cacheKey = "losterms";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<LosTerm> sectors))
+            {
+                LosTerms losTerms = await _resourceRegistryOptions.GetLosTerms();
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                sectors = losTerms.LosNodes;
+
+                _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
+            }
+
+            return sectors;
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/eurovoc")]
+        public async Task<ActionResult<List<EuroVocTerm>>> GetEuroVoc()
+        {
+            string cacheKey = "eurovocs";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<EuroVocTerm> sectors))
+            {
+
+                EuroVocTerms euroVocTerms = await _resourceRegistryOptions.GetEuroVocTerms();
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                sectors = euroVocTerms.EuroVocs;
+                _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
+            }
+
+            return sectors;
+        }
+
+        private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
+        {
+            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.title", "resourceerror.missingtitle");
+            }
+
+            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Description))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.description", "resourceerror.missingdescription");
+            }
+
+            if (resource.ResourceType == null)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.resourcetype", "resourceerror.missingresourcetype");
+            }
+
+            if (resource.IsComplete == null || resource.IsComplete == false)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.iscomplete", "resourceerror.missingiscomplete");
+            }
+
+            if (strictMode && (resource.ThematicArea == null || string.IsNullOrEmpty(resource.ThematicArea)))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.thematicarea", "resourceerror.missingthematicarea");
+            }
+
+            ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+
+            return details;
         }
     }
 }

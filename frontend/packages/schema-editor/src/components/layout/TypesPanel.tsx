@@ -2,11 +2,11 @@ import type { ChangeEvent } from 'react';
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import {
-  addCombinationItem,
-  addProperty,
+  setSelectedAndFocusedNode,
+  setSelectedNode,
 } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 
-import { CombinationKind, getNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, getNameFromPointer, UiSchemaNode, addProperty, addCombinationItem } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
@@ -16,6 +16,8 @@ import classes from './TypesPanel.module.css';
 import { ActionMenu } from '../common/ActionMenu';
 import { IconImage } from '../common/Icon';
 import { SchemaEditorTestIds } from '../SchemaEditor';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
 export type TypesPanelProps = PanelProps & {
   expandedDefNodes: string[];
@@ -31,6 +33,8 @@ export const TypesPanel = ({
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
   const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
     setExpandedDefNodes(nodeIds);
 
@@ -45,8 +49,20 @@ export const TypesPanel = ({
     newNode.reference = objectKind === ObjectKind.Reference ? '' : undefined;
     const { pointer } = uiSchemaNode;
     uiSchemaNode.objectKind === ObjectKind.Combination
-      ? dispatch(addCombinationItem({ pointer, props: newNode }))
-      : dispatch(addProperty({ pointer, props: newNode }));
+      ? mutate(
+        addCombinationItem(data, {
+          pointer,
+          props: newNode,
+          callback: (newPointer) => dispatch(setSelectedNode(newPointer))
+        })
+      )
+      : mutate(
+        addProperty(data, {
+          pointer,
+          props: newNode,
+          callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer))
+        })
+      );
   };
 
   return (

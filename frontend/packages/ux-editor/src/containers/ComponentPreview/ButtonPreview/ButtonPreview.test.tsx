@@ -6,6 +6,7 @@ import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/m
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
 import type { FormButtonComponent } from '../../../types/FormComponent';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const org = 'org';
@@ -13,11 +14,17 @@ const app = 'app';
 const sendInnKey = 'sendinn';
 const sendInnText = 'Send inn';
 const sendInnTextResource: ITextResource = { id: sendInnKey, value: sendInnText };
-const nbTextResources: ITextResource[] = [sendInnTextResource];
+const backKey = 'back';
+const backText = 'Back';
+const backTextResource: ITextResource = { id: backKey, value: backText };
+const nextKey = 'next';
+const nextText = 'Next';
+const nextTextResource: ITextResource = { id: nextKey, value: nextText };
+const nbTextResources: ITextResource[] = [sendInnTextResource, backTextResource, nextTextResource];
 
 describe('ButtonPreview', () => {
-  test('should render "Send inn" button', async () => {
-    await renderWithMock({
+  describe('Submit button', () => {
+    const submitButton: FormButtonComponent = {
       id: 'PreviewButtonSubmit',
       textResourceBindings: {
         title: sendInnKey,
@@ -26,57 +33,68 @@ describe('ButtonPreview', () => {
       onClickAction: () => {},
       itemType: 'COMPONENT',
       dataModelBindings: {},
+    };
+
+    test('should render "Send inn" button', async () => {
+      await renderWithMock(submitButton);
+      expect(screen.getByRole('button', { name: sendInnText }));
     });
-    expect(screen.getByRole('button', { name: sendInnText }));
+
+    test('Should render "Send inn" button with a default value when the text resource is empty', async () => {
+      await renderWithMock({
+        ...submitButton,
+        textResourceBindings: {
+          title: undefined,
+        },
+      });
+      expect(screen.getByRole('button', { name: textMock('ux_editor.modal_properties_button_type_submit') }));
+    });
   });
 
-  test('should render next navigation button', async () => {
-    await renderWithMock({
+  describe('Navigation buttons', () => {
+    const navigationButtons: FormButtonComponent = {
       id: 'PreviewNavigationButton',
       textResourceBindings: {
-        next: 'next',
-        back: 'back',
-      },
-      showBackButton: false,
-      type: ComponentType.NavigationButtons,
-      onClickAction: () => {},
-      itemType: 'COMPONENT',
-      dataModelBindings: {},
-    });
-    expect(screen.getByRole('button', { name: 'next' }));
-  });
-
-  test('should render back navigation button', async () => {
-    await renderWithMock({
-      id: 'PreviewNavigationButton',
-      textResourceBindings: {
-        next: 'next',
-        back: 'back',
+        next: nextKey,
+        back: backKey,
       },
       showBackButton: true,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
       itemType: 'COMPONENT',
       dataModelBindings: {},
-    });
-    expect(screen.getByRole('button', { name: 'back' }));
-  });
+    };
 
-  test('Should render back and next buttons', async () => {
-    await renderWithMock({
-      id: 'PreviewNavigationButton',
-      textResourceBindings: {
-        next: 'next',
-        back: 'back',
-      },
-      showBackButton: true,
-      type: ComponentType.NavigationButtons,
-      onClickAction: () => {},
-      itemType: 'COMPONENT',
-      dataModelBindings: {},
+    test('should render next navigation button', async () => {
+      await renderWithMock({
+        ...navigationButtons,
+        showBackButton: false,
+      });
+      expect(screen.getByRole('button', { name: nextText }));
     });
-    expect(screen.getByRole('button', { name: 'back' }));
-    expect(screen.getByRole('button', { name: 'next' }));
+
+    test('should render back navigation button', async () => {
+      await renderWithMock(navigationButtons);
+      expect(screen.getByRole('button', { name: backText }));
+    });
+
+    test('Should render back and next buttons', async () => {
+      await renderWithMock(navigationButtons);
+      expect(screen.getByRole('button', { name: nextText }));
+      expect(screen.getByRole('button', { name: backText }));
+    });
+
+    test('Should render back and next buttons with a default value when the text resource is empty', async () => {
+      await renderWithMock({
+        ...navigationButtons,
+        textResourceBindings: {
+          next: undefined,
+          back: undefined,
+        },
+      });
+      expect(screen.getByRole('button', { name: textMock('ux_editor.modal_properties_button_type_back') }));
+      expect(screen.getByRole('button', { name: textMock('ux_editor.modal_properties_button_type_next') }));
+    });
   });
 });
 

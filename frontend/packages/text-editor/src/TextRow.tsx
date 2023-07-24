@@ -46,6 +46,7 @@ export const TextRow = ({
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
+  const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const { t } = useTranslation();
@@ -70,12 +71,52 @@ export const TextRow = ({
 
   const handleDeleteClick = () => {
     removeEntry({ textId });
+    setIsConfirmDeleteOpen(false);
   };
 
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
   return (
     <TableRow data-testid={'lang-row'}>
+      <TableCell>
+        {showButton && (
+          <Popover
+            title={'Slett_rad'}
+            variant={PopoverVariant.Warning}
+            placement={'left'}
+            open={isConfirmDeleteOpen}
+            trigger={
+              <Button
+                className={classes.deleteButton}
+                icon={<TrashIcon title={`Slett ${textId}`} />}
+                variant={ButtonVariant.Quiet}
+                onClick={toggleConfirmDeletePopover}
+                aria-label={t('schema_editor.delete')}
+              >
+                {t('schema_editor.delete')}
+              </Button>
+            }
+          >
+            {isConfirmDeleteOpen && (
+              <div>
+                <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
+                <div className={classes.popoverButtons}>
+                  <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
+                    <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Quiet}
+                    onClick={toggleConfirmDeletePopover}
+                    color={ButtonColor.Secondary}
+                  >
+                    <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Popover>
+        )}
+      </TableCell>
       {selectedLanguages.map((lang) => {
         let translation = textRowEntries.find((e) => e.lang === lang);
         if (!translation) {
@@ -85,8 +126,8 @@ export const TextRow = ({
           };
         }
         return (
-          <TableCell key={translation.lang + '-' + textId}>
-            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
+          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
+            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} className={classes.textEntryComponent}/>
           </TableCell>
         );
       })}
@@ -121,44 +162,7 @@ export const TextRow = ({
         </ButtonContainer>
       </TableCell>
       <TableCell>
-        <Variables variables={variables} />
-      </TableCell>
-      <TableCell>
-        <Popover
-          title={'Slett_rad'}
-          variant={PopoverVariant.Warning}
-          placement={'left'}
-          open={isConfirmDeleteOpen}
-          trigger={
-            <Button
-              className={classes.deleteButton}
-              icon={<TrashIcon title={`Slett ${textId}`} />}
-              variant={ButtonVariant.Quiet}
-              onClick={toggleConfirmDeletePopover}
-              aria-label={t('schema_editor.delete')}
-            >
-              {t('schema_editor.delete')}
-            </Button>
-          }
-        >
-          {isConfirmDeleteOpen && (
-            <div>
-              <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
-              <div className={classes.popoverButtons}>
-                <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
-                  <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
-                </Button>
-                <Button
-                  variant={ButtonVariant.Quiet}
-                  onClick={toggleConfirmDeletePopover}
-                  color={ButtonColor.Secondary}
-                >
-                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
-                </Button>
-              </div>
-            </div>
-          )}
-        </Popover>
+        <Variables variables={textVariables} />
       </TableCell>
     </TableRow>
   );

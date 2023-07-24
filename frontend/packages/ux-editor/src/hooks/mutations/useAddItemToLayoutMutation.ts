@@ -1,5 +1,4 @@
-import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
-import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
@@ -17,7 +16,7 @@ export interface AddFormItemMutationArgs {
 }
 
 export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetName: string) => {
-  const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
+  const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const appAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);

@@ -16,9 +16,10 @@ import { getComponentTitleByComponentType, getTextResource, truncate } from '../
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
-import { useFormLayoutsSelector, useTextResourcesSelector } from '../hooks';
+import { useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -43,8 +44,8 @@ export const FormComponent = memo(function FormComponent({
   const { org, app } = useParams();
 
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
-  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
-  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
 
@@ -69,6 +70,8 @@ export const FormComponent = memo(function FormComponent({
     event.stopPropagation();
     setIsPreviewMode(previous => !previous);
   };
+
+  const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
 
   return (
     <div
@@ -96,11 +99,8 @@ export const FormComponent = memo(function FormComponent({
           ) : (
             <div className={classes.formComponentTitle}>
               <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
-              {component.textResourceBindings?.title
-                ? truncate(
-                    getTextResource(component.textResourceBindings.title, textResources),
-                    80
-                  )
+              {textResource
+                ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||
                   t('ux_editor.component_unknown')}
             </div>

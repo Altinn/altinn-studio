@@ -1,11 +1,10 @@
 import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
-import { useSelector } from 'react-redux';
-import type { SchemaState } from '../../types';
 import { getRootNodes, Keyword } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 import { Select } from '@digdir/design-system-react';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 
 export interface IReferenceSelectionProps {
   buttonText: string;
@@ -24,9 +23,8 @@ export function ReferenceSelectionComponent({
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-  const definitions: UiSchemaNode[] = useSelector((state: SchemaState) =>
-    getRootNodes(state.uiSchema, true)
-  );
+  const { data } = useDatamodelQuery();
+  const definitions: UiSchemaNode[] = getRootNodes(data, true);
   const selectId = getDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
   const emptyOption = { label: emptyOptionLabel, value: '' };
   return (

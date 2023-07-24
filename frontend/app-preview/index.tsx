@@ -7,7 +7,7 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
-import '@altinn/figma-design-tokens/dist/tokens.css';
+import 'app-shared/design-tokens';
 
 const container = document.getElementById('root');
 const root = createRoot(container);

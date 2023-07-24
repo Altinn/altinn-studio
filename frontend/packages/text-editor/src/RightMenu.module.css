@@ -9,7 +9,6 @@
 .RightMenu__sidebar {
   border-left: 1px solid #c9c9c9;
   background: #f4f3f4;
-  height: 100%;
   padding: 2rem;
   display: flex;
   flex-direction: column;

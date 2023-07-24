@@ -41,7 +41,6 @@ export const TextEditor = ({
   upsertTextResource,
 }: TextEditorProps) => {
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
-
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages]

@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { Button, ButtonVariant, Checkbox } from '@digdir/design-system-react';
 import classes from './ConditionalRenderingTab.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
-import { Dynamics } from './Dynamics';
+import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
-export const ConditionalRenderingTab = () => {
+type ConditionalRenderingTabProps = {
+  onShowNewDynamicsTab: (value: boolean) => void;
+  showNewDynamicsTab: boolean;
+};
+
+export const ConditionalRenderingTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: ConditionalRenderingTabProps) => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const t = useText();
   return (
+    <>
     <div className={classes.conditionalRendering}>
       <div>
         <div className={classes.header}>
@@ -32,7 +39,18 @@ export const ConditionalRenderingTab = () => {
         </div>
       </div>
       <Divider marginless/>
-      <Dynamics />
+      <OldDynamicsInfo />
     </div>
+  <div className={classes.dynamicsVersionCheckBox}>
+    <Divider />
+    { !_useIsProdHack() &&
+      <Checkbox
+        label={t('right_menu.show_new_dynamics')}
+        name={'checkbox-name'}
+        checked={showNewDynamicsTab}
+        onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
+    }
+  </div>
+    </>
   );
 };

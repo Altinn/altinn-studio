@@ -6,3 +6,20 @@
   overflow-y: scroll;
   padding-bottom: 8rem;
 }
+
+.dynamics {
+  padding-bottom: 200px;
+}
+
+.dynamicsAlert {
+  z-index: 1;
+  position: fixed;
+  bottom: 120px;
+}
+
+.dynamicsVersionCheckBox {
+  z-index: 1;
+  position: fixed;
+  bottom: 40px;
+  width: 100%;
+}

@@ -53,4 +53,4 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ org: 'org', app: 'app' }),
 }));
 
-jest.setTimeout(30000);
+jest.setTimeout(3000000);

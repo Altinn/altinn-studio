@@ -18,11 +18,12 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleDeleteElement?: () => void;
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
-  disabled?: boolean;
-  required?: boolean;
-  hidden?: boolean;
-  readOnly?: boolean;
+  disabled?: boolean; // Add expression type?
+  required?: boolean; // Add expression type?
+  hidden?: boolean; // Add expression type?
+  readOnly?: boolean; // Add expression type?
   [id: string]: any;
+  propertyPath?: string;
 }
 
 interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
@@ -114,17 +115,19 @@ export interface FormPanelComponent extends FormComponentBase<ComponentType.Pane
   showIcon: boolean;
 }
 
+export interface FormMapLayer {
+  url: string;
+  attribution?: string;
+  subdomains?: string[];
+}
+
 export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
   centerLocation: {
     latitude: number;
     longitude: number;
   };
   zoom: number;
-  layers?: {
-    url: string;
-    attribution?: string;
-    subdomains?: string[];
-  }[];
+  layers?: FormMapLayer[];
 }
 
 export type FormComponent<T extends ComponentType = ComponentType> = {

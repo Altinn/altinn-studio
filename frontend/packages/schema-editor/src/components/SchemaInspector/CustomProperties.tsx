@@ -1,13 +1,20 @@
 import React from 'react';
 import { Button, Checkbox, FieldSet, HelpText, TextField } from '@digdir/design-system-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { setCustomProperties } from '../../features/editor/schemaEditorSlice';
-import { CustomPropertyType, deleteProperty, propertyType, setProperty } from '@altinn/schema-model';
+import {
+  CustomPropertyType,
+  deleteProperty,
+  propertyType,
+  setCustomProperties,
+  setProperty
+} from '@altinn/schema-model';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -16,12 +23,13 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { custom } = useSelector(selectedItemSelector);
-  const dispatch = useDispatch();
+  const { data } = useDatamodelQuery();
+  const { mutate } = useDatamodelMutation();
   const { t } = useTranslation();
+  const { custom } = useSchemaSelector(selectedIdSelector);
 
   function changeProperties(properties: KeyValuePairs) {
-    dispatch(setCustomProperties({ path, properties }));
+    mutate(setCustomProperties(data, { path, properties }));
   }
 
   function handlePropertyChange<T>(key: string, value: T) {

@@ -58,7 +58,7 @@ export const TextResourceEdit = () => {
   );
 };
 
-interface TextBoxProps {
+export interface TextBoxProps {
   language: string;
   t: (key: string) => string;
   textResource?: ITextResource;
@@ -69,14 +69,22 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { org, app } = useParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
-  const updateTextResource = (text: string) =>
-    mutate({ language, textResources: [{ id: textResourceId, value: text, variables: textResource.variables }] });
+  const textResourceValue = textResource?.value || '';
 
-  const [value, setValue] = useState<string>(textResource?.value || '');
+  const updateTextResource = (text: string) => {
+    if (text === textResourceValue) return;
+
+    mutate({
+      language,
+      textResources: [{ id: textResourceId, value: text, variables:textResource?.variables }],
+    });
+  };
+
+  const [value, setValue] = useState<string>(textResourceValue);
 
   useEffect(() => {
-    setValue(textResource?.value || '');
-  }, [textResource?.value]);
+    setValue(textResourceValue)
+  }, [textResourceValue]);
 
   return (
     <div>

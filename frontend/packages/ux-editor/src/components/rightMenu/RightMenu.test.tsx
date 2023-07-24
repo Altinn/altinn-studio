@@ -11,7 +11,7 @@ const conditionalRenderingText = 'Vis/skjul';
 const calculationsText = 'Beregninger';
 const texts = {
   'right_menu.content': contentText,
-  'right_menu.conditional_rendering': conditionalRenderingText,
+  'right_menu.dynamics': conditionalRenderingText,
   'right_menu.calculations': calculationsText,
 };
 

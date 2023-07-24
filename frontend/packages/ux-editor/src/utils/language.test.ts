@@ -1,4 +1,4 @@
-import { getComponentHelperTextByComponentType } from './language';
+import { getComponentHelperTextByComponentType, getTextResource } from './language';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 const language = {
@@ -50,4 +50,22 @@ describe('Designer > utils/language', () => {
       );
     });
   });
+
+  describe('getTextResource', () => {
+    const textResources = [{ id: 'test', value: 'test' }];
+    const textResource = textResources[0];
+
+    it('should return the text resource', () => {
+      expect(getTextResource(textResource.id, textResources)).toBe(textResource.value);
+    });
+    it('should return undefined when resourceKey is empty', () => {
+      expect(getTextResource('', textResources)).toBeUndefined();
+    });
+    it('should return undefined when resources are empty', () => {
+      expect(getTextResource(textResource.id, [])).toBeUndefined();
+    });
+    it('should return undefined when the text resource doesn\'t exist', () => {
+      expect(getTextResource('wrong-id', textResources)).toBeUndefined();
+    });
+  })
 });

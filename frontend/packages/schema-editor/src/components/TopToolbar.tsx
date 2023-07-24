@@ -1,4 +1,4 @@
-import React, { useEffect, useState, MouseEvent } from 'react';
+import React, { useEffect, useState, MouseEvent, ReactNode } from 'react';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import classes from './TopToolbar.module.css';
 import { useTranslation } from 'react-i18next';
@@ -11,18 +11,17 @@ import {
   Spinner,
   ToggleButtonGroup,
 } from '@digdir/design-system-react';
-import { GenerateSchemaState } from 'app-shared/types/global';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 
 export interface TopToolbarProps {
-  Toolbar: JSX.Element;
+  Toolbar: ReactNode;
   editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
-  schema: JsonSchema;
   schemaState: GenerateSchemaState;
 }
 
@@ -31,16 +30,16 @@ export function TopToolbar({
   Toolbar,
   saveAction,
   toggleEditMode,
-  schema,
   schemaState,
 }: TopToolbarProps) {
   const { t } = useTranslation();
   const [showGenerationState, setShowGenerationState] = useState(false);
+  const { data } = useDatamodelQuery();
   const { error, saving } = schemaState;
   const generatedSchemaSuccessfully = !saving && !error?.message;
 
-  const schemaString = JSON.stringify(schema);
-  const prevSchemaState = usePrevious(schemaState);
+  const schemaString = JSON.stringify(data);
+  const prevSchemaState = usePrevious({ data, error, saving });
 
   useEffect(() => {
     setShowGenerationState(false);

@@ -21,10 +21,9 @@ import { generateTextResourceId } from '../utils/generateId';
 import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
-import { useParams } from 'react-router-dom';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
-import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
+import { FormField } from './FormField';
 
 export interface TextResourceProps {
   description?: string;
@@ -66,10 +65,6 @@ export const TextResource = ({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
-  const { org, app } = useParams();
-  const { mutate } = useUpsertTextResourcesMutation(org, app);
-  const addTextResource =
-    (id: string) => mutate({ language: DEFAULT_LANGUAGE, textResources: [{ id, value: '' }] });
 
   const editId = useSelector(getCurrentEditId);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -81,7 +76,6 @@ export const TextResource = ({
       setEditId(textResourceId);
     } else {
       const id = generateId(generateIdOptions);
-      addTextResource(id);
       handleIdChange(id);
       setEditId(id);
     }
@@ -97,7 +91,8 @@ export const TextResource = ({
     { label: t('ux_editor.search_text_resources_none'), value: '' }
   );
 
-  return (
+
+  const renderTextResource = () => (
     <span
       className={cn(
         classes.root,
@@ -175,6 +170,16 @@ export const TextResource = ({
         </span>
       </span>
     </span>
+  );
+
+  return previewMode ? renderTextResource() : (
+    <FormField
+      id={textResourceId}
+      value={{ [textResourceId]: textResource?.value }}
+      propertyPath='definitions/component/properties/textResourceBindings'
+    >
+      {() => renderTextResource()}
+    </FormField>
   );
 };
 

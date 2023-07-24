@@ -1,5 +1,6 @@
 import React from 'react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { IOption } from '../../../types/global';
 import type { ITextResource } from 'app-shared/types/global';
 import { act, screen, waitFor } from '@testing-library/react';
@@ -153,12 +154,17 @@ describe('RadioGroupPreview', () => {
   });
 });
 
-const render = async (props: Partial<RadioGroupPreviewProps> = {}) => {
-
+const waitForData = async () => {
   const { result } = renderHookWithMockStore({}, {
     getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
   })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+};
+
+const render = async (props: Partial<RadioGroupPreviewProps> = {}) => {
+  await waitForData();
 
   return renderWithMockStore()(
     <RadioGroupPreview

@@ -15,5 +15,11 @@ namespace Altinn.Studio.Designer.Enums
 
         [PgName("maskinportenschema")]
         MaskinportenSchema = 2,
+
+        [PgName("altinn2service")]
+        Altinn2Service = 4,
+
+        [PgName("altinnapp")]
+        AltinnApp = 8,
     }
 }

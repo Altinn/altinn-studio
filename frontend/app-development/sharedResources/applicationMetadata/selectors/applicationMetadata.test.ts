@@ -18,8 +18,7 @@ describe('ApplicationMetadata', () => {
   });
 
   it('applicationMetadataSelector should return correct state', () => {
-    const getApplicationMetadata = makeGetApplicationMetadata();
-    const applicationMetadata = getApplicationMetadata(mockState);
+    const applicationMetadata = makeGetApplicationMetadata(mockState);
     expect(applicationMetadata).toBe(mockApplicationMetadata);
   });
 });

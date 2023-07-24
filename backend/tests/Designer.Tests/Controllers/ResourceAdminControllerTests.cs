@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceRepository_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository";
+            string uri = $"{_versionPrefix}/ttd/resources";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
@@ -54,7 +54,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceRepository_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -69,7 +69,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceList_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/resourcelist";
+            string uri = $"{_versionPrefix}/ttd/resources/resourcelist";
 
             _repositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -113,7 +113,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceList_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/resourcelist";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/resourcelist";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock
@@ -157,7 +157,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-resources/ttd_testresource";
+            string uri = $"{_versionPrefix}/ttd/resources/ttd-resources/ttd_testresource";
 
             _repositoryMock
                 .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -199,7 +199,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_Passing_Repository_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-app-resources";
+            string uri = $"{_versionPrefix}/ttd/resources/ttd-app-resources";
 
             _repositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -288,7 +288,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/ttd-resources/ttd_test_resource";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -303,7 +303,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_Passing_Repository_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/ttd-resources";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/ttd-resources";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -318,7 +318,7 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_PassingNoValidArgument_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/orgwithoutrepo-resources/notvalidresource";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -333,7 +333,7 @@ namespace Designer.Tests.Controllers
         public async Task UpdateServiceResource_StatusCreated()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/updateresource/resource1";
+            string uri = $"{_versionPrefix}/ttd/resources/updateresource/resource1";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
 
             ServiceResource serviceResource = new ServiceResource
@@ -375,7 +375,7 @@ namespace Designer.Tests.Controllers
         public async Task AddServiceResource_StatusCreated()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/addresource";
+            string uri = $"{_versionPrefix}/ttd/resources/addresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ServiceResource serviceResource = new ServiceResource
@@ -414,13 +414,13 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task ValidateServiceResource_IsValid()
+        public async Task ValidateServiceResourceById_IsValid()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources";
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            _repositoryMock.Setup(r => r.ValidateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(new StatusCodeResult(200));
+            _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
 
             //Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
@@ -428,6 +428,109 @@ namespace Designer.Tests.Controllers
             //Assert
             _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task ValidateServiceResourceById_IsInValid()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            //Assert
+            _repositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task ValidateServiceResource_IsValid()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            _repositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(true));
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            //Assert
+            _repositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task ValidateServiceResource_IsInValid()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            _repositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(false));
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            //Assert
+            _repositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+
+        [Fact]
+        public async Task GetSectors()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/sectors";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string sectorscontent = await res.Content.ReadAsStringAsync();
+            List<DataTheme> dataThemes = System.Text.Json.JsonSerializer.Deserialize<List<DataTheme>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotEmpty(dataThemes);
+        }
+
+        [Fact]
+        public async Task GetLosTerms()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/losterms";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string sectorscontent = await res.Content.ReadAsStringAsync();
+            List<LosTerm> losTerms = System.Text.Json.JsonSerializer.Deserialize<List<LosTerm>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotEmpty(losTerms);
+        }
+
+        [Fact]
+        public async Task GetEuroVocs()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/eurovoc";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            string eurovocscontent = await res.Content.ReadAsStringAsync();
+            List<EuroVocTerm> eurovocs = System.Text.Json.JsonSerializer.Deserialize<List<EuroVocTerm>>(eurovocscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+            //Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.NotEmpty(eurovocs);
         }
 
         private static List<ResourceReference> GetTestResourceReferences()
@@ -438,6 +541,62 @@ namespace Designer.Tests.Controllers
             };
 
             return resourceReferences;
+        }
+
+        private static ServiceResource GetServiceResourceForValidationTest(bool valid)
+        {
+            if (valid)
+            {
+                ServiceResource serviceResource = new ServiceResource();
+                serviceResource.Identifier = "ttdresource";
+                serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
+                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
+                serviceResource.ResourceType = ResourceType.Default;
+                serviceResource.IsComplete = true;
+                serviceResource.ThematicArea = "ttdThematicArea";
+                return serviceResource;
+            }
+            else
+            {
+                ServiceResource serviceResource = new ServiceResource();
+                serviceResource.Identifier = null;
+                serviceResource.Title = null;
+                serviceResource.Description = null;
+                serviceResource.ResourceType = ResourceType.Default;
+                serviceResource.IsComplete = false;
+                serviceResource.ThematicArea = string.Empty;
+                return serviceResource;
+            }
+        }
+
+        private static List<ServiceResource> GetServiceResourcesForValidationTest(bool valid)
+        {
+            if (valid)
+            {
+                List<ServiceResource> resourceList = new List<ServiceResource>();
+                ServiceResource serviceResource = new ServiceResource();
+                serviceResource.Identifier = "ttdresource";
+                serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
+                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
+                serviceResource.ResourceType = ResourceType.Default;
+                serviceResource.IsComplete = true;
+                serviceResource.ThematicArea = "ttdThematicArea";
+                resourceList.Add(serviceResource);
+                return resourceList;
+            }
+            else
+            {
+                List<ServiceResource> resourceList = new List<ServiceResource>();
+                ServiceResource serviceResource = new ServiceResource();
+                serviceResource.Identifier = null;
+                serviceResource.Title = null;
+                serviceResource.Description = null;
+                serviceResource.ResourceType = ResourceType.Default;
+                serviceResource.IsComplete = false;
+                serviceResource.ThematicArea = string.Empty;
+                resourceList.Add(serviceResource);
+                return resourceList;
+            }
         }
     }
 }

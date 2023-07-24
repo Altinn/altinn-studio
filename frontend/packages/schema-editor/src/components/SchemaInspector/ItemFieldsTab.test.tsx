@@ -1,21 +1,37 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
-  createChildNode,
-  createNodeBase,
   FieldType,
   Keyword,
   ObjectKind,
+  createChildNode,
+  createNodeBase,
+  getNodeByPointer,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { renderWithProviders } from '../../../test/renderWithProviders';
+import { SchemaState } from '@altinn/schema-editor/types';
+import userEvent from '@testing-library/user-event';
+import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
+import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
+import { getSavedModel } from '../../../test/test-utils';
+
+const user = userEvent.setup();
 
 // Test data:
+const selectedItemPointer = 'test';
+const rootItem = {
+  ...nodeMockBase,
+  fieldType: FieldType.Object,
+  children: [`#/properties/${selectedItemPointer}`],
+};
 const selectedItem: UiSchemaNode = {
-  ...createNodeBase(Keyword.Properties, 'test'),
+  ...createChildNode(rootItem, selectedItemPointer, false),
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
 };
@@ -25,9 +41,8 @@ const childNodes = fieldNames.map((childNodeName) => ({
   fieldType: FieldType.String,
 }));
 const numberOfFields = fieldNames.length;
-// eslint-disable-next-line testing-library/no-node-access
-selectedItem.children = childNodes.map(({ pointer }) => pointer);
-const uiSchema: UiSchemaNodes = [selectedItem, ...childNodes];
+selectedItem.children = childNodes.map(({ pointer }) => pointer); // eslint-disable-line testing-library/no-node-access
+const uiSchema: UiSchemaNodes = [rootItem, selectedItem, ...childNodes];
 const textAdd = 'Legg til felt';
 const textDelete = 'Slett';
 const textDeleteField = 'Slett felt';
@@ -55,15 +70,27 @@ const texts = {
   'schema_editor.string': fieldTypeNames[FieldType.String],
 };
 const defaultProps: ItemFieldsTabProps = { selectedItem };
-const defaultState = { uiSchema };
+const org = 'org';
+const app = 'app';
+const modelPath = 'test';
+const saveDatamodel = jest.fn();
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
-  renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
+const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, state: Partial<SchemaState> = {}) => {
+  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
+  return renderWithProviders({
+    appContextProps: { modelPath },
+    state,
+    servicesContextProps: { saveDatamodel },
+  })(<ItemFieldsTab {...defaultProps} {...props} />);
+};
 
 describe('ItemFieldsTab', () => {
+  beforeAll(() => validateTestUiSchema(uiSchema));
+  afterEach(jest.clearAllMocks);
+
   test('Header texts appear', async () => {
     renderItemFieldsTab();
     expect(await screen.findByText(textFieldName)).toBeDefined();
@@ -86,78 +113,60 @@ describe('ItemFieldsTab', () => {
     expect(await screen.findByText(textAdd)).toBeDefined();
   });
 
-  test('setPropertyName action is called with correct payload when a name is changed', async () => {
-    const { user, store } = renderItemFieldsTab();
+  test('Model is saved with correct payload when a name is changed', async () => {
+    renderItemFieldsTab();
     const suffix = 'Duck';
     for (const fieldName of fieldNames) {
       await act(() => user.type(screen.getByDisplayValue(fieldName), suffix));
       await act(() => user.tab());
     }
-    const setPropertyNameActions = store
-      .getActions()
-      .filter((action) => action.type === 'schemaEditor/setPropertyName');
-    expect(setPropertyNameActions).toHaveLength(numberOfFields);
-    setPropertyNameActions.forEach((action, i) => {
-      expect(action.payload.name).toEqual(fieldNames[i] + suffix);
-      expect(action.payload.path).toEqual(childNodes[i].pointer);
-    });
+    expect(saveDatamodel).toHaveBeenCalledTimes(numberOfFields);
   });
 
-  test('setType action is called with correct payload when a type is changed', async () => {
-    const { user, store } = renderItemFieldsTab();
+  test('Model is saved correctly when a type is changed', async () => {
+    renderItemFieldsTab();
     const newType = FieldType.Integer;
-    for (const i in fieldNames) {
+    for (let i = 0; i < fieldNames.length; i++) {
       await act(() => user.click(screen.getAllByRole('combobox')[i]));
       await act(() => user.click(screen.getByRole('option', { name: fieldTypeNames[newType] })));
       await act(() => user.tab());
+      expect(saveDatamodel).toHaveBeenCalledTimes(i + 1);
+      const updatedModel = getSavedModel(saveDatamodel, i);
+      const updatedNode = getNodeByPointer(updatedModel, childNodes[i].pointer);
+      expect(updatedNode.fieldType).toEqual(newType);
     }
-    const setPropertyNameActions = store
-      .getActions()
-      .filter((action) => action.type === 'schemaEditor/setType');
-    expect(setPropertyNameActions).toHaveLength(numberOfFields);
-    setPropertyNameActions.forEach((action, i) => {
-      expect(action.payload.type).toEqual(newType);
-      expect(action.payload.path).toEqual(childNodes[i].pointer);
-    });
   });
 
-  test('addProperty action is called with correct payload when the "Add field" button is clicked', async () => {
-    const { user, store } = renderItemFieldsTab();
+  test('Model is saved correctly when the "Add field" button is clicked', async () => {
+    renderItemFieldsTab();
     await act(() => user.click(screen.getByText(textAdd)));
-    const addPropertyActions = store
-      .getActions()
-      .filter((action) => action.type === 'schemaEditor/addProperty');
-    expect(addPropertyActions).toHaveLength(1);
-    expect(addPropertyActions[0].payload.pointer).toEqual(selectedItem.pointer);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDatamodel);
+    const updatedNode = getNodeByPointer(updatedModel, selectedItem.pointer);
+    expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
 
-  test('addProperty action is calledd with correct payload when a field is focused and the Enter key is clicked', async () => {
-    const { user, store } = renderItemFieldsTab();
+  test('Model is saved correctly when a field is focused and the Enter key is clicked', async () => {
+    renderItemFieldsTab();
     await act(() => user.click(screen.getAllByRole('textbox')[0]));
     await act(() => user.keyboard('{Enter}'));
-    const addPropertyActions = store
-      .getActions()
-      .filter((action) => action.type === 'schemaEditor/addProperty');
-    expect(addPropertyActions).toHaveLength(1);
-    expect(addPropertyActions[0].payload.pointer).toEqual(selectedItem.pointer);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDatamodel);
+    const updatedNode = getNodeByPointer(updatedModel, selectedItem.pointer);
+    expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
 
-  test('deleteProperty action is called with correct payload when delete button is clicked', async () => {
-    const { user, store } = renderItemFieldsTab();
-    for (const i in fieldNames) {
-      await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[i]));
-    }
-    const setPropertyNameActions = store
-      .getActions()
-      .filter((action) => action.type === 'schemaEditor/deleteProperty');
-    expect(setPropertyNameActions).toHaveLength(numberOfFields);
-    setPropertyNameActions.forEach((action, i) =>
-      expect(action.payload.path).toEqual(childNodes[i].pointer)
-    );
+  test('Model is saved correctly when delete button is clicked', async () => {
+    renderItemFieldsTab();
+    await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[0]));
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDatamodel);
+    const updatedNode = getNodeByPointer(updatedModel, selectedItem.pointer);
+    expect(updatedNode.children).toHaveLength(numberOfFields - 1); // eslint-disable-line testing-library/no-node-access
   });
 
   test('Newly added field gets focus and its text becomes selected', async () => {
-    const { user, rerenderWithRedux } = renderItemFieldsTab();
+    const { rerender } = renderItemFieldsTab();
     const newChildNodeName = 'Skrue';
     const newChildNode = {
       ...createChildNode(selectedItem, newChildNodeName, false),
@@ -168,10 +177,13 @@ describe('ItemFieldsTab', () => {
       // eslint-disable-next-line testing-library/no-node-access
       children: [...selectedItem.children, newChildNode.pointer],
     };
-    const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-    rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, {
-      uiSchema: newUiSchema,
-    });
+    const newUiSchema = [rootItem, newSelectedItem, ...childNodes, newChildNode];
+    validateTestUiSchema(newUiSchema);
+    queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], newUiSchema);
+    rerender({
+      appContextProps: { modelPath },
+      servicesContextProps: { saveDatamodel },
+    })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
     await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
     expect(screen.getByDisplayValue('a')).toBeDefined();
@@ -187,6 +199,10 @@ describe('ItemFieldsTab', () => {
 
   test('Inputs are disabled if the selected item is a reference', async () => {
     const referencedNode = createNodeBase(Keyword.Definitions, 'testtype');
+    queryClientMock.setQueryData(
+      [QueryKey.Datamodel, org, app, modelPath],
+      [...uiSchema, referencedNode],
+    );
     renderItemFieldsTab(
       {
         selectedItem: {
@@ -195,7 +211,6 @@ describe('ItemFieldsTab', () => {
           reference: referencedNode.pointer,
         },
       },
-      { uiSchema: [...uiSchema, referencedNode] }
     );
     const textboxes = await screen.findAllByLabelText(textFieldName);
     textboxes.forEach((input) => expect(input).toBeDisabled());
