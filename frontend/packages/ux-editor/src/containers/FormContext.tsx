@@ -15,7 +15,7 @@ export type FormContext = {
   formId: string;
   form:  FormContainer | FormComponent;
   handleDiscard: () => void;
-  handleEdit: (component: FormContainer | FormComponent) => Promise<void>;
+  handleEdit: (updatedForm: FormContainer | FormComponent) => Promise<void>;
   handleUpdate: React.Dispatch<React.SetStateAction<FormContainer | FormComponent>>;
   handleContainerSave: (id: string, updatedContainer: FormContainer) => void;
   handleComponentSave: (id: string, updatedComponent: FormComponent) => void;
@@ -91,13 +91,13 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     }
   }, [components, updateFormComponent]);
 
-  const handleEdit = useCallback(async (component: FormContainer | FormComponent): Promise<void> => {
+  const handleEdit = useCallback(async (updatedForm: FormContainer | FormComponent): Promise<void> => {
     dispatch(setCurrentEditId(undefined));
-    setFormId(component?.id);
-    setForm(component);
+    setFormId(updatedForm?.id);
+    setForm(updatedForm);
   }, [dispatch]);
 
-  const handleSaveAndEdit = useCallback(async (component: FormContainer | FormComponent): Promise<void> => {
+  const handleSaveAndEdit = useCallback(async (updatedForm: FormContainer | FormComponent): Promise<void> => {
     clearTimeout(autoSaveTimeoutRef.current);
     if (form) {
       if (form.itemType === LayoutItemType.Container) {
@@ -106,12 +106,12 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         await handleComponentSave(formId, form as FormComponent);
       }
     }
-    handleEdit(component);
+    handleEdit(updatedForm);
   }, [form, formId, handleComponentSave, handleContainerSave, handleEdit]);
 
   const handleDiscard = useCallback((): void => {
     clearTimeout(autoSaveTimeoutRef.current);
-    handleEdit(null);
+    handleEdit(undefined);
   }, [handleEdit]);
 
   const value = useMemo(() => ({

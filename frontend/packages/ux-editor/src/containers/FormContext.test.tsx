@@ -11,6 +11,7 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
+import type { IAppState } from '../types/global';
 
 jest.useFakeTimers({ advanceTimers: true });
 
@@ -41,12 +42,56 @@ const render = (ChildComponent: React.ElementType) => {
 describe('FormContext', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should save the container when calling save', async () => {
-    const form: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+  it('should edit the form when calling handleEdit', async () => {
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+
+    const { store } = render(() => {
+      const { formId, form, handleEdit } = React.useContext(FormContext);
+      return (<>
+        <button data-testid="button" onClick={() => handleEdit(mockForm)} />
+        <div data-testid="formId">{formId}</div>
+        <div data-testid="form.id">{form?.id}</div>
+        <div data-testid="form.itemType">{form?.itemType}</div>
+      </>);
+    });
+
+    const button = screen.getByTestId('button');
+    await act(() => user.click(button));
+
+    const state = store.getState() as IAppState;
+    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
+    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id));
+    await waitFor(async () => expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id));
+    await waitFor(async () => expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType));
+  });
+
+  it('should discard the form when calling handleDiscard', async () => {
+    const { store } = render(() => {
+      const { formId, form, handleDiscard } = React.useContext(FormContext);
+      return (<>
+        <button data-testid="button" onClick={() => handleDiscard()} />
+        <div data-testid="formId">{formId}</div>
+        <div data-testid="form.id">{form?.id}</div>
+        <div data-testid="form.itemType">{form?.itemType}</div>
+      </>);
+    });
+
+    const button = screen.getByTestId('button');
+    await act(() => user.click(button));
+
+    const state = store.getState() as IAppState;
+    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
+    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toBe(""));
+    await waitFor(async () => expect((await screen.findByTestId('form.id')).textContent).toBe(""));
+    await waitFor(async () => expect((await screen.findByTestId('form.itemType')).textContent).toBe(""));
+  });
+
+  it('should save the container when calling handleContainerSave', async () => {
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
       const { handleContainerSave } = React.useContext(FormContext);
-      return (<button data-testid="button" onClick={() => handleContainerSave(form.id, form)}>Container Save</button>);
+      return (<button data-testid="button" onClick={() => handleContainerSave(mockForm.id, mockForm)} />);
     });
 
     const button = screen.getByTestId('button');
@@ -57,13 +102,13 @@ describe('FormContext', () => {
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
 
-  it('should save the container and its new id when calling save', async () => {
-    const form: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+  it('should save the container and its new id when calling handleContainerSave', async () => {
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
       const { formId, handleContainerSave } = React.useContext(FormContext);
       return (<>
-        <button data-testid="button" onClick={() => handleContainerSave('old-id', form)} />
+        <button data-testid="button" onClick={() => handleContainerSave('old-id', mockForm)} />
         <div data-testid="formId">{formId}</div>
       </>);
     });
@@ -73,16 +118,16 @@ describe('FormContext', () => {
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
 
-    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(form.id));
+    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id));
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
 
-  it('should save the component when calling save', async () => {
-    const form: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+  it('should save the component when calling handleComponentSave', async () => {
+    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
 
     render(() => {
       const { handleComponentSave } = React.useContext(FormContext);
-      return (<button data-testid="button" onClick={() => handleComponentSave(form.id, form)} />);
+      return (<button data-testid="button" onClick={() => handleComponentSave(mockForm.id, mockForm)} />);
     });
 
     const button = screen.getByTestId('button');
@@ -93,13 +138,13 @@ describe('FormContext', () => {
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
 
-  it('should save the component and its new id when calling save', async () => {
-    const form: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+  it('should save the component and its new id when calling handleComponentSave', async () => {
+    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
 
     render(() => {
       const { formId, handleComponentSave } = React.useContext(FormContext);
       return (<>
-        <button data-testid="button" onClick={() => handleComponentSave('old-id', form)} />
+        <button data-testid="button" onClick={() => handleComponentSave('old-id', mockForm)} />
         <div data-testid="formId">{formId}</div>
       </>);
     });
@@ -109,7 +154,7 @@ describe('FormContext', () => {
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
 
-    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(form.id));
+    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id));
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
 });
