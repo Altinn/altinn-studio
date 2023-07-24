@@ -91,7 +91,7 @@ export const getActionOptionsUrl = (
 export const getResourcesUrl = (
   selectedContext: string
 ): string => {
-  return `${basePath}/${selectedContext}/resources/repository/resourcelist`
+  return `${basePath}/${selectedContext}/resources/resourcelist`
 }
 
 /**
@@ -107,7 +107,7 @@ export const getResourceUrl = (
   repo: string,
   id: string
 ): string => {
-  return `${basePath}/${selectedContext}/resources/repository/${repo}/${id}`
+  return `${basePath}/${selectedContext}/resources/${repo}/${id}`
 }
 
 /**
@@ -120,7 +120,7 @@ export const getResourceUrl = (
 export const getCreateResourceUrl = (
   selectedContext: string
 ): string => {
-  return `${basePath}/${selectedContext}/resources/repository/addresource`
+  return `${basePath}/${selectedContext}/resources/addresource`
 }
 
 /**
@@ -135,7 +135,7 @@ export const getEditResourceUrl = (
   selectedContext: string,
   id: string
 ): string => {
-  return `${basePath}/${selectedContext}/resources/repository/updateresource/${id}`
+  return `${basePath}/${selectedContext}/resources/updateresource/${id}`
 }
 
 /**
@@ -152,5 +152,5 @@ export const getValidateResourceUrl = (
   repo: string,
   resourceId: string
 ): string => {
-  return `${basePath}/${selectedContext}/resources/repository/validate/${repo}/${resourceId}`
+  return `${basePath}/${selectedContext}/resources/validate/${repo}/${resourceId}`
 }
