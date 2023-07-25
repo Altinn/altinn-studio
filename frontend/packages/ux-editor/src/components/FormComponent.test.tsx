@@ -30,9 +30,10 @@ const handleSaveMock = jest.fn();
 const handleDiscardMock = jest.fn();
 
 jest.mock('../hooks/mutations/useDeleteFormComponentMutation');
+const mockDeleteFormComponent = jest.fn();
 const mockUseDeleteFormComponentMutation = useDeleteFormComponentMutation as jest.MockedFunction<typeof useDeleteFormComponentMutation>;
 mockUseDeleteFormComponentMutation.mockReturnValue({
-  mutate: jest.fn(),
+  mutate: mockDeleteFormComponent,
 } as unknown as UseMutationResult<IInternalLayout, unknown, string, unknown>);
 
 describe('FormComponent', () => {
@@ -50,7 +51,7 @@ describe('FormComponent', () => {
     const button = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(button));
 
-    expect(mockUseDeleteFormComponentMutation).toHaveBeenCalledTimes(1);
+    expect(mockDeleteFormComponent).toHaveBeenCalledTimes(1);
   });
 
   it('should delete and discard when clicking the Delete button on the component being edited', async () => {

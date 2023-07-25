@@ -18,9 +18,10 @@ const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
 const user = userEvent.setup();
 
 jest.mock('../hooks/mutations/useDeleteFormContainerMutation');
+const mockDeleteFormContainer = jest.fn();
 const mockUseDeleteFormContainerMutation = useDeleteFormContainerMutation as jest.MockedFunction<typeof useDeleteFormContainerMutation>;
 mockUseDeleteFormContainerMutation.mockReturnValue({
-  mutate: jest.fn(),
+  mutate: mockDeleteFormContainer,
 } as unknown as UseMutationResult<IInternalLayout, unknown, string, unknown>);
 
 describe('FormContainer', () => {
