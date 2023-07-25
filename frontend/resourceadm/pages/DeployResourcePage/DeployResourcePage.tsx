@@ -59,7 +59,6 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     get(getPublishStatusUrl(selectedContext, repo, resourceId))
       .then((res) => {
         const versions: ResourceVersionStatusType = res as ResourceVersionStatusType;
-        console.log(versions);
 
         setVersionInTest(versions.publishedVersions.find((v) => v.environment === 'TT02').version);
         setVersionInProd(versions.publishedVersions.find((v) => v.environment === 'PROD').version);
@@ -84,6 +83,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         // Validate resource
         get(getValidateResourceUrl(selectedContext, repo, resourceId))
           .then((validateResourceRes) => {
+            console.log(validateResourceRes);
             // Remove error if status is 200
             validateResourceRes.status === 200 && setHasResourceError(false);
             setLoadingValidateResource(false);
@@ -171,6 +171,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       <ResourceDeployStatus
         title='Du må fikse disse feilene før du kan gå videre'
         error={getStatusError()}
+        onNavigateToPageWithError={navigateToPageWithError}
       />
     );
   };

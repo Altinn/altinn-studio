@@ -48,9 +48,9 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const repo = `${selectedContext}-resources`;
 
   // States to store the different input values
-  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined);
-  const [title, setTitle] = useState<SupportedLanguageKey<string>>(emptyLangauges);
-  const [description, setDescription] = useState<SupportedLanguageKey<string>>(emptyLangauges);
+  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined); // MANDATORY
+  const [title, setTitle] = useState<SupportedLanguageKey<string>>(emptyLangauges); // MANDATORY - NB, NN, EN
+  const [description, setDescription] = useState<SupportedLanguageKey<string>>(emptyLangauges); // MANDATORY - NB, NN, EN
   const [homepage, setHomepage] = useState('');
   const [keywords, setKeywords] = useState('');
   const [sector, setSector] = useState<string[]>([]);

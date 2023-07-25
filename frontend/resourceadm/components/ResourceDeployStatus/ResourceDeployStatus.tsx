@@ -1,17 +1,19 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
-import { Link } from '../Link';
 import { ArrowRightIcon, CheckmarkCircleIcon, ExternalLinkIcon } from '@navikt/aksel-icons';
+import { NavigationBarPageType } from 'resourceadm/types/global';
+import { LinkButton } from '../LinkButton';
 
 export interface DeployErrorType {
   message: string;
-  pageWithError: string;
+  pageWithError: 'about' | 'policy';
 }
 
 interface Props {
   title: string;
   error: DeployErrorType[] | string;
   isSuccess?: boolean;
+  onNavigateToPageWithError?: (page: NavigationBarPageType) => void;
 }
 
 /**
@@ -20,7 +22,12 @@ interface Props {
  * @param props.title title to display on the card
  * @param error either list of error object with message and the page to navigate to, or a string message
  */
-export const ResourceDeployStatus = ({ title, error, isSuccess = false }: Props) => {
+export const ResourceDeployStatus = ({
+  title,
+  error,
+  isSuccess = false,
+  onNavigateToPageWithError,
+}: Props) => {
   /**
    * Display the different errors based on the type of the error
    */
@@ -37,10 +44,10 @@ export const ResourceDeployStatus = ({ title, error, isSuccess = false }: Props)
       <div className={classes.cardElement} key={index}>
         <ArrowRightIcon title={e.message} fontSize='1.5rem' />
         <p className={classes.text}>{e.message}</p>
-        <Link
+        <LinkButton
           text='Fikse det'
-          href={e.pageWithError}
           icon={<ExternalLinkIcon title='Gå til siden med feilen' fontSize='1.2rem' />}
+          onClick={() => onNavigateToPageWithError(e.pageWithError)}
         />
       </div>
     ));
