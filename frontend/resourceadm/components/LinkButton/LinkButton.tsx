@@ -1,14 +1,14 @@
 import React, { ReactNode } from 'react';
-import classes from './Link.module.css';
+import classes from './LinkButton.module.css';
 
 interface Props {
   text: string;
-  href: string;
   icon?: ReactNode;
+  onClick?: () => void;
 }
 
 /**
- * 'a' element Link.
+ * 'button' element that looks like a link.
  *
  * @param props.text text to display on the element
  * @param props.href the href of the 'a' element
@@ -16,11 +16,11 @@ interface Props {
  *
  * TODO - Solve issue with visited.
  */
-export const Link = ({ text, href, icon }: Props) => {
+export const LinkButton = ({ text, icon, onClick }: Props) => {
   return (
-    <a className={classes.link} href={href}>
+    <button className={classes.linkButton} onClick={onClick}>
       {text}
       {icon}
-    </a>
+    </button>
   );
 };

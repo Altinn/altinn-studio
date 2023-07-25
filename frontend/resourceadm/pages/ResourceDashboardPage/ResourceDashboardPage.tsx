@@ -80,15 +80,15 @@ export const ResourceDashboardPage = () => {
    * Creates a new resource in backend
    */
   const handleCreateNewResource = (id: string, title: string) => {
-    // TODO - API call to backend to add resource
     const idAndTitle = {
       identifier: id,
       title: {
         nb: title,
+        nn: '',
+        en: '',
       },
     };
 
-    // TODO - missing API connection - not working atm
     post(getCreateResourceUrl(selectedContext), idAndTitle)
       .then(() => {
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));

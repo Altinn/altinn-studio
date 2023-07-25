@@ -1,35 +1,80 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
-import { XMarkOctagonFillIcon, CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon, CheckmarkCircleIcon, ExternalLinkIcon } from '@navikt/aksel-icons';
+import { NavigationBarPageType } from 'resourceadm/types/global';
+import { LinkButton } from '../LinkButton';
+
+export interface DeployErrorType {
+  message: string;
+  pageWithError: 'about' | 'policy';
+}
 
 interface Props {
-  type: 'danger' | 'success';
-  children: ReactNode;
+  title: string;
+  error: DeployErrorType[] | string;
+  isSuccess?: boolean;
+  onNavigateToPageWithError?: (page: NavigationBarPageType) => void;
+  resourceId: string;
 }
 
 /**
  * Displays a red danger card or a green success card, as well as a message
  *
- * @param props.type danger or success
- * @param props.message the message to display
+ * @param props.title title to display on the card
+ * @param error either list of error object with message and the page to navigate to, or a string message
  */
-export const ResourceDeployStatus = ({ type, children }: Props) => {
-  // TODO - Translate
-  const displayIcon = () => {
-    if (type === 'success') {
+export const ResourceDeployStatus = ({
+  title,
+  error,
+  isSuccess = false,
+  onNavigateToPageWithError,
+  resourceId,
+}: Props) => {
+  /**
+   * Display the different errors based on the type of the error
+   */
+  const displayErrors = () => {
+    if (typeof error === 'string') {
       return (
-        <CheckmarkCircleFillIcon title='Suksess, ingen feil' className={classes.successIcon} />
+        <div className={classes.cardElement}>
+          <ArrowRightIcon title={error} fontSize='1.5rem' />
+          <p className={classes.text}>{error}</p>
+        </div>
       );
     }
-    if (type === 'danger') {
-      return <XMarkOctagonFillIcon title='Error, valideringsfeil' className={classes.dangerIcon} />;
-    }
-    return null;
+    return error.map((e, index) => (
+      <div className={classes.cardElement} key={index + resourceId}>
+        <ArrowRightIcon title={e.message} fontSize='1.5rem' />
+        <p className={classes.text}>{e.message}</p>
+        <LinkButton
+          text='Fikse det'
+          icon={<ExternalLinkIcon title='Gå til siden med feilen' fontSize='1.2rem' />}
+          onClick={() => onNavigateToPageWithError(e.pageWithError)}
+        />
+      </div>
+    ));
   };
+
+  const displayContent = () => {
+    if (isSuccess) {
+      return (
+        <>
+          <CheckmarkCircleIcon className={classes.successIcon} title={title} fontSize='1.5rem' />
+          <p className={classes.text}>{title}</p>
+        </>
+      );
+    }
+    return (
+      <>
+        <p className={classes.title}>{title}</p>
+        {displayErrors()}
+      </>
+    );
+  };
+
   return (
-    <div className={`${classes[type]} ${classes.card}`}>
-      {displayIcon()}
-      {children}
+    <div className={`${isSuccess ? classes.success : classes.error} ${classes.card}`}>
+      {displayContent()}
     </div>
   );
 };

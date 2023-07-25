@@ -1,4 +1,4 @@
-.link {
+.linkButton {
   display: inline-flex;
   align-items: center;
   text-decoration: underline;
@@ -14,15 +14,15 @@
   padding: 0;
 }
 
-.link > svg {
+.linkButton > svg {
   margin-left: 5px;
 }
 
-.link:hover {
+.linkButton:hover {
   text-decoration: none;
 }
 
-.link:focus {
+.linkButton:focus {
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
@@ -31,12 +31,12 @@
   border-radius: 2px;
 }
 
-.link:visited {
+.linkButton:visited {
   color: #7A1265;
   text-decoration: none;
 }
 
-.link:active {
+.linkButton:active {
   text-decoration: none;
   border: none;
   outline: none;
