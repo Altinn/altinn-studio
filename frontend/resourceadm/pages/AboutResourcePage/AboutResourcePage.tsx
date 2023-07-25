@@ -93,8 +93,6 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const handlePopulateResource = (res: unknown) => {
     const backendResource = res as ResourceBackendType;
 
-    console.log(res);
-
     setResourceType(backendResource.resourceType ?? undefined);
     setHasResourceTypeError(
       backendResource.resourceType === undefined || backendResource.resourceType === null
