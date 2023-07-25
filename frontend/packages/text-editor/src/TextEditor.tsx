@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo} from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
@@ -70,12 +70,6 @@ export const TextEditor = ({
     }
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
-  const initialSelectedLangCodes = JSON.parse(localStorage.getItem('selectedLanguages')) || [];
-  [selectedLangCodes, setSelectedLangCodes] = useState<LangCode[]>(initialSelectedLangCodes);
-  
-  useEffect(() => {
-   localStorage.setItem('selectedLanguages', JSON.stringify(selectedLangCodes));
- }, [selectedLangCodes]);
 
   return (
     <div className={classes.TextEditor}>

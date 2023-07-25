@@ -132,8 +132,8 @@ describe('TextEditor', () => {
     expect(translationsToChange).toHaveLength(2);
     const changedTranslations = nb;
     changedTranslations[0].value = 'new translation';
-    await act(() => user.tripleClick(translationsToChange[0])); // select all text
-    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); // type new text and blur
+    await act(() => user.tripleClick(translationsToChange[0])); 
+    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); 
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
       textId: 'textId1',

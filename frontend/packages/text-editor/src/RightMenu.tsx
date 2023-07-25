@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
@@ -53,10 +53,6 @@ export const RightMenu = ({
   const toggleConfirmDeletePopover = (langCode: LangCode) => {
     setLangCodeToDelete((prevState) => (prevState === langCode ? null : langCode));
   };
-
-  useEffect(() => {
-    localStorage.setItem('selectedLanguages', JSON.stringify(selectedLanguages));
-  }, [selectedLanguages]);
 
   return (
     <aside className={classes.RightMenu__sidebar}>
