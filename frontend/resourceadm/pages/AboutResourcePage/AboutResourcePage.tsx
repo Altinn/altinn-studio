@@ -18,6 +18,7 @@ import {
   VersionType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
 
 /**
  * The resource type options to be used in the select
@@ -63,6 +64,9 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   // To handle the state of the aoge
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [hasResourceTypeError, setHasResourceTypeError] = useState(false);
+  const [hasTitleError, setHasTitleError] = useState(false);
+  const [hasDescriptionError, setHasDescriptionError] = useState(false);
 
   /**
    * Once the page loads, get the details about the resource and populate them
@@ -89,9 +93,33 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const handlePopulateResource = (res: unknown) => {
     const backendResource = res as ResourceBackendType;
 
+    console.log(res);
+
     setResourceType(backendResource.resourceType ?? undefined);
-    setTitle(backendResource.title ?? emptyLangauges);
-    setDescription(backendResource.description ?? emptyLangauges);
+    setHasResourceTypeError(
+      backendResource.resourceType === undefined || backendResource.resourceType === null
+    );
+
+    const backendTitle = backendResource.title;
+    setTitle(backendTitle ?? emptyLangauges);
+    setHasTitleError(
+      backendTitle === undefined ||
+        backendTitle === null ||
+        backendTitle.nb === '' ||
+        backendTitle.nn === '' ||
+        backendTitle.en === ''
+    );
+
+    const backendDescription = backendResource.description;
+    setDescription(backendDescription ?? emptyLangauges);
+    setHasDescriptionError(
+      backendDescription === undefined ||
+        backendDescription === null ||
+        backendDescription.nb === '' ||
+        backendDescription.nn === '' ||
+        backendDescription.en === ''
+    );
+
     setHomepage(backendResource.homepage ?? '');
     setIsPublicService(backendResource.isPublicService ?? false);
     setSector(backendResource.sector ?? []);
@@ -155,11 +183,14 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
    * @param s the selected string
    */
   const onChangeResourceType = (s: string) => {
-    console.log(s);
     if (s === 'Standard') setResourceType('Default');
     else if (s === 'System ressurs') setResourceType('Systemresource');
     else if (s === 'Maskinporten skjema') setResourceType('Maskinportenschema');
     else setResourceType(undefined);
+
+    setHasResourceTypeError(
+      !(s === 'Standard' || s === 'System ressurs' || s === 'Maskinporten skjema')
+    );
   };
 
   /**
@@ -172,6 +203,19 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     else if (resourceType === 'Systemresource') return 'System ressurs';
     else if (resourceType === 'Maskinportenschema') return 'Maskinporten skjema';
     return undefined;
+  };
+
+  /**
+   * Displays the given text in a warning card
+   *
+   * @param text the text to display
+   */
+  const displayWarningCard = (text: string) => {
+    return (
+      <div className={classes.warningCardWrapper}>
+        <WarningCard text={text} />
+      </div>
+    );
   };
 
   /**
@@ -192,10 +236,6 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     return (
       <>
         <h1 className={classes.pageHeader}>Om ressursen</h1>
-        {
-          // TODO HANDLE ERRORS IN RESOURCE
-          showAllErrors && <p>TODO - alert errors when validate resource is implemented</p>
-        }
         <h2 className={classes.subHeader}>Ressurs type</h2>
         <p className={classes.text}>Velg ett alternativ fra listen under</p>
         <div className={classes.inputWrapper}>
@@ -206,6 +246,9 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             label='Ressurs type'
             hideLabel
           />
+          {showAllErrors &&
+            hasResourceTypeError &&
+            displayWarningCard('Du må legge til en ressurs type')}
         </div>
         <h2 className={classes.subHeader}>Navn på tjenesten</h2>
         <p className={classes.text}>
@@ -221,6 +264,9 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             aria-labelledby='resource-titel'
           />
           <ScreenReaderSpan id='resource-titel' label='Navn på tjenesten' />
+          {showAllErrors &&
+            hasTitleError &&
+            displayWarningCard('Du må legge til en tittel for Bokmål, Nynorsk, og Engelsk')}
         </div>
         <h2 className={classes.subHeader}>Beskrivelse</h2>
         <p className={classes.text}>
@@ -238,6 +284,9 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             aria-labelledby='resource-description'
           />
           <ScreenReaderSpan id='resource-description' label='Beskrivelse' />
+          {showAllErrors &&
+            hasDescriptionError &&
+            displayWarningCard('Du må legge til en beskrivelse for Bokmål, Nynorsk, og Engelsk')}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <h2 className={classes.subHeader}>Hjemmeside</h2>

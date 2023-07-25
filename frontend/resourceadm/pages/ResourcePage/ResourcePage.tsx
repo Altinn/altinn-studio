@@ -10,7 +10,7 @@ import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { get } from 'app-shared/utils/networking';
-import { getValidatePolicyUrl } from 'resourceadm/utils/backendUrlUtils';
+import { getValidatePolicyUrl, getValidateResourceUrl } from 'resourceadm/utils/backendUrlUtils';
 import { NavigationModal } from 'resourceadm/components/NavigationModal';
 
 /**
@@ -131,8 +131,15 @@ export const ResourcePage = () => {
    */
   const validateResourceOK = (): Promise<boolean> => {
     return new Promise<boolean>((resolve) => {
-      // TODO validate resource when API is ready
-      resolve(true);
+      get(getValidateResourceUrl(selectedContext, repo, resourceId))
+        .then((res) => {
+          console.log(res);
+          resolve(res.status === 200);
+        })
+        .catch((err) => {
+          console.error(err);
+          resolve(false);
+        });
     });
   };
 
