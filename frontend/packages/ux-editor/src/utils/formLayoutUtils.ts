@@ -21,7 +21,7 @@ import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/Form
 import {
   DataSource,
   Dynamic,
-  ExpressionElement,
+  ExpressionElement, ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup
 } from '../types/Expressions';
@@ -534,8 +534,8 @@ export const validateDepth = (layout: IInternalLayout): boolean =>
  */
 export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: any): Dynamic => {
   // TODO: check if the external dynamic only has one level of nesting, otherwise return
-  let hasMoreExpressions: boolean = (dynamic[0] !== 'or' || dynamic[0] !== 'and');
-  let expressionCount: number = 0;
+  const hasMoreExpressions: boolean = (dynamic[0] !== 'or' || dynamic[0] !== 'and');
+  let elementsToSkip: number = 0;
   const convertedDynamic: Dynamic = {
     id: uuidv4(),
     editMode: false,
@@ -543,55 +543,41 @@ export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: 
     expressionElements: [],
   };
 
-  // dynamic is always an array starting with the function if set as an expression
-  // should use a while loop here for "or" and "and"
-  while (hasMoreExpressions) {
-
+  const exp: ExpressionElement = {
+    id: uuidv4(),
+  }
+  if (!hasMoreExpressions) {
+    const exp: ExpressionElement = {
+      id: uuidv4(),
+      function: dynamic[0] as ExpressionFunction, // might need an error handling if function is invalid
+    }
+    const updatedExpAddingValue = convertExpressionElement(exp, dynamic[1], false);
+    convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, dynamic[2], true));
+    return convertedDynamic;
   }
 
-  let elementsToSkip = 0;
-  dynamic.forEach((el, index) => {
-    if (elementsToSkip > 0) {
-      elementsToSkip--;
-      return; // Skip the current iteration
-    }
-    let exp: ExpressionElement = {
-      id: uuidv4(),
-      //function: hasMoreExpressions ? dynamic[index + 1][index] : el,
-    }
-    if (el !== 'or' || el !== 'and') {
-      hasMoreExpressions = false;
-      exp.function = el;
-      const updatedExpAddingValue = convertExpressionElement(exp, dynamic[index + 1], false);
-      convertedDynamic.expressionElements[expressionCount] = convertExpressionElement(updatedExpAddingValue, dynamic[index + 2], true);
-    }
+  // dynamic is always an array starting with the function if set as an expression
+  // should use a while loop here for "or" and "and"
 
-    // while loop here for "or" and "and". use index + counter to get the next expression element
-    while (hasMoreExpressions) {
-      dynamic.shift().map(el2 => {
-        if (el !== 'or' || el !== 'and') {
-          hasMoreExpressions = false;
-        }
-        exp.expressionOperatorForNextExpression = el;
-        const updatedExpAddingValue = convertExpressionElement(exp, dynamic[index + 1][index + 2], false);
-        convertedDynamic.expressionElements[expressionCount] = convertExpressionElement(updatedExpAddingValue, dynamic[index + 1][index + 3], true);
-        let nextExp: ExpressionElement = {
-          id: uuidv4(),
-          function: dynamic[index + 2][index],
-        }
-        const updatedNextExpAddingValue = convertExpressionElement(nextExp, dynamic[index + 2][index + 2], false);
-        convertedDynamic.expressionElements[expressionCount + 1] = convertExpressionElement(updatedNextExpAddingValue, dynamic[index + 2][index + 3], true);
-        elementsToSkip += 1; // skip operator element
-        expressionCount++;
-        }
-      );
-    }
-    elementsToSkip += 1; // skip function element
-    elementsToSkip += 1; // skip comparable value element
-
-  })
-
-  return convertedDynamic;
+  // while loop here for "or" and "and". use index + counter to get the next expression element
+  else {
+    convertedDynamic.operator = dynamic[0];
+    dynamic.shift().map((expEl, index) => {
+      if (elementsToSkip > 0) {
+        elementsToSkip--;
+        return;
+      }
+      const newExp: ExpressionElement = {
+        id: uuidv4(),
+        function: expEl as ExpressionFunction, // might need an error handling if function is invalid
+      }
+      const updatedExpAddingValue = convertExpressionElement(newExp, dynamic[index + 1][index + 2], false);
+      convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, dynamic[index + 1][index + 3], true));
+      elementsToSkip += 1; // skip operator element
+      }
+    );
+    return convertedDynamic;
+  }
 }
 
 const convertExpressionElement = (internalExpEl: ExpressionElement, externalExpEl: any, isComparable: boolean): ExpressionElement => {
@@ -620,7 +606,6 @@ export const convertInternalDynamicToExternal = (dynamic: Dynamic): any => {
  * ["or",
  *     ["equals", ["component", "my-component"], "my-value"],
  *     ["equals", "foo", "baz"],
- *  "and",
  *     ["greaterThan", ["dataModel", "My.Model.Other.Field"], 20],
  *     ["notEquals", ["component", "my-other-component"], null],
  *  ]

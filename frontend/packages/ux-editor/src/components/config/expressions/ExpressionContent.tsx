@@ -16,19 +16,32 @@ import { DataSourceValue } from './DataSourceValue';
 interface IExpressionContentProps {
   expressionAction: boolean;
   expressionElement: ExpressionElement;
-  onAddExpressionElement: () => void;
-  onUpdateExpressionElement: () => void;
+  dynamicOperator?: 'og' | 'eller';
+  onAddExpressionElement: (expOp: string) => void;
+  onUpdateExpressionElement: (expressionElement: ExpressionElement) => void;
+  onUpdateDynamicOperator: (dynamicOp: 'og' | 'eller') => void;
   onRemoveExpressionElement: (expressionElement: ExpressionElement) => void;
 }
 
 // change name to CreateExpressionElement?
 export const ExpressionContent = ({
+<<<<<<< HEAD
   expressionAction,
   expressionElement,
   onAddExpressionElement,
   onUpdateExpressionElement,
   onRemoveExpressionElement,
 }: IExpressionContentProps) => {
+=======
+                                    expressionAction,
+                                    expressionElement,
+                                    dynamicOperator,
+                                    onAddExpressionElement,
+                                    onUpdateExpressionElement,
+                                    onUpdateDynamicOperator,
+                                    onRemoveExpressionElement
+                                  }: IExpressionContentProps) => {
+>>>>>>> 7409244a4 (Move operator value up to dynamic object insted of expressionel)
   const { t } = useTranslation();
   const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
   const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] =
@@ -93,16 +106,20 @@ export const ExpressionContent = ({
     handleUpdateExpressionElement();
   };
 
-  const addExpressionOperatorForPrevExpression = (operator: 'og' | 'eller') => {
-    expressionElement.expressionOperatorForNextExpression = operator;
-    handleUpdateExpressionElement();
+  const updateDynamicOperator = (operator: 'og' | 'eller') => {
+    onUpdateDynamicOperator(operator);
   };
 
-  const handleAddExpressionElement = () => {
+  const handleAddExpressionElement = (expressionOperator: 'og' | 'eller') => {
     setShowAddExpressionButton(!showAddExpressionButton);
+<<<<<<< HEAD
     expressionElement.expressionOperatorForNextExpression = 'og';
     onAddExpressionElement();
   };
+=======
+    onAddExpressionElement(expressionOperator);
+  }
+>>>>>>> 7409244a4 (Move operator value up to dynamic object insted of expressionel)
 
   const handleUpdateExpressionElement = () => {
     if (
@@ -194,6 +211,7 @@ export const ExpressionContent = ({
             </div>
           </div>
           <div className={classes.addExpression}>
+<<<<<<< HEAD
             {!expressionElement.expressionOperatorForNextExpression || showAddExpressionButton ? (
               <Button variant='quiet' onClick={handleAddExpressionElement} size='small'>
                 <i
@@ -206,15 +224,38 @@ export const ExpressionContent = ({
               </Button>
             ) : (
               <div className={classes.andOrToggleButtons}>
+=======
+            {!dynamicOperator || showAddExpressionButton ? (
+                <Button
+                  variant='quiet'
+                  size='small'
+                  onClick={() => handleAddExpressionElement(dynamicOperator || 'og')}
+                >
+                  <i
+                    className={cn('fa', classes.plusIcon, {
+                      'fa-circle-plus': showAddExpressionButton,
+                      'fa-circle-plus-outline': !showAddExpressionButton,
+                    })}
+                  />
+                  {t('right_menu.dynamics_add_expression')}
+                </Button>)
+              : (
+                <div className={classes.andOrToggleButtons}>
+>>>>>>> 7409244a4 (Move operator value up to dynamic object insted of expressionel)
                 <ToggleButtonGroup
                   items={[
                     { label: 'Og', value: 'og' },
                     { label: 'Eller', value: 'eller' },
                   ]}
+<<<<<<< HEAD
                   onChange={(value) =>
                     addExpressionOperatorForPrevExpression(value as 'og' | 'eller')
                   }
                   selectedValue={expressionElement.expressionOperatorForNextExpression || 'og'}
+=======
+                  onChange={(value) => updateDynamicOperator(value as 'og' | 'eller')}
+                  selectedValue={dynamicOperator || 'og'}
+>>>>>>> 7409244a4 (Move operator value up to dynamic object insted of expressionel)
                 />
               </div>
             )}

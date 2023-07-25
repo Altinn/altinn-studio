@@ -7,8 +7,8 @@ import {
 } from '../../../types/Expressions';
 import { Button, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
-import { ExpressionContent, ExpressionElement } from './ExpressionContent';
-import { Dynamic } from '../../rightMenu/Dynamics';
+import { Dynamic, ExpressionElement } from '../../../types/Expressions';
+import { ExpressionContent } from './ExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { v4 as uuidv4 } from 'uuid';
@@ -89,11 +89,17 @@ export const DynamicContent = ({
     setExpressionElements(dynamic.expressionElements);
   };
 
-  const addExpressionElement = () => {
+  const addExpressionElement = (dynamicOperator: 'og' | 'eller') => {
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
     const updatedExpressionElements = [...dynamic.expressionElements, newExpressionElement];
     dynamic.expressionElements.push(newExpressionElement);
+    setOperator(dynamicOperator);
+    dynamic.operator = dynamicOperator;
     setExpressionElements(updatedExpressionElements);
+  };
+
+  const updateDynamicOperator = (dynamicOperator: 'og' | 'eller') => {
+    setOperator(dynamicOperator);
   };
 
   const updateExpressionElement = () => {
@@ -162,8 +168,10 @@ export const DynamicContent = ({
               <ExpressionContent // context?
                 expressionAction={allowToSpecifyExpression}
                 expressionElement={expEl}
-                onAddExpressionElement={addExpressionElement}
+                dynamicOperator={operator}
+                onAddExpressionElement={(dynamicOp: 'og' | 'eller') => addExpressionElement(dynamicOp)}
                 onUpdateExpressionElement={updateExpressionElement}
+                onUpdateDynamicOperator={updateDynamicOperator}
                 onRemoveExpressionElement={() => removeExpressionElement(expEl)}
               />
             </div>
@@ -172,29 +180,15 @@ export const DynamicContent = ({
       ) : (
         <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
-            <span>
-              <Trans
-                i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]}
-                values={{ componentName: component.id }}
-                components={{ bold: <strong /> }}
-              />
-            </span>
-            {expressionElements.map((expEl: ExpressionElement) => (
-              <div key={expEl.id}>
-                <p>
-                  {' '}
-                  <ArrowRightIcon fontSize='1.5rem' />
-                  {expEl.dataSource} <span>{expEl.value}</span>
-                </p>
-                <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
-                <p>
-                  {' '}
-                  <ArrowRightIcon fontSize='1.5rem' />
-                  {expEl.comparableDataSource} <span>{expEl.comparableValue}</span>
-                </p>
-                <p className={classes.bold}>{expEl.expressionOperatorForNextExpression}</p>
-              </div> // add a green checkmark
-            ))}
+            <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]} values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
+              {expressionElements.map((expEl: ExpressionElement) => (
+                <div key={expEl.id}>
+                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
+                  <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
+                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '} <span>{expEl.comparableValue}</span></p>
+                  <p className={classes.bold}>{dynamic.operator}</p>
+                </div> // add a green checkmark
+              ))}
           </div>
           <div>
             <Button

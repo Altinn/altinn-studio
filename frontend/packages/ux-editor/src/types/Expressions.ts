@@ -3,13 +3,13 @@ import i18next from 'i18next';
 export interface Dynamic {
   id?: string;
   editMode: boolean;
+  operator?: 'og' | 'eller';
   property?: ExpressionPropertyBase | ExpressionPropertyForGroup; // action?
   expressionElements?: ExpressionElement[];
 }
 
 export interface ExpressionElement {
   id: string;
-  expressionOperatorForNextExpression?: 'og' | 'eller';
   function?: ExpressionFunction;
   dataSource?: string;
   value?: string;
@@ -18,6 +18,7 @@ export interface ExpressionElement {
 }
 
 // Could we instead collect all properties from the specific component that has the type boolean?
+// What about strings that can be set with e.g. if/else and concat
 export enum ExpressionPropertyBase {
   Hidden = 'hidden',
   ReadOnly = 'readOnly',
