@@ -1,4 +1,4 @@
-import React, { useMemo} from 'react';
+import React, { useMemo } from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
