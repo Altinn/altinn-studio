@@ -30,6 +30,7 @@ import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from './hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
+import { PageSpinner } from 'app-shared/components';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -146,7 +147,7 @@ export function App() {
     [dispatch]
   );
   if (!repoStatus) {
-    return null;
+    return <PageSpinner/>;
   }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
