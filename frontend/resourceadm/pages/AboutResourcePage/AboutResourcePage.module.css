@@ -1,9 +1,20 @@
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.rightWrapper {
+  height: 100vh;
+  top: 0;
+  position: sticky;
+}
+
 .pageWrapper {
-  width: 50%;
   margin: 0;
   padding-top: 2%;
   padding-bottom: 50px;
   padding-inline: 2%;
+  width: 600px;
 }
 
 .pageHeader {

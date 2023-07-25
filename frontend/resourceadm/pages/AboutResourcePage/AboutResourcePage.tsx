@@ -19,6 +19,7 @@ import {
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
+import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 
 /**
  * The resource type options to be used in the select
@@ -32,7 +33,13 @@ const resourceTypeOptions = [
 /**
  * Initial value for languages with empty fields
  */
-const emptyLangauges = { nb: '', nn: '', en: '' };
+const emptyLangauges: LanguageStringType = { nb: '', nn: '', en: '' };
+
+export interface LanguageStringType {
+  nb?: string;
+  nn?: string;
+  en?: string;
+}
 
 interface Props {
   showAllErrors: boolean;
@@ -49,9 +56,9 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const repo = `${selectedContext}-resources`;
 
   // States to store the different input values
-  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined); // MANDATORY
-  const [title, setTitle] = useState<SupportedLanguageKey<string>>(emptyLangauges); // MANDATORY - NB, NN, EN
-  const [description, setDescription] = useState<SupportedLanguageKey<string>>(emptyLangauges); // MANDATORY - NB, NN, EN
+  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined);
+  const [title, setTitle] = useState<SupportedLanguageKey<string>>(emptyLangauges);
+  const [description, setDescription] = useState<SupportedLanguageKey<string>>(emptyLangauges);
   const [homepage, setHomepage] = useState('');
   const [keywords, setKeywords] = useState('');
   const [sector, setSector] = useState<string[]>([]);
@@ -60,6 +67,11 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     useState<SupportedLanguageKey<string>>(emptyLangauges);
   const [isPublicService, setIsPublicService] = useState(false);
   const [version, setVersion] = useState<VersionType>();
+
+  // To handle which translation value is shown in the right menu
+  const [translationType, setTranslationType] = useState<
+    'none' | 'title' | 'description' | 'rightDescription'
+  >('none');
 
   // To handle the state of the aoge
   const [isLoading, setIsLoading] = useState(false);
@@ -217,6 +229,53 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   };
 
   /**
+   * Sets the values of the selected field and updates if the error is shown or not.
+   *
+   * @param value the value typed in the input field
+   */
+  const handleChangeTranslationValues = (value: LanguageStringType) => {
+    if (translationType === 'title') {
+      setHasTitleError(value.nb === '' || value.nn === '' || value.en === '');
+      setTitle(value);
+    }
+    if (translationType === 'description') {
+      setHasDescriptionError(value.nb === '' || value.nn === '' || value.en === '');
+      setDescription(value);
+    }
+    if (translationType === 'rightDescription') {
+      setRightDescription(value);
+    }
+  };
+
+  /**
+   * Displays the correct content in the right translation bar.
+   */
+  const displayRightTranslationBar = () => {
+    return (
+      <div className={classes.rightWrapper}>
+        <RightTranslationBar
+          title={
+            translationType === 'title'
+              ? 'Navn på tjenesten'
+              : translationType === 'description'
+              ? 'Beskrivelse'
+              : 'Delgasjonstekst'
+          }
+          value={
+            translationType === 'title'
+              ? title
+              : translationType === 'description'
+              ? description
+              : rightDescription
+          }
+          onChangeValue={handleChangeTranslationValues}
+          usesTextArea={translationType === 'description'}
+        />
+      </div>
+    );
+  };
+
+  /**
    * Displays the content on the page
    */
   const displayContent = () => {
@@ -243,6 +302,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={getResourceTypeAsDisplayableString()}
             label='Ressurs type'
             hideLabel
+            onFocus={() => setTranslationType('none')}
           />
           {showAllErrors &&
             hasResourceTypeError &&
@@ -258,7 +318,8 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
-            onChange={(e) => setTitle({ ...title, nb: e.target.value })}
+            onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
+            onFocus={() => setTranslationType('title')}
             aria-labelledby='resource-titel'
           />
           <ScreenReaderSpan id='resource-titel' label='Navn på tjenesten' />
@@ -277,7 +338,10 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={description['nb']}
             resize='vertical'
             placeholder='Tekst'
-            onChange={(e) => setDescription({ ...description, nb: e.currentTarget.value })}
+            onChange={(e) => {
+              handleChangeTranslationValues({ ...description, nb: e.currentTarget.value });
+            }}
+            onFocus={() => setTranslationType('description')}
             rows={5}
             aria-labelledby='resource-description'
           />
@@ -294,6 +358,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={homepage}
             onChange={(e) => setHomepage(e.target.value)}
             aria-labelledby='resource-homepage'
+            onFocus={() => setTranslationType('none')}
           />
           <ScreenReaderSpan id='resource-homepage' label='Hjemmeside' />
         </div>
@@ -306,6 +371,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
             aria-labelledby='resource-keywords'
+            onFocus={() => setTranslationType('none')}
           />
           <ScreenReaderSpan id='resource-keywords' label='Nøkkelord' />
         </div>
@@ -320,6 +386,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={sector}
             label='Hvilken sektor er tjenesten relatert til?'
             hideLabel
+            onFocus={() => setTranslationType('none')}
           />
         </div>
         <h2 className={classes.subHeader}>Hvilket tematiske område dekker tjenesten?</h2>
@@ -331,6 +398,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={thematicArea}
             label='Velg tematisk område'
             hideLabel
+            onFocus={() => setTranslationType('none')}
           />
         </div>
         <h2 className={classes.subHeader}>Delegasjonstekst</h2>
@@ -340,6 +408,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
             value={rightDescription['nb']}
             onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
             aria-labelledby='resource-delegationtext'
+            onFocus={() => setTranslationType('rightDescription')}
           />
           <ScreenReaderSpan id='resource-delegationtext' label='Delegasjonstekst' />
         </div>
@@ -362,5 +431,10 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     );
   };
 
-  return <div className={classes.pageWrapper}>{displayContent()}</div>;
+  return (
+    <div className={classes.wrapper}>
+      <div className={classes.pageWrapper}>{displayContent()}</div>
+      {translationType !== 'none' && displayRightTranslationBar()}
+    </div>
+  );
 };
