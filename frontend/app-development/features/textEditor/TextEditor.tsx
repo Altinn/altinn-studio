@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { LangCode } from '@altinn/text-editor';
-import { TextEditor as TextEditorImpl } from '@altinn/text-editor';
+import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { PageSpinner } from 'app-shared/components';
@@ -23,10 +23,13 @@ export const TextEditor = () => {
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
   const [selectedLangCodes, setSelectedLangCodes] = useState<LangCode[]>([]);
 
-useEffect(() => {
-  const initialSelectedLangCodes = JSON.parse(localStorage.getItem('selectedLanguages')) || [];
-  setSelectedLangCodes(initialSelectedLangCodes);
-}, []);
+  const handleSelectedLangCodes = (value: LangCode[]) => {
+    setSelectedLangCodes(value?.length > 0 ? value : [defaultLangCode]);
+  };
+  useEffect(() => {
+    const initialSelectedLangCodes = JSON.parse(localStorage.getItem('selectedLanguages'));
+    handleSelectedLangCodes(initialSelectedLangCodes);
+  }, []);
 
 useEffect(() => {
   localStorage.setItem('selectedLanguages', JSON.stringify(selectedLangCodes));
@@ -119,7 +122,7 @@ useEffect(() => {
         searchQuery={getSearchQuery()}
         selectedLangCodes={selectedLangCodes}
         setSearchQuery={setSearchQuery}
-        setSelectedLangCodes={setSelectedLangCodes}
+        setSelectedLangCodes={handleSelectedLangCodes}
         textResourceFiles={textResources || {}}
         updateTextId={(data: TextResourceIdMutation) => textIdMutation([data])}
         upsertTextResource={upsertTextResource}
