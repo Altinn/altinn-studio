@@ -29,6 +29,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
+  // TODO - Tanstack: https://tanstack.com/query/latest
   const [loadingPublishStatus, setLoadingPublishStatus] = useState(false);
   const [loadingValidatePolicy, setLoadingValidatePolicy] = useState(false);
   const [loadingValidateResource, setLoadingValidateResource] = useState(false);
@@ -164,7 +165,12 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const displayStatusCard = () => {
     if (getStatusCardType() === 'success') {
       return (
-        <ResourceDeployStatus title='Ressursen er klar til å publiseres' error={[]} isSuccess />
+        <ResourceDeployStatus
+          title='Ressursen er klar til å publiseres'
+          error={[]}
+          isSuccess
+          resourceId={resourceId}
+        />
       );
     }
     return (
@@ -172,6 +178,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         title='Du må fikse disse feilene før du kan gå videre'
         error={getStatusError()}
         onNavigateToPageWithError={navigateToPageWithError}
+        resourceId={resourceId}
       />
     );
   };

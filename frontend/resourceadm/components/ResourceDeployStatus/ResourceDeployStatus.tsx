@@ -14,6 +14,7 @@ interface Props {
   error: DeployErrorType[] | string;
   isSuccess?: boolean;
   onNavigateToPageWithError?: (page: NavigationBarPageType) => void;
+  resourceId: string;
 }
 
 /**
@@ -27,6 +28,7 @@ export const ResourceDeployStatus = ({
   error,
   isSuccess = false,
   onNavigateToPageWithError,
+  resourceId,
 }: Props) => {
   /**
    * Display the different errors based on the type of the error
@@ -41,7 +43,7 @@ export const ResourceDeployStatus = ({
       );
     }
     return error.map((e, index) => (
-      <div className={classes.cardElement} key={index}>
+      <div className={classes.cardElement} key={index + resourceId}>
         <ArrowRightIcon title={e.message} fontSize='1.5rem' />
         <p className={classes.text}>{e.message}</p>
         <LinkButton

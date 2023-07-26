@@ -36,10 +36,12 @@ export const RightMenu = ({
   const { t } = useTranslation();
   const [langCodeToDelete, setLangCodeToDelete] = useState<LangCode>();
 
-  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>
+  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>{
     target.checked
-      ? setSelectedLanguages([...selectedLanguages, target.name])
-      : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
+    ? setSelectedLanguages([...selectedLanguages, target.name])
+    : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
+  }
+   
 
   const handleDeleteLanguage = (langCode: LangCode) => {
     if (langCodeToDelete === langCode) {

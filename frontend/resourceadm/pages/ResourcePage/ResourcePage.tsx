@@ -133,7 +133,6 @@ export const ResourcePage = () => {
     return new Promise<boolean>((resolve) => {
       get(getValidateResourceUrl(selectedContext, repo, resourceId))
         .then((res) => {
-          console.log(res);
           resolve(res.status === 200);
         })
         .catch((err) => {
