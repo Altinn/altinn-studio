@@ -28,7 +28,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
   return (
     <tr>
       <td className={`${classes.tableDataXLarge} ${classes.tableData}`}>
-        <p className={classes.tableDataText}>{resource.title}</p>
+        <p className={classes.tableDataText}>{resource.title['nb']}</p>
       </td>
       <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
         <p className={classes.tableDataText}>{resource.createdBy}</p>

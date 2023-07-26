@@ -20,6 +20,7 @@ import {
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
+import { useResourceSectorsQuery } from 'resourceadm/hooks/queries/useResourceSectorsQuery';
 
 /**
  * The resource type options to be used in the select
@@ -54,6 +55,12 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   // TODO - translation
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
+
+  // TODO
+  const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
+
+  console.log(sectorsData);
+  console.log(sectorsLoading);
 
   // States to store the different input values
   const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined);

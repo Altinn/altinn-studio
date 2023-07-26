@@ -25,6 +25,13 @@ import {
   widgetSettingsPath,
   optionListIdsPath,
   datamodelPath,
+  resourceSectorsPath,
+  resourcePolicyPath,
+  resourceActionsPath,
+  resourceSubjectsPath,
+  resourcePublishStatusPath,
+  resourceListPath,
+  resourceSinglePath,
 } from './paths';
 import {
   AppDeploymentsResponse,
@@ -50,6 +57,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceType, ResourceVersionStatusType } from 'resourceadm/types/global';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -81,3 +89,15 @@ export const getOptionListIds = (owner: string, app: string) => get<string[]>(op
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
 export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl());
+
+// Resourceadm
+export const getPolicy = (org: string, repo: string, id: string) => get<PolicyBackendType>(resourcePolicyPath(org, repo, id));
+export const getPolicyActions = (org: string, repo: string) => get<PolicyActionType[]>(resourceActionsPath(org, repo));
+export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjectType[]>(resourceSubjectsPath(org, repo));
+export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
+export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
+export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id))
+
+export const getResourceSectors = (org: string) => get<any>(resourceSectorsPath(org)); // TODO TYPE
+
+

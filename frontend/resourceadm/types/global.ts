@@ -43,7 +43,7 @@ export interface PolicyBackendType {
 export type NavigationBarPageType = 'about' | 'policy' | 'deploy';
 
 export interface ResourceType {
-  title: string;
+  title: SupportedLanguageKey<string>;
   createdBy: string;
   lastChanged: string;
   hasPolicy: boolean;
@@ -95,4 +95,9 @@ export interface ResourceVersionStatusType {
   policyVersion?: string;
   resourceVersion?: string;
   publishedVersions: VersionType[];
+}
+
+export interface NewResourceType {
+  identifier: string;
+  title: SupportedLanguageKey<string>;
 }

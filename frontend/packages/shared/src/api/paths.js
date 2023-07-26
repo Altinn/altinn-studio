@@ -115,3 +115,22 @@ export const userCurrentPath = () => '/designer/api/user/current'; // Get
 export const userReposPath = () => '/designer/api/user/repos'; // Get
 export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
+
+// Resourceadm
+const resourceAdmBasePath = 'http://studio.localhost/designer/api'
+
+export const resourcePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/${id}`; // Get, Put
+export const resourceActionsPath = (org, repo) => `${resourceAdmBasePath}/${org}/${repo}/policy/actionoptions`; // Get
+export const resourceSubjectsPath = (org, repo) => `${resourceAdmBasePath}/${org}/${repo}/policy/subjectoptions`; // Get
+export const resourcePublishStatusPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
+export const resourceListPath = (org) => `${resourceAdmBasePath}/${org}/resources/resourcelist`; // Get
+export const resourceCreatePath = (org) => `${resourceAdmBasePath}/${org}/resources/addresource`; // Post
+export const resourceSinglePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/${repo}/${id}`; // Get
+
+
+export const resourceEditPath = (org, id) => `${resourceAdmBasePath}/${org}/resources/updateresource/${id}`
+export const resourceValidateResourcePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/validate/${repo}/${id}`
+export const resourceValidatePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/validate/${id}`
+
+// WORKING
+export const resourceSectorsPath = (org) => `${resourceAdmBasePath}/${org}/resources/sectors`; // Get

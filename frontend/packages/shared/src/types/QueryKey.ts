@@ -26,4 +26,13 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   OptionListIds = 'OptionListIds',
+
+  ResourcePolicy = 'ResourcePolicy',
+  ResourcePolicyActions = 'ResourcePolicyActions',
+  ResourcePolicySubjects = 'ResourcePolicySubjects',
+  ResourcePublishStatus = 'ResourcePublishStatus',
+  ResourceList = 'ResourceList',
+  CreateResource = 'CreateResource',
+
+  ResourceSectors = 'ResourceSectors'
 }
