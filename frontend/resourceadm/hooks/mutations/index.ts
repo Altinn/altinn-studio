@@ -1,4 +1,5 @@
 export { useRepoPushMutation } from './useRepoPushMutation';
 export { useCreateRepoCommitMutation } from './useCreateRepoCommitMutation';
-export { useResourcePolicyMutation } from './useResourcePolicyMutation';
+export { useEditResourcePolicyMutation } from './useEditResourcePolicyMutation';
 export { useCreateResourceMutation } from './useCreateResourceMutation';
+export { useEditResourceMutation } from './useEditResourceMutation';

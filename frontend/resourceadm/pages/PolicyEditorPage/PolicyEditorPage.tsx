@@ -10,7 +10,7 @@ import {
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'resourceadm/hooks/queries';
-import { useResourcePolicyMutation } from 'resourceadm/hooks/mutations';
+import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
 
 interface Props {
   showAllErrors: boolean;
@@ -44,7 +44,7 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
   );
 
   // Mutation function to update policy
-  const { mutate: updatePolicyMutation } = useResourcePolicyMutation(
+  const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(
     selectedContext,
     repo,
     resourceId
@@ -54,7 +54,12 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
    * Saves the policy to backend
    */
   const handleSavePolicy = (p: PolicyBackendType) => {
-    updatePolicyMutation(p);
+    updatePolicyMutation(p, {
+      // TODO - Display that it was saved
+      onSuccess: () => {
+        console.log('success');
+      },
+    });
   };
 
   /**

@@ -18,37 +18,6 @@ export const getValidatePolicyUrl = (
 }
 
 /**
- * Gets the URL path to the API fora single resource
- *
- * @param selectedContext the organisation
- * @param id the id of the selected resource
- *
- * @returns the url path string
- */
-export const getResourceUrl = (
-  selectedContext: string,
-  repo: string,
-  id: string
-): string => {
-  return `${basePath}/${selectedContext}/resources/${repo}/${id}`
-}
-
-/**
- * Gets the URL path to the API for the editing of an exisitng resource
- *
- * @param selectedContext the organisation
- * @param id the id of the resource
- *
- * @returns the url path string
- */
-export const getEditResourceUrl = (
-  selectedContext: string,
-  id: string
-): string => {
-  return `${basePath}/${selectedContext}/resources/updateresource/${id}`
-}
-
-/**
  * Gets the URL path to the API for validating a resource
  *
  * @param selectedContext the organisation

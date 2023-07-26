@@ -8,4 +8,5 @@ export { useResourcePolicyActionsQuery } from './useResourcePolicyActionsQuery';
 export { useResourcePolicySubjectsQuery } from './useResourcePolicySubjectsQuery';
 export { useResourcePolicyPublishStatusQuery } from './useResourcePolicyPublishStatusQuery';
 export { useGetResourceListQuery } from './useGetResourceListQuery';
+export { useSinlgeResourceQuery } from './useSinlgeResourceQuery';
 

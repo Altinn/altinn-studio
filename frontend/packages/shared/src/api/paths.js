@@ -126,9 +126,8 @@ export const resourcePublishStatusPath = (org, repo, id) => `${resourceAdmBasePa
 export const resourceListPath = (org) => `${resourceAdmBasePath}/${org}/resources/resourcelist`; // Get
 export const resourceCreatePath = (org) => `${resourceAdmBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/${repo}/${id}`; // Get
+export const resourceEditPath = (org, id) => `${resourceAdmBasePath}/${org}/resources/updateresource/${id}`; // Put
 
-
-export const resourceEditPath = (org, id) => `${resourceAdmBasePath}/${org}/resources/updateresource/${id}`
 export const resourceValidateResourcePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/validate/${repo}/${id}`
 export const resourceValidatePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/validate/${id}`
 

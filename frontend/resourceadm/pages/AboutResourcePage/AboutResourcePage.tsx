@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Select, TextField, TextArea, Button, Spinner } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
@@ -6,21 +6,19 @@ import {
   resourceSectorsMockOptions,
   resourceThematicAreaMockOptions,
 } from 'resourceadm/data-mocks/resources';
-import { useOnce } from 'resourceadm/hooks/useOnce';
-import { get, put } from 'app-shared/utils/networking';
 import { useParams } from 'react-router-dom';
-import { getEditResourceUrl, getResourceUrl } from 'resourceadm/utils/backendUrlUtils';
 import {
   SupportedLanguageKey,
   ResourceBackendType,
   ResourceTypeOptionType,
   ResourceKeywordType,
-  VersionType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
-import { useResourceSectorsQuery } from 'resourceadm/hooks/queries/useResourceSectorsQuery';
+//import { useResourceSectorsQuery } from 'resourceadm/hooks/queries/useResourceSectorsQuery';
+import { useSinlgeResourceQuery } from 'resourceadm/hooks/queries';
+import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 
 /**
  * The resource type options to be used in the select
@@ -56,11 +54,21 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
-  // TODO
-  const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
+  // Get the metadata with queries
+  const { data: resourceData, isLoading: resourceLoading } = useSinlgeResourceQuery(
+    selectedContext,
+    repo,
+    resourceId
+  );
 
-  console.log(sectorsData);
-  console.log(sectorsLoading);
+  // Mutation function for editing a resource
+  const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
+
+  // TODO
+  // const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
+
+  // console.log(sectorsData);
+  // console.log(sectorsLoading);
 
   // States to store the different input values
   const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined);
@@ -73,84 +81,61 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const [rightDescription, setRightDescription] =
     useState<SupportedLanguageKey<string>>(emptyLangauges);
   const [isPublicService, setIsPublicService] = useState(false);
-  const [version, setVersion] = useState<VersionType>();
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<
     'none' | 'title' | 'description' | 'rightDescription'
   >('none');
 
-  // To handle the state of the aoge
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  // To handle the state of the page
   const [hasResourceTypeError, setHasResourceTypeError] = useState(false);
   const [hasTitleError, setHasTitleError] = useState(false);
   const [hasDescriptionError, setHasDescriptionError] = useState(false);
 
   /**
-   * Once the page loads, get the details about the resource and populate them
+   * When the resource is loaded, populate the states
    */
-  useOnce(() => {
-    setIsLoading(true);
-    get(getResourceUrl(selectedContext, repo, resourceId))
-      .then((res) => {
-        handlePopulateResource(res);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error getting the policy', err);
-        setIsLoading(false);
-        setHasError(true);
-      });
-  });
+  useEffect(() => {
+    if (!resourceLoading) {
+      setResourceType(resourceData.resourceType ?? undefined);
+      setHasResourceTypeError(
+        resourceData.resourceType === undefined || resourceData.resourceType === null
+      );
 
-  /**
-   * Populates the resource values correctly based on if they exist or not.
-   *
-   * @param res the response from backend
-   */
-  const handlePopulateResource = (res: unknown) => {
-    const backendResource = res as ResourceBackendType;
+      setHasResourceTypeError(
+        resourceData.resourceType === undefined || resourceData.resourceType === null
+      );
 
-    setResourceType(backendResource.resourceType ?? undefined);
-    setHasResourceTypeError(
-      backendResource.resourceType === undefined || backendResource.resourceType === null
-    );
+      const backendTitle = resourceData.title;
+      setTitle(backendTitle ?? emptyLangauges);
+      setHasTitleError(
+        backendTitle === undefined ||
+          backendTitle === null ||
+          backendTitle.nb === '' ||
+          backendTitle.nn === '' ||
+          backendTitle.en === ''
+      );
 
-    setHasResourceTypeError(
-      backendResource.resourceType === undefined || backendResource.resourceType === null
-    );
+      const backendDescription = resourceData.description;
+      setDescription(backendDescription ?? emptyLangauges);
+      setHasDescriptionError(
+        backendDescription === undefined ||
+          backendDescription === null ||
+          backendDescription.nb === '' ||
+          backendDescription.nn === '' ||
+          backendDescription.en === ''
+      );
 
-    const backendTitle = backendResource.title;
-    setTitle(backendTitle ?? emptyLangauges);
-    setHasTitleError(
-      backendTitle === undefined ||
-        backendTitle === null ||
-        backendTitle.nb === '' ||
-        backendTitle.nn === '' ||
-        backendTitle.en === ''
-    );
+      setHomepage(resourceData.homepage ?? '');
+      setIsPublicService(resourceData.isPublicService ?? false);
+      setSector(resourceData.sector ?? []);
+      setThematicArea(resourceData.thematicArea ?? '');
+      setRightDescription(resourceData.rightDescription ?? emptyLangauges);
 
-    const backendDescription = backendResource.description;
-    setDescription(backendDescription ?? emptyLangauges);
-    setHasDescriptionError(
-      backendDescription === undefined ||
-        backendDescription === null ||
-        backendDescription.nb === '' ||
-        backendDescription.nn === '' ||
-        backendDescription.en === ''
-    );
-
-    setHomepage(backendResource.homepage ?? '');
-    setIsPublicService(backendResource.isPublicService ?? false);
-    setSector(backendResource.sector ?? []);
-    setThematicArea(backendResource.thematicArea ?? '');
-    setRightDescription(backendResource.rightDescription ?? emptyLangauges);
-    setVersion(backendResource.version);
-
-    // TODO - Find out how to handle the keywords
-    setKeywords(backendResource.keywords ? mapKeywordsArrayToString(backendResource.keywords) : '');
-  };
+      // TODO - Find out how to handle the keywords
+      setKeywords(resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : '');
+    }
+  }, [resourceData, resourceLoading]);
 
   /**
    * ------------ Temporary functions -------------
@@ -173,6 +158,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     // Thematcic area might look like this: https://data.norge.no/reference-data/eu/eurovocs
 
     const editedResourceObject: ResourceBackendType = {
+      ...resourceData,
       identifier: resourceId,
       resourceType,
       title,
@@ -183,18 +169,24 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
       sector,
       thematicArea,
       rightDescription,
-      version,
     };
 
+    editResource(editedResourceObject, {
+      // TODO - Display that it was saved
+      onSuccess: () => {
+        console.log('success');
+      },
+    });
+
     // Update the resource
-    put(getEditResourceUrl(selectedContext, resourceId), editedResourceObject)
+    /*put(getEditResourceUrl(selectedContext, resourceId), editedResourceObject)
       .then(() => {
         // TODO - Display success message that it was saved
         // TODO - Display areas with errors
       })
       .catch((err) => {
         console.error('Error saving the policy', err);
-      });
+      });*/
   };
 
   /**
@@ -290,16 +282,12 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
    * Displays the content on the page
    */
   const displayContent = () => {
-    if (isLoading) {
+    if (resourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
         </div>
       );
-    }
-    // TODO error handling
-    if (hasError) {
-      return <p>Beklager, det skjedde en feil under innhenting av innholdet</p>;
     }
     return (
       <>

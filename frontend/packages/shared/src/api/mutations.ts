@@ -21,7 +21,8 @@ import {
   userStarredRepoPath,
   datamodelPath,
   resourcePolicyPath,
-  resourceCreatePath
+  resourceCreatePath,
+  resourceEditPath
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
@@ -36,7 +37,7 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { NewResourceType, PolicyBackendType } from 'resourceadm/types/global';
+import { NewResourceType, PolicyBackendType, ResourceBackendType } from 'resourceadm/types/global';
 
 const headers = {
   Accept: 'application/json',
@@ -72,5 +73,6 @@ export const updateTranslationByLangCode = (org: string, app: string, language, 
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 
 // Resourceadm
-export const updatePolicy = (org: string, repo: string, id: string, payload: PolicyBackendType) => put(resourcePolicyPath(org, repo, id), payload)
-export const createResource = (org: string, payload: NewResourceType) => post(resourceCreatePath(org), payload)
+export const updatePolicy = (org: string, repo: string, id: string, payload: PolicyBackendType) => put(resourcePolicyPath(org, repo, id), payload);
+export const createResource = (org: string, payload: NewResourceType) => post(resourceCreatePath(org), payload);
+export const updateResource = (org: string, repo: string, payload: ResourceBackendType) => put(resourceEditPath(org, repo), payload);

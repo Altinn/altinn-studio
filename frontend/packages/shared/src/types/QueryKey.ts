@@ -33,6 +33,8 @@ export enum QueryKey {
   ResourcePublishStatus = 'ResourcePublishStatus',
   ResourceList = 'ResourceList',
   CreateResource = 'CreateResource',
+  SingleResource = 'SingleResource',
+  EditResource = 'EditResource',
 
   ResourceSectors = 'ResourceSectors'
 }
