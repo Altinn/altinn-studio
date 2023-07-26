@@ -69,6 +69,7 @@ export const FormContainer = ({
           return;
         }
       }
+      
 
       event.stopPropagation();
       handleDeleteFormContainer(id);
