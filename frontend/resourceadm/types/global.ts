@@ -101,3 +101,11 @@ export interface NewResourceType {
   identifier: string;
   title: SupportedLanguageKey<string>;
 }
+
+export interface ValidationType {
+  //errors: string[];
+  status: number;
+  //title: string;
+  // traceId: string;
+//  type: string;
+}

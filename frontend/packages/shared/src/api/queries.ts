@@ -32,6 +32,8 @@ import {
   resourcePublishStatusPath,
   resourceListPath,
   resourceSinglePath,
+  resourceValidatePolicyPath,
+  resourceValidateResourcePath,
 } from './paths';
 import {
   AppDeploymentsResponse,
@@ -57,7 +59,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
-import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceType, ResourceVersionStatusType } from 'resourceadm/types/global';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -97,6 +99,8 @@ export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjec
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
 export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id))
+export const getValidatePolicy = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidatePolicyPath(org, repo, id))
+export const getValidateResource = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidateResourcePath(org, repo, id))
 
 export const getResourceSectors = (org: string) => get<any>(resourceSectorsPath(org)); // TODO TYPE
 

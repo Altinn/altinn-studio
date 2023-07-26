@@ -6,11 +6,13 @@ import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
-import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import {
+  useRepoStatusQuery,
+  useValidatePolicyQuery,
+  useValidateResourceQuery,
+} from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
-import { get } from 'app-shared/utils/networking';
-import { getValidatePolicyUrl, getValidateResourceUrl } from 'resourceadm/utils/backendUrlUtils';
 import { NavigationModal } from 'resourceadm/components/NavigationModal';
 
 /**
@@ -36,8 +38,14 @@ export const ResourcePage = () => {
   const [resourceErrorModalOpen, setResourceErrorModalOpen] = useState(false);
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
-  // Get the status of the repo and the function to refetch it
+  // Get the metadata from the queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: validatePolicyData } = useValidatePolicyQuery(selectedContext, repo, resourceId);
+  const { data: validateResourceData } = useValidateResourceQuery(
+    selectedContext,
+    repo,
+    resourceId
+  );
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -62,29 +70,26 @@ export const ResourcePage = () => {
   const navigateToPage = (page: NavigationBarPageType) => {
     // Validate Resource and display errors + modal
     if (currentPage === 'about') {
-      validateResourceOK().then((isOK) => {
-        if (isOK) {
-          setShowResourceErrors(false);
-          handleNavigation(page);
-        } else {
-          setShowResourceErrors(true);
-          setNextPage(page);
-          setResourceErrorModalOpen(true);
-        }
-      });
+      console.log(validateResourceData);
+      if (validateResourceData.status === 200) {
+        setShowResourceErrors(false);
+        handleNavigation(page);
+      } else {
+        setShowResourceErrors(true);
+        setNextPage(page);
+        setResourceErrorModalOpen(true);
+      }
     }
     // Validate Ppolicy and display errors + modal
     else if (currentPage === 'policy') {
-      validatePolicyOK().then((isOK) => {
-        if (isOK) {
-          setShowPolicyErrors(false);
-          handleNavigation(page);
-        } else {
-          setShowPolicyErrors(true);
-          setNextPage(page);
-          setPolicyErrorModalOpen(true);
-        }
-      });
+      if (validatePolicyData && validatePolicyData.status === 200) {
+        setShowPolicyErrors(false);
+        handleNavigation(page);
+      } else {
+        setShowPolicyErrors(true);
+        setNextPage(page);
+        setPolicyErrorModalOpen(true);
+      }
     }
     // Else navigate
     else handleNavigation(page);
@@ -101,45 +106,6 @@ export const ResourcePage = () => {
     setResourceErrorModalOpen(false);
     refetch();
     navigate(getResourcePageURL(selectedContext, repo, resourceId, newPage));
-  };
-
-  /**
-   * Validates errors in a policy.
-   *
-   * @returns a promise of a boolean with true when there are no errors, and false when there are errors
-   */
-  const validatePolicyOK = (): Promise<boolean> => {
-    return new Promise<boolean>((resolve) => {
-      get(getValidatePolicyUrl(selectedContext, repo, resourceId))
-        .then((res) => {
-          // Remove error if status is 200
-          // res.status === '200' && setHasPolicyError(false);
-          resolve(res.status === 200);
-        })
-        .catch((err) => {
-          console.error(err);
-          // TODO - If we get 404, display message about that the policy is missing
-          resolve(false);
-        });
-    });
-  };
-
-  /**
-   * Validates errors in a resource.
-   *
-   * @returns a promise of a boolean with true when there are no errors, and false when there are errors
-   */
-  const validateResourceOK = (): Promise<boolean> => {
-    return new Promise<boolean>((resolve) => {
-      get(getValidateResourceUrl(selectedContext, repo, resourceId))
-        .then((res) => {
-          resolve(res.status === 200);
-        })
-        .catch((err) => {
-          console.error(err);
-          resolve(false);
-        });
-    });
   };
 
   /**

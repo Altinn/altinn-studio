@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { DeployErrorType, ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { useOnce } from 'resourceadm/hooks/useOnce';
 import { TextField, Button, Spinner } from '@digdir/design-system-react';
-import { get } from 'app-shared/utils/networking';
-import { getValidatePolicyUrl, getValidateResourceUrl } from 'resourceadm/utils/backendUrlUtils';
 import { useParams } from 'react-router-dom';
 import { NavigationBarPageType } from 'resourceadm/types/global';
-import { useRepoStatusQuery, useResourcePolicyPublishStatusQuery } from 'resourceadm/hooks/queries';
+import {
+  useRepoStatusQuery,
+  useResourcePolicyPublishStatusQuery,
+  useValidatePolicyQuery,
+  useValidateResourceQuery,
+} from 'resourceadm/hooks/queries';
 import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
@@ -26,12 +28,8 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const repo = `${selectedContext}-resources`;
 
   // TODO - Tanstack: https://tanstack.com/query/latest
-  const [loadingValidatePolicy, setLoadingValidatePolicy] = useState(false);
-  const [loadingValidateResource, setLoadingValidateResource] = useState(false);
-
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
 
-  const [hasResourceError, setHasResourceError] = useState(true);
   const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
     'none'
   );
@@ -45,6 +43,25 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     repo,
     resourceId
   );
+  const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
+    selectedContext,
+    repo,
+    resourceId
+  );
+  const { data: validateResourceData, isLoading: validateResourceLoading } =
+    useValidateResourceQuery(selectedContext, repo, resourceId);
+
+  /**
+   * Set the value for policy error
+   */
+  useEffect(() => {
+    if (!validatePolicyLoading) {
+      console.log('inside');
+      if (validatePolicyData === undefined) setHasPolicyError('notExisting');
+      else if (validatePolicyData.status === 400) setHasPolicyError('validationFailed');
+      else setHasPolicyError('none');
+    }
+  }, [validatePolicyData, validatePolicyLoading]);
 
   // TODO -  might need to adjust this in future
   useEffect(() => {
@@ -52,38 +69,6 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       setNewVersionText(versionData.resourceVersion ?? '');
     }
   }, [versionData, versionLoading]);
-
-  /**
-   * When the page loads, validate the resource and policy and display error / success
-   */
-  useOnce(() => {
-    setLoadingValidatePolicy(true);
-    setLoadingValidateResource(true);
-
-    // Validate policy
-    get(getValidatePolicyUrl(selectedContext, repo, resourceId))
-      .then((validatePolicyRes) => {
-        // Remove error if status is 200
-        setHasPolicyError(validatePolicyRes.status === 200 ? 'none' : 'validationFailed');
-        setLoadingValidatePolicy(false);
-      })
-      .catch((err) => {
-        // If the ploicy does not exist, set it
-        if (err.response.status === 404) setHasPolicyError('notExisting');
-        setLoadingValidatePolicy(false);
-      });
-
-    // Validate resource
-    get(getValidateResourceUrl(selectedContext, repo, resourceId))
-      .then((validateResourceRes) => {
-        // Remove error if status is 200
-        validateResourceRes.status === 200 && setHasResourceError(false);
-        setLoadingValidateResource(false);
-      })
-      .catch(() => {
-        setLoadingValidateResource(false);
-      });
-  });
 
   /**
    * Constantly check the repostatus to see if we are behind or ahead of master
@@ -105,7 +90,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const getStatusCardType = (): 'danger' | 'success' => {
     // TODO - Add check for if version is correct
     if (
-      hasResourceError ||
+      validateResourceData.status !== 200 ||
       hasPolicyError !== 'none' ||
       !isLocalRepoInSync ||
       versionData.resourceVersion === null
@@ -118,9 +103,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    * Returns the correct error type for the deploy page
    */
   const getStatusError = (): DeployErrorType[] | string => {
-    if (hasResourceError || hasPolicyError !== 'none') {
+    if (validateResourceData.status !== 200 || hasPolicyError !== 'none') {
       const errorList: DeployErrorType[] = [];
-      if (hasResourceError) {
+      if (validateResourceData.status !== 200) {
         errorList.push({
           message: 'Du har mangler i ressursen',
           pageWithError: 'about',
@@ -178,7 +163,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const isDeployPossible = (type: 'test' | 'prod', envVersion: string): boolean => {
     if (
       type === 'test' &&
-      !hasResourceError &&
+      validateResourceData.status === 200 &&
       !hasPolicyError &&
       isLocalRepoInSync &&
       envVersion !== versionData.resourceVersion
@@ -187,7 +172,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     }
     if (
       type === 'prod' &&
-      !hasResourceError &&
+      validateResourceData.status === 200 &&
       !hasPolicyError &&
       isLocalRepoInSync &&
       envVersion !== versionData.resourceVersion
@@ -201,7 +186,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    * Display the content on the page
    */
   const displayContent = () => {
-    if (versionLoading || loadingValidatePolicy || loadingValidateResource) {
+    if (versionLoading || validatePolicyLoading || validateResourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />

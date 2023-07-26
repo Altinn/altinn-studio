@@ -35,6 +35,8 @@ export enum QueryKey {
   CreateResource = 'CreateResource',
   SingleResource = 'SingleResource',
   EditResource = 'EditResource',
+  ValidatePolicy = 'ValidatePolicy',
+  ValidateResource = 'ValidateResource',
 
   ResourceSectors = 'ResourceSectors'
 }

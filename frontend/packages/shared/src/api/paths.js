@@ -128,8 +128,9 @@ export const resourceCreatePath = (org) => `${resourceAdmBasePath}/${org}/resour
 export const resourceSinglePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${resourceAdmBasePath}/${org}/resources/updateresource/${id}`; // Put
 
+export const resourceValidatePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/validate/${id}`; // Get
+
 export const resourceValidateResourcePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/validate/${repo}/${id}`
-export const resourceValidatePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/validate/${id}`
 
 // WORKING
 export const resourceSectorsPath = (org) => `${resourceAdmBasePath}/${org}/resources/sectors`; // Get
