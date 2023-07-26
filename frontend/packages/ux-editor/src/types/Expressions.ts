@@ -4,7 +4,7 @@ export interface Dynamic {
   id?: string;
   editMode: boolean;
   operator?: 'og' | 'eller';
-  property?: ExpressionPropertyBase | ExpressionPropertyForGroup; // action?
+  property?: ExpressionPropertyBase | ExpressionPropertyForGroup; // action? TODO: Figure out if this is redundant - maybe it is enough to have the field on the component
   expressionElements?: ExpressionElement[];
 }
 

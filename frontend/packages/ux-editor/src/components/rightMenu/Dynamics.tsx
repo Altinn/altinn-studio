@@ -19,8 +19,9 @@ type DynamicsTabProps = {
 export const Dynamics = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsTabProps) => {
   const { form, formId } = useContext(FormContext);
 
+  const propertiesWithDynamics: Dynamic[] = Object.values(form).filter(property => isDynamic(property) === true);
   const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
-  const [dynamics, setDynamics] = React.useState<Dynamic[]>([defaultDynamic]); // default state should be already existing dynamics
+  const [dynamics, setDynamics] = React.useState<Dynamic[]>(propertiesWithDynamics || [defaultDynamic]); // default state should be already existing dynamics
   const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
   const t = useText();
 
@@ -33,6 +34,15 @@ export const Dynamics = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsT
   }, [dynamics]);
 
   if (!formId || !form) return t('right_menu.content_empty');
+
+  function isDynamic(obj: any): obj is Dynamic {
+    return (
+      typeof obj === 'object' &&
+      'editMode' in obj &&
+      typeof obj.editMode === 'boolean'
+      // Add more checks for other properties if needed
+    );
+  }
 
   // adapt list of actions if component is group
   const expressionProperties =

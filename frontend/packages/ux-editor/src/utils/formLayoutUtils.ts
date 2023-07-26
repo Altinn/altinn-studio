@@ -43,9 +43,13 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
         rest.type = rest.component;
         delete rest.component;
       }
-      if (rest.required || rest.readOnly || rest.hidden) { // check if they have expressions set or only boolean values
-        // TODO: convert external expression to internal dynamic type here
-      }
+      [...Object.keys(rest)].map((prop) => {
+        // TODO: check if they have expressions set or only boolean values. Or is it covered by the prop as ExpressionPropertyBase | ExpressionPropertyForGroup?
+        if ([...Object.values(ExpressionPropertyBase), ...Object.values(ExpressionPropertyForGroup)].includes(prop as ExpressionPropertyBase | ExpressionPropertyForGroup) && Array.isArray(rest[prop])) {
+          rest[prop] = convertExternalDynamicToInternal(prop, rest[prop])
+        }
+      })
+
       rest.itemType = 'COMPONENT';
       rest.propertyPath = formItemConfigs[rest.type].defaultProperties.propertyPath;
       convertedLayout.components[id] = {
@@ -534,7 +538,7 @@ export const validateDepth = (layout: IInternalLayout): boolean =>
  */
 export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: any): Dynamic => {
   // TODO: check if the external dynamic only has one level of nesting, otherwise return
-  const hasMoreExpressions: boolean = (dynamic[0] !== 'or' || dynamic[0] !== 'and');
+  const hasMoreExpressions: boolean = (dynamic[0] === 'or' || dynamic[0] === 'and');
   let elementsToSkip: number = 0;
   const convertedDynamic: Dynamic = {
     id: uuidv4(),
@@ -543,9 +547,6 @@ export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: 
     expressionElements: [],
   };
 
-  const exp: ExpressionElement = {
-    id: uuidv4(),
-  }
   if (!hasMoreExpressions) {
     const exp: ExpressionElement = {
       id: uuidv4(),
@@ -562,18 +563,18 @@ export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: 
   // while loop here for "or" and "and". use index + counter to get the next expression element
   else {
     convertedDynamic.operator = dynamic[0];
-    dynamic.shift().map((expEl, index) => {
+    dynamic.slice(1).map((expEl, index) => {
       if (elementsToSkip > 0) {
         elementsToSkip--;
         return;
       }
-      const newExp: ExpressionElement = {
+      const exp: ExpressionElement = {
         id: uuidv4(),
-        function: expEl as ExpressionFunction, // might need an error handling if function is invalid
+        function: expEl[0] as ExpressionFunction, // might need an error handling if function is invalid
       }
-      const updatedExpAddingValue = convertExpressionElement(newExp, dynamic[index + 1][index + 2], false);
-      convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, dynamic[index + 1][index + 3], true));
-      elementsToSkip += 1; // skip operator element
+      const updatedExpAddingValue = convertExpressionElement(exp, expEl[1], false);
+      convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, expEl[2], true));
+      elementsToSkip = 1; // skip operator element
       }
     );
     return convertedDynamic;
