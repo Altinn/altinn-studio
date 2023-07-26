@@ -10,9 +10,7 @@ import { ConnectDragSource } from 'react-dnd';
 import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
 import { useSelector } from 'react-redux';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { hasSubContainers } from '../../../ux-editor/src/utils/formLayoutUtils';
-import { IInternalLayout } from '../types/global';
-import { ExternalComponent } from 'app-shared/types/api/FormLayoutsResponse';
+
 
 export interface IFormContainerProps {
   children: ReactNode;
@@ -23,10 +21,6 @@ export interface IFormContainerProps {
   id: string;
   isBaseContainer?: boolean;
   isEditMode: boolean;
-  components: ExternalComponent
-  itemId: string
-  layout: ExternalComponent[];
-  
 }
 
 export const FormContainer = ({
@@ -38,10 +32,6 @@ export const FormContainer = ({
   id,
   isBaseContainer,
   isEditMode,
-  components,
-  itemId,
-  layout
- 
 } : IFormContainerProps) => {
   const { org, app } = useParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
@@ -54,46 +44,23 @@ export const FormContainer = ({
   );
 
   const [expanded, setExpanded] = useState<boolean>(true);
-  const hasNestedGroup = () => {
-    // Check if the current container has any nested "Group" components
-   return null
+
+  const hasNestedGroup = (): boolean => {
+      if (ComponentType.Group) return true;
+    return false;
   };
 
- const handleDelete = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>): void => {
+ const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
       if (hasNestedGroup()) {
-        const userConfirmed = window.confirm(
-          "This container has nested Group components. Are you sure you want to delete it?"
-        );
-        if (!userConfirmed) {
-          return;
-        }
+        const userConfirmed = window.confirm("This is a Group components. Are you sure you want to delete it?");
+        if (!userConfirmed) return;        
       }
-      
-
       event.stopPropagation();
       handleDeleteFormContainer(id);
       handleDiscard();
     },
     [handleDeleteFormContainer, handleDiscard, id]
   );
-
-
-
-  /*  const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
-
-    if(ComponentType.Group ){
-
-      const userConfirmed = window.confirm("Are you sure you want to delete this group?");
-      if (userConfirmed) {
-       event.stopPropagation();
-        handleDeleteFormContainer(id);
-        handleDiscard();
-      }
-    }
-  
-  }, [handleDeleteFormContainer, handleDiscard, id]);
-  */
 
   return (
     <div
