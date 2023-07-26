@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
-using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -246,10 +245,11 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.resourcetype", "resourceerror.missingresourcetype");
             }
 
-            if (resource.IsComplete == null || resource.IsComplete == false)
+            // Below is comented out until solved if it is supposed to be there or not
+            /*if (resource.IsComplete == null || resource.IsComplete == false)
             {
                 ModelState.AddModelError($"{resource.Identifier}.iscomplete", "resourceerror.missingiscomplete");
-            }
+            }*/
 
             if (strictMode && (resource.ThematicArea == null || string.IsNullOrEmpty(resource.ThematicArea)))
             {
