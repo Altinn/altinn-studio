@@ -56,3 +56,7 @@ p, h2 {
 .spinnerWrapper {
   padding: 10%;
 }
+
+.warningCardWrapper {
+  margin-top: 10px;
+}
