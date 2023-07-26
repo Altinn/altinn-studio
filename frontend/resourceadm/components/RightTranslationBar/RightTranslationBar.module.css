@@ -1,0 +1,39 @@
+.wrapper {
+  background-color: #F4F5F6;
+  width: 600px;
+  min-width: 450px;
+  min-height: 100vh;
+  height: 100%;
+  right: 0;
+  border: 1px solid #bebebe;
+  border-top: none;
+}
+
+.topWrapper {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid #A0A0A0;
+}
+
+.topText {
+  margin-left: 20px;
+}
+
+.text {
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.subHeader {
+  font-weight: 500;
+  margin-top: 30px;
+  padding-inline: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.inputWrapper {
+  padding-inline: 20px;
+  margin-block: 40px;;
+}

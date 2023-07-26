@@ -5,6 +5,7 @@
   height: 100%;
   left: 0;
   border: 1px solid #bebebe;
+  border-top: none;
 }
 
 .backButton {

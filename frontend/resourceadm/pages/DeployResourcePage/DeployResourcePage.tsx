@@ -84,7 +84,6 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         // Validate resource
         get(getValidateResourceUrl(selectedContext, repo, resourceId))
           .then((validateResourceRes) => {
-            console.log(validateResourceRes);
             // Remove error if status is 200
             validateResourceRes.status === 200 && setHasResourceError(false);
             setLoadingValidateResource(false);
