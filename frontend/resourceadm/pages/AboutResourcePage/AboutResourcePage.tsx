@@ -110,6 +110,10 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
       backendResource.resourceType === undefined || backendResource.resourceType === null
     );
 
+    setHasResourceTypeError(
+      backendResource.resourceType === undefined || backendResource.resourceType === null
+    );
+
     const backendTitle = backendResource.title;
     setTitle(backendTitle ?? emptyLangauges);
     setHasTitleError(
