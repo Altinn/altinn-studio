@@ -27,6 +27,7 @@ const emptyTextResource: ITextResource = { id: emptyTextResourceKey, value: '' }
 const nbTextResources: ITextResource[] = [testTextResource, emptyTextResource];
 const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
 const handleSaveMock = jest.fn();
+const debounceSaveMock = jest.fn();
 const handleDiscardMock = jest.fn();
 
 jest.mock('../hooks/mutations/useDeleteFormComponentMutation');
@@ -72,6 +73,7 @@ describe('FormComponent', () => {
     const component = screen.getByText(textMock('ux_editor.component_input'));
     await act(() => user.click(component));
 
+    expect(handleSaveMock).toBeCalledTimes(1);
     expect(handleEditMock).toBeCalledTimes(1);
   });
 
@@ -143,6 +145,7 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
     component: component1Mock,
     handleEdit: handleEditMock,
     handleSave: handleSaveMock,
+    debounceSave: debounceSaveMock,
     handleDiscard: handleDiscardMock,
     ...props
   };

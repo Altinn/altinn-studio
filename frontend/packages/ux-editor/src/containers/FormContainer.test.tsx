@@ -13,7 +13,8 @@ import { UseMutationResult } from '@tanstack/react-query';
 import { IInternalLayout } from '../types/global';
 
 const handleDiscardMock = jest.fn();
-const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
+const handleEditMock = jest.fn();
+const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
 
 const user = userEvent.setup();
 
@@ -73,6 +74,7 @@ const render = async (props: Partial<IFormContainerProps> = {}) => {
     id: container1IdMock,
     container: layoutMock.containers[container1IdMock],
     handleEdit: handleEditMock,
+    handleSave: handleSaveMock,
     handleDiscard: handleDiscardMock,
     children: [],
     isEditMode: false,

@@ -1,5 +1,5 @@
 import { IInternalLayout } from '../../types/global';
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useFormLayout } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
@@ -13,8 +13,8 @@ export interface UpdateFormContainerMutationArgs {
   id: string;
 }
 
-export const useUpdateFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
-  const { layout, layoutName } = useSelectedFormLayoutWithName();
+export const useUpdateFormContainerMutation = (org: string, app: string, layoutName: string, layoutSetName: string) => {
+  const layout = useFormLayout(layoutName);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);

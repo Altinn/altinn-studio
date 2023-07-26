@@ -42,6 +42,25 @@ const render = (ChildComponent: React.ElementType) => {
 describe('FormContext', () => {
   afterEach(jest.clearAllMocks);
 
+  it('should update the form when calling handleUpdate', async () => {
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+
+    render(() => {
+      const { form, handleUpdate } = React.useContext(FormContext);
+      return (<>
+        <button data-testid="button" onClick={() => handleUpdate(mockForm)} />
+        <div data-testid="form.id">{form?.id}</div>
+        <div data-testid="form.itemType">{form?.itemType}</div>
+      </>);
+    });
+
+    const button = screen.getByTestId('button');
+    await act(() => user.click(button));
+
+    await waitFor(async () => expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id));
+    await waitFor(async () => expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType));
+  });
+
   it('should edit the form when calling handleEdit', async () => {
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
@@ -86,67 +105,92 @@ describe('FormContext', () => {
     await waitFor(async () => expect((await screen.findByTestId('form.itemType')).textContent).toBe(""));
   });
 
-  it('should save the container when calling handleContainerSave', async () => {
+  it('should save the container when calling handleSave', async () => {
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
-      const { handleContainerSave } = React.useContext(FormContext);
-      return (<button data-testid="button" onClick={() => handleContainerSave(mockForm.id, mockForm)} />);
+      const { handleSave } = React.useContext(FormContext);
+      return (<button data-testid="button" onClick={() => handleSave(mockForm.id, mockForm)} />);
     });
 
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
-
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
 
-  it('should save the container and its new id when calling handleContainerSave', async () => {
+  it('should save the container and its new id when calling handleSave', async () => {
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
-      const { formId, handleContainerSave } = React.useContext(FormContext);
+      const { formId, handleSave } = React.useContext(FormContext);
       return (<>
-        <button data-testid="button" onClick={() => handleContainerSave('old-id', mockForm)} />
+        <button data-testid="button" onClick={async () => await handleSave('old-id', mockForm)} />
         <div data-testid="formId">{formId}</div>
       </>);
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
-
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
+    await user.click(button);
 
     await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id));
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
 
-  it('should save the component when calling handleComponentSave', async () => {
-    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+  it('should save the container when calling debounceSave', async () => {
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
-      const { handleComponentSave } = React.useContext(FormContext);
-      return (<button data-testid="button" onClick={() => handleComponentSave(mockForm.id, mockForm)} />);
+      const { debounceSave } = React.useContext(FormContext);
+      return (<button data-testid="button" onClick={() => debounceSave(mockForm.id, mockForm)} />);
     });
 
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
+
+    expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
+  });
+
+  it('should save the component when calling handleSave', async () => {
+    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+
+    render(() => {
+      const { handleSave } = React.useContext(FormContext);
+      return (<button data-testid="button" onClick={() => handleSave(mockForm.id, mockForm)} />);
+    });
+
+    const button = screen.getByTestId('button');
+    await act(() => user.click(button));
 
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
 
-  it('should save the component and its new id when calling handleComponentSave', async () => {
+  it('should save the component and its new id when calling handleSave', async () => {
     const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
 
     render(() => {
-      const { formId, handleComponentSave } = React.useContext(FormContext);
+      const { formId, handleSave } = React.useContext(FormContext);
       return (<>
-        <button data-testid="button" onClick={() => handleComponentSave('old-id', mockForm)} />
+        <button data-testid="button" onClick={async () => await handleSave('old-id', mockForm)} />
         <div data-testid="formId">{formId}</div>
       </>);
+    });
+
+    const button = screen.getByTestId('button');
+    await user.click(button);
+
+    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id));
+    expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
+  });
+
+  it('should save the component when calling debounceSave', async () => {
+    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+
+    render(() => {
+      const { debounceSave } = React.useContext(FormContext);
+      return (<button data-testid="button" onClick={() => debounceSave(mockForm.id, mockForm)} />);
     });
 
     const button = screen.getByTestId('button');
@@ -154,7 +198,6 @@ describe('FormContext', () => {
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
 
-    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id));
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
 });

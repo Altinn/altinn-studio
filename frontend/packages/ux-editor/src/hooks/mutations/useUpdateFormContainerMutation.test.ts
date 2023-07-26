@@ -9,6 +9,7 @@ import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/la
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 const maxCount = 2;
 const updatedContainer: FormContainer = {
@@ -23,7 +24,7 @@ describe('useUpdateFormContainerMutation', () => {
   it('Saves layouts with new container and updates rule config', async () => {
     await renderAndWaitForData();
 
-    const updateFormContainerResult = renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app, selectedLayoutSet))
+    const updateFormContainerResult = renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app, selectedLayoutName, selectedLayoutSet))
       .renderHookResult
       .result;
 

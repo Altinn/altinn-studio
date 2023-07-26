@@ -15,7 +15,8 @@ export interface IFormContainerProps {
   container: IFormContainer;
   dragHandleRef?: ConnectDragSource;
   handleDiscard: () => void;
-  handleEdit: (container: IFormContainer) => Promise<void>;
+  handleSave: () => Promise<void>;
+  handleEdit: (container: IFormContainer) => void;
   id: string;
   isBaseContainer?: boolean;
   isEditMode: boolean;
@@ -26,6 +27,7 @@ export const FormContainer = ({
   container,
   dragHandleRef,
   handleDiscard,
+  handleSave,
   handleEdit,
   id,
   isBaseContainer,
@@ -59,7 +61,8 @@ export const FormContainer = ({
       onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
         if (isEditMode) return;
-        await handleEdit(isBaseContainer ? null : { ...container, id });
+        await handleSave();
+        handleEdit(isBaseContainer ? null : { ...container, id });
       }}
     >
       {!isBaseContainer && (
