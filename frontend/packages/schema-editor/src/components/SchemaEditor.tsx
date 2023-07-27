@@ -173,6 +173,7 @@ export const SchemaEditor = ({
                 icon={<XMarkIcon />}
                 variant={ButtonVariant.Quiet}
                 color={ButtonColor.Inverted}
+                aria-label={t('close_type', null)}
               />
             </div>
             <TypesPanel
