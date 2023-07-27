@@ -537,9 +537,8 @@ export const validateDepth = (layout: IInternalLayout): boolean =>
  * @returns The converted dynamics object.
  */
 export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: any): Dynamic => {
-  // TODO: check if the external dynamic only has one level of nesting, otherwise return
+  // TODO: check if the external dynamic has one or zero level of nesting, otherwise return
   const hasMoreExpressions: boolean = (dynamic[0] === 'or' || dynamic[0] === 'and');
-  let elementsToSkip: number = 0;
   const convertedDynamic: Dynamic = {
     id: uuidv4(),
     editMode: false,
@@ -563,18 +562,13 @@ export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: 
   // while loop here for "or" and "and". use index + counter to get the next expression element
   else {
     convertedDynamic.operator = dynamic[0];
-    dynamic.slice(1).map((expEl, index) => {
-      if (elementsToSkip > 0) {
-        elementsToSkip--;
-        return;
-      }
+    dynamic.slice(1).map(expEl => {
       const exp: ExpressionElement = {
         id: uuidv4(),
         function: expEl[0] as ExpressionFunction, // might need an error handling if function is invalid
       }
       const updatedExpAddingValue = convertExpressionElement(exp, expEl[1], false);
       convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, expEl[2], true));
-      elementsToSkip = 1; // skip operator element
       }
     );
     return convertedDynamic;
@@ -582,7 +576,7 @@ export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: 
 }
 
 const convertExpressionElement = (internalExpEl: ExpressionElement, externalExpEl: any, isComparable: boolean): ExpressionElement => {
-  if (Array.isArray(externalExpEl)) { // check if element is array
+  if (Array.isArray(externalExpEl)) {
     isComparable ?  internalExpEl.comparableDataSource = externalExpEl[0] as DataSource : internalExpEl.dataSource = externalExpEl[0] as DataSource;
     isComparable ? internalExpEl.comparableValue = externalExpEl[1] : internalExpEl.value = externalExpEl[1];
   }

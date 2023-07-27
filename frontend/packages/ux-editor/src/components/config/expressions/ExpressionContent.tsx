@@ -128,7 +128,7 @@ export const ExpressionContent = ({
     ) {
       setDuplicatedComponentIdsDiscovered(false);
     }
-    onUpdateExpressionElement();
+    onUpdateExpressionElement(expressionElement);
   };
 
   const handleRemoveExpressionElement = () => {

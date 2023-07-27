@@ -181,13 +181,13 @@ export const DynamicContent = ({
         <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
             <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]} values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
-              {expressionElements.map((expEl: ExpressionElement) => (
+              {expressionElements.map((expEl: ExpressionElement, index: number) => (
                 <div key={expEl.id}>
                   <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
                   <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '} <span>{expEl.comparableValue}</span></p>
-                  <p className={classes.bold}>{dynamic.operator}</p>
-                </div> // add a green checkmark
+                  {index !== expressionElements.length - 1 && (<p className={classes.bold}>{dynamic.operator}</p>)}
+                </div> // add a green checkmark if successful API call to POST layout
               ))}
           </div>
           <div>

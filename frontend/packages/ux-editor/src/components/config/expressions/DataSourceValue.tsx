@@ -32,6 +32,7 @@ export const DataSourceValue = ({
   const dataModelElementsData = datamodelQuery?.data ?? [];
   const formLayoutsData = formLayoutsQuery?.data ?? [];
 
+  // TODO: Make sure all data model fields are included - what if there are multiple data models?
   const getDataModelElementNames = (dataModelElements: DatamodelFieldElement[]) => {
     return dataModelElements
       .filter(element => element.dataBindingName)
