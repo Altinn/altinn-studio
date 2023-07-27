@@ -329,9 +329,7 @@ export const AboutResourcePage = ({
             multiple
             // TODO - Language
             options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
-            onChange={(e) => {
-              setSector(e);
-            }}
+            onChange={(e) => setSector(e)}
             value={sector}
             label='Hvilken sektor er tjenesten relatert til?'
             hideLabel

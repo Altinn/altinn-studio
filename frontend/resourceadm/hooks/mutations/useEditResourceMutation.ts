@@ -3,6 +3,12 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ResourceBackendType } from 'resourceadm/types/global';
 
+/**
+ * Mutation to edit an existing resource.
+ *
+ * @param org the organisation of the user
+ * @param repo the repo the user is in
+ */
 export const useEditResourceMutation = (org: string, id: string) => {
   const queryClient = useQueryClient();
   const { updateResource } = useServicesContext();

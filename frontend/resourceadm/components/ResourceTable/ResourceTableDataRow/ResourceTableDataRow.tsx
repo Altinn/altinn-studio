@@ -28,6 +28,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
   return (
     <tr>
       <td className={`${classes.tableDataXLarge} ${classes.tableData}`}>
+        {/* TODO - Fix translation of title */}
         <p className={classes.tableDataText}>{resource.title['nb']}</p>
       </td>
       <td className={`${classes.tableDataLarge} ${classes.tableData}`}>

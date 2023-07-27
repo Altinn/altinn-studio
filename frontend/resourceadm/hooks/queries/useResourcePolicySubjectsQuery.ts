@@ -3,6 +3,14 @@ import { useServicesContext } from "app-shared/contexts/ServicesContext";
 import { QueryKey } from "app-shared/types/QueryKey";
 import { PolicySubjectType } from "resourceadm/types/global";
 
+/**
+ * Query to get the list of subjects for the policy of a resource.
+ *
+ * @param org the organisation of the user
+ * @param repo the repo the user is in
+ *
+ * @returns UseQueryResult with a list of subjects of PolicySubjectType
+ */
 export const useResourcePolicySubjectsQuery = (org: string, repo: string): UseQueryResult<PolicySubjectType[]> => {
   const { getPolicySubjects } = useServicesContext();
 

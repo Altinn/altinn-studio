@@ -27,13 +27,10 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
-  // TODO - Tanstack: https://tanstack.com/query/latest
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
-
   const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
     'none'
   );
-
   const [newVersionText, setNewVersionText] = useState('');
 
   // Queries to get metadata
@@ -56,7 +53,6 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    */
   useEffect(() => {
     if (!validatePolicyLoading) {
-      console.log('inside');
       if (validatePolicyData === undefined) setHasPolicyError('notExisting');
       else if (validatePolicyData.status === 400) setHasPolicyError('validationFailed');
       else setHasPolicyError('none');
