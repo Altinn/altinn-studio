@@ -48,7 +48,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
     return () => {
       document.removeEventListener('click', handleClickOutside);
     }
-  }, [dynamicInEditStateRef.current]);
+  }, [dynamic.editMode, onAddDynamic]);
 
   const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
   const propertiesList = onGetProperties(dynamic).availableProperties;
@@ -63,7 +63,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
       return;
     }
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
-    dynamic.expressionElements.push(newExpressionElement); // TODO: add id and check if dynamic is already in list and change property value if so
+    dynamic.expressionElements.push(newExpressionElement);
     setExpressionElements(dynamic.expressionElements);
   };
 

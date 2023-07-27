@@ -1,16 +1,22 @@
 import React from 'react';
-import { Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
-import { ExpressionFunction, expressionFunctionTexts } from '../../../types/Expressions';
+import { Alert, Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import {
+  DataSource,
+  expressionDataSourceTexts,
+  ExpressionFunction,
+  expressionFunctionTexts
+} from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
 import { useTranslation } from 'react-i18next';
+import { DataSourceValue } from './DataSourceValue';
 
-export interface IExpressionContentProps {
+interface IExpressionContentProps {
   expressionAction: boolean;
   expressionElement: ExpressionElement;
   onAddExpressionElement: () => void;
-  onUpdateExpressionElement: (expressionElement: ExpressionElement) => void;
+  onUpdateExpressionElement: () => void;
   onRemoveExpressionElement: (expressionElement: ExpressionElement) => void;
 }
 
@@ -18,9 +24,9 @@ export interface ExpressionElement {
   id: string;
   expressionOperatorForNextExpression?: 'og' | 'eller';
   function?: ExpressionFunction;
-  dataSource?: string;
+  dataSource?: DataSource;
   value?: string;
-  comparableDataSource?: string;
+  comparableDataSource?: DataSource;
   comparableValue?: string;
 }
 
@@ -32,8 +38,9 @@ export const ExpressionContent = ({
                                     onUpdateExpressionElement,
                                     onRemoveExpressionElement
                                   }: IExpressionContentProps) => {
-  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
   const { t } = useTranslation();
+  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
+  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] = React.useState<boolean>(false);
 
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
@@ -43,21 +50,51 @@ export const ExpressionContent = ({
   }
 
   const addTriggerDataSource = (dataSource: string) => {
-    expressionElement.dataSource = dataSource;
+    if (dataSource === 'default') {
+      delete expressionElement.dataSource
+      delete expressionElement.value
+      handleUpdateExpressionElement();
+      return;
+    }
+    if (dataSource === DataSource.Null) {
+      delete expressionElement.value;
+    }
+    expressionElement.dataSource = dataSource as DataSource
     handleUpdateExpressionElement();
   };
 
   const specifyTriggerDataSource = (dataSourceKind: string) => {
+    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
+    if (dataSourceKind === 'default' || dataSourceKind === 'NotImplementedYet') {
+      delete expressionElement.value
+      handleUpdateExpressionElement();
+      return;
+    }
     expressionElement.value = dataSourceKind;
     handleUpdateExpressionElement();
   };
 
   const addComparableTriggerDataSource = (compDataSource: string) => {
-    expressionElement.comparableDataSource = compDataSource;
+    if (compDataSource === 'default') {
+      delete expressionElement.comparableDataSource
+      delete expressionElement.comparableValue
+      handleUpdateExpressionElement();
+      return;
+    }
+    if (compDataSource === DataSource.Null) {
+      delete expressionElement.comparableValue;
+    }
+    expressionElement.comparableDataSource = compDataSource as DataSource
     handleUpdateExpressionElement();
   };
 
   const specifyComparableTriggerDataSource = (compDataSourceKind: string) => {
+    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
+    if (compDataSourceKind === 'default' || compDataSourceKind === 'NotImplementedYet') {
+      delete expressionElement.comparableValue
+      handleUpdateExpressionElement();
+      return;
+    }
     expressionElement.comparableValue = compDataSourceKind;
     handleUpdateExpressionElement();
   };
@@ -74,7 +111,10 @@ export const ExpressionContent = ({
   }
 
   const handleUpdateExpressionElement = () => {
-    onUpdateExpressionElement(expressionElement);
+    if (expressionElement.dataSource !== DataSource.Component && expressionElement.comparableDataSource !== DataSource.Component) {
+      setDuplicatedComponentIdsDiscovered(false);
+    }
+    onUpdateExpressionElement();
   };
 
   const handleRemoveExpressionElement = () => {
@@ -102,44 +142,35 @@ export const ExpressionContent = ({
             <div className={classes.expressionDetails}>
               <Select
                 onChange={(dataSource: string) => addTriggerDataSource(dataSource)}
-                options={[
-                  { label: 'Velg...', value: 'default' },
-                  { label: 'Komponent', value: 'komponent' },
-                  { label: 'Datamodell', value: 'datamodell' }
-                ]}
-                value={expressionElement.dataSource || 'default'} // Is it necessary with the first check?
+                options={[{ label: 'Velg...', value: 'default' }].concat(Object.values(DataSource).map((ds: string) => ({ label: expressionDataSourceTexts(t)[ds], value: ds })))}
+                value={expressionElement.dataSource || 'default'}
               />
               {expressionElement.dataSource &&
-                <Select
-                  onChange={(dataSourceKind: string) => specifyTriggerDataSource(dataSourceKind)}
-                  options={[
-                    { label: 'Velg...', value: 'default' },
-                    { label: 'Alder', value: 'alder' },
-                    { label: 'Fornavn', value: 'fornavn' }
-                  ]}
-                  value={expressionElement.value || 'default'}
+                <DataSourceValue
+                  expressionElement={expressionElement}
+                  currentDataSource={expressionElement.dataSource}
+                  specifyDataSourceValue={specifyTriggerDataSource}
+                  isComparableValue={false}
+                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
                 />}
               <p className={classes.expressionFunction}>{expressionFunctionTexts(t)[expressionElement.function]}</p>
               <Select
-                // Should be possible to enter custom values for the comparables
                 onChange={(compDataSource: string) => addComparableTriggerDataSource(compDataSource)}
-                options={[
-                  { label: 'Velg...', value: 'default' },
-                  { label: 'Komponent', value: 'komponent' },
-                  { label: 'Datamodell', value: 'datamodell' }
-                ]}
+                options={[{ label: 'Velg...', value: 'default' }].concat(Object.values(DataSource).map((cds: string) => ({ label: expressionDataSourceTexts(t)[cds], value: cds })))}
                 value={expressionElement.comparableDataSource || 'default'}
               />
               {expressionElement.comparableDataSource &&
-                <Select
-                  onChange={(compDataSourceKind: string) => specifyComparableTriggerDataSource(compDataSourceKind)}
-                  options={[
-                    { label: 'Velg...', value: 'default' },
-                    { label: 'Alder', value: 'alder' },
-                    { label: 'Fornavn', value: 'fornavn' }
-                  ]}
-                  value={expressionElement.comparableValue || 'default'}
+                <DataSourceValue
+                  expressionElement={expressionElement}
+                  currentDataSource={expressionElement.comparableDataSource}
+                  specifyDataSourceValue={specifyComparableTriggerDataSource}
+                  isComparableValue={true}
+                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
                 />}
+              {duplicatedComponentIdsDiscovered &&
+                <Alert severity='warning'>
+                  {t('right_menu.dynamics_duplicated_component_ids_warning')}
+                </Alert>}
             </div>
           </div>
           <div className={classes.addExpression}>
