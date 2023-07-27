@@ -8,6 +8,6 @@ export const useSinlgeResourceQuery = (org: string, repo: string, id: string): U
 
   return useQuery<ResourceBackendType>(
     [QueryKey.SingleResource, org, repo, id],
-    () => getResource(org, repo, id)
+    () => getResource(org, repo, id),
   )
 }

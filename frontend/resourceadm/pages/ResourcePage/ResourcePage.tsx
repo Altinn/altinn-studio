@@ -8,12 +8,15 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
   useRepoStatusQuery,
+  useResourceSectorsQuery,
+  useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
 } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from 'resourceadm/components/NavigationModal';
+import { Spinner } from '@digdir/design-system-react';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.
@@ -46,6 +49,12 @@ export const ResourcePage = () => {
     repo,
     resourceId
   );
+  const {
+    data: resourceData,
+    isLoading: resourceLoading,
+    refetch: refetchResource,
+  } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
+  const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -70,6 +79,7 @@ export const ResourcePage = () => {
   const navigateToPage = (page: NavigationBarPageType) => {
     // Validate Resource and display errors + modal
     if (currentPage === 'about') {
+      refetchResource();
       console.log(validateResourceData);
       if (validateResourceData.status === 200) {
         setShowResourceErrors(false);
@@ -127,6 +137,21 @@ export const ResourcePage = () => {
     handleNavigation(page);
   };
 
+  const displayLoading = (page: NavigationBarPageType) => {
+    const title =
+      page === 'about'
+        ? 'Laster inn ressurs'
+        : page === 'policy'
+        ? 'Laster inn policy'
+        : 'Laster inn';
+
+    return (
+      <div className={classes.spinnerWrapper}>
+        <Spinner size='3xLarge' variant='interaction' title={title} />
+      </div>
+    );
+  };
+
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
@@ -137,7 +162,16 @@ export const ResourcePage = () => {
         />
       </div>
       <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' && <AboutResourcePage showAllErrors={showResourceErrors} />}
+        {currentPage === 'about' &&
+          (resourceLoading || sectorsLoading ? (
+            displayLoading('about')
+          ) : (
+            <AboutResourcePage
+              showAllErrors={showResourceErrors}
+              resourceData={resourceData}
+              sectorsData={sectorsData}
+            />
+          ))}
         {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
         {currentPage === 'deploy' && (
           <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />

@@ -1,23 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Select, TextField, TextArea, Button, Spinner } from '@digdir/design-system-react';
+import { Select, TextField, TextArea, Button } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
-import {
-  resourceSectorsMockOptions,
-  resourceThematicAreaMockOptions,
-} from 'resourceadm/data-mocks/resources';
+import { resourceThematicAreaMockOptions } from 'resourceadm/data-mocks/resources';
 import { useParams } from 'react-router-dom';
 import {
   SupportedLanguageKey,
   ResourceBackendType,
   ResourceTypeOptionType,
   ResourceKeywordType,
+  ResourceSectorType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
-//import { useResourceSectorsQuery } from 'resourceadm/hooks/queries/useResourceSectorsQuery';
-import { useSinlgeResourceQuery } from 'resourceadm/hooks/queries';
 import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 
 /**
@@ -42,6 +38,8 @@ export interface LanguageStringType {
 
 interface Props {
   showAllErrors: boolean;
+  resourceData: ResourceBackendType;
+  sectorsData: ResourceSectorType[];
 }
 
 /**
@@ -49,93 +47,12 @@ interface Props {
  *
  * @param props.showAllErrors flag to decide if all errors should be shown or not
  */
-export const AboutResourcePage = ({ showAllErrors }: Props) => {
+export const AboutResourcePage = ({ showAllErrors, resourceData, sectorsData }: Props) => {
   // TODO - translation
   const { selectedContext, resourceId } = useParams();
-  const repo = `${selectedContext}-resources`;
-
-  // Get the metadata with queries
-  const { data: resourceData, isLoading: resourceLoading } = useSinlgeResourceQuery(
-    selectedContext,
-    repo,
-    resourceId
-  );
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
-
-  // TODO
-  // const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
-
-  // console.log(sectorsData);
-  // console.log(sectorsLoading);
-
-  // States to store the different input values
-  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(undefined);
-  const [title, setTitle] = useState<SupportedLanguageKey<string>>(emptyLangauges);
-  const [description, setDescription] = useState<SupportedLanguageKey<string>>(emptyLangauges);
-  const [homepage, setHomepage] = useState('');
-  const [keywords, setKeywords] = useState('');
-  const [sector, setSector] = useState<string[]>([]);
-  const [thematicArea, setThematicArea] = useState('');
-  const [rightDescription, setRightDescription] =
-    useState<SupportedLanguageKey<string>>(emptyLangauges);
-  const [isPublicService, setIsPublicService] = useState(false);
-
-  // To handle which translation value is shown in the right menu
-  const [translationType, setTranslationType] = useState<
-    'none' | 'title' | 'description' | 'rightDescription'
-  >('none');
-
-  // To handle the state of the page
-  const [hasResourceTypeError, setHasResourceTypeError] = useState(false);
-  const [hasTitleError, setHasTitleError] = useState(false);
-  const [hasDescriptionError, setHasDescriptionError] = useState(false);
-
-  /**
-   * When the resource is loaded, populate the states
-   */
-  useEffect(() => {
-    if (!resourceLoading) {
-      setResourceType(resourceData.resourceType ?? undefined);
-      setHasResourceTypeError(
-        resourceData.resourceType === undefined || resourceData.resourceType === null
-      );
-
-      setHasResourceTypeError(
-        resourceData.resourceType === undefined || resourceData.resourceType === null
-      );
-
-      const backendTitle = resourceData.title;
-      setTitle(backendTitle ?? emptyLangauges);
-      setHasTitleError(
-        backendTitle === undefined ||
-          backendTitle === null ||
-          backendTitle.nb === '' ||
-          backendTitle.nn === '' ||
-          backendTitle.en === ''
-      );
-
-      const backendDescription = resourceData.description;
-      setDescription(backendDescription ?? emptyLangauges);
-      setHasDescriptionError(
-        backendDescription === undefined ||
-          backendDescription === null ||
-          backendDescription.nb === '' ||
-          backendDescription.nn === '' ||
-          backendDescription.en === ''
-      );
-
-      setHomepage(resourceData.homepage ?? '');
-      setIsPublicService(resourceData.isPublicService ?? false);
-      setSector(resourceData.sector ?? []);
-      setThematicArea(resourceData.thematicArea ?? '');
-      setRightDescription(resourceData.rightDescription ?? emptyLangauges);
-
-      // TODO - Find out how to handle the keywords
-      setKeywords(resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : '');
-    }
-  }, [resourceData, resourceLoading]);
 
   /**
    * ------------ Temporary functions -------------
@@ -150,12 +67,49 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
     return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
   };
 
+  // States to store the different input values
+  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(
+    resourceData.resourceType
+  );
+  const [title, setTitle] = useState<SupportedLanguageKey<string>>(
+    resourceData.title ?? emptyLangauges
+  );
+  const [description, setDescription] = useState<SupportedLanguageKey<string>>(
+    resourceData.description ?? emptyLangauges
+  );
+  const [homepage, setHomepage] = useState(resourceData.homepage ?? '');
+  const [keywords, setKeywords] = useState(
+    resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''
+  );
+  const [sector, setSector] = useState<string[]>(
+    resourceData.sector
+      ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
+      : []
+  );
+  const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
+  const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
+    resourceData.rightDescription ?? emptyLangauges
+  );
+  const [isPublicService, setIsPublicService] = useState(resourceData.isPublicService ?? false);
+
+  // To handle which translation value is shown in the right menu
+  const [translationType, setTranslationType] = useState<
+    'none' | 'title' | 'description' | 'rightDescription'
+  >('none');
+
+  // To handle the state of the page
+  const [hasResourceTypeError, setHasResourceTypeError] = useState(false);
+  const [hasTitleError, setHasTitleError] = useState(false);
+  const [hasDescriptionError, setHasDescriptionError] = useState(false);
+
   /**
    * Function that saves the resource to backend
    */
   const handleSaveResource = () => {
-    // Sectors might look like this: https://data.norge.no/reference-data/eu/data-themes
-    // Thematcic area might look like this: https://data.norge.no/reference-data/eu/eurovocs
+    // Map sectoroption to with label to the sector code - TODO: Language
+    const sectorToSave: string[] = sector.map(
+      (s) => sectorsData.find((sd) => sd.label['nb'] === s).code
+    );
 
     const editedResourceObject: ResourceBackendType = {
       ...resourceData,
@@ -166,7 +120,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
       keywords: mapKeywordStringToKeywordTypeArray(keywords),
       homepage,
       isPublicService,
-      sector,
+      sector: sectorToSave,
       thematicArea,
       rightDescription,
     };
@@ -177,16 +131,6 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
         console.log('success');
       },
     });
-
-    // Update the resource
-    /*put(getEditResourceUrl(selectedContext, resourceId), editedResourceObject)
-      .then(() => {
-        // TODO - Display success message that it was saved
-        // TODO - Display areas with errors
-      })
-      .catch((err) => {
-        console.error('Error saving the policy', err);
-      });*/
   };
 
   /**
@@ -198,7 +142,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const onChangeResourceType = (s: string) => {
     if (s === 'Standard') setResourceType('Default');
     else if (s === 'System ressurs') setResourceType('Systemresource');
-    else if (s === 'Maskinporten skjema') setResourceType('Maskinportenschema');
+    else if (s === 'Maskinporten skjema') setResourceType('MaskinportenSchema');
     else setResourceType(undefined);
 
     setHasResourceTypeError(
@@ -214,7 +158,7 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
   const getResourceTypeAsDisplayableString = () => {
     if (resourceType === 'Default') return 'Standard';
     else if (resourceType === 'Systemresource') return 'System ressurs';
-    else if (resourceType === 'Maskinportenschema') return 'Maskinporten skjema';
+    else if (resourceType === 'MaskinportenSchema') return 'Maskinporten skjema';
     return undefined;
   };
 
@@ -282,13 +226,6 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
    * Displays the content on the page
    */
   const displayContent = () => {
-    if (resourceLoading) {
-      return (
-        <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
-        </div>
-      );
-    }
     return (
       <>
         <h1 className={classes.pageHeader}>Om ressursen</h1>
@@ -376,12 +313,14 @@ export const AboutResourcePage = ({ showAllErrors }: Props) => {
         </div>
         <h2 className={classes.subHeader}>Hvilken sektor er tjenesten relatert til?</h2>
         <p className={classes.text}>En tjeneste kan relateres til flere industrier/sektorer</p>
-        {/* TODO - inform user that this is optional */}
         <div className={classes.inputWrapper}>
           <Select
             multiple
-            options={resourceSectorsMockOptions}
-            onChange={(e) => setSector(e)}
+            // TODO - Language
+            options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
+            onChange={(e) => {
+              setSector(e);
+            }}
             value={sector}
             label='Hvilken sektor er tjenesten relatert til?'
             hideLabel

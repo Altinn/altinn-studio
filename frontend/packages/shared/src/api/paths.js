@@ -127,10 +127,10 @@ export const resourceListPath = (org) => `${resourceAdmBasePath}/${org}/resource
 export const resourceCreatePath = (org) => `${resourceAdmBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${resourceAdmBasePath}/${org}/resources/updateresource/${id}`; // Put
-
 export const resourceValidatePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/validate/${id}`; // Get
-
-export const resourceValidateResourcePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/validate/${repo}/${id}`
-
-// WORKING
+export const resourceValidateResourcePath = (org, repo, id) => `${resourceAdmBasePath}/${org}/resources/validate/${repo}/${id}`; // Get
 export const resourceSectorsPath = (org) => `${resourceAdmBasePath}/${org}/resources/sectors`; // Get
+
+// TODO - find out how these will be used
+export const resourceThematicLosPath = (org) => `${resourceAdmBasePath}/${org}/resources/losterms`; // Get
+export const resourceThematicEurovocPath = (org) => `${resourceAdmBasePath}/${org}/resources/eurovoc`; // Get

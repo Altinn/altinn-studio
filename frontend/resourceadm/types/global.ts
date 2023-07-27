@@ -50,7 +50,7 @@ export interface ResourceType {
   identifier: string;
 }
 
-export type ResourceTypeOptionType = "Default" | "Systemresource" | "Maskinportenschema";
+export type ResourceTypeOptionType = "Default" | "Systemresource" | "MaskinportenSchema";
 
 export interface ResourceBackendType {
   identifier: string;
@@ -83,7 +83,6 @@ export interface SupportedLanguageKey<T> {
   nb?: T;
   nn?: T;
   en?: T;
-  // TODO - Samisk
 }
 
 export interface VersionType {
@@ -103,9 +102,17 @@ export interface NewResourceType {
 }
 
 export interface ValidationType {
-  //errors: string[];
   status: number;
-  //title: string;
-  // traceId: string;
-//  type: string;
+}
+
+// TODO - Find out if the other fields are needed or if can combine type with thematic
+export interface ResourceSectorType {
+  code: string;
+  label: SupportedLanguageKey<string>;
+}
+
+// TODO - Find out if the other fields are needed or if can combine type with sector
+export interface ResourceThematicType {
+  code: string;
+  label: SupportedLanguageKey<string>;
 }

@@ -9,6 +9,6 @@ export const useEditResourceMutation = (org: string, id: string) => {
 
   return useMutation({
     mutationFn: (payload: ResourceBackendType) => updateResource(org, id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.EditResource, org, id] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.SingleResource, org, id] })
   })
 }
