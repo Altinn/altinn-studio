@@ -240,7 +240,6 @@ export const AboutResourcePage = ({
     return (
       <>
         <h1 className={classes.pageHeader}>Om ressursen</h1>
-        <p>{String(showAllErrors)}</p>
         <h2 className={classes.subHeader}>Ressurs type</h2>
         <p className={classes.text}>Velg ett alternativ fra listen under</p>
         <div className={classes.inputWrapper}>

@@ -42,15 +42,17 @@ export const ResourcePage = () => {
   const [resourceErrorModalOpen, setResourceErrorModalOpen] = useState(false);
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
-  // const [validationStatus, setValidationStatus] = useState<number | null>(null);
-
-  // Get the metadata from the queries
+  // Get the metadata for Gitea
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
-  const { data: validatePolicyData, refetch: refetchPolicyData } = useValidatePolicyQuery(
+
+  // Get metadata for policy
+  const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(
     selectedContext,
     repo,
     resourceId
   );
+
+  // Get metadata for resource
   const { refetch: refetchValidateResource } = useValidateResourceQuery(
     selectedContext,
     repo,
@@ -61,7 +63,6 @@ export const ResourcePage = () => {
     refetch: refetchResource,
     isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
-
   const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
 
   // Mutation function for editing a resource
@@ -84,20 +85,6 @@ export const ResourcePage = () => {
     setCurrentPage(pageType as NavigationBarPageType);
   }, [pageType]);
 
-  const validateResource = async (page: NavigationBarPageType) => {
-    const data = await refetchValidateResource();
-    const validationStatus = data?.data?.status ?? null;
-
-    if (validationStatus === 200) {
-      setShowResourceErrors(false);
-      handleNavigation(page);
-    } else {
-      setShowResourceErrors(true);
-      setNextPage(page);
-      setResourceErrorModalOpen(true);
-    }
-  };
-
   /**
    * Navigates to the selected page
    */
@@ -105,11 +92,24 @@ export const ResourcePage = () => {
     // Validate Resource and display errors + modal
     if (currentPage === 'about') {
       await refetchResource();
-      await validateResource(page);
+      const data = await refetchValidateResource();
+      const validationStatus = data?.data?.status ?? null;
+
+      if (validationStatus === 200) {
+        setShowResourceErrors(false);
+        handleNavigation(page);
+      } else {
+        setShowResourceErrors(true);
+        setNextPage(page);
+        setResourceErrorModalOpen(true);
+      }
     }
     // Validate Ppolicy and display errors + modal
     else if (currentPage === 'policy') {
-      if (validatePolicyData && validatePolicyData.status === 200) {
+      const data = await refetchValidatePolicy();
+      const validationStatus = data?.data?.status ?? null;
+
+      if (validationStatus === 200) {
         setShowPolicyErrors(false);
         handleNavigation(page);
       } else {
@@ -158,21 +158,6 @@ export const ResourcePage = () => {
     handleNavigation(page);
   };
 
-  const displayLoading = (page: NavigationBarPageType) => {
-    const title =
-      page === 'about'
-        ? 'Laster inn ressurs'
-        : page === 'policy'
-        ? 'Laster inn policy'
-        : 'Laster inn';
-
-    return (
-      <div className={classes.spinnerWrapper}>
-        <Spinner size='3xLarge' variant='interaction' title={title} />
-      </div>
-    );
-  };
-
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
@@ -185,14 +170,15 @@ export const ResourcePage = () => {
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' &&
           (resourceLoading || sectorsLoading ? (
-            displayLoading('about')
+            <div className={classes.spinnerWrapper}>
+              <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurs' />
+            </div>
           ) : (
             <AboutResourcePage
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
               sectorsData={sectorsData}
               onSaveResource={(r: ResourceBackendType) => {
-                refetchValidateResource();
                 editResource(r, {
                   // TODO - Display that it was saved
                   onSuccess: () => {
