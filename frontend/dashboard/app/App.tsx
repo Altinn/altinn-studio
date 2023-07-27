@@ -60,5 +60,5 @@ export const App = (): JSX.Element => {
     );
   }
 
-  return <PageSpinner />;
+  return <div className={classes.appDashboardSpinner}><PageSpinner/></div>;
 };
