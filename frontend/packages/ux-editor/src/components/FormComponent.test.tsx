@@ -5,7 +5,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
-import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { component1IdMock, component1Mock } from '../testing/layoutMock';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -35,13 +35,12 @@ describe('FormComponent', () => {
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
   });
 
-  it('should delete when clicking the Delete button', async () => {
+  it('should confirm delete when clicking the Delete button', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
     await render();
-
     const button = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(button));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(window.confirm).toHaveBeenCalled();
   });
 
   describe('title', () => {

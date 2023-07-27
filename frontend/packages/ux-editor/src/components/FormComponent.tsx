@@ -61,14 +61,17 @@ export const FormComponent = memo(function FormComponent({
   const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
 
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    const confirmDelete = window.confirm(t("ux_editor.component_confirm_delete"));
+    if(confirmDelete){
     event.stopPropagation();
     deleteFormComponent(id);
+    }
     if (isEditMode) handleDiscard();
   };
 
   const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setIsPreviewMode(previous => !previous);
+      event.stopPropagation();
+      setIsPreviewMode(previous => !previous);   
   };
 
   const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;

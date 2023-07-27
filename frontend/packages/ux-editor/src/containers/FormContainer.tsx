@@ -48,7 +48,7 @@ export const FormContainer = ({
 
   const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
     if(ComponentType.Group ){   
-      const userConfirmed = window.confirm(t("ux_editor.group_component_confirm_delete"));
+      const userConfirmed = window.confirm(t("ux_editor.component_confirm_delete"));
       if (userConfirmed) {
        event.stopPropagation();
         handleDeleteFormContainer(id);
