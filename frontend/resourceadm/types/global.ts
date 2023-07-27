@@ -75,7 +75,7 @@ export interface PolicyErrorType {
 }
 
 export interface ResourceKeywordType {
-  language: 'nb' | 'nn' | 'en'; // TODO - Samisk
+  language: 'nb' | 'nn' | 'en';
   word: string
 }
 
