@@ -10,7 +10,7 @@ import { ConnectDragSource } from 'react-dnd';
 import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
 import { useSelector } from 'react-redux';
 import { ComponentType } from 'app-shared/types/ComponentType';
-
+import { useTranslation } from 'react-i18next';
 
 export interface IFormContainerProps {
   children: ReactNode;
@@ -35,6 +35,7 @@ export const FormContainer = ({
 } : IFormContainerProps) => {
   const { org, app } = useParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
+  const { t } = useTranslation();
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app, selectedLayoutSetName);
 
@@ -45,22 +46,16 @@ export const FormContainer = ({
 
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const hasNestedGroup = (): boolean => {
-      if (ComponentType.Group) return true;
-    return false;
-  };
-
- const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
-      if (hasNestedGroup()) {
-        const userConfirmed = window.confirm("This is a Group components. Are you sure you want to delete it?");
-        if (!userConfirmed) return;        
+  const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
+    if(ComponentType.Group ){   
+      const userConfirmed = window.confirm(t("ux_editor.group_component_confirm_delete"));
+      if (userConfirmed) {
+       event.stopPropagation();
+        handleDeleteFormContainer(id);
+        handleDiscard();
       }
-      event.stopPropagation();
-      handleDeleteFormContainer(id);
-      handleDiscard();
-    },
-    [handleDeleteFormContainer, handleDiscard, id]
-  );
+    }
+  }, [handleDeleteFormContainer, handleDiscard, id, t]);
 
   return (
     <div
