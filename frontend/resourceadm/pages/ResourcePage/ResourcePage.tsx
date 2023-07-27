@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { NavigationBarPageType, ResourceBackendType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -17,6 +17,7 @@ import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from 'resourceadm/components/NavigationModal';
 import { Spinner } from '@digdir/design-system-react';
+import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.
@@ -41,20 +42,30 @@ export const ResourcePage = () => {
   const [resourceErrorModalOpen, setResourceErrorModalOpen] = useState(false);
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
+  // const [validationStatus, setValidationStatus] = useState<number | null>(null);
+
   // Get the metadata from the queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
-  const { data: validatePolicyData } = useValidatePolicyQuery(selectedContext, repo, resourceId);
-  const { data: validateResourceData } = useValidateResourceQuery(
+  const { data: validatePolicyData, refetch: refetchPolicyData } = useValidatePolicyQuery(
+    selectedContext,
+    repo,
+    resourceId
+  );
+  const { refetch: refetchValidateResource } = useValidateResourceQuery(
     selectedContext,
     repo,
     resourceId
   );
   const {
     data: resourceData,
-    isLoading: resourceLoading,
     refetch: refetchResource,
+    isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
+
   const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
+
+  // Mutation function for editing a resource
+  const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -73,22 +84,28 @@ export const ResourcePage = () => {
     setCurrentPage(pageType as NavigationBarPageType);
   }, [pageType]);
 
+  const validateResource = async (page: NavigationBarPageType) => {
+    const data = await refetchValidateResource();
+    const validationStatus = data?.data?.status ?? null;
+
+    if (validationStatus === 200) {
+      setShowResourceErrors(false);
+      handleNavigation(page);
+    } else {
+      setShowResourceErrors(true);
+      setNextPage(page);
+      setResourceErrorModalOpen(true);
+    }
+  };
+
   /**
    * Navigates to the selected page
    */
-  const navigateToPage = (page: NavigationBarPageType) => {
+  const navigateToPage = async (page: NavigationBarPageType) => {
     // Validate Resource and display errors + modal
     if (currentPage === 'about') {
-      refetchResource();
-      console.log(validateResourceData);
-      if (validateResourceData.status === 200) {
-        setShowResourceErrors(false);
-        handleNavigation(page);
-      } else {
-        setShowResourceErrors(true);
-        setNextPage(page);
-        setResourceErrorModalOpen(true);
-      }
+      await refetchResource();
+      await validateResource(page);
     }
     // Validate Ppolicy and display errors + modal
     else if (currentPage === 'policy') {
@@ -131,8 +148,12 @@ export const ResourcePage = () => {
    *
    * @param page the page to navigate to
    */
-  const navigateToPageWithError = (page: NavigationBarPageType) => {
-    if (page === 'about') setShowResourceErrors(true);
+  const navigateToPageWithError = async (page: NavigationBarPageType) => {
+    if (page === 'about') {
+      await refetchResource();
+      await refetchValidateResource();
+      setShowResourceErrors(true);
+    }
     if (page === 'policy') setShowPolicyErrors(true);
     handleNavigation(page);
   };
@@ -170,6 +191,15 @@ export const ResourcePage = () => {
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
               sectorsData={sectorsData}
+              onSaveResource={(r: ResourceBackendType) => {
+                refetchValidateResource();
+                editResource(r, {
+                  // TODO - Display that it was saved
+                  onSuccess: () => {
+                    console.log('success');
+                  },
+                });
+              }}
             />
           ))}
         {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}

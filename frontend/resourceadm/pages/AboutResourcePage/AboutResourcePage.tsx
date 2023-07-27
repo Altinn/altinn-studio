@@ -14,7 +14,6 @@ import {
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
-import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 
 /**
  * The resource type options to be used in the select
@@ -40,6 +39,7 @@ interface Props {
   showAllErrors: boolean;
   resourceData: ResourceBackendType;
   sectorsData: ResourceSectorType[];
+  onSaveResource: (r: ResourceBackendType) => void;
 }
 
 /**
@@ -47,12 +47,14 @@ interface Props {
  *
  * @param props.showAllErrors flag to decide if all errors should be shown or not
  */
-export const AboutResourcePage = ({ showAllErrors, resourceData, sectorsData }: Props) => {
+export const AboutResourcePage = ({
+  showAllErrors,
+  resourceData,
+  sectorsData,
+  onSaveResource,
+}: Props) => {
   // TODO - translation
-  const { selectedContext, resourceId } = useParams();
-
-  // Mutation function for editing a resource
-  const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
+  const { resourceId } = useParams();
 
   /**
    * ------------ Temporary functions -------------
@@ -97,10 +99,24 @@ export const AboutResourcePage = ({ showAllErrors, resourceData, sectorsData }: 
     'none' | 'title' | 'description' | 'rightDescription'
   >('none');
 
-  // To handle the state of the page
-  const [hasResourceTypeError, setHasResourceTypeError] = useState(false);
-  const [hasTitleError, setHasTitleError] = useState(false);
-  const [hasDescriptionError, setHasDescriptionError] = useState(false);
+  // To handle the error state of the page
+  const [hasResourceTypeError, setHasResourceTypeError] = useState(
+    resourceData.resourceType === undefined || resourceData.resourceType === null
+  );
+  const [hasTitleError, setHasTitleError] = useState(
+    resourceData.title === undefined ||
+      resourceData.title === null ||
+      resourceData.title.nb === '' ||
+      resourceData.title.nn === '' ||
+      resourceData.title.en === ''
+  );
+  const [hasDescriptionError, setHasDescriptionError] = useState(
+    resourceData.description === undefined ||
+      resourceData.description === null ||
+      resourceData.description.nb === '' ||
+      resourceData.description.nn === '' ||
+      resourceData.description.en === ''
+  );
 
   /**
    * Function that saves the resource to backend
@@ -125,12 +141,7 @@ export const AboutResourcePage = ({ showAllErrors, resourceData, sectorsData }: 
       rightDescription,
     };
 
-    editResource(editedResourceObject, {
-      // TODO - Display that it was saved
-      onSuccess: () => {
-        console.log('success');
-      },
-    });
+    onSaveResource(editedResourceObject);
   };
 
   /**
@@ -229,6 +240,7 @@ export const AboutResourcePage = ({ showAllErrors, resourceData, sectorsData }: 
     return (
       <>
         <h1 className={classes.pageHeader}>Om ressursen</h1>
+        <p>{String(showAllErrors)}</p>
         <h2 className={classes.subHeader}>Ressurs type</h2>
         <p className={classes.text}>Velg ett alternativ fra listen under</p>
         <div className={classes.inputWrapper}>
