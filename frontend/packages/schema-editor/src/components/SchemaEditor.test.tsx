@@ -327,6 +327,7 @@ describe('SchemaEditor', () => {
       },
     };
     setSchema(jsonSchema);
+    renderEditor();
     const type = screen.getByTestId(`type-item-#/${Keyword.Definitions}/TestType`);
     await act(() => user.click(type));
     const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });
