@@ -117,7 +117,7 @@ export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
 
 // Resourceadm
-const resourceAdmBasePath = 'http://studio.localhost/designer/api'
+const resourceAdmBasePath = 'http://studio.localhost/designer/api';
 
 export const resourcePolicyPath = (org, repo, id) => `${resourceAdmBasePath}/${org}/${repo}/policy/${id}`; // Get, Put
 export const resourceActionsPath = (org, repo) => `${resourceAdmBasePath}/${org}/${repo}/policy/actionoptions`; // Get

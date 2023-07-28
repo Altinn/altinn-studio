@@ -100,9 +100,9 @@ export const getPolicyActions = (org: string, repo: string) => get<PolicyActionT
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjectType[]>(resourceSubjectsPath(org, repo));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
-export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id))
-export const getValidatePolicy = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidatePolicyPath(org, repo, id))
-export const getValidateResource = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidateResourcePath(org, repo, id))
+export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id));
+export const getValidatePolicy = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidatePolicyPath(org, repo, id));
+export const getValidateResource = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidateResourcePath(org, repo, id));
 export const getResourceSectors = (org: string) => get<ResourceSectorType[]>(resourceSectorsPath(org));
 export const getResourceThematicLos = (org: string) => get<ResourceThematicType[]>(resourceThematicLosPath(org));
 export const getResourceThematicEurovoc = (org: string) => get<ResourceThematicType[]>(resourceThematicEurovocPath(org));
