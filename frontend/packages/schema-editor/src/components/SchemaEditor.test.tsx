@@ -43,7 +43,7 @@ const renderEditor = (customState?: Partial<SchemaState>, editMode?: boolean) =>
     ...mockInitialState,
     ...customStateCopy,
   };
-  const toggleEditMode = () => jest.fn();
+  
 
   return renderWithProviders({
     state,
@@ -56,7 +56,6 @@ const renderEditor = (customState?: Partial<SchemaState>, editMode?: boolean) =>
       editMode={editMode === undefined ? true : editMode}
       onSaveSchema={jest.fn()}
       schemaState={{ saving: false, error: null }}
-      toggleEditMode={toggleEditMode}
       toolbarProps={{
         createNewOpen: false,
         createPathOption: false,
