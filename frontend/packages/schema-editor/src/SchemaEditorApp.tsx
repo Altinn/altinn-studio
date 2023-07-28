@@ -25,7 +25,6 @@ export type SchemaEditorAppProps = PropsWithChildren<{
   name?: string;
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
-  toggleEditMode: () => void;
   toolbarProps: Omit<ToolbarProps, 'disabled'>;
 }>;
 
@@ -36,7 +35,6 @@ function WrappedContent({
   name,
   onSaveSchema,
   schemaState,
-  toggleEditMode,
   toolbarProps,
 }: Omit<SchemaEditorAppProps, keyof SchemaEditorAppContextProps>) {
   const { status: datamodelStatus, error: datamodelError } = useDatamodelQuery();
@@ -64,7 +62,6 @@ function WrappedContent({
             name={name}
             schemaState={schemaState}
             onSaveSchema={onSaveSchema}
-            toggleEditMode={toggleEditMode}
             toolbarProps={{ ...toolbarProps }}
           />
         </Provider>
