@@ -6,6 +6,7 @@ export interface Dynamic {
   operator?: 'og' | 'eller';
   property?: ExpressionPropertyBase | ExpressionPropertyForGroup; // action? TODO: Figure out if this is redundant - maybe it is enough to have the field on the component
   expressionElements?: ExpressionElement[];
+  complexExpression?: any;
 }
 
 export interface ExpressionElement {

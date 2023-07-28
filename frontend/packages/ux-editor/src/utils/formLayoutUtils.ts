@@ -18,14 +18,6 @@ import { generateFormItem } from './component';
 import { FormItemConfigs, formItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
 import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import {
-  DataSource,
-  Dynamic,
-  ExpressionElement, ExpressionFunction,
-  ExpressionPropertyBase,
-  ExpressionPropertyForGroup
-} from '../types/Expressions';
-import { v4 as uuidv4 } from 'uuid';
 
 export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();
@@ -43,12 +35,6 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
         rest.type = rest.component;
         delete rest.component;
       }
-      [...Object.keys(rest)].map((prop) => {
-        // TODO: check if they have expressions set or only boolean values. Or is it covered by the prop as ExpressionPropertyBase | ExpressionPropertyForGroup?
-        if ([...Object.values(ExpressionPropertyBase), ...Object.values(ExpressionPropertyForGroup)].includes(prop as ExpressionPropertyBase | ExpressionPropertyForGroup) && Array.isArray(rest[prop])) {
-          rest[prop] = convertExternalDynamicToInternal(prop, rest[prop])
-        }
-      })
 
       rest.itemType = 'COMPONENT';
       rest.propertyPath = formItemConfigs[rest.type].defaultProperties.propertyPath;
@@ -529,80 +515,3 @@ export const getDepth = (layout: IInternalLayout): number => {
  */
 export const validateDepth = (layout: IInternalLayout): boolean =>
   getDepth(layout) <= MAX_NESTED_GROUP_LEVEL;
-
-/**
- * Converts the external dynamic into internal Dynamic type.
- * @param booleanValue The boolean property of the component to convert into the Dynamic type.
- * @param dynamic The dynamic expression from the external layout.
- * @returns The converted dynamics object.
- */
-export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: any): Dynamic => {
-  // TODO: check if the external dynamic has one or zero level of nesting, otherwise return
-  const hasMoreExpressions: boolean = (dynamic[0] === 'or' || dynamic[0] === 'and');
-  const convertedDynamic: Dynamic = {
-    id: uuidv4(),
-    editMode: false,
-    property: booleanValue as ExpressionPropertyBase | ExpressionPropertyForGroup,
-    expressionElements: [],
-  };
-
-  if (!hasMoreExpressions) {
-    const exp: ExpressionElement = {
-      id: uuidv4(),
-      function: dynamic[0] as ExpressionFunction, // might need an error handling if function is invalid
-    }
-    const updatedExpAddingValue = convertExpressionElement(exp, dynamic[1], false);
-    convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, dynamic[2], true));
-    return convertedDynamic;
-  }
-
-  // dynamic is always an array starting with the function if set as an expression
-  // should use a while loop here for "or" and "and"
-
-  // while loop here for "or" and "and". use index + counter to get the next expression element
-  else {
-    convertedDynamic.operator = dynamic[0];
-    dynamic.slice(1).map(expEl => {
-      const exp: ExpressionElement = {
-        id: uuidv4(),
-        function: expEl[0] as ExpressionFunction, // might need an error handling if function is invalid
-      }
-      const updatedExpAddingValue = convertExpressionElement(exp, expEl[1], false);
-      convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, expEl[2], true));
-      }
-    );
-    return convertedDynamic;
-  }
-}
-
-const convertExpressionElement = (internalExpEl: ExpressionElement, externalExpEl: any, isComparable: boolean): ExpressionElement => {
-  if (Array.isArray(externalExpEl)) {
-    isComparable ?  internalExpEl.comparableDataSource = externalExpEl[0] as DataSource : internalExpEl.dataSource = externalExpEl[0] as DataSource;
-    isComparable ? internalExpEl.comparableValue = externalExpEl[1] : internalExpEl.value = externalExpEl[1];
-  }
-  else {
-    isComparable ? internalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : internalExpEl.dataSource = (typeof externalExpEl as DataSource) // to string. Can be string, number, boolean or null
-    isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
-  }
-  return internalExpEl;
-}
-
-/**
- * Converts the dynamic object into a format that is valid for the layout schema.
- * @param dynamic The internal dynamic object.
- * @returns The converted dynamics object as an expression valid for the layout schema.
- */
-export const convertInternalDynamicToExternal = (dynamic: Dynamic): any => {
-  // TODO: Create a type for the external dynamic
-  // TODO: Implement conversion from internal to external dynamic
-}
-
-/** Example of a dynamic expression: TODO: Check this with team apps
- * ["or",
- *     ["equals", ["component", "my-component"], "my-value"],
- *     ["equals", "foo", "baz"],
- *     ["greaterThan", ["dataModel", "My.Model.Other.Field"], 20],
- *     ["notEquals", ["component", "my-other-component"], null],
- *  ]
- */
-
