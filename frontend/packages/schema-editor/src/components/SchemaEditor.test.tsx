@@ -309,4 +309,29 @@ describe('SchemaEditor', () => {
     await act(() => user.click(type));
     expect(screen.getByText(textMock('schema_editor.types_editing'))).toBeDefined();
   });
+
+  test('close type when clicking on close button', async () => {
+    const jsonSchema: JsonSchema = {
+      [Keyword.Properties]: {
+        someProp: { [Keyword.Type]: FieldType.String },
+        testProp: { [Keyword.Reference]: `#/${Keyword.Definitions}/TestType` },
+      },
+      [Keyword.Definitions]: {
+        TestType: {
+          [Keyword.Type]: FieldType.Object,
+          [Keyword.Properties]: {
+            prop1: { [Keyword.Type]: FieldType.String },
+            prop2: { [Keyword.Type]: FieldType.String },
+          },
+        },
+      },
+    };
+    setSchema(jsonSchema);
+    renderEditor();
+    const type = screen.getByTestId(`type-item-#/${Keyword.Definitions}/TestType`);
+    await act(() => user.click(type));
+    const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });
+    await act(() => user.click(closeType));
+    expect(screen.queryByText(textMock('schema_editor.types_editing'))).toBeNull();
+  });
 });
