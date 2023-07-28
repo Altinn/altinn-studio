@@ -1,0 +1,19 @@
+.text {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.dropdownWraper {
+  margin-top: 20px;
+  width: 80%;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 40px;
+}
+
+.migrateButton {
+  margin-left: 10px;
+}
