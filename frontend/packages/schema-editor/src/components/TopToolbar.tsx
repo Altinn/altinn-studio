@@ -9,7 +9,6 @@ import {
   ErrorMessage,
   Popover,
   Spinner,
-  ToggleButtonGroup,
 } from '@digdir/design-system-react';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
@@ -29,7 +28,6 @@ export function TopToolbar({
   editMode,
   Toolbar,
   saveAction,
-  toggleEditMode,
   schemaState,
 }: TopToolbarProps) {
   const { t } = useTranslation();
@@ -99,18 +97,6 @@ export function TopToolbar({
             </Popover>
           )}
         </div>
-        {toggleEditMode && (
-          <div className={classes.toggleButtonGroupWrapper}>
-            <ToggleButtonGroup
-              selectedValue={editMode ? 'edit' : 'view'}
-              onChange={toggleEditMode}
-              items={[
-                { value: 'view', label: t('schema_editor.view_mode') },
-                { value: 'edit', label: t('schema_editor.edit_mode') },
-              ]}
-            />
-          </div>
-        )}
       </div>
     </section>
   );

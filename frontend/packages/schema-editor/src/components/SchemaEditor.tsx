@@ -43,7 +43,6 @@ export interface IEditorProps {
   name?: string;
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
-  toggleEditMode: () => void;
   toolbarProps: Omit<ToolbarProps, 'disabled'>;
 }
 
@@ -63,7 +62,6 @@ export const SchemaEditor = ({
   editMode,
   onSaveSchema,
   schemaState,
-  toggleEditMode,
   toolbarProps,
 }: IEditorProps) => {
   const dispatch = useDispatch();
@@ -142,7 +140,6 @@ export const SchemaEditor = ({
         editMode={editMode}
         saveAction={name ? handleSaveSchema : undefined}
         schemaState={schemaState}
-        toggleEditMode={name ? toggleEditMode : undefined}
       />
       <main className={classes.main}>
         {isEmpty(data) ? LandingPagePanel : (
