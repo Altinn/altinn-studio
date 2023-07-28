@@ -131,8 +131,8 @@ export function DataModelling({
   const handleHideIntroPageButtonClick = () =>
     setHideIntroPage(setLocalStorageItem('hideIntroPage', true));
 
-  const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
-  const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
+  const [editMode] = useState(() => getLocalStorageItem('editMode'));
+
 
   return (
     <>
