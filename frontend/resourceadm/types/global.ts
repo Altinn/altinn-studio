@@ -105,14 +105,13 @@ export interface ValidationType {
   status: number;
 }
 
-// TODO - Find out if the other fields are needed or if can combine type with thematic
+// TODO - Find out if the other fields are needed
 export interface ResourceSectorType {
   code: string;
   label: SupportedLanguageKey<string>;
 }
 
-// TODO - Find out if the other fields are needed or if can combine type with sector
+// TODO - Find out if the other fields are needed
 export interface ResourceThematicType {
-  code: string;
-  label: SupportedLanguageKey<string>;
+  uri: string;
 }

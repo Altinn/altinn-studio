@@ -61,7 +61,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
-import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceSectorType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -104,5 +104,5 @@ export const getResource = (org: string, repo: string, id: string) => get<Resour
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidatePolicyPath(org, repo, id))
 export const getValidateResource = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidateResourcePath(org, repo, id))
 export const getResourceSectors = (org: string) => get<ResourceSectorType[]>(resourceSectorsPath(org));
-export const getResourceThematicLos = (org: string) => get<any>(resourceThematicLosPath(org));
-export const getResourceThematicEurovoc = (org: string) => get<any>(resourceThematicEurovocPath(org));
+export const getResourceThematicLos = (org: string) => get<ResourceThematicType[]>(resourceThematicLosPath(org));
+export const getResourceThematicEurovoc = (org: string) => get<ResourceThematicType[]>(resourceThematicEurovocPath(org));

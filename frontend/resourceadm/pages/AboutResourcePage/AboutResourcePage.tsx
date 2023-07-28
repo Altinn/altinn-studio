@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Select, TextField, TextArea, Button } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
-import { resourceThematicAreaMockOptions } from 'resourceadm/data-mocks/resources';
 import { useParams } from 'react-router-dom';
 import {
   SupportedLanguageKey,
@@ -10,6 +9,7 @@ import {
   ResourceTypeOptionType,
   ResourceKeywordType,
   ResourceSectorType,
+  ResourceThematicType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
@@ -39,6 +39,7 @@ interface Props {
   showAllErrors: boolean;
   resourceData: ResourceBackendType;
   sectorsData: ResourceSectorType[];
+  thematicData: ResourceThematicType[];
   onSaveResource: (r: ResourceBackendType) => void;
 }
 
@@ -46,15 +47,22 @@ interface Props {
  * Page that displays information about a resource
  *
  * @param props.showAllErrors flag to decide if all errors should be shown or not
+ * @param props.resourceData the metadata for the resource
+ * @param props.sectorsData the list of possible sectors
+ * @param props.thematicData the list of possible thematic areas
+ * @param props.onSaveResource function to be handled when saving the resource
  */
 export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   sectorsData,
+  thematicData,
   onSaveResource,
 }: Props) => {
   // TODO - translation
   const { resourceId } = useParams();
+
+  console.log('thematicData', thematicData);
 
   /**
    * ------------ Temporary functions -------------
@@ -340,7 +348,7 @@ export const AboutResourcePage = ({
         <p className={classes.text}>En tjeneste kan relateres til et tematisk område</p>
         <div className={classes.inputWrapper}>
           <Select
-            options={resourceThematicAreaMockOptions}
+            options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
             onChange={(e: string) => setThematicArea(e)}
             value={thematicArea}
             label='Velg tematisk område'

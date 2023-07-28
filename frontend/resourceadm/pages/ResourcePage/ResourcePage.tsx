@@ -9,6 +9,8 @@ import { DeployResourcePage } from '../DeployResourcePage';
 import {
   useRepoStatusQuery,
   useResourceSectorsQuery,
+  useResourceThematicAreaEurovocQuery,
+  useResourceThematicAreaLosQuery,
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
@@ -64,6 +66,9 @@ export const ResourcePage = () => {
     isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
   const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
+  const { data: losData, isLoading: losLoading } = useResourceThematicAreaLosQuery(selectedContext);
+  const { data: eurData, isLoading: eurLoading } =
+    useResourceThematicAreaEurovocQuery(selectedContext);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
@@ -169,7 +174,7 @@ export const ResourcePage = () => {
       </div>
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' &&
-          (resourceLoading || sectorsLoading ? (
+          (resourceLoading || sectorsLoading || losLoading || eurLoading ? (
             <div className={classes.spinnerWrapper}>
               <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurs' />
             </div>
@@ -178,6 +183,7 @@ export const ResourcePage = () => {
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
               sectorsData={sectorsData}
+              thematicData={[...losData, ...eurData]}
               onSaveResource={(r: ResourceBackendType) => {
                 editResource(r, {
                   // TODO - Display that it was saved
