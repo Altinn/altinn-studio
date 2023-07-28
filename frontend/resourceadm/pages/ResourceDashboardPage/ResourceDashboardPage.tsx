@@ -5,36 +5,35 @@ import { Button, Spinner } from '@digdir/design-system-react';
 import { PlusCircleIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { ResourceType } from 'resourceadm/types/global';
-import { useOnce } from 'resourceadm/hooks/useOnce';
-import { get, post } from 'app-shared/utils/networking';
-import { getCreateResourceUrl, getResourcesUrl } from 'resourceadm/utils/backendUrlUtils';
-import { mapResourceListBackendResultToResourceList } from 'resourceadm/utils/mapperUtils';
+import { NewResourceType, ResourceType } from 'resourceadm/types/global';
 import { Footer } from 'resourceadm/components/Footer';
-import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import { useGetResourceListQuery, useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 
 /**
  * Displays the page for the resource dashboard
  */
 export const ResourceDashboardPage = () => {
+  const navigate = useNavigate();
+
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [searchValue, setSearchValue] = useState('');
-  const [resourceList, setResourceList] = useState<ResourceType[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
 
-  // Gets the repo status and the function to refetch it
+  // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: resourceListData, isLoading: resourceListLoading } =
+    useGetResourceListQuery(selectedContext);
 
-  const navigate = useNavigate();
+  // Mutation function to create new resource
+  const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
 
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
@@ -46,41 +45,22 @@ export const ResourceDashboardPage = () => {
   }, [repoStatus]);
 
   /**
-   * Get the resources once the page loads
-   */
-  useOnce(() => {
-    setLoading(true);
-
-    get(getResourcesUrl(selectedContext))
-      .then((res: unknown) => {
-        setResourceList(mapResourceListBackendResultToResourceList(res));
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error getting the resources', err);
-        setLoading(false);
-        setHasError(true);
-      });
-
-    /**
-     * IF you do not want to run agains backend, comment out the code above,
-     * and comment in the code below. It will then work the same.
-     */
-    // setResourceList(mockResources);
-  });
-
-  /**
    * Filter the list based on what is typed in the search box
    */
-  const filteredTableData = resourceList.filter((resource: ResourceType) =>
-    resource.title.toLowerCase().includes(searchValue.toLocaleLowerCase())
-  );
+  const filteredTableData = (list: ResourceType[]) => {
+    const searchValueLower = searchValue.toLocaleLowerCase();
+
+    return list.filter((resource: ResourceType) => {
+      const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
+      return titles.some((titleString) => titleString.includes(searchValueLower));
+    });
+  };
 
   /**
-   * Creates a new resource in backend
+   * Creates a new resource in backend, and navigates if success
    */
   const handleCreateNewResource = (id: string, title: string) => {
-    const idAndTitle = {
+    const idAndTitle: NewResourceType = {
       identifier: id,
       title: {
         nb: title,
@@ -89,36 +69,31 @@ export const ResourceDashboardPage = () => {
       },
     };
 
-    post(getCreateResourceUrl(selectedContext), idAndTitle)
-      .then(() => {
-        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
-      })
-      .catch((err) => {
-        console.error('Error posting the new resource', err);
-      });
+    // TODO - Error handling on 409 conflict
+    createNewResource(idAndTitle, {
+      onSuccess: () =>
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+    });
   };
 
   /**
    * Display different content based on the loading state
    */
   const displayContent = () => {
-    if (loading) {
+    if (resourceListLoading) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
         </div>
       );
+    } else {
+      return (
+        <>
+          <h2 className={classes.subheader}>{`Alle ressurser (${resourceListData.length})`}</h2>
+          <ResourceTable list={filteredTableData(resourceListData)} />
+        </>
+      );
     }
-    // TODO error handling
-    if (hasError) {
-      return <p>Beklager, det skjedde en feil under innhenting av innholdet</p>;
-    }
-    return (
-      <>
-        <h2 className={classes.subheader}>{`Alle ressurser (${resourceList.length})`}</h2>
-        <ResourceTable list={filteredTableData} />
-      </>
-    );
   };
 
   return (

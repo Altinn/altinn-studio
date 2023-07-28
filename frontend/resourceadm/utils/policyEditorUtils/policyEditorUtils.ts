@@ -1,6 +1,5 @@
 import {
   PolicyActionType,
-  PolicyBackendType,
   PolicyRuleBackendType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
@@ -17,15 +16,6 @@ export const emptyPolicyRule: PolicyRuleCardType = {
   subject: [],
   description: '',
 };
-
-/**
- * Empty policy
- */
-export const emptyPolicy: PolicyBackendType = {
-  rules: [],
-  requiredAuthenticationLevelEndUser: '3',
-  requiredAuthenticationLevelOrg: '3'
-}
 
 /**
  * Maps the list of policy subject strings from backend of the format

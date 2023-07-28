@@ -1,22 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './PolicyEditorPage.module.css';
-import { PolicyActionType, PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
+import { PolicyBackendType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
-import { get, put } from 'app-shared/utils/networking';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
-import {
-  getActionOptionsUrl,
-  getPolicyUrl,
-  getSubjectOptionsUrl,
-} from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
-import { useOnce } from 'resourceadm/hooks/useOnce';
-import {
-  mapPolicyActionResultToPolicyActions,
-  mapPolicyResultToPolicyObject,
-  mapPolicySubjectResultToPolicySubjects,
-} from 'resourceadm/utils/mapperUtils';
-import { emptyPolicy } from 'resourceadm/utils/policyEditorUtils';
+import { mapPolicyResultToPolicyObject } from 'resourceadm/utils/mapperUtils';
 import { Spinner } from '@digdir/design-system-react';
+import {
+  useResourcePolicyQuery,
+  useResourcePolicyActionsQuery,
+  useResourcePolicySubjectsQuery,
+} from 'resourceadm/hooks/queries';
+import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
 
 interface Props {
   showAllErrors: boolean;
@@ -34,100 +28,56 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
   const repo = `${selectedContext}-resources`;
 
-  const [actions, setActions] = useState<PolicyActionType[]>([]);
-  const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
-  const [policy, setPolicy] = useState<PolicyBackendType>(emptyPolicy);
-  const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  // Get the data
+  const { data: policyData, isLoading: policyLoading } = useResourcePolicyQuery(
+    selectedContext,
+    repo,
+    resourceId
+  );
+  const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
+    selectedContext,
+    repo
+  );
+  const { data: subjectData, isLoading: subjectsLoading } = useResourcePolicySubjectsQuery(
+    selectedContext,
+    repo
+  );
+
+  // Mutation function to update policy
+  const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(
+    selectedContext,
+    repo,
+    resourceId
+  );
 
   /**
-   * Get the policy, actions, and subjects when the page loads
+   * Saves the policy to backend
    */
-  useOnce(() => {
-    // Start loading when trying to get the policies
-    setLoading(true);
-
-    // Get the ations when page loads
-    get(getActionOptionsUrl(selectedContext, repo))
-      .then((actionResult: unknown) => {
-        // Set the actions
-        setActions(mapPolicyActionResultToPolicyActions(actionResult));
-
-        // Get the subjects when page loads
-        get(getSubjectOptionsUrl(selectedContext, repo))
-          .then((subjectResult: unknown) => {
-            // Set the subjects
-            setSubjects(mapPolicySubjectResultToPolicySubjects(subjectResult));
-
-            // E.g., http://studio.localhost/designer/api/ttd/ttd-resources/policy/resource_id_7
-            get(getPolicyUrl(selectedContext, repo, resourceId))
-              .then((policyResult: unknown) => {
-                // Set the policy
-                setPolicy(mapPolicyResultToPolicyObject(policyResult));
-                setLoading(false);
-              })
-              .catch((err) => {
-                console.error('Error getting the policy', err);
-                setLoading(false);
-                setHasError(true);
-              });
-          })
-          .catch((err) => {
-            console.error('Error getting the subjects', err);
-            setLoading(false);
-            setHasError(true);
-          });
-      })
-      .catch((err) => {
-        console.error('Error getting the actions', err);
-        setLoading(false);
-        setHasError(true);
-      });
-
-    /**
-     * IF you do not want to run against backend, comment out the getters above,
-     * and coment in the code below
-     */
-    // setActions(actionsListMock);
-    // setSubjects(subjectsListMock);
-    // setPolicyRules(mapPolicyRulesBackendObjectToPolicyRuleCardType(subjectsListMock, resourceId === 'resource_id_1' ? policyMock1.rules : policyMock2.rules));
-    // setLastRuleId(resourceId === 'resource_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1);
-  });
-
   const handleSavePolicy = (p: PolicyBackendType) => {
-    // TODO - Error handling
-    put(getPolicyUrl(selectedContext, repo, resourceId), p)
-      .then((res) => {
-        console.log('success', res);
-        // TODO - maybe add a success message / card?
-      })
-      .catch((err) => {
-        console.error(err);
-        console.log({ err });
-        // TODO - handle error
-      });
+    updatePolicyMutation(p, {
+      // TODO - Display that it was saved
+      onSuccess: () => {
+        console.log('success');
+      },
+    });
   };
 
   /**
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (loading) {
+    if (policyLoading || actionLoading || subjectsLoading) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
         </div>
       );
     }
-    // TODO error handling
-    if (hasError) {
-      return <p>Beklager, det skjedde en feil under innhenting av innholdet</p>;
-    }
     return (
       <PolicyEditor
-        policy={policy}
-        actions={actions}
-        subjects={subjects}
+        policy={mapPolicyResultToPolicyObject(policyData)}
+        actions={actionData}
+        subjects={subjectData}
         resourceType={resourceType}
         resourceId={resourceId}
         onSave={handleSavePolicy}
