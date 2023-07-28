@@ -17,3 +17,8 @@
 .migrateButton {
   margin-left: 10px;
 }
+
+.contentDivider {
+  border: solid 1px #D6D6D6;
+  margin-block: 25px;
+}
