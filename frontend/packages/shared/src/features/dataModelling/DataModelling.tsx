@@ -170,7 +170,6 @@ export function DataModelling({
       </Dialog>
       <SchemaEditorApp
         editMode={editMode}
-        toggleEditMode={toggleEditMode}
         modelPath={selectedOption?.value?.repositoryRelativeUrl}
         name={selectedOption?.label}
         schemaState={jsonSchemaState}
