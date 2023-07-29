@@ -1,36 +1,30 @@
 .elementContainer {
-  align-items: baseline;
   display: flex;
-  flex-direction: row;
+  align-items: center;
 }
 
-.pageName {
+.pageContainer {
+  flex: 1;
+}
+
+.pageButton {
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 19px;
+  padding: var(--fds-spacing-3) var(--fds-spacing-5);
 }
 
-.selected .pageName {
+.selected .pageButton {
   font-weight: 700;
 }
 
-.elementContainer > div:first-child {
-  flex: 0;
-  padding: 8px;
-}
-.elementContainer > div:nth-child(2) {
-  flex: 1;
-  padding: 8px;
-}
-.elementContainer > div:last-child {
-  flex: 0;
+.pageField {
+  padding: 0 var(--fds-spacing-3);
 }
 
 .ellipsisButton {
   margin-left: 1.2rem;
   visibility: hidden;
 }
+
 .elementContainer:hover .ellipsisButton {
   visibility: visible;
 }

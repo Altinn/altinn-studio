@@ -41,7 +41,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
     }
   }, [dynamics]);
 
-  if (!formId || !form) return null;
+  if (!formId || !form) return t('right_menu.content_empty');
 
   // adapt list of actions if component is group
   const expressionProperties = form.itemType === LayoutItemType.Container ?

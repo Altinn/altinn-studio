@@ -1,0 +1,15 @@
+.header {
+  background-color: transparent;
+  border-bottom: none;
+  padding: var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-6);
+}
+
+.header[aria-expanded='true'],
+.header:hover,
+.header[aria-expanded='true']:hover {
+  background-color: transparent;
+}
+
+.content {
+  padding: 0;
+}

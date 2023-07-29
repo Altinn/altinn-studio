@@ -73,7 +73,8 @@ export enum CollapsableMenus {
   Components = 'schema',
   Texts = 'texts',
   AdvancedComponents = 'advanced',
-  Widgets = 'widget',
+  // TODO : Uncomment when we have widgets components
+  // Widgets = 'widget',
 }
 
 export enum LayoutItemType {
