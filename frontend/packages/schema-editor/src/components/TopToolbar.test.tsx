@@ -23,13 +23,10 @@ const texts = {
   'schema_editor.generate_model_files': generateText,
 };
 const saveAction = jest.fn();
-const toggleEditMode = jest.fn();
 const Toolbar = <div/>;
 const defaultProps: TopToolbarProps = {
   Toolbar,
   saveAction,
-  toggleEditMode,
-  editMode: true,
   schemaState: { saving: false, error: null },
 }
 

@@ -31,7 +31,6 @@ import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
 export interface SchemaItemLabelProps {
-  editMode: boolean;
   hasReferredNodes: boolean;
   icon: string;
   refNode?: UiSchemaNode;
@@ -47,7 +46,6 @@ export enum SchemaItemLabelTestIds {
   contextMenuAddCombination = 'context-menu-add-combination',
 }
 export const SchemaItemLabel = ({
-  editMode,
   hasReferredNodes,
   icon,
   refNode,
@@ -180,7 +178,6 @@ export const SchemaItemLabel = ({
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={translate('add_reference')}
             iconClass='fa fa-datamodel-ref'
-            disabled={!editMode}
           />
         )}
         {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
@@ -191,7 +188,6 @@ export const SchemaItemLabel = ({
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
             text={translate('add_field')}
             iconClass='fa fa-datamodel-properties'
-            disabled={!editMode}
           />
         )}
         {capabilties.includes(Capabilites.CanHaveCombinationAdded) && (
@@ -202,7 +198,6 @@ export const SchemaItemLabel = ({
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
             text={translate('add_combination')}
             iconClass='fa fa-group'
-            disabled={!editMode}
           />
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToReference) && (
@@ -213,7 +208,6 @@ export const SchemaItemLabel = ({
             onClick={handleConvertToReference}
             text={translate('promote')}
             iconClass='fa fa-arrowup'
-            disabled={!editMode}
           />
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToField) && (
@@ -236,7 +230,7 @@ export const SchemaItemLabel = ({
             onClick={handleDeleteClick}
             text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
             iconClass='fa fa-trash'
-            disabled={!editMode || hasReferredNodes}
+            disabled={hasReferredNodes}
           />
         )}
       </AltinnMenu>

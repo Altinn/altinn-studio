@@ -15,7 +15,6 @@ export const render = (loading: boolean) => {
       <PreviewConnectionContextProvider>
         <SchemaEditorApp
           LandingPagePanel={null}
-          editMode={false}
           loading={loading}
           modelPath='modelPath'
           name='test'

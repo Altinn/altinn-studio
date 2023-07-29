@@ -31,7 +31,7 @@ const modelPath = 'modelPath';
 // Mocks:
 const saveDatamodel = jest.fn();
 
-const renderEditor = (customState?: Partial<SchemaState>, editMode?: boolean) => {
+const renderEditor = (customState?: Partial<SchemaState>) => {
   const mockInitialState: SchemaState = {
     name: 'test',
     selectedDefinitionNodeId: '',
@@ -53,7 +53,6 @@ const renderEditor = (customState?: Partial<SchemaState>, editMode?: boolean) =>
     <SchemaEditor
       LandingPagePanel={<div>landing page panel goes here</div>}
       name='test'
-      editMode={editMode === undefined ? true : editMode}
       onSaveSchema={jest.fn()}
       schemaState={{ saving: false, error: null }}
       toolbarProps={{
@@ -90,29 +89,6 @@ const setSchema = (schema: JsonSchema): UiSchemaNodes => {
 
 describe('SchemaEditor', () => {
   afterEach(jest.clearAllMocks);
-
-  test('renders schema editor with populated schema in view mode', () => {
-    setSchema(dataMock);
-    renderEditor({}, false);
-    expect(screen.getByTestId('schema-editor')).toBeDefined();
-    const saveButton = screen.getByRole('button', { name: textMock('schema_editor.generate_model_files') });
-    expect(saveButton).toBeDefined();
-    expect(saveButton).toBeDisabled();
-    expect(screen.queryByTestId('schema-inspector')).toBeNull();
-    expect(screen.getByTestId('types-inspector')).toBeDefined();
-  });
-
-  test('renders schema editor with populated schema in edit mode', () => {
-    setSchema(dataMock);
-    renderEditor({}, true);
-    expect(screen.getByTestId('schema-editor')).toBeDefined();
-    const saveButton = screen.getByRole('button', { name: textMock('schema_editor.generate_model_files') });
-    expect(saveButton).toBeDefined();
-    expect(saveButton).toBeEnabled();
-    expect(screen.queryByTestId('schema-inspector')).toBeDefined(); // eslint-disable-line testing-library/prefer-presence-queries
-    expect(screen.getByTestId('types-inspector')).toBeDefined();
-  });
-
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
     const uiSchema = setSchema(dataMock);
     renderEditor();

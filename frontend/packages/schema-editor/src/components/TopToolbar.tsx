@@ -18,14 +18,12 @@ import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface TopToolbarProps {
   Toolbar: ReactNode;
-  editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
   schemaState: GenerateSchemaState;
 }
 
 export function TopToolbar({
-  editMode,
   Toolbar,
   saveAction,
   schemaState,
@@ -71,7 +69,7 @@ export function TopToolbar({
                   id='save-model-button'
                   data-testid='save-model-button'
                   onClick={handleGenerateButtonClick}
-                  disabled={!editMode || !saveAction}
+                  disabled={!saveAction}
                   icon={<CogIcon />}
                   variant={ButtonVariant.Quiet}
                 >

@@ -19,7 +19,6 @@ import { PageSpinner } from 'app-shared/components';
 
 export type SchemaEditorAppProps = PropsWithChildren<{
   LandingPagePanel: ReactNode;
-  editMode: boolean;
   loading?: boolean;
   modelPath: string;
   name?: string;
@@ -30,7 +29,6 @@ export type SchemaEditorAppProps = PropsWithChildren<{
 
 function WrappedContent({
   LandingPagePanel,
-  editMode,
   loading,
   name,
   onSaveSchema,
@@ -58,7 +56,6 @@ function WrappedContent({
         <Provider store={store}>
           <SchemaEditor
             LandingPagePanel={LandingPagePanel}
-            editMode={editMode}
             name={name}
             schemaState={schemaState}
             onSaveSchema={onSaveSchema}

@@ -39,7 +39,6 @@ import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface IEditorProps {
   LandingPagePanel: ReactNode;
-  editMode: boolean;
   name?: string;
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
@@ -59,7 +58,6 @@ export enum SchemaEditorTestIds {
 export const SchemaEditor = ({
   LandingPagePanel,
   name,
-  editMode,
   onSaveSchema,
   schemaState,
   toolbarProps,
@@ -137,7 +135,6 @@ export const SchemaEditor = ({
     <div className={classes.root}>
       <TopToolbar
         Toolbar={(<Toolbar {...toolbarProps} disabled={isEmpty(data)}/>)}
-        editMode={editMode}
         saveAction={name ? handleSaveSchema : undefined}
         schemaState={schemaState}
       />
@@ -174,7 +171,6 @@ export const SchemaEditor = ({
               />
             </div>
             <TypesPanel
-              editMode={editMode}
               uiSchemaNode={selectedType}
               setExpandedDefNodes={setExpandedDefNodes}
               expandedDefNodes={
@@ -188,14 +184,13 @@ export const SchemaEditor = ({
         {name && !isEmpty(data) && !selectedType && (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <ModelsPanel
-              editMode={editMode}
               setExpandedPropNodes={setExpandedPropNodes}
               expandedPropNodes={expandedPropNodes}
               properties={properties}
             />
           </div>
         )}
-        {!isEmpty(data) && editMode && (
+        {!isEmpty(data)  && (
           <aside className={classes.inspector}>
             <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
           </aside>
