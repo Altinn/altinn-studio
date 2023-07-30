@@ -24,7 +24,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
   useEffect(() => {
     if (formIdRef.current !== formId) {
       formIdRef.current = formId;
-      if (openList.length === 0) setOpenList(['content']);
+      if (formId && openList.length === 0) setOpenList(['content']);
     }
   }, [formId, openList.length]);
 
