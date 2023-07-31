@@ -27,6 +27,14 @@ describe('DesignView', () => {
     await render(queries);
     expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
   });
+
+  it('Renders component without layout', async () => {
+    const queries: Partial<ServicesContextProps> = {
+      getFormLayouts: () => Promise.resolve({})
+    };
+    await render(queries);
+    expect(screen.getByText(layout1NameMock)).toBeInTheDocument();
+  });
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
