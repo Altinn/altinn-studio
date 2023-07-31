@@ -36,7 +36,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
         forComponentId: undefined,
       },
       logs: [],
-      logIndex: 0,
     },
     formData: getFormDataStateMock(),
     formDataModel: {

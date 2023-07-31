@@ -19,8 +19,23 @@ declare global {
     ruleHandlerObject: IRuleObject;
     ruleHandlerHelper: IRules;
 
+    /**
+     * In React components, hierarchy generators, or other places that are run continuously, use window.logErrorOnce() instead
+     * @see window.logErrorOnce
+     */
     logError: (...args: any[]) => void;
+    /**
+     * In React components, hierarchy generators, or other places that are run continuously, use window.logWarnOnce() instead
+     * @see window.logWarnOnce
+     */
     logWarn: (...args: any[]) => void;
+    /**
+     * In React components, hierarchy generators, or other places that are run continuously, use window.logInfoOnce() instead
+     * @see window.logInfoOnce
+     */
     logInfo: (...args: any[]) => void;
+    logErrorOnce: (...args: any[]) => void;
+    logWarnOnce: (...args: any[]) => void;
+    logInfoOnce: (...args: any[]) => void;
   }
 }

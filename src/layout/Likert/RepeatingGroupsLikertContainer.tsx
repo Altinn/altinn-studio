@@ -8,7 +8,6 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
-import { useLogs } from 'src/hooks/useLogs';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { LayoutStyle } from 'src/types';
@@ -29,7 +28,6 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
   const { lang } = useLanguage();
-  const { logWarn } = useLogs();
 
   const id = node.item.id;
   const hasDescription = !!node?.item.textResourceBindings?.description;
@@ -79,7 +77,7 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
         >
           {node?.children().map((comp) => {
             if (comp.isType('Group') || comp.isType('Summary')) {
-              logWarn('Unexpected Group or Summary inside likert container:\n', comp);
+              window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
               return;
             }
 
@@ -131,7 +129,7 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
             <TableBody id={`likert-table-body-${id}`}>
               {node?.children().map((comp) => {
                 if (comp.isType('Group') || comp.isType('Summary')) {
-                  logWarn('Unexpected Group or Summary inside likert container:\n', comp);
+                  window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
                   return;
                 }
 

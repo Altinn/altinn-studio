@@ -42,7 +42,7 @@ export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'
       const groupId = item.panel.groupReference.group;
       const groupPrototype = generator.prototype(groupId) as UnprocessedItem<'Group'>;
       if (!groupPrototype) {
-        window.logWarn(`Group ${groupId} referenced by panel ${item.id} does not exist`);
+        window.logWarnOnce(`Group ${groupId} referenced by panel ${item.id} does not exist`);
         return;
       }
 

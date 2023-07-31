@@ -68,7 +68,7 @@ const render = (props: Partial<ExprUnresolved<ILayoutComponent>> = {}) => {
 
 describe('GenericComponent', () => {
   it('should show an error in the logs when rendering an unknown component type', () => {
-    const spy = jest.spyOn(window, 'logWarn').mockImplementation();
+    const spy = jest.spyOn(window, 'logWarnOnce').mockImplementation();
     const { container } = render({ type: 'unknown-type' } as any);
 
     expect(spy).toHaveBeenCalledWith(`No component definition found for type 'unknown-type'`);

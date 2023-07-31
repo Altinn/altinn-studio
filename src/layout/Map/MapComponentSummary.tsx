@@ -4,7 +4,6 @@ import { Map } from '@altinn/altinn-design-system';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useLanguage } from 'src/hooks/useLanguage';
-import { useLogs } from 'src/hooks/useLogs';
 import { parseLocation } from 'src/layout/Map/MapComponent';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -31,8 +30,7 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
   const classes = useStyles();
   const layers = targetNode.item.layers;
   const formData = targetNode.def.useDisplayData(targetNode);
-  const { logError } = useLogs();
-  const location = parseLocation(formData, logError);
+  const location = parseLocation(formData);
   const { lang } = useLanguage();
 
   const footerText = location ? lang('map_component.selectedLocation', [location.latitude, location.longitude]) : null;
