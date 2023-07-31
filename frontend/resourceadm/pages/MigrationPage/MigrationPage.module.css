@@ -1,0 +1,15 @@
+.pageWrapper {
+  width: 90%;
+  margin: 0;
+  padding: 40px;
+}
+
+.pageHeader {
+  margin-bottom: 40px;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.contentWrapper {
+  width: 630px;
+}

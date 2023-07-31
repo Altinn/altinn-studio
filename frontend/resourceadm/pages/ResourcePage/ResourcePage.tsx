@@ -20,6 +20,7 @@ import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from 'resourceadm/components/NavigationModal';
 import { Spinner } from '@digdir/design-system-react';
 import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
+import { MigrationPage } from '../MigrationPage';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.
@@ -163,6 +164,17 @@ export const ResourcePage = () => {
     handleNavigation(page);
   };
 
+  /**
+   * Decide if the migration page should be accessible or not
+   */
+  const getShowMigreate = () => {
+    if (resourceData) {
+      if (resourceData.resourceReferences) return true;
+      return false;
+    }
+    return false;
+  };
+
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
@@ -170,6 +182,7 @@ export const ResourcePage = () => {
           currentPage={currentPage}
           navigateToPage={navigateToPage}
           goBack={goBack}
+          showMigrate={getShowMigreate()}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
@@ -198,6 +211,7 @@ export const ResourcePage = () => {
         {currentPage === 'deploy' && (
           <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
         )}
+        {currentPage === 'migration' && <MigrationPage />}
       </div>
       {hasMergeConflict && (
         <MergeConflictModal

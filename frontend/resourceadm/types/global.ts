@@ -40,7 +40,7 @@ export interface PolicyBackendType {
   requiredAuthenticationLevelOrg: string
 }
 
-export type NavigationBarPageType = 'about' | 'policy' | 'deploy';
+export type NavigationBarPageType = 'about' | 'policy' | 'deploy' | 'migration';
 
 export interface ResourceType {
   title: SupportedLanguageKey<string>;
@@ -64,14 +64,14 @@ export interface ResourceBackendType {
   thematicArea?: string;
   rightDescription?: SupportedLanguageKey<string>;
   version?: VersionType;
+  resourceReferences?: ResourceReferenceType[];
   // TODO - Missing available languages, organisation types
 }
 
-export type PolicyRuleErrorType = 'policyerror.missingsubject' | 'policyerror.missingaction' | 'policyerror.missingresource'
-
-export interface PolicyErrorType {
-  ruleNumber: number;
-  errors: PolicyRuleErrorType[];
+export interface ResourceReferenceType {
+  referenceSource?: 'Default' | 'Altinn1' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
+  reference?: string;
+  referenceType?: 'Default' | 'Uri' | 'DelegationSchemeId' | 'MaskinportenScope' | 'ServiceCode' | 'ServiceEditionCode';
 }
 
 export interface ResourceKeywordType {
