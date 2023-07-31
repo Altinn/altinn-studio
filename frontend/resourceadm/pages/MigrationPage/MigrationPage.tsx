@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import classes from './MigrationPage.module.css';
 import { MigrationStep } from 'resourceadm/components/MigrationStep';
+import { Checkbox, Button } from '@digdir/design-system-react';
+import { Link } from 'resourceadm/components/Link';
+import { ExternalLinkIcon } from '@navikt/aksel-icons';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ScreenReaderLabel } from 'resourceadm/components/ScreenReaderLabel';
 
 export const MigrationPage = () => {
   const [step1Checked, setStep1Checked] = useState(false);
   const [step2Checked, setStep2Checked] = useState(false);
   const [step3Checked, setStep3Checked] = useState(false);
+  const [beforeStartChecked, setBeforeStartChecked] = useState(false);
+  const [migrationDate, setMigrationDate] = useState(new Date());
+  const [migrationTime, setMigrationTime] = useState(new Date());
 
   return (
     <div className={classes.pageWrapper}>
@@ -32,6 +41,67 @@ export const MigrationPage = () => {
           isChecked={step3Checked}
           onToggle={(checked: boolean) => setStep3Checked(checked)}
         />
+        <div className={classes.contentDivider} />
+        <h3 className={classes.header3}>Før du begynner migrering</h3>
+        <div className={classes.checkboxWrapper}>
+          <Checkbox
+            label='Integrasjon mot Altinn funker'
+            checked={beforeStartChecked}
+            onChange={(e) => setBeforeStartChecked(e.target.checked)}
+          />
+          <div className={classes.linkWrapper}>
+            <Link
+              text='Dokumentasjon'
+              href='' // TODO
+              icon={<ExternalLinkIcon title='Dokumentasjon' />}
+            />
+          </div>
+        </div>
+        <h3 className={classes.header3}>Velg tidspunkt for migrering</h3>
+        <p className={classes.text}>
+          Velg dato og tid tjenesten skal migreres fra altinn II til altinn 3. Vi anbefaler at dette
+          gjøres på et tidspunkt der tjenesten har lite eller ingen trafikk. For eksempel midt på
+          natten.
+        </p>
+        <div className={classes.datePickers}>
+          <div className={classes.datePickerWrapper}>
+            <p className={classes.text}>
+              <strong>Migreringsdato</strong>
+            </p>
+            <DatePicker
+              selected={migrationDate}
+              onChange={(date: Date) => setMigrationDate(date)}
+              id='migrationDate'
+              dateFormat='dd/MM/yyyy'
+            />
+            <ScreenReaderLabel label='Dato for migrering' htmlFor='migrationDate' />
+          </div>
+          <div className={classes.datePickerWrapper}>
+            <p className={classes.text}>
+              <strong>Klokkeslett</strong>
+            </p>
+            <DatePicker
+              selected={migrationTime}
+              onChange={(date: Date) => setMigrationTime(date)}
+              showTimeSelect
+              showTimeSelectOnly
+              dateFormat='HH:mm'
+              id='migrationTime'
+            />
+            <ScreenReaderLabel label='Klokkeslett for migrering' htmlFor='migrationTime' />
+          </div>
+        </div>
+        <div className={classes.migrateBox}>
+          <h3 className={classes.header3}>Velg tidspunkt for migrering</h3>
+          <p className={classes.text}>
+            Jeg forstår at å trykke <strong>start migrering</strong> fører til at følgende
+            handlinger iverksettes.
+          </p>
+          <div className={classes.migrateSteps}>
+            <p>TODO steps</p>
+          </div>
+          <Button onClick={() => {}}>Start migrering</Button>
+        </div>
       </div>
     </div>
   );
