@@ -21,14 +21,7 @@ const dummyServices: ServiceType[] = [
   { name: 'Service9' },
 ];
 
-const environmentOptions = [
-  { value: 'AT21', label: 'AT21' },
-  { value: 'AT22', label: 'AT22' },
-  { value: 'AT23', label: 'AT23' },
-  { value: 'AT24', label: 'AT24' },
-  { value: 'TT02', label: 'TT02' },
-  { value: 'PROD', label: 'PROD' },
-];
+const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
 interface Props {
   isOpen: boolean;
@@ -158,7 +151,7 @@ export const MigrateResourceModal = ({ isOpen, onClose, onPlanMigrate }: Props) 
     <Modal isOpen={isOpen} onClose={handleClose} title='Migrer en ressurs fra Altinn II'>
       <div className={classes.dropdownWraper}>
         <Select
-          options={environmentOptions}
+          options={environmentOptions.map((e) => ({ value: e, label: e }))}
           onChange={(e: EnvironmentType) => setSelectedEnv(e)}
           value={selectedEnv}
           label='Velg miljøet du vil importere fra'
