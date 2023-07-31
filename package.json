@@ -2,16 +2,16 @@
   "name": "altinn-studio",
   "dependencies": {
     "@altinn/altinn-design-system": "0.29.0",
-    "@altinn/figma-design-tokens": "^6.0.1",
+    "@altinn/figma-design-tokens": "6.0.1",
     "@digdir/design-system-react": "0.18.0",
-    "@digdir/design-system-tokens": "^0.1.5",
+    "@digdir/design-system-tokens": "0.1.5",
     "@microsoft/signalr": "7.0.9",
     "@navikt/aksel-icons": "3.4.2",
     "@tanstack/react-query": "4.32.0",
     "@tanstack/react-query-devtools": "4.32.0",
-    "ajv": "^8.12.0",
-    "ajv-formats": "^2.1.1",
-    "react-i18next": "12.3.1",
+    "ajv": "8.12.0",
+    "ajv-formats": "2.1.1",
+    "react-i18next": "13.0.2",
     "react-router-dom": "6.14.2"
   },
   "devDependencies": {

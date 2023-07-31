@@ -29,11 +29,14 @@ export const getReposLabel = ({
     return isDatamodelsRepo ? t('dashboard.my_datamodels') : t('dashboard.my_apps');
   }
 
-  const orgName =
-    orgs.length > 0 ? `${orgs.find((org) => org.username === selectedContext).full_name} ` : '';
+  const orgName = orgs.length > 0 && orgs.find((org) => org.username === selectedContext).full_name;
 
-  const reposLabel = isDatamodelsRepo ? t('dashboard.datamodels') : t('dashboard.apps');
-  return `${orgName}${reposLabel}`;
+  return orgName
+    ? t(
+      isDatamodelsRepo ? 'dashboard.org_datamodels' : 'dashboard.org_apps',
+      { orgName }
+    )
+    : t(isDatamodelsRepo ? 'dashboard.datamodels' : 'dashboard.apps');
 };
 
 export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
@@ -48,9 +51,7 @@ export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
   return repos.map((repo) => {
     return {
       ...repo,
-      user_has_starred: starredRepos.find((starredRepo) => starredRepo.id === repo.id)
-        ? true
-        : false,
+      user_has_starred: !!starredRepos.find((starredRepo) => starredRepo.id === repo.id),
     };
   });
 };
