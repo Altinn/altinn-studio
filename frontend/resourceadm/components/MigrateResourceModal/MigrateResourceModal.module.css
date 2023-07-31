@@ -20,5 +20,7 @@
 
 .contentDivider {
   border: solid 1px #D6D6D6;
-  margin-block: 25px;
+  margin-top: 25px;
+  margin-bottom: 15px;
+  width: 80%;
 }

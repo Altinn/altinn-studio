@@ -148,7 +148,9 @@ export const ResourceDashboardPage = () => {
         <MigrateResourceModal
           isOpen={migrateModalOpen}
           onClose={() => setMigrateModalOpen(false)}
-          onPlanMigrate={() => {}} // TODO when connected with API calls
+          onPlanMigrate={() => {
+            console.log('Migrating... Coming soon');
+          }} // TODO when connected with API calls
         />
       </div>
       <Footer />
