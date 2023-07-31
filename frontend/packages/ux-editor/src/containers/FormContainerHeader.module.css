@@ -33,6 +33,9 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+.formGroup:not(.editMode):not(:hover) .deleteGroupComponent {
   visibility: hidden;
 }
 

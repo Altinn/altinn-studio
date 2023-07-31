@@ -57,7 +57,7 @@ describe('FormContainerHeader', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
-  test('Should not delete when the user clicks the cancel button', async () => {
+  test('Should not delete the component when the user just cancels popover', async () => {
     await render();
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(deleteButton));

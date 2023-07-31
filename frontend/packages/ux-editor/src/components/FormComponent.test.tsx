@@ -67,6 +67,17 @@ describe('FormComponent', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
+  test('Should not delete the component when the user just cancels popover', async () => {
+    await render();
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+    const cancelPopoverButton = screen.getByRole('button', {
+      name: textMock('schema_editor.textRow-cancel-popover'),
+    });
+    await act(() => user.click(cancelPopoverButton));
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(0);
+  });
+
   describe('title', () => {
     it('should display the title', async () => {
       await render({

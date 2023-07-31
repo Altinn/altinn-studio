@@ -53,6 +53,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           open={isConfirmDeleteGroupOpen}
           trigger={
             <Button
+            className={classes.deleteGroupComponent}
               icon={<TrashIcon />}
               title={t('general.delete')}
               onClick={toggleConfirmDeletePopover}
