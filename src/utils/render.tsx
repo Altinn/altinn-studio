@@ -40,17 +40,13 @@ export function renderValidationMessages(
 ) {
   if (variant !== 'error') {
     return (
-      <SoftValidations
-        variant={variant}
-        key={id}
-      >
-        <ol
-          style={{ paddingLeft: 0 }}
-          id={id}
-        >
-          {messages.map(validationMessagesToList)}
-        </ol>
-      </SoftValidations>
+      <div style={{ paddingTop: 'var(--fds-spacing-2)' }}>
+        <SoftValidations
+          variant={variant}
+          key={id}
+          errorMessages={messages}
+        />
+      </div>
     );
   }
 
@@ -63,7 +59,7 @@ export function renderValidationMessages(
         size='small'
         id={id}
       >
-        <ol style={{ paddingLeft: 0 }}>{messages.map(validationMessagesToList)}</ol>
+        <ol>{messages.map(validationMessagesToList)}</ol>
       </ErrorMessage>
     </div>
   );

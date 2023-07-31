@@ -42,7 +42,7 @@
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["ActionButton", "AddressComponent", "AttachmentList", "Button", "ButtonGroup", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "IFrame", "Likert","Link", "List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
+          "enum": ["Alert","ActionButton", "AddressComponent", "AttachmentList", "Button", "ButtonGroup", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "IFrame", "Likert","Link", "List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
         },
         "required": {
           "title": "Required",
@@ -128,6 +128,7 @@
       },
       "required": ["id", "type"],
       "allOf": [
+        { "if": {"properties": {"type": { "const": "Alert"}}}, "then": {"$ref": "#/definitions/alertComponent"}},
         { "if": {"properties": {"type": { "const": "ActionButton"}}}, "then": {"$ref": "#/definitions/actionButtonComponent"}},
         { "if": {"properties": {"type": { "const": "AddressComponent"}}}, "then": { "$ref": "#/definitions/addressComponent"}},
         { "if": {"properties": {"type": { "const": "AttachmentList"}}}, "then": { "$ref": "#/definitions/attachmentListComponent"}},
@@ -158,6 +159,17 @@
         { "if": {"properties": {"type": { "const": "List"}}}, "then": {"$ref": "#/definitions/listComponent"}},
         { "if": { "properties": { "type": { "const": "MapComponent" } } }, "then": { "$ref": "#/definitions/mapComponent" }}
       ]
+    },
+    "alertComponent": {
+      "properties": {
+        "severity": {
+          "title": "Severity",
+          "description": "The severity of the alert.",
+          "type": "string",
+          "enum": ["success", "warning", "danger", "info"]
+        }
+      },
+      "required": ["severity"]
     },
     "headerComponent": {
       "properties": {

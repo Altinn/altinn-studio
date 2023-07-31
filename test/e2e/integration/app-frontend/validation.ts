@@ -79,13 +79,12 @@ describe('Validation', () => {
       const field = appFrontend.changeOfName.newMiddleName;
       cy.get(field).clear();
       cy.get(field).type(value);
-      cy.get(appFrontend.fieldValidation(field, realType)).should('have.text', message);
+      cy.get(`#form-content-newMiddleName`).findByRole('alert', { name: message }).should('exist');
 
       // Should not have any other messages
-      for (const otherType of Object.keys(validationTypeMap)) {
-        const realOtherType = otherType as keyof typeof validationTypeMap;
-        if (realOtherType !== realType) {
-          cy.get(appFrontend.fieldValidation(field, realOtherType)).should('not.exist');
+      for (const [otherType, { message: otherMessage }] of Object.entries(validationTypeMap)) {
+        if (otherType !== realType) {
+          cy.findByRole('alert', { name: otherMessage }).should('not.exist');
         }
       }
     }
