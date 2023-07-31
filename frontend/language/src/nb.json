@@ -148,6 +148,8 @@
   "dashboard.no_repos_result": "Ingen applikasjoner funnet",
   "dashboard.open_in_new": "Åpne i ny fane",
   "dashboard.open_repository": "Åpne repository",
+  "dashboard.org_apps": "{{orgName}}-applikasjoner",
+  "dashboard.org_datamodels": "{{orgName}}-datamodeller",
   "dashboard.repository": "Repository",
   "dashboard.resource_design_description": "Få tilgang til Figma for å prototype og brukerteste tjenesten din før den utvikles. Prototype-kitet inneholder alt du trenger.",
   "dashboard.resource_design_label": "Design / brukertest",
