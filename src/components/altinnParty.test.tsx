@@ -79,25 +79,19 @@ describe('altinnParty', () => {
   });
 
   describe('should render with correct icon based on what kind of party it is', () => {
-    it("should render with class 'fa fa-private' if party is a person", () => {
+    it('should render with person icon if party is a person', () => {
       render();
-      const icon = screen.getByTestId('AltinnParty-partyIcon');
-
-      expect(icon).toHaveClass('fa-private');
-      expect(icon).not.toHaveClass('fa-corp');
+      expect(screen.getByTestId('person-icon')).toBeVisible();
     });
 
-    it("should render with class 'fa fa-corp' if party is a organisation", () => {
+    it('should render with building icon if party is a organisation', () => {
       render({
         party: {
           ...partyMock,
           orgNumber: 1000000,
         },
       });
-      const icon = screen.getByTestId('AltinnParty-partyIcon');
-
-      expect(icon).toHaveClass('fa-corp');
-      expect(icon).not.toHaveClass('fa-private');
+      expect(screen.getByTestId('org-icon')).toBeVisible();
     });
   });
 });

@@ -30,10 +30,7 @@ export function TextAreaComponent({ node, formData, isValid, handleDataChange, o
       readOnly={readOnly}
       resize='vertical'
       characterLimit={!readOnly && maxLength !== undefined ? createCharacterLimit(maxLength, lang) : undefined}
-      className={
-        (isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error') +
-        (readOnly ? ' disabled' : '')
-      }
+      isValid={isValid}
       value={value}
       data-testid={id}
       aria-describedby={

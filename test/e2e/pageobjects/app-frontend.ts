@@ -122,7 +122,6 @@ export class AppFrontend {
   //message - task_1
   public message = {
     header: '#appen-for-test-av-app-frontend',
-    attachmentList: '.attachmentList-title',
     logo: '#altinnLogo',
     logoFormContent: '#form-content-altinnLogo',
   };
@@ -150,7 +149,7 @@ export class AppFrontend {
     uploadWithTag: {
       uploadZone: '#fileUploadWithTags-changename',
       editWindow: '[id^="attachment-edit-window"]',
-      tagsDropDown: '[id^="attachment-tag-dropdown"]',
+      tagsDropDown: 'input[id^="attachment-tag-dropdown"]',
       saveTag: '[id^="attachment-save-tag-button"]',
       uploaded: '#tagFile',
       error: '[id^="attachment-error"]',
@@ -257,8 +256,6 @@ export class AppFrontend {
   public reporteeSelection = {
     appHeader: '[data-testid="AltinnAppHeader"]',
     searchReportee: 'input[placeholder="Søk etter aktør"]',
-    checkbox: 'input[type="checkbox"]',
-    seeSubUnits: '.ai.ai-expand-circle',
     reportee: '[data-testid="AltinnParty-PartyWrapper"][id^=party-]',
     subUnits: '[data-testid="AltinnParty-SubUnitWrapper"]',
     error: '#party-selection-error',
@@ -309,7 +306,7 @@ export function makeUploaderSelectors<T extends Type>(
       status: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(${statusIdx})`,
       deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) [data-testid^="attachment-delete"]`,
       ...(type === 'tagged' && {
-        tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) select`,
+        tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) input`,
         tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
         editBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) td:last-of-type button:contains("Rediger")`,
         deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button:contains("Slett")`,

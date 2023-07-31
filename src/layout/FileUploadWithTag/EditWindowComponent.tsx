@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button, Select } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
-import classNames from 'classnames';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
@@ -129,7 +128,11 @@ export function EditWindowComponent({
           </div>
         </Grid>
       </Grid>
-      <Grid>
+      <Grid
+        container
+        direction='column'
+        className={classes.gap}
+      >
         {textResourceBindings?.tagTitle && (
           <label
             className={classes.label}
@@ -139,35 +142,25 @@ export function EditWindowComponent({
           </label>
         )}
         <Grid
-          container={true}
-          spacing={1}
+          container
+          direction='row'
+          wrap='wrap'
+          className={classes.gap}
         >
           <Grid
             item={true}
+            style={{ minWidth: '150px' }}
             xs
           >
-            <select
-              id={`attachment-tag-dropdown-${attachment.id}`}
-              tabIndex={0}
-              defaultValue={attachment.tags && attachment.tags[0]}
+            <Select
+              inputId={`attachment-tag-dropdown-${attachment.id}`}
+              onChange={(value) => onDropdownDataChange(attachment.id, value)}
+              options={options ?? []}
               disabled={saveIsDisabled}
-              className={classNames(classes.select, 'custom-select a-custom-select', {
-                'validation-error': attachmentValidations.filter((i) => i.id === attachment.id).length > 0,
-                'disabled !important': attachment.updating || readOnly,
-              })}
-              onChange={(e) => onDropdownDataChange(attachment.id, e.target.value)}
-              onBlur={(e) => onDropdownDataChange(attachment.id, e.target.value)}
-            >
-              <option style={{ display: 'none' }} />
-              {options?.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
-                  {lang(option.label)}
-                </option>
-              ))}
-            </select>
+              error={attachmentValidations.filter((i) => i.id === attachment.id).length > 0}
+              label={langAsString('general.choose')}
+              hideLabel={true}
+            />
           </Grid>
           <Grid
             item={true}

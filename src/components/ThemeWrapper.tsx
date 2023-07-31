@@ -48,7 +48,18 @@ export const ThemeWrapper = ({ children }: ThemeWrapperProps) => {
         direction,
       })}
     >
-      <div className={isRtl ? 'language-dir-rtl' : ''}>{children}</div>
+      <div
+        style={
+          isRtl
+            ? {
+                direction: 'rtl',
+                textAlign: 'right',
+              }
+            : undefined
+        }
+      >
+        {children}
+      </div>
     </ThemeProvider>
   );
 };

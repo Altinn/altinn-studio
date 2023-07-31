@@ -2,6 +2,8 @@ import React from 'react';
 import DropZone from 'react-dropzone';
 import type { FileRejection } from 'react-dropzone';
 
+import { CloudUpIcon } from '@navikt/aksel-icons';
+
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/shared/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/shared/mapExtensionToAcceptMime';
@@ -113,39 +115,36 @@ export function DropzoneComponent({
                 {...getInputProps()}
                 id={id}
               />
-              <div className={`container ${classes.fileUploadWrapper}`}>
-                <div className='col text-center icon'>
-                  <i className={`ai ai-upload ${classes.uploadIcon}`} />
-                </div>
-                <div className='col text-center'>
-                  <span
-                    id={dragLabelId}
-                    className={`${classes.fileUploadTextBold}`}
-                  >
-                    {isMobile ? (
-                      lang('form_filler.file_uploader_upload')
-                    ) : (
-                      <>
-                        {langAsString('form_filler.file_uploader_drag')}
-                        <span className={`${classes.fileUploadTextBold} ${classes.blueUnderLine}`}>
-                          {' '}
-                          {langAsString('form_filler.file_uploader_find')}
-                        </span>
-                      </>
-                    )}
-                  </span>
-                </div>
-                <div className='col text-center'>
-                  <span
-                    id={formatLabelId}
-                    className={classes.fileUploadText}
-                  >
-                    {langAsString('form_filler.file_uploader_valid_file_format')}
-                    {hasCustomFileEndings
-                      ? ` ${validFileEndings}`
-                      : ` ${langAsString('form_filler.file_upload_valid_file_format_all')}`}
-                  </span>
-                </div>
+              <div className={classes.fileUploadWrapper}>
+                <CloudUpIcon
+                  className={classes.uploadIcon}
+                  aria-hidden
+                />
+                <span
+                  id={dragLabelId}
+                  className={`${classes.fileUploadTextBold}`}
+                >
+                  {isMobile ? (
+                    lang('form_filler.file_uploader_upload')
+                  ) : (
+                    <>
+                      {langAsString('form_filler.file_uploader_drag')}
+                      <span className={`${classes.fileUploadTextBold} ${classes.blueUnderLine}`}>
+                        {' '}
+                        {langAsString('form_filler.file_uploader_find')}
+                      </span>
+                    </>
+                  )}
+                </span>
+                <span
+                  id={formatLabelId}
+                  className={classes.fileUploadText}
+                >
+                  {langAsString('form_filler.file_uploader_valid_file_format')}
+                  {hasCustomFileEndings
+                    ? ` ${validFileEndings}`
+                    : ` ${langAsString('form_filler.file_upload_valid_file_format_all')}`}
+                </span>
               </div>
             </button>
           );

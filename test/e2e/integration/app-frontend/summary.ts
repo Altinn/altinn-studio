@@ -60,7 +60,7 @@ describe('Summary', () => {
       cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
         force: true,
       });
-      cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).select('address');
+      cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
       cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
 
       cy.get(appFrontend.backToSummaryButton).click();

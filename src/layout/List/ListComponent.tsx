@@ -1,9 +1,7 @@
 import React from 'react';
 
 import { Pagination } from '@altinn/altinn-design-system';
-import { ResponsiveTable } from '@digdir/design-system-react';
-import { FormControl, FormLabel } from '@material-ui/core';
-import cn from 'classnames';
+import { FieldSet, ResponsiveTable } from '@digdir/design-system-react';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 import type { ChangeProps, ResponsiveTableConfig, SortProps } from '@digdir/design-system-react';
 
@@ -13,7 +11,6 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useGetDataList } from 'src/hooks/useGetDataList';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { SortDirection } from 'src/layout/List/types';
-import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IListProps = PropsFromGenericComponent<'List'>;
@@ -22,7 +19,6 @@ const defaultDataList: any[] = [];
 
 export const ListComponent = ({ node, formData, handleDataChange, legend }: IListProps) => {
   const { tableHeaders, id, pagination, sortableColumns, tableHeadersMobile } = node.item;
-  const classes = useRadioStyles();
   const { langAsString, language } = useLanguage();
   const RenderLegend = legend;
   const dynamicDataList = useGetDataList({ id });
@@ -134,20 +130,13 @@ export const ListComponent = ({ node, formData, handleDataChange, legend }: ILis
   };
 
   return (
-    <FormControl
-      component='fieldset'
+    <FieldSet
+      legend={<RenderLegend />}
       style={{ width: '100%' }}
     >
-      <FormLabel
-        component='legend'
-        classes={{ root: cn(classes.legend) }}
-        id={`${id}-label`}
-      >
-        <RenderLegend />
-      </FormLabel>
       <div style={{ overflow: 'auto' }}>
         <ResponsiveTable config={config}></ResponsiveTable>
       </div>
-    </FormControl>
+    </FieldSet>
   );
 };

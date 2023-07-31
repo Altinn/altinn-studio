@@ -1,4 +1,4 @@
 .container {
-  margin-top: var(--button-margin-top) !important; /* There are specificity issues that makes !important necessary */
+  margin-top: var(--button-margin-top);
   gap: var(--button-gap);
 }

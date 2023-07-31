@@ -41,7 +41,7 @@ export function Legend(props: IFormLegendProps) {
   return (
     <>
       <div className={classes.legendHelpTextContainer}>
-        <legend className='a-form-label title-label'>{LabelText}</legend>
+        <legend>{LabelText}</legend>
         {props.helpText && (
           <HelpTextContainer
             helpText={props.helpText}

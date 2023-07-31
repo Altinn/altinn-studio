@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
   },
   headerLink: {
     color: theme.altinnPalette.primary.blueDark,
-    fontSize: '1.5rem',
+    fontSize: '1.25rem',
     lineHeight: '1.5',
     marginLeft: '2.25rem',
     paddingBottom: '3px',
@@ -56,6 +56,8 @@ const useStyles = makeStyles((theme) => ({
   headerLinkList: {
     flexGrow: 1,
     listStyle: 'none',
+    margin: 0,
+    padding: 0,
     float: 'left',
     '& li': {
       display: 'inline',
@@ -70,20 +72,15 @@ const useStyles = makeStyles((theme) => ({
   logo: {
     marginRight: '0.75rem',
   },
-  menuButton: {
-    [theme.breakpoints.up('xs')]: {
-      display: 'none !important',
-    },
-  },
   partyIcon: {
     fontSize: '1.9375rem !important',
     marginLeft: '5px',
   },
   toolbarContainer: {
-    paddingTop: '1.875rem !important',
+    paddingTop: '1.875rem',
     marginBottom: '2.25rem',
     '& .a-personSwitcher': {
-      marginTop: '0 !important',
+      marginTop: '0',
       marginLeft: '1.5rem',
     },
     paddingLeft: '0',

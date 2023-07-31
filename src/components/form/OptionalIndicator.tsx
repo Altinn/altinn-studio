@@ -13,7 +13,11 @@ export const OptionalIndicator = (props: IOptionalIndicatorProps) => {
   const { langAsString } = useLanguage();
   const shouldShowOptionalMarking = props.labelSettings?.optionalIndicator && !props.required && !props.readOnly;
   if (shouldShowOptionalMarking) {
-    return <span className='label-optional'>{` (${langAsString('general.optional')})`}</span>;
+    return (
+      <span style={{ fontSize: '0.875rem', fontWeight: 400, color: '#6a6a6a' }}>{` (${langAsString(
+        'general.optional',
+      )})`}</span>
+    );
   }
   return null;
 };

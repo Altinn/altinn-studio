@@ -25,13 +25,12 @@ describe('Message', () => {
       cy.intercept('GET', interceptExpression, instanceMetadata);
     });
     cy.reload();
-    cy.get(appFrontend.message['attachmentList'])
+    cy.findByRole('heading', { name: /Vedlegg/i })
       .siblings('ul')
       .children('a')
       .then((attachments) => {
         cy.wrap(attachments).should('have.length', 1);
         cy.wrap(attachments).first().should('contain.text', texts.downloadAttachment);
-        cy.get(appFrontend.attachmentIcon).should('be.visible');
       });
     cy.url().then((url) => {
       const instantiateUrl =

@@ -10,8 +10,6 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import { duplicateOptionFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-import 'src/layout/MultipleSelect/MultipleSelect.css';
-
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 
 export function MultipleSelectComponent({

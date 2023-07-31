@@ -61,8 +61,8 @@ function fillOutGroup() {
     mkFile('attachment-in-nested.pdf'),
     { force: true },
   );
-  cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector || 'nothing').select(
-    'altinn',
+  cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector || 'nothing').dsSelect(
+    'Altinn',
   );
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSave || 'nothing').click();
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector || 'nothing').should(

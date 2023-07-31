@@ -1,6 +1,8 @@
 import React from 'react';
 
 import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
+import { Buldings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
+import cn from 'classnames';
 
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -15,15 +17,13 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
   },
   partyWrapper: {
-    paddingLeft: '1.5rem',
-    paddingRight: '1.5rem',
+    padding: '1.25rem',
+    gap: '0.75rem',
     '&:hover': {
       cursor: 'pointer',
     },
   },
   partyWrapperDisabled: {
-    paddingLeft: '1.5rem',
-    paddingRight: '1.5rem',
     '&:hover': {
       cursor: 'not-allowed',
     },
@@ -41,15 +41,11 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '42px',
   },
   partyName: {
-    padding: '0.75rem',
-    paddingTop: '1.5rem',
-    fontSize: '1.093rem',
     fontWeight: 700,
   },
   partyInfo: {
-    paddingTop: '1.625rem',
-    fontSize: '0.9375rem',
     fontWeight: 300,
+    fontSize: '0.875rem',
   },
   subUnitWrapper: {
     color: theme.altinnPalette.primary.black,
@@ -60,12 +56,12 @@ const useStyles = makeStyles((theme) => ({
     },
     paddingTop: '0.75rem',
     paddingBottom: '0.75rem',
+    gap: '0.75rem',
     borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
   },
   subUnit: {
     width: '100%',
-    paddingLeft: '1.5rem',
-    paddingRight: '1.5rem',
+    padding: '0 1.25rem',
     '&:hover': {
       background: theme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
@@ -79,25 +75,17 @@ const useStyles = makeStyles((theme) => ({
       cursor: 'pointer',
     },
   },
-  subUnitListHeaderText: {
-    paddingTop: '0.75rem',
-    color: theme.altinnPalette.primary.black,
-  },
   subUnitListHeaderIcon: {
-    padding: '0.75rem',
-    fontSize: '0.8125rem',
+    fontSize: '2rem',
     color: theme.altinnPalette.primary.blue,
   },
   subUnitTextWrapper: {
-    borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-    paddingRight: '1.3125rem',
+    padding: '1.25rem',
     paddingLeft: '3rem',
-  },
-  subUnitText: {
-    fontSize: '1rem',
+    gap: '0.75rem',
+    borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
   },
   subUnitTextBold: {
-    fontSize: '1rem',
     fontWeight: 700,
   },
   subUnitIcon: {
@@ -157,20 +145,20 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
             <Grid
               container={true}
               direction='row'
+              alignItems='center'
               className={classes.subUnitListHeaderWrapper}
             >
-              <div className={classes.subUnitListHeaderIcon}>
-                <i
-                  className='ai ai-expand-circle'
-                  style={{
-                    WebkitTransition: '-webkit-transform 0.5s',
-                    transition: 'transform 0.5s',
-                    transform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                    WebkitTransform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                  }}
-                />
-              </div>
-              <Typography className={classes.subUnitListHeaderText}>
+              <ChevronRightCircleFillIcon
+                className={classes.subUnitListHeaderIcon}
+                style={{
+                  WebkitTransition: '-webkit-transform 0.5s',
+                  transition: 'transform 0.5s',
+                  transform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                  WebkitTransform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                }}
+                aria-hidden
+              />
+              <Typography>
                 {party.childParties.length}
                 &nbsp;
                 {lang('party_selection.unit_type_subunit_plural')}
@@ -200,6 +188,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
               <Grid
                 container={true}
                 direction='row'
+                alignItems='center'
                 className={classes.subUnitTextWrapper}
               >
                 <Typography className={`${classes.partyName}`}>{childParty.name}</Typography>
@@ -224,15 +213,25 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
         data-testid='AltinnParty-PartyWrapper'
         container={true}
         direction='row'
-        className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
+        alignItems='center'
+        className={cn(classes.partyWrapper, { [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess })}
         onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
         onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
         tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
       >
-        <i
-          data-testid='AltinnParty-partyIcon'
-          className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}
-        />
+        {isOrg ? (
+          <Buldings3Icon
+            data-testid='org-icon'
+            style={{ fontSize: '2rem' }}
+            aria-hidden
+          />
+        ) : (
+          <PersonIcon
+            data-testid='person-icon'
+            style={{ fontSize: '2rem' }}
+            aria-hidden
+          />
+        )}
         <Typography className={classes.partyName}>
           {party.name + (party.isDeleted ? ` (${langAsString('party_selection.unit_deleted')}) ` : '')}
         </Typography>

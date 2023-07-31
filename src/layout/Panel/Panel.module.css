@@ -1,5 +1,5 @@
 .panelPadding > div {
-  --panel-x-padding: var(--modal-padding-x) !important;
+  --panel-x-padding: var(--modal-padding-x);
 }
 
 .panelBodyText {

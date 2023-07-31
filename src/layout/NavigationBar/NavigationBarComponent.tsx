@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
   menu: {
     listStyleType: 'none',
     textDecoration: 'none',
-    paddingLeft: '0px !important', // ".form-group.a-form-group ul" selector is stronger
+    paddingLeft: '0px',
     display: 'flex',
     flexWrap: 'wrap',
     gap: 6,
@@ -69,8 +69,8 @@ const useStyles = makeStyles((theme) => ({
   },
   dropdownIcon: {
     marginLeft: '0.625rem',
-    marginTop: '0 !important', // "".form-group i" selector is stronger
-    fontSize: '1em !important', // "".form-group i" selector is stronger
+    marginTop: '0',
+    fontSize: '1em',
   },
 }));
 

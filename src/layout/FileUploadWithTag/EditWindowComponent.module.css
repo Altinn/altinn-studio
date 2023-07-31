@@ -8,6 +8,10 @@
   font-size: 1.3rem;
 }
 
+.gap {
+  gap: 0.5rem;
+}
+
 .label {
   font-weight: 500;
   font-size: 1rem;
@@ -17,7 +21,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #000;
-  font-weight: 500 !important;
+  font-weight: 500;
   font-size: 0.875rem;
   min-width: 0px;
 }
@@ -36,5 +40,5 @@
 }
 
 .select:focus {
-  outline: 2px solid #0062ba !important;
+  outline: 2px solid #0062ba;
 }

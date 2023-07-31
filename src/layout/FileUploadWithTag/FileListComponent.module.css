@@ -13,7 +13,7 @@
 
 .tableMobile {
   width: 100%;
-  display: grid !important;
+  display: grid;
   grid-template-columns: 5fr 3fr 4fr;
 }
 
@@ -58,7 +58,7 @@
 .tableHeader tr th {
   padding: 4px 4px 4px 6px;
   font-size: 0.875rem;
-  font-weight: 500 !important;
+  font-weight: 500;
   color: #000;
 }
 

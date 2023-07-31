@@ -14,7 +14,7 @@
   gap: 1rem;
 }
 
-button.buttonMargin {
+.buttonMargin {
   margin-top: calc(2 * var(--fds-focus-border-width));
 }
 

@@ -1,8 +1,9 @@
 import React from 'react';
 
 import MomentUtils from '@date-io/moment';
-import { Grid, Icon, makeStyles } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import { CalendarIcon } from '@navikt/aksel-icons';
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
@@ -17,8 +18,6 @@ import 'src/layout/Datepicker/DatepickerComponent.css';
 import 'src/styles/shared.css';
 
 export type IDatepickerProps = PropsFromGenericComponent<'Datepicker'>;
-
-const iconSize = '30px';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -48,9 +47,8 @@ const useStyles = makeStyles(() => ({
     },
   },
   icon: {
-    fontSize: iconSize,
-    lineHeight: iconSize,
-    color: 'var(--colors-blue-900)',
+    fontSize: '1.75rem',
+    color: 'var(--semantic-text-neutral-default)',
   },
   iconButton: {
     padding: 3,
@@ -214,9 +212,10 @@ export function DatepickerComponent({ node, formData, handleDataChange, isValid,
               id: 'date-right-icon-button',
             }}
             keyboardIcon={
-              <Icon
+              <CalendarIcon
                 id='date-icon'
-                className={`${classes.icon} ai ai-date`}
+                className={classes.icon}
+                aria-label={langAsString('date_picker.aria_label_icon')}
               />
             }
             className={classes.datepicker}

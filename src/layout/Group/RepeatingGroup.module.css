@@ -128,7 +128,7 @@
   background-color: var(--repeating-group-error-color);
 }
 
-button.tableButton {
+.tableButton {
   width: max-content;
 }
 

@@ -9,6 +9,7 @@ import { HashRouter } from 'react-router-dom';
 
 import 'src/features/toggles';
 import 'src/features/logging';
+import 'src/features/styleInjection';
 
 import { AppWrapper } from '@altinn/altinn-design-system';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

@@ -2,13 +2,13 @@
   margin-top: 36px;
   box-shadow: none;
   padding: 0;
-  height: auto !important;
-  width: auto !important;
+  height: auto;
+  width: auto;
 }
 
 .tableCell {
-  border-bottom: 0 !important;
-  padding-right: 1.5625rem !important;
+  border-bottom: 0;
+  padding-right: 1.5625rem;
 }
 
 .tableRow {

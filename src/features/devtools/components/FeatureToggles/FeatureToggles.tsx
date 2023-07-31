@@ -56,6 +56,7 @@ export function FeatureToggles() {
               className={classes.itemContent}
             >
               <Heading
+                spacing={true}
                 size={'small'}
                 level={4}
               >

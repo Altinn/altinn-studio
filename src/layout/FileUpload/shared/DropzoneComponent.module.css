@@ -1,12 +1,8 @@
-.uploadIcon {
-  font-size: 3rem !important;
-  margin-bottom: 15px;
-}
-
 .fileUploadWrapper {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .fileUploadTextBold {
@@ -44,4 +40,8 @@
   border-style: solid !important;
   outline: 2px solid #0062ba;
   outline-offset: 0px;
+}
+
+.uploadIcon {
+  font-size: 2.5rem;
 }

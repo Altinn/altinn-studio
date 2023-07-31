@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { Panel } from '@altinn/altinn-design-system';
+import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
@@ -8,7 +9,6 @@ import { EditIconButton } from 'src/components/EditIconButton';
 import { FullWidthGroupWrapper } from 'src/components/form/FullWidthGroupWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
-import { SuccessIconButton } from 'src/components/SuccessIconButton';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -124,11 +124,12 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
                         />
                       ))}
                       <Grid item>
-                        <SuccessIconButton
+                        <Button
                           id={`save-reference-button-${container.id}`}
-                          label={lang('general.save')}
                           onClick={handleSave}
-                        />
+                        >
+                          {lang('general.save')}
+                        </Button>
                       </Grid>
                     </>
                   ) : (

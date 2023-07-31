@@ -63,7 +63,7 @@ describe('Repeating group attachments', () => {
 
     const attachment = item.attachments(idx);
     if (attachment.tagSelector !== undefined && attachment.tagSave !== undefined) {
-      cy.get(attachment.tagSelector).select('altinn');
+      cy.get(attachment.tagSelector).dsSelect('Altinn');
       cy.get(attachment.tagSave).click();
     }
 

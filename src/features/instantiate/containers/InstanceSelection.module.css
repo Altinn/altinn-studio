@@ -1,6 +1,5 @@
 .buttonCell {
-  /* using !important because the table component from the designsystem overrides this */
-  padding: 4px 36px 4px 4px !important;
+  padding: 4px 36px 4px 4px;
 }
 
 .tableButtonWrapper {
@@ -17,8 +16,7 @@
 }
 
 .descriptionParagraph {
-  /* using !important because the paragraph component from the designsystem overrides this */
-  margin-top: 12px !important;
+  margin-top: 12px;
 }
 
 .paginationWrapper {

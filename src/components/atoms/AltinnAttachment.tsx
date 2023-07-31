@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } from '@material-ui/core';
+import { FileIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { AltinnIcon } from 'src/components/AltinnIcon';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/types/shared';
@@ -26,7 +26,7 @@ const useStyles = makeStyles(() => ({
       borderBottom: '0px',
     },
     '&:after': {
-      display: 'none !important',
+      display: 'none',
     },
   },
   listItemPadding: {
@@ -43,6 +43,11 @@ const useStyles = makeStyles(() => ({
   },
   primaryText: {
     fontWeight: 600,
+  },
+  icon: {
+    fontSize: '3rem',
+    color: 'var(--semantic-text-neutral-default)',
+    margin: '-8px 0',
   },
 }));
 
@@ -98,10 +103,9 @@ export function AltinnAttachment({ attachments, listDisableVerticalPadding, nest
                 key={index}
               >
                 <ListItemIcon>
-                  <AltinnIcon
-                    iconClass={attachment.iconClass}
-                    iconColor='#000000'
-                    iconSize='3.125rem'
+                  <FileIcon
+                    className={classes.icon}
+                    aria-hidden
                   />
                 </ListItemIcon>
                 <ListItemText

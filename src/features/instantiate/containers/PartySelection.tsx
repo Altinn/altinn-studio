@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
 
+import { Button, Checkbox, TextField } from '@digdir/design-system-react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
+import { PlusIcon } from '@navikt/aksel-icons';
 
-import { AltinnCheckBox } from 'src/components/AltinnCheckBox';
 import { AltinnParty } from 'src/components/altinnParty';
-import { AltinnPartySearch } from 'src/components/altinnPartySearch';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
@@ -35,8 +34,11 @@ const useStyles = makeStyles((theme) => ({
     margin: 12,
   },
   partySearchFieldContainer: {
-    paddingTop: 8,
-    paddingLeft: 12,
+    padding: '8px 12px 0 12px',
+    width: '100%',
+    '@media screen and (min-width: 768px)': {
+      width: '50%',
+    },
   },
   partySelectionSubTitle: {
     fontSize: '1.093rem',
@@ -146,7 +148,14 @@ export const PartySelection = () => {
             container={true}
             direction='row'
           >
-            {renderShowMoreButton()}
+            <Button
+              variant='outline'
+              dashedBorder={true}
+              icon={<PlusIcon aria-hidden />}
+              onClick={() => setNumberOfPartiesShown(numberOfPartiesShown + 4)}
+            >
+              {langAsString('party_selection.load_more')}
+            </Button>
           </Grid>
         ) : null}
       </>
@@ -241,30 +250,9 @@ export const PartySelection = () => {
     return returnString;
   }
 
-  const onFilterStringChange = (filterStr: string) => {
-    setFilterString(filterStr);
+  const onFilterStringChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterString(event.target.value);
   };
-
-  function increaseNumberOfShownParties() {
-    setNumberOfPartiesShown(numberOfPartiesShown + 4);
-  }
-
-  function renderShowMoreButton() {
-    return (
-      <button
-        className={classes.loadMoreButton}
-        onClick={increaseNumberOfShownParties}
-      >
-        <Grid
-          container={true}
-          direction='row'
-        >
-          <AddIcon className={classes.loadMoreButtonIcon} />
-          <Typography className={classes.loadMoreButtonText}>{langAsString('party_selection.load_more')}</Typography>
-        </Grid>
-      </button>
-    );
-  }
 
   const toggleShowDeleted = () => {
     setShowDeleted(!showDeleted);
@@ -297,7 +285,13 @@ export const PartySelection = () => {
         direction='column'
         className={classes.partySearchFieldContainer}
       >
-        <AltinnPartySearch onSearchUpdated={onFilterStringChange} />
+        <TextField
+          aria-label={langAsString('party_selection.search_placeholder')}
+          placeholder={langAsString('party_selection.search_placeholder')}
+          onChange={onFilterStringChange}
+          value={filterString}
+          inputMode='search'
+        />
       </Grid>
       <Grid
         container={true}
@@ -327,13 +321,11 @@ export const PartySelection = () => {
                   container={true}
                   direction='row'
                 >
-                  <AltinnCheckBox
+                  <Checkbox
                     checked={showDeleted}
-                    onChangeFunction={toggleShowDeleted}
+                    onChange={toggleShowDeleted}
+                    label={langAsString('party_selection.show_deleted')}
                   />
-                  <Typography className={classes.checkboxLabes}>
-                    {langAsString('party_selection.show_deleted')}
-                  </Typography>
                 </Grid>
               </Grid>
               <Grid
@@ -344,13 +336,11 @@ export const PartySelection = () => {
                   container={true}
                   direction='row'
                 >
-                  <AltinnCheckBox
+                  <Checkbox
                     checked={showSubUnits}
-                    onChangeFunction={toggleShowSubUnits}
+                    onChange={toggleShowSubUnits}
+                    label={langAsString('party_selection.show_sub_unit')}
                   />
-                  <Typography className={classes.checkboxLabes}>
-                    {langAsString('party_selection.show_sub_unit')}
-                  </Typography>
                 </Grid>
               </Grid>
             </Grid>

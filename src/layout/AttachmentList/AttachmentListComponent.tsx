@@ -39,12 +39,7 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
       item={true}
       xs={12}
     >
-      <Typography
-        className='attachmentList-title'
-        component='span'
-      >
-        {lang(node.item.textResourceBindings?.title)}
-      </Typography>
+      <Typography variant='h2'>{lang(node.item.textResourceBindings?.title)}</Typography>
       <AltinnAttachment attachments={attachments} />
     </Grid>
   );

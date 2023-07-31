@@ -289,8 +289,6 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
         {...gridBreakpoints(item.grid)}
         key={`grid-${id}`}
         className={classNames(
-          'form-group',
-          'a-form-group',
           classes.container,
           gridToClasses(item.grid?.labelGrid, classes),
           pageBreakStyles(item.pageBreak),
