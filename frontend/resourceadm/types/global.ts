@@ -43,14 +43,14 @@ export interface PolicyBackendType {
 export type NavigationBarPageType = 'about' | 'policy' | 'deploy';
 
 export interface ResourceType {
-  title: string;
+  title: SupportedLanguageKey<string>;
   createdBy: string;
   lastChanged: string;
   hasPolicy: boolean;
   identifier: string;
 }
 
-export type ResourceTypeOptionType = "Default" | "Systemresource" | "Maskinportenschema";
+export type ResourceTypeOptionType = "Default" | "Systemresource" | "MaskinportenSchema";
 
 export interface ResourceBackendType {
   identifier: string;
@@ -75,7 +75,7 @@ export interface PolicyErrorType {
 }
 
 export interface ResourceKeywordType {
-  language: 'nb' | 'nn' | 'en'; // TODO - Samisk
+  language: 'nb' | 'nn' | 'en';
   word: string
 }
 
@@ -83,7 +83,6 @@ export interface SupportedLanguageKey<T> {
   nb?: T;
   nn?: T;
   en?: T;
-  // TODO - Samisk
 }
 
 export interface VersionType {
@@ -95,4 +94,24 @@ export interface ResourceVersionStatusType {
   policyVersion?: string;
   resourceVersion?: string;
   publishedVersions: VersionType[];
+}
+
+export interface NewResourceType {
+  identifier: string;
+  title: SupportedLanguageKey<string>;
+}
+
+export interface ValidationType {
+  status: number;
+}
+
+// TODO - Find out if the other fields are needed
+export interface ResourceSectorType {
+  code: string;
+  label: SupportedLanguageKey<string>;
+}
+
+// TODO - Find out if the other fields are needed
+export interface ResourceThematicType {
+  uri: string;
 }

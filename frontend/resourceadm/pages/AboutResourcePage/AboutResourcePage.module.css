@@ -11,9 +11,7 @@
 
 .pageWrapper {
   margin: 0;
-  padding-top: 2%;
-  padding-bottom: 50px;
-  padding-inline: 2%;
+  padding: 40px;
   width: 600px;
 }
 
@@ -62,10 +60,6 @@
 
 p, h2 {
   margin: 0;
-}
-
-.spinnerWrapper {
-  padding: 10%;
 }
 
 .warningCardWrapper {
