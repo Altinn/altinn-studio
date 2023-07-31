@@ -857,6 +857,7 @@
   "ux_editor.component_file_upload": "Vedlegg",
   "ux_editor.component_file_upload_with_tag": "Vedlegg med merking",
   "ux_editor.component_group": "Gruppe",
+  "ux_editor.component_group_header": "Gruppe - {{id}}",
   "ux_editor.component_header": "Tittel",
   "ux_editor.component_image": "Bilde",
   "ux_editor.component_information_panel": "Informativ melding",

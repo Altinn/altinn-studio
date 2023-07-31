@@ -61,7 +61,7 @@ describe('FormContainer', () => {
   it('should edit the container when clicking on the container', async () => {
     await render();
 
-    const container = screen.getByText(`${textMock('ux_editor.component_group')} - $${container1IdMock}`);
+    const container = screen.getByText(textMock('ux_editor.component_group_header'));
     await act(() => user.click(container));
 
     expect(handleEditMock).toBeCalledTimes(1);
