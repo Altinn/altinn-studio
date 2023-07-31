@@ -75,7 +75,11 @@
   gap: var(--buttons-distance);
 }
 
-.wrapper:not(.editMode):not(:hover) .buttons button {
+.wrapper:not(.editMode):not(:hover) .trashIcon {
+  visibility: hidden;
+}
+
+.wrapper:not(.editMode):not(:hover) .previewButton {
   visibility: hidden;
 }
 

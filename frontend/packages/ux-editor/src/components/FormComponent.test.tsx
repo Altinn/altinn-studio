@@ -5,7 +5,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { component1IdMock, component1Mock } from '../testing/layoutMock';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -35,12 +35,36 @@ describe('FormComponent', () => {
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
   });
 
-  it('should confirm delete when clicking the Delete button', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+  test('Popover should be displayed when the user clicks the delete button', async () => {
     await render();
-    const button = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(button));
-    expect(window.confirm).toHaveBeenCalled();
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+    const popover = screen.getByRole('dialog');
+    expect(popover).toBeInTheDocument();
+  });
+
+  it('should delete when clicking the confirm delete button inside popover', async () => {
+    await render();
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+    const popover = screen.getByRole('dialog');
+    expect(popover).toBeInTheDocument();
+    const confirmDeletButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_confirm_delete_component'),
+    });
+    await act(() => user.click(confirmDeletButton));
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+  });
+
+  test('Popover should be closed when the user clicks the cancel button', async () => {
+    await render();
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+    const cancelPopoverButton = screen.getByRole('button', {
+      name: textMock('schema_editor.textRow-cancel-popover'),
+    });
+    await act(() => user.click(cancelPopoverButton));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   describe('title', () => {
@@ -99,8 +123,8 @@ describe('FormComponent', () => {
 
 const waitForData = async () => {
   const { result: texts } = renderHookWithMockStore({}, {
-    getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources })
-  })(() => useTextResourcesQuery(org, app)).renderHookResult;
+      getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources })
+    })(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
 

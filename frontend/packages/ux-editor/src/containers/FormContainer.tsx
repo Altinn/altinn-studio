@@ -9,8 +9,6 @@ import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
 import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
 import { useSelector } from 'react-redux';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { useTranslation } from 'react-i18next';
 
 export interface IFormContainerProps {
   children: ReactNode;
@@ -35,27 +33,21 @@ export const FormContainer = ({
 } : IFormContainerProps) => {
   const { org, app } = useParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const { t } = useTranslation();
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app, selectedLayoutSetName);
 
-  const handleDeleteFormContainer = useCallback(
-    deleteFormContainer,
-    [deleteFormContainer]
-  );
+  const handleDeleteFormContainer = useCallback(deleteFormContainer, [deleteFormContainer]);
 
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
-    if(ComponentType.Group ){   
-      const userConfirmed = window.confirm(t("ux_editor.component_confirm_delete"));
-      if (userConfirmed) {
-       event.stopPropagation();
-        handleDeleteFormContainer(id);
-        handleDiscard();
-      }
-    }
-  }, [handleDeleteFormContainer, handleDiscard, id, t]);
+  const handleDelete = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>): void => {
+      event.stopPropagation();
+      handleDeleteFormContainer(id);
+      handleDiscard();
+    },
+    [handleDeleteFormContainer, handleDiscard, id]
+  );
 
   return (
     <div

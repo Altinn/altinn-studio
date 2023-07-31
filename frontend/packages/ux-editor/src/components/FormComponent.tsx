@@ -3,7 +3,13 @@ import '../styles/index.css';
 import classes from './FormComponent.module.css';
 import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  Popover,
+  PopoverVariant,
+} from '@digdir/design-system-react';
 import { ComponentPreview } from '../containers/ComponentPreview';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
@@ -59,26 +65,30 @@ export const FormComponent = memo(function FormComponent({
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
   const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    const confirmDelete = window.confirm(t("ux_editor.component_confirm_delete"));
-    if(confirmDelete){
     event.stopPropagation();
     deleteFormComponent(id);
-    }
+    setIsConfirmDeleteOpen(false);
     if (isEditMode) handleDiscard();
   };
 
   const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      setIsPreviewMode(previous => !previous);   
+    event.stopPropagation();
+    setIsPreviewMode(previous => !previous);
   };
 
   const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
 
   return (
     <div
-      className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
+      className={cn(
+        classes.wrapper,
+        isEditMode && classes.editMode,
+        isPreviewMode && classes.previewMode
+      )}
       role='listitem'
       onClick={(event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
@@ -111,26 +121,57 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
-        <Button
-          data-testid='component-delete-button'
-          color={ButtonColor.Secondary}
-          icon={<TrashIcon />}
-          onClick={handleDelete}
-          tabIndex={0}
-          title={t('general.delete')}
-          variant={ButtonVariant.Quiet}
-        />
-        {
-          isPreviewable && (
-            <Button
+        <div>
+          <Popover
+            title={'delete_component'}
+            variant={PopoverVariant.Warning}
+            placement={'left'}
+            open={isConfirmDeleteOpen}
+            trigger={
+              <Button
+                className={classes.trashIcon}
+                data-testid='component-delete-button'
+                color={ButtonColor.Secondary}
+                icon={<TrashIcon />}
+                onClick={toggleConfirmDeletePopover}
+                tabIndex={0}
+                title={t('general.delete')}
+                variant={ButtonVariant.Quiet}
+              />
+            }
+          >
+            {isConfirmDeleteOpen && (
+              <div>
+                <p>{t('ux_editor.component_popover_confirm_delete')}</p>
+                <Button
+                  onClick={handleDelete}
+                  color={ButtonColor.Danger}
+                  title={'confirmDeleteBtn'}
+                >
+                  <p>{t('ux_editor.component_confirm_delete_component')}</p>
+                </Button>
+                <Button
+                  variant={ButtonVariant.Quiet}
+                  onClick={toggleConfirmDeletePopover}
+                  color={ButtonColor.Secondary}
+                >
+                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                </Button>
+              </div>
+            )}
+          </Popover>
+        </div>
+
+        {isPreviewable && (
+          <Button
+            className={classes.previewButton}
             color={ButtonColor.Secondary}
             icon={<MonitorIcon title={t('general.preview')} />}
             onClick={handlePreview}
             title='Forhåndsvisning (under utvikling)'
             variant={ButtonVariant.Quiet}
-            />
-          )
-        }
+          />
+        )}
       </div>
     </div>
   );
