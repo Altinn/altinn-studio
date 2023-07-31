@@ -32,7 +32,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const layoutName = useSelector(selectedLayoutNameSelector);
   const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
-  const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);
+  const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useContext(FormContext);
 
   const { t } = useTranslation();
 
@@ -75,6 +75,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
         dragHandleRef={dragHandleRef}
         handleDiscard={handleDiscard}
         handleEdit={handleEdit}
+        handleSave={handleSave}
         id={id}
         isBaseContainer={isBaseContainer}
         isEditMode={formId === id}
@@ -95,7 +96,8 @@ export const DesignView = ({ className }: DesignViewProps) => {
                       isEditMode={formId === itemId}
                       component={formId === itemId ? form as IFormComponent : components[itemId]}
                       handleEdit={handleEdit}
-                      handleSave={handleComponentSave}
+                      handleSave={handleSave}
+                      debounceSave={debounceSave}
                       handleDiscard={handleDiscard}
                       dragHandleRef={itemDragHandleRef}
                     />

@@ -777,6 +777,7 @@
   "ux_editor.component_dropdown_set_preselected": "Set pre-selected value in dropdown list",
   "ux_editor.component_file_upload": "Attachment",
   "ux_editor.component_group": "Group",
+  "ux_editor.component_group_header": "Group - {{id}}",
   "ux_editor.component_header": "Title",
   "ux_editor.component_image": "Image",
   "ux_editor.component_information_panel": "Informative message",

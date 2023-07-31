@@ -12,7 +12,6 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 const user = userEvent.setup();
 
 const handleDeleteMock = jest.fn();
-const handleEditMock = jest.fn();
 
 describe('FormContainerHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -20,7 +19,7 @@ describe('FormContainerHeader', () => {
   it('should render the component', async () => {
     await render();
 
-    expect(screen.getByText('Gruppe - $' + container1IdMock)).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_group_header'))).toBeInTheDocument();
 
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
   });
@@ -42,7 +41,6 @@ const render = async (props: Partial<IFormContainerHeaderProps> = {}) => {
     isEditMode: false,
     handleExpanded: jest.fn(),
     handleDelete: handleDeleteMock,
-    handleEdit: handleEditMock,
     dragHandleRef: null,
     ...props
   };
