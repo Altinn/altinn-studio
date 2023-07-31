@@ -526,7 +526,77 @@
         },
         "severity": "danger"
       },
-
+      {
+        "id": "accordion-group",
+        "type": "AccordionGroup",
+        "children": [
+          "accordion-test",
+          "second-accordion"
+        ]
+      },
+      {
+        "id": "accordion-test",
+        "type": "Accordion",
+        "children": [
+          "test-accordion-button",
+          "test-accordion-paragraph",
+          "test-accordion-paragraph-2"
+        ],
+        "textResourceBindings": {
+          "title": "Mer informasjon vedrørende navneendring"
+        }
+      },
+      {
+        "id": "second-accordion",
+        "type": "Accordion",
+        "children": [
+          "test-accordion-paragraph-4"
+        ],
+        "textResourceBindings": {
+          "title": "Dette er enda en Accordion 2"
+        }
+      },
+      {
+        "id": "third-accordion",
+        "type": "Accordion",
+        "children": [
+          "test-accordion-paragraph-3"
+        ],
+        "textResourceBindings": {
+          "title": "Dette er enda en Accordion 3"
+        }
+      },
+      {
+        "id": "test-accordion-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Submit"
+        }
+      },
+      {
+        "id": "test-accordion-paragraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "accordion-paragraph-test"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "test-accordion-paragraph-2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en tittel med litt mere tekst"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "test-accordion-paragraph-3",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en Accordion utenfor en AccordionGroup"
+        },
+        "dataModelBindings": {}
+      },
       {
         "id": "pageSummary",
         "type": "Header",
