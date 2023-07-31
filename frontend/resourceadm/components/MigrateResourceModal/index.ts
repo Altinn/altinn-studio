@@ -1,0 +1,1 @@
+export { MigrateResourceModal } from './MigrateResourceModal'

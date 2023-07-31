@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './NewResourceModal.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
-import { PencilWritingIcon, MultiplyIcon } from '@navikt/aksel-icons';
+import { Button } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
+import { ResourceNameAndId } from '../ResourceNameAndId';
 
 interface Props {
   isOpen: boolean;
@@ -43,31 +43,6 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
   };
 
   /**
-   * Replaces spaces and '.' with '-' so that the ID looks correct
-   *
-   * @param s the string to format
-   *
-   * @returns the string formatted
-   */
-  const formatString = (s: string): string => {
-    return s.replace(/[\s.]+/g, '-');
-  };
-
-  /**
-   * If the edit field is open, then the id to dispay is the actual id
-   * value, otherwise it is the title value
-   *
-   * @returns the formatted value
-   */
-  const getIdToDisplay = (): string => {
-    if (editIdFieldOpen) {
-      return formatString(id);
-    } else {
-      return formatString(title);
-    }
-  };
-
-  /**
    * Handles the click of the edit button. If we click the edit button
    * so that it closes the edit field, the id is set to the title.
    *
@@ -84,61 +59,14 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
-      <p className={classes.text}>Velg et navn for å opprette ressursen din.</p>
-      <p className={classes.text}>Navnet kan endres på frem til tjenesten din er publisert.</p>
-      <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
-      <div className={classes.textfieldWrapper}>
-        <TextField
-          placeholder='Ressursnavn (Bokmål)'
-          value={title}
-          onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label='Ressursnavn (Bokmål)'
-        />
-      </div>
-      <p className={classes.textfieldHeader}>Ressurs id</p>
-      <div className={classes.editFieldWrapper}>
-        {editIdFieldOpen ? (
-          <>
-            <div className={classes.textfieldWrapper}>
-              <TextField
-                placeholder='Ressurs id'
-                value={id}
-                onChange={(e) => handleIDInput(e.target.value)}
-                aria-label='Ressurs id'
-                // TODO - Potentially show error if ID exists
-              />
-            </div>
-            <div className={classes.stopEditingButton}>
-              <Button
-                onClick={() => handleClickEditButton(!editIdFieldOpen)}
-                variant='quiet'
-                icon={<MultiplyIcon title='Slutt å endre ressurs id' />}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={classes.idBox}>
-              <p className={classes.idText}>id</p>
-            </div>
-            <p className={classes.text}>
-              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-              altinn.svv.<strong>{getIdToDisplay()}</strong>
-            </p>
-            <div className={classes.editButtonWrapper}>
-              <Button
-                onClick={() => handleClickEditButton(!editIdFieldOpen)}
-                iconPlacement='right'
-                icon={<PencilWritingIcon title='Endre ressurs id' />}
-                variant='quiet'
-                color='primary'
-              >
-                Rediger
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+      <ResourceNameAndId
+        isEditOpen={editIdFieldOpen}
+        title={title}
+        id={id}
+        handleEditTitle={handleEditTitle}
+        handleIdInput={handleIDInput}
+        handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+      />
       {/* TODO - Add if the id is valid or not based on API calls later */}
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
