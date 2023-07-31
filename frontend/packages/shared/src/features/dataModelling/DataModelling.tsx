@@ -131,8 +131,6 @@ export function DataModelling({
   const handleHideIntroPageButtonClick = () =>
     setHideIntroPage(setLocalStorageItem('hideIntroPage', true));
 
-  const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
-  const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
 
   return (
     <>
@@ -169,8 +167,6 @@ export function DataModelling({
         </Panel>
       </Dialog>
       <SchemaEditorApp
-        editMode={editMode}
-        toggleEditMode={toggleEditMode}
         modelPath={selectedOption?.value?.repositoryRelativeUrl}
         name={selectedOption?.label}
         schemaState={jsonSchemaState}

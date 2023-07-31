@@ -9,7 +9,6 @@ import {
   ErrorMessage,
   Popover,
   Spinner,
-  ToggleButtonGroup,
 } from '@digdir/design-system-react';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
@@ -19,17 +18,14 @@ import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface TopToolbarProps {
   Toolbar: ReactNode;
-  editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
   schemaState: GenerateSchemaState;
 }
 
 export function TopToolbar({
-  editMode,
   Toolbar,
   saveAction,
-  toggleEditMode,
   schemaState,
 }: TopToolbarProps) {
   const { t } = useTranslation();
@@ -73,7 +69,7 @@ export function TopToolbar({
                   id='save-model-button'
                   data-testid='save-model-button'
                   onClick={handleGenerateButtonClick}
-                  disabled={!editMode || !saveAction}
+                  disabled={!saveAction}
                   icon={<CogIcon />}
                   variant={ButtonVariant.Quiet}
                 >
@@ -99,18 +95,6 @@ export function TopToolbar({
             </Popover>
           )}
         </div>
-        {toggleEditMode && (
-          <div className={classes.toggleButtonGroupWrapper}>
-            <ToggleButtonGroup
-              selectedValue={editMode ? 'edit' : 'view'}
-              onChange={toggleEditMode}
-              items={[
-                { value: 'view', label: t('schema_editor.view_mode') },
-                { value: 'edit', label: t('schema_editor.edit_mode') },
-              ]}
-            />
-          </div>
-        )}
       </div>
     </section>
   );
