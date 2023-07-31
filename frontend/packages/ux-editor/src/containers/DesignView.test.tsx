@@ -86,8 +86,8 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
         value={{
           form: null,
           formId: 'test',
-          handleComponentSave: jest.fn(),
-          handleContainerSave: jest.fn(),
+          handleSave: jest.fn(),
+          debounceSave: jest.fn(),
           handleDiscard: jest.fn(),
           handleUpdate: jest.fn(),
           handleEdit: mockHandleEdit,
