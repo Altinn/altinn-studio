@@ -76,6 +76,11 @@ export const ResourceDashboardPage = () => {
       onSuccess: () =>
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
     });
+    // TODO - Error handling on 409 conflict
+    createNewResource(idAndTitle, {
+      onSuccess: () =>
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+    });
   };
 
   /**

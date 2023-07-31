@@ -635,6 +635,7 @@
   "schema_editor.array": "Liste",
   "schema_editor.boolean": "Ja/nei",
   "schema_editor.choose_type": "Velg type",
+  "schema_editor.close_type": "Lukk type",
   "schema_editor.combination": "Kombinasjon",
   "schema_editor.combination_inline_object_disclaimer": "I dag støtter vi bare referanser som subskjema når man kombinerer skjema (allOf, anyOf og oneOf). Subskjema som ikke er referanser vil bli vist i det grå feltet over, men det vil ikke være mulig å editere de i editoren her enda.",
   "schema_editor.convert_to_field": "Konverter til felt",

@@ -568,6 +568,7 @@
   "schema_editor.array": "List",
   "schema_editor.boolean": "Yes/no",
   "schema_editor.choose_type": "Choose type",
+  "schema_editor.close_type": "Close type",
   "schema_editor.combination": "Combination",
   "schema_editor.combination_inline_object_disclaimer": "Currently we only support references as sub schemas when combining schemas (allOf, anyOf and oneOf). Sub schemas that are not references will be displayed in the gray area above, but it will be possible to edit these in the editor yet.",
   "schema_editor.convert_to_field": "Convert to field",
