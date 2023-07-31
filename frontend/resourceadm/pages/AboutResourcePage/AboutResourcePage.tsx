@@ -62,8 +62,6 @@ export const AboutResourcePage = ({
   // TODO - translation
   const { resourceId } = useParams();
 
-  console.log('thematicData', thematicData);
-
   /**
    * ------------ Temporary functions -------------
    * The first one maps keyword to string, and the second from string to keyword
