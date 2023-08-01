@@ -15,6 +15,10 @@ export class Button extends ActionComponent<'Button'> {
   canRenderInButtonGroup(): boolean {
     return true;
   }
+
+  canRenderInAccordion(): boolean {
+    return true;
+  }
 }
 
 export const Config = {

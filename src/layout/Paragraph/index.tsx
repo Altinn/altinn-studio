@@ -11,6 +11,10 @@ export class Paragraph extends PresentationComponent<'Paragraph'> {
   render(props: PropsFromGenericComponent<'Paragraph'>): JSX.Element | null {
     return <ParagraphComponent {...props} />;
   }
+
+  canRenderInAccordion(): boolean {
+    return true;
+  }
 }
 
 export const Config = {
