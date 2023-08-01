@@ -167,7 +167,7 @@ export const ResourcePage = () => {
   /**
    * Decide if the migration page should be accessible or not
    */
-  const getShowMigreate = () => {
+  const getShowMigrate = () => {
     if (resourceData) {
       if (resourceData.resourceReferences) return true;
       return false;
