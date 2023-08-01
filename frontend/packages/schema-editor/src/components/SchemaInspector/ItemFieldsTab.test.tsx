@@ -12,7 +12,7 @@ import {
   getNodeByPointer,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
@@ -81,7 +81,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, state: Partial<SchemaState> = {}) => {
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
   return renderWithProviders({
-    appContextProps: { modelPath },
+    selectedSchemaProps: { modelPath },
     state,
     servicesContextProps: { saveDatamodel },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
@@ -181,7 +181,7 @@ describe('ItemFieldsTab', () => {
     validateTestUiSchema(newUiSchema);
     queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], newUiSchema);
     rerender({
-      appContextProps: { modelPath },
+      selectedSchemaProps: { modelPath },
       servicesContextProps: { saveDatamodel },
     })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();

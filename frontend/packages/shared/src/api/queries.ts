@@ -35,7 +35,7 @@ import {
   resourceValidatePolicyPath,
   resourceValidateResourcePath,
   resourceThematicLosPath,
-  resourceThematicEurovocPath,
+  resourceThematicEurovocPath, datamodelsPath,
 } from './paths';
 import {
   AppDeploymentsResponse,
@@ -45,7 +45,7 @@ import {
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
-import { DatamodelsXsd } from 'app-shared/types/DatamodelsXsd';
+import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -67,7 +67,8 @@ export const getAppReleases = (owner: string, app: string) => get<AppReleasesRes
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));
 export const getDatamodelMetadata = (owner: string, app: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app));
-export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelsXsd[]>(datamodelsXsdPath(owner, app));
+export const getDatamodels = (owner: string, app: string) => get<DatamodelMetadataJson[]>(datamodelsPath(owner, app));
+export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<AppDeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());

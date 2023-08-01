@@ -4,7 +4,7 @@ import type { ItemRestrictionsProps } from './ItemRestrictions';
 import { ItemRestrictions } from './ItemRestrictions';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { fieldNode1Mock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
@@ -36,7 +36,7 @@ describe('ItemRestrictions', () => {
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) => {
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchemaNodesMock);
   return renderWithProviders({
-    appContextProps: { modelPath },
+    selectedSchemaProps: { modelPath },
     servicesContextProps: { saveDatamodel },
   })(<ItemRestrictions {...defaultProps} {...props} />);
 };

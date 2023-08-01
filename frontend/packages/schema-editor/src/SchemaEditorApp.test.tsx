@@ -4,36 +4,24 @@ import { SchemaEditorApp } from './SchemaEditorApp';
 import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { queryClientMock } from '../test/mocks/queryClientMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { dataMock } from '@altinn/schema-editor/mockData';
+import { jsonMetadata1Mock } from '../test/mocks/metadataMocks';
 
-export const render = (loading: boolean) => {
+export const render = () => {
   const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+  const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
+  const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
   rtlRender(
-    <ServicesContextProvider {...{ ...queriesMock, getDatamodel }} client={queryClientMock}>
+    <ServicesContextProvider
+      {...{ ...queriesMock, getDatamodel, getDatamodels, getDatamodelsXsd }}
+      client={createQueryClientMock()}
+    >
       <PreviewConnectionContextProvider>
         <SchemaEditorApp
-          LandingPagePanel={null}
-          editMode={false}
-          loading={loading}
-          modelPath='modelPath'
-          name='test'
-          onSaveSchema={jest.fn()}
-          schemaState={{ saving: false, error: null }}
-          toggleEditMode={jest.fn()}
-          toolbarProps={{
-            createNewOpen: false,
-            createPathOption: false,
-            handleCreateSchema: jest.fn(),
-            handleDeleteSchema: jest.fn(),
-            handleXsdUploaded: jest.fn(),
-            metadataOptions: [],
-            modelNames: [],
-            selectedOption: { value: { fileName: '', fileType: '.json', repositoryRelativeUrl: '' }, label: '' },
-            setCreateNewOpen: jest.fn(),
-            setSelectedOption: jest.fn(),
-          }}
+          createPathOption={false}
+          displayLandingPage={false}
         />
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
@@ -41,14 +29,14 @@ export const render = (loading: boolean) => {
 };
 
 describe('SchemaEditorApp', () => {
-  it('should render the component', async () => {
-    render(false);
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-    expect(screen.getByTestId('schema-editor')).toBeDefined();
+  it('should render the spinner when loading', async () => {
+    render();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  it('should render the spinner when loading', async () => {
-    render(true);
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+  it('Renders toolbar when finished loading', async () => {
+    render();
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    expect(screen.getByRole('toolbar')).toBeInTheDocument();
   });
 });

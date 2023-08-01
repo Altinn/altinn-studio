@@ -26,7 +26,7 @@ describe('AltinnHeaderProfile', () => {
 
   it('should render users name and name of org the user represents', () => {
     render({ org: 'test-org' });
-    expect(screen.getByText(textMock('shared.header_user_for_org'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('shared.header_user_for_org', { user: 'test-user', org: 'Test Org' }))).toBeInTheDocument();
   });
 });
 

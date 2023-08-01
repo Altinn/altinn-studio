@@ -16,9 +16,9 @@ import {
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/renderWithProviders';
-import { queryClientMock } from '../../test/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { getSavedModel } from '../../test/test-utils';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const user = userEvent.setup();
 
@@ -66,7 +66,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       selectedDefinitionNodeId: selectedItem?.pointer,
       selectedEditorTab: 'definitions',
     },
-    appContextProps: { modelPath },
+    selectedSchemaProps: { modelPath },
     servicesContextProps: { saveDatamodel }
   })(
     <Provider store={store}>

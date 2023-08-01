@@ -7,7 +7,7 @@ import { SchemaState } from '@altinn/schema-editor/types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
@@ -149,7 +149,7 @@ const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = 
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
   return renderWithProviders({
     servicesContextProps: { saveDatamodel },
-    appContextProps: { modelPath },
+    selectedSchemaProps: { modelPath },
     state: { ...defaultSchemaState, ...schemaState }
   })(<CustomProperties path={path}/>);
 };

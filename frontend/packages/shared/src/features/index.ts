@@ -1,1 +1,1 @@
-export { DataModelling } from './dataModelling';
+export { DataModelling } from '../../../../app-development/features/dataModelling';

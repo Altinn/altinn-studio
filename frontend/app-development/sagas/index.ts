@@ -1,7 +1,6 @@
 import type { SagaIterator } from 'redux-saga';
 import createSagaMiddleware from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import { dataModellingSagas } from 'app-shared/features/dataModelling/sagas';
 import {
   watchHandleFetchInitialCommitSaga,
   watchHandleFetchServiceConfigSaga,
@@ -29,7 +28,6 @@ function* root(): SagaIterator {
   yield fork(appReleaseSagas);
   yield fork(appDeploymentSagas);
   yield fork(configurationSagas);
-  yield fork(dataModellingSagas);
   yield fork(userSagas);
 }
 

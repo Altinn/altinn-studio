@@ -1,0 +1,122 @@
+import React, { useState } from 'react';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  ErrorMessage,
+  TextField,
+  Popover,
+} from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
+import { PlusIcon } from '@navikt/aksel-icons';
+import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
+import { extractModelNamesFromMetadataList } from '@altinn/schema-editor/utils/metadataUtils';
+
+export interface CreateNewWrapperProps {
+  disabled: boolean;
+  createNewOpen: boolean;
+  createPathOption?: boolean;
+  setCreateNewOpen: (open: boolean) => void;
+  handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
+}
+
+export function CreateNewWrapper({
+  disabled,
+  createPathOption,
+  createNewOpen,
+  setCreateNewOpen,
+  handleCreateSchema,
+}: CreateNewWrapperProps) {
+  const { t } = useTranslation();
+  const [newModelName, setNewModelName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
+  const { data: metadata } = useDatamodelsMetadataQuery();
+
+  const modelNames = extractModelNamesFromMetadataList(metadata);
+
+  const relativePath = createPathOption ? '' : undefined;
+
+  const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
+  const validateName = () => setNameError(!nameIsValid() ? 'Invalid name' : '');
+
+  const onInputBlur = () => {
+    if (confirmedWithReturn) {
+      setConfirmedWithReturn(false);
+      return;
+    }
+    validateName();
+  };
+  const onNameChange = (e: any) => {
+    const name = e.target.value || '';
+    if (nameError) {
+      setNameError('');
+    }
+    setNewModelName(name);
+  };
+  const onCreateConfirmClick = () => {
+    if (nameError || !newModelName || !nameIsValid()) {
+      return;
+    }
+    if (modelNames.includes(newModelName)) {
+      setNameError(t('schema_editor.error_model_name_exists', { newModelName }));
+      return;
+    }
+    handleCreateSchema({
+      name: newModelName,
+      relativePath,
+    });
+    setNewModelName('');
+    setNameError('');
+  };
+  const handleReturnButtonConfirm = () => {
+    validateName();
+    onCreateConfirmClick();
+    setConfirmedWithReturn(true);
+  };
+  const onKeyUp = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleReturnButtonConfirm();
+    }
+  };
+
+  return (
+    <Popover
+      open={createNewOpen}
+      onOpenChange={setCreateNewOpen}
+      trigger={
+        <Button
+          id='create-new-datamodel-button'
+          disabled={disabled}
+          icon={<PlusIcon />}
+          variant={ButtonVariant.Quiet}
+          onClick={() => setCreateNewOpen(!createNewOpen)}
+        >
+          {t('general.create_new')}
+        </Button>
+      }
+    >
+      <label>{t('schema_editor.create_model_description')}</label>
+      <TextField
+        id='newModelInput'
+        placeholder={t('schema_editor.name')}
+        isValid={!nameError}
+        onChange={onNameChange}
+        onBlur={onInputBlur}
+        onKeyUp={onKeyUp}
+      />
+      {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
+      <Button
+        color={ButtonColor.Secondary}
+        onClick={onCreateConfirmClick}
+        style={{ marginTop: 22 }}
+        variant={ButtonVariant.Outline}
+      >
+        {t('schema_editor.create_model_confirm_button')}
+      </Button>
+    </Popover>
+  );
+}
+CreateNewWrapper.defaultProps = {
+  createPathOption: false,
+};

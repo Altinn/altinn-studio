@@ -14,7 +14,7 @@ import {
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { getSavedModel } from '../../../test/test-utils';
@@ -51,7 +51,7 @@ const renderItemDataComponent = (
 
   return renderWithProviders({
     state: { ...defaultState, ...state },
-    appContextProps: { modelPath },
+    selectedSchemaProps: { modelPath },
     servicesContextProps: { saveDatamodel },
   })(<ItemDataComponent {...defaultProps} {...props}/>)
 };
@@ -161,5 +161,5 @@ describe('ItemDataComponent', () => {
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
   });
-  
+
 });

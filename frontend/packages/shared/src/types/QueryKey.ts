@@ -5,6 +5,7 @@ export enum QueryKey {
   CurrentUser = 'CurrentUser',
   Datamodel = 'Datamodel',
   DatamodelMetadata = 'DatamodelMetadata',
+  DatamodelsMetadata = 'DatamodelsMetadata',
   DatamodelsXsd = 'DatamodelsXsd',
   DeployPermissions = 'DeployPermissions',
   Environments = 'Environments',
