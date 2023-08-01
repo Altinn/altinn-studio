@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import classes from './MigrationPage.module.css';
 import { MigrationStep } from 'resourceadm/components/MigrationStep';
-import { Checkbox, Button } from '@digdir/design-system-react';
+import { Checkbox, Button, TextField } from '@digdir/design-system-react';
 import { Link } from 'resourceadm/components/Link';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { ScreenReaderLabel } from 'resourceadm/components/ScreenReaderLabel';
 
 export const MigrationPage = () => {
   const [step1Checked, setStep1Checked] = useState(false);
   const [step2Checked, setStep2Checked] = useState(false);
   const [step3Checked, setStep3Checked] = useState(false);
   const [beforeStartChecked, setBeforeStartChecked] = useState(false);
-  const [migrationDate, setMigrationDate] = useState(new Date());
-  const [migrationTime, setMigrationTime] = useState(new Date());
+
+  // TODO - This might be a saved value from backend
+  const initialDate = new Date().toISOString().split('T')[0];
+  const [migrationDate, setMigrationDate] = useState(initialDate);
+  const [migrationTime, setMigrationTime] = useState('00:00');
 
   return (
     <div className={classes.pageWrapper}>
@@ -65,30 +65,20 @@ export const MigrationPage = () => {
         </p>
         <div className={classes.datePickers}>
           <div className={classes.datePickerWrapper}>
-            <p className={classes.text}>
-              <strong>Migreringsdato</strong>
-            </p>
-            <DatePicker
-              selected={migrationDate}
-              onChange={(date: Date) => setMigrationDate(date)}
-              id='migrationDate'
-              dateFormat='dd/MM/yyyy'
+            <TextField
+              type='date'
+              value={migrationDate}
+              onChange={(e) => setMigrationDate(e.target.value)}
+              label='Migreringsdato'
             />
-            <ScreenReaderLabel label='Dato for migrering' htmlFor='migrationDate' />
           </div>
           <div className={classes.datePickerWrapper}>
-            <p className={classes.text}>
-              <strong>Klokkeslett</strong>
-            </p>
-            <DatePicker
-              selected={migrationTime}
-              onChange={(date: Date) => setMigrationTime(date)}
-              showTimeSelect
-              showTimeSelectOnly
-              dateFormat='HH:mm'
-              id='migrationTime'
+            <TextField
+              type='time'
+              value={migrationTime}
+              onChange={(e) => setMigrationTime(e.target.value)}
+              label='Klokkeslett'
             />
-            <ScreenReaderLabel label='Klokkeslett for migrering' htmlFor='migrationTime' />
           </div>
         </div>
         <div className={classes.migrateBox}>
