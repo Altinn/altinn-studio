@@ -371,7 +371,11 @@ export const AboutResourcePage = ({
           norge.no og data.norge.no.
         </p>
         <div className={classes.inputWrapper}>
-          <Switch isChecked={isPublicService} onToggle={(b: boolean) => setIsPublicService(b)} />
+          <Switch
+            isChecked={isPublicService}
+            onToggle={(b: boolean) => setIsPublicService(b)}
+            onFocus={() => setTranslationType('none')}
+          />
           <p
             className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
           >{`Ressursen ${isPublicService ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
