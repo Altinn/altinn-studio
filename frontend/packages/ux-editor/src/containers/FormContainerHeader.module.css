@@ -33,9 +33,6 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.formGroup:not(.editMode):not(:hover) .deleteGroupComponent {
   visibility: hidden;
 }
 
@@ -43,7 +40,6 @@
 .formGroup:hover .formGroupButtons {
   visibility: visible;
 }
-
 .emptyContainerText {
   padding: 0 var(--margin-horizontal);
 }
