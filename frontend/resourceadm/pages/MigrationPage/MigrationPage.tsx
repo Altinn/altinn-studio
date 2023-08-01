@@ -5,6 +5,9 @@ import { Checkbox, Button, TextField } from '@digdir/design-system-react';
 import { Link } from 'resourceadm/components/Link';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
 
+/**
+ * Page that shows the information about migrating from Altinn 2 to Altinn 3
+ */
 export const MigrationPage = () => {
   const [step1Checked, setStep1Checked] = useState(false);
   const [step2Checked, setStep2Checked] = useState(false);
