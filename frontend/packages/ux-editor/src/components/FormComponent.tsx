@@ -127,7 +127,6 @@ export const FormComponent = memo(function FormComponent({
             open={isConfirmDeleteOpen}
             trigger={
               <Button
-                className={classes.trashIcon}
                 data-testid='component-delete-button'
                 color={ButtonColor.Secondary}
                 icon={<TrashIcon />}
@@ -160,7 +159,6 @@ export const FormComponent = memo(function FormComponent({
 
         {isPreviewable && (
           <Button
-            className={classes.previewButton}
             color={ButtonColor.Secondary}
             icon={<MonitorIcon title={t('general.preview')} />}
             onClick={handlePreview}
