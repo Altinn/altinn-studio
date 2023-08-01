@@ -18,7 +18,7 @@ import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from 'app-development/store';
 
-interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
+interface IDataModellingContainerProps {
   org: string;
   repo: string;
   createPathOption?: boolean;

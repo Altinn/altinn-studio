@@ -1,4 +1,3 @@
-import type { PropsWithChildren } from 'react';
 import React, { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
@@ -17,7 +16,7 @@ import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { GenerateSchemaState } from 'app-shared/types/global';
 import { PageSpinner } from 'app-shared/components';
 
-export type SchemaEditorAppProps = PropsWithChildren<{
+export type SchemaEditorAppProps = {
   LandingPagePanel: ReactNode;
   loading?: boolean;
   modelPath: string;
@@ -25,7 +24,7 @@ export type SchemaEditorAppProps = PropsWithChildren<{
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
   toolbarProps: Omit<ToolbarProps, 'disabled'>;
-}>;
+};
 
 function WrappedContent({
   LandingPagePanel,
