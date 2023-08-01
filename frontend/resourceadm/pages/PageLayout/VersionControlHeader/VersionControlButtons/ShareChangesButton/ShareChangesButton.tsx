@@ -37,6 +37,7 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
       onClick={shareChangesHandler}
       size='small'
       variant='quiet'
+      color='inverted'
     >
       {renderCorrectText()}
     </Button>

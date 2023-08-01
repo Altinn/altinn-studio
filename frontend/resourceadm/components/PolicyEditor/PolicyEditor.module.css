@@ -34,40 +34,6 @@
   font-size: 18px;
 }
 
-.textFieldIdWrapper {
-  display: flex;
-  align-items: center;
-  margin-top: 5px;
-}
-
-.idBox {
-  background-color: #E9EAEC;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 1px;
-  padding: 2px;
-  margin-right: 8px;
-}
-
-.idBoxText {
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-  padding: 0;
-}
-
-.idText {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
 p, h1, h2 {
   margin: 0;
   line-height: 24px;

@@ -3,8 +3,8 @@
   "dependencies": {
     "@altinn/altinn-design-system": "0.29.0",
     "@altinn/figma-design-tokens": "6.0.1",
-    "@digdir/design-system-react": "0.18.0",
-    "@digdir/design-system-tokens": "0.1.5",
+    "@digdir/design-system-react": "0.20.0",
+    "@digdir/design-system-tokens": "0.1.6",
     "@microsoft/signalr": "7.0.9",
     "@navikt/aksel-icons": "3.4.2",
     "@tanstack/react-query": "4.32.0",

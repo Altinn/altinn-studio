@@ -173,13 +173,6 @@ export const PolicyEditor = ({
     <div>
       <div className={classes.policyEditorTop}>
         <h1 className={classes.policyEditorHeader}>Policy editor</h1>
-        <h2 className={classes.subHeader}>Navn på ressursen</h2>
-        <div className={classes.textFieldIdWrapper}>
-          <div className={classes.idBox}>
-            <p className={classes.idBoxText}>id</p>
-          </div>
-          <p className={classes.idText}>{resourceId}</p>
-        </div>
       </div>
       <div className={classes.selectAuthLevelWrapper}>
         <h2 className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</h2>

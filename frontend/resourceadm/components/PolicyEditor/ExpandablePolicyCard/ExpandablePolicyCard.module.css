@@ -48,3 +48,8 @@
 .warningCardWrapper {
   margin-top: 10px;
 }
+
+.chipWrapper {
+  margin: 0;
+  margin-right: 5px;
+}

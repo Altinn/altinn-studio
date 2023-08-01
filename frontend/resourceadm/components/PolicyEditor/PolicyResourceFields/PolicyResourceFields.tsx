@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
   isEditable: boolean;
@@ -41,7 +42,9 @@ export const PolicyResourceFields = ({
             value={valueType}
             onChange={(e) => onChangeType(e.target.value)}
             disabled={!isEditable}
+            aria-labelledby='resourceType'
           />
+          <ScreenReaderSpan id='resourceType' label='Ressurs type' />
         </div>
         <div className={classes.textfieldWrapper}>
           <TextField
@@ -49,7 +52,9 @@ export const PolicyResourceFields = ({
             value={valueId}
             onChange={(e) => onChangeId(e.target.value)}
             disabled={!isEditable}
+            aria-labelledby='resourceId'
           />
+          <ScreenReaderSpan id='resourceId' label='Ressurs id' />
         </div>
       </div>
       <div>

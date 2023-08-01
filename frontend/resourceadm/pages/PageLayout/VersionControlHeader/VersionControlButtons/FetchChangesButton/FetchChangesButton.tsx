@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
 import classes from './FetchChangesButton.module.css';
 
@@ -16,8 +16,9 @@ export const FetchChangesButton = ({ fetchChanges, buttonText }: IFetchChangesCo
       data-testid='fetch-changes-button'
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
-      size={ButtonSize.Small}
-      variant={ButtonVariant.Quiet}
+      size='small'
+      variant='quiet'
+      color='inverted'
     >
       <span id='fetch_changes_btn'>{buttonText}</span>
     </Button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, TextArea } from '@digdir/design-system-react';
+import { Button, TextArea, Chip } from '@digdir/design-system-react';
 import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
@@ -13,7 +13,7 @@ import { PolicySubjectSelectButton } from '../PolicySubjectSelectButton';
 import { ResourceNarrowingList } from '../ResourceNarrowingList';
 import { WarningCard } from '../WarningCard';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
-import { Chip } from '../Chip';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
   policyRule: PolicyRuleCardType;
@@ -190,12 +190,14 @@ export const ExpandablePolicyCard = ({
    * Displays the actions
    */
   const displayActions = actions.map((a, i) => (
-    <Chip
-      key={i}
-      text={a.actionTitle}
-      isSelected={policyRule.actions.includes(a.actionTitle)}
-      onClick={() => handleClickAction(i, a.actionTitle)}
-    />
+    <div className={classes.chipWrapper} key={i}>
+      <Chip.Toggle
+        onClick={() => handleClickAction(i, a.actionTitle)}
+        selected={policyRule.actions.includes(a.actionTitle)}
+      >
+        {a.actionTitle}
+      </Chip.Toggle>
+    </div>
   ));
 
   /**
@@ -380,7 +382,9 @@ export const ExpandablePolicyCard = ({
               value={policyRule.description}
               onChange={(e) => handleChangeDescription(e.currentTarget.value)}
               rows={5}
+              aria-labelledby='ruleDescription'
             />
+            <ScreenReaderSpan id='ruleDescription' label='Beskrivelse ac regelen' />
           </div>
         </ExpandablePolicyElement>
       </div>
