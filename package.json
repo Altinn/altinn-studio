@@ -33,7 +33,7 @@
     "@types/react-dom": "18.2.7",
     "@types/react-redux": "7.1.25",
     "@types/redux-mock-store": "1.0.3",
-    "@typescript-eslint/eslint-plugin": "5.62.0",
+    "@typescript-eslint/eslint-plugin": "6.2.0",
     "@typescript-eslint/parser": "5.62.0",
     "clean-webpack-plugin": "4.0.0",
     "cross-env": "7.0.3",
