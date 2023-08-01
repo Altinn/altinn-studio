@@ -121,9 +121,7 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
-        <div>
           <Popover
-            title={'delete_component'}
             variant={PopoverVariant.Warning}
             placement={'left'}
             open={isConfirmDeleteOpen}
@@ -146,21 +144,19 @@ export const FormComponent = memo(function FormComponent({
                 <Button
                   onClick={handleDelete}
                   color={ButtonColor.Danger}
-                  title={'confirmDeleteBtn'}
                 >
-                  <p>{t('ux_editor.component_confirm_delete_component')}</p>
+                  {t('ux_editor.component_confirm_delete_component')}
                 </Button>
                 <Button
                   variant={ButtonVariant.Quiet}
                   onClick={toggleConfirmDeletePopover}
                   color={ButtonColor.Secondary}
                 >
-                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                  {t('schema_editor.textRow-cancel-popover')}
                 </Button>
               </div>
             )}
           </Popover>
-        </div>
 
         {isPreviewable && (
           <Button

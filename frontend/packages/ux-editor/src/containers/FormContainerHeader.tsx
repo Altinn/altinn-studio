@@ -47,7 +47,6 @@ export const FormContainerHeader = memo(function FormContainerHeader({
       </div>
       <div className={classes.formGroupButtons}>
         <Popover
-          title={'delete_component'}
           variant={PopoverVariant.Warning}
           placement={'left'}
           open={isConfirmDeleteGroupOpen}
@@ -66,16 +65,15 @@ export const FormContainerHeader = memo(function FormContainerHeader({
               <p className={classes.deletGroupMessage}>
                 {t('ux_editor.component_popover_confirm_delete')}
               </p>
-              <Button onClick={handleDelete} color={ButtonColor.Danger} title={'confirmDeleteBtn'}>
-                <p>{t('ux_editor.component_confirm_delete_component')}</p>
+              <Button onClick={handleDelete} color={ButtonColor.Danger} >
+                {t('ux_editor.component_confirm_delete_component')}
               </Button>
               <Button
-                title={'calceldeleteBtn'}
                 variant={ButtonVariant.Quiet}
                 onClick={toggleConfirmDeletePopover}
                 color={ButtonColor.Secondary}
               >
-                <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                {t('schema_editor.textRow-cancel-popover')}
               </Button>
             </div>
           )}
