@@ -8,7 +8,6 @@ import { SchemaItem } from './SchemaItem';
 import { TreeView } from '@mui/lab';
 
 export interface SchemaTreeViewProps {
-  editMode: boolean;
   expanded: any;
   items: UiSchemaNode[];
   onNodeToggle: any;
@@ -18,7 +17,6 @@ export interface SchemaTreeViewProps {
 }
 
 export const SchemaTreeView = ({
-  editMode,
   expanded,
   items,
   onNodeToggle,
@@ -40,7 +38,6 @@ export const SchemaTreeView = ({
         {items.map((item: UiSchemaNode, index: number) => (
           <SchemaItem
             index={index}
-            editMode={editMode}
             isPropertiesView={isPropertiesView}
             selectedNode={item}
             key={item.pointer}

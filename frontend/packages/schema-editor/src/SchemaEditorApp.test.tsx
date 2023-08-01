@@ -15,13 +15,11 @@ export const render = (loading: boolean) => {
       <PreviewConnectionContextProvider>
         <SchemaEditorApp
           LandingPagePanel={null}
-          editMode={false}
           loading={loading}
           modelPath='modelPath'
           name='test'
           onSaveSchema={jest.fn()}
           schemaState={{ saving: false, error: null }}
-          toggleEditMode={jest.fn()}
           toolbarProps={{
             createNewOpen: false,
             createPathOption: false,

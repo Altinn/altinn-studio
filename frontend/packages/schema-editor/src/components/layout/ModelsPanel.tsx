@@ -17,18 +17,16 @@ import {
 } from '@altinn/schema-model';
 import { useDispatch, useSelector } from 'react-redux';
 import type { SchemaState } from '../../types';
-import type { PanelProps } from './layoutTypes';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
-export type ModelsPanelProps = PanelProps & {
+export type ModelsPanelProps = {
   expandedPropNodes: string[];
   setExpandedPropNodes: (nodes: string[]) => void;
   properties: UiSchemaNodes;
 };
 export const ModelsPanel = ({
-  editMode,
   expandedPropNodes,
   setExpandedPropNodes,
   properties,
@@ -62,7 +60,6 @@ export const ModelsPanel = ({
     setExpandedPropNodes(nodeIds);
   return (
     <>
-      {editMode && (
         <ActionMenu
           items={[
             {
@@ -111,9 +108,7 @@ export const ModelsPanel = ({
           ]}
           openButtonText={t('add')}
         />
-      )}
       <SchemaTreeView
-        editMode={editMode}
         expanded={expandedPropNodes}
         items={properties}
         translate={t}
