@@ -6,7 +6,6 @@ import { PlusCircleIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { NewResourceType, ResourceType } from 'resourceadm/types/global';
-import { Footer } from 'resourceadm/components/Footer';
 import { useGetResourceListQuery, useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
@@ -98,71 +97,73 @@ export const ResourceDashboardPage = () => {
     } else {
       return (
         <>
+          <div className={classes.componentWrapper}>
+            <SearchBox onChange={(value: string) => setSearchValue(value)} />
+          </div>
           <h2 className={classes.subheader}>{`Alle ressurser (${resourceListData.length})`}</h2>
           <ResourceTable list={filteredTableData(resourceListData)} />
+          {filteredTableData(resourceListData).length === 0 && (
+            <p className={classes.noResultText}>
+              Det finnes ingen ressursen som har navnet du søkte etter.
+            </p>
+          )}
         </>
       );
     }
   };
 
   return (
-    <>
-      <div className={classes.pageWrapper}>
-        <div className={classes.topWrapper}>
-          <h1>{`${selectedContext}'s ressurser`}</h1>
-          <div className={classes.topRightWrapper}>
-            <Button
-              variant='quiet'
-              color='secondary'
-              icon={<PlusCircleIcon title='Migrer ressurs' />}
-              iconPlacement='right'
-              onClick={() => setMigrateModalOpen(true)}
-              size='medium'
-            >
-              <strong>Migrer ressurs</strong>
-            </Button>
-            <div className={classes.verticalDivider} />
-            <Button
-              variant='quiet'
-              color='secondary'
-              icon={<PlusCircleIcon title='Opprett ny ressurs' />}
-              iconPlacement='right'
-              onClick={() => setNewResourceModalOpen(true)}
-              size='medium'
-            >
-              <strong>Opprett ny ressurs</strong>
-            </Button>
-          </div>
+    <div className={classes.pageWrapper}>
+      <div className={classes.topWrapper}>
+        <h1>{`${selectedContext}'s ressurser`}</h1>
+        <div className={classes.topRightWrapper}>
+          <Button
+            variant='quiet'
+            color='secondary'
+            icon={<PlusCircleIcon title='Migrer ressurs' />}
+            iconPlacement='right'
+            onClick={() => setMigrateModalOpen(true)}
+            size='medium'
+          >
+            <strong>Migrer ressurs</strong>
+          </Button>
+          <div className={classes.verticalDivider} />
+          <Button
+            variant='quiet'
+            color='secondary'
+            icon={<PlusCircleIcon title='Opprett ny ressurs' />}
+            iconPlacement='right'
+            onClick={() => setNewResourceModalOpen(true)}
+            size='medium'
+          >
+            <strong>Opprett ny ressurs</strong>
+          </Button>
         </div>
-        <div className={classes.horizontalDivider} />
-        <div className={classes.componentWrapper}>
-          <SearchBox onChange={(value: string) => setSearchValue(value)} />
-        </div>
-        <div className={classes.componentWrapper}>{displayContent()}</div>
-        {hasMergeConflict && (
-          <MergeConflictModal
-            isOpen={hasMergeConflict}
-            handleSolveMerge={refetch}
-            org={selectedContext}
-            repo={repo}
-          />
-        )}
-        <NewResourceModal
-          isOpen={newResourceModalOpen}
-          onClose={() => setNewResourceModalOpen(false)}
-          onCreateNewResource={handleCreateNewResource}
-          resourceIdExists={resourceIdExists}
-        />
-        <MigrateResourceModal
-          isOpen={migrateModalOpen}
-          onClose={() => setMigrateModalOpen(false)}
-          onPlanMigrate={() => {
-            console.log('Migrating... Coming soon');
-          }} // TODO when connected with API calls
-          resourceIdExists={resourceIdExists}
-        />
       </div>
-      <Footer />
-    </>
+      <div className={classes.horizontalDivider} />
+      <div className={classes.componentWrapper}>{displayContent()}</div>
+      {hasMergeConflict && (
+        <MergeConflictModal
+          isOpen={hasMergeConflict}
+          handleSolveMerge={refetch}
+          org={selectedContext}
+          repo={repo}
+        />
+      )}
+      <NewResourceModal
+        isOpen={newResourceModalOpen}
+        onClose={() => setNewResourceModalOpen(false)}
+        onCreateNewResource={handleCreateNewResource}
+        resourceIdExists={resourceIdExists}
+      />
+      <MigrateResourceModal
+        isOpen={migrateModalOpen}
+        onClose={() => setMigrateModalOpen(false)}
+        onPlanMigrate={() => {
+          console.log('Migrating... Coming soon');
+        }} // TODO when connected with API calls
+        resourceIdExists={resourceIdExists}
+      />
+    </div>
   );
 };
