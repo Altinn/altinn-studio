@@ -97,9 +97,7 @@ export const ResourceDashboardPage = () => {
     } else {
       return (
         <>
-          <div className={classes.componentWrapper}>
-            <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          </div>
+          <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <h2 className={classes.subheader}>{`Alle ressurser (${resourceListData.length})`}</h2>
           <ResourceTable list={filteredTableData(resourceListData)} />
           {filteredTableData(resourceListData).length === 0 && (

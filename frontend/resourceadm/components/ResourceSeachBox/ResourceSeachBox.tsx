@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import classes from './ResourceSeachBox.module.css';
-import { MagnifyingGlassIcon } from '@navikt/aksel-icons';
+import { TextField } from '@digdir/design-system-react';
 
 interface Props {
   onChange: (value: string) => void;
@@ -19,16 +19,11 @@ export const SearchBox = ({ onChange }: Props) => {
   // TODO - translation
   return (
     <div className={classes.searchBox}>
-      <input
-        className={classes.searchField}
-        type='text'
-        placeholder='Søk etter ressurs'
+      <TextField
         onChange={handleChange}
-        aria-label='Søk etter ressurs'
+        placeholder='Søk etter ressurs'
+        label='Søk etter en ressurs'
       />
-      <div className={classes.searchIconWrapper}>
-        <MagnifyingGlassIcon title='Search icon' fontSize='1.5rem' />
-      </div>
     </div>
   );
 };
