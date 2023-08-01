@@ -48,3 +48,13 @@ p, h2 {
 .stopEditingButton {
   margin-left: 10px;
 }
+
+.resourceIdError {
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+
+.errorText {
+  margin-left: 5px;
+}

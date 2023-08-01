@@ -27,6 +27,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onPlanMigrate: () => void;
+  resourceIdExists: boolean;
 }
 
 /**
@@ -40,8 +41,14 @@ interface Props {
  * @param props.isOpen flag to decide if the modal is open or not
  * @param props.onClose function to be executed on close
  * @param props.onPlanMigrate function to be executed when the "plan migration" button is clicked
+ * @param props.resourceIdExists flag for id the ID already exists
  */
-export const MigrateResourceModal = ({ isOpen, onClose, onPlanMigrate }: Props) => {
+export const MigrateResourceModal = ({
+  isOpen,
+  onClose,
+  onPlanMigrate,
+  resourceIdExists,
+}: Props) => {
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');
@@ -139,6 +146,7 @@ export const MigrateResourceModal = ({ isOpen, onClose, onPlanMigrate }: Props) 
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}
             handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+            resourceIdExists={resourceIdExists}
           />
         </>
       );

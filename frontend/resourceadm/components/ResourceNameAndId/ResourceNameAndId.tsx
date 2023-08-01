@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceNameAndId.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon } from '@navikt/aksel-icons';
+import { MultiplyIcon, PencilWritingIcon, XMarkOctagonIcon } from '@navikt/aksel-icons';
 
 interface Props {
   isEditOpen: boolean;
@@ -10,6 +10,7 @@ interface Props {
   handleEditTitle: (s: string) => void;
   handleIdInput: (s: string) => void;
   handleClickEditButton: () => void;
+  resourceIdExists: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ interface Props {
  * @param props.handleEditTitle function to handle the editing of the title
  * @param props.handleEditId function to handle the editing of the id
  * @param props.handleClickEditButton function to be executed when edit button is clicked
+ * @param props.resourceIdExists flag for id the ID already exists
  */
 export const ResourceNameAndId = ({
   isEditOpen,
@@ -30,6 +32,7 @@ export const ResourceNameAndId = ({
   handleEditTitle,
   handleIdInput,
   handleClickEditButton,
+  resourceIdExists,
 }: Props) => {
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
@@ -110,6 +113,20 @@ export const ResourceNameAndId = ({
                 Rediger
               </Button>
             </div>
+          </>
+        )}
+      </div>
+      <div className={classes.resourceIdError}>
+        {resourceIdExists && (
+          <>
+            <XMarkOctagonIcon
+              title='Ressurs med valgt id eksisterer allerede.'
+              fontSize='1.5rem'
+              color='red'
+            />
+            <p className={`${classes.errorText} ${classes.text}`}>
+              Ressurs med valgt id eksisterer allerede.
+            </p>
           </>
         )}
       </div>

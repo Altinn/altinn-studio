@@ -8,6 +8,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onCreateNewResource: (id: string, title: string) => void;
+  resourceIdExists: boolean;
 }
 
 /**
@@ -16,8 +17,14 @@ interface Props {
  * @param props.isOpen boolean for if the modal is open or not
  * @param props.onClose function to close the modal
  * @param props.onCreateNewResource function that handles the creation of a new resource
+ * @param props.resourceIdExists flag for id the ID already exists
  */
-export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props) => {
+export const NewResourceModal = ({
+  isOpen,
+  onClose,
+  onCreateNewResource,
+  resourceIdExists,
+}: Props) => {
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
@@ -57,8 +64,18 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
     }
   };
 
+  /**
+   * Closes the modal and resets the fields
+   */
+  const handleClose = () => {
+    onClose();
+    setId('');
+    setTitle('');
+    setEditIdFieldOpen(false);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
+    <Modal isOpen={isOpen} onClose={handleClose} title='Opprett ny ressurs'>
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
@@ -66,6 +83,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
         handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+        resourceIdExists={resourceIdExists}
       />
       {/* TODO - Add if the id is valid or not based on API calls later */}
       <div className={classes.buttonWrapper}>

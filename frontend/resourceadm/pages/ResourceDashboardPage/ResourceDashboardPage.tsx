@@ -29,6 +29,8 @@ export const ResourceDashboardPage = () => {
   const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
   const [migrateModalOpen, setMigrateModalOpen] = useState(false);
 
+  const [resourceIdExists, setResourceIdExists] = useState(false);
+
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
   const { data: resourceListData, isLoading: resourceListLoading } =
@@ -75,6 +77,11 @@ export const ResourceDashboardPage = () => {
     createNewResource(idAndTitle, {
       onSuccess: () =>
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+      onError: (error: any) => {
+        if (error.response.status === 409) {
+          setResourceIdExists(true);
+        }
+      },
     });
   };
 
@@ -144,6 +151,7 @@ export const ResourceDashboardPage = () => {
           isOpen={newResourceModalOpen}
           onClose={() => setNewResourceModalOpen(false)}
           onCreateNewResource={handleCreateNewResource}
+          resourceIdExists={resourceIdExists}
         />
         <MigrateResourceModal
           isOpen={migrateModalOpen}
@@ -151,6 +159,7 @@ export const ResourceDashboardPage = () => {
           onPlanMigrate={() => {
             console.log('Migrating... Coming soon');
           }} // TODO when connected with API calls
+          resourceIdExists={resourceIdExists}
         />
       </div>
       <Footer />
