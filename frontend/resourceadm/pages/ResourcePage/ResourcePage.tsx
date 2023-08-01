@@ -95,9 +95,10 @@ export const ResourcePage = () => {
    * Navigates to the selected page
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
+    await refetchResource();
+
     // Validate Resource and display errors + modal
     if (currentPage === 'about') {
-      await refetchResource();
       const data = await refetchValidateResource();
       const validationStatus = data?.data?.status ?? null;
 
@@ -167,7 +168,7 @@ export const ResourcePage = () => {
   /**
    * Decide if the migration page should be accessible or not
    */
-  const getShowMigreate = () => {
+  const getShowMigrate = () => {
     if (resourceData) {
       if (resourceData.resourceReferences) return true;
       return false;
@@ -182,7 +183,7 @@ export const ResourcePage = () => {
           currentPage={currentPage}
           navigateToPage={navigateToPage}
           goBack={goBack}
-          showMigrate={getShowMigreate()}
+          showMigrate={getShowMigrate()}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
@@ -211,7 +212,9 @@ export const ResourcePage = () => {
         {currentPage === 'deploy' && (
           <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
         )}
-        {currentPage === 'migration' && <MigrationPage />}
+        {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
+          <MigrationPage />
+        )}
       </div>
       {hasMergeConflict && (
         <MergeConflictModal
