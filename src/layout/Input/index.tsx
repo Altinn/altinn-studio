@@ -2,8 +2,7 @@ import React from 'react';
 
 import { formatNumericText } from '@digdir/design-system-react';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
+import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
@@ -20,15 +19,14 @@ export class Input extends FormComponent<'Input'> {
     return <InputComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'Input'>): string {
-    const formData = useAppSelector((state) => state.formData.formData);
+  getDisplayData(node: LayoutNodeFromType<'Input'>, { formData, langTools }): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
     const text = formData[node.item.dataModelBindings.simpleBinding] || '';
 
-    const numberFormatting = useMapToReactNumberConfig(node.item.formatting as IInputFormatting, text);
+    const numberFormatting = getMapToReactNumberConfig(node.item.formatting as IInputFormatting, text, langTools);
 
     if (numberFormatting?.number) {
       return formatNumericText(text, numberFormatting.number);

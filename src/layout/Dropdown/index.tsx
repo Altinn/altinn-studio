@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useSelectedValueToText } from 'src/hooks/useSelectedValueToText';
+import { getOptionList } from 'src/hooks/useOptionList';
+import { getSelectedValueToText } from 'src/hooks/useSelectedValueToText';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutCompDropdown } from 'src/layout/Dropdown/types';
 import type { IDataModelBindingsSimple, TextBindingsForFormComponents } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -18,14 +18,17 @@ export class Dropdown extends FormComponent<'Dropdown'> {
     return <DropdownComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'Dropdown'>): string {
-    const formData = useAppSelector((state) => state.formData.formData);
+  getDisplayData(
+    node: LayoutNodeFromType<'Dropdown'>,
+    { formData, langTools, options, uiConfig }: DisplayDataProps,
+  ): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
     const value = formData[node.item.dataModelBindings.simpleBinding] || '';
-    return useSelectedValueToText(node.item, value) || '';
+    const optionList = getOptionList(node.item, langTools.textResources, formData, uiConfig.repeatingGroups, options);
+    return getSelectedValueToText(value, langTools, optionList) || '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Dropdown'>): JSX.Element | null {

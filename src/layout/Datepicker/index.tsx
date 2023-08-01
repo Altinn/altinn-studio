@@ -2,8 +2,6 @@ import React from 'react';
 
 import moment from 'moment';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
@@ -26,9 +24,8 @@ export class Datepicker extends FormComponent<'Datepicker'> implements Component
     return <DatepickerComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'Datepicker'>): string {
-    const formData = useAppSelector((state) => state.formData.formData);
-    const { selectedLanguage } = useLanguage();
+  getDisplayData(node: LayoutNodeFromType<'Datepicker'>, { formData, langTools }): string {
+    const { selectedLanguage } = langTools;
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }

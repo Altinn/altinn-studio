@@ -5,6 +5,8 @@ import { Grid } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
+import { implementsDisplayData } from '..';
+
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -104,7 +106,7 @@ export function RepeatingGroupTableRow({
 
   const tableNodes = getTableNodes(index) || [];
   const displayData = tableNodes.map((node) =>
-    'useDisplayData' in node.def ? node.def.useDisplayData(node as any) : '',
+    implementsDisplayData(node.def) ? node.def.useDisplayData(node as any) : '',
   );
   const firstCellData = displayData.find((c) => !!c);
   const isEditingRow = index === editIndex;

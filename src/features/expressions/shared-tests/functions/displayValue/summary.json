@@ -1,0 +1,39 @@
+{
+  "name": "Display value of Summary component",
+  "expression": [
+    "displayValue",
+    "summary"
+  ],
+  "context": {
+    "component": "summary",
+    "currentLayout": "Page"
+  },
+  "expects": "",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "penger",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Skjema.Penger"
+            }
+          },
+          {
+            "id": "summary",
+            "type": "Summary",
+            "componentRef": "penger",
+            "pageRef": "Page"
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Penger": "1200"
+    }
+  }
+}

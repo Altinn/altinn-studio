@@ -1,0 +1,47 @@
+{
+  "name": "Display value of FileUploadWithTag component",
+  "expression": [
+    "displayValue",
+    "documents"
+  ],
+  "context": {
+    "component": "documents",
+    "currentLayout": "Page"
+  },
+  "expects": "document1.pdf, document2.pdf",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "documents",
+            "type": "FileUploadWithTag",
+            "maxFileSizeInMB": 5,
+            "maxNumberOfAttachments": 5,
+            "minNumberOfAttachments": 0,
+            "displayMode": "list",
+            "hasCustomFileEndings": true,
+            "validFileEndings": ".pdf"
+          }
+        ]
+      }
+    }
+  },
+  "attachments": {
+    "documents": [
+      {
+        "id": "1234-1234",
+        "name": "document1.pdf",
+        "size": 100,
+        "uploaded": true
+      },
+      {
+        "id": "4567-4567",
+        "name": "document2.pdf",
+        "size": 200,
+        "uploaded": true
+      }
+    ]
+  }
+}

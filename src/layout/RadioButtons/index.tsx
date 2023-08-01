@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useSelectedValueToText } from 'src/hooks/useSelectedValueToText';
+import { getOptionList } from 'src/hooks/useOptionList';
+import { getSelectedValueToText } from 'src/hooks/useSelectedValueToText';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { RadioButtonContainerComponent } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsSimple, TextBindingsForLabel } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ILayoutCompRadioButtons } from 'src/layout/RadioButtons/types';
@@ -18,12 +18,15 @@ export class RadioButtons extends FormComponent<'RadioButtons'> {
     return <RadioButtonContainerComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'RadioButtons'>): string {
-    const formData = useAppSelector((state) => state.formData.formData);
+  getDisplayData(
+    node: LayoutNodeFromType<'RadioButtons'>,
+    { formData, langTools, uiConfig, options }: DisplayDataProps,
+  ): string {
     const value = node.item.dataModelBindings?.simpleBinding
       ? formData[node.item.dataModelBindings.simpleBinding] || ''
       : '';
-    return useSelectedValueToText(node.item, value) || '';
+    const optionList = getOptionList(node.item, langTools.textResources, formData, uiConfig.repeatingGroups, options);
+    return getSelectedValueToText(value, langTools, optionList) || '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'RadioButtons'>): JSX.Element | null {

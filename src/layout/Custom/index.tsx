@@ -15,7 +15,7 @@ export class Custom extends FormComponent<'Custom'> {
     return <CustomWebComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'Custom'>): string {
+  getDisplayData(node: LayoutNodeFromType<'Custom'>): string {
     const data = node.getFormData();
     return Object.values(data).join(', ');
   }

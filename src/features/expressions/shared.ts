@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 
+import type { IAttachments } from 'src/features/attachments';
 import type { Expression } from 'src/features/expressions/types';
 import type { IProcessPermissions } from 'src/features/process';
 import type { IProfileState } from 'src/features/profile';
@@ -22,6 +23,7 @@ export interface SharedTest {
   disabledFrontend?: boolean;
   layouts?: Layouts;
   dataModel?: any;
+  attachments?: IAttachments;
   instance?: IInstance;
   permissions?: IProcessPermissions;
   frontendSettings?: IApplicationSettings;

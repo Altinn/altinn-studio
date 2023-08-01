@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
+import { getUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
 import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
 import { FileUploadWithTagComponent } from 'src/layout/FileUploadWithTag/FileUploadWithTagComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
@@ -30,8 +30,8 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implem
     return false;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'FileUploadWithTag'>): string {
-    return useUploaderSummaryData(node)
+  getDisplayData(node: LayoutNodeFromType<'FileUploadWithTag'>, { formData, attachments }): string {
+    return getUploaderSummaryData(node, formData, attachments)
       .map((a) => a.name)
       .join(', ');
   }

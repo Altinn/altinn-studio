@@ -11,6 +11,7 @@ import {
 import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
+import { implementsDisplayData } from 'src/layout';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
@@ -518,6 +519,40 @@ export const ExprFunctions = {
     args: [ExprVal.String] as const,
     returns: ExprVal.Any,
   }),
+  displayValue: defineFunc({
+    impl(id): any {
+      if (id === null) {
+        throw new ExprRuntimeError(this, `Cannot lookup component null`);
+      }
+
+      const node = this.failWithoutNode();
+      const closestComponent = node.closest((c) => c.id === id || c.baseComponentId === id);
+      const component = closestComponent ?? (node instanceof LayoutPage ? node.findById(id) : node.top.findById(id));
+
+      if (!component) {
+        throw new ExprRuntimeError(this, `Unable to find component with identifier ${id}`);
+      }
+
+      if (!implementsDisplayData(component.def)) {
+        throw new ExprRuntimeError(this, `Component with identifier ${id} does not have a displayValue`);
+      }
+
+      if (component.isHidden()) {
+        return null;
+      }
+
+      return component.def.getDisplayData(component as any, {
+        formData: this.dataSources.formData,
+        attachments: this.dataSources.attachments,
+        options: this.dataSources.options,
+        uiConfig: this.dataSources.uiConfig,
+        langTools: this.dataSources.langTools,
+      });
+    },
+    args: [ExprVal.String] as const,
+    returns: ExprVal.String,
+  }),
+
   round: defineFunc({
     impl(number, decimalPoints) {
       const realNumber = number === null ? 0 : number;

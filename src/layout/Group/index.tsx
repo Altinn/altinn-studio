@@ -49,7 +49,7 @@ export class Group extends ContainerComponent<'Group'> implements GroupValidatio
     return false;
   }
 
-  useDisplayData(): string {
+  getDisplayData(): string {
     return '';
   }
 

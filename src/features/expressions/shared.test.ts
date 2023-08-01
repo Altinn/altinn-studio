@@ -60,6 +60,7 @@ describe('Expressions shared function tests', () => {
         context,
         layouts,
         dataModel,
+        attachments,
         instance,
         permissions,
         frontendSettings,
@@ -74,6 +75,7 @@ describe('Expressions shared function tests', () => {
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
+          attachments: attachments ?? {},
           instanceContext: buildInstanceContext(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
@@ -166,10 +168,11 @@ describe('Expressions shared context tests', () => {
   describe.each(sharedTests.content)('$folderName', (folder) => {
     it.each(folder.content)(
       '$name',
-      ({ layouts, dataModel, instance, frontendSettings, permissions, expectedContexts }) => {
+      ({ layouts, dataModel, attachments, instance, frontendSettings, permissions, expectedContexts }) => {
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
+          attachments: attachments ?? {},
           instanceContext: buildInstanceContext(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useSelectedValueToText } from 'src/hooks/useSelectedValueToText';
+import { getOptionList } from 'src/hooks/useOptionList';
+import { getSelectedValueToText } from 'src/hooks/useSelectedValueToText';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { LayoutStyle } from 'src/types';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsSimple } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
@@ -23,14 +23,17 @@ export class Likert extends FormComponent<'Likert'> {
     return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'Likert'>): string {
-    const formData = useAppSelector((state) => state.formData.formData);
+  getDisplayData(
+    node: LayoutNodeFromType<'Likert'>,
+    { formData, langTools, uiConfig, options }: DisplayDataProps,
+  ): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
     const value = formData[node.item.dataModelBindings.simpleBinding] || '';
-    return useSelectedValueToText(node.item, value) || '';
+    const optionList = getOptionList(node.item, langTools.textResources, formData, uiConfig.repeatingGroups, options);
+    return getSelectedValueToText(value, langTools, optionList) || '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Likert'>): JSX.Element | null {

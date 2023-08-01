@@ -18,7 +18,7 @@ export class List extends FormComponent<'List'> {
     return <ListComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'List'>): string {
+  getDisplayData(node: LayoutNodeFromType<'List'>): string {
     const formData = node.getFormData();
     const dmBindings = node.item.dataModelBindings;
     for (const [key, binding] of Object.entries(dmBindings || {})) {

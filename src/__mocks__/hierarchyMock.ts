@@ -5,6 +5,9 @@ import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 export function getHierarchyDataSourcesMock(): HierarchyDataSources {
   return {
     formData: {},
+    attachments: {},
+    uiConfig: {} as any,
+    options: {},
     applicationSettings: {} as any,
     instanceContext: {} as any,
     hiddenFields: new Set(),

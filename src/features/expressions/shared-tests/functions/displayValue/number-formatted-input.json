@@ -1,0 +1,38 @@
+{
+  "name": "Display value of number formatted Input component",
+  "expression": [
+    "displayValue",
+    "penger"
+  ],
+  "context": {
+    "component": "penger",
+    "currentLayout": "Page"
+  },
+  "expects": "120 000 NOK",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "penger",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Skjema.Penger"
+            },
+            "formatting": {
+              "number": {
+                "suffix": " 000 NOK"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Penger": "120"
+    }
+  }
+}

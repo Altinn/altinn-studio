@@ -26,7 +26,7 @@ export class Grid extends ContainerComponent<'Grid'> {
     return false;
   }
 
-  useDisplayData(_node: LayoutNodeFromType<'Grid'>): string {
+  getDisplayData(_node: LayoutNodeFromType<'Grid'>): string {
     return '';
   }
 

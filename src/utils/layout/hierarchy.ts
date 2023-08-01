@@ -108,6 +108,9 @@ function rewriteTextResourceBindings(collection: LayoutPages, textResources: ITe
 export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources {
   return {
     formData: state.formData.formData,
+    attachments: state.attachments.attachments,
+    uiConfig: state.formLayout.uiConfig,
+    options: state.optionState.options,
     applicationSettings: state.applicationSettings.applicationSettings,
     instanceContext: buildInstanceContext(state.instanceData?.instance),
     hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
@@ -153,6 +156,9 @@ function useResolvedExpressions() {
   const state = useAppSelector((state) => state);
   const instance = state.instanceData?.instance;
   const formData = state.formData.formData;
+  const attachments = state.attachments.attachments;
+  const uiConfig = state.formLayout.uiConfig;
+  const options = state.optionState.options;
   const process = state.process;
   const applicationSettings = state.applicationSettings.applicationSettings;
   const hiddenFields = state.formLayout.uiConfig.hiddenFields;
@@ -167,6 +173,9 @@ function useResolvedExpressions() {
   const dataSources: HierarchyDataSources = useMemo(
     () => ({
       formData,
+      attachments,
+      uiConfig,
+      options,
       applicationSettings,
       instanceContext: buildInstanceContext(instance),
       authContext: buildAuthContext(process),
@@ -175,7 +184,19 @@ function useResolvedExpressions() {
       devTools,
       langTools,
     }),
-    [formData, applicationSettings, instance, process, hiddenFields, validations, devTools, langTools],
+    [
+      formData,
+      attachments,
+      uiConfig,
+      options,
+      applicationSettings,
+      instance,
+      process,
+      hiddenFields,
+      validations,
+      devTools,
+      langTools,
+    ],
   );
 
   return useMemo(

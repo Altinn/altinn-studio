@@ -1,0 +1,34 @@
+{
+  "name": "Display value of hidden component",
+  "expression": [
+    "displayValue",
+    "penger"
+  ],
+  "context": {
+    "component": "penger",
+    "currentLayout": "Page"
+  },
+  "expects": null,
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "penger",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Skjema.Penger"
+            },
+            "hidden": true
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Penger": "1200"
+    }
+  }
+}

@@ -38,11 +38,17 @@ export function attachmentsFromComponentId(componentId: string, attachments: IAt
 
   return [];
 }
-
 export function useUploaderSummaryData(node: LayoutNodeFromType<'FileUpload' | 'FileUploadWithTag'>): IAttachment[] {
   const formData = useAppSelector((state) => state.formData.formData);
   const attachments = useAppSelector((state) => state.attachments.attachments);
+  return getUploaderSummaryData(node, formData, attachments);
+}
 
+export function getUploaderSummaryData(
+  node: LayoutNodeFromType<'FileUpload' | 'FileUploadWithTag'>,
+  formData: IFormData,
+  attachments: IAttachments,
+): IAttachment[] {
   const listBinding = node.item.dataModelBindings?.list;
   if (listBinding) {
     const values = extractListFromBinding(formData, listBinding);

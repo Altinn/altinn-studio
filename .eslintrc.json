@@ -180,7 +180,7 @@
       }
     },
     {
-      "files": ["src/layout/*/index.tsx"],
+      "files": ["src/layout/*/index.tsx", "src/layout/LayoutComponent.tsx"],
       "rules": {
         "react-hooks/rules-of-hooks": "off"
       }

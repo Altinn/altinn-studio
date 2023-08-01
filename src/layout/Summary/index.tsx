@@ -27,7 +27,7 @@ export class Summary extends ContainerComponent<'Summary'> {
     return null;
   }
 
-  useDisplayData(): string {
+  getDisplayData(): string {
     return '';
   }
 

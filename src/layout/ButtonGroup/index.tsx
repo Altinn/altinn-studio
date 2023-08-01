@@ -21,7 +21,7 @@ export class ButtonGroup extends ContainerComponent<'ButtonGroup'> {
     return this._hierarchyGenerator;
   }
 
-  useDisplayData(_node: LayoutNodeFromType<'ButtonGroup'>): string {
+  getDisplayData(_node: LayoutNodeFromType<'ButtonGroup'>): string {
     return '';
   }
 

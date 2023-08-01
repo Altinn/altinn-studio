@@ -15,7 +15,7 @@ export class Address extends FormComponent<'AddressComponent'> {
     return <AddressComponent {...props} />;
   }
 
-  useDisplayData(node: LayoutNodeFromType<'AddressComponent'>): string {
+  getDisplayData(node: LayoutNodeFromType<'AddressComponent'>): string {
     const data = node.getFormData();
     return Object.values(data).join(' ');
   }

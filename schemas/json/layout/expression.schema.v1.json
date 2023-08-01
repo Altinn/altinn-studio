@@ -65,6 +65,7 @@
         { "type": "string", "title": "String constant" },
         { "$ref": "#/definitions/func-component" },
         { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-displayValue" },
         { "$ref": "#/definitions/func-instanceContext" },
         { "$ref": "#/definitions/func-frontendSettings" },
         { "$ref": "#/definitions/func-concat" },
@@ -166,6 +167,16 @@
       "type": "array",
       "items": [
         { "const":  "dataModel" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-displayValue": {
+      "title": "Component display value lookup function",
+      "description": "This function will look up a nearby component and return its display value. Other components can be siblings, or siblings of parent groups.",
+      "type": "array",
+      "items": [
+        { "const":  "displayValue" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
