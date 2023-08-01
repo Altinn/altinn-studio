@@ -182,7 +182,7 @@ export const ResourcePage = () => {
           currentPage={currentPage}
           navigateToPage={navigateToPage}
           goBack={goBack}
-          showMigrate={getShowMigreate()}
+          showMigrate={getShowMigrate()}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
