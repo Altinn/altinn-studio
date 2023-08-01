@@ -1,7 +1,6 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { NameError } from '../../types';
 import {
   navigateToType,
   removeSelection,
@@ -11,7 +10,6 @@ import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import {
   Checkbox,
-  ErrorMessage,
   FieldSet,
   Select,
   TextArea,
@@ -27,7 +25,6 @@ import {
   pointerIsDefinition,
   setCombinationType,
   setDescription,
-  setPropertyName,
   setRef,
   setTitle,
   setType,
@@ -39,15 +36,14 @@ import {
   combinationIsNullable,
   getChildNodesByPointer,
   getNameFromPointer,
-  hasNodePointer,
-  replaceLastPointerSegment,
 } from '@altinn/schema-model';
-import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
+import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { FormFieldName } from './FormFieldName';
 
 export type IItemDataComponentProps = Omit<UiSchemaNode, 'children'>;
 
@@ -70,37 +66,14 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
 
-  const [nameError, setNameError] = useState(NameError.NoError);
+  useEffect(() => {
+    setNodeName(getNameFromPointer({ pointer }));
+  }, [pointer]);
+
   const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
-
-  const softValidateName = (nodeNameToValidate: string) => {
-    const error = !isValidName(nodeNameToValidate) ? NameError.InvalidCharacter : NameError.NoError;
-    setNameError(error);
-    return error;
-  };
-  const hardValidateName = () => {
-    const error = softValidateName(nodeName);
-    if (error !== NameError.NoError) {
-      return error;
-    }
-    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeName))) {
-      setNameError(NameError.AlreadyInUse);
-      return NameError.AlreadyInUse;
-    }
-    return error;
-  };
-
-  useEffect(() => {
-    softValidateName(nodeName);
-  }, [nodeName]);
-
-  const onNameChange = ({ target }: ChangeEvent) => {
-    const { value } = target as HTMLInputElement;
-    setNodeName(value);
-  };
 
   const onChangeRef = (path: string, ref: string) => mutate(setRef(data, { path, ref }));
 
@@ -143,23 +116,6 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
 
-  const handleChangeNodeName = () => {
-    const staleName = getNameFromPointer({ pointer });
-    if (staleName === nodeName) {
-      return;
-    }
-    const error = hardValidateName();
-    if (error === NameError.NoError) {
-      mutate(
-        setPropertyName(data, {
-          path: pointer,
-          name: nodeName,
-          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-        })
-      );
-    }
-  };
-
   const { t } = useTranslation();
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
@@ -167,30 +123,14 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
 
-  const nameErrorMessage = {
-    [NameError.InvalidCharacter]: t('schema_editor.nameError_invalidCharacter'),
-    [NameError.AlreadyInUse]: t('schema_editor.nameError_alreadyInUse'),
-    [NameError.NoError]: '',
-  }[nameError];
-
   return (
     <div className={classes.root}>
       {!isCombinationItem && (
-        <div>
-          <TextField
-            aria-describedby='Selected Item Name'
-            aria-errormessage={nameErrorMessage}
-            aria-label={t('schema_editor.name')}
-            aria-placeholder='Name'
-            id='selectedItemName'
-            label={t('schema_editor.name')}
-            onBlur={handleChangeNodeName}
-            onChange={onNameChange}
-            placeholder='Name'
-            value={nodeName}
-          />
-          {nameError !== NameError.NoError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}
-        </div>
+        <FormFieldName
+          pointer={pointer}
+          label={t('schema_editor.name')}
+          callback={(newPointer: string) => dispatch(setSelectedNode(newPointer))}
+        />
       )}
       {objectKind === ObjectKind.Field && (
         <Select

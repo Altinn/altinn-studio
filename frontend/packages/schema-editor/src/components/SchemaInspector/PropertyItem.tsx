@@ -1,6 +1,5 @@
-import type { ChangeEventHandler, FocusEventHandler, KeyboardEvent } from 'react';
-import React, { useEffect, useState } from 'react';
-import { TextField } from '@digdir/design-system-react';
+import type { ChangeEventHandler, KeyboardEvent } from 'react';
+import React from 'react';
 import { Checkbox, Select } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
@@ -11,12 +10,12 @@ import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { setRequired } from '@altinn/schema-model';
+import { FormFieldName } from './FormFieldName';
 
 export interface IPropertyItemProps {
   fullPath: string;
   inputId: string;
   onChangeType: (path: string, type: FieldType) => void;
-  onChangeValue: (path: string, value: string) => void;
   onDeleteField: (path: string, key: string) => void;
   onEnterKeyPress: () => void;
   readOnly?: boolean;
@@ -29,7 +28,6 @@ export function PropertyItem({
   fullPath,
   inputId,
   onChangeType,
-  onChangeValue,
   onDeleteField,
   onEnterKeyPress,
   readOnly,
@@ -37,19 +35,8 @@ export function PropertyItem({
   type,
   value,
 }: IPropertyItemProps) {
-  const [inputValue, setInputValue] = useState<string>(value || '');
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-
-  useEffect(() => setInputValue(value), [value]);
-  const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
-    setInputValue(e.target.value);
-
-  const onBlur: FocusEventHandler<HTMLInputElement> = (e) => {
-    if (inputValue !== value) {
-      onChangeValue(fullPath, e.target.value);
-    }
-  };
 
   const deleteHandler = () => onDeleteField?.(fullPath, value);
 
@@ -69,14 +56,12 @@ export function PropertyItem({
   return (
     <>
       <div className={`${classes.nameInputCell} ${classes.gridItem}`}>
-        <TextField
-          aria-label={t('schema_editor.field_name')}
-          id={inputId}
-          value={inputValue}
-          disabled={readOnly}
-          onChange={changeValueHandler}
-          onBlur={onBlur}
+        <FormFieldName
+          pointer={fullPath}
           onKeyDown={onKeyDown}
+          label={t('schema_editor.field_name')}
+          hideLabel={true}
+          disabled={readOnly}
         />
       </div>
       <div className={`${classes.typeSelectCell} ${classes.gridItem}`}>

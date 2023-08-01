@@ -7,14 +7,15 @@ import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
 import type { FormFieldProps } from './FormField';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../../ux-editor/src/testing/mocks';
+import { useLayoutSchemaQuery } from '../../../../ux-editor/src/hooks/queries/useLayoutSchemaQuery';
 
 const user = userEvent.setup();
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+  return layoutSchemaResult.current[0].data;
 };
 
 const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
@@ -22,7 +23,6 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
     value: '',
     ...props,
   };
-  await waitForData();
   return renderWithMockStore()(<FormField {...allProps}>{() => <TextField />}</FormField>);
 }
 
@@ -72,9 +72,11 @@ describe('FormField', () => {
   });
 
   it('should validate field against json schema and show an error message', async () => {
+    const schema = await waitForData();
     await render({
       onChange: mockOnChange,
-      propertyPath: 'definitions/component/properties/id'
+      propertyPath: 'definitions/component/properties/id',
+      schema,
     });
 
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
