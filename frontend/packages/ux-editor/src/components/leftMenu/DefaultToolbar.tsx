@@ -10,7 +10,7 @@ import classes from './DefaultToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { Accordion } from 'app-shared/components/Accordion';
+import { Accordion } from '@digdir/design-system-react';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
 
 export function DefaultToolbar() {

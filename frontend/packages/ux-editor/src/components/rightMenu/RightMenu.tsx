@@ -6,7 +6,7 @@ import { ContentTab } from './ContentTab';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { DynamicsTab } from './DynamicsTab';
-import { Accordion } from 'app-shared/components/Accordion';
+import { Accordion } from '@digdir/design-system-react';
 import { FormContext } from '../../containers/FormContext';
 
 export interface RightMenuProps {

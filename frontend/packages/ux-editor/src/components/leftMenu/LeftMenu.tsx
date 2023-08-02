@@ -20,7 +20,7 @@ import { LayoutSetsContainer } from "./LayoutSetsContainer";
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { ConfigureLayoutSetPanel } from "./ConfigureLayoutSetPanel";
-import { Accordion } from 'app-shared/components/Accordion';
+import { Accordion } from '@digdir/design-system-react';
 
 export interface LeftMenuProps {
   className?: string;
