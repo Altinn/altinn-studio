@@ -63,8 +63,8 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
       <Accordion color="subtle">
       {
         !_useIsProdHack() && (
-          <Accordion.Item defaultOpen={true}>
             <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
+          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
             <Accordion.Content>
               {
                 layoutSetNames ? (
