@@ -4,7 +4,6 @@
 
 .resourcePageWrapper {
   flex-grow: 1;
-  padding: 20px;
 }
 
 .resourcePage {
@@ -25,4 +24,8 @@
   height: 100vh;
   top: 0;
   position: sticky;
+}
+
+.spinnerWrapper {
+  padding: 10%;
 }

@@ -35,3 +35,10 @@
   color: #7A1265;
   text-decoration: none;
 }
+
+.link:active {
+  text-decoration: none;
+  border: none;
+  outline: none;
+  color: #004E95;
+}

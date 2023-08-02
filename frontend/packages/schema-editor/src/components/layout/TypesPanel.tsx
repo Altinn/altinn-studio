@@ -10,7 +10,6 @@ import { CombinationKind, getNameFromPointer, UiSchemaNode, addProperty, addComb
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
-import type { PanelProps } from '@altinn/schema-editor/components/layout/layoutTypes';
 import { useTranslation } from 'react-i18next';
 import classes from './TypesPanel.module.css';
 import { ActionMenu } from '../common/ActionMenu';
@@ -19,13 +18,12 @@ import { SchemaEditorTestIds } from '../SchemaEditor';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
-export type TypesPanelProps = PanelProps & {
+export type TypesPanelProps = {
   expandedDefNodes: string[];
   setExpandedDefNodes: (nodes: string[]) => void;
   uiSchemaNode: UiSchemaNode;
 };
 export const TypesPanel = ({
-  editMode,
   expandedDefNodes,
   setExpandedDefNodes,
   uiSchemaNode,
@@ -67,7 +65,6 @@ export const TypesPanel = ({
 
   return (
     <div className={classes.root}>
-      {editMode && (
         <ActionMenu
           items={[
             {
@@ -116,9 +113,7 @@ export const TypesPanel = ({
           ]}
           openButtonText={t('add')}
         />
-      )}
       <SchemaTreeView
-        editMode={editMode}
         expanded={expandedDefNodes}
         items={[uiSchemaNode]}
         translate={t}

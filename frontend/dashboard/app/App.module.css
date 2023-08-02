@@ -6,3 +6,9 @@
 .root > header {
   background-color: rgb(2, 47, 81);
 }
+
+.appDashboardSpinner{
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}

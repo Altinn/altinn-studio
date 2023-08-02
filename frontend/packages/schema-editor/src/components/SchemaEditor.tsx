@@ -24,13 +24,13 @@ import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
 import {
-  rootChildrenSelector,
-  rootNodesSelector,
-  selectedDefinitionParentSelector,
-  selectedItemSelector,
-  selectedPropertyParentSelector
+  selectedPropertyNodeIdSelector,
+  selectedDefinitionNodeIdSelector,
+  selectedIdSelector,
+  getRootChildren,
+  getRootNodes
 } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { useSchemaSelector, useParentSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { Toolbar, ToolbarProps } from 'app-shared/features/dataModelling/components/Toolbar';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -39,11 +39,9 @@ import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface IEditorProps {
   LandingPagePanel: ReactNode;
-  editMode: boolean;
   name?: string;
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
-  toggleEditMode: () => void;
   toolbarProps: Omit<ToolbarProps, 'disabled'>;
 }
 
@@ -60,10 +58,8 @@ export enum SchemaEditorTestIds {
 export const SchemaEditor = ({
   LandingPagePanel,
   name,
-  editMode,
   onSaveSchema,
   schemaState,
-  toggleEditMode,
   toolbarProps,
 }: IEditorProps) => {
   const dispatch = useDispatch();
@@ -84,8 +80,8 @@ export const SchemaEditor = ({
   const translation = useTranslation();
   const t = (key: string, options: KeyValuePairs) => translation.t('schema_editor.' + key, options);
 
-  const rootNodeMap = useSchemaSelector(rootNodesSelector);
-  const rootChildren = useSchemaSelector(rootChildrenSelector);
+  const rootNodeMap = getRootNodes(data);
+  const rootChildren = getRootChildren(data);
   const properties: UiSchemaNodes = [];
   const definitions: UiSchemaNodes = [];
   rootChildren?.forEach(
@@ -94,12 +90,13 @@ export const SchemaEditor = ({
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useSchemaSelector(selectedPropertyParentSelector);
-  const selectedItem = useSchemaSelector(selectedItemSelector);
+  const selectedPropertyParent = useParentSchemaSelector(selectedPropertyNodeIdSelector);
+  const selectedItem = useSchemaSelector(selectedIdSelector);
 
   useEffect(() => {
     if (selectedType) {
-      setSelectedType(rootNodeMap.get(selectedType.pointer));
+      const isExistingNode = !!rootNodeMap.get(selectedType.pointer);
+      if (!isExistingNode) setSelectedType(null);
     }
   }, [rootNodeMap, selectedType]);
 
@@ -115,7 +112,7 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSchemaSelector(selectedDefinitionParentSelector);
+  const selectedDefinitionParent = useParentSchemaSelector(selectedDefinitionNodeIdSelector);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
@@ -138,10 +135,8 @@ export const SchemaEditor = ({
     <div className={classes.root}>
       <TopToolbar
         Toolbar={(<Toolbar {...toolbarProps} disabled={isEmpty(data)}/>)}
-        editMode={editMode}
         saveAction={name ? handleSaveSchema : undefined}
         schemaState={schemaState}
-        toggleEditMode={name ? toggleEditMode : undefined}
       />
       <main className={classes.main}>
         {isEmpty(data) ? LandingPagePanel : (
@@ -172,10 +167,10 @@ export const SchemaEditor = ({
                 icon={<XMarkIcon />}
                 variant={ButtonVariant.Quiet}
                 color={ButtonColor.Inverted}
+                aria-label={t('close_type', null)}
               />
             </div>
             <TypesPanel
-              editMode={editMode}
               uiSchemaNode={selectedType}
               setExpandedDefNodes={setExpandedDefNodes}
               expandedDefNodes={
@@ -189,14 +184,13 @@ export const SchemaEditor = ({
         {name && !isEmpty(data) && !selectedType && (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <ModelsPanel
-              editMode={editMode}
               setExpandedPropNodes={setExpandedPropNodes}
               expandedPropNodes={expandedPropNodes}
               properties={properties}
             />
           </div>
         )}
-        {!isEmpty(data) && editMode && (
+        {!isEmpty(data)  && (
           <aside className={classes.inspector}>
             <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
           </aside>

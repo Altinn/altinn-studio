@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
 import { PropertyItem } from './PropertyItem';
-import { removeSelection, setSelectedNode } from '../../features/editor/schemaEditorSlice';
+import { removeSelection } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import {
@@ -18,7 +18,6 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 
 export interface ItemFieldsTabProps {
@@ -31,7 +30,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
 
-  const fieldNodes = useSchemaSelector(getFieldNodesSelector(selectedItem));
+  const fieldNodes = getFieldNodesSelector(selectedItem)(data);
 
   const numberOfChildNodes = fieldNodes.length;
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;
@@ -51,7 +50,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       setPropertyName(data, {
         path,
         name: value,
-        callback: (newPointer) => dispatch(setSelectedNode(newPointer)),
       })
     );
 

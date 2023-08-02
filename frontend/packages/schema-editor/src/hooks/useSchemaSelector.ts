@@ -1,10 +1,20 @@
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { SchemaStateSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 import { useSelector } from 'react-redux';
-import { SchemaState } from '@altinn/schema-editor/types';
+import {
+  getParentNodeByPointer,
+  getNodeByPointer,
+  UiSchemaNode,
+} from '@altinn/schema-model'
 
-export const useSchemaSelector = <T>(selector: SchemaStateSelector<T>): T | null => {
+export const useSchemaSelector = (selector: SchemaStateSelector<string>): UiSchemaNode | null => {
   const { data } = useDatamodelQuery();
-  const state = useSelector((state: SchemaState) => state);
-  return data ? selector(state, data) : null;
+  const state = useSelector(selector);
+  return data && state ? getNodeByPointer(data, state) : null;
+};
+
+export const useParentSchemaSelector = (selector: SchemaStateSelector<string>): UiSchemaNode | null => {
+  const { data } = useDatamodelQuery();
+  const state = useSelector(selector);
+  return data && state ? getParentNodeByPointer(data, state) : null;
 };

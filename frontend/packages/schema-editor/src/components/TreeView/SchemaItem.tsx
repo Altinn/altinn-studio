@@ -19,13 +19,11 @@ import type { DragItem } from './dnd-helpers';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 
 type SchemaItemProps = {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
   isPropertiesView: boolean;
-  editMode: boolean;
   onLabelClick?: (e: any) => void;
   index: number;
 };
@@ -37,7 +35,6 @@ SchemaItem.defaultProps = {
 export function SchemaItem({
   selectedNode,
   isPropertiesView,
-  editMode,
   translate,
   index,
 }: SchemaItemProps) {
@@ -47,7 +44,7 @@ export function SchemaItem({
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = useSchemaSelector(getRefNodeSelector(selectedNode));
+  const refNode = getRefNodeSelector(selectedNode)(data);
   const childNodes = getChildNodesByPointer(data, (refNode || selectedNode).pointer);
   const referredNodes = getReferredNodes(data, selectedNode.pointer);
   const focusedNode = refNode ?? selectedNode;
@@ -76,7 +73,6 @@ export function SchemaItem({
         onFocusCapture={(e: any) => e.stopPropagation()}
         label={
           <SchemaItemLabel
-            editMode={editMode}
             icon={getIconStr(refNode ?? selectedNode)}
             key={`${selectedNode.pointer}-label`}
             selectedNode={selectedNode}
@@ -89,7 +85,6 @@ export function SchemaItem({
         {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
           <SchemaItem
             index={childNodeIndex}
-            editMode={editMode}
             isPropertiesView={isPropertiesView}
             selectedNode={childNode}
             key={`${keyPrefix}-${childNode.pointer}`}

@@ -1,11 +1,11 @@
 import React from 'react';
-import classes from './Dynamics.module.css';
+import classes from './OldDynamicsInfo.module.css';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { giteaEditLink } from 'app-shared/ext-urls';
+import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 
-export const Dynamics = () => {
+export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
   const { app, org } = useParams();
   const dynamicLocation = `App/ui/RuleHandler.js`;
@@ -18,7 +18,7 @@ export const Dynamics = () => {
           <br />
           <a
             className={classes.externalLink}
-            href='https://docs.altinn.studio/nb/app/development/logic/dynamic/'
+            href={altinnDocsUrl('/nb/app/development/logic/dynamic/')}
             rel='noopener noreferrer'
             target='_blank'
           >

@@ -1,6 +1,48 @@
 import { get } from 'app-shared/utils/networking';
-import { branchStatusPath, datamodelMetadataPath, datamodelsXsdPath, deployPermissionsPath, deploymentsPath, envConfigPath, formLayoutsPath, instanceIdForPreviewPath, layoutSetsPath, layoutSettingsPath, orgsListPath, releasesPath, repoMetaPath, repoPullPath, repoSearchPath, repoStatusPath, ruleConfigPath, ruleHandlerPath, textLanguagesPath, textResourcesPath, userCurrentPath, userStarredListPath, widgetSettingsPath, optionListIdsPath, datamodelPath } from './paths';
-import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import {
+  branchStatusPath,
+  datamodelMetadataPath,
+  datamodelsXsdPath,
+  deployPermissionsPath,
+  deploymentsPath,
+  envConfigPath,
+  formLayoutsPath,
+  instanceIdForPreviewPath,
+  layoutSetsPath,
+  layoutSettingsPath,
+  orgsListPath,
+  releasesPath,
+  repoMetaPath,
+  repoPullPath,
+  repoSearchPath,
+  repoStatusPath,
+  resourceActionsPath,
+  resourceListPath,
+  resourcePolicyPath,
+  resourcePublishStatusPath,
+  resourceSectorsPath,
+  resourceSinglePath,
+  resourceSubjectsPath,
+  resourceThematicEurovocPath,
+  resourceThematicLosPath,
+  resourceValidatePolicyPath,
+  resourceValidateResourcePath,
+  ruleConfigPath,
+  ruleHandlerPath,
+  textLanguagesPath,
+  textResourcesPath,
+  userCurrentPath,
+  userStarredListPath,
+  widgetSettingsPath,
+  optionListIdsPath,
+  datamodelPath } from './paths';
+import {
+  AppDeploymentsResponse,
+  AppReleasesResponse,
+  DatamodelMetadataResponse,
+  SearchRepoFilterParams,
+  SearchRepositoryResponse,
+} from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelsXsd } from 'app-shared/types/DatamodelsXsd';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -18,6 +60,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -51,3 +94,16 @@ export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
 export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl());
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
+
+// Resourceadm
+export const getPolicy = (org: string, repo: string, id: string) => get<PolicyBackendType>(resourcePolicyPath(org, repo, id));
+export const getPolicyActions = (org: string, repo: string) => get<PolicyActionType[]>(resourceActionsPath(org, repo));
+export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjectType[]>(resourceSubjectsPath(org, repo));
+export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
+export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
+export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id));
+export const getValidatePolicy = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidatePolicyPath(org, repo, id));
+export const getValidateResource = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidateResourcePath(org, repo, id));
+export const getResourceSectors = (org: string) => get<ResourceSectorType[]>(resourceSectorsPath(org));
+export const getResourceThematicLos = (org: string) => get<ResourceThematicType[]>(resourceThematicLosPath(org));
+export const getResourceThematicEurovoc = (org: string) => get<ResourceThematicType[]>(resourceThematicEurovocPath(org));

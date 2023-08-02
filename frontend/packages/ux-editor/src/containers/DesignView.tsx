@@ -5,7 +5,6 @@ import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
-import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
@@ -30,18 +29,16 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const { org, app } = useParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const layoutName = useSelector(selectedLayoutNameSelector);
   const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
-  const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);
+  const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useContext(FormContext);
 
   const { t } = useTranslation();
 
   const layout = layouts?.[layoutName];
 
-  if (!layout) return null;
-
-  const { order, containers, components } = layout;
+  const { order, containers, components } = layout || {};
 
   const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
 
@@ -76,6 +73,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
         dragHandleRef={dragHandleRef}
         handleDiscard={handleDiscard}
         handleEdit={handleEdit}
+        handleSave={handleSave}
         id={id}
         isBaseContainer={isBaseContainer}
         isEditMode={formId === id}
@@ -96,7 +94,8 @@ export const DesignView = ({ className }: DesignViewProps) => {
                       isEditMode={formId === itemId}
                       component={formId === itemId ? form as IFormComponent : components[itemId]}
                       handleEdit={handleEdit}
-                      handleSave={handleComponentSave}
+                      handleSave={handleSave}
+                      debounceSave={debounceSave}
                       handleDiscard={handleDiscard}
                       dragHandleRef={itemDragHandleRef}
                     />
@@ -122,11 +121,12 @@ export const DesignView = ({ className }: DesignViewProps) => {
       className={className}
       onClick={(event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        handleEdit(null)
+        if (formId) handleEdit(null)
       }}
+      data-testid="designViewContainer"
     >
       <h1 className={classes.pageHeader}>{layoutName}</h1>
-      {renderContainer(BASE_CONTAINER_ID, true)}
+      {layout && renderContainer(BASE_CONTAINER_ID, true)}
     </div>
   );
 };

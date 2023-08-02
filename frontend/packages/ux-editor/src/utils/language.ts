@@ -134,8 +134,9 @@ export function truncate(s: string, size: number) {
 }
 
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
-  const textResource = textResources?.find((resource) => resource.id === resourceKey);
-  return textResource ? textResource.value : resourceKey;
+  if (!resourceKey || !textResources?.length) return;
+  const textResource = textResources.find((resource) => resource.id === resourceKey);
+  return textResource?.value;
 }
 
 export const getComponentPropertyLabel = (propertyKey: string, t: UseText): string => {

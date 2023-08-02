@@ -5,13 +5,13 @@ import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
-import { useFormLayoutsSelector } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { AltinnSpinner } from 'app-shared/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
+import { useSelector } from 'react-redux';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -26,7 +26,7 @@ export const EditFormComponent = ({
   isProd,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
 

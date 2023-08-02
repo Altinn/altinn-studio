@@ -1,8 +1,7 @@
 import React from 'react';
 import { idExists } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../../../hooks';
-import { selectedLayoutSelector } from '../../../selectors/formLayoutSelectors';
+import { useSelectedFormLayout } from '../../../hooks';
 import type { FormComponent } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
 import { TextField } from '@digdir/design-system-react';
@@ -12,12 +11,8 @@ export interface IEditComponentId {
   component: FormComponent;
   helpText?: string;
 }
-export const EditComponentId = ({
-  component,
-  handleComponentUpdate,
-  helpText,
-}: IEditComponentId) => {
-  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
+export const EditComponentId = ({ component, handleComponentUpdate, helpText }: IEditComponentId) => {
+  const { components, containers } = useSelectedFormLayout();
   const { t } = useTranslation();
 
   const handleIdChange = (id: string) => {

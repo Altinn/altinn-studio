@@ -1,6 +1,6 @@
 import { queriesMock, queryClientMock, renderHookWithMockStore } from '../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
+import { UpdateFormComponentMutationArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type {
   FormCheckboxesComponent,
@@ -15,6 +15,7 @@ import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 const id = component1IdMock;
 const type = ComponentType.TextArea;
@@ -25,7 +26,7 @@ const updatedComponent: FormComponent = {
   type: ComponentType.TextArea,
   dataModelBindings,
 }
-const defaultArgs: UpdateFormComponentArgs = { id, updatedComponent };
+const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
 
 describe('useUpdateFormComponentMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -33,7 +34,7 @@ describe('useUpdateFormComponentMutation', () => {
   it('Saves layout with updated component', async () => {
     renderAndWaitForData();
 
-    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
+    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -61,7 +62,7 @@ describe('useUpdateFormComponentMutation', () => {
 
   it('Does not run attachment metadata queries if the component type is not fileUpload', async () => {
     renderAndWaitForData();
-    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
+    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet))
       .renderHookResult
       .result;
     await updateFormComponentResult.current.mutateAsync(defaultArgs);
@@ -72,7 +73,7 @@ describe('useUpdateFormComponentMutation', () => {
 
   it('Updates attachment metadata queries if the component type is fileUpload', async () => {
     renderAndWaitForData();
-    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
+    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet))
       .renderHookResult
       .result;
     const newComponent: FormFileUploaderComponent = {
@@ -85,7 +86,7 @@ describe('useUpdateFormComponentMutation', () => {
       minNumberOfAttachments: 1,
       type: ComponentType.FileUpload,
     };
-    const args: UpdateFormComponentArgs = {
+    const args: UpdateFormComponentMutationArgs = {
       ...defaultArgs,
       updatedComponent: newComponent,
     }
@@ -95,7 +96,7 @@ describe('useUpdateFormComponentMutation', () => {
 
   it('Does not keep original optionsId and options props from component when updating RadioButtons and CheckBoxes', async () => {
     renderAndWaitForData();
-    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
+    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -108,7 +109,7 @@ describe('useUpdateFormComponentMutation', () => {
           ...optionsProp,
         } as FormRadioButtonsComponent | FormCheckboxesComponent;
 
-        const args: UpdateFormComponentArgs = {
+        const args: UpdateFormComponentMutationArgs = {
           ...defaultArgs,
           updatedComponent: newComponent,
         }

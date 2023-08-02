@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './App.module.css';
 import './App.css';
 import { Route, Routes } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 import { PageSpinner } from 'app-shared/components';
@@ -16,8 +15,6 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 export const App = (): JSX.Element => {
-  const { t } = useTranslation();
-
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
@@ -77,5 +74,5 @@ export const App = (): JSX.Element => {
       </div>
     );
   }
-  return <PageSpinner text={t('dashboard.loading')} />;
+  return <PageSpinner />;
 };

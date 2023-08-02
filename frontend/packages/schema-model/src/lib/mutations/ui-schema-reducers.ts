@@ -253,7 +253,7 @@ export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> =
 export type SetPropertyNameArgs = {
   path: string;
   name: string;
-  callback: (pointer: string) => void;
+  callback?: (pointer: string) => void;
 };
 export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
   (uiSchema, { path, name, callback }) => {
@@ -264,17 +264,31 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
     const nodeToRename = getNodeByPointer(newSchema, path);
     const oldPointer = nodeToRename.pointer;
     const newPointer = replaceLastPointerSegment(oldPointer, name);
-    callback(newPointer);
+    callback?.(newPointer);
     return renameNodePointer(newSchema, nodeToRename.pointer, newPointer);
   };
 
-export const toggleArrayField: UiSchemaReducer<string> =
-  (uiSchema, pointer) => {
-    const newSchema = deepCopy(uiSchema);
-    const node = getNodeByPointer(newSchema, pointer);
-    node.isArray = !node.isArray;
-    return newSchema;
-  };
+export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => {
+  let newSchema = deepCopy(uiSchema);
+  const node = getNodeByPointer(newSchema, pointer);
+  node.isArray = !node.isArray;
+  node.children.forEach((child) => {
+    if (node.isArray) {
+      newSchema = renameNodePointer(
+        newSchema,
+        child,
+        child.replace(pointer, makePointer(pointer, Keyword.Items))
+      );
+    } else {
+      newSchema = renameNodePointer(
+        newSchema,
+        child,
+        child.replace(makePointer(pointer, Keyword.Items), pointer)
+      );
+    }
+  });
+  return newSchema;
+};
 
 export type ChangeChildrenOrderArgs = {
   pointerA: string;

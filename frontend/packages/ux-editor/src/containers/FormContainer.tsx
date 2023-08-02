@@ -7,14 +7,15 @@ import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteForm
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
-import { useFormLayoutsSelector } from "../hooks/useFormLayoutsSelector";
 import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
+import { useSelector } from 'react-redux';
 
 export interface IFormContainerProps {
   children: ReactNode;
   container: IFormContainer;
   dragHandleRef?: ConnectDragSource;
   handleDiscard: () => void;
+  handleSave: () => Promise<void>;
   handleEdit: (container: IFormContainer) => void;
   id: string;
   isBaseContainer?: boolean;
@@ -26,13 +27,14 @@ export const FormContainer = ({
   container,
   dragHandleRef,
   handleDiscard,
+  handleSave,
   handleEdit,
   id,
   isBaseContainer,
   isEditMode,
 } : IFormContainerProps) => {
   const { org, app } = useParams();
-  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
+  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app, selectedLayoutSetName);
 
@@ -46,8 +48,8 @@ export const FormContainer = ({
   const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
     handleDeleteFormContainer(id);
-    handleDiscard();
-  }, [handleDeleteFormContainer, handleDiscard, id]);
+    if (isEditMode) handleDiscard();
+  }, [handleDeleteFormContainer, handleDiscard, id, isEditMode]);
 
   return (
     <div
@@ -56,14 +58,11 @@ export const FormContainer = ({
         isEditMode && classes.editMode,
         !isBaseContainer && classes.formGroupWrapper,
       )}
-      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+      onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
         if (isEditMode) return;
-        if (isBaseContainer) {
-          handleEdit(null);
-        } else {
-          handleEdit({ ...container, id });
-        }
+        await handleSave();
+        handleEdit(isBaseContainer ? null : { ...container, id });
       }}
     >
       {!isBaseContainer && (
@@ -73,7 +72,6 @@ export const FormContainer = ({
           isEditMode={isEditMode}
           handleExpanded={setExpanded}
           handleDelete={handleDelete}
-          handleEdit={handleEdit}
           dragHandleRef={dragHandleRef}
         />
       )}

@@ -1,0 +1,50 @@
+.textfieldWrapper {
+  width: 80%;
+}
+
+p, h2 {
+  margin: 0;
+}
+
+.text {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.textfieldHeader {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 5px;
+  margin-top: 20px;
+}
+
+.idBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #E9EAEC;
+  width: 20px;
+  height: 20px;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 1px;
+  margin-right: 10px;
+}
+
+.idText {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editButtonWrapper {
+  margin-left: 20px;
+}
+
+.editFieldWrapper {
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+
+.stopEditingButton {
+  margin-left: 10px;
+}

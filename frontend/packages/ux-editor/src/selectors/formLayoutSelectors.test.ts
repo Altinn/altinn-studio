@@ -1,11 +1,11 @@
 import { IAppState, IFormLayouts } from '../types/global';
 import { appStateMock, formDesignerMock } from '../testing/mocks';
 import {
-  allLayoutComponentsSelector,
-  allLayoutContainersSelector,
-  fullLayoutOrderSelector,
+  getAllLayoutComponents,
+  getAllLayoutContainers,
+  getFullLayoutOrder,
   selectedLayoutNameSelector,
-  selectedLayoutSelector
+  selectedLayoutSetSelector
 } from './formLayoutSelectors';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -13,6 +13,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 const layout1Name = 'Side1';
 const layout2Name = 'Side2';
 const selectedLayout = layout1Name;
+const selectedLayoutSet = 'test-layout-set';
 const appState: IAppState = {
   ...appStateMock,
   formDesigner: {
@@ -82,20 +83,20 @@ describe('formLayoutSelectors', () => {
     expect(selectedLayoutNameSelector(appState)).toEqual(selectedLayout);
   });
 
-  test('selectedLayoutSelector', () => {
-    expect(selectedLayoutSelector(appState, formLayoutsData)).toEqual(formLayoutsData[selectedLayout]);
+  test('selectedLayoutSetSelector', () => {
+    expect(selectedLayoutSetSelector(appState)).toEqual(selectedLayoutSet);
   });
 
-  test('allLayoutContainersSelector', () => {
-    expect(allLayoutContainersSelector(appState, formLayoutsData)).toEqual({
+  test('getAllLayoutContainers', () => {
+    expect(getAllLayoutContainers(formLayoutsData)).toEqual({
       [container0Id]: formLayoutsData[layout1Name].containers[container0Id],
       [container1Id]: formLayoutsData[layout1Name].containers[container1Id],
       [container2Id]: formLayoutsData[layout2Name].containers[container2Id],
     });
   });
 
-  test('allLayoutComponentsSelector', () => {
-    expect(allLayoutComponentsSelector(appState, formLayoutsData)).toEqual({
+  test('getAllLayoutComponents', () => {
+    expect(getAllLayoutComponents(formLayoutsData)).toEqual({
       [component0AId]: formLayoutsData[layout1Name].components[component0AId],
       [component0BId]: formLayoutsData[layout1Name].components[component0BId],
       [component1AId]: formLayoutsData[layout1Name].components[component1AId],
@@ -105,8 +106,8 @@ describe('formLayoutSelectors', () => {
     });
   });
 
-  test('fullLayoutOrderSelector', () => {
-    expect(fullLayoutOrderSelector(appState, formLayoutsData)).toEqual({
+  test('getFullLayoutOrder', () => {
+    expect(getFullLayoutOrder(formLayoutsData)).toEqual({
       [container0Id]: container0Order,
       [container1Id]: container1Order,
       [container2Id]: container2Order,

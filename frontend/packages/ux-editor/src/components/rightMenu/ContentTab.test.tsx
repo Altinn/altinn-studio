@@ -31,9 +31,9 @@ const FormContextProviderMock = {
   handleDiscard: jest.fn(),
   handleEdit: jest.fn(),
   handleUpdate: jest.fn(),
-  handleContainerSave: jest.fn().mockImplementation(() => Promise.resolve()),
-  handleComponentSave: jest.fn().mockImplementation(() => Promise.resolve()),
-};
+  handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
+  debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
+}
 
 // Mocks:
 jest.mock('../TextResourceEdit', () => ({
@@ -74,7 +74,7 @@ describe('ContentTab', () => {
       await act(() => user.type(idInput, 'test'));
 
       expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
-      expect(FormContextProviderMock.handleContainerSave).toHaveBeenCalledTimes(4);
+      expect(FormContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -102,7 +102,7 @@ describe('ContentTab', () => {
       await act(() => user.type(idInput, 'test'));
 
       expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
-      expect(FormContextProviderMock.handleComponentSave).toHaveBeenCalledTimes(4);
+      expect(FormContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
     });
   });
 });

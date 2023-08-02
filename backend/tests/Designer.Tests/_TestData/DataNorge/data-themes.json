@@ -1,0 +1,253 @@
+{
+    "dataThemes": [
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/AGRI",
+            "code": "AGRI",
+            "label": {
+                "nn": "Jordbruk, fiskeri, skogbruk og mat",
+                "no": "Jordbruk, fiskeri, skogbruk og mat",
+                "nb": "Jordbruk, fiskeri, skogbruk og mat",
+                "en": "Agriculture, fisheries, forestry and food"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/ECON",
+            "code": "ECON",
+            "label": {
+                "nn": "Økonomi og finans",
+                "no": "Økonomi og finans",
+                "nb": "Økonomi og finans",
+                "en": "Economy and finance"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/EDUC",
+            "code": "EDUC",
+            "label": {
+                "nn": "Utdanning, kultur og sport",
+                "no": "Utdanning, kultur og sport",
+                "nb": "Utdanning, kultur og sport",
+                "en": "Education, culture and sport"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/ENER",
+            "code": "ENER",
+            "label": {
+                "nn": "Energi",
+                "no": "Energi",
+                "nb": "Energi",
+                "en": "Energy"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/ENVI",
+            "code": "ENVI",
+            "label": {
+                "nn": "Miljø",
+                "no": "Miljø",
+                "nb": "Miljø",
+                "en": "Environment"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/GOVE",
+            "code": "GOVE",
+            "label": {
+                "nn": "Forvaltning og offentleg sektor",
+                "no": "Forvaltning og offentlig sektor",
+                "nb": "Forvaltning og offentlig sektor",
+                "en": "Government and public sector"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/HEAL",
+            "code": "HEAL",
+            "label": {
+                "nn": "Helse",
+                "no": "Helse",
+                "nb": "Helse",
+                "en": "Health"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/INTR",
+            "code": "INTR",
+            "label": {
+                "nn": "Internasjonale tema",
+                "no": "Internasjonale temaer",
+                "nb": "Internasjonale temaer",
+                "en": "International issues"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/JUST",
+            "code": "JUST",
+            "label": {
+                "nn": "Justis, rettssystem og allmenn tryggleik",
+                "no": "Justis, rettssystem og allmenn sikkerhet",
+                "nb": "Justis, rettssystem og allmenn sikkerhet",
+                "en": "Justice, legal system and public safety"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/OP_DATPRO",
+            "code": "OP_DATPRO",
+            "label": {
+                "en": "Provisional data"
+            },
+            "startUse": "1952-07-23",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/REGI",
+            "code": "REGI",
+            "label": {
+                "nn": "Regionar og byar",
+                "no": "Regioner og byer",
+                "nb": "Regioner og byer",
+                "en": "Regions and cities"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/SOCI",
+            "code": "SOCI",
+            "label": {
+                "nn": "Befolkning og samfunn",
+                "no": "Befolkning og samfunn",
+                "nb": "Befolkning og samfunn",
+                "en": "Population and society"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/TECH",
+            "code": "TECH",
+            "label": {
+                "nn": "Vitskap og teknologi",
+                "no": "Vitenskap og teknologi",
+                "nb": "Vitenskap og teknologi",
+                "en": "Science and technology"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        },
+        {
+            "uri": "http://publications.europa.eu/resource/authority/data-theme/TRAN",
+            "code": "TRAN",
+            "label": {
+                "nn": "Transport",
+                "no": "Transport",
+                "nb": "Transport",
+                "en": "Transport"
+            },
+            "startUse": "2015-10-01",
+            "conceptSchema": {
+                "uri": "http://publications.europa.eu/resource/authority/data-theme",
+                "label": {
+                    "en": "Data theme"
+                },
+                "versionNumber": "20220715-0"
+            }
+        }
+    ]
+}

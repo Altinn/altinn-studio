@@ -1,6 +1,5 @@
 import React from 'react';
-import { unmountComponentAtNode } from 'react-dom';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -9,33 +8,18 @@ import { queryClientMock } from '../test/mocks/queryClientMock';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { dataMock } from '@altinn/schema-editor/mockData';
 
-let container: any = null;
-
-beforeEach(() => {
-  container = document.createElement('div');
-  document.body.appendChild(container);
-});
-
-afterEach(() => {
-  unmountComponentAtNode(container);
-  container.remove();
-  container = null;
-});
-
-test('SchemaEditorApp', async () => {
+export const render = (loading: boolean) => {
   const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
-  render(
+  rtlRender(
     <ServicesContextProvider {...{ ...queriesMock, getDatamodel }} client={queryClientMock}>
       <PreviewConnectionContextProvider>
         <SchemaEditorApp
           LandingPagePanel={null}
-          editMode={false}
-          loading={false}
+          loading={loading}
           modelPath='modelPath'
           name='test'
           onSaveSchema={jest.fn()}
           schemaState={{ saving: false, error: null }}
-          toggleEditMode={jest.fn()}
           toolbarProps={{
             createNewOpen: false,
             createPathOption: false,
@@ -52,6 +36,17 @@ test('SchemaEditorApp', async () => {
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
   );
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-  expect(screen.getByTestId('schema-editor')).toBeDefined();
+};
+
+describe('SchemaEditorApp', () => {
+  it('should render the component', async () => {
+    render(false);
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    expect(screen.getByTestId('schema-editor')).toBeDefined();
+  });
+
+  it('should render the spinner when loading', async () => {
+    render(true);
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+  });
 });

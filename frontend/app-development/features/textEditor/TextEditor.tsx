@@ -3,7 +3,7 @@ import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { AltinnSpinner } from 'app-shared/components';
+import { PageSpinner } from 'app-shared/components';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
@@ -21,7 +21,20 @@ const storageGroupName = 'textEditorStorage';
 
 export const TextEditor = () => {
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
-  const selectedLangCodes = searchParams.get('lang').split('-');
+  const [selectedLangCodes, setSelectedLangCodes] = useState<LangCode[]>([]);
+
+  const handleSelectedLangCodes = (value: LangCode[]) => {
+    setSelectedLangCodes(value?.length > 0 ? value : [defaultLangCode]);
+  };
+  useEffect(() => {
+    const initialSelectedLangCodes = JSON.parse(localStorage.getItem('selectedLanguages'));
+    handleSelectedLangCodes(initialSelectedLangCodes);
+  }, []);
+
+useEffect(() => {
+  localStorage.setItem('selectedLanguages', JSON.stringify(selectedLangCodes));
+}, [selectedLangCodes]);
+
   const getSearchQuery = () => searchParams.get('search') || '';
   const { org, app } = useParams();
 
@@ -31,13 +44,6 @@ export const TextEditor = () => {
     isLoading: isInitialLoadingLang,
     isFetching: isFetchingTranslations
   } = useTextResourcesQuery(org, app);
-  const setSelectedLangCodes = async (langs: string[]) => {
-    const params: any = { lang: langs.join('-') };
-    if (getSearchQuery().length > 0) {
-      params.search = searchParams.get('search');
-    }
-    await setSearchParams(params);
-  };
 
   const setSearchQuery = (search: string) => {
     const params: any = { lang: searchParams.get('lang') };
@@ -46,12 +52,7 @@ export const TextEditor = () => {
     }
     setSearchParams(params);
   };
-  useEffect(() => {
-    if (appLangCodes && !appLangCodes.includes(selectedLangCodes[0])) {
-      setSelectedLangCodes([defaultLangCode]).then();
-    }
-  }, [appLangCodes, selectedLangCodes]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  
   const { t } = useTranslation();
 
   const [hideIntroPage, setHideIntroPage] = useState(
@@ -77,7 +78,7 @@ export const TextEditor = () => {
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   if (isInitialLoadingLang || isFetchingTranslations || !textResources) {
-    return <AltinnSpinner />;
+    return <PageSpinner />;
   }
 
   return (
@@ -121,7 +122,7 @@ export const TextEditor = () => {
         searchQuery={getSearchQuery()}
         selectedLangCodes={selectedLangCodes}
         setSearchQuery={setSearchQuery}
-        setSelectedLangCodes={setSelectedLangCodes}
+        setSelectedLangCodes={handleSelectedLangCodes}
         textResourceFiles={textResources || {}}
         updateTextId={(data: TextResourceIdMutation) => textIdMutation([data])}
         upsertTextResource={upsertTextResource}

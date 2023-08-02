@@ -7,11 +7,11 @@ import type { IRuleModelFieldElement } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../../hooks';
+import { useFormLayouts } from '../../hooks';
 import {
-  allLayoutComponentsSelector,
-  allLayoutContainersSelector,
-  fullLayoutOrderSelector,
+  getAllLayoutContainers,
+  getAllLayoutComponents,
+  getFullLayoutOrder,
   selectedLayoutSetSelector,
 } from '../../selectors/formLayoutSelectors';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
@@ -33,9 +33,10 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
-  const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
-  const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
-  const layoutOrder = useFormLayoutsSelector(fullLayoutOrderSelector);
+  const formLayouts = useFormLayouts();
+  const layoutContainers = getAllLayoutContainers(formLayouts);
+  const layoutComponents = getAllLayoutComponents(formLayouts);
+  const layoutOrder = getFullLayoutOrder(formLayouts);
   const { t } = useTranslation();
 
   const conditionRules = ruleModel?.filter(({ type }: IRuleModelFieldElement) => type === 'condition');
