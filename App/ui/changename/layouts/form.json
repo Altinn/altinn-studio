@@ -149,7 +149,7 @@
         "type": "Alert",
         "textResourceBindings": {
           "title": "Vedrørende navneendring",
-          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+          "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "danger",
         "useAsAlert": true,
@@ -495,7 +495,7 @@
         "type": "Alert",
         "textResourceBindings": {
           "title": "Vedrørende navneendring",
-          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+          "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "success"
       },
@@ -504,7 +504,7 @@
         "type": "Alert",
         "textResourceBindings": {
           "title": "Vedrørende navneendring",
-          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+          "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "info"
       },
@@ -513,7 +513,7 @@
         "type": "Alert",
         "textResourceBindings": {
           "title": "Vedrørende navneendring",
-          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+          "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "warning"
       },
@@ -522,7 +522,7 @@
         "type": "Alert",
         "textResourceBindings": {
           "title": "Vedrørende navneendring",
-          "description": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
+          "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "danger"
       },
