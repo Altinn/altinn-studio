@@ -18,7 +18,7 @@ import {
   promoteProperty,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonSize, ButtonVariant, Popover, PopoverVariant } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
@@ -29,6 +29,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useTranslation } from 'react-i18next';
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -56,6 +57,9 @@ export const SchemaItemLabel = ({
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
+  const { t } = useTranslation();
 
 
   // Simple wrapper to avoid repeating ourselves...
@@ -221,17 +225,43 @@ export const SchemaItemLabel = ({
             disabled={true}
           />
         )}
-        {capabilties.includes(Capabilites.CanBeDeleted) && (
+        {capabilties.includes(Capabilites.CanBeDeleted) && (        
+        <Popover
+            title={'Slett_rad'}
+            variant={PopoverVariant.Warning}
+            placement={'right'}
+            open={isConfirmDeleteOpen}
+            trigger={
           <AltinnMenuItem
-            testId={SchemaItemLabelTestIds.contextMenuDelete}
-            id='delete-node-button'
-            key='delete'
-            className={classes.contextMenuLastItem}
-            onClick={handleDeleteClick}
-            text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
-            iconClass='fa fa-trash'
-            disabled={hasReferredNodes}
-          />
+          testId={SchemaItemLabelTestIds.contextMenuDelete}
+          id='delete-node-button'
+          key='delete'
+          className={classes.contextMenuLastItem}
+          onClick={toggleConfirmDeletePopover}
+          text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
+          iconClass='fa fa-trash'
+          disabled={hasReferredNodes}
+        />
+        }
+          >
+            {isConfirmDeleteOpen && (
+              <div>
+                <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
+                <div className={classes.popoverButtons}>
+                  <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
+                    <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Quiet}
+                    onClick={toggleConfirmDeletePopover}
+                    color={ButtonColor.Secondary}
+                  >
+                    <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Popover>
         )}
       </AltinnMenu>
     </div>
