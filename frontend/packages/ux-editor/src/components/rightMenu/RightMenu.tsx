@@ -38,15 +38,15 @@ export const RightMenu = ({ className }: RightMenuProps) => {
 
   return (
     <div className={cn(className, classes.rightMenu)} data-testid={'ux-editor.right-menu'}>
-      <Accordion>
+      <Accordion color="subtle">
         <Accordion.Item open={openList.includes('content')}>
-          <Accordion.Header onClick={() => toggleOpen('content')}>{t('right_menu.content')}</Accordion.Header>
+          <Accordion.Header onHeaderClick={() => toggleOpen('content')}>{t('right_menu.content')}</Accordion.Header>
           <Accordion.Content>
             <ContentTab />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>
-          <Accordion.Header onClick={() => toggleOpen('dynamics')}>{t('right_menu.dynamics')}</Accordion.Header>
+          <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>{t('right_menu.dynamics')}</Accordion.Header>
           <Accordion.Content>
           {
             showNewDynamics ?
@@ -56,7 +56,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
-          <Accordion.Header onClick={(e) => toggleOpen('calculations')}>{t('right_menu.calculations')}</Accordion.Header>
+          <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>{t('right_menu.calculations')}</Accordion.Header>
           <Accordion.Content>
             <CalculationsTab />
           </Accordion.Content>

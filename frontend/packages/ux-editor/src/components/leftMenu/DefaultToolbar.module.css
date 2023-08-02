@@ -1,15 +1,12 @@
-.header {
-  background-color: transparent;
-  border-bottom: none;
-  padding: var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-6);
+.accordionItem > div {
+  border-bottom: none!important;
 }
 
-.header[aria-expanded='true'],
-.header:hover,
-.header[aria-expanded='true']:hover {
-  background-color: transparent;
+.accordionHeader > button {
+  border: none;
+  padding: var(--fds-spacing-3) var(--fds-spacing-5);
 }
 
-.content {
+.accordionContent {
   padding: 0;
 }

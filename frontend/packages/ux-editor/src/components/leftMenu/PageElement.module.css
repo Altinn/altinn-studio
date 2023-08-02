@@ -3,13 +3,17 @@
   align-items: center;
 }
 
+.selected .elementContainer {
+  font-weight: 700;
+}
+
 .pageContainer {
   flex: 1;
 }
 
 .pageButton {
   cursor: pointer;
-  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+  padding: var(--fds-spacing-3);
 }
 
 .selected .pageButton {
@@ -17,7 +21,7 @@
 }
 
 .pageField {
-  padding: 0 var(--fds-spacing-3);
+  padding: var(--fds-spacing-1);
 }
 
 .ellipsisButton {

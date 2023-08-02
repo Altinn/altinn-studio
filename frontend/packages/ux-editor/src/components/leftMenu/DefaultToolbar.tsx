@@ -3,7 +3,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
-import { ToolbarGroup } from './ToolbarGroup';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
 import './DefaultToolbar.css';
 import classes from './DefaultToolbar.module.css';
@@ -12,18 +11,13 @@ import { schemaComponents, textComponents, advancedItems } from '../../data/form
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Accordion } from '@digdir/design-system-react';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
+import { ToolbarItem } from './ToolbarItem';
+import { getComponentTitleByComponentType } from '../../utils/language';
 
 export function DefaultToolbar() {
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
   const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
-  const [componentListsState, setComponentListsState] = useState<any>({
-    [CollapsableMenus.Components]: { expanded: true, animationDone: false },
-    [CollapsableMenus.Texts]: { expanded: false, animationDone: false },
-    [CollapsableMenus.AdvancedComponents]: { expanded: false, animationDone: false },
-    // TODO: Uncomment when widgets are implemented
-    // [CollapsableMenus.Widgets]: { expanded: false, animationDone: false },
-  });
 
   const { t } = useTranslation();
   // TODO: Uncomment when widgets are implemented
@@ -59,45 +53,23 @@ export function DefaultToolbar() {
     setAnchorElement(null);
   };
 
-  const handleCollapsableListClicked = (menuItem: CollapsableMenus) => {
-    setComponentListsState({
-      ...componentListsState,
-      [menuItem]: {
-        ...componentListsState[menuItem],
-        expanded: !componentListsState[menuItem].expanded,
-      },
-    });
-  };
-
-  const setCollapsableListAnimationState = (list: string, done: boolean) => {
-    setComponentListsState({
-      ...componentListsState,
-      [list]: {
-        ...componentListsState[list],
-        animationDone: done,
-      },
-    });
-  };
-
   return (
     <>
       {Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
         return (
-          <Accordion key={key}>
-            <Accordion.Item defaultOpen={key === CollapsableMenus.Components}>
-              <Accordion.Header className={classes.header}>{getCollapsableMenuTitleByType(key, t)}</Accordion.Header>
-              <Accordion.Content className={classes.content}>
-                <ToolbarGroup
-                  key={key}
-                  list={key}
-                  menuType={key as CollapsableMenus}
-                  components={allComponentLists[key]}
-                  componentListCloseAnimationDone={componentListsState[key].animationDone}
-                  componentListOpen={componentListsState[key].expanded}
-                  handleCollapsableListClicked={handleCollapsableListClicked}
-                  handleComponentInformationOpen={handleComponentInformationOpen}
-                  setCollapsableListAnimationState={setCollapsableListAnimationState}
-                />
+          <Accordion key={key} color="subtle">
+            <Accordion.Item defaultOpen={key === CollapsableMenus.Components} className={classes.accordionItem}>
+              <Accordion.Header className={classes.accordionHeader}>{getCollapsableMenuTitleByType(key, t)}</Accordion.Header>
+              <Accordion.Content className={classes.accordionContent}>
+                {allComponentLists[key].map((component: IToolbarElement) => (
+                  <ToolbarItem
+                    text={getComponentTitleByComponentType(component.type, t) || component.label}
+                    icon={component.icon}
+                    componentType={component.type}
+                    onClick={handleComponentInformationOpen}
+                    key={component.type}
+                  />
+                ))}
               </Accordion.Content>
             </Accordion.Item>
           </Accordion>

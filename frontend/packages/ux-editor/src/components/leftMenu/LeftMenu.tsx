@@ -60,7 +60,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
 
   return (
     <div className={cn(className, classes.rightMenu)}>
-      <Accordion>
+      <Accordion color="subtle">
       {
         !_useIsProdHack() && (
           <Accordion.Item defaultOpen={true}>
@@ -70,7 +70,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
                 layoutSetNames ? (
                   <>
                     <LayoutSetsContainer/>
-                    <div className={classes.actions}>
+                    <div className={classes.addButton}>
                       <Button
                         icon={<PlusIcon/>}
                         onClick={handleAddLayoutSet}
@@ -88,10 +88,10 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
         )}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
-          <Accordion.Content>
+          <Accordion.Content className={classes.pagesContent}>
             <PagesContainer/>
             <ReceiptPageElement/>
-            <div className={classes.actions}>
+            <div className={classes.addButton}>
               <Button
                 icon={<PlusIcon/>}
                 onClick={handleAddPage}
