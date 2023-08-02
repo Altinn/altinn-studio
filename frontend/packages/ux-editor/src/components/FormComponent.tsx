@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import '../styles/index.css';
 import classes from './FormComponent.module.css';
 import cn from 'classnames';
@@ -26,6 +26,17 @@ import { useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
+
+export const useClickOutside = (ref, onClickOutside) => {
+  useEffect(() => { 
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        onClickOutside();
+      }
+    };
+   document.addEventListener('mousedown', handleClickOutside);
+  }, [ref, onClickOutside]);
+};
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -71,7 +82,6 @@ export const FormComponent = memo(function FormComponent({
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
     deleteFormComponent(id);
-    setIsConfirmDeleteOpen(false);
     if (isEditMode) handleDiscard();
   };
 
@@ -81,7 +91,10 @@ export const FormComponent = memo(function FormComponent({
   };
 
   const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
-
+  const handleClosePopover = useCallback(() => { setIsConfirmDeleteOpen(false); }, []);
+  const popoverRef = useRef(null);
+  useClickOutside(popoverRef, handleClosePopover);
+ 
   return (
     <div
       className={cn(
@@ -121,6 +134,7 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
+          <div ref={popoverRef} >
           <Popover
             variant={PopoverVariant.Warning}
             placement={'left'}
@@ -156,7 +170,7 @@ export const FormComponent = memo(function FormComponent({
               </div>
             )}
           </Popover>
-
+        </div>
         {isPreviewable && (
           <Button
             color={ButtonColor.Secondary}

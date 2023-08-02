@@ -43,6 +43,16 @@ describe('FormComponent', () => {
     expect(popover).toBeInTheDocument();
   });
 
+  test('Popover should be closed when the user clicks outside the popover', async () => {
+    await render();
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+    const popover = screen.getByRole('dialog');
+    expect(popover).toBeInTheDocument();
+    await act(() => user.click(document.body));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
   it('should delete when clicking the confirm delete button inside popover', async () => {
     await render();
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });

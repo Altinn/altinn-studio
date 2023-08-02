@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import { ConnectDragSource } from 'react-dnd';
 import cn from 'classnames';
 import '../styles/index.css';
@@ -8,6 +8,7 @@ import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { useText } from '../hooks';
 import type { FormContainer } from '../types/FormContainer';
+import { useClickOutside } from '../../../ux-editor/src/components/FormComponent';
 
 export interface IFormContainerHeaderProps {
   id: string;
@@ -30,6 +31,9 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   const t = useText();
   const [isConfirmDeleteGroupOpen, setIsConfirmDeleteGroupOpen] = useState(false);
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteGroupOpen((prev) => !prev);
+  const handleClosePopover = useCallback(() => { setIsConfirmDeleteGroupOpen(false); }, []);
+  const popoverRef = useRef(null);
+  useClickOutside(popoverRef, handleClosePopover);
 
   return (
     <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
@@ -46,6 +50,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
         Gruppe - ${id}
       </div>
       <div className={classes.formGroupButtons}>
+        <div ref={popoverRef}>
         <Popover
           variant={PopoverVariant.Warning}
           placement={'left'}
@@ -79,6 +84,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           )}
         </Popover>
       </div>
+    </div>
     </div>
   );
 });
