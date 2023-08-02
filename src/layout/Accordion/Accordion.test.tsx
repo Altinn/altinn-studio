@@ -12,6 +12,12 @@ describe('Accordion', () => {
 
     expect(await screen.findByRole('heading', { name: /accordion title/i })).toBeInTheDocument();
   });
+
+  it('should display text from textResourceBindings if an ID to a text resource is used as title', async () => {
+    render({ title: 'accordion.title' });
+
+    expect(await screen.findByRole('heading', { name: /this is a title/i })).toBeInTheDocument();
+  });
 });
 
 const render = ({ title }: Partial<ILayoutAccordion> & { title?: string } = {}) =>

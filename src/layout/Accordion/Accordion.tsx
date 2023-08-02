@@ -3,6 +3,7 @@ import React from 'react';
 import { Accordion as DesignSystemAccordion } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AccordionItem } from 'src/layout/Accordion/AccordionItem';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -11,7 +12,9 @@ type IAccordionProps = PropsFromGenericComponent<'Accordion'>;
 
 export const Accordion = ({ node }: IAccordionProps) => {
   const { textResourceBindings, renderAsAccordionItem } = node.item;
-  const title = textResourceBindings?.title ?? '';
+  const { langAsString } = useLanguage();
+
+  const title = langAsString(textResourceBindings?.title ?? '');
 
   if (renderAsAccordionItem) {
     return (

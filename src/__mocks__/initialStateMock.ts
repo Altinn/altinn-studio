@@ -167,6 +167,10 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
             },
           ],
         },
+        {
+          id: 'accordion.title',
+          value: 'This is a title',
+        },
       ],
       error: null,
       language: 'nb',
