@@ -1,4 +1,4 @@
-import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceType } from "resourceadm/types/global";
+import { PolicyBackendType, ResourceType } from "resourceadm/types/global";
 
 /**
  * Maps from an uknown response object from backend to the correct policy type
@@ -17,50 +17,6 @@ export const mapPolicyResultToPolicyObject = (
     requiredAuthenticationLevelOrg: '3',
   };
 };
-
-/**
- * Maps from an uknown response object from backend to the correct list of action type
- *
- * @param res the unknown response
- *
- * @returns a list of mapped policy action type
- */
-export const mapPolicyActionResultToPolicyActions = (
-  res: unknown
-): PolicyActionType[] => {
-  const actionResult: PolicyActionType[] = res as PolicyActionType[];
-  return actionResult
-}
-
-/**
- * Maps from an uknown response object from backend to the correct list of subject type
- *
- * @param res the unknown response
- *
- * @returns a list of mapped policy subject type
- */
-export const mapPolicySubjectResultToPolicySubjects = (
-  res: unknown
-): PolicySubjectType[] =>{
-  const subjectsResult: PolicySubjectType[] = res as PolicySubjectType[];
-  return subjectsResult
-}
-
-/**
- * Maps from an uknown response object from backend to the correct list of resource type
- *
- * @param res the unknown response
- *
- * @returns a list of mapped resource type
- */
-export const mapResourceListBackendResultToResourceList = (
-  res: unknown
-): ResourceType[] => {
-  // TODO - Find out the type it should be assigned as, and how to handle the languages
-  const resourcesResult: any[] = res as any[];
-
-  return sortByDateAndMap(resourcesResult);
-}
 
 /**
  * Maps a string from the format sent from backend, e.g.,
@@ -83,7 +39,7 @@ const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
  *
  * @returns the sorted and mapped list
  */
-const sortByDateAndMap = (resourceList: any[]): ResourceType[] => {
+export const sortResourceListByDateAndMap = (resourceList: ResourceType[]): ResourceType[] => {
 
   const sorted =  resourceList.sort((a, b) => {
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime()
@@ -92,6 +48,5 @@ const sortByDateAndMap = (resourceList: any[]): ResourceType[] => {
   return sorted.map(r => ({
     ...r,
     lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
-    title: r.title.nb // TODO
   }))
 }

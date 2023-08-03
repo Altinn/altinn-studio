@@ -23,13 +23,10 @@ const texts = {
   'schema_editor.generate_model_files': generateText,
 };
 const saveAction = jest.fn();
-const toggleEditMode = jest.fn();
 const Toolbar = <div/>;
 const defaultProps: TopToolbarProps = {
   Toolbar,
   saveAction,
-  toggleEditMode,
-  editMode: true,
   schemaState: { saving: false, error: null },
 }
 
@@ -58,16 +55,6 @@ describe('TopToolbar', () => {
     expect(saveButton).toBeDefined();
     await act(() => user.click(saveButton));
     expect(saveAction).toHaveBeenCalledTimes(1);
-  });
-
-  it('handles a click on the toggle edit mode button', async () => {
-    renderToolbar();
-    const topToolbar = screen.getByRole('toolbar');
-    expect(topToolbar).toBeDefined();
-    const toggleEditModeButton = screen.getByText(editText);
-    expect(toggleEditModeButton).toBeDefined();
-    await act(() => user.click(toggleEditModeButton));
-    expect(toggleEditMode).toHaveBeenCalledTimes(1);
   });
 
   it('Does not show any error by default', () => {

@@ -10,13 +10,13 @@ import { useText } from '../hooks';
 import type { FormContainer } from '../types/FormContainer';
 import { useClickOutside } from '../../../ux-editor/src/components/FormComponent';
 
+
 export interface IFormContainerHeaderProps {
   id: string;
   expanded: boolean;
   isEditMode: boolean;
   handleExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   handleDelete: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  handleEdit: (component: FormContainer) => void;
   dragHandleRef: ConnectDragSource
 }
 
@@ -34,7 +34,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   const handleClosePopover = useCallback(() => { setIsConfirmDeleteGroupOpen(false); }, []);
   const popoverRef = useRef(null);
   useClickOutside(popoverRef, handleClosePopover);
-
+    
   return (
     <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
       <div ref={dragHandleRef} className={classes.dragHandle}>
@@ -47,7 +47,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           onClick={() => handleExpanded((previous) => !previous)}
           variant={ButtonVariant.Quiet}
         />
-        Gruppe - ${id}
+        {t('ux_editor.component_group_header', { id })}
       </div>
       <div className={classes.formGroupButtons}>
         <div ref={popoverRef}>

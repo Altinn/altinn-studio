@@ -1,5 +1,4 @@
 import React from 'react';
-import { unmountComponentAtNode } from 'react-dom';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
@@ -9,8 +8,6 @@ import { queryClientMock } from '../test/mocks/queryClientMock';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { dataMock } from '@altinn/schema-editor/mockData';
 
-let container: any = null;
-
 export const render = (loading: boolean) => {
   const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
   rtlRender(
@@ -18,13 +15,11 @@ export const render = (loading: boolean) => {
       <PreviewConnectionContextProvider>
         <SchemaEditorApp
           LandingPagePanel={null}
-          editMode={false}
           loading={loading}
           modelPath='modelPath'
           name='test'
           onSaveSchema={jest.fn()}
           schemaState={{ saving: false, error: null }}
-          toggleEditMode={jest.fn()}
           toolbarProps={{
             createNewOpen: false,
             createPathOption: false,
@@ -42,17 +37,6 @@ export const render = (loading: boolean) => {
     </ServicesContextProvider>
   );
 };
-
-beforeEach(() => {
-  container = document.createElement('div');
-  document.body.appendChild(container);
-});
-
-afterEach(() => {
-  unmountComponentAtNode(container);
-  container.remove();
-  container = null;
-});
 
 describe('SchemaEditorApp', () => {
   it('should render the component', async () => {

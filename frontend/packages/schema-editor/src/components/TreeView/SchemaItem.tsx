@@ -24,7 +24,6 @@ type SchemaItemProps = {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
   isPropertiesView: boolean;
-  editMode: boolean;
   onLabelClick?: (e: any) => void;
   index: number;
 };
@@ -36,7 +35,6 @@ SchemaItem.defaultProps = {
 export function SchemaItem({
   selectedNode,
   isPropertiesView,
-  editMode,
   translate,
   index,
 }: SchemaItemProps) {
@@ -75,7 +73,6 @@ export function SchemaItem({
         onFocusCapture={(e: any) => e.stopPropagation()}
         label={
           <SchemaItemLabel
-            editMode={editMode}
             icon={getIconStr(refNode ?? selectedNode)}
             key={`${selectedNode.pointer}-label`}
             selectedNode={selectedNode}
@@ -88,7 +85,6 @@ export function SchemaItem({
         {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
           <SchemaItem
             index={childNodeIndex}
-            editMode={editMode}
             isPropertiesView={isPropertiesView}
             selectedNode={childNode}
             key={`${keyPrefix}-${childNode.pointer}`}

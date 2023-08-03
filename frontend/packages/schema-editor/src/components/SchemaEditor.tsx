@@ -39,11 +39,9 @@ import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface IEditorProps {
   LandingPagePanel: ReactNode;
-  editMode: boolean;
   name?: string;
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
-  toggleEditMode: () => void;
   toolbarProps: Omit<ToolbarProps, 'disabled'>;
 }
 
@@ -60,10 +58,8 @@ export enum SchemaEditorTestIds {
 export const SchemaEditor = ({
   LandingPagePanel,
   name,
-  editMode,
   onSaveSchema,
   schemaState,
-  toggleEditMode,
   toolbarProps,
 }: IEditorProps) => {
   const dispatch = useDispatch();
@@ -99,7 +95,8 @@ export const SchemaEditor = ({
 
   useEffect(() => {
     if (selectedType) {
-      setSelectedType(rootNodeMap.get(selectedType.pointer));
+      const isExistingNode = !!rootNodeMap.get(selectedType.pointer);
+      if (!isExistingNode) setSelectedType(null);
     }
   }, [rootNodeMap, selectedType]);
 
@@ -138,10 +135,8 @@ export const SchemaEditor = ({
     <div className={classes.root}>
       <TopToolbar
         Toolbar={(<Toolbar {...toolbarProps} disabled={isEmpty(data)}/>)}
-        editMode={editMode}
         saveAction={name ? handleSaveSchema : undefined}
         schemaState={schemaState}
-        toggleEditMode={name ? toggleEditMode : undefined}
       />
       <main className={classes.main}>
         {isEmpty(data) ? LandingPagePanel : (
@@ -172,10 +167,10 @@ export const SchemaEditor = ({
                 icon={<XMarkIcon />}
                 variant={ButtonVariant.Quiet}
                 color={ButtonColor.Inverted}
+                aria-label={t('close_type', null)}
               />
             </div>
             <TypesPanel
-              editMode={editMode}
               uiSchemaNode={selectedType}
               setExpandedDefNodes={setExpandedDefNodes}
               expandedDefNodes={
@@ -189,14 +184,13 @@ export const SchemaEditor = ({
         {name && !isEmpty(data) && !selectedType && (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <ModelsPanel
-              editMode={editMode}
               setExpandedPropNodes={setExpandedPropNodes}
               expandedPropNodes={expandedPropNodes}
               properties={properties}
             />
           </div>
         )}
-        {!isEmpty(data) && editMode && (
+        {!isEmpty(data)  && (
           <aside className={classes.inspector}>
             <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
           </aside>

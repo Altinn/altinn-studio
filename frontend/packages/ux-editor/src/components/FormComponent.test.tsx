@@ -5,11 +5,14 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
-import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { component1IdMock, component1Mock } from '../testing/layoutMock';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
+import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
+import { UseMutationResult } from '@tanstack/react-query';
+import { IInternalLayout } from '../types/global';
 
 const user = userEvent.setup();
 
@@ -22,9 +25,17 @@ const emptyTextResourceKey = 'empty-key';
 const testTextResource: ITextResource = { id: testTextResourceKey, value: testTextResourceValue };
 const emptyTextResource: ITextResource = { id: emptyTextResourceKey, value: '' };
 const nbTextResources: ITextResource[] = [testTextResource, emptyTextResource];
-const handleEditMock = jest.fn();
-const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
+const handleEditMock = jest.fn().mockImplementation(() => Promise.resolve());
+const handleSaveMock = jest.fn();
+const debounceSaveMock = jest.fn();
 const handleDiscardMock = jest.fn();
+
+jest.mock('../hooks/mutations/useDeleteFormComponentMutation');
+const mockDeleteFormComponent = jest.fn();
+const mockUseDeleteFormComponentMutation = useDeleteFormComponentMutation as jest.MockedFunction<typeof useDeleteFormComponentMutation>;
+mockUseDeleteFormComponentMutation.mockReturnValue({
+  mutate: mockDeleteFormComponent,
+} as unknown as UseMutationResult<IInternalLayout, unknown, string, unknown>);
 
 describe('FormComponent', () => {
   afterEach(jest.clearAllMocks);
@@ -156,6 +167,7 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
     component: component1Mock,
     handleEdit: handleEditMock,
     handleSave: handleSaveMock,
+    debounceSave: debounceSaveMock,
     handleDiscard: handleDiscardMock,
     ...props
   };

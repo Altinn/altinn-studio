@@ -1,14 +1,10 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { getReposLabel, mergeRepos, validateRepoName } from './repoUtils';
+import { textMock } from '../../../testing/mocks/i18nMock';
+import { Organization } from 'app-shared/types/Organization';
 
-const texts = {
-  'dashboard.all_apps': 'all apps',
-  'dashboard.my_apps': 'my apps',
-  'dashboard.apps': 'apps',
-};
-const t = (key: string) => texts[key];
-
-const orgs: any[] = [];
+const t = textMock;
+const orgs: Organization[] = [];
 
 describe('getReposLabel', () => {
   it('should return "all apps" when selectedContext is All', () => {
@@ -18,7 +14,7 @@ describe('getReposLabel', () => {
       orgs,
     });
 
-    expect(result).toEqual('all apps');
+    expect(result).toEqual(textMock('dashboard.all_apps'));
   });
 
   it('should return "my apps" when selectedContext is Self', () => {
@@ -28,10 +24,11 @@ describe('getReposLabel', () => {
       orgs,
     });
 
-    expect(result).toEqual('my apps');
+    expect(result).toEqual(textMock('dashboard.my_apps'));
   });
 
   it('should return "org-id apps" when selectedContext is org.username', () => {
+    const orgName = 'org-id';
     const result = getReposLabel({
       selectedContext: 'username1',
       t,
@@ -40,12 +37,12 @@ describe('getReposLabel', () => {
           avatar_url: '',
           username: 'username1',
           id: 1,
-          full_name: 'org-id',
+          full_name: orgName,
         },
       ],
     });
 
-    expect(result).toEqual('org-id apps');
+    expect(result).toEqual(textMock('dashboard.org_apps', { orgName }));
   });
 
   it('should return "apps" when selectedContext is org.username, and orgs array is empty', () => {
@@ -55,7 +52,7 @@ describe('getReposLabel', () => {
       orgs: [],
     });
 
-    expect(result).toEqual('apps');
+    expect(result).toEqual(textMock('dashboard.apps'));
   });
 });
 

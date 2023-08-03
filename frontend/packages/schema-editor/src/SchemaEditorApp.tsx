@@ -1,4 +1,3 @@
-import type { PropsWithChildren } from 'react';
 import React, { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
@@ -17,26 +16,22 @@ import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { GenerateSchemaState } from 'app-shared/types/global';
 import { PageSpinner } from 'app-shared/components';
 
-export type SchemaEditorAppProps = PropsWithChildren<{
+export type SchemaEditorAppProps = {
   LandingPagePanel: ReactNode;
-  editMode: boolean;
   loading?: boolean;
   modelPath: string;
   name?: string;
   onSaveSchema: (payload: JsonSchema) => void;
   schemaState: GenerateSchemaState;
-  toggleEditMode: () => void;
   toolbarProps: Omit<ToolbarProps, 'disabled'>;
-}>;
+};
 
 function WrappedContent({
   LandingPagePanel,
-  editMode,
   loading,
   name,
   onSaveSchema,
   schemaState,
-  toggleEditMode,
   toolbarProps,
 }: Omit<SchemaEditorAppProps, keyof SchemaEditorAppContextProps>) {
   const { status: datamodelStatus, error: datamodelError } = useDatamodelQuery();
@@ -60,11 +55,9 @@ function WrappedContent({
         <Provider store={store}>
           <SchemaEditor
             LandingPagePanel={LandingPagePanel}
-            editMode={editMode}
             name={name}
             schemaState={schemaState}
             onSaveSchema={onSaveSchema}
-            toggleEditMode={toggleEditMode}
             toolbarProps={{ ...toolbarProps }}
           />
         </Provider>

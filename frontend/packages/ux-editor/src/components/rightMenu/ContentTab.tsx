@@ -8,7 +8,7 @@ import { LayoutItemType } from '../../types/global';
 import { FormContext } from '../../containers/FormContext';
 
 export const ContentTab = () => {
-  const { formId, form, handleUpdate, handleContainerSave, handleComponentSave } = useContext(FormContext);
+  const { formId, form, handleUpdate, debounceSave } = useContext(FormContext);
   const editId = useSelector(getCurrentEditId);
 
   if (editId) return (<TextResourceEdit/>);
@@ -22,12 +22,12 @@ export const ContentTab = () => {
       isContainer ? (
         <EditFormContainer editFormId={formId} container={form} handleContainerUpdate={async (updatedContainer) => {
           handleUpdate(updatedContainer);
-          await handleContainerSave(formId, updatedContainer);
+          debounceSave();
         }} />
       ) : (
         <EditFormComponent editFormId={formId} component={form} handleComponentUpdate={async (updatedComponent) => {
           handleUpdate(updatedComponent);
-          await handleComponentSave(formId, updatedComponent);
+          debounceSave();
         }} />
       )
     }
