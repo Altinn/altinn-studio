@@ -75,7 +75,7 @@
   gap: var(--buttons-distance);
 }
 
-.wrapper:not(.editMode):not(:hover) .buttons button {
+.wrapper:not(.editMode):not(:hover) .buttons  {
   visibility: hidden;
 }
 

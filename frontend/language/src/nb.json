@@ -879,6 +879,8 @@
   "ux_editor.component_radio_button": "Radioknapp",
   "ux_editor.component_text_area": "Langt svar",
   "ux_editor.component_unknown": "Ukjent komponent",
+  "ux_editor.component_popover_confirm_delete": "Er du sikker på at du vil slette denne komponenten?",
+  "ux_editor.component_confirm_delete_component": "Ja, slett komponenten",
   "ux_editor.conditional_rendering_connection_header": "Betingede renderingstilkoblinger",
   "ux_editor.container_empty": "Tomt, dra noe inn her...",
   "ux_editor.edit_text_resource": "Rediger tekst",
