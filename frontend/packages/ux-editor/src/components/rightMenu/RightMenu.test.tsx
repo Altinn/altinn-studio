@@ -23,23 +23,23 @@ const FormContextProviderMock = {
   handleDiscard: jest.fn(),
   handleEdit: jest.fn(),
   handleUpdate: jest.fn(),
-  handleContainerSave: jest.fn().mockImplementation(() => Promise.resolve()),
-  handleComponentSave: jest.fn().mockImplementation(() => Promise.resolve()),
-}
+  handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
+  debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
+};
 
-const contentTabTestId = 'content-tab';
-const conditionalRenderingTabTestId = 'conditional-rendering-tab';
-const calculationsTabTestId = 'calculations-tab';
+const contentTestId = 'content';
+const conditionalRenderingTestId = 'conditional-rendering';
+const calculationsTestId = 'calculations';
 
 // Mocks:
-jest.mock('./ContentTab', () => ({
-  ContentTab: () => <div data-testid={contentTabTestId} />,
+jest.mock('./Content', () => ({
+  Content: () => <div data-testid={contentTestId} />,
 }));
-jest.mock('./ConditionalRenderingTab', () => ({
-  ConditionalRenderingTab: () => <div data-testid={conditionalRenderingTabTestId} />,
+jest.mock('./ConditionalRendering', () => ({
+  ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
 }));
-jest.mock('./CalculationsTab', () => ({
-  CalculationsTab: () => <div data-testid={calculationsTabTestId} />,
+jest.mock('./Calculations', () => ({
+  Calculations: () => <div data-testid={calculationsTestId} />,
 }));
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
@@ -107,9 +107,9 @@ describe('RightMenu', () => {
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(conditionalRenderingText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
-    expect(screen.getByTestId(contentTabTestId)).toBeInTheDocument();
-    expect(screen.getByTestId(conditionalRenderingTabTestId)).toBeInTheDocument();
-    expect(screen.getByTestId(calculationsTabTestId)).toBeInTheDocument();
+    expect(screen.getByTestId(contentTestId)).toBeInTheDocument();
+    expect(screen.getByTestId(conditionalRenderingTestId)).toBeInTheDocument();
+    expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();
   });
 });
 

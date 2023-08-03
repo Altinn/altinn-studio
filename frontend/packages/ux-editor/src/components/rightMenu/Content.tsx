@@ -8,7 +8,7 @@ import { LayoutItemType } from '../../types/global';
 import { FormContext } from '../../containers/FormContext';
 import { useTranslation } from 'react-i18next';
 
-export const ContentTab = () => {
+export const Content = () => {
   const { formId, form, handleUpdate, debounceSave } = useContext(FormContext);
   const editId = useSelector(getCurrentEditId);
   const { t } = useTranslation();

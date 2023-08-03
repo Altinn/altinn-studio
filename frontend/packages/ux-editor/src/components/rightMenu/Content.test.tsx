@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContentTab } from './ContentTab';
+import { Content } from './Content';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -115,7 +115,7 @@ const render = async (props: Partial<FormContext> = {}, editId?: string) => {
       ...FormContextProviderMock,
       ...props
     }}>
-      <ContentTab />
+      <Content />
     </FormContext.Provider>
   );
 };

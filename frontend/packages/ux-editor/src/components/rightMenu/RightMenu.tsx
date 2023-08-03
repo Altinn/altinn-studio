@@ -1,11 +1,11 @@
 import classes from './RightMenu.module.css';
 import React, { useContext, useEffect }  from 'react';
-import { ConditionalRenderingTab } from './ConditionalRenderingTab';
-import { CalculationsTab } from './CalculationsTab';
-import { ContentTab } from './ContentTab';
+import { ConditionalRendering } from './ConditionalRendering';
+import { Calculations } from './Calculations';
+import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { DynamicsTab } from './DynamicsTab';
+import { Dynamics } from './Dynamics';
 import { Accordion } from '@digdir/design-system-react';
 import { FormContext } from '../../containers/FormContext';
 
@@ -42,7 +42,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>{t('right_menu.content')}</Accordion.Header>
           <Accordion.Content>
-            <ContentTab />
+            <Content />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>
@@ -50,15 +50,15 @@ export const RightMenu = ({ className }: RightMenuProps) => {
           <Accordion.Content>
           {
             showNewDynamics ?
-            <DynamicsTab onShowNewDynamicsTab={setShowNewDynamics} showNewDynamicsTab={showNewDynamics}/> :
-            <ConditionalRenderingTab onShowNewDynamicsTab={setShowNewDynamics} showNewDynamicsTab={showNewDynamics}/>
+            <Dynamics onShowNewDynamics={setShowNewDynamics} showNewDynamics={showNewDynamics}/> :
+            <ConditionalRendering onShowNewDynamics={setShowNewDynamics} showNewDynamics={showNewDynamics}/>
           }
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
           <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>{t('right_menu.calculations')}</Accordion.Header>
           <Accordion.Content>
-            <CalculationsTab />
+            <Calculations />
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>
