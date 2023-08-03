@@ -11,7 +11,7 @@ export const Alert = ({ node }: AlertProps) => {
   const { langAsString } = useLanguage();
 
   const title = textResourceBindings?.title && langAsString(textResourceBindings.title);
-  const description = textResourceBindings?.description && langAsString(textResourceBindings.description);
+  const body = textResourceBindings?.body && langAsString(textResourceBindings.body);
   const shouldAlertScreenReaders = hidden === false;
 
   return (
@@ -20,7 +20,7 @@ export const Alert = ({ node }: AlertProps) => {
       useAsAlert={shouldAlertScreenReaders}
       title={title}
     >
-      {description}
+      {body}
     </AlertBaseComponent>
   );
 };

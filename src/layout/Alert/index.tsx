@@ -26,6 +26,6 @@ export type TypeConfig = {
   layout: ILayoutCompAlert;
   nodeItem: ExprResolved<ILayoutCompAlert>;
   nodeObj: LayoutNode;
-  validTextResourceBindings: 'title' | 'description';
+  validTextResourceBindings: 'title' | 'body';
   validDataModelBindings: undefined;
 };

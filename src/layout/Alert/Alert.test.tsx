@@ -13,9 +13,9 @@ describe('Alert', () => {
     expect(screen.getByText(/title for alert/i)).toBeInTheDocument();
   });
 
-  it('should display description', () => {
-    render({ description: 'Description for alert' });
-    expect(screen.getByText(/description for alert/i)).toBeInTheDocument();
+  it('should display body', () => {
+    render({ body: 'Body for alert' });
+    expect(screen.getByText(/body for alert/i)).toBeInTheDocument();
   });
 
   it('should display as role="alert" when hidden is false', () => {
@@ -38,8 +38,8 @@ const render = ({
   severity = 'info',
   hidden,
   title,
-  description,
-}: Partial<ExprResolved<ILayoutCompAlert>> & { title?: string; description?: string } = {}) =>
+  body,
+}: Partial<ExprResolved<ILayoutCompAlert>> & { title?: string; body?: string } = {}) =>
   renderGenericComponentTest<'Alert'>({
     type: 'Alert',
     renderer: (props) => <Alert {...props} />,
@@ -47,7 +47,7 @@ const render = ({
       id: 'alert-box',
       textResourceBindings: {
         title,
-        description,
+        body,
       },
       severity,
       hidden,
