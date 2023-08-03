@@ -6,6 +6,8 @@ import { TextField } from '@digdir/design-system-react';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
+import { useRerender } from 'src/hooks/useReload';
+import { canBeParsedToDecimal } from 'src/utils/formattingUtils';
 import { createCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/layout';
@@ -30,8 +32,21 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
     saveWhileTyping,
   );
   const { lang, langAsString } = useLanguage();
-  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting, value);
-  const handleChange = (e) => setValue(e.target.value);
+  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting | undefined, value);
+  const [inputKey, rerenderInput] = useRerender('input');
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!reactNumberFormatConfig.number || canBeParsedToDecimal(e.target.value)) {
+      setValue(e.target.value);
+    }
+  }
+
+  function onBlur() {
+    saveValue();
+    if (reactNumberFormatConfig.number) {
+      rerenderInput();
+    }
+  }
 
   const ariaLabel = overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined;
 
@@ -50,8 +65,9 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
         ></SearchField>
       ) : (
         <TextField
+          key={inputKey}
           id={id}
-          onBlur={saveValue}
+          onBlur={onBlur}
           onChange={handleChange}
           onPaste={onPaste}
           characterLimit={!readOnly && maxLength !== undefined ? createCharacterLimit(maxLength, lang) : undefined}

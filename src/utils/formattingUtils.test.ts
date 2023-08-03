@@ -1,4 +1,4 @@
-import { formatNumber } from 'src/utils/formattingUtils';
+import { canBeParsedToDecimal, formatNumber } from 'src/utils/formattingUtils';
 import type { CurrencyFormattingOptions, UnitFormattingOptions } from 'src/utils/formattingUtils';
 
 const value = '12000.20';
@@ -39,5 +39,31 @@ describe('dynamic number formatting', () => {
     language = 'nb';
     position = 'suffix';
     expect(' kr').toEqual(formatNumber(value, language, currencyOptions, position).suffix);
+  });
+});
+
+describe('canBeParsedToDecimal', () => {
+  const testCases: [string, boolean][] = [
+    ['', true],
+    ['1', true],
+    ['1.1', true],
+    ['1.1e1', true],
+    ['1.1e-1', true],
+    ['1.1e+1', true],
+    ['-1', true],
+    ['-1.1', true],
+    ['-1.1e1', true],
+    ['-1.1e-1', true],
+    ['-1.1e+1', true],
+    ['8e28', false],
+    ['-8e28', false],
+    ['-', false],
+    ['.', false],
+    ['0.1', true],
+    ['.1', true],
+  ];
+
+  it.each(testCases)('should return %s as %s', (value, expected) => {
+    expect(canBeParsedToDecimal(value)).toEqual(expected);
   });
 });
