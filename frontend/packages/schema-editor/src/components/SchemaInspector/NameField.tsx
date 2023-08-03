@@ -42,7 +42,7 @@ export function NameField({
     setNodeName(getNameFromPointer({ pointer }));
   }, [pointer]);
 
-  const validateName = (nodeNameToValidate: string) => {
+  const validateName = (nodeNameToValidate: string) : NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
     if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate))) return NameError.AlreadyInUse;
