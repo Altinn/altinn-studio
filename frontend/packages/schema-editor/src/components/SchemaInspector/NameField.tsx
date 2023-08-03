@@ -13,7 +13,8 @@ import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { FormField } from 'app-shared/components/FormField';
 
-export type FormFieldNameProps = {
+export type NameFieldProps = {
+  id: string;
   pointer: string;
   label?: string;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -22,14 +23,15 @@ export type FormFieldNameProps = {
   callback?: (pointer: string) => void;
 };
 
-export function FormFieldName({
+export function NameField({
+  id,
   label,
   pointer,
   onKeyDown,
   hideLabel,
   disabled,
   callback,
-}: FormFieldNameProps) {
+}: NameFieldProps) {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
 
@@ -66,6 +68,7 @@ export function FormFieldName({
 
   return (
     <FormField
+      id={id}
       label={!hideLabel && label}
       onChange={onNameChange}
       value={tmpNodeName}
@@ -83,6 +86,7 @@ export function FormFieldName({
       }}
     >
       {({ errorCode, onChange }) => <TextField
+          id={id}
           aria-label={hideLabel && label}
           onBlur={(e) => handleChangeNodeName(e.target.value, errorCode)}
           onChange={(e) => onChange(e.target.value, e)}

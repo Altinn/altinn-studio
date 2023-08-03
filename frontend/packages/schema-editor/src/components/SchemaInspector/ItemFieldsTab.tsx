@@ -7,7 +7,6 @@ import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import {
   addProperty,
   deleteNode,
-  getNameFromPointer,
   setType,
 } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
@@ -82,7 +81,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
           readOnly={readonly}
           required={fieldNode.isRequired}
           type={fieldNode.fieldType as FieldType}
-          value={getNameFromPointer(fieldNode)}
         />
       ))}
       {!readonly && (

@@ -10,18 +10,17 @@ import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { setRequired } from '@altinn/schema-model';
-import { FormFieldName } from './FormFieldName';
+import { NameField } from './NameField';
 
 export interface IPropertyItemProps {
   fullPath: string;
   inputId: string;
   onChangeType: (path: string, type: FieldType) => void;
-  onDeleteField: (path: string, key: string) => void;
+  onDeleteField: (path: string) => void;
   onEnterKeyPress: () => void;
   readOnly?: boolean;
   required?: boolean;
   type: FieldType;
-  value: string;
 }
 
 export function PropertyItem({
@@ -33,12 +32,11 @@ export function PropertyItem({
   readOnly,
   required,
   type,
-  value,
 }: IPropertyItemProps) {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
 
-  const deleteHandler = () => onDeleteField?.(fullPath, value);
+  const deleteHandler = () => onDeleteField?.(fullPath);
 
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
     mutate(
@@ -56,7 +54,8 @@ export function PropertyItem({
   return (
     <>
       <div className={`${classes.nameInputCell} ${classes.gridItem}`}>
-        <FormFieldName
+        <NameField
+          id={inputId}
           pointer={fullPath}
           onKeyDown={onKeyDown}
           label={t('schema_editor.field_name')}

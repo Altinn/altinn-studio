@@ -43,7 +43,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { FormFieldName } from './FormFieldName';
+import { NameField } from './NameField';
 
 export type IItemDataComponentProps = Omit<UiSchemaNode, 'children'>;
 
@@ -126,7 +126,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   return (
     <div className={classes.root}>
       {!isCombinationItem && (
-        <FormFieldName
+        <NameField
+          id='selectedItemName'
           pointer={pointer}
           label={t('schema_editor.name')}
           callback={(newPointer: string) => dispatch(setSelectedNode(newPointer))}

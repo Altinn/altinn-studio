@@ -4,7 +4,7 @@ import classes from './FormField.module.css';
 import { useText } from '../../../../ux-editor/src/hooks';
 import { validateProperty, isPropertyRequired } from '../../../../ux-editor/src/utils/formValidationUtils';
 import { TranslationKey } from 'language/type';
-import { UseQueryResult } from '@tanstack/react-query';
+import { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export type FormFieldChildProps<TT> = {
   errorCode: string;
@@ -15,7 +15,7 @@ export type FormFieldChildProps<TT> = {
 }
 
 export interface FormFieldProps<T, TT> {
-  schema?: UseQueryResult<any>[];
+  schema?: JsonSchema;
   id?: string;
   className?: string;
   label?: string;
