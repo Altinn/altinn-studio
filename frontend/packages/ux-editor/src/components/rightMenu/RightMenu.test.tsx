@@ -1,7 +1,5 @@
 import React from 'react';
-import { IAppDataState } from '../../features/appData/appDataReducers';
 import { RightMenu, RightMenuProps } from './RightMenu';
-import { appDataMock, renderWithMockStore } from '../../testing/mocks';
 import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
@@ -64,7 +62,7 @@ describe('RightMenu', () => {
 
     it('Opens content when a component is selected', async () => {
       const { rerender } = render();
-      rerender(getComponent({ formId: 'test2' }));
+      rerender(getComponent({ formId: 'test' }));
       const button = screen.queryByRole("button", { name: contentText });
       await waitFor(() => expect(button).toHaveAttribute('aria-expanded', "true"));
     });
