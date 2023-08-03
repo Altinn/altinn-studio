@@ -1,5 +1,5 @@
 import type { SyntheticEvent } from 'react';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import classes from './SchemaItemLabel.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -124,6 +124,22 @@ export const SchemaItemLabel = ({
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
+
+  const useClickOutside = (ref, onClickOutside) => {
+    useEffect(() => { 
+      const handleClickOutside = (event) => {
+        if (ref.current && !ref.current.contains(event.target)) {
+          onClickOutside();
+        }
+      };
+     document.addEventListener('mousedown', handleClickOutside);
+    }, [ref, onClickOutside]);
+  };
+
+  const handleClosePopover = useCallback(() => { setIsConfirmDeleteOpen(false); }, []);
+  const popoverRef = useRef(null);
+  useClickOutside(popoverRef, handleClosePopover);
+  
   return (
     <div
       className={classNames(classes.propertiesLabel, {
@@ -225,11 +241,11 @@ export const SchemaItemLabel = ({
             disabled={true}
           />
         )}
-        {capabilties.includes(Capabilites.CanBeDeleted) && (        
+        {capabilties.includes(Capabilites.CanBeDeleted) && (  
+          <div ref={popoverRef}>      
         <Popover
-            title={'Slett_rad'}
             variant={PopoverVariant.Warning}
-            placement={'right'}
+            placement={'left'}
             open={isConfirmDeleteOpen}
             trigger={
           <AltinnMenuItem
@@ -246,22 +262,21 @@ export const SchemaItemLabel = ({
           >
             {isConfirmDeleteOpen && (
               <div>
-                <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
-                <div className={classes.popoverButtons}>
+                <p>{t('schema_editor.datamodel_popover_title_confirm_cancel_of_field')}</p>
                   <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
-                    <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
+                    {t('schema_editor.datamodel_popover_confirm_cancel_of_field')}
                   </Button>
                   <Button
                     variant={ButtonVariant.Quiet}
                     onClick={toggleConfirmDeletePopover}
                     color={ButtonColor.Secondary}
                   >
-                    <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                   {t('schema_editor.datamodel_popover_cancel')}
                   </Button>
-                </div>
               </div>
             )}
           </Popover>
+          </div>
         )}
       </AltinnMenu>
     </div>
