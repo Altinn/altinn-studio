@@ -17,7 +17,6 @@ export const useDatamodelMetadataQuery =
           }
         });
         return dataModelFields;
-      }),
-      { staleTime: 1000 }
+      })
     );
   };
