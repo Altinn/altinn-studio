@@ -26,8 +26,8 @@ export function NameField({
   label,
   ...props
 }: NameFieldProps) {
+  const { t } = useTranslation();
   const { data } = useDatamodelQuery();
-
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
 
   useEffect(() => {
@@ -44,8 +44,6 @@ export function NameField({
     if (errorCode || newNodeName === nodeName) return;
     handleSave(newNodeName, errorCode)
   }
-
-  const { t } = useTranslation();
 
   return (
     <FormField
