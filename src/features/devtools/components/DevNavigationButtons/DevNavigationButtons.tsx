@@ -35,7 +35,7 @@ export const DevNavigationButtons = () => {
           className={classes.chipGroup}
         >
           {order.map((page) => (
-            <Chip
+            <Chip.Toggle
               key={page}
               className={isHidden(page) ? classes.hiddenPage : undefined}
               title={isHidden(page) ? 'Denne siden er skjult for brukeren' : ''}
@@ -43,7 +43,7 @@ export const DevNavigationButtons = () => {
               selected={currentView == page}
             >
               {page}
-            </Chip>
+            </Chip.Toggle>
           ))}
         </Chip.Group>
       </div>

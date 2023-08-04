@@ -84,6 +84,8 @@
 }
 
 .header h3 {
+  margin-top: 0;
+  margin-right: 36px;
   font-size: 1rem;
 }
 
@@ -91,7 +93,7 @@
   height: 32px;
   width: 32px;
   position: absolute;
-  top: 32px;
+  top: 36px;
   right: 0;
   z-index: 1001;
 }
