@@ -9,7 +9,7 @@ import type { FieldType } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { setRequired } from '@altinn/schema-model';
+import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { NameField } from './NameField';
 
 export interface IPropertyItemProps {
@@ -38,6 +38,15 @@ export function PropertyItem({
 
   const deleteHandler = () => onDeleteField?.(fullPath);
 
+  const handleChangeNodeName = (newNodeName: string) => {
+    mutate(
+      setPropertyName(data, {
+        path: fullPath,
+        name: newNodeName,
+      })
+    );
+  };
+
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
     mutate(
       setRequired(data, {
@@ -56,11 +65,11 @@ export function PropertyItem({
       <div className={`${classes.nameInputCell} ${classes.gridItem}`}>
         <NameField
           id={inputId}
-          pointer={fullPath}
-          onKeyDown={onKeyDown}
-          label={t('schema_editor.field_name')}
-          hideLabel={true}
           disabled={readOnly}
+          handleSave={handleChangeNodeName}
+          onKeyDown={onKeyDown}
+          pointer={fullPath}
+          aria-label={t('schema_editor.field_name')}
         />
       </div>
       <div className={`${classes.typeSelectCell} ${classes.gridItem}`}>

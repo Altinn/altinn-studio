@@ -62,7 +62,9 @@ export const FormField = <T extends unknown, TT extends unknown>({
   }, [customValidationRules, isRequired, propertyId]);
 
   const [tmpValue, setTmpValue] = useState<T | TT>(value);
-  const [errorCode, setErrorCode] = useState(validate(value));
+  const [errorCode, setErrorCode] = useState<string>(validate(value));
+
+  const errorMessageId = `error-${id}`;
 
   useEffect(() => {
     setTmpValue(value);
@@ -102,6 +104,11 @@ export const FormField = <T extends unknown, TT extends unknown>({
           ...child.props,
         } : {};
 
+        if (errorCode) {
+          props['aria-errormessage'] = errorMessageId;
+          props['aria-invalid'] = true;
+        }
+
         return React.cloneElement(child, props);
       }
     });
@@ -130,7 +137,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
         customRequired: isRequired
       }))}
       {errorCode && (
-        <ErrorMessage className={classes.errorMessageText} size="small">
+        <ErrorMessage id={errorMessageId} className={classes.errorMessageText} size="small">
           {showErrorMessages()}
         </ErrorMessage>
       )}

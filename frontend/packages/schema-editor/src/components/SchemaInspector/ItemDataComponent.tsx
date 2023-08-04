@@ -25,6 +25,7 @@ import {
   pointerIsDefinition,
   setCombinationType,
   setDescription,
+  setPropertyName,
   setRef,
   setTitle,
   setType,
@@ -116,6 +117,16 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
 
+  const handleChangeNodeName = (newNodeName: string) => {
+    mutate(
+      setPropertyName(data, {
+        path: pointer,
+        name: newNodeName,
+        callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+      })
+    );
+  };
+
   const { t } = useTranslation();
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
@@ -128,9 +139,9 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       {!isCombinationItem && (
         <NameField
           id='selectedItemName'
-          pointer={pointer}
           label={t('schema_editor.name')}
-          callback={(newPointer: string) => dispatch(setSelectedNode(newPointer))}
+          handleSave={handleChangeNodeName}
+          pointer={pointer}
         />
       )}
       {objectKind === ObjectKind.Field && (

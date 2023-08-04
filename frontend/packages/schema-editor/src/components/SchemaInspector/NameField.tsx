@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
+import type { TextFieldProps } from '@digdir/design-system-react';
 import { TextField } from '@digdir/design-system-react';
-import { setPropertyName } from '@altinn/schema-model';
 import {
   getNameFromPointer,
   hasNodePointer,
@@ -10,30 +10,23 @@ import {
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { FormField } from 'app-shared/components/FormField';
 
-export type NameFieldProps = {
+export type NameFieldProps = TextFieldProps & {
   id: string;
   pointer: string;
+  handleSave: (newNodeName: string, errorCode: string) => void;
   label?: string;
-  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-  hideLabel?: boolean;
-  disabled?: boolean;
-  callback?: (pointer: string) => void;
 };
 
 export function NameField({
   id,
-  label,
   pointer,
-  onKeyDown,
-  hideLabel,
-  disabled,
-  callback,
+  handleSave,
+  label,
+  ...props
 }: NameFieldProps) {
   const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
 
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
   const [tmpNodeName, setTmpNodeName] = useState(nodeName);
@@ -51,25 +44,17 @@ export function NameField({
   const onNameChange = (newNodeName: string) => {
     setTmpNodeName(newNodeName);
   };
-
-  const handleChangeNodeName = (newNodeName: string, errorCode: string) => {
-    if (errorCode) return;
-    if (newNodeName === nodeName) return;
-    mutate(
-      setPropertyName(data, {
-        path: pointer,
-        name: newNodeName,
-        callback,
-      })
-    );
-  };
+  const onNameBlur = (errorCode: string) => {
+    if (errorCode || tmpNodeName === nodeName) return;
+    handleSave(tmpNodeName, errorCode)
+  }
 
   const { t } = useTranslation();
 
   return (
     <FormField
       id={id}
-      label={!hideLabel && label}
+      label={label}
       onChange={onNameChange}
       value={tmpNodeName}
       customRequired={true}
@@ -87,11 +72,9 @@ export function NameField({
     >
       {({ errorCode, onChange }) => <TextField
           id={id}
-          aria-label={hideLabel && label}
-          onBlur={(e) => handleChangeNodeName(e.target.value, errorCode)}
           onChange={(e) => onChange(e.target.value, e)}
-          onKeyDown={onKeyDown}
-          disabled={disabled}
+          onBlur={(e) => onNameBlur(errorCode)}
+          {...props}
         />
       }
     </FormField>

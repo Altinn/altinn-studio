@@ -11,7 +11,6 @@ import {
   parentNodeMock,
   uiSchemaNodesMock
 } from '../../../test/mocks/uiSchemaMock';
-import { SchemaState } from '@altinn/schema-editor/types';
 
 const user = userEvent.setup();
 
@@ -19,24 +18,17 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 const modelPath = 'test';
-const saveDatamodel = jest.fn();
 const defaultProps: NameFieldProps = {
   id: 'test-id',
   label: 'test-label',
   pointer: parentNodeMock.pointer,
   onKeyDown: jest.fn(),
-  hideLabel: false,
   disabled: false,
-  callback: jest.fn(),
-};
-const defaultState: Partial<SchemaState> = {
-  selectedEditorTab: 'properties',
-  selectedPropertyNodeId: parentNodeMock.pointer,
+  handleSave: jest.fn(),
 };
 
 const render = async (
   props?: Partial<NameFieldProps>,
-  state: Partial<SchemaState> = {}
 ) => {
   queryClientMock.setQueryData(
     [QueryKey.Datamodel, org, app, modelPath],
@@ -44,9 +36,7 @@ const render = async (
   );
 
   return renderWithProviders({
-    state: { ...defaultState, ...state },
     appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel },
   })(<NameField {...defaultProps} {...props} />);
 };
 
@@ -67,20 +57,23 @@ describe('NameField', () => {
   it('should not save if name contains invalid characters', async () => {
     await render();
     await act(() => user.type(screen.getByRole('textbox'), '@'));
+    await act(() => user.tab());
     expect(screen.getByText(textMock('schema_editor.nameError_invalidCharacter'))).toBeInTheDocument();
+    expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
 
   it('should not save if name is already in use', async () => {
     await render();
     await act(() => user.type(screen.getByRole('textbox'), '2'));
+    await act(() => user.tab());
     expect(screen.getByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeInTheDocument();
+    expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
 
   it('should save if name is valid', async () => {
     await render();
     await act(() => user.type(screen.getByRole('textbox'), '3'));
     await act(() => user.tab());
-    expect(defaultProps.callback).toHaveBeenCalledTimes(1);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(defaultProps.handleSave).toHaveBeenCalledTimes(1);
   });
 });
