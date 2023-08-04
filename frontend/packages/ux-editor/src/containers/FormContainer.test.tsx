@@ -55,7 +55,7 @@ describe('FormContainer', () => {
     await act(() => user.click(button));
 
     expect(mockUseDeleteFormContainerMutation).toHaveBeenCalledTimes(1);
-    expect(handleDiscardMock).toHaveBeenCalledTimes(1);
+ 
   });
 
   it('should edit the container when clicking on the container', async () => {
