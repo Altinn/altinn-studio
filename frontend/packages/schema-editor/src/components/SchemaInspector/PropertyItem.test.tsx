@@ -77,7 +77,7 @@ const renderPropertyItem = (
     appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel },
   })(<PropertyItem {...defaultProps} {...props} />);
-}
+};
 
 describe('PropertyItem', () => {
   afterEach(() => jest.clearAllMocks());
