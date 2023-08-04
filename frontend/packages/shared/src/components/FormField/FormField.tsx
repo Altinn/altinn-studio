@@ -85,8 +85,8 @@ export const FormField = <T extends unknown, TT extends unknown>({
   const handleOnChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
     const errCode = validate(newValue);
     setErrorCode(errCode);
-    if (!errCode) onChange(newValue, event, errorCode);
     setTmpValue(newValue);
+    if (!errCode && onChange) onChange(newValue, event, errorCode);
   };
 
   const renderChildren = (childList: React.ReactNode) => {

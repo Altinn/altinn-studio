@@ -29,7 +29,6 @@ export function NameField({
   const { data } = useDatamodelQuery();
 
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
-  const [tmpNodeName, setTmpNodeName] = useState(nodeName);
 
   useEffect(() => {
     setNodeName(getNameFromPointer({ pointer }));
@@ -41,12 +40,9 @@ export function NameField({
     if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate))) return NameError.AlreadyInUse;
   };
 
-  const onNameChange = (newNodeName: string) => {
-    setTmpNodeName(newNodeName);
-  };
-  const onNameBlur = (errorCode: string) => {
-    if (errorCode || tmpNodeName === nodeName) return;
-    handleSave(tmpNodeName, errorCode)
+  const onNameBlur = (newNodeName: string, errorCode: string) => {
+    if (errorCode || newNodeName === nodeName) return;
+    handleSave(newNodeName, errorCode)
   }
 
   const { t } = useTranslation();
@@ -55,8 +51,7 @@ export function NameField({
     <FormField
       id={id}
       label={label}
-      onChange={onNameChange}
-      value={tmpNodeName}
+      value={nodeName}
       customRequired={true}
       customValidationRules={validateName}
       customValidationMessages={(errorCode: NameError) => {
@@ -73,7 +68,7 @@ export function NameField({
       {({ errorCode, onChange }) => <TextField
           id={id}
           onChange={(e) => onChange(e.target.value, e)}
-          onBlur={(e) => onNameBlur(errorCode)}
+          onBlur={(e) => onNameBlur(e.target.value, errorCode)}
           {...props}
         />
       }
