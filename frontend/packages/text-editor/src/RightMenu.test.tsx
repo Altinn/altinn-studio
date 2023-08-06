@@ -55,7 +55,7 @@ describe('RightMenu', () => {
 
     const deleteButton = screen.getByTestId('delete-en');
     fireEvent.click(deleteButton);
-    const cancelButton = screen.getByText(/schema_editor.textRow-cancel-popover/);
+    const cancelButton = screen.getByText(/general.cancel/);
     fireEvent.click(cancelButton);
     const popoverContent = screen.queryByText(/schema_editor.language_display_confirm_delete/);
     expect(popoverContent).not.toBeInTheDocument();

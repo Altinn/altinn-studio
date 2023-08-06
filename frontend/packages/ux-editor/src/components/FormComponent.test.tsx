@@ -82,7 +82,7 @@ describe('FormComponent', () => {
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(deleteButton));
     const cancelPopoverButton = screen.getByRole('button', {
-      name: textMock('schema_editor.textRow-cancel-popover'),
+      name: textMock('general.cancel'),
     });
     await act(() => user.click(cancelPopoverButton));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -93,13 +93,13 @@ describe('FormComponent', () => {
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(deleteButton));
     const cancelPopoverButton = screen.getByRole('button', {
-      name: textMock('schema_editor.textRow-cancel-popover'),
+      name: textMock('general.cancel'),
     });
     await act(() => user.click(cancelPopoverButton));
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(0);
   });
-  
- 
+
+
 
 
 

@@ -45,7 +45,7 @@ describe('TextRow', () => {
     await act(() => user.click(deleteButton));
 
     const cancelPopoverButton = screen.getByRole('button', {
-      name: textMock('schema_editor.textRow-cancel-popover'),
+      name: textMock('general.cancel'),
     });
     await act(() => user.click(cancelPopoverButton));
 

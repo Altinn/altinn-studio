@@ -11,6 +11,7 @@ import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { NameField } from './NameField';
+import { AltinnConfirmPopover } from 'app-shared/components';
 
 export interface IPropertyItemProps {
   fullPath: string;
@@ -35,6 +36,7 @@ export function PropertyItem({
 }: IPropertyItemProps) {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
+  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
 
   const deleteHandler = () => onDeleteField?.(fullPath);
 
@@ -92,11 +94,23 @@ export function PropertyItem({
           onChange={changeRequiredHandler}
         />
       </span>
-      <IconButton
-        ariaLabel={t('schema_editor.delete_field')}
-        icon={IconImage.Wastebucket}
-        onClick={deleteHandler}
-      />
+      <AltinnConfirmPopover
+        open={isPopoverOpen}
+        confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+        onConfirm={deleteHandler}
+        onCancel={() => setIsPopoverOpen(false)}
+        placement='bottom'
+        trigger={
+          <IconButton
+            ariaLabel={t('schema_editor.delete_field')}
+            icon={IconImage.Wastebucket}
+            onClick={() => setIsPopoverOpen(true)}
+          />
+        }
+      >
+        <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
+        <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+      </AltinnConfirmPopover>
     </>
   );
 }

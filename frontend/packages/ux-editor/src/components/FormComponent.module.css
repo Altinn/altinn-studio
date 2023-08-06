@@ -42,7 +42,8 @@
 }
 
 .editMode .dragHandle,
-.wrapper:hover .dragHandle {
+.wrapper:hover .dragHandle,
+.formGroupButtons:has(button[aria-expanded="true"]) {
   visibility: visible;
 }
 
@@ -75,7 +76,7 @@
   gap: var(--buttons-distance);
 }
 
-.wrapper:not(.editMode):not(:hover) .buttons  {
+.wrapper:not(.editMode):not(:hover) .buttons:not(:has(button[aria-expanded="true"]))  {
   visibility: hidden;
 }
 

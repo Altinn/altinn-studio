@@ -1,10 +1,13 @@
+import React, { useState } from 'react';
 import { CreateNewWrapper, CreateAction } from 'app-shared/features/dataModelling/components/CreateNewWrapper';
 import { XSDUpload } from 'app-shared/features/dataModelling/components/XSDUpload';
 import { GroupedOption, OnChangeSchema, SchemaSelect } from 'app-shared/features/dataModelling/components/SchemaSelect';
-import { DeleteWrapper } from 'app-shared/features/dataModelling/components/DeleteWrapper';
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { IMetadataOption } from 'app-shared/features/dataModelling/functions/types';
+import { AltinnConfirmPopover } from 'app-shared/components';
+import { useTranslation } from 'react-i18next';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { TrashIcon } from '@navikt/aksel-icons';
 
 export interface ToolbarProps {
   createNewOpen: boolean;
@@ -33,7 +36,11 @@ export const Toolbar = ({
   setCreateNewOpen,
   setSelectedOption,
 }: ToolbarProps) => {
+  const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
+  const schemaName = selectedOption?.value && selectedOption?.label;
+  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+
   return (
     <>
       <CreateNewWrapper
@@ -56,10 +63,27 @@ export const Toolbar = ({
         options={metadataOptions}
         selectedOption={selectedOption}
       />
-      <DeleteWrapper
-        deleteAction={handleDeleteSchema}
-        schemaName={selectedOption?.value && selectedOption?.label}
-      />
+      <AltinnConfirmPopover
+        open={isPopoverOpen}
+        confirmText={t('general.continue')}
+        onConfirm={handleDeleteSchema}
+        onCancel={() => setIsPopoverOpen(false)}
+        placement="bottom"
+        trigger={
+          <Button
+            id='delete-model-button'
+            disabled={disabled}
+            onClick={() => setIsPopoverOpen((prevState) => !prevState)}
+            color={ButtonColor.Danger}
+            icon={<TrashIcon />}
+            variant={ButtonVariant.Quiet}
+          >
+            {t('general.delete_data_model')}
+          </Button>
+        }
+      >
+        <p>{t('administration.delete_model_confirm', { schemaName })}</p>
+      </AltinnConfirmPopover>
     </>
   );
 };

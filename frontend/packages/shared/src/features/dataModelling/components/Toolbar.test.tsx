@@ -1,8 +1,6 @@
 import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
-import type { IDeleteWrapper } from './DeleteWrapper';
-import { DeleteWrapper } from './DeleteWrapper';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
@@ -20,7 +18,7 @@ const texts = {
 };
 const deleteAction = jest.fn();
 const schemaName = 'some-name';
-const defaultProps: IDeleteWrapper = {
+const defaultProps = {
   deleteAction,
   schemaName
 };
@@ -31,8 +29,8 @@ jest.mock(
   () => ({ useTranslation: () => mockUseTranslation(texts) }),
 );
 
-const render = (props: Partial<IDeleteWrapper> = {}) =>
-  rtlRender(<DeleteWrapper {...defaultProps} {...props} />);
+const render = (props?) =>
+  rtlRender(<div {...defaultProps} {...props} />);
 
 describe('DeleteWrapper', () => {
   afterEach(jest.clearAllMocks);

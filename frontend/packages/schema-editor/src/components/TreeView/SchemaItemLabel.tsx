@@ -1,5 +1,5 @@
 import type { SyntheticEvent } from 'react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import classNames from 'classnames';
 import classes from './SchemaItemLabel.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -17,8 +17,8 @@ import {
   pointerIsDefinition,
   promoteProperty,
 } from '@altinn/schema-model';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { Button, ButtonColor, ButtonSize, ButtonVariant, Popover, PopoverVariant } from '@digdir/design-system-react';
+import { AltinnMenu, AltinnMenuItem, AltinnConfirmPopover } from 'app-shared/components';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
@@ -57,10 +57,8 @@ export const SchemaItemLabel = ({
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
+  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
   const { t } = useTranslation();
-
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -125,21 +123,6 @@ export const SchemaItemLabel = ({
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
 
-  const useClickOutside = (ref, onClickOutside) => {
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (ref.current && !ref.current.contains(event.target)) {
-          onClickOutside();
-        }
-      };
-     document.addEventListener('mousedown', handleClickOutside);
-    }, [ref, onClickOutside]);
-  };
-
-  const handleClosePopover = useCallback(() => { setIsConfirmDeleteOpen(false); }, []);
-  const popoverRef = useRef(null);
-  useClickOutside(popoverRef, handleClosePopover);
-
   return (
     <div
       className={classNames(classes.propertiesLabel, {
@@ -172,6 +155,16 @@ export const SchemaItemLabel = ({
           </span>
         )}
       </div>
+      <AltinnConfirmPopover
+        open={isPopoverOpen}
+        confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+        onConfirm={handleDeleteClick}
+        onCancel={() => setIsPopoverOpen(false)}
+        placement='left'
+      >
+        <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
+        <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+      </AltinnConfirmPopover>
       <Button
         data-testid='open-context-menu-button'
         className={classes.contextButton}
@@ -242,39 +235,19 @@ export const SchemaItemLabel = ({
           />
         )}
         {capabilties.includes(Capabilites.CanBeDeleted) && (
-          <div ref={popoverRef}>
-            <Popover
-              variant={PopoverVariant.Warning}
-              placement={'left'}
-              open={isConfirmDeleteOpen}
-              className={classes.popover}
-              trigger={
-                <AltinnMenuItem
-                  testId={SchemaItemLabelTestIds.contextMenuDelete}
-                  id='delete-node-button'
-                  key='delete'
-                  className={classes.contextMenuLastItem}
-                  onClick={toggleConfirmDeletePopover}
-                  text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
-                  iconClass='fa fa-trash'
-                  disabled={hasReferredNodes}
-                />
-              }
-            >
-              <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
-              <p className={classes.popoverInfo}>{t('schema_editor.datamodel_field_deletion_info')}</p>
-              <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
-                {t('schema_editor.datamodel_field_deletion_confirm')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Quiet}
-                onClick={toggleConfirmDeletePopover}
-                color={ButtonColor.Secondary}
-              >
-                {t('schema_editor.datamodel_field_deletion_cancel')}
-              </Button>
-            </Popover>
-          </div>
+          <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuDelete}
+            id='delete-node-button'
+            key='delete'
+            className={classes.contextMenuLastItem}
+            onClick={() => {
+              setContextAnchor(null);
+              setIsPopoverOpen(true);
+            }}
+            text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
+            iconClass='fa fa-trash'
+            disabled={hasReferredNodes}
+          />
         )}
       </AltinnMenu>
     </div>
