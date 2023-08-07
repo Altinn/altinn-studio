@@ -1,6 +1,8 @@
-.policyEditorTop {
-  width: 450px;
-  margin-bottom: 50px;
+.alertWrapper {
+  width: 590px;
+  min-width: 590px;
+  margin-bottom: 20px;
+  margin-left: 5px;
 }
 
 .selectAuthLevelWrapper {
@@ -29,10 +31,4 @@
 
 .subHeader {
   margin-top: 30px;
-  margin-bottom: 5px;
-}
-
-p, h1, h2 {
-  margin: 0;
-  line-height: 24px;
 }

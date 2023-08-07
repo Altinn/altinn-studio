@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
 import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
 import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
-import { Button, Heading } from '@digdir/design-system-react';
+import { Button, Heading, Alert } from '@digdir/design-system-react';
 import {
   PolicyBackendType,
   PolicyRuleCardType,
@@ -171,6 +171,15 @@ export const PolicyEditor = ({
 
   return (
     <div>
+      <div className={classes.alertWrapper}>
+        <Alert
+          elevated
+          iconTitle='Du må ha minimum en regel for å publisere ressursen.'
+          severity='info'
+        >
+          Du må ha minimum en regel for å publisere ressursen.
+        </Alert>
+      </div>
       <div className={classes.selectAuthLevelWrapper}>
         <div className={classes.selectAuthLevel}>
           <SelectAuthLevel

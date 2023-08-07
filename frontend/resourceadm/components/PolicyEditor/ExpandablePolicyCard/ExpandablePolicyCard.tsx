@@ -380,9 +380,7 @@ export const ExpandablePolicyCard = ({
             Velg minimum ett alternativ fra listen under
           </Paragraph>
           <div className={classes.chipWrapper}>{displayActions}</div>
-          {showErrors &&
-            hasRightsError &&
-            displayWarningCard('Du må legge til hvilken rettigheter som skal gis.')}
+          {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
           <Label className={classes.label} size='small'>
             Hvem skal ha disse rettighetene?
           </Label>
@@ -396,9 +394,7 @@ export const ExpandablePolicyCard = ({
             />
           </div>
           {displaySubjects}
-          {showErrors &&
-            hasSubjectsError &&
-            displayWarningCard('Du må legge til hvem rettighetene skal gjelde for.')}
+          {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
           <Label className={classes.label} size='small'>
             Legg til en beskrivelse av regelen
           </Label>

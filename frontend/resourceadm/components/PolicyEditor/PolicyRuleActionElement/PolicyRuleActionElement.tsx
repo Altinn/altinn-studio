@@ -19,6 +19,8 @@ interface Props {
 
 /**
  * @component
+ *    Displays the action elements as a Chip for a policyrule.
+ *
  * @example
  *    <PolicyRuleActionElement
  *      onClick={handleOnClick}
