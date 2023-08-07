@@ -122,3 +122,8 @@ export interface LanguageStringType {
   nn?: string;
   en?: string;
 }
+
+export interface DeployErrorType {
+  message: string;
+  pageWithError: 'about' | 'policy';
+}

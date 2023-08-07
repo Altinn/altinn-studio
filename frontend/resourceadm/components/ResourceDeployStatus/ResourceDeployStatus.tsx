@@ -1,14 +1,9 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { DeployErrorType, NavigationBarPageType } from 'resourceadm/types/global';
 import { LinkButton } from '../LinkButton';
 import { Alert, Paragraph } from '@digdir/design-system-react';
-
-export interface DeployErrorType {
-  message: string;
-  pageWithError: 'about' | 'policy';
-}
 
 interface Props {
   title: string;

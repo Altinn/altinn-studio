@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
-import { DeployErrorType, ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
+import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
 import { TextField, Button, Spinner, Heading } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
 import {
   useRepoStatusQuery,
   useResourcePolicyPublishStatusQuery,
