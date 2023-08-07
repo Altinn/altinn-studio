@@ -2,7 +2,14 @@ import React from 'react';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
+import {
+  type DisplayData,
+  type DisplayDataProps,
+  type EmptyFieldValidation,
+  getDisplayDataPropsFromState,
+  type PropsFromGenericComponent,
+  type SchemaValidation,
+} from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { getFieldName } from 'src/utils/formComponentUtils';
 import { SimpleComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
@@ -10,13 +17,6 @@ import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentTypeConfigs } from 'src/layout/components';
-import type {
-  DisplayData,
-  DisplayDataProps,
-  EmptyFieldValidation,
-  PropsFromGenericComponent,
-  SchemaValidation,
-} from 'src/layout/index';
 import type { ComponentTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { AnyItem, HierarchyDataSources, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -139,12 +139,8 @@ abstract class _FormComponent<Type extends ComponentTypes> extends AnyComponent<
   abstract getDisplayData(node: LayoutNodeFromType<Type>, displayDataProps: DisplayDataProps): string;
 
   useDisplayData(node: LayoutNodeFromType<Type>): string {
-    const formData = useAppSelector((state) => state.formData.formData);
-    const attachments = useAppSelector((state) => state.attachments.attachments);
-    const options = useAppSelector((state) => state.optionState.options);
-    const uiConfig = useAppSelector((state) => state.formLayout.uiConfig);
-    const langTools = useLanguage();
-    return this.getDisplayData(node, { formData, attachments, options, uiConfig, langTools });
+    const displayDataProps = useAppSelector(getDisplayDataPropsFromState);
+    return this.getDisplayData(node, displayDataProps);
   }
 
   /**

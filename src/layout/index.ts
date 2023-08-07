@@ -1,13 +1,13 @@
 import { createContext } from 'react';
 
+import { type IUseLanguage, staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { ComponentConfigs } from 'src/layout/components';
 import type { IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { ComponentRendersLabel, ComponentTypes, IGrid } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
-import type { IOptions, IUiConfig } from 'src/types';
+import type { IOptions, IRuntimeState, IUiConfig } from 'src/types';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -159,4 +159,14 @@ export function implementsDisplayData<Type extends ComponentTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & DisplayData<Type> {
   return 'getDisplayData' in component && 'useDisplayData' in component;
+}
+
+export function getDisplayDataPropsFromState(state: IRuntimeState): DisplayDataProps {
+  return {
+    formData: state.formData.formData,
+    attachments: state.attachments.attachments,
+    options: state.optionState.options,
+    uiConfig: state.formLayout.uiConfig,
+    langTools: staticUseLanguageFromState(state),
+  };
 }
