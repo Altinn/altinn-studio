@@ -13,11 +13,11 @@
 }
 
 .tableDataMedium {
-  width: 18%;
+  width: 19%;
 }
 
 .tableDataSmall {
-  width: 10%;
+  width: 8%;
   justify-content: flex-end;
 }
 

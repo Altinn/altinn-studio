@@ -51,38 +51,13 @@ export const ResourceDashboardPage = () => {
   };
 
   /**
-   * Creates a new resource in backend, and navigates if success
-   */
-  /* const handleCreateNewResource = (id: string, title: string) => {
-    const idAndTitle: NewResourceType = {
-      identifier: id,
-      title: {
-        nb: title,
-        nn: '',
-        en: '',
-      },
-    };
-
-    // TODO - Error handling on 409 conflict
-    createNewResource(idAndTitle, {
-      onSuccess: () =>
-        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
-      onError: (error: any) => {
-        if (error.response.status === 409) {
-          setResourceIdExists(true);
-        }
-      },
-    });
-  };*/
-
-  /**
    * Display different content based on the loading state
    */
   const displayContent = () => {
     if (resourceListLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
         </div>
       );
     } else {

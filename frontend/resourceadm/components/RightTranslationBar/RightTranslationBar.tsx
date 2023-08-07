@@ -69,7 +69,7 @@ export const RightTranslationBar = ({
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
           label={label}
-          isValid={showErrors && value[lang] !== ''}
+          isValid={!(showErrors && value[lang] === '')}
         />
       );
     }
@@ -79,7 +79,7 @@ export const RightTranslationBar = ({
         onChange={(e) => handleChange(lang, e.target.value)}
         placeholder={placeholder}
         label={label}
-        isValid={showErrors && value[lang] !== ''}
+        isValid={!(showErrors && value[lang] === '')}
       />
     );
   };

@@ -38,7 +38,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined'>
-          {resource.hasPolicy ? 'Har policy' : 'Mangler policy'}
+          {resource.hasPolicy ? 'Har tilgangsregler' : 'Mangler tilgangsregler'}
         </Tag>
       </td>
       <td className={`${classes.tableDataSmall} ${classes.tableData}`}>

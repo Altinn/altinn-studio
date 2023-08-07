@@ -58,7 +58,7 @@ export const ResourceTable = ({ list }: Props) => {
             </Button>
           </th>
           <th className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Policy</p>
+            <p className={classes.tableHeaderText}>Tilgangsregler</p>
           </th>
           <th
             className={`${classes.tableHeaderSmall} ${classes.tableHeader}`}
