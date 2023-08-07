@@ -68,17 +68,16 @@ describe('Summary', () => {
       cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldDateFrom);
     });
 
-    // Summary of attachment components
     cy.get(appFrontend.changeOfName.summaryNameChanges)
       .siblings()
       .then((summary) => {
         cy.wrap(summary)
           .contains(mui.gridContainer, texts.uplodDocs)
-          .contains(mui.gridItem, 'test.pdf')
+          .contains(mui.gridContainer, 'test.pdf')
           .should('be.visible');
         cy.wrap(summary)
           .contains(mui.gridContainer, texts.uploadWithTag)
-          .contains(mui.gridItem, 'test.pdf')
+          .contains(mui.gridContainer, 'test.pdf')
           .should('contain.text', 'Adresse');
       });
 

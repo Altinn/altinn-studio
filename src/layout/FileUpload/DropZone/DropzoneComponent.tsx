@@ -5,8 +5,8 @@ import type { FileRejection } from 'react-dropzone';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 
 import { useLanguage } from 'src/hooks/useLanguage';
-import classes from 'src/layout/FileUpload/shared/DropzoneComponent.module.css';
-import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/shared/mapExtensionToAcceptMime';
+import classes from 'src/layout/FileUpload/DropZone/DropzoneComponent.module.css';
+import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/DropZone/mapExtensionToAcceptMime';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { ITextResourceBindings } from 'src/layout/layout';
@@ -62,7 +62,7 @@ export function DropzoneComponent({
   hasCustomFileEndings,
   validFileEndings,
   textResourceBindings,
-}: IDropzoneComponentProps): JSX.Element {
+}: IDropzoneComponentProps): React.JSX.Element {
   const maxSizeLabelId = `file-upload-max-size-${id}`;
   const { lang, langAsString } = useLanguage();
   return (

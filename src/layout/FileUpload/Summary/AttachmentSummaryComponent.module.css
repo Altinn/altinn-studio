@@ -1,0 +1,13 @@
+.row {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px dashed #008fd6;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.emptyField {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.6875;
+}

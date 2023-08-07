@@ -8,152 +8,80 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { AttachmentsCounter } from 'src/layout/FileUpload/AttachmentsCounter';
+import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
-import { FileUploadTableRow } from 'src/layout/FileUpload/FileUploadTableRow';
-import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
-import { handleRejectedFiles } from 'src/layout/FileUpload/shared/handleRejectedFiles';
-import { AttachmentsCounter } from 'src/layout/FileUpload/shared/render';
+import { FileTableComponent } from 'src/layout/FileUpload/FileUploadTable/FileTableComponent';
+import { handleRejectedFiles } from 'src/layout/FileUpload/handleRejectedFiles';
+import {
+  getFileUploadWithTagComponentValidations,
+  parseFileUploadComponentWithTagValidationObject,
+} from 'src/utils/formComponentUtils';
+import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IRuntimeState } from 'src/types';
 import type { IComponentValidations } from 'src/utils/validation/types';
 
-export type IFileUploadProps = PropsFromGenericComponent<'FileUpload'>;
+export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>;
 
-export const emptyArray = [];
-
-export function FileUploadComponent({ node, componentValidations }: IFileUploadProps) {
+export function FileUploadComponent({ componentValidations, node }: IFileUploadWithTagProps): React.JSX.Element {
   const {
     id,
     baseComponentId,
-    readOnly,
-    maxNumberOfAttachments,
     maxFileSizeInMB,
-    minNumberOfAttachments,
-    validFileEndings,
+    readOnly,
     displayMode,
+    maxNumberOfAttachments,
+    minNumberOfAttachments,
     hasCustomFileEndings,
+    validFileEndings,
     textResourceBindings,
     dataModelBindings,
+    type,
   } = node.item;
-  const dispatch = useAppDispatch();
+
+  const dataDispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<string[]>([]);
+  const [validationsWithTag, setValidationsWithTag] = React.useState<Array<{ id: string; message: string }>>([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useIsMobileOrTablet();
-  const attachments = useAppSelector((state) => state.attachments.attachments[id] || emptyArray);
-  const alertOnDelete = node.item.alertOnDelete;
+  const attachments: IAttachment[] = useAppSelector((state: IRuntimeState) => state.attachments.attachments[id] || []);
+
+  const hasTag = type === 'FileUploadWithTag';
   const langTools = useLanguage();
   const { lang, langAsString } = langTools;
-  const getComponentValidations = (): IComponentValidations => {
-    const validationMessages = {
-      simpleBinding: {
-        errors: [...(componentValidations?.simpleBinding?.errors ?? [])],
-        warnings: [...(componentValidations?.simpleBinding?.warnings ?? [])],
-        fixed: [...(componentValidations?.simpleBinding?.fixed ?? [])],
-      },
-    };
 
-    validationMessages.simpleBinding.errors.push(...validations);
-    return validationMessages;
-  };
-
-  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    const fileType = baseComponentId || id;
-    const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
-
-    if (totalAttachments > maxNumberOfAttachments) {
-      // if the user adds more attachments than max, all should be ignored
-      setValidations([
-        `${langAsString(
-          'form_filler.file_uploader_validation_error_exceeds_max_files_1',
-        )} ${maxNumberOfAttachments} ${langAsString('form_filler.file_uploader_validation_error_exceeds_max_files_2')}`,
-      ]);
+  const options = useAppSelector((state) => {
+    const mapping = ('mapping' in node.item && node.item?.mapping) || undefined;
+    const optionsId = 'optionsId' in node.item && node.item.optionsId;
+    if (optionsId) {
+      return state.optionState.options[
+        getOptionLookupKey({
+          id: optionsId,
+          mapping,
+        })
+      ]?.options;
     } else {
-      // we should upload all files, if any rejected files we should display an error
-      acceptedFiles.forEach((file: File, index) => {
-        dispatch(
-          AttachmentActions.uploadAttachment({
-            file,
-            attachmentType: fileType,
-            tmpAttachmentId: uuidv4(),
-            componentId: id,
-            dataModelBindings,
-            index: attachments.length + index,
-          }),
-        );
-      });
-
-      if (acceptedFiles.length > 0) {
-        setShowFileUpload(displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
-      }
-
-      const rejections = handleRejectedFiles({
-        langTools,
-        rejectedFiles,
-        maxFileSizeInMB,
-      });
-      setValidations(rejections);
+      return undefined;
     }
-  };
+  });
 
-  const NonMobileColumnHeader = () =>
-    !mobileView ? <th scope='col'>{lang('form_filler.file_uploader_list_header_file_size')}</th> : null;
-
-  const FileList = (): JSX.Element | null => {
-    if (!attachments?.length) {
-      return null;
-    }
-    return (
-      <div
-        id={`altinn-file-list${id}`}
-        data-testid={id}
-      >
-        <table
-          className={classes.fileUploadTable}
-          data-testid='file-upload-table'
-        >
-          <thead>
-            <tr
-              className={classes.blueUnderline}
-              id='altinn-file-list-row-header'
-            >
-              <th
-                scope='col'
-                style={!mobileView ? { width: '30%' } : {}}
-              >
-                {lang('form_filler.file_uploader_list_header_name')}
-              </th>
-              <NonMobileColumnHeader />
-              <th
-                scope='col'
-                style={mobileView ? { textAlign: 'center' } : {}}
-              >
-                {lang('form_filler.file_uploader_list_header_status')}
-              </th>
-              <th
-                scope='col'
-                style={!mobileView ? { width: '30%' } : {}}
-              >
-                <p className='sr-only'>{lang('form_filler.file_uploader_list_header_delete_sr')}</p>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {attachments.map((attachment, index: number) => (
-              <FileUploadTableRow
-                key={attachment.id}
-                id={id}
-                alertOnDelete={alertOnDelete}
-                attachment={attachment}
-                index={index}
-                mobileView={mobileView}
-                baseComponentId={baseComponentId}
-                dataModelBindings={dataModelBindings}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
+  // Get data from validations based on hasTag.
+  const { validationMessages, hasValidationMessages, ...otherValidationData } = hasTag
+    ? validateWithTag({
+        setValidationsWithTag,
+        validationsWithTag,
+        componentValidations,
+      })
+    : validateWithoutTag({
+        componentValidations,
+        validations,
+      });
+  const { setValidationsFromArray, attachmentValidationMessages } = otherValidationData as {
+    setValidationsFromArray: (validationArray: string[]) => void;
+    attachmentValidationMessages: { id: string; message: string }[];
   };
 
   const shouldShowFileUpload = (): boolean => {
@@ -164,28 +92,72 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
   };
 
   const renderAddMoreAttachmentsButton = (): JSX.Element | null => {
-    if (
+    const canShowButton =
       displayMode === 'simple' &&
       !showFileUpload &&
       attachments.length < maxNumberOfAttachments &&
-      attachments.length > 0
-    ) {
-      return (
-        <button
-          className={`${classes.fileUploadButton} ${classes.blueUnderline}`}
-          onClick={() => setShowFileUpload(true)}
-          type='button'
-        >
-          {lang('form_filler.file_uploader_add_attachment')}
-        </button>
-      );
+      attachments.length > 0;
+
+    if (!canShowButton) {
+      return null;
     }
-    return null;
+    return (
+      <button
+        className={`${classes.fileUploadButton} ${classes.blueUnderline}`}
+        onClick={() => setShowFileUpload(true)}
+      >
+        {lang('form_filler.file_uploader_add_attachment')}
+      </button>
+    );
   };
 
-  const validationMessages = getComponentValidations();
-  const hasValidationMessages =
-    validationMessages.simpleBinding?.errors && validationMessages.simpleBinding.errors.length > 0;
+  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+    const fileType = baseComponentId || id;
+    const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
+
+    if (totalAttachments > maxNumberOfAttachments) {
+      // if the user adds more attachments than max, all should be ignored
+      const errorText = `${langAsString(
+        'form_filler.file_uploader_validation_error_exceeds_max_files_1',
+      )} ${maxNumberOfAttachments} ${langAsString('form_filler.file_uploader_validation_error_exceeds_max_files_2')}`;
+      hasTag ? setValidationsFromArray([errorText]) : setValidations([errorText]);
+      return;
+    }
+    // we should upload all files, if any rejected files we should display an error
+    acceptedFiles.forEach((file: File, index) => {
+      dataDispatch(
+        AttachmentActions.uploadAttachment({
+          file,
+          attachmentType: fileType,
+          tmpAttachmentId: uuidv4(),
+          componentId: id,
+          dataModelBindings,
+          index: attachments.length + index,
+        }),
+      );
+    });
+
+    if (acceptedFiles.length > 0) {
+      setShowFileUpload(displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
+    }
+    const rejections = handleRejectedFiles({
+      langTools,
+      rejectedFiles,
+      maxFileSizeInMB,
+    });
+    hasTag ? setValidationsFromArray(rejections) : setValidations(rejections);
+  };
+
+  const renderValidationMessages =
+    hasValidationMessages && renderValidationMessagesForComponent(validationMessages, id);
+
+  const attachmentsCounter = (
+    <AttachmentsCounter
+      currentNumberOfAttachments={attachments.length}
+      minNumberOfAttachments={minNumberOfAttachments}
+      maxNumberOfAttachments={maxNumberOfAttachments}
+    />
+  );
 
   return (
     <div
@@ -193,47 +165,85 @@ export function FileUploadComponent({ node, componentValidations }: IFileUploadP
       style={{ padding: '0px' }}
     >
       {shouldShowFileUpload() && (
-        <DropzoneComponent
-          id={id}
-          isMobile={mobileView}
-          maxFileSizeInMB={maxFileSizeInMB}
-          readOnly={!!readOnly}
-          onClick={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          hasValidationMessages={!!hasValidationMessages}
-          hasCustomFileEndings={hasCustomFileEndings}
-          validFileEndings={validFileEndings}
-          textResourceBindings={textResourceBindings}
-        />
+        <>
+          <DropzoneComponent
+            id={id}
+            isMobile={mobileView}
+            maxFileSizeInMB={maxFileSizeInMB}
+            readOnly={!!readOnly}
+            onClick={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            hasValidationMessages={!!hasValidationMessages}
+            hasCustomFileEndings={hasCustomFileEndings}
+            validFileEndings={validFileEndings}
+            textResourceBindings={textResourceBindings}
+          />
+          {attachmentsCounter}
+          {renderValidationMessages}
+        </>
       )}
 
-      {shouldShowFileUpload() && (
-        <AttachmentsCounter
-          currentNumberOfAttachments={attachments.length}
-          minNumberOfAttachments={minNumberOfAttachments}
-          maxNumberOfAttachments={maxNumberOfAttachments}
-        />
-      )}
+      <FileTableComponent
+        node={node}
+        mobileView={mobileView}
+        attachments={attachments}
+        attachmentValidations={attachmentValidationMessages}
+        options={options}
+        validationsWithTag={validationsWithTag}
+        setValidationsWithTag={setValidationsWithTag}
+      />
 
-      {validationMessages.simpleBinding?.errors &&
-        validationMessages.simpleBinding.errors.length > 0 &&
-        showFileUpload &&
-        renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
-      <FileList />
       {!shouldShowFileUpload() && (
-        <AttachmentsCounter
-          currentNumberOfAttachments={attachments.length}
-          minNumberOfAttachments={minNumberOfAttachments}
-          maxNumberOfAttachments={maxNumberOfAttachments}
-        />
+        <>
+          {attachmentsCounter}
+          {renderValidationMessages}
+        </>
       )}
-
-      {validationMessages.simpleBinding?.errors &&
-        validationMessages.simpleBinding.errors.length > 0 &&
-        !showFileUpload &&
-        renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
-
       {renderAddMoreAttachmentsButton()}
     </div>
   );
 }
+
+interface IValidateWithTag {
+  setValidationsWithTag: (validationArray: { id: string; message: string }[]) => void;
+  validationsWithTag: {
+    id: string;
+    message: string;
+  }[];
+  componentValidations: IComponentValidations | undefined;
+}
+
+const validateWithTag = ({ setValidationsWithTag, validationsWithTag, componentValidations }: IValidateWithTag) => {
+  const setValidationsFromArray = (validationArray: string[]) => {
+    setValidationsWithTag(parseFileUploadComponentWithTagValidationObject(validationArray));
+  };
+  const { attachmentValidationMessages, hasValidationMessages, validationMessages } =
+    getFileUploadWithTagComponentValidations(componentValidations, validationsWithTag);
+  return {
+    setValidationsFromArray,
+    attachmentValidationMessages,
+    hasValidationMessages,
+    validationMessages,
+  };
+};
+
+interface IValidateWithoutTag {
+  componentValidations: IComponentValidations | undefined;
+  validations: string[];
+}
+
+const validateWithoutTag = ({ componentValidations, validations }: IValidateWithoutTag) => {
+  const validationMessages = {
+    simpleBinding: {
+      errors: [...(componentValidations?.simpleBinding?.errors ?? []), ...validations],
+      warnings: [...(componentValidations?.simpleBinding?.warnings ?? [])],
+      fixed: [...(componentValidations?.simpleBinding?.fixed ?? [])],
+    },
+  };
+  const hasValidationMessages =
+    validationMessages?.simpleBinding.errors && validationMessages.simpleBinding.errors.length > 0;
+  return {
+    validationMessages: validationMessages.simpleBinding,
+    hasValidationMessages,
+  };
+};

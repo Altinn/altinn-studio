@@ -2,9 +2,9 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
+import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 import { renderWithProviders } from 'src/testUtils';
-import type { IDropzoneComponentProps } from 'src/layout/FileUpload/shared/DropzoneComponent';
+import type { IDropzoneComponentProps } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 
 describe('DropzoneComponent', () => {
   const id = 'mock-id';

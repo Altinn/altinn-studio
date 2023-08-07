@@ -1,69 +1,118 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Button, Select } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
-import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
+import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
+import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
-import { AttachmentFileName } from 'src/layout/FileUpload/shared/AttachmentFileName';
+import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
+import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import { renderValidationMessages } from 'src/utils/render';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IOption } from 'src/types';
+import type { IOption, IRuntimeState } from 'src/types';
 
 export interface EditWindowProps {
   node: PropsFromGenericComponent<'FileUploadWithTag'>['node'];
   attachment: IAttachment;
   mobileView: boolean;
   options?: IOption[];
-  onSave: (attachment: IAttachment) => void;
-  onDropdownDataChange: (id: string, value: string) => void;
   setEditIndex: (index: number) => void;
+  index: number;
+  editIndex: number;
   attachmentValidations: {
     id: string;
     message: string;
   }[];
+  validationsWithTag: {
+    id: string;
+    message: string;
+  }[];
+  setValidationsWithTag: (validationArray: { id: string; message: string }[]) => void;
 }
 
 export function EditWindowComponent({
   attachment,
+  index,
+  editIndex,
   attachmentValidations,
   mobileView,
   node,
-  onDropdownDataChange,
-  onSave,
   options,
   setEditIndex,
-}: EditWindowProps): JSX.Element {
+  validationsWithTag,
+  setValidationsWithTag,
+}: EditWindowProps): React.JSX.Element {
   const dispatch = useAppDispatch();
-  const { id, baseComponentId, dataModelBindings, textResourceBindings, readOnly, alertOnDelete } = node.item;
+  const { id, baseComponentId, textResourceBindings, readOnly } = node.item;
   const { lang, langAsString } = useLanguage();
-  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const handleDeleteClick = () => {
-    alertOnDelete ? setPopoverOpen(!popoverOpen) : handleDeleteFile();
+  const onDropdownDataChange = (attachmentId: string, value: string) => {
+    if (value !== undefined) {
+      const option = options?.find((o) => o.value === value);
+      if (option !== undefined) {
+        dispatch(
+          FormLayoutActions.updateFileUploaderWithTagChosenOptions({
+            componentId: id,
+            baseComponentId: baseComponentId || id,
+            id: attachmentId,
+            option,
+          }),
+        );
+      } else {
+        console.error(`Could not find option for ${value}`);
+      }
+    }
   };
 
-  const handlePopoverDeleteClick = () => {
-    setPopoverOpen(false);
-    handleDeleteFile();
+  const chosenOptions = useAppSelector(
+    (state: IRuntimeState) =>
+      (state.formLayout.uiConfig.fileUploadersWithTag &&
+        state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions) ??
+      {},
+  );
+
+  const handleSave = (attachment: IAttachment) => {
+    if (chosenOptions[attachment.id] !== undefined && chosenOptions[attachment.id].length !== 0) {
+      setEditIndex(-1);
+      if (attachment.tags === undefined || chosenOptions[attachment.id] !== attachment.tags[0]) {
+        setAttachmentTag(attachment, chosenOptions[attachment.id]);
+      }
+      setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== attachment.id)); // Remove old validation if exists
+    } else {
+      const tmpValidations: { id: string; message: string }[] = [];
+      tmpValidations.push({
+        id: attachment.id,
+        message: `${langAsString('form_filler.file_uploader_validation_error_no_chosen_tag')} ${(
+          langAsString(textResourceBindings?.tagTitle || '') || ''
+        )
+          .toString()
+          .toLowerCase()}.`,
+      });
+      setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
+    }
   };
 
-  const handleDeleteFile = () => {
-    dispatch(
-      AttachmentActions.deleteAttachment({
-        attachment,
-        componentId: id,
-        attachmentType: baseComponentId || id,
-        dataModelBindings,
-      }),
-    );
-    setEditIndex(-1);
+  const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
+    const option = options?.find((o) => o.value === optionValue);
+    if (option !== undefined) {
+      dispatch(
+        AttachmentActions.updateAttachment({
+          attachment,
+          componentId: id,
+          baseComponentId: baseComponentId || id,
+          tag: option.value,
+        }),
+      );
+    } else {
+      console.error(`Could not find option for ${optionValue}`);
+    }
   };
 
   const saveIsDisabled = attachment.updating === true || attachment.uploaded === false || readOnly;
@@ -116,13 +165,14 @@ export function EditWindowComponent({
               />
             )}
             <div>
-              <DeleteButton
-                alertOnDelete={alertOnDelete}
+              <FileTableButtons
+                node={node}
+                index={index}
                 mobileView={mobileView}
-                handleDeleteClick={handleDeleteClick}
-                handlePopoverDeleteClick={handlePopoverDeleteClick}
-                popoverOpen={popoverOpen}
-                setPopoverOpen={setPopoverOpen}
+                editIndex={editIndex}
+                setEditIndex={setEditIndex}
+                attachment={attachment}
+                editWindowIsOpen={true}
               />
             </div>
           </div>
@@ -160,6 +210,7 @@ export function EditWindowComponent({
               error={attachmentValidations.filter((i) => i.id === attachment.id).length > 0}
               label={langAsString('general.choose')}
               hideLabel={true}
+              value={chosenOptions[attachment.id]}
             />
           </Grid>
           <Grid
@@ -177,7 +228,7 @@ export function EditWindowComponent({
               />
             ) : (
               <Button
-                onClick={() => onSave(attachment)}
+                onClick={() => handleSave(attachment)}
                 id={`attachment-save-tag-button-${attachment.id}`}
                 disabled={saveIsDisabled}
               >
@@ -203,49 +254,3 @@ export function EditWindowComponent({
     </div>
   );
 }
-
-const DeleteButton = ({
-  alertOnDelete,
-  mobileView,
-  handleDeleteClick,
-  handlePopoverDeleteClick,
-  popoverOpen,
-  setPopoverOpen,
-}: {
-  alertOnDelete?: boolean;
-  mobileView: boolean;
-  handleDeleteClick: () => void;
-  handlePopoverDeleteClick: () => void;
-  popoverOpen: boolean;
-  setPopoverOpen: (open: boolean) => void;
-}) => {
-  const { lang, langAsString } = useLanguage();
-  const deleteButton = (
-    <Button
-      onClick={() => handleDeleteClick()}
-      variant='quiet'
-      color='danger'
-      icon={<TrashIcon aria-hidden={true} />}
-      iconPlacement='right'
-      data-testid='attachment-delete'
-    >
-      {!mobileView && lang('general.delete')}
-    </Button>
-  );
-  if (alertOnDelete) {
-    return (
-      <DeleteWarningPopover
-        trigger={deleteButton}
-        onPopoverDeleteClick={() => handlePopoverDeleteClick()}
-        placement='left'
-        onCancelClick={() => setPopoverOpen(false)}
-        deleteButtonText={langAsString('form_filler.file_uploader_delete_button_confirm')}
-        messageText={langAsString('form_filler.file_uploader_delete_warning')}
-        open={popoverOpen}
-        setOpen={setPopoverOpen}
-      />
-    );
-  } else {
-    return deleteButton;
-  }
-};

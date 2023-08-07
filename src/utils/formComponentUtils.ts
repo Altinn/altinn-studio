@@ -49,35 +49,35 @@ export function getFileUploadComponentValidations(
 }
 
 export function getFileUploadWithTagComponentValidations(
-  validationMessages: IComponentValidations | undefined,
+  componentValidations: IComponentValidations | undefined,
   validationState: Array<{ id: string; message: string }>,
-): Array<{ id: string; message: string }> {
-  const result: Array<{ id: string; message: string }> = [];
-  validationMessages = validationMessages && JSON.parse(JSON.stringify(validationMessages));
-
-  if (!validationMessages || !validationMessages.simpleBinding) {
-    validationMessages = {
+): {
+  attachmentValidationMessages: Array<{ id: string; message: string }>;
+  hasValidationMessages: boolean;
+  validationMessages: { errors: string[] };
+} {
+  let result: Array<{ id: string; message: string }> = [];
+  componentValidations = componentValidations && JSON.parse(JSON.stringify(componentValidations));
+  if (!componentValidations || !componentValidations.simpleBinding) {
+    componentValidations = {
       simpleBinding: {
         errors: [],
         warnings: [],
       },
     };
   }
-  if (
-    validationMessages.simpleBinding !== undefined &&
-    validationMessages.simpleBinding.errors &&
-    validationMessages.simpleBinding.errors.length > 0
-  ) {
-    parseFileUploadComponentWithTagValidationObject(validationMessages.simpleBinding.errors as string[]).forEach(
-      (validation) => {
-        result.push(validation);
-      },
-    );
+  if (componentValidations?.simpleBinding?.errors && componentValidations.simpleBinding.errors.length > 0) {
+    result = [...result, ...parseFileUploadComponentWithTagValidationObject(componentValidations.simpleBinding.errors)];
   }
-  validationState.forEach((validation) => {
-    result.push(validation);
-  });
-  return result;
+  result = [...result, ...validationState];
+
+  return {
+    attachmentValidationMessages: result.filter(isAttachmentError),
+    hasValidationMessages: result.some((validation) => isNotAttachmentError(validation)),
+    validationMessages: {
+      errors: result.filter(isNotAttachmentError).map((el) => el.message),
+    },
+  };
 }
 
 export const parseFileUploadComponentWithTagValidationObject = (

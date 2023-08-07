@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { getUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
-import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
-import { FileUploadWithTagComponent } from 'src/layout/FileUploadWithTag/FileUploadWithTagComponent';
+import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
+import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
+import { getUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { attachmentIsMissingTag, attachmentsValid } from 'src/utils/validation/validation';
@@ -23,7 +23,7 @@ import type { IValidationContext, IValidationObject } from 'src/utils/validation
 
 export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implements ComponentValidation {
   render(props: PropsFromGenericComponent<'FileUploadWithTag'>): JSX.Element | null {
-    return <FileUploadWithTagComponent {...props} />;
+    return <FileUploadComponent {...props} />;
   }
 
   renderDefaultValidations(): boolean {
@@ -37,7 +37,7 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implem
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUploadWithTag'>): JSX.Element | null {
-    return <AttachmentWithTagSummaryComponent targetNode={targetNode} />;
+    return <AttachmentSummaryComponent targetNode={targetNode} />;
   }
 
   canRenderInTable(): boolean {

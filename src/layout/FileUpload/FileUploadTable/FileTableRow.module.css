@@ -1,20 +1,19 @@
-.fileStatus {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
 .deleteLoader {
   margin-bottom: 1rem;
   margin-right: 0.5rem;
   float: right;
 }
 
-.deleteButton {
+.button {
   float: right;
   padding-right: 0;
 }
 
 tr.blueUnderlineDotted td {
   border-bottom: 1px dotted #1eadf7;
+}
+
+.altinnLoader {
+  margin-bottom: 1rem;
+  margin-right: 0.8125rem;
 }

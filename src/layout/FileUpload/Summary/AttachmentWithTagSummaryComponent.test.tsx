@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
+import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { renderWithProviders } from 'src/testUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
@@ -21,7 +21,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
     optionsId: 'a',
     mapping: { a: 'b' },
     maxFileSizeInMB: 15,
-    displayMode: 'simple',
+    displayMode: 'list',
     maxNumberOfAttachments: 12,
     minNumberOfAttachments: 0,
   };
@@ -138,7 +138,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
   const renderHelper = (options: ExprUnresolved<ILayoutCompFileUploadWithTag>, extendState?: Partial<RootState>) => {
     function Wrapper() {
       const node = useResolvedNode('FileUploadWithTag') as LayoutNodeFromType<'FileUploadWithTag'>;
-      return <AttachmentWithTagSummaryComponent targetNode={node} />;
+      return <AttachmentSummaryComponent targetNode={node} />;
     }
 
     renderWithProviders(<Wrapper />, {

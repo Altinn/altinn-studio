@@ -1,0 +1,50 @@
+.table {
+  word-break: break-word;
+  text-overflow: ellipsis;
+}
+
+.table,
+.tableMobile {
+  width: 100%;
+  table-layout: fixed;
+  margin-top: 1.5rem;
+  margin-bottom: 12px;
+  box-shadow: none;
+  border-spacing: 0;
+}
+
+.tableMobile tbody tr td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fullGrid {
+  grid-column: 1 / -1;
+}
+
+.tableBody tr td {
+  padding: 10px 4px 10px 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-weight: 400;
+  font-size: 1rem;
+  border-bottom: 1px dotted var(--border-color-primary);
+  color: #000;
+}
+.editButton {
+  float: right;
+  padding-right: 0;
+}
+
+.fileStatus {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.blueUnderline th {
+  border-bottom: var(--solid-border-primary);
+  font-size: 0.875rem;
+  padding: 4px 4px 4px 6px;
+}

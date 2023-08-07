@@ -163,7 +163,7 @@ export class AppFrontend {
     deleteAttachment: '[data-testid^="attachment-delete"]',
     popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
-    uploadedTable: '#altinn-file-listfileUpload-changename',
+    uploadedTable: '#file-upload-table',
     downloadAttachment: '[data-testid="attachment-download"]',
     uploadSuccess: '[data-testid="checkmark-success"]',
     uploadDropZone: '#altinn-drop-zone-fileUpload-changename',
@@ -293,11 +293,12 @@ export function makeUploaderSelectors<T extends Type>(
 ) {
   const tableSelector =
     type === 'tagged'
-      ? `#form-content-${id}-${row} div[data-testid=tagFile] > div > table`
+      ? `#form-content-${id}-${row} [data-testid=tagFile]`
       : `#altinn-fileuploader-${id}-${row} [data-testid="file-upload-table"]`;
   const statusIdx = type === 'tagged' ? 4 : 3;
 
   return {
+    fileUploader: `#altinn-fileuploader-${id}-${row}`,
     stateKey: `${id}-${row}`,
     dropZoneContainer: `#altinn-drop-zone-${id}-${row}`,
     dropZone: `#altinn-drop-zone-${id}-${row} input[type=file]`,

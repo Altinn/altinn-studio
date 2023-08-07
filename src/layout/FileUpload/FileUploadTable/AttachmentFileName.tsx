@@ -2,7 +2,7 @@ import React from 'react';
 
 import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from '@navikt/aksel-icons';
 
-import classes from 'src/layout/FileUpload/shared/AttachmentFileName.module.css';
+import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
 import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
 import { dataElementUrl } from 'src/utils/urls/appUrlHelper';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
