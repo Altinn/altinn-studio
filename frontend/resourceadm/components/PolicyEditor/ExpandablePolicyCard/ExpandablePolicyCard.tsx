@@ -7,7 +7,7 @@ import {
   ErrorMessage,
   Select,
 } from '@digdir/design-system-react';
-import { ExclamationmarkTriangleFillIcon, PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
   PolicyActionType,
@@ -15,11 +15,11 @@ import {
   PolicyRuleResourceType,
   PolicySubjectType,
 } from 'resourceadm/types/global';
-import { PolicyRuleSubjectListItem } from '../PolicyRuleSubjectListItem';
-import { ResourceNarrowingList } from '../ResourceNarrowingList';
-import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
+import { PolicyRuleSubjectListItem } from './PolicyRuleSubjectListItem';
+import { ResourceNarrowingList } from './ResourceNarrowingList';
+import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { PolicyRuleActionElement } from '../PolicyRuleActionElement';
+import { PolicyRuleActionElement } from './PolicyRuleActionElement';
 
 interface Props {
   policyRule: PolicyRuleCardType;
@@ -347,75 +347,69 @@ export const ExpandablePolicyCard = ({
   };
 
   return (
-    <div className={classes.wrapper}>
-      <div className={classes.cardWrapper}>
-        <ExpandablePolicyElement
-          title={`Regel ${getPolicyRuleId()}`}
-          isCard
-          handleDuplicateElement={handleDuplicateRule}
-          handleRemoveElement={handleDeleteRule}
-        >
-          <Label className={classes.label} size='small'>
-            Hvilken sub-ressurser skal regelen gjelde for?
-          </Label>
-          {displayResources}
-          <div className={classes.addResourceButton}>
-            <Button
-              type='button'
-              onClick={handleClickAddResource}
-              color='secondary'
-              fullWidth
-              icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
-            >
-              Legg til en sub-ressurs
-            </Button>
-          </div>
-          {showErrors &&
-            hasResourceError &&
-            displayWarningCard('Du må legge til minimum en sub-ressurs.')}
-          <Label className={classes.label} size='small'>
-            Hvilke rettigheter skal gis?
-          </Label>
-          <Paragraph size='xsmall' short>
-            Velg minimum ett alternativ fra listen under
-          </Paragraph>
-          <div className={classes.chipWrapper}>{displayActions}</div>
-          {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
-          <Label className={classes.label} size='small'>
-            Hvem skal ha disse rettighetene?
-          </Label>
-          <div className={classes.dropdownWrapper}>
-            <Select
-              options={subjectOptions}
-              onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
-              disabled={subjectOptions.length === 0}
-              label={subjectOptions.length === 0 ? 'Alle roller er valgt' : 'Legg til rolle'}
-              error={showErrors && hasSubjectsError}
-            />
-          </div>
-          {displaySubjects}
-          {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
-          <Label className={classes.label} size='small'>
-            Legg til en beskrivelse av regelen
-          </Label>
-          <div className={classes.textAreaWrapper}>
-            <TextArea
-              resize='vertical'
-              placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
-              value={policyRule.description}
-              onChange={(e) => handleChangeDescription(e.currentTarget.value)}
-              rows={5}
-              aria-labelledby='ruleDescription'
-            />
-            <ScreenReaderSpan id='ruleDescription' label='Beskrivelse ac regelen' />
-          </div>
-        </ExpandablePolicyElement>
-      </div>
-      {showErrors && getHasRuleError() && (
-        <div className={classes.ruleWarning}>
-          <ExclamationmarkTriangleFillIcon title='The rule has a warning' fontSize='2rem' />
+    <div className={classes.cardWrapper}>
+      <ExpandablePolicyElement
+        title={`Regel ${getPolicyRuleId()}`}
+        isCard
+        handleDuplicateElement={handleDuplicateRule}
+        handleRemoveElement={handleDeleteRule}
+        hasError={showErrors && getHasRuleError()}
+      >
+        <Label className={classes.label} size='small'>
+          Hvilken sub-ressurser skal regelen gjelde for?
+        </Label>
+        {displayResources}
+        <div className={classes.addResourceButton}>
+          <Button
+            type='button'
+            onClick={handleClickAddResource}
+            color='secondary'
+            fullWidth
+            icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+          >
+            Legg til en sub-ressurs
+          </Button>
         </div>
-      )}
+        {showErrors &&
+          hasResourceError &&
+          displayWarningCard('Du må legge til minimum en sub-ressurs.')}
+        <Label className={classes.label} size='small'>
+          Hvilke rettigheter skal gis?
+        </Label>
+        <Paragraph size='xsmall' short>
+          Velg minimum ett alternativ fra listen under
+        </Paragraph>
+        <div className={classes.chipWrapper}>{displayActions}</div>
+        {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
+        <Label className={classes.label} size='small'>
+          Hvem skal ha disse rettighetene?
+        </Label>
+        <div className={classes.dropdownWrapper}>
+          <Select
+            options={subjectOptions}
+            onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
+            disabled={subjectOptions.length === 0}
+            label={subjectOptions.length === 0 ? 'Alle roller er valgt' : 'Legg til rolle'}
+            error={showErrors && hasSubjectsError}
+          />
+        </div>
+        {displaySubjects}
+        {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
+        <Label className={classes.label} size='small'>
+          Legg til en beskrivelse av regelen
+        </Label>
+        <div className={classes.textAreaWrapper}>
+          <TextArea
+            resize='vertical'
+            placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
+            value={policyRule.description}
+            onChange={(e) => handleChangeDescription(e.currentTarget.value)}
+            rows={5}
+            aria-labelledby='ruleDescription'
+          />
+          <ScreenReaderSpan id='ruleDescription' label='Beskrivelse ac regelen' />
+        </div>
+      </ExpandablePolicyElement>
     </div>
   );
 };

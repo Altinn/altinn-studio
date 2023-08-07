@@ -95,38 +95,40 @@ export const ResourcePage = () => {
    * Navigates to the selected page
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
-    await refetchResource();
+    if (currentPage !== page) {
+      await refetchResource();
 
-    // Validate Resource and display errors + modal
-    if (currentPage === 'about') {
-      const data = await refetchValidateResource();
-      const validationStatus = data?.data?.status ?? null;
+      // Validate Resource and display errors + modal
+      if (currentPage === 'about') {
+        const data = await refetchValidateResource();
+        const validationStatus = data?.data?.status ?? null;
 
-      if (validationStatus === 200) {
-        setShowResourceErrors(false);
-        handleNavigation(page);
-      } else {
-        setShowResourceErrors(true);
-        setNextPage(page);
-        setResourceErrorModalOpen(true);
+        if (validationStatus === 200) {
+          setShowResourceErrors(false);
+          handleNavigation(page);
+        } else {
+          setShowResourceErrors(true);
+          setNextPage(page);
+          setResourceErrorModalOpen(true);
+        }
       }
-    }
-    // Validate Ppolicy and display errors + modal
-    else if (currentPage === 'policy') {
-      const data = await refetchValidatePolicy();
-      const validationStatus = data?.data?.status ?? null;
+      // Validate Ppolicy and display errors + modal
+      else if (currentPage === 'policy') {
+        const data = await refetchValidatePolicy();
+        const validationStatus = data?.data?.status ?? null;
 
-      if (validationStatus === 200) {
-        setShowPolicyErrors(false);
-        handleNavigation(page);
-      } else {
-        setShowPolicyErrors(true);
-        setNextPage(page);
-        setPolicyErrorModalOpen(true);
+        if (validationStatus === 200) {
+          setShowPolicyErrors(false);
+          handleNavigation(page);
+        } else {
+          setShowPolicyErrors(true);
+          setNextPage(page);
+          setPolicyErrorModalOpen(true);
+        }
       }
+      // Else navigate
+      else handleNavigation(page);
     }
-    // Else navigate
-    else handleNavigation(page);
   };
 
   /**
@@ -229,7 +231,7 @@ export const ResourcePage = () => {
           isOpen={policyErrorModalOpen}
           onClose={() => setPolicyErrorModalOpen(false)}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i policy'
+          title='Manglende informasjon i tilgangsregler'
         />
       )}
       {resourceErrorModalOpen && (

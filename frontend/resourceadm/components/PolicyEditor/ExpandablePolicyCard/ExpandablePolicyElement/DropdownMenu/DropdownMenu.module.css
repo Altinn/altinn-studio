@@ -33,8 +33,8 @@
   border: none;
   background-color: transparent;
   cursor: pointer;
-  border-top: 1px solid #000000;
-  color: #E23B53;
+  border-top: 1px solid var(--fds-semantic-border-neutral-default);
+  color: var(--fds-semantic-text-danger-default);
 }
 
 .dropdownDuplicateButton:hover, .dropdownDeleteButton:hover {

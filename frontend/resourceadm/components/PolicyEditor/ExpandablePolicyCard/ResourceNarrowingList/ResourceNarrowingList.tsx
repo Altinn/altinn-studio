@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceNarrowingList.module.css';
-import { PolicyResourceFields } from '../PolicyResourceFields';
+import { PolicyResourceFields } from './PolicyResourceFields';
 import { PolicyRuleResourceType } from 'resourceadm/types/global';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';

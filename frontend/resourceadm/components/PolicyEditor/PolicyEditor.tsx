@@ -95,7 +95,9 @@ export const PolicyEditor = ({
    * updates the store of the next rule id
    */
   const getRuleId = () => {
-    const currentRuleId = lastRuleId;
+    const idTaken: boolean = policyRules.map((p) => p.ruleId).includes(lastRuleId.toString());
+
+    const currentRuleId = idTaken ? lastRuleId + 1 : lastRuleId;
     setLastRuleId(currentRuleId + 1);
     return currentRuleId;
   };

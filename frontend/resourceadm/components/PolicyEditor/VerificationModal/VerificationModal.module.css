@@ -11,7 +11,7 @@
 }
 
 .contentDivider {
-  border: solid 1px #D6D6D6;
+  border: solid 1px var(--fds-semantic-border-neutral-divider);
   margin-block: 25px;
 }
 

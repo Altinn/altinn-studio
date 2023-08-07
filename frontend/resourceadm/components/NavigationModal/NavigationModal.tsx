@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './NavigationModal.module.css';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 
 interface Props {
@@ -22,10 +22,10 @@ export const NavigationModal = ({ isOpen, onClose, onNavigate, title }: Props) =
   // TODO - translation
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <p className={classes.text}>
+      <Paragraph size='small'>
         Noen felt på siden har manglende informasjon eller feil i utfylling. Du kan endre eller
         fikse informasjonen når som helst før ressursen publiseres.
-      </p>
+      </Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
           <Button onClick={onClose} color='primary' variant='quiet'>

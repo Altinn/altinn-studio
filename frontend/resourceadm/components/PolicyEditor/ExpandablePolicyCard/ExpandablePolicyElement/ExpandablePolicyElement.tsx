@@ -10,6 +10,7 @@ interface Props {
   isCard?: boolean;
   handleRemoveElement: () => void;
   handleDuplicateElement: () => void;
+  hasError?: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ export const ExpandablePolicyElement = ({
   isCard = true,
   handleRemoveElement,
   handleDuplicateElement,
+  hasError = false,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -36,9 +38,23 @@ export const ExpandablePolicyElement = ({
     setIsDropdownOpen((prev) => !prev);
   };
 
+  const getElementClassName = () => {
+    if (isCard) {
+      if (hasError) return `${classes.cardErrorWrapper}`;
+      return classes.cardWrapper;
+    }
+    return classes.elementWrapper;
+  };
+
+  const getTopWrapperErrorClassName = () => {
+    if (isCard && hasError) {
+      return `${classes.topWrapperError} ${isOpen && classes.topWrapperErrorOpen}`;
+    }
+  };
+
   return (
-    <div className={isCard ? classes.cardWrapper : classes.elementWrapper}>
-      <div className={classes.topWrapper}>
+    <div className={getElementClassName()}>
+      <div className={`${classes.topWrapper} ${getTopWrapperErrorClassName()}`}>
         <button
           className={isCard ? classes.cardExpandButton : classes.elementExpandButton}
           onClick={() => setIsOpen((prev) => !prev)}
