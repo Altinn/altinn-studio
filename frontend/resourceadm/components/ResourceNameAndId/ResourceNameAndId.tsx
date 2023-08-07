@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceNameAndId.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon, XMarkOctagonIcon } from '@navikt/aksel-icons';
+import { Button, TextField, ErrorMessage } from '@digdir/design-system-react';
+import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 
 interface Props {
   isEditOpen: boolean;
@@ -9,8 +9,9 @@ interface Props {
   id: string;
   handleEditTitle: (s: string) => void;
   handleIdInput: (s: string) => void;
-  handleClickEditButton: () => void;
+  handleClickEditButton: (isSave: boolean) => void;
   resourceIdExists: boolean;
+  titleAndIdSame: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ interface Props {
  * @param props.handleEditId function to handle the editing of the id
  * @param props.handleClickEditButton function to be executed when edit button is clicked
  * @param props.resourceIdExists flag for id the ID already exists
+ * @param props.titleAndIdSame flag for if ID and title has same display value
  */
 export const ResourceNameAndId = ({
   isEditOpen,
@@ -33,6 +35,7 @@ export const ResourceNameAndId = ({
   handleIdInput,
   handleClickEditButton,
   resourceIdExists,
+  titleAndIdSame,
 }: Props) => {
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
@@ -53,6 +56,8 @@ export const ResourceNameAndId = ({
    */
   const getIdToDisplay = (): string => {
     if (isEditOpen) {
+      return formatString(id);
+    } else if (!titleAndIdSame) {
       return formatString(id);
     } else {
       return formatString(title);
@@ -82,14 +87,22 @@ export const ResourceNameAndId = ({
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
                 aria-label='Ressurs id'
-                // TODO - Potentially show error if ID exists
+                isValid={!resourceIdExists}
               />
             </div>
-            <div className={classes.stopEditingButton}>
+            <div className={classes.buttonWrapper}>
+              <div className={classes.stopEditingButton}>
+                <Button
+                  onClick={() => handleClickEditButton(false)}
+                  variant='quiet'
+                  color='danger'
+                  icon={<MultiplyIcon title='Slett ny ressurs id' />}
+                />
+              </div>
               <Button
-                onClick={handleClickEditButton}
+                onClick={() => handleClickEditButton(true)}
                 variant='quiet'
-                icon={<MultiplyIcon title='Slutt å endre ressurs id' />}
+                icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
               />
             </div>
           </>
@@ -104,7 +117,7 @@ export const ResourceNameAndId = ({
             </p>
             <div className={classes.editButtonWrapper}>
               <Button
-                onClick={handleClickEditButton}
+                onClick={() => handleClickEditButton(false)}
                 iconPlacement='right'
                 icon={<PencilWritingIcon title='Endre ressurs id' />}
                 variant='quiet'
@@ -118,16 +131,7 @@ export const ResourceNameAndId = ({
       </div>
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <>
-            <XMarkOctagonIcon
-              title='Ressurs med valgt id eksisterer allerede.'
-              fontSize='1.5rem'
-              color='red'
-            />
-            <p className={`${classes.errorText} ${classes.text}`}>
-              Ressurs med valgt id eksisterer allerede.
-            </p>
-          </>
+          <ErrorMessage size='small'>Ressurs med valgt id eksisterer allerede.</ErrorMessage>
         )}
       </div>
     </>

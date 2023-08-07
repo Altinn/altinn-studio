@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner } from '@digdir/design-system-react';
 import { PlusCircleIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { NewResourceType, ResourceType } from 'resourceadm/types/global';
+import { ResourceType } from 'resourceadm/types/global';
 import { useGetResourceListQuery, useRepoStatusQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModal';
 
 /**
  * Displays the page for the resource dashboard
  */
 export const ResourceDashboardPage = () => {
-  const navigate = useNavigate();
-
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -28,15 +24,10 @@ export const ResourceDashboardPage = () => {
   const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
   const [migrateModalOpen, setMigrateModalOpen] = useState(false);
 
-  const [resourceIdExists, setResourceIdExists] = useState(false);
-
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
   const { data: resourceListData, isLoading: resourceListLoading } =
     useGetResourceListQuery(selectedContext);
-
-  // Mutation function to create new resource
-  const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
 
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
@@ -62,7 +53,7 @@ export const ResourceDashboardPage = () => {
   /**
    * Creates a new resource in backend, and navigates if success
    */
-  const handleCreateNewResource = (id: string, title: string) => {
+  /* const handleCreateNewResource = (id: string, title: string) => {
     const idAndTitle: NewResourceType = {
       identifier: id,
       title: {
@@ -82,7 +73,7 @@ export const ResourceDashboardPage = () => {
         }
       },
     });
-  };
+  };*/
 
   /**
    * Display different content based on the loading state
@@ -151,17 +142,8 @@ export const ResourceDashboardPage = () => {
       <NewResourceModal
         isOpen={newResourceModalOpen}
         onClose={() => setNewResourceModalOpen(false)}
-        onCreateNewResource={handleCreateNewResource}
-        resourceIdExists={resourceIdExists}
       />
-      <MigrateResourceModal
-        isOpen={migrateModalOpen}
-        onClose={() => setMigrateModalOpen(false)}
-        onPlanMigrate={() => {
-          console.log('Migrating... Coming soon');
-        }} // TODO when connected with API calls
-        resourceIdExists={resourceIdExists}
-      />
+      <MigrateResourceModal isOpen={migrateModalOpen} onClose={() => setMigrateModalOpen(false)} />
     </div>
   );
 };

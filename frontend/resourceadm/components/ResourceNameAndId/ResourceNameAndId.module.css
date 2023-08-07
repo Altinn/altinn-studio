@@ -45,6 +45,10 @@ p, h2 {
   height: 40px;
 }
 
+.buttonWrapper {
+  display: flex;
+}
+
 .stopEditingButton {
   margin-left: 10px;
 }
@@ -53,8 +57,4 @@ p, h2 {
   display: flex;
   align-items: center;
   height: 40px;
-}
-
-.errorText {
-  margin-left: 5px;
 }

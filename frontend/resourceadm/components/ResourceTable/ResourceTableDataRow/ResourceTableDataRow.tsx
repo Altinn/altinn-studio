@@ -37,7 +37,6 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
         <p className={classes.tableDataText}>{resource.lastChanged}</p>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
-        {/*<ResourceTableDataChip hasPolicy={resource.hasPolicy} />*/}
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined'>
           {resource.hasPolicy ? 'Har policy' : 'Mangler policy'}
         </Tag>
