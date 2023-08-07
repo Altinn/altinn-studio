@@ -7,7 +7,6 @@ import {
 } from '../features/editor/schemaEditorSlice';
 import { TopToolbar } from './TopToolbar/TopToolbar';
 import { LandingPagePanel } from '@altinn/schema-editor/components/LandingPagePanel';
-import { getLocalStorageItem, setLocalStorageItem } from '@altinn/schema-editor/utils/localStorage';
 import { SelectedSchemaEditor } from '@altinn/schema-editor/components/SelectedSchemaEditor';
 import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
 import { SelectedSchemaContext } from '@altinn/schema-editor/contexts/SelectedSchemaContext';
@@ -31,8 +30,6 @@ export const SchemaEditor = ({ createPathOption, displayLandingPage }: IEditorPr
   const dispatch = useDispatch();
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
-  const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
-  const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
 
   const uploadedOrCreatedFileName = useRef(null);
 
@@ -51,11 +48,9 @@ export const SchemaEditor = ({ createPathOption, displayLandingPage }: IEditorPr
       <TopToolbar
         createNewOpen={createNewOpen}
         createPathOption={createPathOption}
-        editMode={editMode}
         selectedOption={selectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
-        toggleEditMode={modelPath ? toggleEditMode : undefined}
         uploadedOrCreatedFileName={uploadedOrCreatedFileName}
       />
       <main className={classes.main}>
@@ -67,7 +62,7 @@ export const SchemaEditor = ({ createPathOption, displayLandingPage }: IEditorPr
         )}
         {modelPath && (
           <SelectedSchemaContext.Provider value={{ modelPath }}>
-            <SelectedSchemaEditor isEditMode={editMode}/>
+            <SelectedSchemaEditor/>
           </SelectedSchemaContext.Provider>
         )}
       </main>

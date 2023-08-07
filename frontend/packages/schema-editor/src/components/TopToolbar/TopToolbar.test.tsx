@@ -17,7 +17,7 @@ const user = userEvent.setup();
 
 // Test data:
 const closeText = 'Close';
-const editText = 'Edit'
+const editText = 'Edit';
 const generateText = 'Generate';
 const savedText = 'Saved';
 const savingText = 'Saving';
@@ -28,18 +28,15 @@ const texts = {
   'schema_editor.edit_mode': editText,
   'schema_editor.generate_model_files': generateText,
 };
-const toggleEditMode = jest.fn();
 const setCreateNewOpen = jest.fn();
 const setSelectedOption = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const uploadedOrCreatedFileName: MutableRefObject<string | null> = { current: null };
 const defaultProps: TopToolbarProps = {
   createNewOpen: false,
-  editMode: true,
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
-  toggleEditMode,
   uploadedOrCreatedFileName,
 };
 const org = 'org';
@@ -66,7 +63,7 @@ const renderToolbar = (
     selectedSchemaProps: appContextProps,
     queryClient,
   })(<TopToolbar {...defaultProps} {...props} />);
-}
+};
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
@@ -88,16 +85,6 @@ describe('TopToolbar', () => {
     expect(generateButton).toBeDefined();
     await act(() => user.click(generateButton));
     expect(generateModels).toHaveBeenCalledTimes(1);
-  });
-
-  it('handles a click on the toggle edit mode button', async () => {
-    renderToolbar();
-    const topToolbar = screen.getByRole('toolbar');
-    expect(topToolbar).toBeDefined();
-    const toggleEditModeButton = screen.getByText(editText);
-    expect(toggleEditModeButton).toBeDefined();
-    await act(() => user.click(toggleEditModeButton));
-    expect(toggleEditMode).toHaveBeenCalledTimes(1);
   });
 
   it('Does not show any error by default', () => {

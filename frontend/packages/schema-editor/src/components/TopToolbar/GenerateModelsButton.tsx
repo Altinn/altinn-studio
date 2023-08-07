@@ -9,11 +9,7 @@ import { usePrevious } from 'app-shared/hooks/usePrevious';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useTranslation } from 'react-i18next';
 
-export interface GenerateModelsButtonProps {
-  isEditMode: boolean;
-}
-
-export const GenerateModelsButton = ({ isEditMode }: GenerateModelsButtonProps) => {
+export const GenerateModelsButton = () => {
   const { data } = useDatamodelQuery();
   const { mutate, isLoading, error, isSuccess } = useGenerateModelsMutation();
   const { t } = useTranslation();
@@ -51,7 +47,6 @@ export const GenerateModelsButton = ({ isEditMode }: GenerateModelsButtonProps) 
               id='save-model-button'
               data-testid='save-model-button'
               onClick={handleGenerateButtonClick}
-              disabled={!isEditMode}
               icon={<CogIcon />}
               variant={ButtonVariant.Quiet}
             >

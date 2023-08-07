@@ -9,13 +9,15 @@
 }
 
 .backButton {
+  display: flex;
+  align-items: center;
   border: none;
   background-color: transparent;
   cursor: pointer;
   border-bottom: 2px solid #A0A0A0;
   width: 100%;
   padding-block: 20px;
-  padding-left: 20px;
+  padding-left: 15px;
 }
 
 .buttonText {

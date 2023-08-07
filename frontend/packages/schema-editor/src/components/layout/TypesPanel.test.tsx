@@ -29,7 +29,7 @@ queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const render = (props?: Partial<TypesPanelProps>, editMode?: boolean) => {
+const render = (props?: Partial<TypesPanelProps>) => {
   const mockInitialState: SchemaState = {
     name: 'test',
     selectedDefinitionNodeId: '',
@@ -51,7 +51,6 @@ const render = (props?: Partial<TypesPanelProps>, editMode?: boolean) => {
       pointer: '#/$defs/TestType',
       restrictions: {},
     },
-    editMode: editMode === undefined ? true : editMode,
     expandedDefNodes: [],
     setExpandedDefNodes: () => {},
   };

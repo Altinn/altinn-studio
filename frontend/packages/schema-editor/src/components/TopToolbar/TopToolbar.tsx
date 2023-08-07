@@ -1,7 +1,5 @@
 import React, { MutableRefObject, useEffect, useRef } from 'react';
 import classes from './TopToolbar.module.css';
-import { useTranslation } from 'react-i18next';
-import { ToggleButtonGroup } from '@digdir/design-system-react';
 import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
 import { useCreateDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { CreateNewWrapper } from './CreateNewWrapper';
@@ -23,11 +21,9 @@ import { removeExtension } from 'app-shared/utils/filenameUtils';
 export interface TopToolbarProps {
   createNewOpen: boolean;
   createPathOption?: boolean;
-  editMode: boolean;
   selectedOption?: MetadataOption;
   setCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
-  toggleEditMode?: (e: any) => void;
   uploadedOrCreatedFileName: MutableRefObject<string | null>;
 }
 
@@ -49,14 +45,11 @@ export const shouldSelectFirstEntry = ({
 export function TopToolbar({
   createNewOpen,
   createPathOption,
-  editMode,
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
-  toggleEditMode,
   uploadedOrCreatedFileName,
 }: TopToolbarProps) {
-  const { t } = useTranslation();
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
   const { org, app } = useParams<{ org: string; app: string }>();
 
@@ -137,22 +130,10 @@ export function TopToolbar({
         <div className={classes.generateButtonWrapper}>
           {modelPath && (
             <SelectedSchemaContext.Provider value={{ modelPath }}>
-              <GenerateModelsButton isEditMode={editMode}/>
+              <GenerateModelsButton/>
             </SelectedSchemaContext.Provider>
           )}
         </div>
-        {toggleEditMode && (
-          <div className={classes.toggleButtonGroupWrapper}>
-            <ToggleButtonGroup
-              selectedValue={editMode ? 'edit' : 'view'}
-              onChange={toggleEditMode}
-              items={[
-                { value: 'view', label: t('schema_editor.view_mode') },
-                { value: 'edit', label: t('schema_editor.edit_mode') },
-              ]}
-            />
-          </div>
-        )}
       </div>
     </section>
   );

@@ -67,3 +67,12 @@
 .greenDot {
   color: green;
 }
+
+.popover {
+  position: fixed!important;
+  max-width: 25rem;
+}
+
+.popoverInfo {
+  font-style: italic;
+}

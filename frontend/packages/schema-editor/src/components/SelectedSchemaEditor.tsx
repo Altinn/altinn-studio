@@ -28,11 +28,7 @@ import {
 } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 import { useParentSchemaSelector, useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 
-export type SelectedSchemaEditorProps = {
-  isEditMode: boolean;
-}
-
-export function SelectedSchemaEditor({ isEditMode }: SelectedSchemaEditorProps) {
+export function SelectedSchemaEditor() {
   const { status, error, data } = useDatamodelQuery();
   const { t } = useTranslation();
 
@@ -52,16 +48,15 @@ export function SelectedSchemaEditor({ isEditMode }: SelectedSchemaEditorProps) 
       );
 
     case 'success':
-      return <SelectedSchemaEditorContent datamodel={data} isEditMode={isEditMode}/>;
+      return <SelectedSchemaEditorContent datamodel={data}/>;
   }
 }
 
 type SelectedSchemaEditorContentProps = {
   datamodel: UiSchemaNodes;
-  isEditMode: boolean;
 }
 
-const SelectedSchemaEditorContent = ({ datamodel, isEditMode }: SelectedSchemaEditorContentProps) => {
+const SelectedSchemaEditorContent = ({ datamodel }: SelectedSchemaEditorContentProps) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
@@ -152,7 +147,6 @@ const SelectedSchemaEditorContent = ({ datamodel, isEditMode }: SelectedSchemaEd
             />
           </div>
           <TypesPanel
-            editMode={isEditMode}
             uiSchemaNode={selectedType}
             setExpandedDefNodes={setExpandedDefNodes}
             expandedDefNodes={
@@ -165,18 +159,15 @@ const SelectedSchemaEditorContent = ({ datamodel, isEditMode }: SelectedSchemaEd
       ) : (
         <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
           <ModelsPanel
-            editMode={isEditMode}
             setExpandedPropNodes={setExpandedPropNodes}
             expandedPropNodes={expandedPropNodes}
             properties={properties}
           />
         </div>
       )}
-      {isEditMode && (
-        <aside className={classes.inspector}>
-          <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
-        </aside>
-      )}
+      <aside className={classes.inspector}>
+        <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
+      </aside>
     </>
   );
 }

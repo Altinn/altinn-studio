@@ -38,9 +38,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
 
   const layout = layouts?.[layoutName];
 
-  if (!layout) return null;
-
-  const { order, containers, components } = layout;
+  const { order, containers, components } = layout || {};
 
   const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
 
@@ -123,11 +121,12 @@ export const DesignView = ({ className }: DesignViewProps) => {
       className={className}
       onClick={(event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        handleEdit(null)
+        if (formId) handleEdit(null)
       }}
+      data-testid="designViewContainer"
     >
       <h1 className={classes.pageHeader}>{layoutName}</h1>
-      {renderContainer(BASE_CONTAINER_ID, true)}
+      {layout && renderContainer(BASE_CONTAINER_ID, true)}
     </div>
   );
 };

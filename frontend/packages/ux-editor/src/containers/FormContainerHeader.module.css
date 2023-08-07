@@ -44,3 +44,7 @@
 .emptyContainerText {
   padding: 0 var(--margin-horizontal);
 }
+
+.deletGroupMessage {
+  color: black;
+}

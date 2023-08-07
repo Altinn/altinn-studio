@@ -6,18 +6,29 @@ import { FieldType } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import {
+  parentNodeMock,
+  toggableNodeMock,
+  uiSchemaNodesMock
+} from '../../../test/mocks/uiSchemaMock';
+import { SchemaState } from '@altinn/schema-editor/types';
 
 const user = userEvent.setup();
 
 // Test data:
+const org = 'org';
+const app = 'app';
+const modelPath = 'test';
+const saveDatamodel = jest.fn();
 const textDeleteField = 'Slett felt';
 const textFieldName = 'Navn på felt';
 const textRequired = 'Påkrevd';
 const textType = 'Type';
-const fullPath = 'test';
+const fullPath = parentNodeMock.pointer;
 const inputId = 'some-random-id';
 const type = FieldType.String;
-const value = '';
 const fieldTypeNames = {
   [FieldType.Boolean]: 'Ja/nei',
   [FieldType.Integer]: 'Helt tall',
@@ -40,29 +51,40 @@ const defaultProps: IPropertyItemProps = {
   fullPath,
   inputId,
   onChangeType: jest.fn(),
-  onChangeValue: jest.fn(),
   onDeleteField: jest.fn(),
   onEnterKeyPress: jest.fn(),
   type,
-  value,
+};
+const defaultState: Partial<SchemaState> = {
+  selectedEditorTab: 'properties',
+  selectedPropertyNodeId: parentNodeMock.pointer,
 };
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
-  renderWithProviders()(<PropertyItem {...defaultProps} {...props} />);
+const renderPropertyItem = (
+  props?: Partial<IPropertyItemProps>,
+  state: Partial<SchemaState> = {}
+) => {
+  queryClientMock.setQueryData(
+    [QueryKey.Datamodel, org, app, modelPath],
+    uiSchemaNodesMock,
+  );
+
+  return renderWithProviders({
+    state: { ...defaultState, ...state },
+    selectedSchemaProps: { modelPath },
+    servicesContextProps: { saveDatamodel },
+  })(<PropertyItem {...defaultProps} {...props} />);
+};
 
 describe('PropertyItem', () => {
+  afterEach(() => jest.clearAllMocks());
+
   test('Text input field appears', async () => {
     renderPropertyItem();
     expect(await screen.findByLabelText(textFieldName)).toBeDefined();
-  });
-
-  test('Text input field has the value given in the "value" prop', async () => {
-    const inputValue = 'Lorem ipsum';
-    renderPropertyItem({ value: inputValue });
-    expect(await screen.findByLabelText(textFieldName)).toHaveValue(inputValue);
   });
 
   test('Text input field is not disabled by default', async () => {
@@ -85,20 +107,18 @@ describe('PropertyItem', () => {
     expect(await screen.findByLabelText(textFieldName)).toHaveAccessibleName(textFieldName);
   });
 
-  test('onChangeValue is called on blur when text changes', async () => {
-    const onChangeValue = jest.fn();
-    renderPropertyItem({ onChangeValue });
+  test('Model is saved on blur when text changes', async () => {
+    renderPropertyItem({}, { selectedPropertyNodeId: toggableNodeMock.pointer });
     await act(() => user.type(screen.getByLabelText(textFieldName), 'test'));
     await act(() => user.tab());
-    expect(onChangeValue).toHaveBeenCalledTimes(1);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 
-  test('onChangeValue is not called when there is no change', async () => {
-    const onChangeValue = jest.fn();
-    renderPropertyItem({ onChangeValue });
+  test('Model is not saved when there is no change', async () => {
+    renderPropertyItem({}, { selectedPropertyNodeId: toggableNodeMock.pointer });
     await act(() => user.click(screen.getByLabelText(textFieldName)));
     await act(() => user.tab());
-    expect(onChangeValue).not.toHaveBeenCalled();
+    expect(saveDatamodel).not.toHaveBeenCalled();
   });
 
   test('onEnterKeyPress is called when the Enter key is pressed in the input field', async () => {
