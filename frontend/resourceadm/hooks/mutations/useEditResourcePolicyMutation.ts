@@ -17,8 +17,8 @@ export const useEditResourcePolicyMutation = (org: string, repo: string, id: str
   return useMutation({
     mutationFn: (payload: PolicyBackendType) => updatePolicy(org, repo, id, payload),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourcePolicy, org, repo, id] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org, id] });
     }
   })
 }

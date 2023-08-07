@@ -26,8 +26,11 @@ export const ResourceDashboardPage = () => {
 
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
-  const { data: resourceListData, isLoading: resourceListLoading } =
-    useGetResourceListQuery(selectedContext);
+  const {
+    data: resourceListData,
+    isLoading: resourceListLoading,
+    isRefetching: refetchingList,
+  } = useGetResourceListQuery(selectedContext);
 
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
@@ -54,7 +57,7 @@ export const ResourceDashboardPage = () => {
    * Display different content based on the loading state
    */
   const displayContent = () => {
-    if (resourceListLoading) {
+    if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
