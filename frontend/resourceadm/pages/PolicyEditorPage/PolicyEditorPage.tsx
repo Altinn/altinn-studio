@@ -4,7 +4,7 @@ import { PolicyBackendType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
 import { mapPolicyResultToPolicyObject } from 'resourceadm/utils/mapperUtils';
-import { Spinner } from '@digdir/design-system-react';
+import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
   useResourcePolicyActionsQuery,
@@ -86,5 +86,12 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
     );
   };
 
-  return <div className={classes.policyEditorWrapper}>{displayContent()}</div>;
+  return (
+    <div className={classes.policyEditorWrapper}>
+      <Heading size='large' spacing level={1}>
+        Tilgangsregler
+      </Heading>
+      {displayContent()}
+    </div>
+  );
 };

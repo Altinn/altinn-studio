@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
 import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
 import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
-import { Button } from '@digdir/design-system-react';
+import { Button, Heading } from '@digdir/design-system-react';
 import {
   PolicyBackendType,
   PolicyRuleCardType,
@@ -171,11 +171,7 @@ export const PolicyEditor = ({
 
   return (
     <div>
-      <div className={classes.policyEditorTop}>
-        <h1 className={classes.policyEditorHeader}>Policy editor</h1>
-      </div>
       <div className={classes.selectAuthLevelWrapper}>
-        <h2 className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</h2>
         <div className={classes.selectAuthLevel}>
           <SelectAuthLevel
             value={requiredAuthLevel}
@@ -184,18 +180,20 @@ export const PolicyEditor = ({
           />
         </div>
       </div>
-      <h2 className={classes.subHeader}>Regler for policyen</h2>
+      <Heading size='xsmall' spacing level={2} className={classes.subHeader}>
+        Regler
+      </Heading>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
       </div>
       <Button type='button' onClick={() => handleSavePolicy(policyRules)}>
-        Lagre policyen
+        Lagre tilgangsregler
       </Button>
       <VerificationModal
         isOpen={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
-        text='Er du sikker på at du vil slette denne regelen fra policyen?'
+        text='Er du sikker på at du vil slette denne regelen?'
         closeButtonText='Nei, gå tilbake'
         actionButtonText='Ja, slett regel'
         onPerformAction={() => handleDeleteRule(ruleIdToDelete)}

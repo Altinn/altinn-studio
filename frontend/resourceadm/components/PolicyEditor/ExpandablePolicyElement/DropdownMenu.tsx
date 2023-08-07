@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './DropdownMenu.module.css';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@navikt/aksel-icons';
 
 interface Props {
@@ -118,7 +118,9 @@ export const DropdownMenu = ({
             ref={firstMenuItemRef}
           >
             <TabsIcon title='Dupliser' fontSize='1.3rem' />
-            <p className={classes.dropdownItemText}>Lag kopi</p>
+            <Paragraph short size='xsmall' className={classes.dropdownItemText}>
+              Lag kopi
+            </Paragraph>
           </button>
           <button
             className={classes.dropdownDeleteButton}
@@ -127,7 +129,9 @@ export const DropdownMenu = ({
             ref={lastMenuItemRef}
           >
             <TrashIcon title='Slett' fontSize='1.3rem' />
-            <p className={classes.dropdownItemText}>Slett</p>
+            <Paragraph short size='xsmall' className={classes.dropdownItemText}>
+              Slett
+            </Paragraph>
           </button>
         </div>
       )}

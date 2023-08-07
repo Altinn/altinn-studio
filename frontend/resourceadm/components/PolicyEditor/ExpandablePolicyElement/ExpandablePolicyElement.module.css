@@ -10,11 +10,6 @@
   background-color: #F4F4F4;
 }
 
-.title {
-  font-weight: 500;
-  font-size: 16px;
-}
-
 .topWrapper {
   display: flex;
   justify-content: center;

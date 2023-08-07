@@ -1,10 +1,5 @@
 .wrapper {
-  display: flex;
-  align-items: center;
-  background-color: #F4F4F4;
-  width: fit-content;
-  border-radius: 4px;
-  margin-block: 5px;
+  margin-block: 1px;
 }
 
 .titleWrapper {

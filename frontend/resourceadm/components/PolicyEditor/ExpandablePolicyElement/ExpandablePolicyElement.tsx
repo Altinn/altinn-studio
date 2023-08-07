@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from './DropdownMenu';
+import { Label } from '@digdir/design-system-react';
 
 interface Props {
   title: string;
@@ -42,7 +43,7 @@ export const ExpandablePolicyElement = ({
           className={isCard ? classes.cardExpandButton : classes.elementExpandButton}
           onClick={() => setIsOpen((prev) => !prev)}
         >
-          <p className={classes.title}>{cardTitle}</p>
+          <Label size='small'>{cardTitle}</Label>
           {isOpen ? (
             <ChevronUpIcon title='Close the card' fontSize='1.8rem' />
           ) : (

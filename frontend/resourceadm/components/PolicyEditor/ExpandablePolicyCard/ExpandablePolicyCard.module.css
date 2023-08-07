@@ -13,29 +13,6 @@
   color: #E02E49;
 }
 
-.subHeader {
-  font-weight: 500;
-  font-size: 16px;
-  margin-bottom: 5px;
-  margin-top: 40px;
-}
-
-.subHeader:first-child {
-  margin-top: 0;
-}
-
-.text {
-  font-weight: 400;
-  font-size: 16px;
-}
-
-.smallText {
-  font-weight: 400;
-  font-size: 12px;
-  margin: 0;
-  padding: 0;
-}
-
 .chipWrapper {
   display: flex;
   margin-top: 10px;
@@ -46,7 +23,6 @@
 }
 
 .addResourceButton {
-  margin-top: 10px;
   width: 100%;
 }
 
@@ -54,7 +30,15 @@
   margin-top: 10px;
 }
 
-.chipWrapper {
-  margin: 0;
-  margin-right: 5px;
+.label {
+  margin-top: 40px;
+  margin-bottom: 5px;
+}
+
+.label:first-child {
+  margin-top: 0;
+}
+
+.dropdownWrapper {
+  margin-bottom: 10px;
 }

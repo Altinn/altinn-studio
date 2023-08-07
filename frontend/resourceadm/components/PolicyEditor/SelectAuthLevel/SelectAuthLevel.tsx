@@ -29,7 +29,6 @@ export const SelectAuthLevel = ({ value, setValue, label }: Props) => {
       onChange={(v: RequiredAuthLevelType) => setValue(v)}
       value={value}
       label={label}
-      hideLabel
     />
   );
 };
