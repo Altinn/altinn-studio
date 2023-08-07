@@ -39,7 +39,7 @@ export const Toolbar = ({
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
   const schemaName = selectedOption?.value && selectedOption?.label;
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
 
   return (
     <>
@@ -64,16 +64,16 @@ export const Toolbar = ({
         selectedOption={selectedOption}
       />
       <AltinnConfirmPopover
-        open={isPopoverOpen}
+        open={isConfirmDeleteOpen}
         confirmText={t('schema_editor.confirm_deletion')}
         onConfirm={handleDeleteSchema}
-        onCancel={() => setIsPopoverOpen(false)}
+        onClose={() => setIsConfirmDeleteOpen(false)}
         placement="bottom"
         trigger={
           <Button
             id='delete-model-button'
             disabled={disabled}
-            onClick={() => setIsPopoverOpen((prevState) => !prevState)}
+            onClick={() => setIsConfirmDeleteOpen((prevState) => !prevState)}
             color={ButtonColor.Danger}
             icon={<TrashIcon />}
             variant={ButtonVariant.Quiet}

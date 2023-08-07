@@ -49,7 +49,7 @@ export const FormComponent = memo(function FormComponent({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
 
@@ -113,6 +113,29 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
+        <AltinnConfirmPopover
+          open={isConfirmDeleteOpen}
+          confirmText={t('ux_editor.component_confirm_delete_component')}
+          onConfirm={handleDelete}
+          onClose={() => setIsConfirmDeleteOpen(false)}
+          placement="bottom"
+          trigger={
+            <Button
+              data-testid='component-delete-button'
+              color={ButtonColor.Secondary}
+              icon={<TrashIcon />}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                setIsConfirmDeleteOpen((prevState) => !prevState);
+              }}
+              tabIndex={0}
+              title={t('general.delete')}
+              variant={ButtonVariant.Quiet}
+            />
+          }
+        >
+          <p>{t('ux_editor.component_popover_confirm_delete')}</p>
+        </AltinnConfirmPopover>
         {
           isPreviewable && (
             <Button
@@ -124,29 +147,6 @@ export const FormComponent = memo(function FormComponent({
             />
           )
         }
-        <AltinnConfirmPopover
-          open={isPopoverOpen}
-          confirmText={t('ux_editor.component_confirm_delete_component')}
-          onConfirm={handleDelete}
-          onCancel={() => setIsPopoverOpen(false)}
-          placement="bottom"
-          trigger={
-            <Button
-              data-testid='component-delete-button'
-              color={ButtonColor.Secondary}
-              icon={<TrashIcon />}
-              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                event.stopPropagation();
-                setIsPopoverOpen((prevState) => !prevState);
-              }}
-              tabIndex={0}
-              title={t('general.delete')}
-              variant={ButtonVariant.Quiet}
-            />
-          }
-        >
-          <p>{t('ux_editor.component_popover_confirm_delete')}</p>
-        </AltinnConfirmPopover>
       </div>
     </div>
   );

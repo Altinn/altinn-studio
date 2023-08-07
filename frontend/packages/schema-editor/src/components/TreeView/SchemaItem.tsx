@@ -45,7 +45,7 @@ export function SchemaItem({
   const dispatch = useDispatch();
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
   const { t } = useTranslation();
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
@@ -92,19 +92,16 @@ export function SchemaItem({
               refNode={refNode}
               translate={translate}
               hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
-              openConfirmPopover={() => setIsPopoverOpen(true)}
+              openConfirmPopover={() => setIsConfirmDeleteOpen(true)}
             />
           </DndItem>
           <AltinnConfirmPopover
-            open={isPopoverOpen}
+            open={isConfirmDeleteOpen}
             confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
             onConfirm={handleDeleteClick}
-            onCancel={(event) => {
-              event.stopPropagation();
-              setIsPopoverOpen(false);
-            }}
+            onClose={() => setIsConfirmDeleteOpen(false)}
             placement='bottom'
-            className={classes.confirmPopoverContainer}
+            trigger={<div className={classes.confirmPopoverTrigger} />}
           >
             <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
             <p>{t('schema_editor.datamodel_field_deletion_info')}</p>

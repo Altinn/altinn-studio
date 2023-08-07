@@ -35,11 +35,10 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
 }: DeployDropdownProps) => {
-  const [popoverIsOpen, setPopoverIsOpen] = useState(false);
+  const [isConfirmDeployOpen, setIsConfirmDeployOpen] = useState(false);
   const { t } = useTranslation();
   const onStartDeployClick = async () => {
     await startDeploy();
-    setPopoverIsOpen(false);
   };
   return (
     <>
@@ -55,14 +54,14 @@ export const DeployDropdown = ({
       </div>
       <div className={classes.deployButton}>
         <AltinnConfirmPopover
-          open={popoverIsOpen}
+          open={isConfirmDeployOpen}
           confirmColor={ButtonColor.Primary}
           onConfirm={onStartDeployClick}
-          onCancel={() => setPopoverIsOpen(false)}
+          onClose={() => setIsConfirmDeployOpen(false)}
           trigger={
             <Button
               disabled={disabled}
-              onClick={(_) => setPopoverIsOpen(!popoverIsOpen)}
+              onClick={() => setIsConfirmDeployOpen((prevState) => !prevState)}
               id={`deploy-button-${envName.toLowerCase()}`}
             >
               {t('app_deploy_messages.btn_deploy_new_version')}

@@ -1,7 +1,3 @@
-.trigger {
-  height: 100%;
-}
-
 .popover {
   max-width: 25rem;
   padding: var(--fds-spacing-4);

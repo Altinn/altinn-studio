@@ -18,8 +18,7 @@
   border-style: dashed;
 }
 
-.confirmPopoverContainer {
-  display: flex;
-  justify-content: right;
+.confirmPopoverTrigger {
+  float: right;
   padding: 0 var(--fds-spacing-3);
 }

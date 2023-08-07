@@ -99,10 +99,6 @@ describe('FormComponent', () => {
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(0);
   });
 
-
-
-
-
   it('should edit the component when clicking on the component', async () => {
     await render();
 

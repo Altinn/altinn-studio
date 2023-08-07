@@ -43,7 +43,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
 
   useEffect(() => {
     if (name !== selectedLayout) {
@@ -67,7 +67,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
-      setIsPopoverOpen(true);
+      setIsConfirmDeleteOpen(true);
     } else if (action === 'edit') {
       setEditMode(true);
       setNewName(name);
@@ -164,10 +164,10 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           title={t('general.options')}
         />
         <AltinnConfirmPopover
-          open={isPopoverOpen}
+          open={isConfirmDeleteOpen}
           confirmText={t('left_menu.page_delete_confirm')}
           onConfirm={handleConfirmDelete}
-          onCancel={() => setIsPopoverOpen(false)}
+          onClose={() => setIsConfirmDeleteOpen(false)}
         >
           <p>{t('left_menu.page_delete_header')}</p>
           <p>{t('left_menu.page_delete_information')}</p>

@@ -14,11 +14,24 @@
 
 .dragHandle {
   cursor: move;
+}
+
+.formGroupButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.dragHandle,
+.formGroupButtons {
   visibility: hidden;
 }
 
 .editMode .dragHandle,
-.formGroup:hover .dragHandle {
+.editMode .formGroupButtons,
+.formGroup:hover .dragHandle,
+.formGroup:hover .formGroupButtons,
+.formGroupButtons:has(button[aria-expanded="true"]) {
   visibility: visible;
 }
 
@@ -27,19 +40,6 @@
   display: flex;
   align-items: center;
   flex: 1;
-}
-
-.formGroupButtons {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  visibility: hidden;
-}
-
-.editMode .formGroupButtons,
-.formGroup:hover .formGroupButtons,
-.formGroupButtons:has(button[aria-expanded="true"]) {
-  visibility: visible;
 }
 
 .emptyContainerText {

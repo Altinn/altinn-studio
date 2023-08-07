@@ -47,7 +47,7 @@ export const TextRow = ({
   const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const { t } = useTranslation();
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
@@ -76,17 +76,17 @@ export const TextRow = ({
       <TableCell>
         {showButton && (
           <AltinnConfirmPopover
-            open={isPopoverOpen}
+            open={isConfirmDeleteOpen}
             confirmText={t('schema_editor.textRow-confirm-cancel-popover')}
             onConfirm={handleDeleteClick}
-            onCancel={() => setIsPopoverOpen(false)}
+            onClose={() => setIsConfirmDeleteOpen(false)}
             placement='bottom'
             trigger={
               <Button
                 className={classes.deleteButton}
                 icon={<TrashIcon title={`Slett ${textId}`} />}
                 variant={ButtonVariant.Quiet}
-                onClick={() => setIsPopoverOpen((prevState) => !prevState)}
+                onClick={() => setIsConfirmDeleteOpen((prevState) => !prevState)}
                 aria-label={t('schema_editor.delete')}
               >
                 {t('schema_editor.delete')}

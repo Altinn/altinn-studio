@@ -36,7 +36,7 @@ export function PropertyItem({
 }: IPropertyItemProps) {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
 
   const deleteHandler = () => onDeleteField?.(fullPath);
 
@@ -95,16 +95,16 @@ export function PropertyItem({
         />
       </span>
       <AltinnConfirmPopover
-        open={isPopoverOpen}
+        open={isConfirmDeleteOpen}
         confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
         onConfirm={deleteHandler}
-        onCancel={() => setIsPopoverOpen(false)}
+        onClose={() => setIsConfirmDeleteOpen(false)}
         placement='bottom'
         trigger={
           <IconButton
             ariaLabel={t('schema_editor.delete_field')}
             icon={IconImage.Wastebucket}
-            onClick={() => setIsPopoverOpen(true)}
+            onClick={() => setIsConfirmDeleteOpen(true)}
           />
         }
       >

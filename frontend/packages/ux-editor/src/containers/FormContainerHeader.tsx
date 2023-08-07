@@ -27,7 +27,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   dragHandleRef,
 } : IFormContainerHeaderProps) {
   const { t } = useTranslation();
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
 
   return (
     <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
@@ -45,10 +45,10 @@ export const FormContainerHeader = memo(function FormContainerHeader({
       </div>
       <div className={classes.formGroupButtons}>
         <AltinnConfirmPopover
-          open={isPopoverOpen}
+          open={isConfirmDeleteOpen}
           confirmText={t('ux_editor.component_confirm_delete_component')}
           onConfirm={handleDelete}
-          onCancel={() => setIsPopoverOpen(false)}
+          onClose={() => setIsConfirmDeleteOpen(false)}
           placement='bottom'
           trigger={
             <Button
@@ -57,7 +57,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
               title={t('general.delete')}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
-                setIsPopoverOpen((prevState) => !prevState);
+                setIsConfirmDeleteOpen((prevState) => !prevState);
               }}
               variant={ButtonVariant.Quiet}
             />
