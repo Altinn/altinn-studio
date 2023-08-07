@@ -64,7 +64,11 @@ export const ResourceDashboardPage = () => {
       return (
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          <h2 className={classes.subheader}>{`Alle ressurser (${resourceListData.length})`}</h2>
+          <div style={{ width: '100%' }}>
+            <Heading size='xsmall' level={2}>
+              {`Alle ressurser (${resourceListData.length})`}
+            </Heading>
+          </div>
           <ResourceTable list={filteredTableData(resourceListData)} />
           {filteredTableData(resourceListData).length === 0 && (
             <p className={classes.noResultText}>

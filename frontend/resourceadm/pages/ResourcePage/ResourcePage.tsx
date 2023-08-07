@@ -72,7 +72,7 @@ export const ResourcePage = () => {
     useResourceThematicAreaEurovocQuery(selectedContext);
 
   // Mutation function for editing a resource
-  const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
+  const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
