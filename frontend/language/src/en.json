@@ -655,7 +655,7 @@
   "schema_editor.multiple_answers": "Multiple answers",
   "schema_editor.name": "Name",
   "schema_editor.nameError_alreadyInUse": "Field name is already in use",
-  "schema_editor.nameError_invalidCharacter": "Field name must start with a letter and cannot contain special characters or spaces",
+  "schema_editor.nameError_invalidCharacter": "Field name must start with a letter, and cannot contain special characters or spaces",
   "schema_editor.no_item_selected": "No item selected",
   "schema_editor.nullable": "Can be unanswered",
   "schema_editor.number": "Decimal number",
