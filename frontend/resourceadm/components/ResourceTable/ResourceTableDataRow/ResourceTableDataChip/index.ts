@@ -1,1 +1,0 @@
-export { ResourceTableDataChip } from './ResourceTableDataChip'

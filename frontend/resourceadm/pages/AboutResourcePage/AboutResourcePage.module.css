@@ -16,24 +16,8 @@
   width: 600px;
 }
 
-.pageHeader {
-  margin-bottom: 40px;
-  font-weight: 400;
-  font-size: 30px;
-}
-
-.subTitle {
-  font-weight: 500;
-  margin-top: 10px;
-  margin-bottom: 5px;
-  font-size: 16px;
-}
-
-.subHeader {
-  font-weight: 500;
+.divider {
   margin-top: 30px;
-  margin-bottom: 5px;
-  font-size: 18px;
 }
 
 .inputWrapper {
@@ -44,11 +28,6 @@
 
 .buttonWrapper {
   margin-block: 30px;
-}
-
-.text {
-  font-size: 16px;
-  font-weight: 400;
 }
 
 .toggleTextActive {
@@ -64,5 +43,5 @@ p, h2 {
 }
 
 .warningCardWrapper {
-  margin-top: 10px;
+  margin-top: 5px;
 }

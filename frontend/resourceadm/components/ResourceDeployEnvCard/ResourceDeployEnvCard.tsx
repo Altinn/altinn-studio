@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
-import { Button } from '@digdir/design-system-react';
-import { ArrowRightIcon, PackageFillIcon } from '@navikt/aksel-icons';
+import { Button, Tag } from '@digdir/design-system-react';
+import { ArrowRightIcon } from '@navikt/aksel-icons';
 
 interface Props {
   isDeployPossible: boolean;
@@ -30,23 +30,22 @@ export const ResourceDeployEnvCard = ({
     <div className={classes.cardWrapper}>
       <p className={classes.envName}>{envName}</p>
       <div className={classes.envWrapper}>
-        <div className={classes.currentEnv}>
-          <PackageFillIcon title={`Nåværende versjon i ${envName}`} />
-          <p className={classes.currentEnvText}>v{currentEnvVersion}</p>
-        </div>
+        <Tag color='neutral' variant='outlined'>
+          <p className={classes.envText}>v{currentEnvVersion}</p>
+        </Tag>
         {newEnvVersion && (
           <>
             <div className={classes.arrowWrapper}>
               <ArrowRightIcon title={`Ny versjon for ${envName}`} fontSize='1.5rem' />
             </div>
-            <div className={classes.newEnv}>
-              <p>v{newEnvVersion}</p>
-            </div>
+            <Tag color='success' variant='outlined'>
+              <p className={classes.envText}>v{newEnvVersion}</p>
+            </Tag>
           </>
         )}
       </div>
       <div className={classes.buttonWrapper}>
-        <Button disabled={!isDeployPossible}>Publiser til miljø</Button>
+        <Button disabled={!isDeployPossible}>Publiser til {envName}</Button>
       </div>
     </div>
   );

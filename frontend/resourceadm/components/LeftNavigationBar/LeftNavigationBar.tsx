@@ -4,7 +4,7 @@ import {
   InformationSquareIcon,
   GavelSoundBlockIcon,
   UploadIcon,
-  BarChartIcon,
+  ArrowLeftIcon,
   MigrationIcon,
 } from '@navikt/aksel-icons';
 import { NavigationBarPageType } from 'resourceadm/types/global';
@@ -37,7 +37,7 @@ export const LeftNavigationBar = ({
   return (
     <div className={classes.navigationBar}>
       <button className={classes.backButton} type='button' onClick={goBack}>
-        <BarChartIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
+        <ArrowLeftIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
         <p className={classes.buttonText}>Tilbake til dashboard</p>
       </button>
       <div className={classes.navigationElements}>
@@ -47,7 +47,7 @@ export const LeftNavigationBar = ({
         </button>
         <button className={getNavElementClass('policy')} onClick={() => navigateToPage('policy')}>
           <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Policy</p>
+          <p className={classes.buttonText}>Tilgangsregler</p>
         </button>
         <button className={getNavElementClass('deploy')} onClick={() => navigateToPage('deploy')}>
           <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />

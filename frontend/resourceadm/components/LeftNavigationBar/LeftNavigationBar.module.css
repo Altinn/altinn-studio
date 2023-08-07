@@ -14,10 +14,11 @@
   border: none;
   background-color: transparent;
   cursor: pointer;
-  border-bottom: 2px solid #A0A0A0;
+  border-bottom: 1px solid #A0A0A0;
   width: 100%;
   padding-block: 20px;
-  padding-left: 15px;
+  padding-left: 15px;;
+  box-shadow: 0 2px 4px -2px #0000001a, 0 4px 5px #0000001a;
 }
 
 .buttonText {

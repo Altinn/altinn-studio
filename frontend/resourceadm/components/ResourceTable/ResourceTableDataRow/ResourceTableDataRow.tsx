@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './ResourceTableDataRow.module.css';
-import { ResourceTableDataChip } from './ResourceTableDataChip';
-import { Button } from '@digdir/design-system-react';
+import { Button, Tag } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -38,7 +37,10 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
         <p className={classes.tableDataText}>{resource.lastChanged}</p>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
-        <ResourceTableDataChip hasPolicy={resource.hasPolicy} />
+        {/*<ResourceTableDataChip hasPolicy={resource.hasPolicy} />*/}
+        <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined'>
+          {resource.hasPolicy ? 'Har policy' : 'Mangler policy'}
+        </Tag>
       </td>
       <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
         <Button

@@ -11,6 +11,7 @@ interface Props {
  *
  * @param props.text the text to display
  */
+// TOTO SLETTTTT
 export const WarningCard = ({ text }: Props) => {
   return (
     <div className={classes.wrapper}>

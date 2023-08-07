@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, TextArea, Chip } from '@digdir/design-system-react';
-import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
+import { ExclamationmarkTriangleFillIcon, PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
   PolicyActionType,
@@ -249,7 +249,7 @@ export const ExpandablePolicyCard = ({
 
     // Add to options list
     setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
-    //updateRules(ruleDescription, updatedSubjects, selectedActions, resources);
+
     updateRules(policyRule.description, updatedSubjects, policyRule.actions, policyRule.resources);
 
     setHasSubjectsError(updatedSubjects.length === 0);
@@ -349,11 +349,17 @@ export const ExpandablePolicyCard = ({
           handleDuplicateElement={handleDuplicateRule}
           handleRemoveElement={handleDeleteRule}
         >
-          <p className={classes.subHeader}>Hvilken ressurser skal regelen gjelde for?</p>
+          <p className={classes.subHeader}>Hvilken sub-ressurser skal regelen gjelde for?</p>
           {displayResources}
           <div className={classes.addResourceButton}>
-            <Button type='button' onClick={handleClickAddResource} color='secondary'>
-              Legg til en ressurs
+            <Button
+              type='button'
+              onClick={handleClickAddResource}
+              color='secondary'
+              fullWidth
+              icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+            >
+              Legg til en sub-ressurs
             </Button>
           </div>
           {showErrors && hasResourceError && displayWarningCard('Du må legge til en ressurs')}

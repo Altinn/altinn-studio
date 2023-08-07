@@ -73,7 +73,8 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     if (repoStatus) {
       setIsLocalRepoInSync(
         (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
-          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null)
+          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
+          repoStatus.contentStatus.length === 0
       );
     }
   }, [repoStatus]);
@@ -103,7 +104,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       const errorList: DeployErrorType[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
-          message: 'Du har mangler i ressursen',
+          message: 'Det finnes mangler på siden "Om ressursen"',
           pageWithError: 'about',
         });
       }
@@ -111,8 +112,8 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         errorList.push({
           message:
             hasPolicyError === 'validationFailed'
-              ? 'Du har mangler i policyen'
-              : 'Du mangler policy',
+              ? 'Det finnes mangler på siden "Tilgangsregler"'
+              : 'Du må ha minst en regel på siden "Tilgangsregler"',
           pageWithError: 'policy',
         });
       }
@@ -157,10 +158,12 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    * @returns a boolean for if it is possible
    */
   const isDeployPossible = (type: 'test' | 'prod', envVersion: string): boolean => {
+    const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
+
     if (
       type === 'test' &&
       validateResourceData.status === 200 &&
-      !hasPolicyError &&
+      !policyError &&
       isLocalRepoInSync &&
       envVersion !== versionData.resourceVersion
     ) {
@@ -169,7 +172,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     if (
       type === 'prod' &&
       validateResourceData.status === 200 &&
-      !hasPolicyError &&
+      !policyError &&
       isLocalRepoInSync &&
       envVersion !== versionData.resourceVersion
     ) {

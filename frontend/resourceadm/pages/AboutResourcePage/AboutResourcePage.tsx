@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Select, TextField, TextArea, Button } from '@digdir/design-system-react';
+import {
+  Select,
+  TextField,
+  TextArea,
+  Button,
+  ErrorMessage,
+  Heading,
+  Paragraph,
+  Label,
+} from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
 import {
@@ -12,7 +21,6 @@ import {
   ResourceThematicType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { WarningCard } from 'resourceadm/components/PolicyEditor/WarningCard';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 
 /**
@@ -187,7 +195,7 @@ export const AboutResourcePage = ({
   const displayWarningCard = (text: string) => {
     return (
       <div className={classes.warningCardWrapper}>
-        <WarningCard text={text} />
+        <ErrorMessage size='small'>{text}</ErrorMessage>
       </div>
     );
   };
@@ -245,9 +253,15 @@ export const AboutResourcePage = ({
   const displayContent = () => {
     return (
       <>
-        <h1 className={classes.pageHeader}>Om ressursen</h1>
-        <h2 className={classes.subHeader}>Ressurs type</h2>
-        <p className={classes.text}>Velg ett alternativ fra listen under</p>
+        <Heading size='large' spacing level={1}>
+          Om ressursen
+        </Heading>
+        <Heading size='xsmall' spacing level={2}>
+          Ressurs type
+        </Heading>
+        <Paragraph short size='small'>
+          Velg ett alternativ fra listen under
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             options={resourceTypeOptions}
@@ -256,36 +270,44 @@ export const AboutResourcePage = ({
             label='Ressurs type'
             hideLabel
             onFocus={() => setTranslationType('none')}
+            error={showAllErrors && hasResourceTypeError}
           />
           {showAllErrors &&
             hasResourceTypeError &&
             displayWarningCard('Du må legge til en ressurs type')}
         </div>
-        <h2 className={classes.subHeader}>Navn på tjenesten</h2>
-        <p className={classes.text}>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Navn på tjenesten
+        </Heading>
+        <Paragraph short size='small'>
           Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass
           på at navnet er forståelig og gjenkjennbart. Om mulig, bruk nøkkelord som man kan søke
           etter.
-        </p>
-        <p className={classes.subTitle}>{'Bokmål (standard)'}</p>
+        </Paragraph>
+        <Label size='small'>{'Bokmål (standard)'}</Label>
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
             onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
             onFocus={() => setTranslationType('title')}
             aria-labelledby='resource-titel'
+            isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
           />
           <ScreenReaderSpan id='resource-titel' label='Navn på tjenesten' />
           {showAllErrors &&
             hasTitleError &&
             displayWarningCard('Du må legge til en tittel for Bokmål, Nynorsk, og Engelsk')}
         </div>
-        <h2 className={classes.subHeader}>Beskrivelse</h2>
-        <p className={classes.text}>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Beskrivelse
+        </Heading>
+        <Paragraph short size='small'>
           Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
           offentlige nettløsninger.
-        </p>
-        <p className={classes.subTitle}>{'Bokmål (standard)'}</p>
+        </Paragraph>
+        <Label size='small'>{'Bokmål (standard)'}</Label>
         <div className={classes.inputWrapper}>
           <TextArea
             value={description['nb']}
@@ -297,6 +319,7 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('description')}
             rows={5}
             aria-labelledby='resource-description'
+            isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
           />
           <ScreenReaderSpan id='resource-description' label='Beskrivelse' />
           {showAllErrors &&
@@ -304,8 +327,13 @@ export const AboutResourcePage = ({
             displayWarningCard('Du må legge til en beskrivelse for Bokmål, Nynorsk, og Engelsk')}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
-        <h2 className={classes.subHeader}>Hjemmeside</h2>
-        <p className={classes.text}>Link til nettsiden der tjenesten kan startes av brukeren.</p>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Hjemmeside
+        </Heading>
+        <Paragraph short size='small'>
+          Link til nettsiden der tjenesten kan startes av brukeren.
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={homepage}
@@ -315,10 +343,13 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan id='resource-homepage' label='Hjemmeside' />
         </div>
-        <h2 className={classes.subHeader}>Nøkkelord</h2>
-        <p className={classes.text}>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Nøkkelord
+        </Heading>
+        <Paragraph short size='small'>
           {'Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'}
-        </p>
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={keywords}
@@ -328,8 +359,13 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan id='resource-keywords' label='Nøkkelord' />
         </div>
-        <h2 className={classes.subHeader}>Hvilken sektor er tjenesten relatert til?</h2>
-        <p className={classes.text}>En tjeneste kan relateres til flere industrier/sektorer</p>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Hvilken sektor er tjenesten relatert til?
+        </Heading>
+        <Paragraph short size='small'>
+          En tjeneste kan relateres til flere industrier/sektorer
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             multiple
@@ -342,8 +378,13 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('none')}
           />
         </div>
-        <h2 className={classes.subHeader}>Hvilket tematiske område dekker tjenesten?</h2>
-        <p className={classes.text}>En tjeneste kan relateres til et tematisk område</p>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Hvilket tematiske område dekker tjenesten?
+        </Heading>
+        <Paragraph short size='small'>
+          En tjeneste kan relateres til et tematisk område
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
@@ -354,8 +395,10 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('none')}
           />
         </div>
-        <h2 className={classes.subHeader}>Delegasjonstekst</h2>
-        <p className={classes.text}></p>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Delegasjonstekst
+        </Heading>
         <div className={classes.inputWrapper}>
           <TextField
             value={rightDescription['nb']}
@@ -365,11 +408,14 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan id='resource-delegationtext' label='Delegasjonstekst' />
         </div>
-        <h2 className={classes.subHeader}>Vis i offentlige kataloger</h2>
-        <p className={classes.text}>
+        <div className={classes.divider} />
+        <Heading size='xsmall' spacing level={2}>
+          Vis i offentlige kataloger
+        </Heading>
+        <Paragraph short size='small'>
           Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på
           norge.no og data.norge.no.
-        </p>
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <Switch
             isChecked={isPublicService}
