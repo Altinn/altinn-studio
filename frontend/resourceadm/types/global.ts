@@ -103,6 +103,7 @@ export interface NewResourceType {
 
 export interface ValidationType {
   status: number;
+  errors: any;
 }
 
 // TODO - Find out if the other fields are needed

@@ -104,7 +104,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       const errorList: DeployErrorType[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
-          message: 'Det finnes mangler på siden "Om ressursen"',
+          message: validateResourceData.errors
+            ? `${validateResourceData.errors.length} felt mangler utfylling eller inneholder feil på siden "Om ressursen".`
+            : 'Det finnes mangler på siden "Om ressursen"',
           pageWithError: 'about',
         });
       }
@@ -112,7 +114,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         errorList.push({
           message:
             hasPolicyError === 'validationFailed'
-              ? 'Det finnes mangler på siden "Tilgangsregler"'
+              ? validatePolicyData.errors
+                ? `${validatePolicyData.errors.length} felt mangler utfylling eller inneholder feil på siden "Tilgangsregler".`
+                : 'Det finnes mangler på siden "Tilgangsregler"'
               : 'Du må ha minst en regel på siden "Tilgangsregler"',
           pageWithError: 'policy',
         });
