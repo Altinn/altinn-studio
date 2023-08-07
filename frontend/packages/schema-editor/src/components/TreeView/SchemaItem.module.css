@@ -17,3 +17,9 @@
 .isRef:global(.Mui-selected) {
   border-style: dashed;
 }
+
+.confirmPopoverContainer {
+  display: flex;
+  justify-content: right;
+  padding: 0 var(--fds-spacing-3);
+}

@@ -11,9 +11,9 @@ const continueText = 'Continue';
 const cancelText = 'Cancel';
 const confirmText = 'Delete {schemaName}?';
 const texts = {
-  'administration.delete_model_confirm': confirmText,
-  'general.delete_data_model': deleteText,
-  'general.continue': continueText,
+  'schema_editor.delete_model_confirm': confirmText,
+  'schema_editor.delete_data_model': deleteText,
+  'schema_editor.confirm_deletion': continueText,
   'general.cancel': cancelText,
 };
 const deleteAction = jest.fn();

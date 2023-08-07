@@ -11,25 +11,22 @@ import {
   ObjectKind,
   addCombinationItem,
   addProperty,
-  deleteNode,
   getCapabilities,
   getNameFromPointer,
   pointerIsDefinition,
   promoteProperty,
 } from '@altinn/schema-model';
-import { AltinnMenu, AltinnMenuItem, AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
   navigateToType,
-  removeSelection,
   setSelectedAndFocusedNode,
   setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useTranslation } from 'react-i18next';
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -37,6 +34,7 @@ export interface SchemaItemLabelProps {
   refNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
+  openConfirmPopover: () => void;
 }
 export enum SchemaItemLabelTestIds {
   contextMenuAddReference = 'context-menu-add-reference',
@@ -52,13 +50,12 @@ export const SchemaItemLabel = ({
   refNode,
   selectedNode,
   translate,
+  openConfirmPopover,
 }: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>();
-  const { t } = useTranslation();
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -113,11 +110,6 @@ export const SchemaItemLabel = ({
       );
   });
 
-  const handleDeleteClick = wrapper(() => {
-    mutate(deleteNode(data, selectedNode.pointer));
-    dispatch(removeSelection(selectedNode.pointer));
-  });
-
   const isArray = selectedNode.isArray || refNode?.isArray;
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
@@ -155,16 +147,6 @@ export const SchemaItemLabel = ({
           </span>
         )}
       </div>
-      <AltinnConfirmPopover
-        open={isPopoverOpen}
-        confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
-        onConfirm={handleDeleteClick}
-        onCancel={() => setIsPopoverOpen(false)}
-        placement='left'
-      >
-        <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
-        <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
-      </AltinnConfirmPopover>
       <Button
         data-testid='open-context-menu-button'
         className={classes.contextButton}
@@ -240,10 +222,7 @@ export const SchemaItemLabel = ({
             id='delete-node-button'
             key='delete'
             className={classes.contextMenuLastItem}
-            onClick={() => {
-              setContextAnchor(null);
-              setIsPopoverOpen(true);
-            }}
+            onClick={(event) => wrapper(() => openConfirmPopover())(event)}
             text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
             iconClass='fa fa-trash'
             disabled={hasReferredNodes}

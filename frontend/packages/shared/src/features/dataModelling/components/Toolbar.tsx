@@ -65,7 +65,7 @@ export const Toolbar = ({
       />
       <AltinnConfirmPopover
         open={isPopoverOpen}
-        confirmText={t('general.continue')}
+        confirmText={t('schema_editor.confirm_deletion')}
         onConfirm={handleDeleteSchema}
         onCancel={() => setIsPopoverOpen(false)}
         placement="bottom"
@@ -78,11 +78,11 @@ export const Toolbar = ({
             icon={<TrashIcon />}
             variant={ButtonVariant.Quiet}
           >
-            {t('general.delete_data_model')}
+            {t('schema_editor.delete_data_model')}
           </Button>
         }
       >
-        <p>{t('administration.delete_model_confirm', { schemaName })}</p>
+        <p>{t('schema_editor.delete_model_confirm', { schemaName })}</p>
       </AltinnConfirmPopover>
     </>
   );

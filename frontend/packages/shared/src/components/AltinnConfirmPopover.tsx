@@ -10,7 +10,7 @@ export type AltinnConfirmPopoverProps = {
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onCancel:(event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
-} & Partial<Pick<PopoverProps, 'open' | 'trigger' | 'placement' | 'children'>>;
+} & Partial<Pick<PopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
 
 export function AltinnConfirmPopover({
   confirmText,
@@ -20,16 +20,17 @@ export function AltinnConfirmPopover({
   onCancel,
   placement = 'right',
   children,
-  trigger = <div className={classes.container} />,
+  trigger = <div className={classes.trigger} />,
   open = false,
+  className,
 }: AltinnConfirmPopoverProps) {
   const { t } = useTranslation();
 
-  const dialogRef = useRef(null);
+  const popoverRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dialogRef.current && !dialogRef.current.contains(event.target)) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
         onCancel(event);
       }
     };
@@ -45,7 +46,8 @@ export function AltinnConfirmPopover({
 
   return (
     <div
-      ref={dialogRef}
+      ref={popoverRef}
+      className={className}
     >
       <Popover
         variant={PopoverVariant.Warning}
