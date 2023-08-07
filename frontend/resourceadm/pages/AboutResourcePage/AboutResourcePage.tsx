@@ -237,9 +237,55 @@ export const AboutResourcePage = ({
           }
           onChangeValue={handleChangeTranslationValues}
           usesTextArea={translationType === 'description'}
+          showErrors={showAllErrors}
         />
       </div>
     );
+  };
+
+  /**
+   * Maps the language key to the text
+   */
+  const getLanguage = (val: 'nb' | 'nn' | 'en') => {
+    if (val === 'nb') return 'Bokmål';
+    if (val === 'nn') return 'Nynorsk';
+    return 'Engelsk';
+  };
+
+  /**
+   * Gets the correct text to display for input fields with missing value
+   *
+   * @param val the value
+   * @param isTitle if the field is title or description
+   */
+  const getMissingInputLanguage = (val: LanguageStringType, isTitle: boolean) => {
+    const valArr: ('nb' | 'nn' | 'en')[] = [];
+    const type = isTitle ? 'tittel' : 'beskrivelse';
+
+    // Add the different languages
+    if (val.nb === '') {
+      valArr.push('nb');
+    }
+    if (val.nn === '') {
+      valArr.push('nn');
+    }
+    if (val.en === '') {
+      valArr.push('en');
+    }
+
+    // Return different messages based on the length
+    if (valArr.length === 1) {
+      return `Du mangler oversettese for ${type} på ${getLanguage(valArr[0])}.`;
+    }
+    if (valArr.length === 2) {
+      return `Du mangler oversettese for ${type} på ${getLanguage(valArr[0])} og
+      ${getLanguage(valArr[1])}.`;
+    }
+    if (valArr.length === 3) {
+      return `Du mangler oversettese for ${type} på ${getLanguage(valArr[0])},
+      ${getLanguage(valArr[1])} og ${getLanguage(valArr[2])}.`;
+    }
+    return '';
   };
 
   /**
@@ -269,7 +315,7 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasResourceTypeError &&
-            displayWarningCard('Du må legge til en ressurs type')}
+            displayWarningCard('Du mangler å legge til ressurs type.')}
         </div>
         <div className={classes.divider} />
         <Heading size='xsmall' spacing level={2}>
@@ -280,7 +326,9 @@ export const AboutResourcePage = ({
           på at navnet er forståelig og gjenkjennbart. Om mulig, bruk nøkkelord som man kan søke
           etter.
         </Paragraph>
-        <Label size='small'>{'Bokmål (standard)'}</Label>
+        <Label className={classes.label} size='small'>
+          {'Bokmål (standard)'}
+        </Label>
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
@@ -292,7 +340,7 @@ export const AboutResourcePage = ({
           <ScreenReaderSpan id='resource-titel' label='Navn på tjenesten' />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard('Du må legge til en tittel for Bokmål, Nynorsk, og Engelsk')}
+            displayWarningCard(getMissingInputLanguage(title, true))}
         </div>
         <div className={classes.divider} />
         <Heading size='xsmall' spacing level={2}>
@@ -302,7 +350,9 @@ export const AboutResourcePage = ({
           Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
           offentlige nettløsninger.
         </Paragraph>
-        <Label size='small'>{'Bokmål (standard)'}</Label>
+        <Label className={classes.label} size='small'>
+          {'Bokmål (standard)'}
+        </Label>
         <div className={classes.inputWrapper}>
           <TextArea
             value={description['nb']}
@@ -319,7 +369,7 @@ export const AboutResourcePage = ({
           <ScreenReaderSpan id='resource-description' label='Beskrivelse' />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard('Du må legge til en beskrivelse for Bokmål, Nynorsk, og Engelsk')}
+            displayWarningCard(getMissingInputLanguage(description, false))}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />

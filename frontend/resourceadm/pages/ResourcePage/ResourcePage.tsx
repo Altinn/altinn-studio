@@ -194,8 +194,7 @@ export const ResourcePage = () => {
             </div>
           ) : (
             <AboutResourcePage
-              //showAllErrors={showResourceErrors}
-              showAllErrors={true}
+              showAllErrors={showResourceErrors}
               resourceData={resourceData}
               sectorsData={sectorsData}
               thematicData={[...losData, ...eurData]}
