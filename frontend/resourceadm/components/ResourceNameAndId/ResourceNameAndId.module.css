@@ -2,20 +2,9 @@
   width: 80%;
 }
 
-p, h2 {
-  margin: 0;
-}
-
-.text {
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.textfieldHeader {
-  font-size: 16px;
-  font-weight: 400;
-  margin-bottom: 5px;
+.label {
   margin-top: 20px;
+  margin-bottom: 5px;
 }
 
 .idBox {

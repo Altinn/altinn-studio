@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './ResourceTable.module.css';
 import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { ResourceType } from 'resourceadm/types/global';
 
 interface Props {
@@ -35,10 +35,14 @@ export const ResourceTable = ({ list }: Props) => {
       <tbody>
         <tr>
           <th className={`${classes.tableHeaderXLarge} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Ressurser</p>
+            <Paragraph className={classes.tableHeaderText} size='small'>
+              Ressurser
+            </Paragraph>
           </th>
           <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Opprettet av</p>
+            <Paragraph className={classes.tableHeaderText} size='small'>
+              Opprettet av
+            </Paragraph>
           </th>
           <th className={`${classes.tableHeaderMedium} ${classes.tableHeaderLastChanged}`}>
             <Button
@@ -58,7 +62,9 @@ export const ResourceTable = ({ list }: Props) => {
             </Button>
           </th>
           <th className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Tilgangsregler</p>
+            <Paragraph className={classes.tableHeaderText} size='small'>
+              Tilgangsregler
+            </Paragraph>
           </th>
           <th
             className={`${classes.tableHeaderSmall} ${classes.tableHeader}`}

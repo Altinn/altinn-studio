@@ -6,6 +6,7 @@
   left: 0;
   border: 1px solid #bebebe;
   border-top: none;
+  border-left: none;
 }
 
 .backButton {
@@ -22,9 +23,7 @@
 }
 
 .buttonText {
-  font-size: 16px;
-  font-weight: 400;
-  text-align: left;
+  color: inherit;
 }
 
 .navigationElements {

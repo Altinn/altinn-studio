@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './CardButton.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
+import { Paragraph } from '@digdir/design-system-react';
 
 interface Props {
   buttonText: string;
@@ -18,7 +19,7 @@ interface Props {
 export const CardButton = ({ buttonText, onClick }: Props) => {
   return (
     <button className={classes.button} type='button' onClick={onClick}>
-      <p className={classes.buttonText}>{buttonText}</p>
+      <Paragraph size='small'>{buttonText}</Paragraph>
       <PlusIcon title='Add rule' fontSize='1.4rem' />
     </button>
   );

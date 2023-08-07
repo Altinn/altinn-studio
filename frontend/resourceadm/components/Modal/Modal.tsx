@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import classes from './Modal.module.css';
 import ReactModal from 'react-modal';
+import { Heading } from '@digdir/design-system-react';
 
 /**
  * Style the modal
@@ -41,7 +42,9 @@ export const Modal = ({ isOpen, title, onClose, children }: Props) => {
       style={modalStyles}
       ariaHideApp={false}
     >
-      <h2 className={classes.modalTitle}>{title}</h2>
+      <Heading size='xsmall' spacing level={2}>
+        {title}
+      </Heading>
       <div className={classes.contentDivider} />
       {children}
     </ReactModal>

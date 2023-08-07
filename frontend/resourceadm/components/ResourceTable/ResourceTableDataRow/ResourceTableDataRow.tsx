@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceTableDataRow.module.css';
-import { Button, Tag } from '@digdir/design-system-react';
+import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -28,13 +28,13 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
     <tr style={{ width: '100%' }}>
       <td className={`${classes.tableDataXLarge} ${classes.tableData}`}>
         {/* TODO - Fix translation of title */}
-        <p className={classes.tableDataText}>{resource.title['nb']}</p>
+        <Paragraph size='small'>{resource.title['nb']}</Paragraph>
       </td>
       <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
-        <p className={classes.tableDataText}>{resource.createdBy}</p>
+        <Paragraph size='small'>{resource.createdBy}</Paragraph>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData} ${classes.tableDataDate}`}>
-        <p className={classes.tableDataText}>{resource.lastChanged}</p>
+        <Paragraph size='small'>{resource.lastChanged}</Paragraph>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined'>

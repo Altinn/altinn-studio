@@ -11,8 +11,6 @@
 }
 
 .envName {
-  font-weight: 500;
-  font-size: 16px;
   margin-bottom: 10px;
 }
 
@@ -23,10 +21,6 @@
 .envWrapper {
   display: flex;
   align-items: center;
-}
-
-.envText {
-  font-size: 16px;
 }
 
 .arrowWrapper {

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './VerificationModal.module.css';
 import Modal from 'react-modal';
-import { Button } from '@digdir/design-system-react';
+import { Button, Heading, Paragraph } from '@digdir/design-system-react';
 
 const modalStyles = {
   content: {
@@ -50,9 +50,11 @@ export const VerificationModal = ({
       style={modalStyles}
       ariaHideApp={false}
     >
-      <h2 className={classes.modalTitle}>Slett regel?</h2>
+      <Heading size='xsmall' spacing level={2}>
+        Slett regel?
+      </Heading>
       <div className={classes.contentDivider} />
-      <p className={classes.modalText}>{text}</p>
+      <Paragraph size='small'>{text}</Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButtonWrapper}>
           <Button onClick={onClose} variant='quiet'>

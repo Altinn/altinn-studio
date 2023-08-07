@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
-import { Button, Tag } from '@digdir/design-system-react';
+import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
 
 interface Props {
@@ -28,10 +28,12 @@ export const ResourceDeployEnvCard = ({
   // TODO - Translation
   return (
     <div className={classes.cardWrapper}>
-      <p className={classes.envName}>{envName}</p>
+      <Paragraph size='small' className={classes.envName}>
+        <strong>{envName}</strong>
+      </Paragraph>
       <div className={classes.envWrapper}>
         <Tag color='neutral' variant='outlined'>
-          <p className={classes.envText}>v{currentEnvVersion}</p>
+          <Paragraph size='small'>v{currentEnvVersion}</Paragraph>
         </Tag>
         {newEnvVersion && (
           <>
@@ -39,7 +41,7 @@ export const ResourceDeployEnvCard = ({
               <ArrowRightIcon title={`Ny versjon for ${envName}`} fontSize='1.5rem' />
             </div>
             <Tag color='success' variant='outlined'>
-              <p className={classes.envText}>v{newEnvVersion}</p>
+              <Paragraph size='small'>v{newEnvVersion}</Paragraph>
             </Tag>
           </>
         )}

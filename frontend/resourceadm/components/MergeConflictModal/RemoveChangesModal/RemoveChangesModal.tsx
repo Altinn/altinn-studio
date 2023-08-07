@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, TextField } from '@digdir/design-system-react';
+import { Button, TextField, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
@@ -42,9 +42,9 @@ export const RemoveChangesModal = ({ isOpen, onClose, handleClickResetRepo, repo
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('administration.reset_repo_confirm_heading')}>
-      <p className={classes.bodyText}>
+      <Paragraph size='small'>
         {t('administration.reset_repo_confirm_info', { repositoryName: repo })}
-      </p>
+      </Paragraph>
       <div className={classes.textFieldWrapper}>
         <TextField
           label='Skriv inn navn på repoet for å bekrefte'

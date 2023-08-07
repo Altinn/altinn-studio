@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner } from '@digdir/design-system-react';
+import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
@@ -79,7 +79,9 @@ export const ResourceDashboardPage = () => {
   return (
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
-        <h1>{`${selectedContext}'s ressurser`}</h1>
+        <Heading size='large' level={1}>
+          {`${selectedContext}'s ressurser`}
+        </Heading>
         <div className={classes.topRightWrapper}>
           <Button
             variant='quiet'

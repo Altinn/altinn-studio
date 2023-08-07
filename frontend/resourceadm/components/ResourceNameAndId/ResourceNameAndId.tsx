@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceNameAndId.module.css';
-import { Button, TextField, ErrorMessage } from '@digdir/design-system-react';
+import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 
 interface Props {
@@ -66,9 +66,10 @@ export const ResourceNameAndId = ({
 
   return (
     <>
-      <p className={classes.text}>Velg navn for ressursen.</p>
-      <p className={classes.text}>Navnet kan endres på frem til tjenesten er publisert.</p>
-      <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
+      <Paragraph size='medium'>Velg navn og id for ressursen.</Paragraph>
+      <Label className={classes.label} size='small'>
+        Ressursnavn (Bokmål)
+      </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
           placeholder='Ressursnavn (Bokmål)'
@@ -77,7 +78,9 @@ export const ResourceNameAndId = ({
           aria-label='Ressursnavn (Bokmål)'
         />
       </div>
-      <p className={classes.textfieldHeader}>Ressurs id</p>
+      <Label className={classes.label} size='small'>
+        Ressurs id
+      </Label>
       <div className={classes.editFieldWrapper}>
         {isEditOpen ? (
           <>
@@ -111,10 +114,10 @@ export const ResourceNameAndId = ({
             <div className={classes.idBox}>
               <p className={classes.idText}>id</p>
             </div>
-            <p className={classes.text}>
+            <Paragraph size='small'>
               {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
               altinn.svv.<strong>{getIdToDisplay()}</strong>
-            </p>
+            </Paragraph>
             <div className={classes.editButtonWrapper}>
               <Button
                 onClick={() => handleClickEditButton(false)}

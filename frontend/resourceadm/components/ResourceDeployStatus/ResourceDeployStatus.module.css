@@ -9,5 +9,8 @@
 
 .text {
   padding-inline: 10px;
-  font-size: 16px;
+}
+
+.alert {
+  margin-left: 10px;
 }

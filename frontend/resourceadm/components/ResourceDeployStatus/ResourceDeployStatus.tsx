@@ -3,7 +3,7 @@ import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import { LinkButton } from '../LinkButton';
-import { Alert } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/design-system-react';
 
 export interface DeployErrorType {
   message: string;
@@ -42,7 +42,9 @@ export const ResourceDeployStatus = ({
       return (
         <div className={classes.cardElement}>
           <ArrowRightIcon title={error} fontSize='1.5rem' />
-          <p className={classes.text}>{error}</p>
+          <Paragraph size='small' className={classes.text}>
+            {error}
+          </Paragraph>
         </div>
       );
     }
@@ -52,14 +54,14 @@ export const ResourceDeployStatus = ({
       return (
         <div className={classes.cardElement} key={index + resourceId}>
           <ArrowRightIcon title={e.message} fontSize='1.5rem' />
-          <p className={classes.text}>
+          <Paragraph size='small' className={classes.text}>
             {textArr[0] + ' "'}
             <LinkButton
               text={textArr[1]}
               onClick={() => onNavigateToPageWithError(e.pageWithError)}
             />
             {'"'}
-          </p>
+          </Paragraph>
         </div>
       );
     });
@@ -77,5 +79,9 @@ export const ResourceDeployStatus = ({
     );
   };
 
-  return <Alert severity={isSuccess ? 'success' : 'danger'}>{displayContent()}</Alert>;
+  return (
+    <Alert className={classes.alert} severity={isSuccess ? 'success' : 'danger'}>
+      {displayContent()}
+    </Alert>
+  );
 };
