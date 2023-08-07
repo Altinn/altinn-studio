@@ -19,6 +19,7 @@ import {
   ResourceKeywordType,
   ResourceSectorType,
   ResourceThematicType,
+  LanguageStringType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
@@ -36,12 +37,6 @@ const resourceTypeOptions = [
  * Initial value for languages with empty fields
  */
 const emptyLangauges: LanguageStringType = { nb: '', nn: '', en: '' };
-
-export interface LanguageStringType {
-  nb?: string;
-  nn?: string;
-  en?: string;
-}
 
 interface Props {
   showAllErrors: boolean;

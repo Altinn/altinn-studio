@@ -2,8 +2,7 @@ import React from 'react';
 import classes from './RightTranslationBar.module.css';
 import { QuestionmarkDiamondIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField } from '@digdir/design-system-react';
-import { SupportedLanguageKey } from 'resourceadm/types/global';
-import { LanguageStringType } from 'resourceadm/pages/AboutResourcePage';
+import { LanguageStringType, SupportedLanguageKey } from 'resourceadm/types/global';
 
 interface Props {
   /**

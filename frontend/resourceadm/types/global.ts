@@ -115,3 +115,9 @@ export interface ResourceSectorType {
 export interface ResourceThematicType {
   uri: string;
 }
+
+export interface LanguageStringType {
+  nb?: string;
+  nn?: string;
+  en?: string;
+}

@@ -1,9 +1,3 @@
-.branchIcon {
-  width: 24px;
-  height: 24px;
-  color: white;
-}
-
 .rightWrapper {
   display: flex;
   align-items: center;
@@ -14,7 +8,7 @@
   align-items: center;
   display: flex;
   height: var(--subtoolbar-height);
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 2rem;
   background-color: #284e6a;
   height: 50px;

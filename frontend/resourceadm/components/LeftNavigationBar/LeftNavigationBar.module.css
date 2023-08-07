@@ -18,7 +18,7 @@
   width: 100%;
   padding-block: 20px;
   padding-left: 15px;;
-  box-shadow: 0 2px 4px -2px #0000001a, 0 4px 5px #0000001a;
+  box-shadow: var(--fds-shadow-medium);
 }
 
 .buttonText {
