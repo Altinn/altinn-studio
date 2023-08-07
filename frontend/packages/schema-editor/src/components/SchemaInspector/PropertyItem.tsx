@@ -1,6 +1,5 @@
-import type { ChangeEventHandler, FocusEventHandler, KeyboardEvent } from 'react';
-import React, { useEffect, useState } from 'react';
-import { TextField } from '@digdir/design-system-react';
+import type { ChangeEventHandler, KeyboardEvent } from 'react';
+import React from 'react';
 import { Checkbox, Select } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
@@ -10,48 +9,43 @@ import type { FieldType } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { setRequired } from '@altinn/schema-model';
+import { setRequired, setPropertyName } from '@altinn/schema-model';
+import { NameField } from './NameField';
 
 export interface IPropertyItemProps {
   fullPath: string;
   inputId: string;
   onChangeType: (path: string, type: FieldType) => void;
-  onChangeValue: (path: string, value: string) => void;
-  onDeleteField: (path: string, key: string) => void;
+  onDeleteField: (path: string) => void;
   onEnterKeyPress: () => void;
   readOnly?: boolean;
   required?: boolean;
   type: FieldType;
-  value: string;
 }
 
 export function PropertyItem({
   fullPath,
   inputId,
   onChangeType,
-  onChangeValue,
   onDeleteField,
   onEnterKeyPress,
   readOnly,
   required,
   type,
-  value,
 }: IPropertyItemProps) {
-  const [inputValue, setInputValue] = useState<string>(value || '');
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
 
-  useEffect(() => setInputValue(value), [value]);
-  const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
-    setInputValue(e.target.value);
+  const deleteHandler = () => onDeleteField?.(fullPath);
 
-  const onBlur: FocusEventHandler<HTMLInputElement> = (e) => {
-    if (inputValue !== value) {
-      onChangeValue(fullPath, e.target.value);
-    }
+  const handleChangeNodeName = (newNodeName: string) => {
+    mutate(
+      setPropertyName(data, {
+        path: fullPath,
+        name: newNodeName,
+      })
+    );
   };
-
-  const deleteHandler = () => onDeleteField?.(fullPath, value);
 
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
     mutate(
@@ -69,14 +63,13 @@ export function PropertyItem({
   return (
     <>
       <div className={`${classes.nameInputCell} ${classes.gridItem}`}>
-        <TextField
-          aria-label={t('schema_editor.field_name')}
+        <NameField
           id={inputId}
-          value={inputValue}
           disabled={readOnly}
-          onChange={changeValueHandler}
-          onBlur={onBlur}
+          handleSave={handleChangeNodeName}
           onKeyDown={onKeyDown}
+          pointer={fullPath}
+          aria-label={t('schema_editor.field_name')}
         />
       </div>
       <div className={`${classes.typeSelectCell} ${classes.gridItem}`}>
