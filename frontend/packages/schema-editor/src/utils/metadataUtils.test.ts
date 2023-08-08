@@ -1,8 +1,10 @@
 import {
   convertMetadataListToOptionGroups,
   convertMetadataListToOptions,
-  convertMetadataToOption, extractModelNamesFromMetadataList,
-  filterOutXsdDataIfJsonDataExist, groupMetadataOptions,
+  convertMetadataToOption,
+  extractModelNamesFromMetadataList,
+  filterOutXsdDataIfJsonDataExist,
+  groupMetadataOptions,
   mergeJsonAndXsdData
 } from '@altinn/schema-editor/utils/metadataUtils';
 import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';

@@ -59,28 +59,37 @@ export function TopToolbar({
 
   const prevFetchedOption = useRef(null);
 
-  useEffect(() => {
-    if (metadataStatus === 'loading') {
-      setSelectedOption(undefined);
-    } else if (
-      shouldSelectFirstEntry({
-        metadataOptions,
-        selectedOption,
-        metadataStatus,
-      })
-    ) {
-      setSelectedOption(metadataOptions[0].options[0]);
-    } else {
-      const option = findPreferredMetadataOption(
-        metadataOptions,
-        uploadedOrCreatedFileName.current
-      );
-      if (option) {
-        setSelectedOption(option);
-        uploadedOrCreatedFileName.current = null;
+  useEffect(
+    () => {
+      if (metadataStatus === 'loading') {
+        setSelectedOption(undefined);
+      } else if (
+        shouldSelectFirstEntry({
+          metadataOptions,
+          selectedOption,
+          metadataStatus,
+        })
+      ) {
+        setSelectedOption(metadataOptions[0].options[0]);
+      } else {
+        const option = findPreferredMetadataOption(
+          metadataOptions,
+          uploadedOrCreatedFileName.current
+        );
+        if (option) {
+          setSelectedOption(option);
+          uploadedOrCreatedFileName.current = null;
+        }
       }
-    }
-  }, [metadataOptions, selectedOption, metadataStatus]);
+    },
+    [
+      metadataOptions,
+      metadataStatus,
+      selectedOption,
+      setSelectedOption,
+      uploadedOrCreatedFileName,
+    ]
+  );
 
   useEffect(() => {
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
@@ -90,7 +99,7 @@ export function TopToolbar({
         uploadedOrCreatedFileName.current = removeExtension(fileName);
       }
     }
-  }, [selectedOption, org, app]);
+  }, [selectedOption, org, app, uploadedOrCreatedFileName]);
 
   const resetPrevFetchedOption = () => {
     // Needs to reset prevFetchedOption when deleting the data model.

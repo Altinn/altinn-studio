@@ -156,7 +156,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render();
-    expect(screen.queryByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
     expect(screen.queryByText(textMock('app_data_modelling.landing_dialog_header'))).not.toBeInTheDocument();
   });
 

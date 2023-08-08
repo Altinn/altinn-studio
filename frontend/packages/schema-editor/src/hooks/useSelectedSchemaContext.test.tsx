@@ -8,14 +8,14 @@ describe('useSelectedSchemaContext', () => {
     const providedContext: SelectedSchemaContextProps = {
       modelPath: '',
     };
-    const context = renderHook(() => useSelectedSchemaContext(), {
+    const { result } = renderHook(() => useSelectedSchemaContext(), {
       wrapper: ({ children }) => (
         <SelectedSchemaContext.Provider value={providedContext}>
           {children}
         </SelectedSchemaContext.Provider>
       )
     });
-    expect(context.result.current).toBe(providedContext);
+    expect(result.current).toBe(providedContext);
   });
 
   it('Throws an error if used outside a SchemaEditorAppContextProvider', () => {

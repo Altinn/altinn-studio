@@ -108,7 +108,6 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
-      const handleCreateSchema = jest.fn();
       const newModelName = datamodel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
       const queryClient = createQueryClientMock();
