@@ -264,5 +264,17 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IFileValidationService, FileValidationService>();
             services.TryAddTransient<IFileValidatorFactory, FileValidatorFactory>();
         }
+
+        private static void AddFileAnalyserServices(IServiceCollection services)
+        {
+            services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
+            services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        }
+
+        private static void AddFileValidatorServices(IServiceCollection services)
+        {
+            services.TryAddTransient<IFileValidationService, FileValidationService>();
+            services.TryAddTransient<IFileValidatorFactory, FileValidatorFactory>();
+        }
     }
 }
