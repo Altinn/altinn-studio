@@ -252,7 +252,7 @@ describe('PropertyItem', () => {
       const confirmButton = screen.getByRole('button', { name: textConfirmDeleteDialog });
       await act(() => user.click(confirmButton));
 
-      expect(onDeleteField).toBeCalledWith('test', '');
+      expect(onDeleteField).toBeCalledWith('#/properties/test');
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
