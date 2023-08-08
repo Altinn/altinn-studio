@@ -72,9 +72,9 @@ public class ProcessEngine : IProcessEngine
 
         // start process
         ProcessStateChange? startChange = await ProcessStart(processStartRequest.Instance, validStartElement!, processStartRequest.User);
-        InstanceEvent? startEvent = startChange?.Events?.First().CopyValues();
+        InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
         ProcessStateChange? nextChange = await ProcessNext(processStartRequest.Instance, processStartRequest.User);
-        InstanceEvent? goToNextEvent = nextChange?.Events?.First().CopyValues();
+        InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
         List<InstanceEvent> events = new List<InstanceEvent>();
         if (startEvent is not null)
         {

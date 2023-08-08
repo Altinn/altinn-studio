@@ -1,9 +1,9 @@
+#nullable enable
 using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -115,9 +115,9 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string startEvent = null)
+            [FromQuery] string? startEvent = null)
         {
-            Instance instance = null;
+            Instance? instance = null;
 
             try
             {
@@ -170,8 +170,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = null;
-            string currentTaskId = null;
+            Instance? instance = null;
+            string? currentTaskId = null;
 
             try
             {
@@ -244,8 +244,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string elementId = null,
-            [FromQuery] string lang = null)
+            [FromQuery] string? elementId = null,
+            [FromQuery] string? lang = null)
         {
             try
             {
@@ -267,7 +267,7 @@ namespace Altinn.App.Api.Controllers
                     return Conflict($"Process is ended.");
                 }
 
-                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
+                string? altinnTaskType = instance?.Process?.CurrentTask?.AltinnTaskType;
 
                 if (altinnTaskType == null)
                 {
@@ -275,8 +275,8 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 bool authorized;
-                string checkedAction = EnsureActionNotTaskType(processNext?.Action ?? altinnTaskType);
-                authorized = await AuthorizeAction(checkedAction, org, app, instanceOwnerPartyId, instanceGuid, instance.Process.CurrentTask?.ElementId);
+                string? checkedAction = EnsureActionNotTaskType(processNext?.Action ?? altinnTaskType);
+                authorized = await AuthorizeAction(checkedAction, org, app, instanceOwnerPartyId, instanceGuid, instance?.Process?.CurrentTask?.ElementId);
 
                 if (!authorized)
                 {
@@ -370,9 +370,9 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
-                string altinnTaskType = EnsureActionNotTaskType(instance.Process.CurrentTask?.AltinnTaskType);
+                string? altinnTaskType = EnsureActionNotTaskType(instance?.Process?.CurrentTask?.AltinnTaskType);
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, instance.Process.CurrentTask?.ElementId);
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, instance?.Process?.CurrentTask?.ElementId);
                 if (!authorized)
                 {
                     return Forbid();
@@ -413,7 +413,7 @@ namespace Altinn.App.Api.Controllers
 
                 counter++;
             }
-            while (instance.Process.EndEvent == null || counter > MaxIterationsAllowed);
+            while (instance?.Process?.EndEvent == null || counter > MaxIterationsAllowed);
 
             if (counter > MaxIterationsAllowed)
             {
@@ -491,12 +491,12 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
-        private async Task<bool> AuthorizeAction(string action, string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string taskId = null)
+        private async Task<bool> AuthorizeAction(string action, string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string? taskId = null)
         {
             return await _authorization.AuthorizeAction(new AppIdentifier(org, app), new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), HttpContext.User, action, taskId);
         }
 
-        private static string EnsureActionNotTaskType(string actionOrTaskType)
+        private static string? EnsureActionNotTaskType(string? actionOrTaskType)
         {
             switch (actionOrTaskType)
             {
@@ -531,7 +531,7 @@ namespace Altinn.App.Api.Controllers
             return ExceptionResponse(e, defaultMessage);
         }
         
-        private static async Task<T> DeserializeFromStream<T>(Stream stream)
+        private static async Task<T?> DeserializeFromStream<T>(Stream stream)
         {
             using StreamReader reader = new StreamReader(stream);
             string text = await reader.ReadToEndAsync();

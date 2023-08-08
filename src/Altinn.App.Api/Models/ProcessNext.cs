@@ -1,3 +1,4 @@
+#nullable enable
 using System.Text.Json.Serialization;
 
 namespace Altinn.App.Api.Models;

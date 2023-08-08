@@ -33,8 +33,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// Initializes a new instance of the <see cref="AltinnPartyClient"/> class
         /// </summary>
         /// <param name="platformSettings">The current platform settings.</param>
-        /// <param name="dsf">The dsf</param>
-        /// <param name="organizationClient">The organizationClient</param>
         /// <param name="logger">The logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
@@ -43,7 +41,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <param name="accessTokenGenerator">The platform access token generator</param>
         public AltinnPartyClient(
             IOptions<PlatformSettings> platformSettings,
-            IOrganizationClient organizationClient,
             ILogger<AltinnPartyClient> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,

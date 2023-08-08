@@ -111,14 +111,7 @@ public class SigningUserActionTests
     private static (SigningUserAction SigningUserAction, Mock<ISignClient> SignClientMock) CreateSigningUserAction(UserProfile userProfileToReturn = null, PlatformHttpException platformHttpExceptionToThrow = null, string testBpmnfilename = "signing-task-process.bpmn")
     {
         IProcessReader processReader = ProcessTestUtils.SetupProcessReader(testBpmnfilename, Path.Combine("Features", "Action", "TestData"));
-        AppSettings appSettings = new AppSettings()
-        {
-            AppBasePath = Path.Combine("Features", "Action"),
-            ConfigurationFolder = "TestData",
-            ApplicationMetadataFileName = "appmetadata.json"
-        };
         
-        IAppMetadata appMetadata = new AppMetadata(Options.Create<AppSettings>(appSettings), new FrontendFeatures(new Mock<IFeatureManager>().Object));
         var profileClientMock = new Mock<IProfileClient>();
         var signingClientMock = new Mock<ISignClient>();
         profileClientMock.Setup(p => p.GetUserProfile(It.IsAny<int>())).ReturnsAsync(userProfileToReturn);
@@ -127,7 +120,7 @@ public class SigningUserActionTests
             signingClientMock.Setup(p => p.SignDataElements(It.IsAny<SignatureContext>())).ThrowsAsync(platformHttpExceptionToThrow);
         }
         
-        return (new SigningUserAction(processReader, new NullLogger<SigningUserAction>(), appMetadata, profileClientMock.Object, signingClientMock.Object), signingClientMock);
+        return (new SigningUserAction(processReader, new NullLogger<SigningUserAction>(), profileClientMock.Object, signingClientMock.Object), signingClientMock);
     }
 
     private bool AssertSigningContextAsExpected(SignatureContext s1, SignatureContext s2)

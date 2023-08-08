@@ -1,5 +1,4 @@
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Profile;
@@ -19,7 +18,6 @@ public class SigningUserAction: IUserAction
 {
     private readonly IProcessReader _processReader;
     private readonly ILogger<SigningUserAction> _logger;
-    private readonly IAppMetadata _appMetadata;
     private readonly IProfileClient _profileClient;
     private readonly ISignClient _signClient;
 
@@ -28,11 +26,11 @@ public class SigningUserAction: IUserAction
     /// </summary>
     /// <param name="processReader">The process reader</param>
     /// <param name="logger">The logger</param>
-    /// <param name="appMetadata">The application metadata service</param>
-    public SigningUserAction(IProcessReader processReader, ILogger<SigningUserAction> logger, IAppMetadata appMetadata, IProfileClient profileClient, ISignClient signClient)
+    /// <param name="profileClient">The profile client</param>
+    /// <param name="signClient">The sign client</param>
+    public SigningUserAction(IProcessReader processReader, ILogger<SigningUserAction> logger, IProfileClient profileClient, ISignClient signClient)
     {
         _logger = logger;
-        _appMetadata = appMetadata;
         _profileClient = profileClient;
         _signClient = signClient;
         _processReader = processReader;
@@ -64,7 +62,7 @@ public class SigningUserAction: IUserAction
         return false;
     }
 
-    private List<DataElementSignature> GetDataElementSignatures(List<DataElement> dataElements, List<string> dataTypesToSign)
+    private static List<DataElementSignature> GetDataElementSignatures(List<DataElement> dataElements, List<string> dataTypesToSign)
     {
         var connectedDataElements = new List<DataElementSignature>();
         foreach (var dataType in dataTypesToSign)

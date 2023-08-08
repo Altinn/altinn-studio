@@ -77,7 +77,7 @@ namespace Altinn.App.Core.Internal.Process
             return state;
         }
 
-        private bool EvaluateSequenceFlow(LayoutEvaluatorState state, SequenceFlow sequenceFlow)
+        private static bool EvaluateSequenceFlow(LayoutEvaluatorState state, SequenceFlow sequenceFlow)
         {
             if (sequenceFlow.ConditionExpression != null)
             {
@@ -123,8 +123,8 @@ namespace Altinn.App.Core.Internal.Process
             LayoutSet? layoutSet = null;
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
-                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options)!;
-                layoutSet = layoutSets?.Sets?.FirstOrDefault(t => t.Tasks.Contains(taskId));
+                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options);
+                layoutSet = layoutSets?.Sets?.Find(t => t.Tasks.Contains(taskId));
             }
 
             return layoutSet;
@@ -136,15 +136,15 @@ namespace Altinn.App.Core.Internal.Process
             DataType? dataType;
             if (dataTypeId != null)
             {
-                dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.FirstOrDefault(d => d.Id == dataTypeId && d.AppLogic != null);
+                dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.Find(d => d.Id == dataTypeId && d.AppLogic != null);
             }
             else if (layoutSet != null)
             {
-                dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.FirstOrDefault(d => d.Id == layoutSet.DataType && d.AppLogic != null);
+                dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.Find(d => d.Id == layoutSet.DataType && d.AppLogic != null);
             }
             else
             {
-                dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.FirstOrDefault(d => d.TaskId == instance.Process.CurrentTask.ElementId && d.AppLogic != null);
+                dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.Find(d => d.TaskId == instance.Process.CurrentTask.ElementId && d.AppLogic != null);
             }
 
             if (dataType != null)
@@ -157,7 +157,7 @@ namespace Altinn.App.Core.Internal.Process
 
         private static Guid? GetDataId(Instance instance, string dataType)
         {
-            string? dataId = instance.Data.FirstOrDefault(d => d.DataType == dataType)?.Id;
+            string? dataId = instance.Data.Find(d => d.DataType == dataType)?.Id;
             if (dataId != null)
             {
                 return new Guid(dataId);
