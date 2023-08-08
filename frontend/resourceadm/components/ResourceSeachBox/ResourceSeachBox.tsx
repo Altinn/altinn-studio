@@ -19,11 +19,7 @@ export const SearchBox = ({ onChange }: Props) => {
   // TODO - translation
   return (
     <div className={classes.searchBox}>
-      <TextField
-        onChange={handleChange}
-        placeholder='Søk etter ressurs'
-        label='Søk etter en ressurs'
-      />
+      <TextField onChange={handleChange} label='Søk etter en ressurs' />
     </div>
   );
 };

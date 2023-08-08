@@ -7,8 +7,9 @@
 
 .tableHeader {
   text-align: left;
-  border-bottom: 2px solid #BCC7CC;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   padding-block: 15px;
+  font-weight: var(--fds-typography-heading-medium);
 }
 
 .tableHeaderXLarge {
@@ -28,13 +29,10 @@
   width: 8%;
 }
 
-.tableHeaderText {
-  color: #00315D;
-}
-
 .tableHeaderLastChanged {
   text-align: left;
-  border-bottom: 2px solid #BCC7CC;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   padding-block: 5px;
   padding-right: 10px;
+  font-weight: var(--fds-typography-heading-medium);
 }

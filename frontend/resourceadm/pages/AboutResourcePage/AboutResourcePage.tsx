@@ -275,14 +275,14 @@ export const AboutResourcePage = ({
 
     // Return different messages based on the length
     if (valArr.length === 1) {
-      return `Du mangler oversettese for ${type} på ${getLanguage(valArr[0])}.`;
+      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])}.`;
     }
     if (valArr.length === 2) {
-      return `Du mangler oversettese for ${type} på ${getLanguage(valArr[0])} og
+      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])} og
       ${getLanguage(valArr[1])}.`;
     }
     if (valArr.length === 3) {
-      return `Du mangler oversettese for ${type} på ${getLanguage(valArr[0])},
+      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])},
       ${getLanguage(valArr[1])} og ${getLanguage(valArr[2])}.`;
     }
     return '';
@@ -297,9 +297,9 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           Om ressursen
         </Heading>
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Ressurs type
-        </Heading>
+        </Label>
         <Paragraph short size='small'>
           Velg ett alternativ fra listen under
         </Paragraph>
@@ -318,46 +318,39 @@ export const AboutResourcePage = ({
             displayWarningCard('Du mangler å legge til ressurs type.')}
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
-          Navn på tjenesten
-        </Heading>
-        <Paragraph short size='small'>
+        <Label size='medium' spacing>
+          Navn på tjenesten (Bokmål)
+        </Label>
+        <Paragraph size='small'>
           Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass
           på at navnet er forståelig og gjenkjennbart. Om mulig, bruk nøkkelord som man kan søke
           etter.
         </Paragraph>
-        <Label className={classes.label} size='small'>
-          {'Bokmål (standard)'}
-        </Label>
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
             onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
             onFocus={() => setTranslationType('title')}
-            aria-labelledby='resource-titel'
+            aria-labelledby='resource-title'
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
           />
-          <ScreenReaderSpan id='resource-titel' label='Navn på tjenesten' />
+          <ScreenReaderSpan id='resource-title' label='Navn på tjenesten' />
           {showAllErrors &&
             hasTitleError &&
             displayWarningCard(getMissingInputLanguage(title, true))}
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
-          Beskrivelse
-        </Heading>
+        <Label size='medium' spacing>
+          Beskrivelse (Bokmål)
+        </Label>
         <Paragraph short size='small'>
           Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
           offentlige nettløsninger.
         </Paragraph>
-        <Label className={classes.label} size='small'>
-          {'Bokmål (standard)'}
-        </Label>
         <div className={classes.inputWrapper}>
           <TextArea
             value={description['nb']}
             resize='vertical'
-            placeholder='Tekst'
             onChange={(e) => {
               handleChangeTranslationValues({ ...description, nb: e.currentTarget.value });
             }}

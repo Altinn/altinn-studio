@@ -31,32 +31,44 @@ export const LeftNavigationBar = ({
   goBack,
   showMigrate = false,
 }: Props) => {
-  const getNavElementClass = (page: NavigationBarPageType) => {
-    return currentPage === page ? classes.navigationElementSelected : classes.navigationElement;
-  };
-
   return (
     <div className={classes.navigationBar}>
-      <button className={classes.backButton} type='button' onClick={goBack}>
-        <ArrowLeftIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
-        <Paragraph size='small' short className={classes.buttonText}>
-          Tilbake til dashboard
-        </Paragraph>
-      </button>
       <div className={classes.navigationElements}>
-        <button className={getNavElementClass('about')} onClick={() => navigateToPage('about')}>
+        <button
+          className={`${classes.navigationElement} ${classes.backButton} `}
+          type='button'
+          onClick={goBack}
+        >
+          <ArrowLeftIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
+          <Paragraph size='small' short className={classes.buttonText}>
+            Tilbake til dashboard
+          </Paragraph>
+        </button>
+        <button
+          className={`${classes.navigationElement} ${currentPage === 'about' && classes.selected} `}
+          onClick={() => navigateToPage('about')}
+        >
           <InformationSquareIcon className={classes.icon} title='Om ressursen' fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             Om ressursen
           </Paragraph>
         </button>
-        <button className={getNavElementClass('policy')} onClick={() => navigateToPage('policy')}>
+        <button
+          className={`${classes.navigationElement}
+            ${currentPage === 'policy' && classes.selected} `}
+          onClick={() => navigateToPage('policy')}
+        >
           <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             Tilgangsregler
           </Paragraph>
         </button>
-        <button className={getNavElementClass('deploy')} onClick={() => navigateToPage('deploy')}>
+        <button
+          className={`${classes.navigationElement} ${
+            currentPage === 'deploy' && classes.selected
+          } `}
+          onClick={() => navigateToPage('deploy')}
+        >
           <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             Publiser
@@ -64,7 +76,9 @@ export const LeftNavigationBar = ({
         </button>
         {showMigrate && (
           <button
-            className={getNavElementClass('migration')}
+            className={`${classes.navigationElement} ${
+              currentPage === 'migration' && classes.selected
+            } `}
             onClick={() => navigateToPage('migration')}
           >
             <MigrationIcon className={classes.icon} title='Migrer' fontSize='1.8rem' />

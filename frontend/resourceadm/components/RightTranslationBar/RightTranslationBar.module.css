@@ -1,9 +1,9 @@
 .wrapper {
-  background-color: #F4F5F6;
+  background-color: var(--fds-semantic-background-subtle);
   min-height: 100vh;
   height: 100%;
   right: 0;
-  border: 1px solid #bebebe;
+  border: 1px solid var(--fds-semantic-border-neutral-divider);
   border-top: none;
 }
 
@@ -11,16 +11,15 @@
   display: flex;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #A0A0A0;
+  padding-bottom: 0;
 }
 
 .topText {
-  margin-left: 20px;
+  margin-left: 10px;
 }
 
-.text {
-  font-weight: 400;
-  font-size: 16px;
+.icon {
+  color: var(--fds-semantic-text-neutral-default);
 }
 
 .inputWrapper {
@@ -29,9 +28,9 @@
 
 .bodyWrapper {
   padding-inline: 20px;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .alert {
-  margin-top: 30px;
+  margin-left: 8px;
 }

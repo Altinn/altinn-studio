@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './RightTranslationBar.module.css';
-import { QuestionmarkDiamondIcon } from '@navikt/aksel-icons';
-import { TextArea, TextField, Heading, Alert } from '@digdir/design-system-react';
+import { GlobeIcon } from '@navikt/aksel-icons';
+import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
 import { LanguageStringType, SupportedLanguageKey } from 'resourceadm/types/global';
 
 interface Props {
@@ -57,15 +57,13 @@ export const RightTranslationBar = ({
     onChangeValue(obj);
   };
   const displayNField = (lang: 'nn' | 'en') => {
-    const label = lang === 'en' ? 'Engelsk' : 'Nynorsk';
-    const placeholder = lang === 'en' ? 'Translation goes here' : 'Omsetjing går her';
+    const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
 
     if (usesTextArea) {
       return (
         <TextArea
           value={value[lang]}
           resize='vertical'
-          placeholder={placeholder}
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
           label={label}
@@ -77,7 +75,6 @@ export const RightTranslationBar = ({
       <TextField
         value={value[lang]}
         onChange={(e) => handleChange(lang, e.target.value)}
-        placeholder={placeholder}
         label={label}
         isValid={!(showErrors && value[lang] === '')}
       />
@@ -87,15 +84,16 @@ export const RightTranslationBar = ({
   return (
     <div className={classes.wrapper}>
       <div className={classes.topWrapper}>
-        <QuestionmarkDiamondIcon title='Oversettelse' fontSize='1.5rem' />
-        <p className={`${classes.text} ${classes.topText}`}>Oversettelse</p>
+        <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
+        <Heading size='xsmall' level={2} className={classes.topText}>
+          Oversettelse
+        </Heading>
       </div>
       <div className={classes.bodyWrapper}>
-        <Heading size='xsmall' level={2}>
-          {title}
-        </Heading>
         <Alert severity='info' className={classes.alert}>
-          For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+          <Paragraph size='small'>
+            For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+          </Paragraph>
         </Alert>
         <div className={classes.inputWrapper}>{displayNField('nn')}</div>
         <div className={classes.inputWrapper}>{displayNField('en')}</div>

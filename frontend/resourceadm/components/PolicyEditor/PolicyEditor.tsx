@@ -174,11 +174,7 @@ export const PolicyEditor = ({
   return (
     <div>
       <div className={classes.alertWrapper}>
-        <Alert
-          elevated
-          iconTitle='Du må ha minimum en regel for å publisere ressursen.'
-          severity='info'
-        >
+        <Alert iconTitle='Du må ha minimum en regel for å publisere ressursen.' severity='info'>
           Du må ha minimum en regel for å publisere ressursen.
         </Alert>
       </div>

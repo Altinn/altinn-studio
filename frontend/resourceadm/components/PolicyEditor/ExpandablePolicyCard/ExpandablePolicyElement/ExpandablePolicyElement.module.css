@@ -1,6 +1,6 @@
 .cardWrapper {
   border-radius: 12px;
-  border: solid 1px #D9D9D9;
+  border: solid 1px #d9d9d9;
   width: 100%;
 }
 
@@ -11,9 +11,9 @@
 }
 
 .elementWrapper {
-  border: solid 1px #D9D9D9;
+  border: solid 1px #d9d9d9;
   border-radius: 5px;
-  background-color: #F4F4F4;
+  background-color: #f4f4f4;
 }
 
 .topWrapper {
@@ -25,7 +25,7 @@
 
 .topWrapperError {
   border-radius: 10px;
-  /*background-color: var(--fds-semantic-surface-danger-default);*/
+  background-color: var(--fds-semantic-surface-danger-subtle);
 }
 
 .topWrapperErrorOpen {
@@ -33,7 +33,7 @@
   border-bottom-right-radius: 0;
 }
 
-.cardExpandButton{
+.cardExpandButton {
   border: none;
   background-color: transparent;
   cursor: pointer;
@@ -46,7 +46,7 @@
   margin: 0;
 }
 
-.elementExpandButton{
+.elementExpandButton {
   border: none;
   background-color: transparent;
   cursor: pointer;

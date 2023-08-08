@@ -393,7 +393,7 @@ export const ExpandablePolicyCard = ({
             error={showErrors && hasSubjectsError}
           />
         </div>
-        {displaySubjects}
+        <div className={classes.chipWrapper}>{displaySubjects}</div>
         {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
         <Label className={classes.label} size='small'>
           Legg til en beskrivelse av regelen

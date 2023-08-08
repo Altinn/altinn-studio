@@ -1,6 +1,6 @@
 .tableData {
   padding-block: 15px;
-  border-bottom: 2px solid #BCC7CC;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
 }
 
 .tableDataXLarge {
@@ -22,5 +22,5 @@
 }
 
 .tableDataDate {
-  padding-left: 15px;
+  padding-left: 12px;
 }

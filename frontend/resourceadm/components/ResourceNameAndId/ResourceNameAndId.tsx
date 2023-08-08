@@ -72,7 +72,6 @@ export const ResourceNameAndId = ({
       </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
-          placeholder='Ressursnavn (Bokmål)'
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
           aria-label='Ressursnavn (Bokmål)'
@@ -86,7 +85,6 @@ export const ResourceNameAndId = ({
           <>
             <div className={classes.textfieldWrapper}>
               <TextField
-                placeholder='Ressurs id'
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
                 aria-label='Ressurs id'

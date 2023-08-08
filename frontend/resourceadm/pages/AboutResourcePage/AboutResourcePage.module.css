@@ -31,21 +31,18 @@
 }
 
 .toggleTextActive {
-  color: #0062BA
+  color: #0062ba;
 }
 
 .toggleTextInactive {
   color: #707173;
 }
 
-p, h2 {
+p,
+h2 {
   margin: 0;
 }
 
 .warningCardWrapper {
   margin-top: 5px;
-}
-
-.label {
-  margin-top: 15px;
 }

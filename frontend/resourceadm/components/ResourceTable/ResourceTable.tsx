@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './ResourceTable.module.css';
 import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { ResourceType } from 'resourceadm/types/global';
 
 interface Props {
@@ -34,16 +34,8 @@ export const ResourceTable = ({ list }: Props) => {
     <table className={classes.table}>
       <tbody>
         <tr>
-          <th className={`${classes.tableHeaderXLarge} ${classes.tableHeader}`}>
-            <Paragraph className={classes.tableHeaderText} size='small'>
-              Ressurser
-            </Paragraph>
-          </th>
-          <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>
-            <Paragraph className={classes.tableHeaderText} size='small'>
-              Opprettet av
-            </Paragraph>
-          </th>
+          <th className={`${classes.tableHeaderXLarge} ${classes.tableHeader}`}>Ressurser</th>
+          <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>Opprettet av</th>
           <th className={`${classes.tableHeaderMedium} ${classes.tableHeaderLastChanged}`}>
             <Button
               variant='quiet'
@@ -61,11 +53,7 @@ export const ResourceTable = ({ list }: Props) => {
               Sist endret
             </Button>
           </th>
-          <th className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}>
-            <Paragraph className={classes.tableHeaderText} size='small'>
-              Tilgangsregler
-            </Paragraph>
-          </th>
+          <th className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}>Tilgangsregler</th>
           <th
             className={`${classes.tableHeaderSmall} ${classes.tableHeader}`}
             aria-label='Rediger ressurs kolonne'

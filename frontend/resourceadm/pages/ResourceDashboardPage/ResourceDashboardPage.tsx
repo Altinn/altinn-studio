@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
-import { PlusCircleIcon } from '@navikt/aksel-icons';
+import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { ResourceType } from 'resourceadm/types/global';
@@ -93,7 +93,7 @@ export const ResourceDashboardPage = () => {
           <Button
             variant='quiet'
             color='secondary'
-            icon={<PlusCircleIcon title='Migrer ressurs' />}
+            icon={<MigrationIcon title='Migrer ressurs' />}
             iconPlacement='right'
             onClick={() => setMigrateModalOpen(true)}
             size='medium'

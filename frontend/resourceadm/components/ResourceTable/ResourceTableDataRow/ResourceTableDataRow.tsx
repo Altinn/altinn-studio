@@ -37,7 +37,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
         <Paragraph size='small'>{resource.lastChanged}</Paragraph>
       </td>
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
-        <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined'>
+        <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
           {resource.hasPolicy ? 'Har tilgangsregler' : 'Mangler tilgangsregler'}
         </Tag>
       </td>
