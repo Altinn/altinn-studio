@@ -31,11 +31,11 @@
 }
 
 .toggleTextActive {
-  color: #0062ba;
+  color: var(--fds-semantic-text-success-default);
 }
 
 .toggleTextInactive {
-  color: #707173;
+  color: var(--fds-semantic-text-neutral-subtle);
 }
 
 p,

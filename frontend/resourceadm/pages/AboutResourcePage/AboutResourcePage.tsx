@@ -366,9 +366,9 @@ export const AboutResourcePage = ({
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Hjemmeside
-        </Heading>
+        </Label>
         <Paragraph short size='small'>
           Link til nettsiden der tjenesten kan startes av brukeren.
         </Paragraph>
@@ -382,9 +382,9 @@ export const AboutResourcePage = ({
           <ScreenReaderSpan id='resource-homepage' label='Hjemmeside' />
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Nøkkelord
-        </Heading>
+        </Label>
         <Paragraph short size='small'>
           {'Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'}
         </Paragraph>
@@ -398,9 +398,9 @@ export const AboutResourcePage = ({
           <ScreenReaderSpan id='resource-keywords' label='Nøkkelord' />
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Hvilken sektor er tjenesten relatert til?
-        </Heading>
+        </Label>
         <Paragraph short size='small'>
           En tjeneste kan relateres til flere industrier/sektorer
         </Paragraph>
@@ -417,9 +417,9 @@ export const AboutResourcePage = ({
           />
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Hvilket tematiske område dekker tjenesten?
-        </Heading>
+        </Label>
         <Paragraph short size='small'>
           En tjeneste kan relateres til et tematisk område
         </Paragraph>
@@ -434,9 +434,9 @@ export const AboutResourcePage = ({
           />
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Delegasjonstekst
-        </Heading>
+        </Label>
         <div className={classes.inputWrapper}>
           <TextField
             value={rightDescription['nb']}
@@ -447,9 +447,9 @@ export const AboutResourcePage = ({
           <ScreenReaderSpan id='resource-delegationtext' label='Delegasjonstekst' />
         </div>
         <div className={classes.divider} />
-        <Heading size='xsmall' spacing level={2}>
+        <Label size='medium' spacing>
           Vis i offentlige kataloger
-        </Heading>
+        </Label>
         <Paragraph short size='small'>
           Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på
           norge.no og data.norge.no.
