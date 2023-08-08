@@ -50,8 +50,31 @@ describe('SchemaItem', () => {
       expect(cancelButton).toBeInTheDocument();
     });
 
+    it('should confirm and close the dialog when clicking the confirm button', async () => {
+      const utils = await render();
+      const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
+
+      const menuButton = screen.getByTestId('open-context-menu-button');
+      await act(() => user.click(menuButton));
+
+      const deleteButton = screen.getByText(textMock('delete'));
+      await act(() => user.click(deleteButton));
+
+      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.datamodel_field_deletion_confirm') });
+      await act(() => user.click(confirmButton));
+
+      await waitFor(() => {
+        expect(dispatchSpy).toBeCalledWith({
+            payload: '#/$defs/Test',
+            type: 'schemaEditor/removeSelection',
+        });
+      });
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
     it('should close the confirmation dialog when clicking the cancel button', async () => {
-      await render();
+      const utils = await render();
+      const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
       const menuButton = screen.getByTestId('open-context-menu-button');
       await act(() => user.click(menuButton));
@@ -62,11 +85,15 @@ describe('SchemaItem', () => {
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
       await act(() => user.click(cancelButton));
 
+      await waitFor(() => {
+        expect(dispatchSpy).toBeCalledTimes(0);
+      });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
     it('should close when clicking outside the popover', async () => {
-      await render();
+      const utils = await render();
+      const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
       const menuButton = screen.getByTestId('open-context-menu-button');
       await act(() => user.click(menuButton));
@@ -76,6 +103,9 @@ describe('SchemaItem', () => {
 
       await act(() => user.click(document.body));
 
+      await waitFor(() => {
+        expect(dispatchSpy).toBeCalledTimes(0);
+      });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
   });
@@ -100,7 +130,7 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
       isNillable: false,
       isRequired: false,
       objectKind: ObjectKind.Field,
-      pointer: '#/$defs/TestType',
+      pointer: '#/$defs/Test',
       restrictions: {},
     },
     translate: textMock,

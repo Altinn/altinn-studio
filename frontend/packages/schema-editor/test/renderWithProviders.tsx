@@ -42,8 +42,10 @@ export const renderWithProviders = ({
     ...appContextProps,
   };
 
+  const store = configureStore()(allStateProps);
+
   const result = render(
-    <Provider store={configureStore()(allStateProps)}>
+    <Provider store={store}>
       <ServicesContextProvider {...allServicesContextProps} client={queryClientMock}>
         <SchemaEditorAppContext.Provider value={allAppContextProps}>
           {element}
@@ -90,5 +92,5 @@ export const renderWithProviders = ({
     );
   };
 
-  return { ...result, rerender };
+  return { ...result, store, rerender };
 };
