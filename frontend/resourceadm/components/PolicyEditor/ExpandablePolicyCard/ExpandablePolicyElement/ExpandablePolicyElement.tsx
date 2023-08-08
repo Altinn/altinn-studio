@@ -38,14 +38,6 @@ export const ExpandablePolicyElement = ({
     setIsDropdownOpen((prev) => !prev);
   };
 
-  const getElementClassName = () => {
-    if (isCard) {
-      if (hasError) return `${classes.cardErrorWrapper}`;
-      return classes.cardWrapper;
-    }
-    return classes.elementWrapper;
-  };
-
   const getTopWrapperErrorClassName = () => {
     if (isCard && hasError) {
       return `${classes.topWrapperError} ${isOpen && classes.topWrapperErrorOpen}`;
@@ -53,8 +45,21 @@ export const ExpandablePolicyElement = ({
   };
 
   return (
-    <div className={getElementClassName()}>
-      <div className={`${classes.topWrapper} ${getTopWrapperErrorClassName()}`}>
+    <div
+      className={`
+        ${classes.wrapper}
+        ${isCard ? classes.cardWrapper : classes.elementWrapper}
+        ${hasError && isCard && classes.cardError}
+      `}
+    >
+      <div
+        className={`
+        ${classes.topWrapper}
+        ${isCard ? classes.topWrapperCard : classes.topWrapperElement}
+        ${isOpen && isCard && classes.topWrapperCardOpen}
+        ${isOpen && !isCard && classes.topWrapperElementOpen}
+        ${getTopWrapperErrorClassName()}`}
+      >
         <button
           className={isCard ? classes.cardExpandButton : classes.elementExpandButton}
           onClick={() => setIsOpen((prev) => !prev)}

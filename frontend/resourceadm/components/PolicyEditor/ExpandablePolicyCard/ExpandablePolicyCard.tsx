@@ -346,6 +346,27 @@ export const ExpandablePolicyCard = ({
     return hasResourceError || hasRightsError || hasSubjectsError;
   };
 
+  /**
+   * Gets the correct text to display for a rule with missing values
+   */
+  const getRuleErrorText = (): string => {
+    const arr: string[] = [];
+    if (hasResourceError) arr.push('sub-ressurs');
+    if (hasRightsError) arr.push('rettigheter');
+    if (hasSubjectsError) arr.push('roller');
+
+    if (arr.length === 1) {
+      return `Regel ${policyRule.ruleId} mangler ${arr[0]}`;
+    }
+    if (arr.length === 2) {
+      return `Regel ${policyRule.ruleId} mangler ${arr[0]} og ${arr[1]}`;
+    }
+    if (arr.length === 3) {
+      return `Regel ${policyRule.ruleId} mangler ${arr[0]}, ${arr[1]} og ${arr[2]}`;
+    }
+    return '';
+  };
+
   return (
     <div className={classes.cardWrapper}>
       <ExpandablePolicyElement
@@ -410,6 +431,7 @@ export const ExpandablePolicyCard = ({
           <ScreenReaderSpan id='ruleDescription' label='Beskrivelse ac regelen' />
         </div>
       </ExpandablePolicyElement>
+      {showErrors && displayWarningCard(getRuleErrorText())}
     </div>
   );
 };

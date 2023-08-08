@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
 import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
 import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
-import { Button, Heading, Alert } from '@digdir/design-system-react';
+import { Button, Label, Alert } from '@digdir/design-system-react';
 import {
   PolicyBackendType,
   PolicyRuleCardType,
@@ -187,9 +187,9 @@ export const PolicyEditor = ({
           />
         </div>
       </div>
-      <Heading size='xsmall' spacing level={2} className={classes.subHeader}>
+      <Label size='medium' className={classes.label}>
         Regler
-      </Heading>
+      </Label>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
