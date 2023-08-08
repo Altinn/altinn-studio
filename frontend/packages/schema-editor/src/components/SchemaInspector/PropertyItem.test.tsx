@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import type { IPropertyItemProps } from './PropertyItem';
 import { PropertyItem } from './PropertyItem';
 import { FieldType } from '@altinn/schema-model';
@@ -23,6 +23,10 @@ const app = 'app';
 const modelPath = 'test';
 const saveDatamodel = jest.fn();
 const textDeleteField = 'Slett felt';
+const textConfirmDeleteDialog = 'Confirm';
+const textCancelDeleteDialog = 'Cancel';
+const fieldDeletionText = 'Text';
+const fieldDeletionInfo = 'Info';
 const textFieldName = 'Navn på felt';
 const textRequired = 'Påkrevd';
 const textType = 'Type';
@@ -38,6 +42,10 @@ const fieldTypeNames = {
 };
 const texts = {
   'schema_editor.delete_field': textDeleteField,
+  'schema_editor.datamodel_field_deletion_confirm': textConfirmDeleteDialog,
+  'schema_editor.datamodel_field_deletion_text': fieldDeletionText,
+  'schema_editor.datamodel_field_deletion_info': fieldDeletionInfo,
+  'general.cancel': textCancelDeleteDialog,
   'schema_editor.field_name': textFieldName,
   'schema_editor.required': textRequired,
   'schema_editor.type': textType,
@@ -209,11 +217,70 @@ describe('PropertyItem', () => {
     expect(await screen.findByRole('button', { name: textDeleteField })).toBeDefined();
   });
 
-  test('onDeleteField is called when the delete button is clicked', async () => {
-    const onDeleteField = jest.fn();
-    renderPropertyItem({ onDeleteField });
-    const deleteButton = await screen.findByRole('button', { name: textDeleteField });
-    await act(() => user.click(deleteButton));
-    expect(onDeleteField).toHaveBeenCalledTimes(1);
+  describe('Delete confirmation dialog', () => {
+    afterEach(jest.clearAllMocks);
+
+    it('should open the confirmation dialog when clicking the delete button', async () => {
+      renderPropertyItem();
+
+      const deleteButton = screen.getByRole('button', { name: textDeleteField });
+      await act(() => user.click(deleteButton));
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+
+      const text = await screen.findByText(fieldDeletionText);
+      expect(text).toBeInTheDocument();
+
+      const information = await screen.findByText(fieldDeletionInfo);
+      expect(information).toBeInTheDocument();
+
+      const confirmButton = screen.getByRole('button', { name: textConfirmDeleteDialog });
+      expect(confirmButton).toBeInTheDocument();
+
+      const cancelButton = screen.getByRole('button', { name: textCancelDeleteDialog });
+      expect(cancelButton).toBeInTheDocument();
+    });
+
+    it('should confirm and close the dialog when clicking the confirm button', async () => {
+      const onDeleteField = jest.fn();
+      renderPropertyItem({ onDeleteField });
+
+      const deleteButton = screen.getByRole('button', { name: textDeleteField });
+      await act(() => user.click(deleteButton));
+
+      const confirmButton = screen.getByRole('button', { name: textConfirmDeleteDialog });
+      await act(() => user.click(confirmButton));
+
+      expect(onDeleteField).toBeCalledWith('test', '');
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('should close the confirmation dialog when clicking the cancel button', async () => {
+      const onDeleteField = jest.fn();
+      renderPropertyItem({ onDeleteField });
+
+      const deleteButton = screen.getByRole('button', { name: textDeleteField });
+      await act(() => user.click(deleteButton));
+
+      const cancelButton = screen.getByRole('button', { name: textCancelDeleteDialog });
+      await act(() => user.click(cancelButton));
+
+      expect(onDeleteField).toBeCalledTimes(0);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('should close when clicking outside the popover', async () => {
+      const onDeleteField = jest.fn();
+      renderPropertyItem({ onDeleteField });
+
+      const deleteButton = screen.getByRole('button', { name: textDeleteField });
+      await act(() => user.click(deleteButton));
+
+      await act(() => user.click(document.body));
+
+      expect(onDeleteField).toBeCalledTimes(0);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
   });
 });

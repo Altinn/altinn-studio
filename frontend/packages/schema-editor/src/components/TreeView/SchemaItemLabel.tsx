@@ -34,7 +34,7 @@ export interface SchemaItemLabelProps {
   refNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
-  openConfirmPopover: () => void;
+  openConfirmDeleteDialog: () => void;
 }
 export enum SchemaItemLabelTestIds {
   contextMenuAddReference = 'context-menu-add-reference',
@@ -50,7 +50,7 @@ export const SchemaItemLabel = ({
   refNode,
   selectedNode,
   translate,
-  openConfirmPopover,
+  openConfirmDeleteDialog,
 }: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
@@ -222,7 +222,7 @@ export const SchemaItemLabel = ({
             id='delete-node-button'
             key='delete'
             className={classes.contextMenuLastItem}
-            onClick={(event) => wrapper(() => openConfirmPopover())(event)}
+            onClick={(event) => wrapper(openConfirmDeleteDialog)(event)}
             text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
             iconClass='fa fa-trash'
             disabled={hasReferredNodes}

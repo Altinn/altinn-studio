@@ -4,7 +4,7 @@ import { XSDUpload } from 'app-shared/features/dataModelling/components/XSDUploa
 import { GroupedOption, OnChangeSchema, SchemaSelect } from 'app-shared/features/dataModelling/components/SchemaSelect';
 import { useParams } from 'react-router-dom';
 import { IMetadataOption } from 'app-shared/features/dataModelling/functions/types';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { TrashIcon } from '@navikt/aksel-icons';
@@ -39,7 +39,7 @@ export const Toolbar = ({
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
   const schemaName = selectedOption?.value && selectedOption?.label;
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   return (
     <>
@@ -63,17 +63,17 @@ export const Toolbar = ({
         options={metadataOptions}
         selectedOption={selectedOption}
       />
-      <AltinnConfirmPopover
-        open={isConfirmDeleteOpen}
+      <AltinnConfirmDialog
+        open={isConfirmDeleteDialogOpen}
         confirmText={t('schema_editor.confirm_deletion')}
         onConfirm={handleDeleteSchema}
-        onClose={() => setIsConfirmDeleteOpen(false)}
+        onClose={() => setIsConfirmDeleteDialogOpen(false)}
         placement="bottom"
         trigger={
           <Button
             id='delete-model-button'
             disabled={disabled}
-            onClick={() => setIsConfirmDeleteOpen((prevState) => !prevState)}
+            onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
             color={ButtonColor.Danger}
             icon={<TrashIcon />}
             variant={ButtonVariant.Quiet}
@@ -83,7 +83,7 @@ export const Toolbar = ({
         }
       >
         <p>{t('schema_editor.delete_model_confirm', { schemaName })}</p>
-      </AltinnConfirmPopover>
+      </AltinnConfirmDialog>
     </>
   );
 };

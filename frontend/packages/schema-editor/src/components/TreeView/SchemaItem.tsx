@@ -19,12 +19,12 @@ import type { DragItem } from './dnd-helpers';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { deleteNode } from '@altinn/schema-model';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
 
-type SchemaItemProps = {
+export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
   isPropertiesView: boolean;
@@ -43,10 +43,10 @@ export function SchemaItem({
   index,
 }: SchemaItemProps) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
-  const { t } = useTranslation();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
@@ -92,20 +92,20 @@ export function SchemaItem({
               refNode={refNode}
               translate={translate}
               hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
-              openConfirmPopover={() => setIsConfirmDeleteOpen(true)}
+              openConfirmDeleteDialog={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
             />
           </DndItem>
-          <AltinnConfirmPopover
-            open={isConfirmDeleteOpen}
+          <AltinnConfirmDialog
+            open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
             onConfirm={handleDeleteClick}
-            onClose={() => setIsConfirmDeleteOpen(false)}
+            onClose={() => setIsConfirmDeleteDialogOpen(false)}
             placement='bottom'
-            trigger={<div className={classes.confirmPopoverTrigger} />}
+            trigger={<div className={classes.confirmDeleteDialogTrigger} />}
           >
             <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
             <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
-          </AltinnConfirmPopover>
+          </AltinnConfirmDialog>
         </>
       }
     >

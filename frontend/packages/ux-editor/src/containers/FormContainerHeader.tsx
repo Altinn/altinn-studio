@@ -7,7 +7,7 @@ import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { useTranslation } from 'react-i18next';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IFormContainerHeaderProps {
   id: string;
@@ -27,7 +27,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   dragHandleRef,
 } : IFormContainerHeaderProps) {
   const { t } = useTranslation();
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   return (
     <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
@@ -44,11 +44,11 @@ export const FormContainerHeader = memo(function FormContainerHeader({
         {t('ux_editor.component_group_header', { id })}
       </div>
       <div className={classes.formGroupButtons}>
-        <AltinnConfirmPopover
-          open={isConfirmDeleteOpen}
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
           confirmText={t('ux_editor.component_confirm_delete_component')}
           onConfirm={handleDelete}
-          onClose={() => setIsConfirmDeleteOpen(false)}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
           placement='bottom'
           trigger={
             <Button
@@ -57,14 +57,14 @@ export const FormContainerHeader = memo(function FormContainerHeader({
               title={t('general.delete')}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
-                setIsConfirmDeleteOpen((prevState) => !prevState);
+                setIsConfirmDeleteDialogOpen(prevState => !prevState);
               }}
               variant={ButtonVariant.Quiet}
             />
           }
         >
           <p>{t('ux_editor.component_popover_confirm_delete')}</p>
-        </AltinnConfirmPopover>
+        </AltinnConfirmDialog>
       </div>
     </div>
   );

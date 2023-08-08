@@ -13,7 +13,7 @@ import {
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;
@@ -67,7 +67,7 @@ export const RightMenu = ({
                     onChange={handleSelectChange}
                     checked={selectedLanguages.includes(langCode)}
                   />
-                  <AltinnConfirmPopover
+                  <AltinnConfirmDialog
                     open={langCode === langCodeToDelete}
                     confirmText={t('schema_editor.language_confirm_deletion')}
                     onConfirm={() => handleDeleteLanguage(langCode)}
@@ -89,7 +89,7 @@ export const RightMenu = ({
                     }
                   >
                     <p>{t('schema_editor.language_display_confirm_delete')}</p>
-                  </AltinnConfirmPopover>
+                  </AltinnConfirmDialog>
                 </div>
               </div>
             )})}

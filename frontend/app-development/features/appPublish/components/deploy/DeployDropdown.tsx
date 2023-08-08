@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
-import { AltinnIcon, AltinnSpinner, AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnIcon, AltinnSpinner, AltinnConfirmDialog } from 'app-shared/components';
 import {
   Button,
   ButtonColor,
@@ -12,7 +12,7 @@ import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
 import { useTranslation, Trans } from 'react-i18next';
 
-interface DeployDropdownProps {
+export interface DeployDropdownProps {
   appDeployedVersion: string;
   envName: string;
   imageOptions: ImageOption[];
@@ -35,7 +35,7 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
 }: DeployDropdownProps) => {
-  const [isConfirmDeployOpen, setIsConfirmDeployOpen] = useState(false);
+  const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
   const { t } = useTranslation();
   const onStartDeployClick = async () => {
     await startDeploy();
@@ -53,15 +53,15 @@ export const DeployDropdown = ({
         )}
       </div>
       <div className={classes.deployButton}>
-        <AltinnConfirmPopover
-          open={isConfirmDeployOpen}
+        <AltinnConfirmDialog
+          open={isConfirmDeployDialogOpen}
           confirmColor={ButtonColor.Primary}
           onConfirm={onStartDeployClick}
-          onClose={() => setIsConfirmDeployOpen(false)}
+          onClose={() => setIsConfirmDeployDialogOpen(false)}
           trigger={
             <Button
               disabled={disabled}
-              onClick={() => setIsConfirmDeployOpen((prevState) => !prevState)}
+              onClick={() => setIsConfirmDeployDialogOpen(prevState => !prevState)}
               id={`deploy-button-${envName.toLowerCase()}`}
             >
               {t('app_deploy_messages.btn_deploy_new_version')}
@@ -74,7 +74,7 @@ export const DeployDropdown = ({
                 appDeployedVersion,
               })
             : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}</p>
-        </AltinnConfirmPopover>
+        </AltinnConfirmDialog>
       </div>
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>

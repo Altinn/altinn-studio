@@ -20,7 +20,7 @@ import { useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -49,7 +49,7 @@ export const FormComponent = memo(function FormComponent({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
 
@@ -113,11 +113,11 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
-        <AltinnConfirmPopover
-          open={isConfirmDeleteOpen}
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
           confirmText={t('ux_editor.component_confirm_delete_component')}
           onConfirm={handleDelete}
-          onClose={() => setIsConfirmDeleteOpen(false)}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
           placement="bottom"
           trigger={
             <Button
@@ -126,7 +126,7 @@ export const FormComponent = memo(function FormComponent({
               icon={<TrashIcon />}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
-                setIsConfirmDeleteOpen((prevState) => !prevState);
+                setIsConfirmDeleteDialogOpen(prevState => !prevState);
               }}
               tabIndex={0}
               title={t('general.delete')}
@@ -135,7 +135,7 @@ export const FormComponent = memo(function FormComponent({
           }
         >
           <p>{t('ux_editor.component_popover_confirm_delete')}</p>
-        </AltinnConfirmPopover>
+        </AltinnConfirmDialog>
         {
           isPreviewable && (
             <Button

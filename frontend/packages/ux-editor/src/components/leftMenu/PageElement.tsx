@@ -18,7 +18,7 @@ import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayo
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IPageElementProps {
   name: string;
@@ -43,7 +43,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   useEffect(() => {
     if (name !== selectedLayout) {
@@ -67,7 +67,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
-      setIsConfirmDeleteOpen(true);
+      setIsConfirmDeleteDialogOpen(prevState => !prevState);
     } else if (action === 'edit') {
       setEditMode(true);
       setNewName(name);
@@ -163,15 +163,15 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           variant={ButtonVariant.Quiet}
           title={t('general.options')}
         />
-        <AltinnConfirmPopover
-          open={isConfirmDeleteOpen}
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
           confirmText={t('left_menu.page_delete_confirm')}
           onConfirm={handleConfirmDelete}
-          onClose={() => setIsConfirmDeleteOpen(false)}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
         >
           <p>{t('left_menu.page_delete_header')}</p>
           <p>{t('left_menu.page_delete_information')}</p>
-        </AltinnConfirmPopover>
+        </AltinnConfirmDialog>
       </div>
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         {layoutOrder.includes(name) && (

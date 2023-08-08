@@ -1,7 +1,9 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
-import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
+import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import type { ToolbarProps } from './Toolbar';
+import { Toolbar } from './Toolbar';
 
 const user = userEvent.setup();
 
@@ -16,12 +18,6 @@ const texts = {
   'schema_editor.confirm_deletion': continueText,
   'general.cancel': cancelText,
 };
-const deleteAction = jest.fn();
-const schemaName = 'some-name';
-const defaultProps = {
-  deleteAction,
-  schemaName
-};
 
 // Mocks:
 jest.mock(
@@ -29,49 +25,100 @@ jest.mock(
   () => ({ useTranslation: () => mockUseTranslation(texts) }),
 );
 
-const render = (props?) =>
-  rtlRender(<div {...defaultProps} {...props} />);
+const handleCreateSchemaMock = jest.fn();
+const handleDeleteSchemaMock = jest.fn();
+const handleXsdUploadedMock = jest.fn();
+const metadataOptionsMock = [];
+const modelNamesMock = [];
+const selectedOptionMock = null;
+const setCreateNewOpenMock = jest.fn();
+const setSelectedOptionMock = jest.fn();
 
-describe('DeleteWrapper', () => {
+const render = (props?: Partial<ToolbarProps>) => {
+  const allProps: ToolbarProps = {
+    createNewOpen: false,
+    createPathOption: false,
+    disabled: false,
+    handleCreateSchema: handleCreateSchemaMock,
+    handleDeleteSchema: handleDeleteSchemaMock,
+    handleXsdUploaded: handleXsdUploadedMock,
+    metadataOptions: metadataOptionsMock,
+    modelNames: modelNamesMock,
+    selectedOption: selectedOptionMock,
+    setCreateNewOpen: setCreateNewOpenMock,
+    setSelectedOption: setSelectedOptionMock,
+    ...props,
+  }
+
+  return rtlRender(<Toolbar {...allProps} />);
+};
+
+describe('Toolbar', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should not be able to open the delete dialog if no schemaName is set', async () => {
-    const userWithNoPointerEventCheck = userEvent.setup({
-      pointerEventsCheck: PointerEventsCheckLevel.Never,
+  describe('Delete confirmation dialog', () => {
+    afterEach(jest.clearAllMocks);
+
+    it('should open the confirmation dialog when clicking the delete button', async () => {
+      render();
+
+      const deleteButton = getDeleteButton();
+      await act(() => user.click(deleteButton));
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+
+      const description = queryDeleteMessage();
+      expect(description).toBeInTheDocument();
+
+      const confirmButton = getContinueButton();
+      expect(confirmButton).toBeInTheDocument();
+
+      const cancelButton = getCancelButton();
+      expect(cancelButton).toBeInTheDocument();
     });
-    render({ schemaName: undefined });
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => userWithNoPointerEventCheck.click(getDeleteButton()));
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-  });
 
-  it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
-    render();
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => user.click(getDeleteButton()));
-    expect(getDeleteMessage()).toBeInTheDocument();
-  });
+    it('should confirm and close the dialog when clicking the confirm button', async () => {
+      render();
 
-  it('should call deleteAction callback and close dialog when clicking continue button', async () => {
-    render();
-    await act(() => user.click(getDeleteButton()));
-    await act(() => user.click(getContinueButton()));
-    expect(deleteAction).toHaveBeenCalledTimes(1);
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-  });
+      const deleteButton = getDeleteButton();
+      await act(() => user.click(deleteButton));
 
-  it('should close the delete dialog when clicking cancel', async () => {
-    render();
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => user.click(getDeleteButton()));
-    expect(getDeleteMessage()).toBeInTheDocument();
-    await act(() => user.click(getCancelButton()));
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
+      const confirmButton = getContinueButton();
+      await act(() => user.click(confirmButton));
+
+      expect(handleDeleteSchemaMock).toBeCalledTimes(1);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('should close the confirmation dialog when clicking the cancel button', async () => {
+      render();
+
+      const deleteButton = getDeleteButton();
+      await act(() => user.click(deleteButton));
+
+      const cancelButton = getCancelButton();
+      await act(() => user.click(cancelButton));
+
+      expect(handleDeleteSchemaMock).toBeCalledTimes(0);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('should close when clicking outside the popover', async () => {
+      render();
+
+      const deleteButton = getDeleteButton();
+      await act(() => user.click(deleteButton));
+
+      await act(() => user.click(document.body));
+
+      expect(handleDeleteSchemaMock).toBeCalledTimes(0);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
   });
 });
 
 const getDeleteButton = () => screen.getByRole('button', { name: deleteText });
 const getContinueButton = () => screen.getByRole('button', { name: continueText });
 const getCancelButton = () => screen.getByRole('button', { name: cancelText });
-const getDeleteMessage = () => screen.getByText(confirmText);
 const queryDeleteMessage = () => screen.queryByText(confirmText);

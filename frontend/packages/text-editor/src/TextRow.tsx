@@ -17,7 +17,7 @@ import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from 
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
-import { AltinnConfirmPopover } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -47,7 +47,7 @@ export const TextRow = ({
   const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const { t } = useTranslation();
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
@@ -75,18 +75,18 @@ export const TextRow = ({
     <TableRow data-testid={'lang-row'}>
       <TableCell>
         {showButton && (
-          <AltinnConfirmPopover
-            open={isConfirmDeleteOpen}
+          <AltinnConfirmDialog
+            open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.textRow-confirm-cancel-popover')}
             onConfirm={handleDeleteClick}
-            onClose={() => setIsConfirmDeleteOpen(false)}
+            onClose={() => setIsConfirmDeleteDialogOpen(false)}
             placement='bottom'
             trigger={
               <Button
                 className={classes.deleteButton}
                 icon={<TrashIcon title={`Slett ${textId}`} />}
                 variant={ButtonVariant.Quiet}
-                onClick={() => setIsConfirmDeleteOpen((prevState) => !prevState)}
+                onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
                 aria-label={t('schema_editor.delete')}
               >
                 {t('schema_editor.delete')}
@@ -94,7 +94,7 @@ export const TextRow = ({
             }
           >
             <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
-          </AltinnConfirmPopover>
+          </AltinnConfirmDialog>
         )}
       </TableCell>
       {selectedLanguages.map((lang) => {

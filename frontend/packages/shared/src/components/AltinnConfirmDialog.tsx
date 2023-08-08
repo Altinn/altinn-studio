@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import classes from './AltinnConfirmPopover.module.css';
+import classes from './AltinnConfirmDialog.module.css';
 import type { PopoverProps } from '@digdir/design-system-react';
 import { Button, ButtonColor, ButtonVariant, Popover, PopoverVariant } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
-export type AltinnConfirmPopoverProps = {
+export type AltinnConfirmDialogProps = {
   confirmText?: string;
   confirmColor?: ButtonColor;
   cancelText?: string;
@@ -13,7 +13,7 @@ export type AltinnConfirmPopoverProps = {
   onClose:(event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
 } & Partial<Pick<PopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
 
-export function AltinnConfirmPopover({
+export function AltinnConfirmDialog({
   confirmText,
   confirmColor = ButtonColor.Danger,
   cancelText,
@@ -24,14 +24,14 @@ export function AltinnConfirmPopover({
   trigger = <div />,
   open = false,
   className,
-}: AltinnConfirmPopoverProps) {
+}: AltinnConfirmDialogProps) {
   const { t } = useTranslation();
 
-  const popoverRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+      if (dialogRef.current && !dialogRef.current.contains(event.target)) {
         onClose(event);
       }
     };
@@ -45,7 +45,7 @@ export function AltinnConfirmPopover({
 
   return (
     <div
-      ref={popoverRef}
+      ref={dialogRef}
     >
       <Popover
         variant={PopoverVariant.Warning}
@@ -62,7 +62,7 @@ export function AltinnConfirmPopover({
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onConfirm(event);
-              close(event);
+              onClose(event);
             }}
             className={classes.confirmButton}
           >
@@ -73,7 +73,7 @@ export function AltinnConfirmPopover({
             variant={ButtonVariant.Quiet}
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
-              close(event);
+              onClose(event);
             }}
           >
             {cancelText || t('general.cancel')}

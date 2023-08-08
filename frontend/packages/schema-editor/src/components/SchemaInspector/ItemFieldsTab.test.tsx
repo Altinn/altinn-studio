@@ -68,6 +68,7 @@ const texts = {
   'schema_editor.integer': fieldTypeNames[FieldType.Integer],
   'schema_editor.object': fieldTypeNames[FieldType.Object],
   'schema_editor.string': fieldTypeNames[FieldType.String],
+  'schema_editor.datamodel_field_deletion_confirm': 'Confirm',
 };
 const defaultProps: ItemFieldsTabProps = { selectedItem };
 const org = 'org';
@@ -158,7 +159,18 @@ describe('ItemFieldsTab', () => {
 
   test('Model is saved correctly when delete button is clicked', async () => {
     renderItemFieldsTab();
-    await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[0]));
+
+    const deleteButton = screen.queryAllByLabelText(textDeleteField)[0];
+    await act(() => user.click(deleteButton));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+
+    const confirmButton = screen.getByRole('button', {
+      name: texts['schema_editor.datamodel_field_deletion_confirm'],
+    });
+    await act(() => user.click(confirmButton));
+
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = getNodeByPointer(updatedModel, selectedItem.pointer);
