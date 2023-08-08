@@ -1,4 +1,3 @@
-
 .dropdownContainer {
   position: relative;
   display: inline-block;
@@ -10,7 +9,7 @@
   top: 100%;
   right: 0;
   width: 150px;
-  background-color: #FFFFFF;
+  background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 5px;
   filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.25));
 }
@@ -37,12 +36,14 @@
   color: var(--fds-semantic-text-danger-default);
 }
 
-.dropdownDuplicateButton:hover, .dropdownDeleteButton:hover {
-  background-color: #E9EAEC;
+.dropdownDuplicateButton:hover,
+.dropdownDeleteButton:hover {
+  background-color: #e9eaec;
 }
 
-.dropdownDuplicateButton:focus, .dropdownDeleteButton:focus {
-  background-color: #D9D9D9;
+.dropdownDuplicateButton:focus,
+.dropdownDeleteButton:focus {
+  background-color: #d9d9d9;
 }
 
 .dropdownItemText {

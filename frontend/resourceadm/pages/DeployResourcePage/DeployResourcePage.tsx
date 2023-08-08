@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { TextField, Button, Spinner, Heading } from '@digdir/design-system-react';
+import { TextField, Button, Spinner, Heading, Label } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
 import {
@@ -211,9 +211,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
           <div className={classes.contentWrapper}>
             {displayStatusCard()}
             <div className={classes.newVersionWrapper}>
-              <Heading size='xsmall' spacing level={2}>
+              <Label size='medium' spacing>
                 Nytt versjonsnummer
-              </Heading>
+              </Label>
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
                   <TextField
@@ -238,9 +238,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
                 </Button>
               </div>
             </div>
-            <Heading size='xsmall' spacing level={2}>
+            <Label size='medium' spacing>
               Velg miljø der du ønsker å publisere endringene
-            </Heading>
+            </Label>
             <div className={classes.deployCardsWrapper}>
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('test', versionInTest)}

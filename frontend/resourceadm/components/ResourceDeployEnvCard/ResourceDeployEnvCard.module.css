@@ -5,9 +5,9 @@
   width: 260px;
   padding: 20px;
   margin: 0;
-  background-color: #FFFFFF;
+  background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
-  border: solid 1px #D9D9D9;
+  border: solid 1px var(--fds-semantic-border-neutral-divider);
 }
 
 .envName {

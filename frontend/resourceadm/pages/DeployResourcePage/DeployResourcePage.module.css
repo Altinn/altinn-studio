@@ -11,7 +11,7 @@
 .deployCardsWrapper {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .newVersionWrapper {
@@ -35,7 +35,9 @@
   margin-bottom: 20px;
 }
 
-p, h1, h2 {
+p,
+h1,
+h2 {
   margin: 0;
   line-height: 24px;
 }
