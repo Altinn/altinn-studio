@@ -114,7 +114,7 @@ export const CheckboxContainerComponent = ({
         disabled={readOnly}
         onChange={(values) => handleChange(values)}
         legend={overrideDisplay?.renderLegend === false ? null : labelText}
-        description={textResourceBindings?.description && langAsString(textResourceBindings.description)}
+        description={textResourceBindings?.description && lang(textResourceBindings.description)}
         error={!isValid}
         fieldSetProps={{
           'aria-label': overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined,
