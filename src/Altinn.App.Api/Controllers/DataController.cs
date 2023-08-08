@@ -156,7 +156,7 @@ namespace Altinn.App.Api.Controllers
                     (bool validationRestrictionSuccess, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
                     if (!validationRestrictionSuccess)
                     {
-                        return new BadRequestObjectResult(GetErrorDetails(errors));
+                        return new BadRequestObjectResult(await GetErrorDetails(errors));
                     }
 
                     StreamContent streamContent = Request.CreateContentStream();
@@ -182,7 +182,7 @@ namespace Altinn.App.Api.Controllers
 
                     if (!fileValidationSuccess)
                     {
-                        return new BadRequestObjectResult(GetErrorDetails(validationIssues));
+                        return new BadRequestObjectResult(await GetErrorDetails(validationIssues));
                     }
 
                     fileStream.Seek(0, SeekOrigin.Begin);
@@ -205,7 +205,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         private async Task<object> GetErrorDetails(List<ValidationIssue> errors)
         {
-            return await _featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse) ? errors : errors.Select(x => x.Description);
+            return await _featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse) ? errors : string.Join(";", errors.Select(x => x.Description));
         }
 
         private static bool FileAnalysisEnabledForDataType(DataType dataTypeFromMetadata)
@@ -330,7 +330,7 @@ namespace Altinn.App.Api.Controllers
                 (bool validationRestrictionSuccess, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
                 if (!validationRestrictionSuccess)
                 {
-                    return new BadRequestObjectResult(GetErrorDetails(errors));
+                    return new BadRequestObjectResult(await GetErrorDetails(errors));
                 }
 
                 return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid);
