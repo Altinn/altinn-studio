@@ -46,7 +46,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
       <div className={classes.formGroupButtons}>
         <AltinnConfirmDialog
           open={isConfirmDeleteDialogOpen}
-          confirmText={t('ux_editor.component_confirm_delete_component')}
+          confirmText={t('ux_editor.component_deletion_confirm')}
           onConfirm={handleDelete}
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
           placement='bottom'
@@ -63,7 +63,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
             />
           }
         >
-          <p>{t('ux_editor.component_popover_confirm_delete')}</p>
+          <p>{t('ux_editor.component_deletion_text')}</p>
         </AltinnConfirmDialog>
       </div>
     </div>

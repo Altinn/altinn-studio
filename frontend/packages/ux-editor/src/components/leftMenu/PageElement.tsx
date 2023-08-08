@@ -169,7 +169,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           onConfirm={handleConfirmDelete}
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
         >
-          <p>{t('left_menu.page_delete_header')}</p>
+          <p>{t('left_menu.page_delete_text')}</p>
           <p>{t('left_menu.page_delete_information')}</p>
         </AltinnConfirmDialog>
       </div>

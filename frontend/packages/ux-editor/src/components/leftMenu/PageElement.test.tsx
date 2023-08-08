@@ -47,7 +47,7 @@ describe('PageElement', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(textMock('left_menu.page_delete_header'));
+      const text = await screen.findByText(textMock('left_menu.page_delete_text'));
       expect(text).toBeInTheDocument();
 
       const information = await screen.findByText(textMock('left_menu.page_delete_information'));

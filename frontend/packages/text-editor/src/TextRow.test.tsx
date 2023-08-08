@@ -120,10 +120,10 @@ describe('TextRow', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(textMock('schema_editor.textRow-title-confirmCancel-popover'));
+      const text = await screen.findByText(textMock('schema_editor.textRow-deletion-text'));
       expect(text).toBeInTheDocument();
 
-      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.textRow-confirm-cancel-popover') });
+      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.textRow-deletion-confirm') });
       expect(confirmButton).toBeInTheDocument();
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -137,7 +137,7 @@ describe('TextRow', () => {
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
       await act(() => user.click(deleteButton));
 
-      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.textRow-confirm-cancel-popover') });
+      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.textRow-deletion-confirm') });
       await act(() => user.click(confirmButton));
 
       expect(removeEntry).toBeCalledWith({ textId: 'key1' });

@@ -77,7 +77,7 @@ export const TextRow = ({
         {showButton && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
-            confirmText={t('schema_editor.textRow-confirm-cancel-popover')}
+            confirmText={t('schema_editor.textRow-deletion-confirm')}
             onConfirm={handleDeleteClick}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             placement='bottom'
@@ -93,7 +93,7 @@ export const TextRow = ({
               </Button>
             }
           >
-            <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
+            <p>{t('schema_editor.textRow-deletion-text')}</p>
           </AltinnConfirmDialog>
         )}
       </TableCell>

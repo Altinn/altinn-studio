@@ -66,10 +66,10 @@ describe('FormComponent', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(textMock('ux_editor.component_popover_confirm_delete'));
+      const text = await screen.findByText(textMock('ux_editor.component_deletion_text'));
       expect(text).toBeInTheDocument();
 
-      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_confirm_delete_component') });
+      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_deletion_confirm') });
       expect(confirmButton).toBeInTheDocument();
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -82,7 +82,7 @@ describe('FormComponent', () => {
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await act(() => user.click(deleteButton));
 
-      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_confirm_delete_component') });
+      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_deletion_confirm') });
       await act(() => user.click(confirmButton));
 
       expect(mockDeleteFormComponent).toBeCalledWith(component1IdMock);
