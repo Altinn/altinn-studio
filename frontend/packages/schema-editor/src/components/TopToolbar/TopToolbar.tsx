@@ -8,9 +8,7 @@ import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '@altinn/schema-editor/utils/metadataUtils';
 import { CreateDatamodelMutationArgs } from '@altinn/schema-editor/hooks/mutations/useCreateDatamodelMutation';
-import { MetadataOptionsGroup } from '@altinn/schema-editor/types/MetadataOptionsGroup';
 import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
-import { QueryStatus } from '@tanstack/react-query';
 import { SelectedSchemaContext } from '@altinn/schema-editor/contexts/SelectedSchemaContext';
 import { GenerateModelsButton } from '@altinn/schema-editor/components/TopToolbar/GenerateModelsButton';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
@@ -22,21 +20,6 @@ export interface TopToolbarProps {
   setCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
 }
-
-type ShouldSelectFirstEntryProps = {
-  metadataOptions?: MetadataOptionsGroup[];
-  selectedOption?: MetadataOption;
-  metadataStatus: QueryStatus;
-};
-
-export const shouldSelectFirstEntry = ({
-  metadataOptions,
-  selectedOption,
-  metadataStatus,
-}: ShouldSelectFirstEntryProps) =>
-  metadataOptions?.length > 0 &&
-  selectedOption === undefined &&
-  metadataStatus === 'success';
 
 export function TopToolbar({
   createNewOpen,
