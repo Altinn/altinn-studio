@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import classes from './SchemaEditor.module.css';
 import {
@@ -31,8 +31,6 @@ export const SchemaEditor = ({ createPathOption, displayLandingPage }: IEditorPr
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
 
-  const uploadedOrCreatedFileName = useRef(null);
-
   const modelName = selectedOption?.label;
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
@@ -51,13 +49,11 @@ export const SchemaEditor = ({ createPathOption, displayLandingPage }: IEditorPr
         selectedOption={selectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
-        uploadedOrCreatedFileName={uploadedOrCreatedFileName}
       />
       <main className={classes.main}>
         {displayLandingPage && (
           <LandingPagePanel
             openCreateNew={() => setCreateNewOpen(true)}
-            uploadedOrCreatedFileName={uploadedOrCreatedFileName}
           />
         )}
         {modelPath && (

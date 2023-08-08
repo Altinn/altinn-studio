@@ -7,11 +7,10 @@ import { useDeleteDatamodelMutation } from '@altinn/schema-editor/hooks/mutation
 import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
 
 export interface DeleteWrapperProps {
-  resetPrevFetchedOption: () => void;
   selectedOption: MetadataOption | null;
 }
 
-export function DeleteWrapper({ resetPrevFetchedOption, selectedOption }: DeleteWrapperProps) {
+export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { t } = useTranslation();
   const { mutate } = useDeleteDatamodelMutation();
@@ -20,7 +19,6 @@ export function DeleteWrapper({ resetPrevFetchedOption, selectedOption }: Delete
   const onDeleteClick = () => setDialogOpen(true);
   const onDeleteConfirmClick = () => {
     mutate();
-    resetPrevFetchedOption();
     setDialogOpen(false);
   };
   const onCancelDelete = () => setDialogOpen(false);

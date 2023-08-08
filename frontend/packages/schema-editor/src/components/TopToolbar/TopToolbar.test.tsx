@@ -1,4 +1,4 @@
-import React, { MutableRefObject } from 'react';
+import React from 'react';
 import { TopToolbar, TopToolbarProps } from './TopToolbar';
 import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -31,18 +31,16 @@ const texts = {
 const setCreateNewOpen = jest.fn();
 const setSelectedOption = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
-const uploadedOrCreatedFileName: MutableRefObject<string | null> = { current: null };
 const defaultProps: TopToolbarProps = {
   createNewOpen: false,
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
-  uploadedOrCreatedFileName,
 };
 const org = 'org';
 const app = 'app';
 const generateModels = jest.fn().mockImplementation(() => Promise.resolve());
-const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([]));
+const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
 const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
 const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 

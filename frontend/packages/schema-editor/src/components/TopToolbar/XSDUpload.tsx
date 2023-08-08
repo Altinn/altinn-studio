@@ -1,32 +1,32 @@
-import React, { MutableRefObject } from 'react';
+import React from 'react';
 import { AltinnSpinner, FileSelector } from 'app-shared/components';
 import axios from 'axios';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { datamodelsUploadPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { removeExtension } from 'app-shared/utils/filenameUtils';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export interface IXSDUploadProps {
   disabled?: boolean;
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
-  uploadedOrCreatedFileName: MutableRefObject<string | null>;
 }
 
 export const XSDUpload = ({
   disabled,
   submitButtonRenderer,
-  uploadedOrCreatedFileName,
 }: IXSDUploadProps) => {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
+  const queryClient = useQueryClient();
 
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
 
   const uploadButton = React.useRef(null);
 
-  const handleUpload = (formData: FormData, fileName: string) => {
+  const handleUpload = (formData: FormData) => {
     setUploading(true);
     axios
       .post(datamodelsUploadPath(org, app), formData, {
@@ -36,7 +36,6 @@ export const XSDUpload = ({
       })
       .then((response) => {
         if (response) {
-          uploadedOrCreatedFileName.current = removeExtension(fileName);
           setErrorText(null);
         }
       })
@@ -45,7 +44,10 @@ export const XSDUpload = ({
           setErrorText(t('form_filler.file_uploader_validation_error_upload'));
         }
       })
-      .finally(() => setUploading(false));
+      .finally(async () => {
+        await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
+        setUploading(false);
+      });
   };
 
   return (

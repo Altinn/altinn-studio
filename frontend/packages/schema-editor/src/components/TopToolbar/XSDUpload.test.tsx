@@ -1,18 +1,14 @@
-import React, { MutableRefObject } from 'react';
+import React from 'react';
 import axios from 'axios';
-import type { IXSDUploadProps } from './XSDUpload';
 import { XSDUpload } from './XSDUpload';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../test/renderWithProviders';
+import { QueryClient } from '@tanstack/react-query';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const user = userEvent.setup();
-
-// Test data:
-const uploadedOrCreatedFileName: MutableRefObject<string | null> = { current: null };
-const defaultProps: IXSDUploadProps = {
-  uploadedOrCreatedFileName,
-};
 
 // Mocks:
 jest.mock('axios');
@@ -23,8 +19,8 @@ const clickUploadButton = async () => {
   await act(() => user.click(btn));
 };
 
-const render = (props: Partial<IXSDUploadProps> = {}) =>
-  rtlRender(<XSDUpload {...defaultProps} {...props} />);
+const render = (queryClient: QueryClient = createQueryClientMock()) =>
+  renderWithProviders({ queryClient })(<XSDUpload/>);
 
 describe('XSDUpload', () => {
   afterEach(() => jest.restoreAllMocks());
@@ -58,11 +54,13 @@ describe('XSDUpload', () => {
     ).toBeInTheDocument();
   });
 
-  it('should set filename ref value when upload is successful', async () => {
+  it('Invalidates metadata query when upload is successful', async () => {
     mockedAxios.post.mockImplementation(() => Promise.resolve({ status: 200 }));
     const filename = 'hello';
     const file = new File([filename], `${filename}.xsd`, { type: 'text/xml' });
-    render();
+    const queryClient = createQueryClientMock();
+    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    render(queryClient);
 
     await clickUploadButton();
 
@@ -70,6 +68,6 @@ describe('XSDUpload', () => {
 
     await act(() => user.upload(fileInput, file));
 
-    expect(uploadedOrCreatedFileName.current).toBe('hello');
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
   });
 });

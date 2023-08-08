@@ -80,3 +80,55 @@ export const convertMetadataListToOptionGroups = (metadataList: DatamodelMetadat
  */
 export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadata[]): string[] =>
   removeDuplicates(metadataList?.map(({ fileName }) => fileName.replace(/\.((schema\.json)|(xsd))$/, '')));
+
+/**
+ * Compares an old and a new list of metadata items and returns the first item of which the file name does not exist in the old list.
+ * @param oldMetadataList The old list of metadata items.
+ * @param newMetadataList The new list of metadata items.
+ * @returns The first item of the new list of which the file name does not exist in the old one or undefined if there is no such item.
+ */
+export const findNewMetadataItem = (
+  oldMetadataList: DatamodelMetadata[],
+  newMetadataList: DatamodelMetadata[]
+): DatamodelMetadata | undefined => newMetadataList.find(
+  ({ fileName }) => !oldMetadataList.find(({ fileName: oldFileName }) => oldFileName === fileName)
+);
+
+/**
+ * Checks if the file name of a given item exists in a list of metadata items.
+ * @param metadataList The list of metadata items to check.
+ * @param item The item to check for.
+ * @returns True if an item with the same file name exists in the list, false otherwise.
+ */
+export const metadataItemExists = (metadataList: DatamodelMetadata[], item: DatamodelMetadata): boolean =>
+  !!metadataList?.find(({ fileName }) => fileName === item.fileName);
+
+/**
+ * Computes the option to be selected based on the currently selected option an the current and previous metadata lists.
+ * @param currentSelectedOption The currently selected option.
+ * @param currentMetadataList The current list of metadata items.
+ * @param previousMetadataList The previous list of metadata items.
+ * @returns
+ *   1. `undefined` if the current list is empty
+ *   2. The new option if the current list contains a new item
+ *   3. The first item of the current list if the current selected option is undefined or it does not exist in the current list
+ *   4. The current selected option otherwise
+ */
+export const computeSelectedOption = (
+  currentSelectedOption?: MetadataOption,
+  currentMetadataList?: DatamodelMetadata[],
+  previousMetadataList?: DatamodelMetadata[],
+): MetadataOption | undefined => {
+
+  if (!currentMetadataList?.length) return undefined;
+
+  if (currentMetadataList !== previousMetadataList) {
+    const newMetadataItem = findNewMetadataItem(previousMetadataList ?? [], currentMetadataList);
+    if (newMetadataItem) return convertMetadataToOption(newMetadataItem);
+  }
+
+  if (!currentSelectedOption || !metadataItemExists(currentMetadataList, currentSelectedOption.value))
+    return convertMetadataToOption(currentMetadataList[0]);
+
+  return currentSelectedOption;
+}

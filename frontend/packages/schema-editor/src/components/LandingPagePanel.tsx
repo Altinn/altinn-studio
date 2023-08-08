@@ -1,4 +1,4 @@
-import React, { MutableRefObject } from 'react';
+import React from 'react';
 import classes from './LandingPagePanel.module.css';
 import { Button, ButtonColor } from '@digdir/design-system-react';
 import { XSDUpload } from './TopToolbar/XSDUpload';
@@ -7,10 +7,9 @@ import { ButtonContainer } from 'app-shared/primitives';
 
 export interface LandingPagePanelProps {
   openCreateNew: () => void;
-  uploadedOrCreatedFileName: MutableRefObject<string | null>;
 }
 
-export function LandingPagePanel({ openCreateNew, uploadedOrCreatedFileName }: LandingPagePanelProps) {
+export function LandingPagePanel({ openCreateNew }: LandingPagePanelProps) {
   const { t } = useTranslation();
   return (
     <div className={classes.landingDialog}>
@@ -23,7 +22,6 @@ export function LandingPagePanel({ openCreateNew, uploadedOrCreatedFileName }: L
               {t('app_data_modelling.landing_dialog_upload')}
             </Button>
           )}
-          uploadedOrCreatedFileName={uploadedOrCreatedFileName}
         />
         <Button color={ButtonColor.Secondary} onClick={openCreateNew}>
           {t('app_data_modelling.landing_dialog_create')}

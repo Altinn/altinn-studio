@@ -22,14 +22,10 @@ const texts = {
   'general.continue': continueText,
   'general.cancel': cancelText,
 };
-const resetPrevFetchedOption = jest.fn();
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
 const org = 'org';
 const app = 'app';
-const defaultProps: DeleteWrapperProps = {
-  resetPrevFetchedOption,
-  selectedOption,
-};
+const defaultProps: DeleteWrapperProps = { selectedOption };
 
 // Mocks:
 jest.mock(
@@ -73,7 +69,6 @@ describe('DeleteWrapper', () => {
     render();
     await act(() => user.click(getDeleteButton()));
     await act(() => user.click(getContinueButton()));
-    expect(resetPrevFetchedOption).toHaveBeenCalledTimes(1);
     expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 
