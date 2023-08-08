@@ -6,7 +6,7 @@
         "layout": [
           {
             "id": "comp1",
-            "type": "Heading"
+            "type": "Header"
           },
           {
             "id": "comp2",

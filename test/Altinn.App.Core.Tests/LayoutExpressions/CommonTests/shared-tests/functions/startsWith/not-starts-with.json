@@ -1,0 +1,5 @@
+{
+  "name": "Should be false when the string does not starts with the specified string",
+  "expression": ["startsWith", "Hello", "Bye"],
+  "expects": false
+}

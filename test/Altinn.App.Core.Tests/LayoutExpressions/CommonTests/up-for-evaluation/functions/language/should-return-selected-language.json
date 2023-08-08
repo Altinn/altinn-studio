@@ -1,0 +1,5 @@
+{
+  "name": "Should return 'nb' language as default",
+  "expression": ["language"],
+  "expects": "nb"
+}

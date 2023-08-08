@@ -1,0 +1,5 @@
+{
+  "name": "Should not match case sensitive",
+  "expression": ["contains", "Hello", "hello"],
+  "expects": false
+}

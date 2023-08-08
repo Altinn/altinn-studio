@@ -31,14 +31,26 @@ public class TestFunctions
     [Theory]
     [SharedTest("component")]
     public void Component_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    
+    [Theory]
+    [SharedTest("commaContains")]
+    public void CommaContains_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
 
     [Theory]
     [SharedTest("concat")]
     public void Concat_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
 
     [Theory]
+    [SharedTest("contains")]
+    public void Contains_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+
+    [Theory]
     [SharedTest("dataModel")]
     public void DataModel_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+
+    [Theory]
+    [SharedTest("endsWith")]
+    public void EndsWith_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
 
     [Theory]
     [SharedTest("equals")]
@@ -59,6 +71,10 @@ public class TestFunctions
     [Theory]
     [SharedTest("not")]
     public void Not_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    
+    [Theory]
+    [SharedTest("notContains")]
+    public void NotContains_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
 
     [Theory]
     [SharedTest("instanceContext")]
@@ -83,6 +99,26 @@ public class TestFunctions
     [Theory]
     [SharedTest("unknown")]
     public void Unknown_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    
+    [Theory]
+    [SharedTest("upperCase")]
+    public void UpperCase_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    
+    [Theory]
+    [SharedTest("lowerCase")]
+    public void LowerCase_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    
+    [Theory]
+    [SharedTest("startsWith")]
+    public void StartsWith_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+        
+    [Theory]
+    [SharedTest("stringLength")]
+    public void StringLength_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    
+    [Theory]
+    [SharedTest("round")]
+    public void Round_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
 
     private void RunTestCase(ExpressionTestCaseRoot test)
     {

@@ -1,0 +1,5 @@
+{
+  "name": "All strings start with an empty string",
+  "expression": ["startsWith", "Hello world", ""],
+  "expects": true
+}

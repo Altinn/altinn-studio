@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 using Altinn.App.Core.Models.Expressions;
@@ -76,6 +75,15 @@ public static class ExpressionEvaluator
             ExpressionFunction.and => And(args),
             ExpressionFunction.or => Or(args),
             ExpressionFunction.not => Not(args),
+            ExpressionFunction.contains => Contains(args),
+            ExpressionFunction.notContains => !Contains(args),
+            ExpressionFunction.commaContains => CommaContains(args),
+            ExpressionFunction.endsWith => EndsWith(args),
+            ExpressionFunction.startsWith => StartsWith(args),
+            ExpressionFunction.stringLength => StringLength(args),
+            ExpressionFunction.round => Round(args),
+            ExpressionFunction.upperCase => UpperCase(args),
+            ExpressionFunction.lowerCase => LowerCase(args),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Function \"{expr.Function}\" not implemented"),
         };
         return ret;
@@ -119,6 +127,127 @@ public static class ExpressionEvaluator
         return string.Join("", args.Select(a => a switch { string s => s, _ => ToStringForEquals(a) }));
     }
 
+    private static bool Contains(object?[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        string? stringTwo = ToStringForEquals(args[1]);
+        
+        if (stringOne is null || stringTwo is null)
+        {
+            return false;
+        }
+
+        return stringOne.Contains(stringTwo, StringComparison.InvariantCulture);
+    }
+
+    private static bool EndsWith(object?[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        string? stringTwo = ToStringForEquals(args[1]);
+        
+        if (stringOne is null || stringTwo is null)
+        {
+            return false;
+        }
+
+        return stringOne.EndsWith(stringTwo, StringComparison.InvariantCulture);
+    }
+    
+    private static bool StartsWith(object?[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        string? stringTwo = ToStringForEquals(args[1]);
+        
+        if (stringOne is null || stringTwo is null)
+        {
+            return false;
+        }
+
+        return stringOne.StartsWith(stringTwo, StringComparison.InvariantCulture);
+    }
+
+    private static bool CommaContains(object?[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 arguments, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        string? stringTwo = ToStringForEquals(args[1]);
+        
+        if (stringOne is null || stringTwo is null)
+        {
+            return false;
+        }
+        
+        return stringOne.Split(",").Select(s => s.Trim()).Contains(stringTwo, StringComparer.InvariantCulture);
+    }
+
+    private static int StringLength(object?[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        return stringOne?.Length ?? 0;
+    }
+
+    private static string Round(object?[] args)
+    {
+        if (args.Length < 1 || args.Length> 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1-2 argument(s), got {args.Length}");
+        }
+
+        var number = PrepareNumericArg(args[0]);
+        
+        if(number is null)
+        {
+            number = 0;
+        }
+        
+        int precision = 0;
+        if (args.Length == 2 && args[1] is not null)
+        {
+            precision = Convert.ToInt32(args[1]);
+        }
+
+        return number.Value.ToString($"N{precision}", CultureInfo.InvariantCulture);
+    }
+
+    private static string? UpperCase(object?[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        return stringOne?.ToUpperInvariant();
+    }
+    
+    private static string? LowerCase(object?[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        return stringOne?.ToLowerInvariant();
+    }
+    
     private static bool PrepareBooleanArg(object? arg)
     {
         return arg switch
@@ -187,23 +316,23 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException("Invalid number of args for compare");
         }
-        var a = args[0] switch
+
+        var a = PrepareNumericArg(args[0]);
+
+        var b = PrepareNumericArg(args[1]);
+
+        return (a, b);
+    }
+    
+    private static double? PrepareNumericArg(object? arg)
+    {
+        return arg switch
         {
             bool ab => throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {(ab ? "true" : "false")}"),
             string s => parseNumber(s),
-            object o => o as double?, // assume all relevant numers are representable as double (as in frontend)
-            _ => null,
+            object o => o as double?, // assume all relevant numbers are representable as double (as in frontend)
+            _ => null
         };
-
-        var b = args[1] switch
-        {
-            bool bb => throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {(bb ? "true" : "false")}"),
-            string s => parseNumber(s),
-            object o => o as double?, // assume all relevant numers are representable as double (as in frontend)
-            _ => null,
-        };
-
-        return (a, b);
     }
 
     private static object? IfImpl(object?[] args)
