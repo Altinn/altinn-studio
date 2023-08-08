@@ -4,6 +4,7 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
 
@@ -14,8 +15,12 @@ namespace Altinn.App.Core.Tests.Internal.App
         private readonly string appBasePath = Path.Combine("Internal", "App", "TestData") + Path.DirectorySeparatorChar;
 
         [Fact]
-        public async void GetApplicationMetadata_desrializes_file_from_disk()
+        public async Task GetApplicationMetadata_desrializes_file_from_disk()
         {
+            var featureManagerMock = new Mock<IFeatureManager>();
+            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+
             AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
             IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
             ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
@@ -52,15 +57,11 @@ namespace Altinn.App.Core.Tests.Internal.App
                     Person = true,
                     SubUnit = true
                 },
-                OnEntry = new OnEntryConfig()
+                OnEntry = new OnEntry()
                 {
                     Show = "select-instance"
                 },
-                Features = new Dictionary<string, bool>()
-                {
-                    { "footer", true },
-                    { "processActions", true }
-                }
+                Features = enabledFrontendFeatures
             };
             var actual = await appMetadata.GetApplicationMetadata();
             actual.Should().NotBeNull();
@@ -68,8 +69,12 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationMetadata_eformidling_desrializes_file_from_disk()
+        public async Task GetApplicationMetadata_eformidling_desrializes_file_from_disk()
         {
+            var featureManagerMock = new Mock<IFeatureManager>();
+            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+
             AppSettings appSettings = GetAppSettings("AppMetadata", "eformid.applicationmetadata.json");
             IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
             ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
@@ -122,15 +127,11 @@ namespace Altinn.App.Core.Tests.Internal.App
                         "372c7af5-71e1-4e99-8e05-4716711a8b53",
                     }
                 },
-                OnEntry = new OnEntryConfig()
+                OnEntry = new OnEntry()
                 {
                     Show = "select-instance"
                 },
-                Features = new Dictionary<string, bool>()
-                {
-                    { "footer", true },
-                    { "processActions", true }
-                }
+                Features = enabledFrontendFeatures
             };
             var actual = await appMetadata.GetApplicationMetadata();
             actual.Should().NotBeNull();
@@ -178,7 +179,7 @@ namespace Altinn.App.Core.Tests.Internal.App
                     Person = true,
                     SubUnit = true
                 },
-                OnEntry = new OnEntryConfig()
+                OnEntry = new OnEntry()
                 {
                     Show = "select-instance"
                 },
@@ -194,6 +195,200 @@ namespace Altinn.App.Core.Tests.Internal.App
             actual.Should().NotBeNull();
             actual.Should().BeEquivalentTo(expected);
             actual2.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public async Task GetApplicationMetadata_onEntry_InstanceSelection_DefaultSelectedOption_read_legacy_value_if_new_not_set()
+        {
+            var featureManagerMock = new Mock<IFeatureManager>();
+            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+
+            AppSettings appSettings = GetAppSettings("AppMetadata", "onentry-legacy-selectoptions.applicationmetadata.json");
+            IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
+            ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
+            {
+                Id = "tdd/bestilling",
+                Org = "tdd",
+                Created = DateTime.Parse("2019-09-16T22:22:22"),
+                CreatedBy = "username",
+                Title = new Dictionary<string, string>()
+                {
+                    { "nb", "Bestillingseksempelapp" }
+                },
+                DataTypes = new List<DataType>()
+                {
+                    new()
+                    {
+                        Id = "vedlegg",
+                        AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
+                        MinCount = 0,
+                        TaskId = "Task_1"
+                    },
+                    new()
+                    {
+                        Id = "ref-data-as-pdf",
+                        AllowedContentTypes = new List<string>() { "application/pdf" },
+                        MinCount = 1,
+                        TaskId = "Task_1"
+                    }
+                },
+                PartyTypesAllowed = new PartyTypesAllowed()
+                {
+                    BankruptcyEstate = true,
+                    Organisation = true,
+                    Person = true,
+                    SubUnit = true
+                },
+                OnEntry = new OnEntry()
+                {
+                    Show = "select-instance",
+                    InstanceSelection = new()
+                    {
+                        SortDirection = "desc",
+                        RowsPerPageOptions = new List<int>()
+                        {
+                            5, 3, 10, 25, 50, 100
+                        },
+                        DefaultRowsPerPage = 1,
+                        DefaultSelectedOption = 1
+                    }
+                },
+                Features = enabledFrontendFeatures
+            };
+            var actual = await appMetadata.GetApplicationMetadata();
+            actual.Should().NotBeNull();
+            actual.Should().BeEquivalentTo(expected);
+            actual.OnEntry?.InstanceSelection?.DefaultSelectedOption.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GetApplicationMetadata_onEntry_supports_new_option()
+        {
+            var featureManagerMock = new Mock<IFeatureManager>();
+            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+
+            AppSettings appSettings = GetAppSettings("AppMetadata", "onentry-new-selectoptions.applicationmetadata.json");
+            IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
+            ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
+            {
+                Id = "tdd/bestilling",
+                Org = "tdd",
+                Created = DateTime.Parse("2019-09-16T22:22:22"),
+                CreatedBy = "username",
+                Title = new Dictionary<string, string>()
+                {
+                    { "nb", "Bestillingseksempelapp" }
+                },
+                DataTypes = new List<DataType>()
+                {
+                    new()
+                    {
+                        Id = "vedlegg",
+                        AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
+                        MinCount = 0,
+                        TaskId = "Task_1"
+                    },
+                    new()
+                    {
+                        Id = "ref-data-as-pdf",
+                        AllowedContentTypes = new List<string>() { "application/pdf" },
+                        MinCount = 1,
+                        TaskId = "Task_1"
+                    }
+                },
+                PartyTypesAllowed = new PartyTypesAllowed()
+                {
+                    BankruptcyEstate = true,
+                    Organisation = true,
+                    Person = true,
+                    SubUnit = true
+                },
+                OnEntry = new OnEntry()
+                {
+                    Show = "select-instance",
+                    InstanceSelection = new()
+                    {
+                        SortDirection = "desc",
+                        RowsPerPageOptions = new List<int>()
+                        {
+                            5, 3, 10, 25, 50, 100
+                        },
+                        DefaultSelectedOption = 2
+                    }
+                },
+                Features = enabledFrontendFeatures
+            };
+            var actual = await appMetadata.GetApplicationMetadata();
+            actual.Should().NotBeNull();
+            actual.Should().BeEquivalentTo(expected);
+            actual.OnEntry?.InstanceSelection?.DefaultSelectedOption.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task GetApplicationMetadata_onEntry_prefer_new_option()
+        {
+            var featureManagerMock = new Mock<IFeatureManager>();
+            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+
+            AppSettings appSettings = GetAppSettings("AppMetadata", "onentry-prefer-new-selectoptions.applicationmetadata.json");
+            IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
+            ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
+            {
+                Id = "tdd/bestilling",
+                Org = "tdd",
+                Created = DateTime.Parse("2019-09-16T22:22:22"),
+                CreatedBy = "username",
+                Title = new Dictionary<string, string>()
+                {
+                    { "nb", "Bestillingseksempelapp" }
+                },
+                DataTypes = new List<DataType>()
+                {
+                    new()
+                    {
+                        Id = "vedlegg",
+                        AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
+                        MinCount = 0,
+                        TaskId = "Task_1"
+                    },
+                    new()
+                    {
+                        Id = "ref-data-as-pdf",
+                        AllowedContentTypes = new List<string>() { "application/pdf" },
+                        MinCount = 1,
+                        TaskId = "Task_1"
+                    }
+                },
+                PartyTypesAllowed = new PartyTypesAllowed()
+                {
+                    BankruptcyEstate = true,
+                    Organisation = true,
+                    Person = true,
+                    SubUnit = true
+                },
+                OnEntry = new OnEntry()
+                {
+                    Show = "select-instance",
+                    InstanceSelection = new()
+                    {
+                        SortDirection = "desc",
+                        RowsPerPageOptions = new List<int>()
+                        {
+                            5, 3, 10, 25, 50, 100
+                        },
+                        DefaultRowsPerPage = 1,
+                        DefaultSelectedOption = 3
+                    }
+                },
+                Features = enabledFrontendFeatures
+            };
+            var actual = await appMetadata.GetApplicationMetadata();
+            actual.Should().NotBeNull();
+            actual.Should().BeEquivalentTo(expected);
+            actual.OnEntry?.InstanceSelection?.DefaultSelectedOption.Should().Be(3);
         }
 
         [Fact]
@@ -273,11 +468,13 @@ namespace Altinn.App.Core.Tests.Internal.App
 
         private static IAppMetadata SetupAppMedata(IOptions<AppSettings> appsettings, IFrontendFeatures frontendFeatures = null)
         {
+            var featureManagerMock = new Mock<IFeatureManager>();
+
             if (frontendFeatures == null)
             {
-                return new AppMetadata(appsettings, new FrontendFeatures());
+                return new AppMetadata(appsettings, new FrontendFeatures(featureManagerMock.Object));
             }
-            
+
             return new AppMetadata(appsettings, frontendFeatures);
         }
     }

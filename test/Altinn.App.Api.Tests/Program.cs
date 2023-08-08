@@ -4,10 +4,13 @@ using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
 using AltinnCore.Authentication.JwtCookie;
+using App.IntegrationTests.Mocks.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +50,8 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddSingleton<IEventSecretCodeProvider, EventSecretCodeProviderStub>();
     services.AddTransient<IEventHandler, DummyFailureEventHandler>();
     services.AddTransient<IEventHandler, DummySuccessEventHandler>();
+    services.AddTransient<IAppMetadata, AppMetadataMock>();
+    services.AddTransient<IDataClient, DataClientMock>();
 }
 
 void Configure()

@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
+using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Features.Pdf;
@@ -159,6 +160,8 @@ namespace Altinn.App.Core.Extensions
             AddPdfServices(services);
             AddEventServices(services);
             AddProcessServices(services);
+            AddFileAnalyserServices(services);
+            AddFileValidatorServices(services);
 
             if (!env.IsDevelopment())
             {
@@ -248,6 +251,18 @@ namespace Altinn.App.Core.Extensions
             services.AddTransient<IUserAction, SigningUserAction>();
             services.AddHttpClient<ISignClient, SignClient>();
             services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");
+        }
+
+        private static void AddFileAnalyserServices(IServiceCollection services)
+        {
+            services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
+            services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        }
+
+        private static void AddFileValidatorServices(IServiceCollection services)
+        {
+            services.TryAddTransient<IFileValidationService, FileValidationService>();
+            services.TryAddTransient<IFileValidatorFactory, FileValidatorFactory>();
         }
     }
 }

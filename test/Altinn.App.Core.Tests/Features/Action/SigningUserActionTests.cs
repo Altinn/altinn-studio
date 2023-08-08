@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Helpers;
@@ -15,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
 using Signee = Altinn.App.Core.Internal.Sign.Signee;
@@ -118,7 +118,7 @@ public class SigningUserActionTests
             ApplicationMetadataFileName = "appmetadata.json"
         };
         
-        IAppMetadata appMetadata = new AppMetadata(Options.Create<AppSettings>(appSettings), new FrontendFeatures());
+        IAppMetadata appMetadata = new AppMetadata(Options.Create<AppSettings>(appSettings), new FrontendFeatures(new Mock<IFeatureManager>().Object));
         var profileClientMock = new Mock<IProfileClient>();
         var signingClientMock = new Mock<ISignClient>();
         profileClientMock.Setup(p => p.GetUserProfile(It.IsAny<int>())).ReturnsAsync(userProfileToReturn);

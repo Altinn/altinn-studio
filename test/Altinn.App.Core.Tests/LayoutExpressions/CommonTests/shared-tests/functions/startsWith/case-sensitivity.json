@@ -1,0 +1,5 @@
+{
+  "name": "Should be case sensitive and return false if the string does start with the given string but opposite case",
+  "expression": ["startsWith", "Hello", "HEL"],
+  "expects": false
+}

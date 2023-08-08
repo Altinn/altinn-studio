@@ -1,6 +1,7 @@
+using System.Net;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features.Validation;
-using Altinn.App.Core.Infrastructure.Clients;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models.Validation;
@@ -153,4 +154,92 @@ public class ValidateControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(validationResult);
     }
+
+    [Fact]
+    public async Task ValidateInstance_returns_403_when_not_authorized()
+    {
+        // Arrange
+        var instanceMock = new Mock<IInstanceClient>();
+        var appMetadataMock = new Mock<IAppMetadata>();
+        var validationMock = new Mock<IValidation>();
+
+        const string org = "ttd";
+        const string app = "app";
+        const int instanceOwnerPartyId = 1337;
+        var instanceId = Guid.NewGuid();
+
+        Instance instance = new Instance
+        {
+            Id = "instanceId",
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "dummy"
+                }
+            }
+        };
+
+        var updateProcessResult = new HttpResponseMessage(HttpStatusCode.Forbidden);
+        PlatformHttpException exception = await PlatformHttpException.CreateAsync(updateProcessResult);
+
+        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+            .Returns(Task.FromResult<Instance>(instance));
+
+        validationMock.Setup(v => v.ValidateAndUpdateProcess(instance, "dummy"))
+            .Throws(exception);
+
+        // Act
+        var validateController =
+            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
+
+        // Assert
+        result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task ValidateInstance_throws_PlatformHttpException_when_not_403()
+    {
+        // Arrange
+        var instanceMock = new Mock<IInstanceClient>();
+        var appMetadataMock = new Mock<IAppMetadata>();
+        var validationMock = new Mock<IValidation>();
+
+        const string org = "ttd";
+        const string app = "app";
+        const int instanceOwnerPartyId = 1337;
+        var instanceId = Guid.NewGuid();
+
+        Instance instance = new Instance
+        {
+            Id = "instanceId",
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "dummy"
+                }
+            }
+        };
+
+        var updateProcessResult = new HttpResponseMessage(HttpStatusCode.BadRequest);
+        PlatformHttpException exception = await PlatformHttpException.CreateAsync(updateProcessResult);
+
+        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+            .Returns(Task.FromResult<Instance>(instance));
+
+        validationMock.Setup(v => v.ValidateAndUpdateProcess(instance, "dummy"))
+            .Throws(exception);
+
+        // Act
+        var validateController =
+            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+
+        // Assert
+        var thrownException = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId));
+        Assert.Equal(exception, thrownException);
+    }
+
 }

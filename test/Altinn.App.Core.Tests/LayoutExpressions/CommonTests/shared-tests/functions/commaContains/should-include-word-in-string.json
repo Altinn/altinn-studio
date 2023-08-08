@@ -1,0 +1,5 @@
+{
+  "name": "Should return true if the comma-separated list contains the given value",
+  "expression": ["commaContains", "hello, bye, hola, adios", "hola"],
+  "expects": true
+}

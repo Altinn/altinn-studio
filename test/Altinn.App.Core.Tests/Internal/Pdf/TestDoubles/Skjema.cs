@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Internal.Pdf.TestDoubles;
+
 public class Skjema
 {
     [XmlElement("melding", Order = 1)]

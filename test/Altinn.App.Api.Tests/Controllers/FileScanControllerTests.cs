@@ -1,5 +1,4 @@
 ﻿using Altinn.App.Api.Controllers;
-using Altinn.App.Core.Infrastructure.Clients;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;

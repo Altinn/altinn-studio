@@ -1,0 +1,5 @@
+{
+  "name": "Should return the length of a string even if it is type of number",
+  "expression": ["stringLength", 203],
+  "expects": 3
+}

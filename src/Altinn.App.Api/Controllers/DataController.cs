@@ -5,6 +5,9 @@ using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -13,10 +16,12 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
 
 namespace Altinn.App.Api.Controllers
@@ -38,7 +43,9 @@ namespace Altinn.App.Api.Controllers
         private readonly IAppResources _appResourcesService;
         private readonly IAppMetadata _appMetadata;
         private readonly IPrefill _prefillService;
-
+        private readonly IFileAnalysisService _fileAnalyserService;
+        private readonly IFileValidationService _fileValidationService;
+        private readonly IFeatureManager _featureManager;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
         /// <summary>
@@ -52,7 +59,10 @@ namespace Altinn.App.Api.Controllers
         /// <param name="appModel">Service for generating app model</param>
         /// <param name="appResourcesService">The apps resource service</param>
         /// <param name="appMetadata">The app metadata service</param>
+        /// <param name="featureManager">The feature manager controlling enabled features.</param>
         /// <param name="prefillService">A service with prefill related logic.</param>
+        /// <param name="fileAnalyserService">Service used to analyse files uploaded.</param>
+        /// <param name="fileValidationService">Service used to validate files uploaded.</param>
         public DataController(
             ILogger<DataController> logger,
             IInstanceClient instanceClient,
@@ -61,8 +71,11 @@ namespace Altinn.App.Api.Controllers
             IDataProcessor dataProcessor,
             IAppModel appModel,
             IAppResources appResourcesService,
+            IPrefill prefillService,
+            IFileAnalysisService fileAnalyserService,
+            IFileValidationService fileValidationService,
             IAppMetadata appMetadata,
-            IPrefill prefillService)
+            IFeatureManager featureManager)
         {
             _logger = logger;
 
@@ -74,6 +87,9 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _appMetadata = appMetadata;
             _prefillService = prefillService;
+            _fileAnalyserService = fileAnalyserService;
+            _fileValidationService = fileValidationService;
+            _featureManager = featureManager;
         }
 
         /// <summary>
@@ -139,18 +155,69 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
-                    if (!DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata, out ActionResult errorResponse))
+                    (bool validationRestrictionSuccess, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
+                    if (!validationRestrictionSuccess)
                     {
-                        return errorResponse;
+                        return new BadRequestObjectResult(await GetErrorDetails(errors));
                     }
 
-                    return await CreateBinaryData(org, app, instance, dataType);
+                    StreamContent streamContent = Request.CreateContentStream();
+
+                    using Stream fileStream = new MemoryStream();
+                    await streamContent.CopyToAsync(fileStream);
+
+                    bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
+                    string filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : string.Empty;
+
+                    IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>();
+                    if (FileAnalysisEnabledForDataType(dataTypeFromMetadata))
+                    {
+                        fileAnalysisResults = await _fileAnalyserService.Analyse(dataTypeFromMetadata, fileStream, filename);
+                    }
+
+                    bool fileValidationSuccess = true;
+                    List<ValidationIssue> validationIssues = new();
+                    if (FileValidationEnabledForDataType(dataTypeFromMetadata))
+                    {
+                        (fileValidationSuccess, validationIssues) = await _fileValidationService.Validate(dataTypeFromMetadata, fileAnalysisResults);
+                    }
+
+                    if (!fileValidationSuccess)
+                    {
+                        return new BadRequestObjectResult(await GetErrorDetails(validationIssues));
+                    }
+
+                    fileStream.Seek(0, SeekOrigin.Begin);
+                    return await CreateBinaryData(instance, dataType, streamContent.Headers.ContentType.ToString(), filename, fileStream);
                 }
             }
             catch (PlatformHttpException e)
             {
                 return HandlePlatformHttpException(e, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
             }
+        }
+
+        /// <summary>
+        /// File validation requires json object in response and is introduced in the
+        /// the methods above validating files. In order to be consistent for the return types
+        /// of this controller, old methods are updated to return json object in response.
+        /// Since this is a breaking change, a feature flag is introduced to control the behaviour,
+        /// and the developer need to opt-in to the new behaviour. Json object are by default
+        /// returned as part of file validation which is a new feature.
+        /// </summary>
+        private async Task<object> GetErrorDetails(List<ValidationIssue> errors)
+        {
+            return await _featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse) ? errors : string.Join(";", errors.Select(x => x.Description));
+        }
+
+        private static bool FileAnalysisEnabledForDataType(DataType dataTypeFromMetadata)
+        {
+            return dataTypeFromMetadata.EnabledFileAnalysers != null && dataTypeFromMetadata.EnabledFileAnalysers.Count > 0;
+        }
+
+        private static bool FileValidationEnabledForDataType(DataType dataTypeFromMetadata)
+        {
+            return dataTypeFromMetadata.EnabledFileValidators != null && dataTypeFromMetadata.EnabledFileValidators.Count > 0;
         }
 
         /// <summary>
@@ -262,9 +329,10 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 DataType dataTypeFromMetadata = (await _appMetadata.GetApplicationMetadata()).DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
-                if (!DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata, out ActionResult errorResponse))
+                (bool validationRestrictionSuccess, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
+                if (!validationRestrictionSuccess)
                 {
-                    return errorResponse;
+                    return new BadRequestObjectResult(await GetErrorDetails(errors));
                 }
 
                 return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid);
@@ -355,12 +423,12 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
-        private async Task<ActionResult> CreateBinaryData(string org, string app, Instance instanceBefore, string dataType)
+        private async Task<ActionResult> CreateBinaryData(Instance instanceBefore, string dataType, string contentType, string filename, Stream fileStream)
         {
             int instanceOwnerPartyId = int.Parse(instanceBefore.Id.Split("/")[0]);
             Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
 
-            DataElement dataElement = await _dataClient.InsertBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataType, Request);
+            DataElement dataElement = await _dataClient.InsertBinaryData(instanceBefore.Id, dataType, contentType, filename, fileStream);
 
             if (Guid.Parse(dataElement.Id) == Guid.Empty)
             {

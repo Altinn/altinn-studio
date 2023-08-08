@@ -34,6 +34,34 @@ public enum ExpressionFunction
     /// </summary>
     concat,
     /// <summary>
+    /// Turn characters to upper case
+    /// </summary>
+    upperCase,
+    /// <summary>
+    /// Turn characters to lower case
+    /// </summary>
+    lowerCase,
+    /// <summary>
+    /// Check if a string contains another string
+    /// </summary>
+    contains,
+    /// <summary>
+    /// Check if a string does not contain another string
+    /// </summary>
+    notContains,
+    /// <summary>
+    /// Check if a comma separated string contains a value
+    /// </summary>
+    commaContains,
+    /// <summary>
+    /// Check if a string ends with another string
+    /// </summary>
+    endsWith,
+    /// <summary>
+    /// Check if a string starts with another string
+    /// </summary>
+    startsWith,
+    /// <summary>
     /// Check if values are equal
     /// </summary>
     equals,
@@ -57,6 +85,14 @@ public enum ExpressionFunction
     /// Compare numerically
     /// </summary>
     greaterThan,
+    /// <summary>
+    ///  Return the length of a string
+    /// </summary>
+    stringLength,
+    /// <summary>
+    /// Rounds a number to an integer, or optionally a decimal with a configurable amount of decimal points
+    /// </summary>
+    round,
     /// <summary>
     /// Return true if all the expressions evaluate to true
     /// </summary>
