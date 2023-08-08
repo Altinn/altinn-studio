@@ -45,6 +45,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
+using Prometheus;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 using IProcessReader = Altinn.App.Core.Internal.Process.IProcessReader;
 using ProcessEngine = Altinn.App.Core.Internal.Process.ProcessEngine;
@@ -78,6 +79,7 @@ namespace Altinn.App.Core.Extensions
             services.AddHttpClient<IDataClient, DataClient>();
             services.AddHttpClient<IOrganizationClient, RegisterERClient>();
             services.AddHttpClient<IInstanceClient, InstanceClient>();
+            services.Decorate<IInstanceClient, InstanceClientMetricsDecorator>();
             services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
             services.AddHttpClient<IEventsClient, EventsClient>();
             services.AddHttpClient<IPDF, PDFClient>();
@@ -231,6 +233,7 @@ namespace Altinn.App.Core.Extensions
         private static void AddProcessServices(IServiceCollection services)
         {
             services.TryAddTransient<IProcessEngine, ProcessEngine>();
+            services.Decorate<IProcessEngine, ProcessEngineMetricsDecorator>();
             services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
             services.TryAddSingleton<IProcessReader, ProcessReader>();
             services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
