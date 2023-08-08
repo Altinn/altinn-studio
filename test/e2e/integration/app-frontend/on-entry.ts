@@ -62,24 +62,25 @@ describe('On Entry', () => {
     cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
   });
 
+  const createIntercept = (defaultSelectedOption: number) => ({
+    id: 'ttd/frontend-test',
+    org: 'ttd',
+    title: {
+      nb: 'frontend-test',
+      en: 'frontend-test ENGLISH',
+    },
+    dataTypes: [],
+    onEntry: {
+      show: 'select-instance',
+      instanceSelection: {
+        sortDirection: 'desc',
+        rowsPerPageOptions: [1, 2, 3],
+        defaultSelectedOption,
+      },
+    },
+  });
   it('is possible to paginate the instances and select default rows per page', () => {
-    cy.intercept('**/applicationmetadata', {
-      id: 'ttd/frontend-test',
-      org: 'ttd',
-      title: {
-        nb: 'frontend-test',
-        en: 'frontend-test ENGLISH',
-      },
-      dataTypes: [],
-      onEntry: {
-        show: 'select-instance',
-        instanceSelection: {
-          sortDirection: 'desc',
-          rowsPerPageOptions: [1, 2, 3],
-          defaultSelectedOption: 1,
-        },
-      },
-    });
+    cy.intercept('**/applicationmetadata', createIntercept(1));
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
@@ -111,6 +112,12 @@ describe('On Entry', () => {
       .find('td')
       .eq(1)
       .should('have.text', 'Bar Baz');
+  });
+
+  it('will utilize index 0 when defaultSelectedOption is assigned an invalid index number', () => {
+    cy.intercept('**/applicationmetadata', createIntercept(5));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
   });
 
   it('is possible to create a new instance', () => {
