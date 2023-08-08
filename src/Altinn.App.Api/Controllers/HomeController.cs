@@ -105,7 +105,7 @@ namespace Altinn.App.Api.Controllers
                 return true;
             }
 
-            Application application = await _appMetadata.GetApplicationMetadata();
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
             if (!IsStatelessApp(application))
             {
                 return false;
@@ -121,7 +121,7 @@ namespace Altinn.App.Api.Controllers
             return false;
         }
 
-        private bool IsStatelessApp(Application application)
+        private bool IsStatelessApp(ApplicationMetadata application)
         {
             if (application?.OnEntry == null)
             {
@@ -131,7 +131,7 @@ namespace Altinn.App.Api.Controllers
             return !_onEntryWithInstance.Contains(application.OnEntry.Show);
         }
 
-        private DataType? GetStatelessDataType(Application application)
+        private DataType? GetStatelessDataType(ApplicationMetadata application)
         {
             string layoutSetsString = _appResources.GetLayoutSets();
             JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
