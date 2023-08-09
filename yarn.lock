@@ -1680,10 +1680,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@digdir/design-system-tokens@npm:0.1.5"
-  checksum: aa378c0f975d5dd462617c9312a7129f95ad07ecc5b6c4a6f1066526f613ab6c34687b71ce378107fb8b3f471ee25318e8be905ad0444cde05e218bd699a5d17
+"@digdir/design-system-tokens@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@digdir/design-system-tokens@npm:0.1.7"
+  checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
   languageName: node
   linkType: hard
 
@@ -5115,7 +5115,7 @@ __metadata:
     "@altinn/altinn-design-system": 0.29.0
     "@altinn/figma-design-tokens": 6.0.1
     "@digdir/design-system-react": 0.18.0
-    "@digdir/design-system-tokens": 0.1.5
+    "@digdir/design-system-tokens": 0.1.7
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.9
