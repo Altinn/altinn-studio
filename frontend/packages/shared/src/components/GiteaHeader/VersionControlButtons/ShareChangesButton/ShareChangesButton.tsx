@@ -3,25 +3,31 @@ import { Button } from '@digdir/design-system-react';
 import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
 import classes from './ShareChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
+import { Notification } from '../Notification';
 
-export interface IShareChangesComponentProps {
+export interface IShareChangesButtonProps {
   changesInLocalRepo: boolean;
   hasMergeConflict: boolean;
   hasPushRight: boolean;
   shareChanges: any;
+  displayNotification: boolean;
 }
 
-export const ShareChangesButton = (props: IShareChangesComponentProps) => {
+export const ShareChangesButton = ({
+  changesInLocalRepo,
+  hasMergeConflict,
+  hasPushRight,
+  shareChanges,
+  displayNotification,
+}: IShareChangesButtonProps) => {
   const { t } = useTranslation();
 
-  const shareChangesHandler = (event: any) => {
-    props.shareChanges(event.currentTarget);
-  };
+  const shareChangesHandler = (event: any) => shareChanges(event.currentTarget);
 
   const renderCorrectText = () => {
-    if (props.hasMergeConflict) {
+    if (hasMergeConflict) {
       return t('sync_header.merge_conflict');
-    } else if (props.changesInLocalRepo) {
+    } else if (changesInLocalRepo) {
       return t('sync_header.changes_to_share');
     } else {
       return t('sync_header.no_changes_to_share');
@@ -31,14 +37,16 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
   return (
     <Button
       className={classes.button}
-      disabled={!props.hasPushRight}
-      icon={props.hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
+      color='inverted'
+      disabled={!hasPushRight}
+      icon={hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
       id='share_changes_button'
       onClick={shareChangesHandler}
       size='small'
       variant='quiet'
     >
       {renderCorrectText()}
+      {displayNotification && <Notification numChanges={1} />}
     </Button>
   );
 };

@@ -147,7 +147,11 @@ export function App() {
     [dispatch]
   );
   if (!repoStatus) {
-    return <div className={classes.appSpinner}><PageSpinner/></div>
+    return (
+      <div className={classes.appSpinner}>
+        <PageSpinner />
+      </div>
+    );
   }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>

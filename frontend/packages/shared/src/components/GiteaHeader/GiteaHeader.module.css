@@ -1,7 +1,12 @@
-.rightContent {
+.wrapper {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  width: 100%;
   gap: 1rem;
+  height: var(--subtoolbar-height);
+  background-color: #284e6a;
+  height: 50px;
 }
 
 .previewButton {
