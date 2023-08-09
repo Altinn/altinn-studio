@@ -69,11 +69,11 @@ export const ResourceDashboardPage = () => {
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div style={{ width: '100%' }}>
             <Heading size='xsmall' level={2}>
-              {`Alle ressurser (${resourceListData.length})`}
+              {`Alle ressurser (${resourceListData?.length ?? 0})`}
             </Heading>
           </div>
-          <ResourceTable list={filteredTableData(resourceListData)} />
-          {filteredTableData(resourceListData).length === 0 && (
+          <ResourceTable list={filteredTableData(resourceListData ?? [])} />
+          {filteredTableData(resourceListData ?? []).length === 0 && (
             <p className={classes.noResultText}>
               Det finnes ingen ressursen som har navnet du søkte etter.
             </p>
