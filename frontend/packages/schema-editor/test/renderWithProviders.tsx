@@ -46,8 +46,10 @@ export const renderWithProviders = ({
     ...selectedSchemaProps,
   };
 
+  const store = configureStore()(allStateProps);
+
   const result = render(
-    <Provider store={configureStore()(allStateProps)}>
+    <Provider store={store}>
       <ServicesContextProvider {...allServicesContextProps} client={queryClient}>
         <SelectedSchemaContext.Provider value={allSelectedSchemaContextProps}>
           {element}
@@ -94,5 +96,5 @@ export const renderWithProviders = ({
     );
   };
 
-  return { ...result, rerender };
+  return { ...result, store, rerender };
 };

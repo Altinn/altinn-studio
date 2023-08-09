@@ -29,13 +29,12 @@ context('datamodel', () => {
     cy.findByText('Lag en ny datamodell').click();
     cy.findByRole('textbox').type('datamodel');
     cy.findByRole('button', { name: 'Opprett modell' }).click();
-    cy.findByRole('button', { name: 'Rediger' }).click();
     cy.findByText('property1').click();
   });
 
   it('edit a data model', () => {
     cy.findByText('property1').click();
-    cy.findByRole('textbox', { name: 'Navn' }).clear().type('myProperty');
+    cy.findByRole('textbox', { name: 'Navn *' }).clear().type('myProperty');
 
     // Hack to ensure focus. Find out why we need to click twice and fix!
     cy.findByRole('combobox', { name: 'Type' }).click();

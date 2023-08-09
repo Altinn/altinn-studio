@@ -86,11 +86,11 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
         />
       </div>
       <div className={classes.pagesList}>
-        <PagesContainer/>
+        <PagesContainer />
       </div>
-        <div className={classes.receipt}>
-          <ReceiptPageElement/>
-        </div>
+      <div className={classes.receipt}>
+        <ReceiptPageElement />
+      </div>
       <div className={classes.toolbar}>
         {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
       </div>

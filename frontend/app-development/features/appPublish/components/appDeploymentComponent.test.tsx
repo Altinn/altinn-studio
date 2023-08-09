@@ -196,7 +196,7 @@ describe('AppDeploymentComponent', () => {
         screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') })
       )
     );
-    await act(() => user.click(screen.getByRole('button', { name: 'Ja' })));
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.yes') })));
     expect(mockConsoleError).toHaveBeenCalled();
     expect(screen.getByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
   });

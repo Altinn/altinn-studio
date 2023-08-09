@@ -132,8 +132,8 @@ describe('TextEditor', () => {
     expect(translationsToChange).toHaveLength(2);
     const changedTranslations = nb;
     changedTranslations[0].value = 'new translation';
-    await act(() => user.tripleClick(translationsToChange[0])); 
-    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); 
+    await act(() => user.tripleClick(translationsToChange[0]));
+    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`));
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
       textId: 'textId1',
@@ -156,7 +156,7 @@ describe('TextEditor', () => {
       await act(() =>
         user.click(
           screen.getByRole('button', {
-            name: textMock('schema_editor.textRow-confirm-cancel-popover'),
+            name: textMock('schema_editor.textRow-deletion-confirm'),
           })
         )
       );

@@ -7,11 +7,6 @@
   color: red;
 }
 
-.popoverButtons {
-  display: flex;
-  gap: 8px;
-}
-
 .textId {
   max-width: 160px;
   overflow: scroll;

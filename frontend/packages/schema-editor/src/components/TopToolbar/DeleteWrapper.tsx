@@ -1,10 +1,10 @@
 import React from 'react';
-import { DeleteDialog } from './DeleteDialog';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { useDeleteDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface DeleteWrapperProps {
   selectedOption: MetadataOption | null;
@@ -21,10 +21,14 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
     mutate();
     setDialogOpen(false);
   };
-  const onCancelDelete = () => setDialogOpen(false);
 
   return (
-    <DeleteDialog
+    <AltinnConfirmDialog
+      open={dialogOpen}
+      confirmText={t('schema_editor.confirm_deletion')}
+      onConfirm={onDeleteConfirmClick}
+      onClose={() => setDialogOpen(false)}
+      placement="bottom"
       trigger={
         <Button
           id='delete-model-button'
@@ -34,13 +38,11 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
           icon={<TrashIcon />}
           variant={ButtonVariant.Quiet}
         >
-          {t('general.delete_data_model')}
+          {t('schema_editor.delete_data_model')}
         </Button>
       }
-      schemaName={schemaName}
-      onConfirm={onDeleteConfirmClick}
-      onCancel={onCancelDelete}
-      open={dialogOpen}
-    />
+    >
+      <p>{t('schema_editor.delete_model_confirm', { schemaName })}</p>
+    </AltinnConfirmDialog>
   );
 }

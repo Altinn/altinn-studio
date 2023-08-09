@@ -24,7 +24,7 @@ export function ReceiptPageElement() {
   };
   return receiptName ? (
     <div className={classes.pageElementWrapper}>
-      <PageElement name={receiptName}/>
+      <PageElement name={receiptName} />
     </div>
     ) : (
       <div className={classes.buttonWrapper}>
