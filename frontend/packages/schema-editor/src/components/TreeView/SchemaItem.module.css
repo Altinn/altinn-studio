@@ -17,3 +17,8 @@
 .isRef:global(.Mui-selected) {
   border-style: dashed;
 }
+
+.confirmDeleteDialogTrigger {
+  float: right;
+  padding: 0 var(--fds-spacing-3);
+}

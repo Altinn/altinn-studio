@@ -166,7 +166,7 @@ describe('SchemaEditor', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     const cancelButton = screen.getByRole('button', {
-      name: textMock('schema_editor.datamodel_field_deletion_cancel'),
+      name: textMock('general.cancel'),
     });
     await act(() => user.click(cancelButton));
     expect(saveDatamodel).not.toHaveBeenCalled();

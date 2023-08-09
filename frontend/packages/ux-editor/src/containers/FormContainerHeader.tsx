@@ -1,13 +1,13 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useState } from 'react';
 import { ConnectDragSource } from 'react-dnd';
 import cn from 'classnames';
 import '../styles/index.css';
-import { Button, ButtonColor, ButtonVariant, Popover, PopoverVariant } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { useTranslation } from 'react-i18next';
-import { useClickOutside } from '../../../ux-editor/src/components/FormComponent';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IFormContainerHeaderProps {
   id: string;
@@ -27,11 +27,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   dragHandleRef,
 } : IFormContainerHeaderProps) {
   const { t } = useTranslation();
-  const [isConfirmDeleteGroupOpen, setIsConfirmDeleteGroupOpen] = useState(false);
-  const toggleConfirmDeletePopover = () => setIsConfirmDeleteGroupOpen((prev) => !prev);
-  const handleClosePopover = useCallback(() => { setIsConfirmDeleteGroupOpen(false); }, []);
-  const popoverRef = useRef(null);
-  useClickOutside(popoverRef, handleClosePopover);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   return (
     <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
@@ -48,40 +44,27 @@ export const FormContainerHeader = memo(function FormContainerHeader({
         {t('ux_editor.component_group_header', { id })}
       </div>
       <div className={classes.formGroupButtons}>
-        <div ref={popoverRef}>
-        <Popover
-          variant={PopoverVariant.Warning}
-          placement={'left'}
-          open={isConfirmDeleteGroupOpen}
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
+          confirmText={t('ux_editor.component_deletion_confirm')}
+          onConfirm={handleDelete}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
+          placement='bottom'
           trigger={
             <Button
-            className={classes.deleteGroupComponent}
+              className={classes.deleteGroupComponent}
               icon={<TrashIcon />}
               title={t('general.delete')}
-              onClick={toggleConfirmDeletePopover}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                setIsConfirmDeleteDialogOpen(prevState => !prevState);
+              }}
               variant={ButtonVariant.Quiet}
             />
           }
         >
-          {isConfirmDeleteGroupOpen && (
-            <div>
-              <p className={classes.deletGroupMessage}>
-                {t('ux_editor.component_popover_confirm_delete')}
-              </p>
-              <Button onClick={handleDelete} color={ButtonColor.Danger} >
-                {t('ux_editor.component_confirm_delete_component')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Quiet}
-                onClick={toggleConfirmDeletePopover}
-                color={ButtonColor.Secondary}
-              >
-                {t('schema_editor.textRow-cancel-popover')}
-              </Button>
-            </div>
-          )}
-        </Popover>
-      </div>
+          <p>{t('ux_editor.component_deletion_text')}</p>
+        </AltinnConfirmDialog>
       </div>
     </div>
   );

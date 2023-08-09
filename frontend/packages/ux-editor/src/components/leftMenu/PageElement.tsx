@@ -3,7 +3,6 @@ import classes from './PageElement.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
 import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
-import { ConfirmModal } from './ConfirmModal';
 import { Divider } from 'app-shared/primitives';
 import { MenuElipsisVerticalIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -19,6 +18,7 @@ import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayo
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IPageElementProps {
   name: string;
@@ -41,9 +41,9 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [newName, setNewName] = useState<string>('');
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
-  const [deleteAnchorEl, setDeleteAnchorEl] = useState<null | Element>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   useEffect(() => {
     if (name !== selectedLayout) {
@@ -67,7 +67,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
-      setDeleteAnchorEl(event.currentTarget);
+      setIsConfirmDeleteDialogOpen(prevState => !prevState);
     } else if (action === 'edit') {
       setEditMode(true);
       setNewName(name);
@@ -118,10 +118,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     }
   };
 
-  const handleConfirmDeleteClose = () => setDeleteAnchorEl(null);
-
   const handleConfirmDelete = () => {
-    setDeleteAnchorEl(null);
     deleteLayout(name);
     setSearchParams({
       ...removeKey(searchParams, 'layout'),
@@ -156,7 +153,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             <div className={classes.errorMessage}>{errorMessage}</div>
           </div>
         ) : (
-          <div onClick={onPageClick}>{name}</div>
+          <div onClick={onPageClick} className={classes.pageName}>{name}</div>
         )}
         <Button
           className={classes.ellipsisButton}
@@ -166,6 +163,15 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           variant={ButtonVariant.Quiet}
           title={t('general.options')}
         />
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
+          confirmText={t('left_menu.page_delete_confirm')}
+          onConfirm={handleConfirmDelete}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
+        >
+          <p>{t('left_menu.page_delete_text')}</p>
+          <p>{t('left_menu.page_delete_information')}</p>
+        </AltinnConfirmDialog>
       </div>
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         {layoutOrder.includes(name) && (
@@ -201,17 +207,6 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           id='delete-page-button'
         />
       </AltinnMenu>
-      <ConfirmModal
-        anchorEl={deleteAnchorEl}
-        open={Boolean(deleteAnchorEl)}
-        header={t('left_menu.page_delete_header')}
-        description={t('left_menu.page_delete_information', { name })}
-        confirmText={t('left_menu.page_delete_confirm')}
-        cancelText={t('left_menu.page_delete_cancel')}
-        onClose={handleConfirmDeleteClose}
-        onCancel={handleConfirmDeleteClose}
-        onConfirm={handleConfirmDelete}
-      />
     </div>
   );
 }

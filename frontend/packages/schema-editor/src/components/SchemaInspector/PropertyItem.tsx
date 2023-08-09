@@ -1,5 +1,5 @@
 import type { ChangeEventHandler, KeyboardEvent } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Checkbox, Select } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
@@ -11,6 +11,7 @@ import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { NameField } from './NameField';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IPropertyItemProps {
   fullPath: string;
@@ -35,6 +36,7 @@ export function PropertyItem({
 }: IPropertyItemProps) {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const deleteHandler = () => onDeleteField?.(fullPath);
 
@@ -92,11 +94,23 @@ export function PropertyItem({
           onChange={changeRequiredHandler}
         />
       </span>
-      <IconButton
-        ariaLabel={t('schema_editor.delete_field')}
-        icon={IconImage.Wastebucket}
-        onClick={deleteHandler}
-      />
+      <AltinnConfirmDialog
+        open={isConfirmDeleteDialogOpen}
+        confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+        onConfirm={deleteHandler}
+        onClose={() => setIsConfirmDeleteDialogOpen(false)}
+        placement='bottom'
+        trigger={
+          <IconButton
+            ariaLabel={t('schema_editor.delete_field')}
+            icon={IconImage.Wastebucket}
+            onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
+          />
+        }
+      >
+        <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
+        <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+      </AltinnConfirmDialog>
     </>
   );
 }
