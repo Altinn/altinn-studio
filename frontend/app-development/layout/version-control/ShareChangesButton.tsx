@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
 import classes from './FetchChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
@@ -29,12 +29,13 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
   return (
     <Button
       className={classes.button}
+      color='inverted'
       disabled={!props.hasPushRight}
       icon={props.hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
       id='share_changes_button'
       onClick={shareChangesHandler}
-      size={ButtonSize.Small}
-      variant={ButtonVariant.Quiet}
+      size='small'
+      variant='quiet'
     >
       {renderCorrectText()}
     </Button>

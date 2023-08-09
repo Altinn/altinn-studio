@@ -1663,12 +1663,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@digdir/design-system-react@npm:0.18.0"
+"@digdir/design-system-react@npm:0.22.0":
+  version: 0.22.0
+  resolution: "@digdir/design-system-react@npm:0.22.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.1.4
+    "@digdir/design-system-tokens": ^0.2.0
     "@floating-ui/react": 0.24.1
     "@navikt/aksel-icons": ^3.2.4
     "@navikt/ds-icons": ^2.3.0
@@ -1676,18 +1676,18 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: cfbd9be484c44e46474993e570abb8ba957e78317e043c217684c13007b2229f35b40034d3864fba6f3ffb6640046430e7cf130a30e7bef451caa9b751ae2800
+  checksum: 775fcc91a25bb0f9ae447706c853f7f494c067a7b738bf2420d47e0c0955492d663bdf1cdfc23c7530664b5179067bc57748b2dc9b755f515ab17107633c33d7
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@digdir/design-system-tokens@npm:0.1.5"
-  checksum: aa378c0f975d5dd462617c9312a7129f95ad07ecc5b6c4a6f1066526f613ab6c34687b71ce378107fb8b3f471ee25318e8be905ad0444cde05e218bd699a5d17
+"@digdir/design-system-tokens@npm:0.2.0, @digdir/design-system-tokens@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@digdir/design-system-tokens@npm:0.2.0"
+  checksum: 33e4ad9fc47a41ff60d30e98e06c71d80766fd412984c4a6f3c01e7c0afaee706ff83a514d0b5b0fd8dbdd16bbb3d88a940324b3e10c9a2fcb89ee9f89d928e5
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:^0.1.3, @digdir/design-system-tokens@npm:^0.1.4":
+"@digdir/design-system-tokens@npm:^0.1.3":
   version: 0.1.4
   resolution: "@digdir/design-system-tokens@npm:0.1.4"
   checksum: adbfd26c86093441d9fef454ad891bf176c865bcc96b1950d0feba38bf71de642692512e05a8cdc76c30861853485a9ec3e0a701bdf0a6a2a041368bdc10e1b0
@@ -5114,8 +5114,8 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.0
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.18.0
-    "@digdir/design-system-tokens": 0.1.5
+    "@digdir/design-system-react": 0.22.0
+    "@digdir/design-system-tokens": 0.2.0
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.9
