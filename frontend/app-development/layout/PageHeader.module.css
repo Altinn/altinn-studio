@@ -1,12 +1,3 @@
-.branchIcon {
-  width: 24px;
-  height: 24px;
-}
-
-.leftContent svg {
-  color: #fff;
-}
-
 .rightContent {
   display: flex;
   align-items: center;
