@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import classes from './PageLayout.module.css';
 import { Outlet, useNavigate } from 'react-router-dom';
 
 import { HeaderContext } from 'app-shared/navigation/main-header/Header';
@@ -42,7 +43,12 @@ export const PageLayout = () => {
       <HeaderContext.Provider value={headerContextValue}>
         {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
         <AppHeader />
-        <GiteaHeader org={selectedContext} app={repo} menuOnlyHasRepository extraPadding />
+        <GiteaHeader
+          org={selectedContext}
+          app={repo}
+          menuOnlyHasRepository
+          className={classes.extraPadding}
+        />
       </HeaderContext.Provider>
       <Outlet />
     </>

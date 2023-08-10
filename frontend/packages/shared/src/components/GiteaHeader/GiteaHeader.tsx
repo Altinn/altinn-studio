@@ -21,9 +21,9 @@ interface Props {
    */
   hasCloneModal?: boolean;
   /**
-   * Flag for if the component needs extra padding. Relevant for resourceadm, as it is not using the AltinnHeader
+   * Classname for some extra styling
    */
-  extraPadding?: boolean;
+  className?: string;
 }
 
 /**
@@ -34,14 +34,14 @@ interface Props {
  *        app={app}
  *        menuOnlyHasRepository
  *        extraPadding
- *        hasCloneModal
+ *        className={classes.someExtraStyle}
  *    />
  *
  * @property {string}[org] - The name of the organisation
  * @property {string}[app] - The name of the app / repository
  * @property {boolean}[menuOnlyHasRepository] - Flag for if the three dots menu only should show the repository option. This is relevant for resourceadm
  * @property {boolean}[hasCloneModal] - Flag for if the component has a clone modal. This is relevant for app-development
- * @property {boolean}[extraPadding] - Flag for if the component needs extra padding. Relevant for resourceadm, as it is not using the AltinnHeader
+ * @property {string}[className] - Classname for some extra styling
  *
  * @returns {React.ReactNode} - The rendered Gitea header component
  */
@@ -50,11 +50,11 @@ export const GiteaHeader = ({
   app,
   menuOnlyHasRepository = false,
   hasCloneModal = false,
-  extraPadding = false,
+  className,
 }: Props): React.ReactNode => {
   return (
     <div className={classes.wrapper}>
-      <div className={`${classes.contentWrapper} ${extraPadding && classes.extraPadding}`}>
+      <div className={`${classes.contentWrapper} ${className && className}`}>
         <VersionControlButtons data-testid='version-control-header' org={org} app={app} />
         <ThreeDotsMenu
           data-testid='three-dots-menu'
