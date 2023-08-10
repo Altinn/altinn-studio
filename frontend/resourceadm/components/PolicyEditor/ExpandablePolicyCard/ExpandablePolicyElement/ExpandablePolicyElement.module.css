@@ -89,5 +89,6 @@
 }
 
 .cardError:hover {
-  border-color: var(--fds-semantic-border-danger-hover);
+  border: solid 2px var(--fds-semantic-border-danger-hover);
+  box-shadow: 0 0 0 2px var(--fds-semantic-border-danger-hover);
 }
