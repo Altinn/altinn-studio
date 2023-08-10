@@ -7,12 +7,13 @@ import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { NewResourceType, ResourceType } from 'resourceadm/types/global';
 import { Footer } from 'resourceadm/components/Footer';
-import { useGetResourceListQuery, useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModal';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 /**
  * Displays the page for the resource dashboard
