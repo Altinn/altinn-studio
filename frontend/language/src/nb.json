@@ -589,6 +589,7 @@
   "right_menu.dynamics_action_on_component": "Velg hva som skal skje med <bold>{{componentName}}</bold>",
   "right_menu.dynamics_add": "Legg til ny dynamikk",
   "right_menu.dynamics_add_expression": "Legg til uttrykk",
+  "right_menu.dynamics_complex_dynamic_message": "Formatet på dette uttrykket kan ikke tolkes av Studio, men du kan redigere det manuelt",
   "right_menu.dynamics_data_source_application_settings": "Applikasjonsinnstillinger",
   "right_menu.dynamics_data_source_boolean": "Boolsk",
   "right_menu.dynamics_data_source_component": "Komponent",

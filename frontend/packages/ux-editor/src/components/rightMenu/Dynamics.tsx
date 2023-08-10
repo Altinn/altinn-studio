@@ -25,6 +25,9 @@ type DynamicsTabProps = {
 
 export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsTabProps) => {
   const { formId, form, handleUpdate, handleComponentSave } = useContext(FormContext);
+  const t = useText();
+
+  if (!formId || !form) return t('right_menu.content_empty');
 
   // adapt list of actions if component is group
   const expressionProperties = form.itemType === LayoutItemType.Container ?
@@ -36,7 +39,6 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
   const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
   const [dynamics, setDynamics] = React.useState<Dynamic[]>(potentialConvertedExternalDynamics || [defaultDynamic]); // default state should be already existing dynamics
   const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
-  const t = useText();
 
   useEffect(() => {
     if (dynamics && dynamics.length < 2) {
@@ -45,8 +47,6 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
       setShowRemoveDynamicButton(true);
     }
   }, [dynamics]);
-
-  if (!formId || !form) return t('right_menu.content_empty');
 
   const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {
     if (dynamic.complexExpression) {

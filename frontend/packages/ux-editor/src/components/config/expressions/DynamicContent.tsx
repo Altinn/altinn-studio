@@ -5,7 +5,7 @@ import {
   ExpressionPropertyBase,
   expressionPropertyTexts,
 } from '../../../types/Expressions';
-import { Button, Select } from '@digdir/design-system-react';
+import { Alert, Button, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { Dynamic, ExpressionElement } from '../../../types/Expressions';
 import { ExpressionContent } from './ExpressionContent';
@@ -40,7 +40,7 @@ export const DynamicContent = ({
 }: ExpressionProps) => {
   const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements]|| []); // default state should be already existing expressions
-  const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
+  const [complexExpression, setComplexExpression] = React.useState<[any]>(dynamic.complexExpression); // default state should be already existing expressions
   const [operator, setOperator] = React.useState<'og' | 'eller'>(dynamic.operator || undefined);
   const {t} = useTranslation();
   const dynamicInEditStateRef = useRef(null);
@@ -121,6 +121,57 @@ export const DynamicContent = ({
     }
   };
 
+  const tryFormatExpression = (expression: any): string => {
+    try {
+      // Attempt to parse and format the JSON input
+      const formattedArray = ('[' + Object.values(expression).toString() + ']')
+        .split(',')// Split input into lines
+        .join(',\n'); // Join lines with line breaks
+      return formattedArray;
+    } catch (error) {
+      return expression;
+    }
+  }
+
+  function parseString(inputString): any {
+    console.log('input: ', inputString);
+    const cleanInputString = inputString.split(/[\s\n]+/).join('');
+    console.log('celan input: ', cleanInputString);
+    const result = [];
+    let currentElement = '';
+    let stack = [];
+
+    for (let i = 0; i < cleanInputString.length; i++) {
+      const char = cleanInputString[i];
+
+      if (char === '[') {
+        if (currentElement !== '') {
+          stack.push(currentElement);
+        }
+        currentElement = '';
+        stack.push([]);
+      } else if (char === ',') {
+        if (currentElement !== '') {
+          stack[stack.length - 1].push(currentElement);
+        }
+        currentElement = '';
+      } else if (char === ']') {
+        if (currentElement !== '') {
+          stack[stack.length - 1].push(currentElement);
+        }
+        currentElement = stack.pop();
+        if (stack.length === 0) {
+          result.push(currentElement);
+          currentElement = '';
+        }
+      } else {
+        currentElement += char;
+      }
+    }
+
+    return result;
+  }
+
   console.log('dynamic', dynamic); // TODO: Remove when fully tested
   return (
     <>
@@ -155,11 +206,16 @@ export const DynamicContent = ({
             value={dynamic.property || 'default'}
           />
           {dynamic.complexExpression ? (
-            <TextArea
-              resize={'vertical'}
-              value={complexExpression}
-              onChange={event => setComplexExpression(event.target.value)}
-            />
+            <div className={classes.complexExpressionTest}>
+              <textarea
+                value={tryFormatExpression(complexExpression)}
+                onChange={event => setComplexExpression(parseString(event.target.value))} // need to unformat this?
+                rows={dynamic.complexExpression.length + 2}
+              />
+              <Alert>
+                {t('right_menu.dynamics_complex_dynamic_message')}
+              </Alert>
+            </div>
           ) : (
             expressionElements.map((expEl: ExpressionElement) => (
               <div key={expEl.id}>
