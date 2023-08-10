@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Button,
-  TextArea,
-  Paragraph,
-  Label,
-  ErrorMessage,
-  Select,
-} from '@digdir/design-system-react';
+import { Button, TextArea, Label, ErrorMessage, Select } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
@@ -15,11 +8,10 @@ import {
   PolicyRuleResourceType,
   PolicySubjectType,
 } from 'resourceadm/types/global';
-import { PolicyRuleSubjectListItem } from './PolicyRuleSubjectListItem';
+import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { PolicyRuleActionElement } from './PolicyRuleActionElement';
 
 interface Props {
   policyRule: PolicyRuleCardType;
@@ -100,6 +92,16 @@ export const ExpandablePolicyCard = ({
       .map((s) => ({ value: s.subjectTitle, label: s.subjectTitle }));
   };
   const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions());
+
+  /**
+   * Maps the action objects to option objects for display in the select component
+   */
+  const getActionOptions = () => {
+    return actions
+      .filter((a) => !policyRule.actions.includes(a.actionTitle))
+      .map((a) => ({ value: a.actionTitle, label: a.actionTitle }));
+  };
+  const [actionOptions, setActionOptions] = useState(getActionOptions());
 
   /**
    * Gets the id of the policy
@@ -195,41 +197,24 @@ export const ExpandablePolicyCard = ({
   /**
    * Displays the actions
    */
-  const displayActions = actions.map((a, i) => {
-    return (
-      <PolicyRuleActionElement
-        onClick={() => handleClickAction(i, a.actionTitle)}
-        selected={policyRule.actions.includes(a.actionTitle)}
-        text={a.actionTitle}
-        key={i}
-      />
-    );
+  const displayActions = policyRule.actions.map((a, i) => {
+    return <ActionAndSubjectListItem key={i} title={a} onRemove={() => handleRemoveAction(i, a)} />;
   });
 
   /**
-   * Removes or adds an action
+   * Handles the removal of actions
    */
-  const handleClickAction = (index: number, action: string) => {
-    const updatedSelectedActions = [...policyRule.actions];
+  const handleRemoveAction = (index: number, actionTitle: string) => {
+    // Remove from selected list
+    const updatedActions = [...policyRule.actions];
+    updatedActions.splice(index, 1);
 
-    // If already present, remove it and check if there is an error
-    if (policyRule.actions.includes(actions[index].actionTitle)) {
-      const selectedActionIndex = policyRule.actions.findIndex((a) => a === action);
-      updatedSelectedActions.splice(selectedActionIndex, 1);
-      setHasRightsErrors(updatedSelectedActions.length === 0);
-    }
-    // else add it and remove the action error
-    else {
-      updatedSelectedActions.push(action);
-      setHasRightsErrors(false);
-    }
+    // Add to options list
+    setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
 
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      updatedSelectedActions,
-      policyRule.resources
-    );
+    updateRules(policyRule.description, policyRule.subject, updatedActions, policyRule.resources);
+
+    setHasRightsErrors(updatedActions.length === 0);
   };
 
   /**
@@ -237,16 +222,12 @@ export const ExpandablePolicyCard = ({
    */
   const displaySubjects = policyRule.subject.map((s, i) => {
     return (
-      <PolicyRuleSubjectListItem
-        key={i}
-        subjectTitle={s}
-        onRemove={() => handleRemoveSubject(i, s)}
-      />
+      <ActionAndSubjectListItem key={i} title={s} onRemove={() => handleRemoveSubject(i, s)} />
     );
   });
 
   /**
-   * Handles the removal of resources
+   * Handles the removal of subjects
    */
   const handleRemoveSubject = (index: number, subjectTitle: string) => {
     // Remove from selected list
@@ -283,6 +264,34 @@ export const ExpandablePolicyCard = ({
       policyRule.description,
       updatedSubjectTitles,
       policyRule.actions,
+      policyRule.resources
+    );
+
+    setHasSubjectsError(false);
+  };
+
+  /**
+   * Handles the click on an action in the select list. It removes the clicked element
+   * from the options list, and adds it to the selected action title list.
+   */
+  const handleClickActionInList = (option: string) => {
+    // As the input field is multiple, the onChange function uses string[], but
+    // we are removing the element from the options list before it is displayed, so
+    // it will only ever be a first value in the array.
+    const clickedOption = option;
+
+    // Remove from options list
+    const index = actionOptions.findIndex((o) => o.value === clickedOption);
+    const updatedOptions = [...actionOptions];
+    updatedOptions.splice(index, 1);
+    setActionOptions(updatedOptions);
+
+    const updatedActionTitles = [...policyRule.actions, clickedOption];
+
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      updatedActionTitles,
       policyRule.resources
     );
 
@@ -376,7 +385,7 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label className={classes.label} size='small'>
+        <Label className={classes.label} size='medium'>
           Hvilken sub-ressurser skal regelen gjelde for?
         </Label>
         {displayResources}
@@ -394,15 +403,21 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasResourceError &&
           displayWarningCard('Du må legge til minimum en sub-ressurs.')}
-        <Label className={classes.label} size='small'>
+        <Label className={classes.label} size='medium'>
           Hvilke rettigheter skal gis?
         </Label>
-        <Paragraph size='xsmall' short>
-          Velg minimum ett alternativ fra listen under
-        </Paragraph>
+        <div className={classes.dropdownWrapper}>
+          <Select
+            options={actionOptions}
+            onChange={(value: string) => value !== null && handleClickActionInList(value)}
+            disabled={actionOptions.length === 0}
+            label={actionOptions.length === 0 ? 'Alle rettigheter er valgt' : 'Legg til rettighet'}
+            error={showErrors && hasRightsError}
+          />
+        </div>
         <div className={classes.chipWrapper}>{displayActions}</div>
         {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
-        <Label className={classes.label} size='small'>
+        <Label className={classes.label} size='medium'>
           Hvem skal ha disse rettighetene?
         </Label>
         <div className={classes.dropdownWrapper}>
@@ -416,7 +431,7 @@ export const ExpandablePolicyCard = ({
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
         {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
-        <Label className={classes.label} size='small'>
+        <Label className={classes.label} size='medium'>
           Legg til en beskrivelse av regelen
         </Label>
         <div className={classes.textAreaWrapper}>

@@ -1,12 +1,12 @@
 import React from 'react';
-import classes from './PolicyRuleSubjectListItem.module.css';
+import classes from './ActionAndSubjectListItem.module.css';
 import { Chip } from '@digdir/design-system-react';
 
 interface Props {
   /**
    * The title to display
    */
-  subjectTitle: string;
+  title: string;
   /**
    * Function that removes the element from the list
    */
@@ -18,21 +18,21 @@ interface Props {
  *    Displays the list of subjects that belongs to a rule in a card in the policy editor.
  *
  * @example
- *    <PolicyRuleSubjectListItem
- *      subjectTitle='title'
+ *    <ActionAndSubjectListItem
+ *      title='title'
  *      onRemove={handleRemove}
  *    />
  *
- * @property {string}[subjectTitle] - The title to display
+ * @property {string}[title] - The title to display
  * @property {function}[onRemove] - Function that removes the element from the list
  *
  * @returns {React.ReactNode} - The rendered Chip element
  */
-export const PolicyRuleSubjectListItem = ({ subjectTitle, onRemove }: Props): React.ReactNode => {
+export const ActionAndSubjectListItem = ({ title, onRemove }: Props): React.ReactNode => {
   return (
     <div className={classes.wrapper}>
-      <Chip.Removable aria-label={`Slett ${subjectTitle}`} size='small' onClick={onRemove}>
-        {subjectTitle}
+      <Chip.Removable aria-label={`Slett ${title}`} size='small' onClick={onRemove}>
+        {title}
       </Chip.Removable>
     </div>
   );
