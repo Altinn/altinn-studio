@@ -19,10 +19,9 @@ a {
   text-decoration: none;
 }
 
-button[class*="Button-module_medium__"] {
+button[class*="Button-module_medium"] {
   --fdsc-button-size: var(--fds-component-mode-height-small)!important;
   --fdsc-button-padding: var(--fds-spacing-1) var(--fds-spacing-2)!important;
-  --fdsc-icon-size: var(--fds-sizing-6)!important;
 
   gap: var(--fds-sizing-2)!important;
   min-width: var(--fdsc-button-size)!important;
@@ -33,6 +32,10 @@ button[class*="Button-module_medium__"] {
 
     --fdsc-bottom-spacing: var(--fds-spacing-4)!important;
   }
+}
+
+button[class*="Button-module_medium"] svg {
+  --fdsc-icon-size: var(--fds-sizing-5);
 }
 
 ::-webkit-scrollbar {
