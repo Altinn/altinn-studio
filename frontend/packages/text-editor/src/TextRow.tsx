@@ -88,6 +88,7 @@ export const TextRow = ({
                 variant={ButtonVariant.Quiet}
                 onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
                 aria-label={t('schema_editor.delete')}
+                size='small'
               >
                 {t('schema_editor.delete')}
               </Button>

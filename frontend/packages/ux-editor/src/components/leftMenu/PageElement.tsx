@@ -155,6 +155,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           style={menuAnchorEl ? { visibility: 'visible' } : {}}
           variant={ButtonVariant.Quiet}
           title={t('general.options')}
+          size='small'
         />
         <AltinnConfirmDialog
           open={isConfirmDeleteDialogOpen}

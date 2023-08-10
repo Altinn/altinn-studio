@@ -41,6 +41,7 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
           color={ButtonColor.Danger}
           icon={<TrashIcon />}
           variant={ButtonVariant.Quiet}
+          size='small'
         >
           {t('schema_editor.delete_data_model')}
         </Button>

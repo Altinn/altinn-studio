@@ -60,6 +60,7 @@ export const TypesInspector = ({
             variant={ButtonVariant.Quiet}
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
+            size='small'
           />
         </div>
 

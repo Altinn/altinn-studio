@@ -19,6 +19,10 @@ a {
   text-decoration: none;
 }
 
+button[class*='Button-module_small__'] svg {
+  --fdsc-icon-size: var(--fds-sizing-5);
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }

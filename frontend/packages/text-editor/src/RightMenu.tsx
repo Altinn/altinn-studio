@@ -83,6 +83,7 @@ export const RightMenu = ({
                         onClick={() => setLangCodeToDelete((prevState) => prevState === langCode ? undefined : langCode)}
                         disabled={!canDeleteLang(langCode)}
                         aria-label={t('schema_editor.language_delete_button')}
+                        size='small'
                       >
                         {t('schema_editor.language_delete_button')}
                       </Button>

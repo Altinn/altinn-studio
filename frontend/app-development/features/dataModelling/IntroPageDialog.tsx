@@ -32,6 +32,7 @@ export const IntroPageDialog = ({ isHidden, setIsHidden }: IntroPageDialogProps)
               color={ButtonColor.Primary}
               onClick={() => setIsHidden(true)}
               variant={ButtonVariant.Outline}
+              size='small'
             >
               Lukk
             </Button>
@@ -41,6 +42,7 @@ export const IntroPageDialog = ({ isHidden, setIsHidden }: IntroPageDialogProps)
               color={ButtonColor.Secondary}
               onClick={hideIntroPageForever}
               variant={ButtonVariant.Outline}
+              size='small'
             >
               Ikke vis igjen
             </Button>

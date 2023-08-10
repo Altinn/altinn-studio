@@ -28,6 +28,7 @@ export const ConditionalRendering = ({ onShowNewDynamics, showNewDynamics }: Con
             icon={<PlusIcon />}
             onClick={() => setModalOpen(true)}
             variant={ButtonVariant.Quiet}
+            size='small'
           />
         </div>
         <div>

@@ -29,6 +29,7 @@ function FileSelector({
       onClick={fileInputClickHandler}
       disabled={disabled}
       variant={ButtonVariant.Quiet}
+      size='small'
     >
       {t('app_data_modelling.upload_xsd')}
     </Button>

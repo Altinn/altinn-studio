@@ -26,7 +26,7 @@ export function ReceiptPageElement() {
     <PageElement name={receiptName} />
   ) : (
     <div className={classes.buttonWrapper}>
-      <Button variant={ButtonVariant.Quiet} onClick={handleAddPage} className={classes.button}>
+      <Button variant={ButtonVariant.Quiet} onClick={handleAddPage} className={classes.button} size='small'>
         {t('receipt.create')}
       </Button>
     </div>

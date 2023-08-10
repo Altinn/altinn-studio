@@ -134,10 +134,10 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
       ) : (
         <div className={classes.buttonContainer}>
-          <Button color={ButtonColor.Primary} onClick={handleCreateService}>
+          <Button color={ButtonColor.Primary} onClick={handleCreateService} size='small'>
             {t('dashboard.create_service_btn')}
           </Button>
-          <Button color={ButtonColor.Inverted} onClick={() => window.history.back()}>
+          <Button color={ButtonColor.Inverted} onClick={() => window.history.back()} size='small'>
             {t('general.cancel')}
           </Button>
         </div>

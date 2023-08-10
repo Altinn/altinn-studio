@@ -131,6 +131,7 @@ export const FormComponent = memo(function FormComponent({
               tabIndex={0}
               title={t('general.delete')}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           }
         >
@@ -144,6 +145,7 @@ export const FormComponent = memo(function FormComponent({
             onClick={handlePreview}
             title='Forhåndsvisning (under utvikling)'
             variant={ButtonVariant.Quiet}
+            size='small'
             />
           )
         }

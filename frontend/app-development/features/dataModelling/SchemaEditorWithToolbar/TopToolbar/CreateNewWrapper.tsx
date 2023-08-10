@@ -91,6 +91,7 @@ export function CreateNewWrapper({
           icon={<PlusIcon />}
           variant={ButtonVariant.Quiet}
           onClick={() => setCreateNewOpen(!createNewOpen)}
+          size='small'
         >
           {t('general.create_new')}
         </Button>
@@ -111,6 +112,7 @@ export function CreateNewWrapper({
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
         variant={ButtonVariant.Outline}
+        size='small'
       >
         {t('schema_editor.create_model_confirm_button')}
       </Button>

@@ -18,12 +18,12 @@ export function LandingPagePanel({ openCreateNew }: LandingPagePanelProps) {
       <ButtonContainer>
         <XSDUpload
           submitButtonRenderer={(fileInputClickHandler) => (
-            <Button color={ButtonColor.Primary} onClick={fileInputClickHandler}>
+            <Button color={ButtonColor.Primary} onClick={fileInputClickHandler} size='small'>
               {t('app_data_modelling.landing_dialog_upload')}
             </Button>
           )}
         />
-        <Button color={ButtonColor.Secondary} onClick={openCreateNew}>
+        <Button color={ButtonColor.Secondary} onClick={openCreateNew} size='small'>
           {t('app_data_modelling.landing_dialog_create')}
         </Button>
       </ButtonContainer>

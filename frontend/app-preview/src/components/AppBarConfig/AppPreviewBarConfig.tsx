@@ -96,13 +96,13 @@ export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (
     <div className={classes.rightSubHeaderButtons}>
-      <Button data-testid='restartBtn' icon={<ArrowCirclepathIcon/>} variant={ButtonVariant.Quiet}>
+      <Button data-testid='restartBtn' icon={<ArrowCirclepathIcon/>} variant={ButtonVariant.Quiet} size='small'>
         {t('preview.subheader.restart.button')}
       </Button>
-      <Button data-testid='showBtn' icon={<EyeIcon/>} variant={ButtonVariant.Quiet}>
+      <Button data-testid='showBtn' icon={<EyeIcon/>} variant={ButtonVariant.Quiet} size='small'>
         {t('preview.subheader.showas.button')}
       </Button>
-      <Button data-testid='shareBtn' icon={<LinkIcon/>} variant={ButtonVariant.Quiet}>
+      <Button data-testid='shareBtn' icon={<LinkIcon/>} variant={ButtonVariant.Quiet} size='small'>
         {t('preview.subheader.sharelink.button')}
       </Button>
     </div>

@@ -60,7 +60,7 @@ export const CloneModal = (props: ICloneModalProps) => {
           <TextField id='repository-url-form' value={gitUrl} readOnly />
         </>
         {canCopy && (
-          <Button onClick={copyGitUrl} id='copy-repository-url-button'>
+          <Button onClick={copyGitUrl} id='copy-repository-url-button' size='small'>
             {t('sync_header.clone_https_button')}
           </Button>
         )}

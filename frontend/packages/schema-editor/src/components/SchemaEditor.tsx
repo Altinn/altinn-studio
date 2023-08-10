@@ -141,6 +141,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
               variant={ButtonVariant.Quiet}
               color={ButtonColor.Inverted}
               aria-label={t('schema_editor.close_type')}
+              size='small'
             />
           </div>
           <TypesPanel
