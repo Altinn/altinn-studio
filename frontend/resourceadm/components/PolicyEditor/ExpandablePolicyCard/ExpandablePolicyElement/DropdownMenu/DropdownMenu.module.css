@@ -3,6 +3,10 @@
   display: inline-block;
 }
 
+.button:hover {
+  border: 1px solid var(--fds-semantic-border-danger-hover);
+}
+
 .dropdownMenu {
   position: absolute;
   z-index: 4;

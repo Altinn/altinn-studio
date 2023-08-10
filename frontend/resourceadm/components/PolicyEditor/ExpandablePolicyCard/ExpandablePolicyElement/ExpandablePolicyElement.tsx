@@ -53,8 +53,9 @@ export const ExpandablePolicyElement = ({
         ${classes.wrapper}
         ${isCard ? classes.cardWrapper : classes.elementWrapper}
         ${hasError && isCard && classes.cardError}
+        ${hasError && isCard && isButtonHovered && classes.cardErrorHover}
         ${isButtonFocused && classes.buttonFocused}
-        ${isButtonHovered && classes.buttonHovered}
+        ${!hasError && isButtonHovered && classes.buttonHovered}
       `}
     >
       <div
@@ -89,6 +90,7 @@ export const ExpandablePolicyElement = ({
             handleRemoveElement();
             setIsDropdownOpen(false);
           }}
+          isError={hasError}
         />
       </div>
       {isOpen && (

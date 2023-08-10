@@ -9,6 +9,7 @@ interface Props {
   handleCloseMenu: () => void;
   handleDuplicate: () => void;
   handleDelete: () => void;
+  isError?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export const DropdownMenu = ({
   handleCloseMenu,
   handleDuplicate,
   handleDelete,
+  isError = false,
 }: Props) => {
   const dropdownRef = useRef(null);
   const firstMenuItemRef = useRef<HTMLButtonElement>(null);
@@ -107,7 +109,8 @@ export const DropdownMenu = ({
         onClick={handleClickMoreIcon}
         onKeyDown={(e) => {}}
         variant='quiet'
-        color='secondary'
+        color={isError ? 'danger' : 'secondary'}
+        className={classes.button}
       />
       {isOpen && (
         <div className={classes.dropdownMenu}>

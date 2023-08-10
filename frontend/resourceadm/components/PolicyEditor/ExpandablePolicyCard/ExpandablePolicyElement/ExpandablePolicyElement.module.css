@@ -30,6 +30,11 @@
   border: solid 2px var(--fds-semantic-border-danger-default);
 }
 
+.cardErrorHover {
+  border: solid 2px var(--fds-semantic-border-danger-hover);
+  box-shadow: 0 0 0 2px var(--fds-semantic-border-danger-hover);
+}
+
 .topWrapper {
   display: flex;
   justify-content: center;
@@ -105,9 +110,4 @@
 .elementBottomWrapper {
   padding-inline: 20px;
   padding-bottom: 10px;
-}
-
-.cardError:hover {
-  border: solid 2px var(--fds-semantic-border-danger-hover);
-  box-shadow: 0 0 0 2px var(--fds-semantic-border-danger-hover);
 }
