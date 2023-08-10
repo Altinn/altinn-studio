@@ -3,6 +3,20 @@
   border: solid 1px var(--fds-semantic-border-neutral-divider);
 }
 
+.wrapper.buttonHovered {
+  box-shadow: 0 0 0 2px var(--fds-semantic-border-neutral-divider);
+}
+
+.wrapper.buttonFocused {
+  --fds-inner-focus-border-color: var(--fds-semantic-border-focus-boxshadow);
+  --fds-outer-focus-border-color: var(--fds-semantic-border-focus-outline);
+  --fds-focus-border-width: 3px;
+
+  outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
+}
+
 .cardWrapper {
   border-radius: 12px;
 }
@@ -76,6 +90,11 @@
   padding-left: 20px;
   padding-right: 5px;
   margin: 0;
+}
+
+.cardExpandButton:focus,
+.elementExpandButton:focus {
+  outline: none;
 }
 
 .cardBottomWrapper {

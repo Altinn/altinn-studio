@@ -34,6 +34,9 @@ export const ExpandablePolicyElement = ({
   const [isOpen, setIsOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const [isButtonFocused, setIsButtonFocused] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+
   const handleClickMoreButton = () => {
     setIsDropdownOpen((prev) => !prev);
   };
@@ -50,6 +53,8 @@ export const ExpandablePolicyElement = ({
         ${classes.wrapper}
         ${isCard ? classes.cardWrapper : classes.elementWrapper}
         ${hasError && isCard && classes.cardError}
+        ${isButtonFocused && classes.buttonFocused}
+        ${isButtonHovered && classes.buttonHovered}
       `}
     >
       <div
@@ -63,6 +68,10 @@ export const ExpandablePolicyElement = ({
         <button
           className={isCard ? classes.cardExpandButton : classes.elementExpandButton}
           onClick={() => setIsOpen((prev) => !prev)}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+          onFocus={() => setIsButtonFocused(true)}
+          onBlur={() => setIsButtonFocused(false)}
         >
           <Label size='small'>{cardTitle}</Label>
           {isOpen ? (
