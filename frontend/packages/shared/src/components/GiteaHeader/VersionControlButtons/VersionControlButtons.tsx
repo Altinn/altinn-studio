@@ -210,15 +210,15 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     <div className={classes.headerStyling} data-testid='version-control-header'>
       <FetchChangesButton
         fetchChanges={fetchChanges}
-        displayNotification={repoStatus?.behindBy > 0 ?? false /* TODO */}
-        numChanges={repoStatus?.behindBy ?? 0 /* TODO */}
+        displayNotification={repoStatus?.behindBy > 0 ?? false}
+        numChanges={repoStatus?.behindBy ?? 0}
       />
       <ShareChangesButton
         changesInLocalRepo={hasChangesInLocalRepo}
         hasMergeConflict={hasMergeConflict}
         hasPushRight={hasPushRights}
         shareChanges={shareChanges}
-        displayNotification={repoStatus?.contentStatus?.length > 0 ?? false} // TODO
+        displayNotification={repoStatus?.contentStatus?.length > 0 ?? false}
       />
       <SyncModal anchorEl={syncModalAnchorEl} handleClose={handleSyncModalClose} {...modalState} />
     </div>
