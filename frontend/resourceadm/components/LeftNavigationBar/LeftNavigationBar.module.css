@@ -55,8 +55,23 @@
   z-index: 2;
 }
 
+.navigationElement:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
 .selected {
   --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-default) inset;
+  box-shadow: var(--fdsc-alert-box-shadow-left);
+}
+
+.selected:focus:not(:focus-visible) {
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
+  box-shadow: var(--fdsc-alert-box-shadow-left);
+}
+
+.newPage {
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
   box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 

@@ -36,6 +36,7 @@ export const ResourcePage = () => {
   );
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
+  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -96,6 +97,8 @@ export const ResourcePage = () => {
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
     if (currentPage !== page) {
+      setNewPageClicked(page);
+
       await refetchResource();
 
       // Validate Resource and display errors + modal
@@ -137,6 +140,7 @@ export const ResourcePage = () => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPageType) => {
+    setNewPageClicked(null);
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
@@ -186,6 +190,7 @@ export const ResourcePage = () => {
           navigateToPage={navigateToPage}
           goBack={goBack}
           showMigrate={getShowMigrate()}
+          newPageClicked={newPageClicked}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
@@ -229,7 +234,10 @@ export const ResourcePage = () => {
       {policyErrorModalOpen && (
         <NavigationModal
           isOpen={policyErrorModalOpen}
-          onClose={() => setPolicyErrorModalOpen(false)}
+          onClose={() => {
+            setPolicyErrorModalOpen(false);
+            setNewPageClicked(null);
+          }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i tilgangsregler'
         />
@@ -237,7 +245,10 @@ export const ResourcePage = () => {
       {resourceErrorModalOpen && (
         <NavigationModal
           isOpen={resourceErrorModalOpen}
-          onClose={() => setResourceErrorModalOpen(false)}
+          onClose={() => {
+            setResourceErrorModalOpen(false);
+            setNewPageClicked(null);
+          }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i ressurs'
         />

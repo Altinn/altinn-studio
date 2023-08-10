@@ -15,6 +15,7 @@ interface Props {
   navigateToPage: (page: NavigationBarPageType) => void;
   goBack: () => void;
   showMigrate?: boolean;
+  newPageClicked: NavigationBarPageType;
 }
 
 /**
@@ -30,6 +31,7 @@ export const LeftNavigationBar = ({
   navigateToPage,
   goBack,
   showMigrate = false,
+  newPageClicked,
 }: Props) => {
   return (
     <div className={classes.navigationBar}>
@@ -45,7 +47,8 @@ export const LeftNavigationBar = ({
           </Paragraph>
         </button>
         <button
-          className={`${classes.navigationElement} ${currentPage === 'about' && classes.selected} `}
+          className={`${classes.navigationElement} ${currentPage === 'about' && classes.selected}
+          ${newPageClicked === 'about' && classes.newPage} `}
           onClick={() => navigateToPage('about')}
         >
           <InformationSquareIcon className={classes.icon} title='Om ressursen' fontSize='1.8rem' />
@@ -55,7 +58,9 @@ export const LeftNavigationBar = ({
         </button>
         <button
           className={`${classes.navigationElement}
-            ${currentPage === 'policy' && classes.selected} `}
+            ${currentPage === 'policy' && classes.selected} ${
+            newPageClicked === 'policy' && classes.newPage
+          } `}
           onClick={() => navigateToPage('policy')}
         >
           <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
@@ -66,7 +71,7 @@ export const LeftNavigationBar = ({
         <button
           className={`${classes.navigationElement} ${
             currentPage === 'deploy' && classes.selected
-          } `}
+          }           ${newPageClicked === 'deploy' && classes.newPage} `}
           onClick={() => navigateToPage('deploy')}
         >
           <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
@@ -78,7 +83,7 @@ export const LeftNavigationBar = ({
           <button
             className={`${classes.navigationElement} ${
               currentPage === 'migration' && classes.selected
-            } `}
+            }          ${newPageClicked === 'migration' && classes.newPage} `}
             onClick={() => navigateToPage('migration')}
           >
             <MigrationIcon className={classes.icon} title='Migrer' fontSize='1.8rem' />
