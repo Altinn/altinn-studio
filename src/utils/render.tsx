@@ -59,7 +59,7 @@ export function renderValidationMessages(
         size='small'
         id={id}
       >
-        <ol>{messages.map(validationMessagesToList)}</ol>
+        <ol style={{ padding: 0, margin: 0 }}>{messages.map(validationMessagesToList)}</ol>
       </ErrorMessage>
     </div>
   );
