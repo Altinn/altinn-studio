@@ -45,7 +45,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
 
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
-  const { refetch: fetchPullData } = useRepoPullQuery(org, app);
+  const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const queryClient = useQueryClient();
 
   useEffect(() => {
