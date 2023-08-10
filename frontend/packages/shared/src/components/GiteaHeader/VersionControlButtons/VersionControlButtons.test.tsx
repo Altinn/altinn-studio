@@ -87,7 +87,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await act(() => user.click(fetchButton));
     await waitFor(() => expect(getRepoMetadata).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getRepoStatus).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(2)); // This is called twice because it is also refetched to check the repository status. See "todo" comment in the component file.
+    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
   });
 
   it('should render commit message modal when clicking the share button with changes', async () => {
