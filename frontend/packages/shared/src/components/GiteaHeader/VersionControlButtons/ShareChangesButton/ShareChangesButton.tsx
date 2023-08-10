@@ -44,7 +44,6 @@ export const ShareChangesButton = ({
       onClick={shareChangesHandler}
       size='small'
       variant='quiet'
-      color='inverted'
     >
       {renderCorrectText()}
       {displayNotification && <Notification numChanges={1} />}
