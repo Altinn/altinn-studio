@@ -4,7 +4,6 @@ import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
 import {
   Button,
-  ButtonSize,
   ButtonVariant,
   ErrorMessage,
   TableCell,
@@ -135,7 +134,6 @@ export const TextRow = ({
               aria-label={'toggle-textkey-edit'}
               icon={<PencilIcon className={classes.smallIcon} />}
               variant={ButtonVariant.Quiet}
-              size={ButtonSize.Small}
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}

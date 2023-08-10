@@ -17,7 +17,7 @@ import {
   promoteProperty,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
@@ -156,7 +156,6 @@ export const SchemaItemLabel = ({
         onClick={handleToggleContextMenuClick}
         icon={<MenuElipsisVerticalIcon />}
         variant={ButtonVariant.Quiet}
-        size={ButtonSize.Small}
       />
       <AltinnMenu
         id='root-properties-context-menu'

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Alert, Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox } from '@digdir/design-system-react';
+import { Alert, Button, ButtonColor, ButtonVariant, Checkbox } from '@digdir/design-system-react';
 import { DynamicContent } from '../config/expressions/DynamicContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../hooks';
@@ -107,7 +107,6 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
           icon={<PlusIcon/>}
           id='right_menu.dynamics_add'
           onClick={addDynamic}
-          size={ButtonSize.Small}
           variant={ButtonVariant.Outline}
         >
           {t('right_menu.dynamics_add')}

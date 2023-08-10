@@ -4,7 +4,7 @@ import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
+import { Button, ButtonVariant, Popover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
@@ -218,7 +218,6 @@ export function ReleaseContainer() {
               tabIndex={0}
               onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
-              size={ButtonSize.Small}
               variant={ButtonVariant.Quiet}
             />
           }

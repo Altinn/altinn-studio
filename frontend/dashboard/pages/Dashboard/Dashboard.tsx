@@ -4,7 +4,7 @@ import { PageSpinner } from 'app-shared/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
@@ -70,7 +70,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   onClick={handleClearSearch}
                   icon={<XMarkIcon />}
                   variant={ButtonVariant.Quiet}
-                  size={ButtonSize.Small}
                 />
               )}
             </div>

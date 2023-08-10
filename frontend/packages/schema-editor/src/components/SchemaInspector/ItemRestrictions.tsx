@@ -18,7 +18,6 @@ import classes from './ItemRestrictions.module.css';
 import {
   Button,
   ButtonColor,
-  ButtonSize,
   ButtonVariant,
   Checkbox,
   FieldSet,
@@ -148,7 +147,6 @@ export const ItemRestrictions = ({
                 icon={<PlusIcon />}
                 id='add-enum-button'
                 onClick={onAddEnumButtonClick}
-                size={ButtonSize.Small}
                 variant={ButtonVariant.Outline}
               >
                 {t('schema_editor.add_enum')}

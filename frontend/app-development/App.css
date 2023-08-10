@@ -19,6 +19,22 @@ a {
   text-decoration: none;
 }
 
+button[class*="Button-module_medium__"] {
+  --fdsc-button-size: var(--fds-component-mode-height-small)!important;
+  --fdsc-button-padding: var(--fds-spacing-1) var(--fds-spacing-2)!important;
+  --fdsc-icon-size: var(--fds-sizing-6)!important;
+
+  gap: var(--fds-sizing-2)!important;
+  min-width: var(--fdsc-button-size)!important;
+
+  *[class*="Paragraph-module_medium__"] {
+    font: var(--fds-typography-paragraph-small)!important;
+    font-family: var(--fdsc-typography-font-family)!important;
+
+    --fdsc-bottom-spacing: var(--fds-spacing-4)!important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }

@@ -27,7 +27,6 @@ export const FetchChangesButton = ({
       data-testid='fetch-changes-button'
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
-      size='small'
       variant='quiet'
     >
       {t('sync_header.fetch_changes')}

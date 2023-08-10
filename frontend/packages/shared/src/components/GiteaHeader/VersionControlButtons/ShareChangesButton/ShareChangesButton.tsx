@@ -42,7 +42,6 @@ export const ShareChangesButton = ({
       icon={hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
       id='share_changes_button'
       onClick={shareChangesHandler}
-      size='small'
       variant='quiet'
     >
       {renderCorrectText()}

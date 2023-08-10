@@ -5,7 +5,6 @@ import {
   Popover,
   PopoverVariant,
   Button,
-  ButtonSize,
   ButtonColor,
   ButtonVariant,
 } from '@digdir/design-system-react';
@@ -140,7 +139,6 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
           <Button
             role='option'
             key={option}
-            size={ButtonSize.Small}
             color={ButtonColor.Secondary}
             variant={ButtonVariant.Quiet}
             onMouseDown={() => handleWordClick(option)}
