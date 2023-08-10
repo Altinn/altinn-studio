@@ -83,38 +83,44 @@ useEffect(() => {
 
   return (
     <>
-      <PopoverPanel
-        forceMobileLayout={true}
-        variant={PanelVariant.Info}
-        open={!hideIntroPage}
-        side={'bottom'}
-        title={t('text_editor.info_dialog_title')}
-        trigger={<span className={'sr-only'} />}
-        onOpenChange={() => setHideIntroPage(!hideIntroPage)}
-      >
-        <p>{t('text_editor.info_dialog_1')}</p>
-        <p>
-          <Link target={'_blank'} to={`/../designer/${org}/${app}/Text`} relative={'path'}>
-            {t('text_editor.info_dialog_nav_to_old')}
-          </Link>
-        </p>
-        <span className={classes.buttons}>
-          <Button
-            color={ButtonColor.Primary}
-            onClick={() => setHideIntroPage(true)}
-            variant={ButtonVariant.Outline}
-          >
-            {t('general.close')}
-          </Button>
-          <Button
-            color={ButtonColor.Secondary}
-            onClick={handleHideIntroPageButtonClick}
-            variant={ButtonVariant.Outline}
-          >
-            {t('general.do_not_show_anymore')}
-          </Button>
-        </span>
-      </PopoverPanel>
+      {
+        !hideIntroPage && (
+          <div className={classes.infoDialog}>
+            <PopoverPanel
+              forceMobileLayout={true}
+              variant={PanelVariant.Info}
+              open={!hideIntroPage}
+              side={'bottom'}
+              title={t('text_editor.info_dialog_title')}
+              trigger={<span className={'sr-only'} />}
+              onOpenChange={() => setHideIntroPage(!hideIntroPage)}
+            >
+              <p>{t('text_editor.info_dialog_1')}</p>
+              <p>
+                <Link target={'_blank'} to={`/../designer/${org}/${app}/Text`} relative={'path'}>
+                  {t('text_editor.info_dialog_nav_to_old')}
+                </Link>
+              </p>
+              <span className={classes.buttons}>
+                <Button
+                  color={ButtonColor.Primary}
+                  onClick={() => setHideIntroPage(true)}
+                  variant={ButtonVariant.Outline}
+                >
+                  {t('general.close')}
+                </Button>
+                <Button
+                  color={ButtonColor.Secondary}
+                  onClick={handleHideIntroPageButtonClick}
+                  variant={ButtonVariant.Outline}
+                >
+                  {t('general.do_not_show_anymore')}
+                </Button>
+              </span>
+            </PopoverPanel>
+          </div>
+        )
+      }
       <TextEditorImpl
         addLanguage={handleAddLanguage}
         availableLanguages={appLangCodes}
