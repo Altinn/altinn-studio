@@ -84,6 +84,7 @@ export interface IOptionsActualData {
 export interface IOptionsMetaData {
   id: string;
   mapping?: IMapping;
+  fixedQueryParameters?: Record<string, string>;
   loading?: boolean;
   secure?: boolean;
 }
@@ -271,6 +272,7 @@ export interface IFetchSpecificOptionSaga {
   formData?: IFormData;
   language?: string;
   dataMapping?: IMapping;
+  fixedQueryParameters?: Record<string, string>;
   secure?: boolean;
   instanceId?: string;
 }

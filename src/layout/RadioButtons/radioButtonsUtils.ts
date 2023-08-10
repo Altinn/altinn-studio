@@ -24,8 +24,8 @@ export const useRadioStyles = makeStyles(() => ({
 }));
 
 export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButtonsContainerProps) => {
-  const { optionsId, options, preselectedOptionIndex, mapping, source } = node.item;
-  const apiOptions = useGetOptions({ optionsId, mapping, source });
+  const { optionsId, options, preselectedOptionIndex, mapping, queryParameters, source } = node.item;
+  const apiOptions = useGetOptions({ optionsId, mapping, queryParameters, source });
   const _calculatedOptions = useMemo(() => apiOptions || options, [apiOptions, options]);
   const calculatedOptions = _calculatedOptions || [];
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);

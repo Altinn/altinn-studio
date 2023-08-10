@@ -171,6 +171,7 @@ export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
 export interface IGetOptionsUrlParams {
   optionsId: string;
   dataMapping?: IMapping;
+  fixedQueryParameters?: Record<string, string>;
   formData?: IFormData;
   language?: string;
   secure?: boolean;
@@ -180,6 +181,7 @@ export interface IGetOptionsUrlParams {
 export const getOptionsUrl = ({
   optionsId,
   dataMapping,
+  fixedQueryParameters,
   formData,
   language,
   secure,
@@ -191,18 +193,18 @@ export const getOptionsUrl = ({
   } else {
     url = new URL(`${appPath}/api/options/${optionsId}`);
   }
-  let params: Record<string, string> = {};
+
+  const params: Record<string, string> = {};
 
   if (language) {
     params.language = language;
   }
+  if (fixedQueryParameters) {
+    Object.assign(params, fixedQueryParameters);
+  }
   if (formData && dataMapping) {
     const mapped = mapFormData(formData, dataMapping);
-
-    params = {
-      ...params,
-      ...mapped,
-    };
+    Object.assign(params, mapped);
   }
 
   url.search = new URLSearchParams(params).toString();

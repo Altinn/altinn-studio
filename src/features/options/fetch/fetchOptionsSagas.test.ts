@@ -58,6 +58,7 @@ describe('fetchOptionsSagas', () => {
           dataMapping: {
             some_field: 'some_url_parm',
           },
+          fixedQueryParameters: undefined,
           secure: undefined,
         })
         .run();
@@ -140,6 +141,7 @@ describe('fetchOptionsSagas', () => {
         .fork(fetchSpecificOptionSaga, {
           optionsId: 'fylke',
           dataMapping: undefined,
+          fixedQueryParameters: undefined,
           secure: undefined,
         })
         .fork(fetchSpecificOptionSaga, {
@@ -147,6 +149,7 @@ describe('fetchOptionsSagas', () => {
           dataMapping: {
             'FlytteFra.Fylke': 'fylke',
           },
+          fixedQueryParameters: undefined,
           secure: undefined,
         })
         .run();
@@ -200,6 +203,7 @@ describe('fetchOptionsSagas', () => {
           dataMapping: {
             'FlytteFra.Fylke': 'fylke',
           },
+          fixedQueryParameters: undefined,
           secure: undefined,
         })
         .fork(fetchSpecificOptionSaga, {
@@ -207,8 +211,147 @@ describe('fetchOptionsSagas', () => {
           dataMapping: {
             'FlytteTil.Fylke': 'fylke',
           },
+          fixedQueryParameters: undefined,
           secure: undefined,
         })
+        .run();
+    });
+  });
+
+  describe('Fixed query parameters', () => {
+    it('should include static query parameters and mapping', () => {
+      jest.spyOn(networking, 'httpGet').mockResolvedValue([]);
+      const formLayout: ILayouts = {
+        formLayout: [
+          {
+            id: 'fylke',
+            type: 'Dropdown',
+            textResourceBindings: {
+              title: 'fylke',
+            },
+            dataModelBindings: {
+              simpleBinding: 'FlytteFra.Fylke',
+            },
+            optionsId: 'fylke',
+            required: true,
+            queryParameters: {
+              level: '1',
+            },
+          },
+          {
+            id: 'kommune',
+            type: 'Dropdown',
+            textResourceBindings: {
+              title: 'kommune',
+            },
+            dataModelBindings: {
+              simpleBinding: 'FlytteTil.Kommune',
+            },
+            optionsId: 'kommune',
+            required: true,
+            mapping: {
+              'FlytteTil.Fylke': 'fylke',
+            },
+            queryParameters: {
+              level: '2',
+            },
+          },
+        ],
+      };
+
+      return expectSaga(fetchOptionsSaga)
+        .provide([
+          [selectNotNull(formLayoutSelector), formLayout],
+          [selectNotNull(repeatingGroupsSelector), {}],
+          [select(instanceIdSelector), 'someId'],
+        ])
+        .fork(fetchSpecificOptionSaga, {
+          optionsId: 'fylke',
+          dataMapping: undefined,
+          fixedQueryParameters: { level: '1' },
+          secure: undefined,
+        })
+        .fork(fetchSpecificOptionSaga, {
+          optionsId: 'kommune',
+          dataMapping: {
+            'FlytteTil.Fylke': 'fylke',
+          },
+          fixedQueryParameters: { level: '2' },
+          secure: undefined,
+        })
+        .run();
+    });
+
+    it('should include static query parameters in url', () => {
+      jest.spyOn(networking, 'httpGet').mockResolvedValue([]);
+
+      const formData = {
+        'FlytteTil.Fylke': 'Oslo',
+      };
+
+      return expectSaga(fetchSpecificOptionSaga, {
+        optionsId: 'kommune',
+        dataMapping: undefined,
+        fixedQueryParameters: { level: '1' },
+        secure: undefined,
+      })
+        .provide([
+          [select(formDataSelector), formData],
+          [select(staticUseLanguageFromState), { selectedLanguage: 'nb' }],
+          [select(instanceIdSelector), 'someId'],
+        ])
+        .call(networking.httpGet, 'https://local.altinn.cloud/ttd/test/api/options/kommune?language=nb&level=1')
+        .run();
+    });
+
+    it('should include mapping in url', () => {
+      jest.spyOn(networking, 'httpGet').mockResolvedValue([]);
+
+      const formData = {
+        'FlytteTil.Fylke': 'Oslo',
+      };
+
+      return expectSaga(fetchSpecificOptionSaga, {
+        optionsId: 'kommune',
+        dataMapping: {
+          'FlytteTil.Fylke': 'fylke',
+        },
+        fixedQueryParameters: undefined,
+        secure: undefined,
+      })
+        .provide([
+          [select(formDataSelector), formData],
+          [select(staticUseLanguageFromState), { selectedLanguage: 'nb' }],
+          [select(instanceIdSelector), 'someId'],
+        ])
+        .call(networking.httpGet, 'https://local.altinn.cloud/ttd/test/api/options/kommune?language=nb&fylke=Oslo')
+        .run();
+    });
+
+    it('should include static query parameters and mapping in request url', () => {
+      jest.spyOn(networking, 'httpGet').mockResolvedValue([]);
+
+      const formData = {
+        'FlytteTil.Fylke': 'Oslo',
+      };
+
+      return expectSaga(fetchSpecificOptionSaga, {
+        optionsId: 'kommune',
+        dataMapping: {
+          'FlytteTil.Fylke': 'fylke',
+        },
+        fixedQueryParameters: { level: '1' },
+        secure: undefined,
+      })
+        .provide([
+          [select(formDataSelector), formData],
+          [select(staticUseLanguageFromState), { selectedLanguage: 'nb' }],
+          [select(instanceIdSelector), 'someId'],
+        ])
+        .call(
+          networking.httpGet,
+          'https://local.altinn.cloud/ttd/test/api/options/kommune?language=nb&level=1&fylke=Oslo',
+        )
         .run();
     });
   });

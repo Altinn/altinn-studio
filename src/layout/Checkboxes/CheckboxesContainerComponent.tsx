@@ -35,12 +35,13 @@ export const CheckboxContainerComponent = ({
     layout,
     readOnly,
     mapping,
+    queryParameters,
     source,
     textResourceBindings,
     required,
     labelSettings,
   } = node.item;
-  const apiOptions = useGetOptions({ optionsId, mapping, source });
+  const apiOptions = useGetOptions({ optionsId, mapping, queryParameters, source });
   const calculatedOptions = apiOptions || options || defaultOptions;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);

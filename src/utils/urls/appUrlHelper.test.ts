@@ -252,6 +252,38 @@ describe('Frontend urlHelper.ts', () => {
       expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/options/country?selectedCountry=Norway');
     });
 
+    it('should return correct url when fixed query parameters is provided', () => {
+      const result = getOptionsUrl({
+        optionsId: 'country',
+        formData: {
+          country: 'Norway',
+        },
+        dataMapping: undefined,
+        fixedQueryParameters: {
+          level: '1',
+        },
+      });
+
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/options/country?level=1');
+    });
+
+    it('should return correct url when fixed query parameters and dataMapping is provided', () => {
+      const result = getOptionsUrl({
+        optionsId: 'country',
+        formData: {
+          country: 'Norway',
+        },
+        dataMapping: {
+          country: 'selectedCountry',
+        },
+        fixedQueryParameters: {
+          level: '1',
+        },
+      });
+
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/options/country?level=1&selectedCountry=Norway');
+    });
+
     it('should return correct url when both language is passed and formData/dataMapping is provided', () => {
       const result = getOptionsUrl({
         optionsId: 'country',

@@ -59,7 +59,7 @@ export function* fetchOptionsSaga(): SagaIterator {
   const optionsWithIndexIndicators: IOptionsMetaData[] = [];
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
-      const { optionsId, mapping, secure } = element as ISelectionComponentProps;
+      const { optionsId, mapping, queryParameters, secure } = element as ISelectionComponentProps;
 
       // if we have index indicators we get up the lookup keys for existing indexes
       const { keys, keyWithIndexIndicator } =
@@ -67,6 +67,7 @@ export function* fetchOptionsSaga(): SagaIterator {
           getOptionLookupKeys({
             id: optionsId,
             mapping,
+            fixedQueryParameters: queryParameters,
             secure,
             repeatingGroups,
           })) ||
@@ -81,12 +82,13 @@ export function* fetchOptionsSaga(): SagaIterator {
       }
 
       for (const optionObject of keys) {
-        const { id, mapping, secure } = optionObject;
-        const lookupKey = getOptionLookupKey({ id, mapping });
+        const { id, mapping, fixedQueryParameters, secure } = optionObject;
+        const lookupKey = getOptionLookupKey({ id, mapping, fixedQueryParameters });
         if (optionsId && !fetchedOptions.includes(lookupKey)) {
           yield fork(fetchSpecificOptionSaga, {
             optionsId,
             dataMapping: mapping,
+            fixedQueryParameters: queryParameters,
             secure,
           });
           fetchedOptions.push(lookupKey);
@@ -104,13 +106,19 @@ export function* fetchOptionsSaga(): SagaIterator {
   );
 }
 
-export function* fetchSpecificOptionSaga({ optionsId, dataMapping, secure }: IFetchSpecificOptionSaga): SagaIterator {
-  const key = getOptionLookupKey({ id: optionsId, mapping: dataMapping });
+export function* fetchSpecificOptionSaga({
+  optionsId,
+  dataMapping,
+  fixedQueryParameters,
+  secure,
+}: IFetchSpecificOptionSaga): SagaIterator {
+  const key = getOptionLookupKey({ id: optionsId, mapping: dataMapping, fixedQueryParameters });
   const instanceId = yield select(instanceIdSelector);
   try {
     const metaData: IOptionsMetaData = {
       id: optionsId,
       mapping: dataMapping,
+      fixedQueryParameters,
       secure,
     };
     yield put(OptionsActions.fetching({ key, metaData }));
@@ -122,6 +130,7 @@ export function* fetchSpecificOptionSaga({ optionsId, dataMapping, secure }: IFe
       formData,
       language,
       dataMapping,
+      fixedQueryParameters,
       secure,
       instanceId,
     });
@@ -138,7 +147,7 @@ export function* checkIfOptionsShouldRefetchSaga({ payload: { field } }: Payload
   const optionsWithIndexIndicators = yield select(optionsWithIndexIndicatorsSelector);
   let foundInExistingOptions = false;
   for (const optionsKey of Object.keys(options)) {
-    const { mapping, id, secure } = options[optionsKey] || {};
+    const { mapping, fixedQueryParameters, id, secure } = options[optionsKey] || {};
     if (!id) {
       continue;
     }
@@ -148,6 +157,7 @@ export function* checkIfOptionsShouldRefetchSaga({ payload: { field } }: Payload
       yield fork(fetchSpecificOptionSaga, {
         optionsId: id,
         dataMapping: mapping,
+        fixedQueryParameters,
         secure,
       });
     }
@@ -159,7 +169,7 @@ export function* checkIfOptionsShouldRefetchSaga({ payload: { field } }: Payload
   }
 
   for (const option of optionsWithIndexIndicators) {
-    const { mapping, id, secure } = option;
+    const { mapping, fixedQueryParameters, id, secure } = option;
     if (
       mapping &&
       Object.keys(mapping)
@@ -175,6 +185,7 @@ export function* checkIfOptionsShouldRefetchSaga({ payload: { field } }: Payload
       yield fork(fetchSpecificOptionSaga, {
         optionsId: id,
         dataMapping: newDataMapping,
+        fixedQueryParameters,
         secure,
       });
     }

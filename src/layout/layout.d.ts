@@ -43,6 +43,7 @@ interface ISelectionComponent {
   options?: IOption[];
   optionsId?: string;
   mapping?: IMapping;
+  queryParameters?: Record<string, string>;
   secure?: boolean;
   source?: IOptionSource;
   preselectedOptionIndex?: number;

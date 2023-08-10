@@ -10,6 +10,7 @@ import type { IDataSources } from 'src/types/shared';
 interface IUseGetOptionsParams {
   optionsId: string | undefined;
   mapping?: IMapping;
+  queryParameters?: Record<string, string>;
   source?: IOptionSource;
 }
 
@@ -19,7 +20,7 @@ export interface IOptionResources {
   helpText?: ITextResource;
 }
 
-export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsParams) => {
+export const useGetOptions = ({ optionsId, mapping, queryParameters, source }: IUseGetOptionsParams) => {
   const relevantFormData = useAppSelector(
     (state) => (source && getRelevantFormDataForOptionSource(state.formData.formData, source)) || {},
     shallowEqual,
@@ -42,7 +43,7 @@ export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsPara
 
   useEffect(() => {
     if (optionsId) {
-      const key = getOptionLookupKey({ id: optionsId, mapping });
+      const key = getOptionLookupKey({ id: optionsId, mapping, fixedQueryParameters: queryParameters });
       setOptions(optionState[key]?.options);
     }
 
@@ -83,6 +84,7 @@ export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsPara
     relevantTextResources.label,
     relevantTextResources.description,
     relevantTextResources.helpText,
+    queryParameters,
   ]);
 
   return options;
