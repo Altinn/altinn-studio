@@ -1,6 +1,6 @@
-import { renderHookWithProviders } from '../../../test/renderHookWithProviders';
+import { renderHookWithProviders } from '../../../packages/schema-editor/test/renderHookWithProviders';
 import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
-import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries/useDatamodelsMetadataQuery';
+import { useDatamodelsMetadataQuery } from './useDatamodelsMetadataQuery';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 

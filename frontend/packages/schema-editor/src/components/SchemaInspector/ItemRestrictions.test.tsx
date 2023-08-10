@@ -36,7 +36,7 @@ describe('ItemRestrictions', () => {
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) => {
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchemaNodesMock);
   return renderWithProviders({
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel },
   })(<ItemRestrictions {...defaultProps} {...props} />);
 };

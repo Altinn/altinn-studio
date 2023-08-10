@@ -1,13 +1,13 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { DeleteWrapper, DeleteWrapperProps } from './DeleteWrapper';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
-import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../test/mocks/metadataMocks';
+import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
+import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { convertMetadataToOption } from '@altinn/schema-editor/utils/metadataUtils';
+import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 
 const user = userEvent.setup();
 
@@ -49,13 +49,8 @@ describe('DeleteWrapper', () => {
   afterEach(jest.clearAllMocks);
 
   it('should not be able to open the delete dialog if no option is selected', async () => {
-    const userWithNoPointerEventCheck = userEvent.setup({
-      pointerEventsCheck: PointerEventsCheckLevel.Never,
-    });
     render({ selectedOption: null });
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => userWithNoPointerEventCheck.click(getDeleteButton()));
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('should open the delete dialog when clicking delete button and schemaName is set', async () => {

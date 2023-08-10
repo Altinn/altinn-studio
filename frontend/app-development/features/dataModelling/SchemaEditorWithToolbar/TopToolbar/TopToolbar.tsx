@@ -1,17 +1,18 @@
 import React, { useEffect } from 'react';
 import classes from './TopToolbar.module.css';
-import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
-import { useCreateDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
-import { computeSelectedOption } from '@altinn/schema-editor/utils/metadataUtils';
-import { CreateDatamodelMutationArgs } from '@altinn/schema-editor/hooks/mutations/useCreateDatamodelMutation';
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
-import { SelectedSchemaContext } from '@altinn/schema-editor/contexts/SelectedSchemaContext';
-import { GenerateModelsButton } from '@altinn/schema-editor/components/TopToolbar/GenerateModelsButton';
+import { computeSelectedOption } from '../../../../utils/metadataUtils';
+import {
+  CreateDatamodelMutationArgs,
+  useCreateDatamodelMutation
+} from '../../../../hooks/mutations/useCreateDatamodelMutation';
+import { MetadataOption } from '../../../../types/MetadataOption';
+import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
+import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
@@ -58,20 +59,10 @@ export function TopToolbar({
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}
       />
-      {modelPath && (
-        <SelectedSchemaContext.Provider value={{ modelPath }}>
-          <DeleteWrapper
-            selectedOption={selectedOption}
-          />
-        </SelectedSchemaContext.Provider>
-      )}
+      <DeleteWrapper selectedOption={selectedOption}/>
       <div className={classes.right}>
         <div className={classes.generateButtonWrapper}>
-          {modelPath && (
-            <SelectedSchemaContext.Provider value={{ modelPath }}>
-              <GenerateModelsButton/>
-            </SelectedSchemaContext.Provider>
-          )}
+          {modelPath && <GenerateModelsButton modelPath={modelPath}/>}
         </div>
       </div>
     </section>

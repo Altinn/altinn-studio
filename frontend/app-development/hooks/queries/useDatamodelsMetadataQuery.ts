@@ -4,7 +4,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useParams } from 'react-router-dom';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { AxiosError } from 'axios';
-import { mergeJsonAndXsdData } from '@altinn/schema-editor/utils/metadataUtils';
+import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
 
 export const useDatamodelsMetadataQuery = (): UseQueryResult<DatamodelMetadata[], AxiosError> => {
   const { org, app } = useParams<{ org: string; app: string }>();

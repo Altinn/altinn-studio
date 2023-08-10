@@ -4,9 +4,9 @@ import Select from 'react-select';
 import classNames from 'classnames';
 import classes from './SchemaSelect.module.css';
 import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
-import { convertMetadataListToOptionGroups } from '@altinn/schema-editor/utils/metadataUtils';
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
-import { MetadataOptionsGroup } from '@altinn/schema-editor/types/MetadataOptionsGroup';
+import { convertMetadataListToOptionGroups } from '../../../../utils/metadataUtils';
+import { MetadataOption } from '../../../../types/MetadataOption';
+import { MetadataOptionsGroup } from '../../../../types/MetadataOptionsGroup';
 
 export interface ISchemaSelectProps {
   disabled: boolean;

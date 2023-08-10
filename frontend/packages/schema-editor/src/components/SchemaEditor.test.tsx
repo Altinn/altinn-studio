@@ -48,7 +48,7 @@ const renderEditor = (customState?: Partial<SchemaState>) => {
 
   return renderWithProviders({
     state,
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel }
   })(<SchemaEditor/>);
 };

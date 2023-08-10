@@ -4,10 +4,10 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
+import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { datamodel1NameMock, jsonMetadata1Mock } from '../../../test/mocks/metadataMocks';
+import { datamodel1NameMock, jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 
 const user = userEvent.setup();
 

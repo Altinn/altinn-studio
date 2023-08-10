@@ -1,4 +1,4 @@
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
+import { MetadataOption } from './MetadataOption';
 
 export interface MetadataOptionsGroup {
   readonly label: 'JSONSchema' | 'XSD';

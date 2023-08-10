@@ -4,19 +4,21 @@ import {
   convertMetadataListToOptions,
   convertMetadataToOption,
   extractModelNamesFromMetadataList,
-  filterOutXsdDataIfJsonDataExist, findNewMetadataItem,
+  filterOutXsdDataIfJsonDataExist,
+  findNewMetadataItem,
   groupMetadataOptions,
-  mergeJsonAndXsdData, metadataItemExists
-} from '@altinn/schema-editor/utils/metadataUtils';
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
+  mergeJsonAndXsdData,
+  metadataItemExists
+} from './metadataUtils';
 import {
   datamodel1NameMock, datamodel2NameMock,
   jsonMetadata1Mock,
   jsonMetadata2Mock,
   xsdMetadata1Mock,
   xsdMetadata2Mock
-} from '../../test/mocks/metadataMocks';
+} from '../../packages/schema-editor/test/mocks/metadataMocks';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { MetadataOption } from '../types/MetadataOption';
 
 describe('metadataUtils', () => {
   describe('filterOutXsdDataIfJsonDataExist', () => {

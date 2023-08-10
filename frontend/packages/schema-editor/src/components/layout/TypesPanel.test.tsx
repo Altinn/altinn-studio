@@ -56,7 +56,7 @@ const render = (props?: Partial<TypesPanelProps>) => {
   };
   return renderWithProviders({
     state: mockInitialState,
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
   })(<TypesPanel {...defaultProps} {...props} />);
 };
 

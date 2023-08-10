@@ -48,7 +48,7 @@ const defaultProps: IReferenceSelectionProps = {
 const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) => {
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
   return renderWithProviders({
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
   })(<ReferenceSelectionComponent {...defaultProps} {...props} />);
 };
 

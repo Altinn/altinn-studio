@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { SelectedSchemaContext, SelectedSchemaContextProps } from '@altinn/schema-editor/contexts/SelectedSchemaContext';
+import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { SchemaState } from '@altinn/schema-editor/types';
 import configureStore from 'redux-mock-store';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -13,18 +13,18 @@ export interface RenderWithProvidersData {
   state?: Partial<SchemaState>,
   queryClient?: QueryClient,
   servicesContextProps?: Partial<ServicesContextProps>,
-  selectedSchemaProps?: Partial<SelectedSchemaContextProps>,
+  appContextProps?: Partial<SchemaEditorAppContextProps>,
 }
 
 export const renderWithProviders = ({
   state = {},
   queryClient = queryClientMock,
   servicesContextProps = {},
-  selectedSchemaProps = {},
+  appContextProps = {},
 }: RenderWithProvidersData = {
   state: {},
   queryClient: queryClientMock,
-  selectedSchemaProps: {},
+  appContextProps: {},
   servicesContextProps: {}
 }) => (element: ReactNode) => {
 
@@ -41,9 +41,9 @@ export const renderWithProviders = ({
     ...servicesContextProps,
   };
 
-  const allSelectedSchemaContextProps: SelectedSchemaContextProps = {
+  const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
     modelPath: '',
-    ...selectedSchemaProps,
+    ...appContextProps,
   };
 
   const store = configureStore()(allStateProps);
@@ -51,9 +51,9 @@ export const renderWithProviders = ({
   const result = render(
     <Provider store={store}>
       <ServicesContextProvider {...allServicesContextProps} client={queryClient}>
-        <SelectedSchemaContext.Provider value={allSelectedSchemaContextProps}>
+        <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
           {element}
-        </SelectedSchemaContext.Provider>
+        </SchemaEditorAppContext.Provider>
       </ServicesContextProvider>
     </Provider>
   );
@@ -61,10 +61,10 @@ export const renderWithProviders = ({
   const rerender = ({
     state: rerenderState = {},
     servicesContextProps: rerenderServicesContextProps = {},
-    selectedSchemaProps: rerenderAppContextProps = {},
+    appContextProps: rerenderAppContextProps = {},
   }: RenderWithProvidersData = {
     state: {},
-    selectedSchemaProps: {},
+    appContextProps: {},
     servicesContextProps: {},
   }) => {
     const newStateProps: SchemaState = {
@@ -80,7 +80,7 @@ export const renderWithProviders = ({
       ...rerenderServicesContextProps,
     };
 
-    const newAppContextProps: SelectedSchemaContextProps = {
+    const newAppContextProps: SchemaEditorAppContextProps = {
       modelPath: '',
       ...rerenderAppContextProps,
     };
@@ -88,9 +88,9 @@ export const renderWithProviders = ({
     return (rerenderElement: ReactNode) => result.rerender(
       <Provider store={configureStore()(newStateProps)}>
         <ServicesContextProvider {...newServicesContextProps} client={queryClient}>
-          <SelectedSchemaContext.Provider value={newAppContextProps}>
+          <SchemaEditorAppContext.Provider value={newAppContextProps}>
             {rerenderElement}
-          </SelectedSchemaContext.Provider>
+          </SchemaEditorAppContext.Provider>
         </ServicesContextProvider>
       </Provider>
     );

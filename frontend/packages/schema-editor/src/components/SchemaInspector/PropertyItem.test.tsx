@@ -82,7 +82,7 @@ const renderPropertyItem = (
 
   return renderWithProviders({
     state: { ...defaultState, ...state },
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel },
   })(<PropertyItem {...defaultProps} {...props} />);
 };

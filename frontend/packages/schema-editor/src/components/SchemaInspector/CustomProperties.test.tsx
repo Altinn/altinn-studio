@@ -149,7 +149,7 @@ const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = 
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
   return renderWithProviders({
     servicesContextProps: { saveDatamodel },
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     state: { ...defaultSchemaState, ...schemaState }
   })(<CustomProperties path={path}/>);
 };

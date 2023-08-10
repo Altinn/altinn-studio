@@ -66,7 +66,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       selectedDefinitionNodeId: selectedItem?.pointer,
       selectedEditorTab: 'definitions',
     },
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel }
   })(
     <Provider store={store}>

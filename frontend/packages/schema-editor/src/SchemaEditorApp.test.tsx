@@ -7,22 +7,22 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { dataMock } from '@altinn/schema-editor/mockData';
-import { jsonMetadata1Mock } from '../test/mocks/metadataMocks';
+
+// Mocks:
+const schemaEditorTestId = 'schema-editor';
+jest.mock('./components/SchemaEditor', () => ({
+  SchemaEditor: () => <div data-testid={schemaEditorTestId}/>,
+}));
 
 export const render = () => {
   const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
-  const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
-  const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
   rtlRender(
     <ServicesContextProvider
-      {...{ ...queriesMock, getDatamodel, getDatamodels, getDatamodelsXsd }}
+      {...{ ...queriesMock, getDatamodel }}
       client={createQueryClientMock()}
     >
       <PreviewConnectionContextProvider>
-        <SchemaEditorApp
-          createPathOption={false}
-          displayLandingPage={false}
-        />
+        <SchemaEditorApp modelName='test' modelPath='test'/>
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
   );
@@ -34,9 +34,9 @@ describe('SchemaEditorApp', () => {
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  it('Renders toolbar when finished loading', async () => {
+  it('Renders schema editor when finished loading', async () => {
     render();
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-    expect(screen.getByRole('toolbar')).toBeInTheDocument();
+    expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
 });

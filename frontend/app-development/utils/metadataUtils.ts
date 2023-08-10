@@ -1,8 +1,8 @@
 import { DatamodelMetadata, DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { replaceEnd } from 'app-shared/utils/stringUtils';
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
-import { MetadataOptionsGroup } from '@altinn/schema-editor/types/MetadataOptionsGroup';
 import { removeDuplicates } from 'app-shared/utils/arrayUtils';
+import { MetadataOption } from '../types/MetadataOption';
+import { MetadataOptionsGroup } from '../types/MetadataOptionsGroup';
 
 /**
  * Filters out items from the Xsd data list if there are items in the Json data list with the same name.

@@ -51,7 +51,7 @@ const renderItemDataComponent = (
 
   return renderWithProviders({
     state: { ...defaultState, ...state },
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel },
   })(<ItemDataComponent {...defaultProps} {...props}/>)
 };

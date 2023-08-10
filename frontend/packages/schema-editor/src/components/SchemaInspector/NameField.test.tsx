@@ -36,7 +36,7 @@ const render = async (
   );
 
   return renderWithProviders({
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
   })(<NameField {...defaultProps} {...props} />);
 };
 

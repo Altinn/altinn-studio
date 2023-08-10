@@ -142,7 +142,7 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
 
   return renderWithProviders({
     state: mockInitialState,
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
   })(<DndProvider backend={HTML5Backend}>
       <SchemaItem {...allProps} />
     </DndProvider>);

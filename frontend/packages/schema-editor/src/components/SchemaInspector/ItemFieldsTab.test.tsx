@@ -82,7 +82,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, state: Partial<SchemaState> = {}) => {
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
   return renderWithProviders({
-    selectedSchemaProps: { modelPath },
+    appContextProps: { modelPath },
     state,
     servicesContextProps: { saveDatamodel },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
@@ -193,7 +193,7 @@ describe('ItemFieldsTab', () => {
     validateTestUiSchema(newUiSchema);
     queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], newUiSchema);
     rerender({
-      selectedSchemaProps: { modelPath },
+      appContextProps: { modelPath },
       servicesContextProps: { saveDatamodel },
     })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();

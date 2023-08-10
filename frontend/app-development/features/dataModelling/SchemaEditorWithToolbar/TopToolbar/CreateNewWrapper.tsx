@@ -9,8 +9,8 @@ import {
 } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
-import { extractModelNamesFromMetadataList } from '@altinn/schema-editor/utils/metadataUtils';
+import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
+import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;

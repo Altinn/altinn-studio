@@ -1,17 +1,21 @@
-import classes from '@altinn/schema-editor/components/TopToolbar/TopToolbar.module.css';
+import classes from './TopToolbar.module.css';
 import { Button, ButtonVariant, ErrorMessage, Popover, Spinner } from '@digdir/design-system-react';
 import cn from 'classnames';
 import { CogIcon } from '@navikt/aksel-icons';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import React, { useEffect, useState } from 'react';
-import { useGenerateModelsMutation } from '@altinn/schema-editor/hooks/mutations';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useTranslation } from 'react-i18next';
+import { useSchemaQuery } from '../../../../hooks/queries';
+import { useGenerateModelsMutation } from '../../../../hooks/mutations';
 
-export const GenerateModelsButton = () => {
-  const { data } = useDatamodelQuery();
-  const { mutate, isLoading, error, isSuccess } = useGenerateModelsMutation();
+export interface GenerateModelsButtonProps {
+  modelPath: string;
+}
+
+export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) => {
+  const { data } = useSchemaQuery(modelPath);
+  const { mutate, isLoading, error, isSuccess } = useGenerateModelsMutation(modelPath);
   const { t } = useTranslation();
   const [showGenerationState, setShowGenerationState] = useState(false);
 

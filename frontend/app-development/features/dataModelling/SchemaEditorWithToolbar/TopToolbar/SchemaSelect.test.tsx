@@ -2,10 +2,10 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
-import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../test/mocks/metadataMocks';
+import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
+import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
-import { convertMetadataToOption } from '@altinn/schema-editor/utils/metadataUtils';
+import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 

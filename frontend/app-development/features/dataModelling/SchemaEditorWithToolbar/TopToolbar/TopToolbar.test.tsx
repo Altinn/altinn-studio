@@ -3,15 +3,14 @@ import { TopToolbar, TopToolbarProps } from './TopToolbar';
 import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { SelectedSchemaContextProps } from '@altinn/schema-editor/contexts/SelectedSchemaContext';
-import { jsonMetadata1Mock } from '../../../test/mocks/metadataMocks';
+import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
-import { convertMetadataToOption } from '@altinn/schema-editor/utils/metadataUtils';
+import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
+import { MetadataOption } from '../../../../types/MetadataOption';
+import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 
 const user = userEvent.setup();
 
@@ -47,7 +46,6 @@ const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 const renderToolbar = (
   props: Partial<TopToolbarProps> = {},
   servicesContextProps: Partial<ServicesContextProps> = {},
-  appContextProps: Partial<SelectedSchemaContextProps> = {},
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchemaNodesMock);
@@ -58,7 +56,6 @@ const renderToolbar = (
       getDatamodelsXsd,
       ...servicesContextProps,
     },
-    selectedSchemaProps: appContextProps,
     queryClient,
   })(<TopToolbar {...defaultProps} {...props} />);
 };
@@ -76,7 +73,7 @@ describe('TopToolbar', () => {
   });
 
   it('handles a click on the generate button', async () => {
-    renderToolbar({}, {}, { modelPath });
+    renderToolbar({}, {});
     const topToolbar = screen.getByRole('toolbar');
     expect(topToolbar).toBeDefined();
     const generateButton = screen.getByRole('button', { name: generateText });
@@ -94,7 +91,7 @@ describe('TopToolbar', () => {
     const message = 'Error message';
     renderToolbar({}, {
       generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
-    }, { modelPath });
+    });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('alertdialog')).toHaveTextContent(message);
@@ -104,7 +101,7 @@ describe('TopToolbar', () => {
     const message = 'Error message';
     renderToolbar({}, {
       generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
-    }, { modelPath });
+    });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     await act(() => user.click(screen.getByRole('button', { name: closeText })));
     expect(screen.queryAllByRole('dialog')).toHaveLength(0);
@@ -114,7 +111,7 @@ describe('TopToolbar', () => {
     const message = 'Error message';
     const { rerender } = renderToolbar({}, {
       generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
-    }, { modelPath });
+    });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     await act(() => user.click(screen.getByRole('button', { name: closeText })));
     rerender()(<TopToolbar {...defaultProps} />);
@@ -127,7 +124,7 @@ describe('TopToolbar', () => {
   });
 
   it('Shows "saved" message when the "generate" button is clicked and there is no error', async () => {
-    renderToolbar({}, { generateModels }, { modelPath });
+    renderToolbar({}, { generateModels });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     expect(screen.getByRole('dialog')).toHaveTextContent(savedText);
   });

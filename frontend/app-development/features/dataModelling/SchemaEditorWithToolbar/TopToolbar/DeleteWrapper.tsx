@@ -2,8 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { useDeleteDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { MetadataOption } from '@altinn/schema-editor/types/MetadataOption';
+import { useDeleteDatamodelMutation } from '../../../../hooks/mutations';
+import { MetadataOption } from '../../../../types/MetadataOption';
 import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface DeleteWrapperProps {
@@ -15,10 +15,14 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
   const { t } = useTranslation();
   const { mutate } = useDeleteDatamodelMutation();
 
+  const modelPath = selectedOption?.value.repositoryRelativeUrl;
+
+  if (!modelPath) return null;
+
   const schemaName = selectedOption?.value && selectedOption?.label;
   const onDeleteClick = () => setDialogOpen(true);
   const onDeleteConfirmClick = () => {
-    mutate();
+    mutate(modelPath);
     setDialogOpen(false);
   };
 
