@@ -4,8 +4,6 @@ import { routes } from '../config/routes';
 import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
 import { getTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import { ThreeDotsMenu } from 'app-development/layout/AppBar/ThreeDotsMenu';
-import { VersionControlHeader } from 'app-development/layout/version-control/VersionControlHeader';
 import classes from './PageHeader.module.css';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useAppSelector } from 'app-development/hooks';

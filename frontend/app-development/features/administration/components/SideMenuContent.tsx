@@ -8,7 +8,7 @@ import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoStatusQuery } from '../../../hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Repository } from 'app-shared/types/Repository';
 
 interface ISideMenuContent {
