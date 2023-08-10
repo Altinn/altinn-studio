@@ -42,7 +42,7 @@ export const PageLayout = () => {
       <HeaderContext.Provider value={headerContextValue}>
         {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
         <AppHeader />
-        <GiteaHeader org={selectedContext} app={repo} menuOnlyHasRepository />
+        <GiteaHeader org={selectedContext} app={repo} menuOnlyHasRepository extraPadding />
       </HeaderContext.Provider>
       <Outlet />
     </>

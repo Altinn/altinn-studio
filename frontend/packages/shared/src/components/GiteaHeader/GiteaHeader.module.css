@@ -1,17 +1,16 @@
 .wrapper {
+  width: 100%;
+}
+
+.contentWrapper {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  width: 100%;
   gap: 1rem;
-  height: var(--subtoolbar-height);
+  height: 60px;
   background-color: #284e6a;
-  height: 50px;
 }
 
-.previewButton {
-  --component-button-outline-primary-color-background-default: none;
-  --component-button-outline-primary-color-border-default: none;
-  --component-button-outline-primary-color-border-hover: #004e95;
-  --component-button-outline-primary-color-text-default: #ffffff;
+.extraPadding {
+  padding: 0 20px;
 }

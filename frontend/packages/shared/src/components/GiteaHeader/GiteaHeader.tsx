@@ -8,6 +8,7 @@ interface Props {
   app: string;
   menuOnlyHasRepository?: boolean;
   hasCloneModal?: boolean;
+  extraPadding?: boolean;
 }
 
 export const GiteaHeader = ({
@@ -15,15 +16,18 @@ export const GiteaHeader = ({
   app,
   menuOnlyHasRepository = false,
   hasCloneModal = false,
+  extraPadding = false,
 }: Props) => {
   return (
     <div className={classes.wrapper}>
-      <VersionControlButtons data-testid='version-control-header' org={org} app={app} />
-      <ThreeDotsMenu
-        data-testid='three-dots-menu'
-        onlyShowRepository={menuOnlyHasRepository}
-        hasCloneModal={hasCloneModal}
-      />
+      <div className={`${classes.contentWrapper} ${extraPadding && classes.extraPadding}`}>
+        <VersionControlButtons data-testid='version-control-header' org={org} app={app} />
+        <ThreeDotsMenu
+          data-testid='three-dots-menu'
+          onlyShowRepository={menuOnlyHasRepository}
+          hasCloneModal={hasCloneModal}
+        />
+      </div>
     </div>
   );
 };

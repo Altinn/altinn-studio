@@ -22,15 +22,7 @@ interface SubMenuContentProps {
 }
 
 export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
-  return (
-    /*<div>
-      <div className={classes.rightContent}>
-        {<VersionControlHeader data-testid='version-control-header' />}
-        {<ThreeDotsMenu data-testid='three-dots-menu' />}
-      </div>
-    </div>*/
-    <GiteaHeader org={org} app={app} hasCloneModal />
-  );
+  return <GiteaHeader org={org} app={app} hasCloneModal />;
 };
 
 export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
