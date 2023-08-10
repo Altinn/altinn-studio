@@ -6,13 +6,13 @@ import { TextField, Button, Spinner, Heading, Label } from '@digdir/design-syste
 import { useParams } from 'react-router-dom';
 import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
 import {
-  useRepoStatusQuery,
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
 } from 'resourceadm/hooks/queries';
 import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 interface Props {
   navigateToPageWithError: (page: NavigationBarPageType) => void;

@@ -45,8 +45,7 @@ export const FormContainer = ({
 
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.stopPropagation();
+  const handleDelete = useCallback((): void => {
     handleDeleteFormContainer(id);
     if (isEditMode) handleDiscard();
   }, [handleDeleteFormContainer, handleDiscard, id, isEditMode]);

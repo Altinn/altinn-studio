@@ -1,10 +1,13 @@
+import React, { useState } from 'react';
 import { CreateNewWrapper, CreateAction } from 'app-shared/features/dataModelling/components/CreateNewWrapper';
 import { XSDUpload } from 'app-shared/features/dataModelling/components/XSDUpload';
 import { GroupedOption, OnChangeSchema, SchemaSelect } from 'app-shared/features/dataModelling/components/SchemaSelect';
-import { DeleteWrapper } from 'app-shared/features/dataModelling/components/DeleteWrapper';
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { IMetadataOption } from 'app-shared/features/dataModelling/functions/types';
+import { AltinnConfirmDialog } from 'app-shared/components';
+import { useTranslation } from 'react-i18next';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { TrashIcon } from '@navikt/aksel-icons';
 
 export interface ToolbarProps {
   createNewOpen: boolean;
@@ -33,7 +36,11 @@ export const Toolbar = ({
   setCreateNewOpen,
   setSelectedOption,
 }: ToolbarProps) => {
+  const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
+  const schemaName = selectedOption?.value && selectedOption?.label;
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+
   return (
     <>
       <CreateNewWrapper
@@ -56,10 +63,27 @@ export const Toolbar = ({
         options={metadataOptions}
         selectedOption={selectedOption}
       />
-      <DeleteWrapper
-        deleteAction={handleDeleteSchema}
-        schemaName={selectedOption?.value && selectedOption?.label}
-      />
+      <AltinnConfirmDialog
+        open={isConfirmDeleteDialogOpen}
+        confirmText={t('schema_editor.confirm_deletion')}
+        onConfirm={handleDeleteSchema}
+        onClose={() => setIsConfirmDeleteDialogOpen(false)}
+        placement="bottom"
+        trigger={
+          <Button
+            id='delete-model-button'
+            disabled={disabled}
+            onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
+            color={ButtonColor.Danger}
+            icon={<TrashIcon />}
+            variant={ButtonVariant.Quiet}
+          >
+            {t('schema_editor.delete_data_model')}
+          </Button>
+        }
+      >
+        <p>{t('schema_editor.delete_model_confirm', { schemaName })}</p>
+      </AltinnConfirmDialog>
     </>
   );
 };

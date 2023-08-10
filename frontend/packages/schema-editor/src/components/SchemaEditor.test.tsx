@@ -1,6 +1,6 @@
 import React from 'react';
 import { dataMock } from '../mockData';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
 import type { SchemaState } from '../types';
@@ -43,7 +43,7 @@ const renderEditor = (customState?: Partial<SchemaState>) => {
     ...mockInitialState,
     ...customStateCopy,
   };
-  
+
 
   return renderWithProviders({
     state,
@@ -135,14 +135,42 @@ describe('SchemaEditor', () => {
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
-  test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
+  test('should show context menu and show deletion dialog', async () => {
+    renderEditor();
+    await clickOpenContextMenuButton();
+    await clickMenuItem(textMock('schema_editor.delete'));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+  });
+
+  test('should trigger correct dispatch when deleting a specific node', async () => {
     const uiSchema = setSchema(dataMock);
     renderEditor();
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.delete'));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    const confirmDeletButton = screen.getByRole('button', {
+      name: textMock('schema_editor.datamodel_field_deletion_confirm'),
+    });
+    await act(() => user.click(confirmDeletButton));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     expect(updatedModel.length).toBe(uiSchema.length - 1);
+  });
+
+  test('should close the dialog and not delete the node when the user just cancels deletion dialog', async () => {
+    renderEditor();
+    await clickOpenContextMenuButton();
+    await clickMenuItem(textMock('schema_editor.delete'));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await act(() => user.click(cancelButton));
+    expect(saveDatamodel).not.toHaveBeenCalled();
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 
   test('should not show add property or add reference buttons on a reference node', async () => {

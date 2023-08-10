@@ -11,7 +11,6 @@ import {
   ObjectKind,
   addCombinationItem,
   addProperty,
-  deleteNode,
   getCapabilities,
   getNameFromPointer,
   pointerIsDefinition,
@@ -23,7 +22,6 @@ import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/ak
 import { useDispatch } from 'react-redux';
 import {
   navigateToType,
-  removeSelection,
   setSelectedAndFocusedNode,
   setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
@@ -36,6 +34,7 @@ export interface SchemaItemLabelProps {
   refNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
+  openConfirmDeleteDialog: () => void;
 }
 export enum SchemaItemLabelTestIds {
   contextMenuAddReference = 'context-menu-add-reference',
@@ -51,12 +50,12 @@ export const SchemaItemLabel = ({
   refNode,
   selectedNode,
   translate,
+  openConfirmDeleteDialog,
 }: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -111,15 +110,11 @@ export const SchemaItemLabel = ({
       );
   });
 
-  const handleDeleteClick = wrapper(() => {
-    mutate(deleteNode(data, selectedNode.pointer));
-    dispatch(removeSelection(selectedNode.pointer));
-  });
-
   const isArray = selectedNode.isArray || refNode?.isArray;
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
+
   return (
     <div
       className={classNames(classes.propertiesLabel, {
@@ -227,8 +222,8 @@ export const SchemaItemLabel = ({
             id='delete-node-button'
             key='delete'
             className={classes.contextMenuLastItem}
-            onClick={handleDeleteClick}
-            text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
+            onClick={(event) => wrapper(openConfirmDeleteDialog)(event)}
+            text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
             iconClass='fa fa-trash'
             disabled={hasReferredNodes}
           />

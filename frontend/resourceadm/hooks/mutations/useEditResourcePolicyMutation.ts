@@ -19,6 +19,6 @@ export const useEditResourcePolicyMutation = (org: string, repo: string, id: str
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourcePolicy, org, repo, id] });
-    }
-  })
-}
+    },
+  });
+};

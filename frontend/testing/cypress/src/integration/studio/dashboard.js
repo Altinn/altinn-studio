@@ -63,7 +63,7 @@ context('Dashboard', () => {
       .should('be.visible')
       .click();
     cy.wait('@fetchApps');
-    cy.contains('h2', `${Cypress.env('appOwner')} Applikasjoner`).should('be.visible');
+    cy.contains('h2', `${Cypress.env('appOwner')}-applikasjoner`).should('be.visible');
   });
 
   it('is possible to search an app by name', () => {

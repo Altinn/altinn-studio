@@ -7,7 +7,6 @@ import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
-  useRepoStatusQuery,
   useResourceSectorsQuery,
   useResourceThematicAreaEurovocQuery,
   useResourceThematicAreaLosQuery,
@@ -21,6 +20,7 @@ import { NavigationModal } from 'resourceadm/components/NavigationModal';
 import { Spinner } from '@digdir/design-system-react';
 import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.

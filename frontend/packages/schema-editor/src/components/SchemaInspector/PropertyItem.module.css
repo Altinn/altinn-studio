@@ -1,9 +1,9 @@
 .gridItem {
-  place-self: center center;
+  place-self: start center;
 }
 
 .nameInputCell {
-  place-self: stretch stretch;
+  place-self: start stretch;
 }
 
 .nameInputCell > * {
@@ -15,6 +15,6 @@
   justify-self: stretch;
 }
 
-.requiredCheckCell > * {
-  display: grid;
+.requiredCheckCell {
+  padding: 6px;
 }
