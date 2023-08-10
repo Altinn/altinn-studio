@@ -4,3 +4,4 @@ export { useUserQuery } from './useUserQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoStatusQuery } from './useRepoStatusQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';
+export { useDatamodelsXsdQuery } from './useDatamodelsXsdQuery';

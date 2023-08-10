@@ -8,14 +8,14 @@ import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelsXsdQuery } from '../../hooks/queries';
+import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 
 export interface ICloneModalProps {
   anchorEl: Element;
   onClose: any;
 }
 
-export function CloneModal(props: ICloneModalProps) {
+export const CloneModal = (props: ICloneModalProps) => {
   const { org, app } = useParams();
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
@@ -67,4 +67,4 @@ export function CloneModal(props: ICloneModalProps) {
       </SimpleContainer>
     </Popover>
   );
-}
+};

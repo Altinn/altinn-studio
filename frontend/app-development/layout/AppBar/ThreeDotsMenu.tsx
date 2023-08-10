@@ -3,10 +3,10 @@ import classes from './ThreeDotsMenu.module.css';
 import { CogIcon, TabsIcon } from '@navikt/aksel-icons';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CloneModal } from 'app-development/layout/version-control/CloneModal';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
 import { Popover } from '@digdir/design-system-react';
+import { CloneModal } from 'app-shared/components/GiteaHeader/ThreeDotsMenu/CloneModal';
 
 export function ThreeDotsMenu() {
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
@@ -19,14 +19,11 @@ export function ThreeDotsMenu() {
     <>
       <Popover
         className={classes.popover}
-        trigger={(
-          <button
-            data-testid='menuBtn'
-            className={classes.verticalDotsMenu}
-          >
+        trigger={
+          <button data-testid='menuBtn' className={classes.verticalDotsMenu}>
             &#8942;
           </button>
-        )}
+        }
       >
         <ul className={classes.menuItems}>
           <li>

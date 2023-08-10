@@ -3,20 +3,18 @@ import classes from './ThreeDotsMenu.module.css';
 import { CogIcon, TabsIcon } from '@navikt/aksel-icons';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
-import { CloneModal } from 'app-development/layout/version-control/CloneModal';
-
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
 import { Popover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
+import { CloneModal } from './CloneModal';
 
 interface Props {
   onlyShowRepository?: boolean;
   hasCloneModal?: boolean;
 }
 
-export function ThreeDotsMenu({ onlyShowRepository = false, hasCloneModal = false }: Props) {
+export const ThreeDotsMenu = ({ onlyShowRepository = false, hasCloneModal = false }: Props) => {
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
   const { org, app } = useParams();
   const { t } = useTranslation();
@@ -70,4 +68,4 @@ export function ThreeDotsMenu({ onlyShowRepository = false, hasCloneModal = fals
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
     </>
   );
-}
+};

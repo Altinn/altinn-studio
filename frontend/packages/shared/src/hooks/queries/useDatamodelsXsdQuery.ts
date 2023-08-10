@@ -5,8 +5,7 @@ import { DatamodelsXsd } from 'app-shared/types/DatamodelsXsd';
 
 export const useDatamodelsXsdQuery = (owner, app): UseQueryResult<DatamodelsXsd[]> => {
   const { getDatamodelsXsd } = useServicesContext();
-  return useQuery<DatamodelsXsd[]>(
-    [QueryKey.DatamodelsXsd, owner, app],
-    () => getDatamodelsXsd(owner, app),
+  return useQuery<DatamodelsXsd[]>([QueryKey.DatamodelsXsd, owner, app], () =>
+    getDatamodelsXsd(owner, app)
   );
 };
