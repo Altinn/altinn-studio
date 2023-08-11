@@ -1,5 +1,5 @@
 import React from 'react';
-import { DataModelling } from 'app-shared/features';
+import { DataModelling } from '../DataModelling';
 import classes from './DataModellingContainer.module.css';
 
 // Todo: Is this component necessary?
