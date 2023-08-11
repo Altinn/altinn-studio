@@ -40,6 +40,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
           onClick={() => handleExpanded((previous) => !previous)}
           variant={ButtonVariant.Quiet}
+          size='small'
         />
         {t('ux_editor.component_group_header', { id })}
       </div>
@@ -60,6 +61,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
                 setIsConfirmDeleteDialogOpen(prevState => !prevState);
               }}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           }
         >

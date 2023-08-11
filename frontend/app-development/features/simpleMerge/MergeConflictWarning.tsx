@@ -31,6 +31,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
         iconPlacement={'right'}
         onClick={toggleDownloadModal}
         ref={downloadModalAnchor}
+        size='small'
       >
         {t('merge_conflict.download_zip_file')}
       </Button>
@@ -42,7 +43,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
         app={app}
       />
       <ButtonContainer className={classes.buttonContainer}>
-        <Button ref={resetRepoModalAnchor} onClick={toggleResetModal}>
+        <Button ref={resetRepoModalAnchor} onClick={toggleResetModal} size='small'>
           {t('merge_conflict.remove_my_changes')}
         </Button>
         <ResetRepoModal

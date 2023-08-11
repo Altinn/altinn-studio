@@ -105,6 +105,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
               icon={<XMarkIcon/>}
               onClick={() => onRemoveDynamic(dynamic)} // delete dynamic - should also set expression element state back to default
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           }
           <p>
@@ -148,11 +149,13 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
               icon={<XMarkIcon />}
               onClick={() => onRemoveDynamic(dynamic)}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
             <Button
               icon={<PencilIcon />}
               onClick={() => onEditDynamic(dynamic)}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           </div>
         </div>

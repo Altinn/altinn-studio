@@ -63,6 +63,7 @@ export const DeployDropdown = ({
               disabled={disabled}
               onClick={() => setIsConfirmDeployDialogOpen(prevState => !prevState)}
               id={`deploy-button-${envName.toLowerCase()}`}
+              size='small'
             >
               {t('app_deploy_messages.btn_deploy_new_version')}
             </Button>

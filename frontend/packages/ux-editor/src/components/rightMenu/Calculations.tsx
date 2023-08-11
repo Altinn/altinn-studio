@@ -19,6 +19,7 @@ export const Calculations = () => {
           icon={<PlusIcon />}
           onClick={() => setModalOpen(true)}
           variant={ButtonVariant.Quiet}
+          size='small'
         />
       </div>
       <RuleModal

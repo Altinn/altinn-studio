@@ -33,6 +33,7 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       color={action.buttonColor || 'primary'}
       data-testid={action.menuKey}
       aria-label={t(action.title)}
+      size='small'
     >
       {t(action.title)}
       {action.inBeta && (

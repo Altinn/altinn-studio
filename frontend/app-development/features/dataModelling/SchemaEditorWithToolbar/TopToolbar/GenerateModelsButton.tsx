@@ -53,6 +53,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
               onClick={handleGenerateButtonClick}
               icon={<CogIcon />}
               variant={ButtonVariant.Quiet}
+              size='small'
             >
               {t('schema_editor.generate_model_files')}
             </Button>
@@ -64,6 +65,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
               <Button
                 onClick={() => setShowGenerationState(false)}
                 variant={ButtonVariant.Outline}
+                size='small'
               >
                 {t('general.close')}
               </Button>

@@ -94,6 +94,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                   color={ButtonColor.Secondary}
                   onClick={onCloseWrapper}
                   variant={ButtonVariant.Outline}
+                  size='small'
                 >
                   {t('general.close')}
                 </Button>
@@ -110,6 +111,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 id='confirm-reset-repo-button'
                 onClick={onResetWrapper}
                 variant={ButtonVariant.Outline}
+                size='small'
               >
                 {t('administration.reset_repo_button')}
               </Button>
@@ -117,6 +119,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 color={ButtonColor.Secondary}
                 onClick={onCloseWrapper}
                 variant={ButtonVariant.Outline}
+                size='small'
               >
                 {t('general.cancel')}
               </Button>

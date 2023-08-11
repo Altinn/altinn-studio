@@ -81,10 +81,11 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
             disabled={!isNewValueValid}
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => addOption(event, newOption)}
             title={t('general.add')}
+            size='small'
           >
             {t('general.add')}
           </Button>
-          <Button onClick={() => setIsAddMode(false)} title={t('general.cancel')}>
+          <Button onClick={() => setIsAddMode(false)} title={t('general.cancel')} size='small'>
             {t('general.cancel')}
           </Button>
         </div>
@@ -98,6 +99,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
         color={ButtonColor.Success}
         title={t('ux_editor.add_option')}
         variant={ButtonVariant.Quiet}
+        size='small'
       >
         <span className={addButtonClass}>
           <PlusIcon />

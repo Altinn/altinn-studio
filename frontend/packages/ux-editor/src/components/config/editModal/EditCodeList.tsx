@@ -38,6 +38,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
             <Button
               variant={ButtonVariant.Quiet}
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
+              size='small'
             >
               {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}

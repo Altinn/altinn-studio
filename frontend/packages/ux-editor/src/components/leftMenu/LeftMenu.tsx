@@ -74,6 +74,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
                       <Button
                         icon={<PlusIcon/>}
                         onClick={handleAddLayoutSet}
+                        size='small'
                       >
                         {t('left_menu.layout_sets_add')}
                       </Button>
@@ -95,6 +96,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
               <Button
                 icon={<PlusIcon/>}
                 onClick={handleAddPage}
+                size='small'
               >
                 {t('left_menu.pages_add')}
               </Button>
