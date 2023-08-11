@@ -16,7 +16,7 @@ import classes from './RightMenu.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Divider } from 'app-shared/primitives';
-import {FormComponent} from "../../types/FormComponent";
+import { FormComponent } from "../../types/FormComponent";
 
 type DynamicsTabProps = {
   onShowNewDynamicsTab: (value: boolean) => void;
@@ -34,7 +34,6 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
     (Object.values(ExpressionPropertyBase) as string[])
       .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase);
   const propertiesWithDynamics: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] = Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
-  // TODO: Make sure dynamics that cannot be processed by Studio are shown as clear text in editable textArea
   const potentialConvertedExternalDynamics: Dynamic[] = propertiesWithDynamics.filter(property => typeof form[property] !== 'boolean').map(property => convertExternalDynamicToInternal(property, form[property]));
   const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
   const [dynamics, setDynamics] = React.useState<Dynamic[]>(potentialConvertedExternalDynamics || [defaultDynamic]); // default state should be already existing dynamics
@@ -150,12 +149,14 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
 
   const addDynamic = async () => {
     // TODO: Convert dynamics object to correct format and save dynamic to layout with api call
-    const dynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
+    const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
     const nonEditableDynamics: Dynamic[] = await Promise.all([...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || prevDynamic.complexExpression)].map(async prevDynamic => {
+      debugger;
       if (prevDynamic.property && prevDynamic.editMode) form[prevDynamic.property] = convertDynamicToExternalFormat(prevDynamic);
       handleUpdate(form);
       await handleComponentSave(formId, form as FormComponent);
-      return ({...prevDynamic, editMode: false})
+      debugger;
+      return ({ ...prevDynamic, editMode: false })
     }));
     setDynamics(dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
-import {DataSource, ExpressionElement} from '../../../types/Expressions';
+import { DataSource, ExpressionElement } from '../../../types/Expressions';
 import { IFormLayouts } from '../../../types/global';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { FormComponent } from '../../../types/FormComponent';

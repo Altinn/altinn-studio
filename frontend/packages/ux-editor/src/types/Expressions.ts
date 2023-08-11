@@ -3,7 +3,7 @@ import i18next from 'i18next';
 export interface Dynamic {
   id?: string;
   editMode: boolean;
-  operator?: 'og' | 'eller';
+  operator?: Operator;
   property?: ExpressionPropertyBase | ExpressionPropertyForGroup; // action? TODO: Figure out if this is redundant - maybe it is enough to have the field on the component
   expressionElements?: ExpressionElement[];
   complexExpression?: any;
@@ -16,6 +16,11 @@ export interface ExpressionElement {
   value?: string;
   comparableDataSource?: string;
   comparableValue?: string;
+}
+
+export enum Operator {
+  And = 'and',
+  Or = 'or'
 }
 
 // Could we instead collect all properties from the specific component that has the type boolean?

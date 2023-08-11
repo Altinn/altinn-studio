@@ -1,5 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {
+  Dynamic,
+  ExpressionElement,
   expressionFunctionTexts,
   expressionInPreviewPropertyTexts,
   ExpressionPropertyBase,
@@ -7,12 +9,13 @@ import {
 } from '../../../types/Expressions';
 import { Alert, Button, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
-import { Dynamic, ExpressionElement } from '../../../types/Expressions';
+import { Dynamic, ExpressionElement, Operator } from '../../../types/Expressions';
 import { ExpressionContent } from './ExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { v4 as uuidv4 } from 'uuid';
 import { Trans, useTranslation } from 'react-i18next';
+
 import classes from './DynamicContent.module.css';
 
 interface ExpressionProps {
@@ -39,9 +42,9 @@ export const DynamicContent = ({
     onEditDynamic,
 }: ExpressionProps) => {
   const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
-  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements]|| []); // default state should be already existing expressions
+  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements] || []); // default state should be already existing expressions
   const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
-  const [operator, setOperator] = React.useState<'og' | 'eller'>(dynamic.operator || undefined);
+  const [operator, setOperator] = React.useState<Operator>(dynamic.operator || undefined);
   const {t} = useTranslation();
   const dynamicInEditStateRef = useRef(null);
   const dynamicInPreviewStateRef = useRef(null);
@@ -90,7 +93,7 @@ export const DynamicContent = ({
     setExpressionElements(dynamic.expressionElements);
   };
 
-  const addExpressionElement = (dynamicOperator: 'og' | 'eller') => {
+  const addExpressionElement = (dynamicOperator: Operator) => {
     const newExpressionElement: ExpressionElement = {id: uuidv4()};
     const updatedExpressionElements = [...dynamic.expressionElements, newExpressionElement];
     dynamic.expressionElements.push(newExpressionElement);
@@ -99,7 +102,7 @@ export const DynamicContent = ({
     setExpressionElements(updatedExpressionElements);
   };
 
-  const updateDynamicOperator = (dynamicOperator: 'og' | 'eller') => {
+  const updateDynamicOperator = (dynamicOperator: Operator) => {
     setOperator(dynamicOperator);
   };
 
@@ -113,8 +116,7 @@ export const DynamicContent = ({
       const parsedComplexExpression = JSON.parse(newComplexExpression.replaceAll('\'', '\"'));
       dynamic.complexExpression = JSON.parse(newComplexExpression.replaceAll('\'', '\"'));
       setComplexExpression(parsedComplexExpression);
-    }
-    catch (error) {
+    } catch (error) {
       dynamic.complexExpression = newComplexExpression.length > 0 ? newComplexExpression : '[]';
       setComplexExpression(newComplexExpression);
     }
@@ -136,7 +138,7 @@ export const DynamicContent = ({
   const tryFormatExpression = (expression: any): string => {
     try {
       // Implies during editing and when the expression has not been able to be parsed to JSON due to syntax
-      if (typeof expression === "string"){
+      if (typeof expression === "string") {
         return expression;
       }
       // Attempt to format the JSON input
@@ -197,7 +199,7 @@ export const DynamicContent = ({
                   expressionAction={allowToSpecifyExpression}
                   expressionElement={expEl}
                   dynamicOperator={operator}
-                  onAddExpressionElement={(dynamicOp: 'og' | 'eller') => addExpressionElement(dynamicOp)}
+                  onAddExpressionElement={(dynamicOp: Operator) => addExpressionElement(dynamicOp)}
                   onUpdateExpressionElement={updateExpressionElement}
                   onUpdateDynamicOperator={updateDynamicOperator}
                   onRemoveExpressionElement={() => removeExpressionElement(expEl)}
@@ -228,7 +230,7 @@ export const DynamicContent = ({
               size='small'
             />
             <Button
-              icon={<PencilIcon />}
+              icon={<PencilIcon/>}
               onClick={() => onEditDynamic(dynamic)}
               variant='quiet'
               size='small'
