@@ -3,7 +3,6 @@ import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import cn from 'classnames';
 import { RightMenu } from '../components/rightMenu/RightMenu';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -113,10 +112,10 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
       <DndProvider backend={HTML5Backend}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <LeftMenu className={cn(classes.leftContent, classes.item)} />
+            <LeftMenu className={classes.leftContent + ' ' + classes.item} />
             <FormContextProvider>
-              <DesignView className={cn(classes.mainContent, classes.item)} />
-              <RightMenu className={cn(classes.rightContent, classes.item)} />
+              <DesignView className={classes.mainContent + ' ' + classes.item} />
+              <RightMenu className={classes.rightContent + ' ' + classes.item} />
             </FormContextProvider>
           </div>
         </div>
