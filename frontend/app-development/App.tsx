@@ -26,7 +26,7 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useRepoStatusQuery } from './hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 import { PageSpinner } from 'app-shared/components';
 
@@ -138,7 +138,11 @@ export function App() {
     [dispatch]
   );
   if (!repoStatus) {
-    return <div className={classes.appSpinner}><PageSpinner/></div>
+    return (
+      <div className={classes.appSpinner}>
+        <PageSpinner />
+      </div>
+    );
   }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
