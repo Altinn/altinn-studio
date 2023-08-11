@@ -30,6 +30,7 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       key={action.menuKey}
       onClick={action.handleClick}
       variant={action.buttonVariant}
+      color={action.buttonColor || 'primary'}
       data-testid={action.menuKey}
       aria-label={t(action.title)}
     >
