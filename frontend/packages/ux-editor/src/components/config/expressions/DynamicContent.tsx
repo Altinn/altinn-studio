@@ -40,7 +40,7 @@ export const DynamicContent = ({
 }: ExpressionProps) => {
   const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements]|| []); // default state should be already existing expressions
-  const [complexExpression, setComplexExpression] = React.useState<[any]>(dynamic.complexExpression); // default state should be already existing expressions
+  const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
   const [operator, setOperator] = React.useState<'og' | 'eller'>(dynamic.operator || undefined);
   const {t} = useTranslation();
   const dynamicInEditStateRef = useRef(null);
@@ -108,6 +108,18 @@ export const DynamicContent = ({
     setExpressionElements(updatedExpressionElements);
   };
 
+  const handleUpdateComplexExpression = (newComplexExpression: any) => {
+    try {
+      const parsedComplexExpression = JSON.parse(newComplexExpression.replaceAll('\'', '\"'));
+      dynamic.complexExpression = JSON.parse(newComplexExpression.replaceAll('\'', '\"'));
+      setComplexExpression(parsedComplexExpression);
+    }
+    catch (error) {
+      dynamic.complexExpression = newComplexExpression.length > 0 ? newComplexExpression : '[]';
+      setComplexExpression(newComplexExpression);
+    }
+  }
+
   const removeExpressionElement = (expressionElement: ExpressionElement) => {
     if (dynamic.expressionElements.length < 2) {
       const newExpressionElement: ExpressionElement = {id: uuidv4()};
@@ -123,53 +135,15 @@ export const DynamicContent = ({
 
   const tryFormatExpression = (expression: any): string => {
     try {
-      // Attempt to parse and format the JSON input
-      const formattedArray = ('[' + Object.values(expression).toString() + ']')
-        .split(',')// Split input into lines
-        .join(',\n'); // Join lines with line breaks
-      return formattedArray;
-    } catch (error) {
-      return expression;
-    }
-  }
-
-  function parseString(inputString): any {
-    console.log('input: ', inputString);
-    const cleanInputString = inputString.split(/[\s\n]+/).join('');
-    console.log('celan input: ', cleanInputString);
-    const result = [];
-    let currentElement = '';
-    let stack = [];
-
-    for (let i = 0; i < cleanInputString.length; i++) {
-      const char = cleanInputString[i];
-
-      if (char === '[') {
-        if (currentElement !== '') {
-          stack.push(currentElement);
-        }
-        currentElement = '';
-        stack.push([]);
-      } else if (char === ',') {
-        if (currentElement !== '') {
-          stack[stack.length - 1].push(currentElement);
-        }
-        currentElement = '';
-      } else if (char === ']') {
-        if (currentElement !== '') {
-          stack[stack.length - 1].push(currentElement);
-        }
-        currentElement = stack.pop();
-        if (stack.length === 0) {
-          result.push(currentElement);
-          currentElement = '';
-        }
-      } else {
-        currentElement += char;
+      // Implies during editing and when the expression has not been able to be parsed to JSON due to syntax
+      if (typeof expression === "string"){
+        return expression;
       }
+      // Attempt to format the JSON input
+      return JSON.stringify(expression).split(',').join(',\n').replaceAll('\"', '\'');
+    } catch (error) {
+      return expression.toString();
     }
-
-    return result;
   }
 
   console.log('dynamic', dynamic); // TODO: Remove when fully tested
@@ -206,11 +180,11 @@ export const DynamicContent = ({
             value={dynamic.property || 'default'}
           />
           {dynamic.complexExpression ? (
-            <div className={classes.complexExpressionTest}>
+            <div className={classes.complexExpressionContainer}>
               <textarea
                 value={tryFormatExpression(complexExpression)}
-                onChange={event => setComplexExpression(parseString(event.target.value))} // need to unformat this?
-                rows={dynamic.complexExpression.length + 2}
+                onChange={event => handleUpdateComplexExpression(event.target.value)}
+                className={classes.complexExpression}
               />
               <Alert>
                 {t('right_menu.dynamics_complex_dynamic_message')}

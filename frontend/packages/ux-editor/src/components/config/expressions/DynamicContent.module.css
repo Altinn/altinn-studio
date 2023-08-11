@@ -44,8 +44,11 @@
   font-weight: bold;
 }
 
+.complexExpression {
+  height: 150px;
+}
 
-.complexExpressionTest {
+.complexExpressionContainer {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
