@@ -74,13 +74,12 @@
       <artifactId>applicationinsights-web-auto</artifactId>
       <version>2.6.4</version>
     </dependency>
-    <!-- Deploy fails when updating to 1.10.0.
-        No such method:
-        com.azure.core.credential.TokenRequestContext.isCaeEnabled()
-    -->
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
+      <!-- Deploy fails when updating to 1.10.0. No such method:
+        com.azure.core.credential.TokenRequestContext.isCaeEnabled()
+      -->
       <version>1.9.2</version>
     </dependency>
     <dependency>
