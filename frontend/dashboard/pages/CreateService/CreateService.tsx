@@ -14,6 +14,7 @@ import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { useNavigate } from 'react-router-dom';
 
 enum PageState {
   Idle = 'Idle',
@@ -69,6 +70,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const [pageState, setPageState] = useState(PageState.Idle);
   const { mutate: addRepo } = useAddRepoMutation();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const handleServiceOwnerChanged = useCallback((newValue: string) => {
     setSelectedOrgOrUser(newValue);
@@ -137,7 +139,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           <Button color={ButtonColor.Primary} onClick={handleCreateService} size='small'>
             {t('dashboard.create_service_btn')}
           </Button>
-          <Button color={ButtonColor.Inverted} onClick={() => window.history.back()} size='small'>
+          <Button color={ButtonColor.Inverted} onClick={() => navigate(-1)} size='small'>
             {t('general.cancel')}
           </Button>
         </div>
