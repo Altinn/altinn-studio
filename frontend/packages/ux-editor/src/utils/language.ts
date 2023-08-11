@@ -112,9 +112,10 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof 
     case CollapsableMenus.AdvancedComponents: {
       return t('ux_editor.collapsable_text_advanced_components');
     }
-    case CollapsableMenus.Widgets: {
-      return t('ux_editor.collapsable_text_widgets');
-    }
+    // TODO : Uncomment when we have widgets components
+    // case CollapsableMenus.Widgets: {
+    //   return t('ux_editor.collapsable_text_widgets');
+    // }
     // case CollapsableMenus.ThirdParty: {
     //   return language['ux_editor.collapsable_text_thirdparty_components'];
     // }

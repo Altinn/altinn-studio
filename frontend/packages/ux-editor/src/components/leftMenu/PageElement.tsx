@@ -4,7 +4,7 @@ import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
 import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
-import { MenuElipsisVerticalIcon, ChevronRightIcon } from '@navikt/aksel-icons';
+import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy, removeKey } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
@@ -132,29 +132,22 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       className={cn({ [classes.selected]: selectedLayout === name, [classes.invalid]: invalid })}
     >
       <div className={classes.elementContainer}>
-        <div>
-          <ChevronRightIcon
-            visibility={selectedLayout === name ? 'visible' : 'hidden'}
-            style={{
-              width: 'auto',
-              color: '#022F51',
-            }}
-          />
+        <div className={classes.pageContainer}>
+          {editMode ? (
+            <div className={classes.pageField}>
+              <TextField
+                onBlur={handleOnBlur}
+                onKeyDown={handleKeyPress}
+                onChange={handleOnChange}
+                defaultValue={name}
+                isValid={!errorMessage}
+              />
+              <div className={classes.errorMessage}>{errorMessage}</div>
+            </div>
+          ) : (
+            <div className={classes.pageButton} onClick={onPageClick}>{name}</div>
+          )}
         </div>
-        {editMode ? (
-          <div>
-            <TextField
-              onBlur={handleOnBlur}
-              onKeyDown={handleKeyPress}
-              onChange={handleOnChange}
-              defaultValue={name}
-              isValid={!errorMessage}
-            />
-            <div className={classes.errorMessage}>{errorMessage}</div>
-          </div>
-        ) : (
-          <div onClick={onPageClick} className={classes.pageName}>{name}</div>
-        )}
         <Button
           className={classes.ellipsisButton}
           icon={<MenuElipsisVerticalIcon />}

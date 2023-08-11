@@ -19,12 +19,12 @@ export interface Dynamic {
   expressionElements?: ExpressionElement[];
 }
 
-type DynamicsTabProps = {
-  onShowNewDynamicsTab: (value: boolean) => void;
-  showNewDynamicsTab: boolean;
+type DynamicsProps = {
+  onShowNewDynamics: (value: boolean) => void;
+  showNewDynamics: boolean;
 };
 
-export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsTabProps) => {
+export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) => {
   const { form, formId } = useContext(FormContext);
 
   const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
@@ -41,7 +41,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
     }
   }, [dynamics]);
 
-  if (!formId || !form) return null;
+  if (!formId || !form) return t('right_menu.content_empty');
 
   // adapt list of actions if component is group
   const expressionProperties = form.itemType === LayoutItemType.Container ?
@@ -124,8 +124,8 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
           <Checkbox
             label={t('right_menu.show_new_dynamics')}
             name={'checkbox-name'}
-            checked={showNewDynamicsTab}
-            onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
+            checked={showNewDynamics}
+            onChange={() => onShowNewDynamics(!showNewDynamics)}/>
         }
       </div>
   </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, ButtonVariant, Checkbox } from '@digdir/design-system-react';
-import classes from './ConditionalRenderingTab.module.css';
+import classes from './ConditionalRendering.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
@@ -8,12 +8,12 @@ import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
-type ConditionalRenderingTabProps = {
-  onShowNewDynamicsTab: (value: boolean) => void;
-  showNewDynamicsTab: boolean;
+type ConditionalRenderingProps = {
+  onShowNewDynamics: (value: boolean) => void;
+  showNewDynamics: boolean;
 };
 
-export const ConditionalRenderingTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: ConditionalRenderingTabProps) => {
+export const ConditionalRendering = ({ onShowNewDynamics, showNewDynamics }: ConditionalRenderingProps) => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const t = useText();
   return (
@@ -47,8 +47,8 @@ export const ConditionalRenderingTab = ({ onShowNewDynamicsTab, showNewDynamicsT
       <Checkbox
         label={t('right_menu.show_new_dynamics')}
         name={'checkbox-name'}
-        checked={showNewDynamicsTab}
-        onChange={() => onShowNewDynamicsTab(!showNewDynamicsTab)}/>
+        checked={showNewDynamics}
+        onChange={() => onShowNewDynamics(!showNewDynamics)}/>
     }
   </div>
     </>

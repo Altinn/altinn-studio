@@ -6,13 +6,15 @@ import { getCurrentEditId } from '../../selectors/textResourceSelectors';
 import { useSelector } from 'react-redux';
 import { LayoutItemType } from '../../types/global';
 import { FormContext } from '../../containers/FormContext';
+import { useTranslation } from 'react-i18next';
 
-export const ContentTab = () => {
+export const Content = () => {
   const { formId, form, handleUpdate, debounceSave } = useContext(FormContext);
   const editId = useSelector(getCurrentEditId);
+  const { t } = useTranslation();
 
   if (editId) return (<TextResourceEdit/>);
-  if (!formId || !form) return null;
+  if (!formId || !form) return t('right_menu.content_empty');
 
   const isContainer = form.itemType === LayoutItemType.Container;
 

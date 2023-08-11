@@ -8,7 +8,7 @@ import {
 import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { ExpressionContent, ExpressionElement } from './ExpressionContent';
-import { Dynamic } from '../../rightMenu/DynamicsTab';
+import { Dynamic } from '../../rightMenu/Dynamics';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { v4 as uuidv4 } from 'uuid';
