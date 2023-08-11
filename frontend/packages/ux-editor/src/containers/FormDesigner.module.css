@@ -34,6 +34,14 @@
   min-width: 283px;
 }
 
+.leftContent h1[class*='Accordion-module_header'] > button:focus,
+.rightContent h1[class*='Accordion-module_header'] > button:focus {
+  border-radius: unset;
+  box-shadow: unset;
+  outline: unset;
+  outline-offset: unset;
+}
+
 .mainContent {
   display: flex;
   flex-direction: column;
