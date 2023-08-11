@@ -6,7 +6,7 @@ import { SchemaItem } from './SchemaItem';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { dataMock } from '../../mockData';

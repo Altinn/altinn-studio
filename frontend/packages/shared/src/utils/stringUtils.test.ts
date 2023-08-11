@@ -1,4 +1,4 @@
-import { substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
+import { replaceEnd, substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
 
 describe('stringUtils', () => {
   describe('substringAfterLast', () => {
@@ -26,6 +26,18 @@ describe('stringUtils', () => {
 
     it('Returns whole string if there are no characters before the last separator', () => {
       expect(substringBeforeLast('/abc', '/')).toBe('');
+    });
+  });
+
+  describe('replaceEnd', () => {
+    it('Replaces the given substring with the given replacement at the end of the string', () => {
+      expect(replaceEnd('abc/def/ghi', 'ghi', 'xyz')).toBe('abc/def/xyz');
+    });
+
+    it('Does not replace the given substring other places than at the end', () => {
+      expect(replaceEnd('abcdefghi', 'abc', 'xyz')).toBe('abcdefghi');
+      expect(replaceEnd('abcdefghi', 'def', 'xyz')).toBe('abcdefghi');
+      expect(replaceEnd('abcdefghidef', 'def', 'xyz')).toBe('abcdefghixyz');
     });
   });
 });

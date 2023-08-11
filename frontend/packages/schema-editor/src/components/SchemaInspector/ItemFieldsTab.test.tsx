@@ -12,7 +12,7 @@ import {
   getNodeByPointer,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';

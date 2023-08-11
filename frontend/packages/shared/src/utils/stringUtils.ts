@@ -16,3 +16,15 @@ export const substringAfterLast = (str: string, separator: string): string => la
  */
 export const substringBeforeLast = (str: string, separator: string): string =>
   str.includes(separator) ? str.substring(0, str.lastIndexOf(separator)) : str;
+
+/**
+ * Replaces the given substring with the given replacement at the end of the string.
+ * If the substring does not appear at the end of the string, the string is returned unchanged.
+ * @param str The string to search in.
+ * @param substring The substring to search for.
+ * @param replacement The replacement to replace the substring with.
+ * @returns The string with the substring replaced at the end.
+ */
+export const replaceEnd = (str: string, substring: string, replacement: string): string =>
+  str.replace(new RegExp(substring + '$'), replacement);
+

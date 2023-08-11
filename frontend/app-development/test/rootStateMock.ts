@@ -1,6 +1,5 @@
 import { repositoryMock } from './repositoryMock';
 import { mockDeployments } from './appDeploymentsMock';
-import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
 import type { RootState } from '../store';
 import { applicationMetadataMock } from './applicationMetadataMock';
 
@@ -48,21 +47,6 @@ export const rootStateMock: RootState = {
       master: 'mockBranch',
     },
     error: null,
-  },
-  dataModelsMetadataState: {
-    dataModelsMetadata: [],
-    error: null,
-    loadState: LoadingState.Idle,
-  },
-  dataModelling: {
-    error: null,
-    saving: false,
-    schema: null,
-    metadata: {
-      dataModelsMetadata: [],
-      error: null,
-      loadState: LoadingState.Idle,
-    },
   },
   userState: {
     session: {

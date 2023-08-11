@@ -22,7 +22,7 @@ describe('DeployDropdown', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(textMock('app_deploy_messages.deploy_confirmation_short'));
+      const text = await screen.findByText(textMock('app_deploy_messages.deploy_confirmation_short', { selectedImageTag: '' }));
       expect(text).toBeInTheDocument();
 
       const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });

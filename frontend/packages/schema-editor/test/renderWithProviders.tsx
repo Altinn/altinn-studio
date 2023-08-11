@@ -2,24 +2,28 @@ import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/schema-editor/SchemaEditorAppContext';
+import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { SchemaState } from '@altinn/schema-editor/types';
 import configureStore from 'redux-mock-store';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { queryClientMock } from './mocks/queryClientMock';
+import { QueryClient } from '@tanstack/react-query';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 export interface RenderWithProvidersData {
   state?: Partial<SchemaState>,
+  queryClient?: QueryClient,
   servicesContextProps?: Partial<ServicesContextProps>,
   appContextProps?: Partial<SchemaEditorAppContextProps>,
 }
 
 export const renderWithProviders = ({
   state = {},
+  queryClient = queryClientMock,
   servicesContextProps = {},
   appContextProps = {},
 }: RenderWithProvidersData = {
   state: {},
+  queryClient: queryClientMock,
   appContextProps: {},
   servicesContextProps: {}
 }) => (element: ReactNode) => {
@@ -37,7 +41,7 @@ export const renderWithProviders = ({
     ...servicesContextProps,
   };
 
-  const allAppContextProps: SchemaEditorAppContextProps = {
+  const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
     modelPath: '',
     ...appContextProps,
   };
@@ -46,8 +50,8 @@ export const renderWithProviders = ({
 
   const result = render(
     <Provider store={store}>
-      <ServicesContextProvider {...allServicesContextProps} client={queryClientMock}>
-        <SchemaEditorAppContext.Provider value={allAppContextProps}>
+      <ServicesContextProvider {...allServicesContextProps} client={queryClient}>
+        <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
           {element}
         </SchemaEditorAppContext.Provider>
       </ServicesContextProvider>
@@ -83,7 +87,7 @@ export const renderWithProviders = ({
 
     return (rerenderElement: ReactNode) => result.rerender(
       <Provider store={configureStore()(newStateProps)}>
-        <ServicesContextProvider {...newServicesContextProps} client={queryClientMock}>
+        <ServicesContextProvider {...newServicesContextProps} client={queryClient}>
           <SchemaEditorAppContext.Provider value={newAppContextProps}>
             {rerenderElement}
           </SchemaEditorAppContext.Provider>

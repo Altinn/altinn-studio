@@ -17,7 +17,7 @@ describe('FormContainerHeader', () => {
   it('should render the component', async () => {
     await render();
 
-    expect(screen.getByText(textMock('ux_editor.component_group_header'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_group_header', { id: container1IdMock }))).toBeInTheDocument();
 
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
   });
