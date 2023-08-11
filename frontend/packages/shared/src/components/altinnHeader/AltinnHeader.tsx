@@ -51,9 +51,7 @@ export const AltinnHeader = ({
           {buttonActions && (
             <div className={classes.rightContentButtons}>
               {buttonActions.map((action) => (
-                <div key={action.menuKey}>
-                  <AltinnHeaderButton action={action} />
-                </div>
+                <AltinnHeaderButton key={action.menuKey} action={action} />
               ))}
             </div>
           )}
