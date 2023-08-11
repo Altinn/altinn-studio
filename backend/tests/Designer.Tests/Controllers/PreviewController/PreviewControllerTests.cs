@@ -47,8 +47,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
         }
 
-        [SkipOnWindowsFact]
-        [Fact(Skip = "Test is sporadically failing on Linux")]
+        [Fact(Skip = "Test is sporadically failing on Linux, and on windows")]
         public async Task Get_PreviewStatus_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/preview/preview-status";
