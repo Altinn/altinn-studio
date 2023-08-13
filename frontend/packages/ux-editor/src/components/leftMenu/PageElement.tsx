@@ -68,13 +68,15 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
       setIsConfirmDeleteDialogOpen(prevState => !prevState);
-    } else if (action === 'edit') {
-      setEditMode(true);
-      setNewName(name);
-    } else if (action === 'up' || action === 'down') {
-      updateLayoutOrder({ layoutName: name, direction: action });
+    } else {
+      if (action === 'edit') {
+        setEditMode(true);
+        setNewName(name);
+      } else if (action === 'up' || action === 'down') {
+        updateLayoutOrder({ layoutName: name, direction: action });
+      }
+      setMenuAnchorEl(null);
     }
-    setMenuAnchorEl(null);
   };
 
   const handleOnBlur = (_event: any) => {
@@ -157,15 +159,6 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           title={t('general.options')}
           size='small'
         />
-        <AltinnConfirmDialog
-          open={isConfirmDeleteDialogOpen}
-          confirmText={t('left_menu.page_delete_confirm')}
-          onConfirm={handleConfirmDelete}
-          onClose={() => setIsConfirmDeleteDialogOpen(false)}
-        >
-          <p>{t('left_menu.page_delete_text')}</p>
-          <p>{t('left_menu.page_delete_information')}</p>
-        </AltinnConfirmDialog>
       </div>
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         {layoutOrder.includes(name) && (
@@ -194,12 +187,29 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           disabled={invalid}
         />
         <Divider marginless />
-        <AltinnMenuItem
-          onClick={(event) => onMenuItemClick(event, 'delete')}
-          text={t('left_menu.page_menu_delete')}
-          iconClass='fa fa-trash'
-          id='delete-page-button'
-        />
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
+          confirmText={t('left_menu.page_delete_confirm')}
+          onConfirm={() => {
+            handleConfirmDelete();
+            setMenuAnchorEl(null);
+          }}
+          onClose={() => {
+            setIsConfirmDeleteDialogOpen(false);
+            setMenuAnchorEl(null);
+          }}
+          trigger={
+            <AltinnMenuItem
+              onClick={(event) => onMenuItemClick(event, 'delete')}
+              text={t('left_menu.page_menu_delete')}
+              iconClass='fa fa-trash'
+              id='delete-page-button'
+            />
+          }
+        >
+          <p>{t('left_menu.page_delete_text')}</p>
+          <p>{t('left_menu.page_delete_information')}</p>
+        </AltinnConfirmDialog>
       </AltinnMenu>
     </div>
   );

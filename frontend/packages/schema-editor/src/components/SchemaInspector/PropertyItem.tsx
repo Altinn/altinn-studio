@@ -99,7 +99,6 @@ export function PropertyItem({
         confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
         onConfirm={deleteHandler}
         onClose={() => setIsConfirmDeleteDialogOpen(false)}
-        placement='bottom'
         trigger={
           <IconButton
             ariaLabel={t('schema_editor.delete_field')}

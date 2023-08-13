@@ -19,7 +19,7 @@ export function AltinnConfirmDialog({
   cancelText,
   onConfirm,
   onClose,
-  placement = 'right',
+  placement,
   children,
   trigger = <div />,
   open = false,

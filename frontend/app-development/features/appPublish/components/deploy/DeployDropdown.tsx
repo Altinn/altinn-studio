@@ -58,6 +58,7 @@ export const DeployDropdown = ({
           confirmColor={ButtonColor.Primary}
           onConfirm={onStartDeployClick}
           onClose={() => setIsConfirmDeployDialogOpen(false)}
+          placement='right'
           trigger={
             <Button
               disabled={disabled}

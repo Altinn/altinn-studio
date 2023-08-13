@@ -32,7 +32,6 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
       confirmText={t('schema_editor.confirm_deletion')}
       onConfirm={onDeleteConfirmClick}
       onClose={() => setDialogOpen(false)}
-      placement="bottom"
       trigger={
         <Button
           id='delete-model-button'

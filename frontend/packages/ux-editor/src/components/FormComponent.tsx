@@ -118,7 +118,6 @@ export const FormComponent = memo(function FormComponent({
           confirmText={t('ux_editor.component_deletion_confirm')}
           onConfirm={handleDelete}
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
-          placement="bottom"
           trigger={
             <Button
               data-testid='component-delete-button'

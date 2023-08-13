@@ -72,7 +72,6 @@ export const RightMenu = ({
                     confirmText={t('schema_editor.language_confirm_deletion')}
                     onConfirm={() => handleDeleteLanguage(langCode)}
                     onClose={() => setLangCodeToDelete(undefined)}
-                    placement='bottom'
                     trigger={
                       <Button
                         variant={
