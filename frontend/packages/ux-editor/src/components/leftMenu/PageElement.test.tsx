@@ -152,4 +152,4 @@ const waitForData = async () => {
 const render = async (props: Partial<IPageElementProps> = {}) => {
   await waitForData();
   return renderWithMockStore()(<PageElement {...defaultProps} {...props} />);
-}
+};
