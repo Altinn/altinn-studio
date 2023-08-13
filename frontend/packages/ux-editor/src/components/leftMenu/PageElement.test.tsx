@@ -16,11 +16,44 @@ const selectedLayoutSet = 'test-layout-set';
 const name = formDesignerMock.layout.selectedLayout;
 const defaultProps: IPageElementProps = { name };
 
+const mockSetSearchParams = jest.fn();
+const searchParams = { 'layout': 'Side1' };
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    org: org,
+    app: app,
+  }),
+  useSearchParams: () => {
+    return [
+      new URLSearchParams(searchParams),
+      mockSetSearchParams
+    ];
+  }
+}));
+
 describe('PageElement', () => {
+  it('should redirect to new page when deleting selected page', async () => {
+    await render();
+
+    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButton));
+
+    const deleteButton = screen.getByText(textMock('left_menu.page_menu_delete'));
+    await act(() => user.click(deleteButton));
+
+    const confirmButton = screen.getByRole('button', { name: textMock('left_menu.page_delete_confirm') });
+    await act(() => user.click(confirmButton));
+
+    expect(queriesMock.deleteFormLayout).toBeCalledWith('org', 'app', 'Side1', 'test-layout-set');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: 'Side2' });
+  });
+
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
+    await render();
     const newName = 'new-name';
-    await waitForData();
-    render();
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
     await act(() => user.click(screen.getByText(textMock('left_menu.page_menu_edit'))));
     const textbox = screen.getByRole('textbox');
@@ -109,12 +142,14 @@ describe('PageElement', () => {
   });
 });
 
-const render = (props: Partial<IPageElementProps> = {}) =>
-  renderWithMockStore()(<PageElement {...defaultProps} {...props} />);
-
 const waitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
+
+const render = async (props: Partial<IPageElementProps> = {}) => {
+  await waitForData();
+  return renderWithMockStore()(<PageElement {...defaultProps} {...props} />);
+}
