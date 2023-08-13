@@ -6,7 +6,7 @@ import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { deepCopy, removeKey } from 'app-shared/pure';
+import { deepCopy } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
@@ -17,8 +17,8 @@ import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMu
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
-import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { AltinnConfirmDialog } from 'app-shared/components';
+import { firstAvailableLayout } from "../../utils/formLayoutsUtils";
 
 export interface IPageElementProps {
   name: string;
@@ -122,11 +122,10 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleConfirmDelete = () => {
     deleteLayout(name);
-    setSearchParams({
-      ...removeKey(searchParams, 'layout'),
-      deletedLayout: name,
-    });
-    dispatch(FormLayoutActions.updateSelectedLayout(DEFAULT_SELECTED_LAYOUT_NAME));
+    if (selectedLayout === name) {
+      const layoutToSelect = firstAvailableLayout(name, layoutOrder);
+      setSearchParams({ layout: layoutToSelect });
+    }
   };
 
   return (
