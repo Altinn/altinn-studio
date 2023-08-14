@@ -298,24 +298,24 @@ export const AboutResourcePage = ({
           Om ressursen
         </Heading>
         <Label size='medium' spacing>
-          Ressurs type
+          Ressurstype
         </Label>
         <Paragraph short size='small'>
-          Velg ett alternativ fra listen under
+          Velg et alternativ fra listen under
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             options={resourceTypeOptions}
             onChange={onChangeResourceType}
             value={getResourceTypeAsDisplayableString()}
-            label='Ressurs type'
+            label='Ressurstype'
             hideLabel
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
           />
           {showAllErrors &&
             hasResourceTypeError &&
-            displayWarningCard('Du mangler å legge til ressurs type.')}
+            displayWarningCard('Du mangler å legge til ressurstype.')}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>

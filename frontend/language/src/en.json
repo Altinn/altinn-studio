@@ -1003,5 +1003,6 @@
   "merge_conflict.body1": "There are breaking changes in the application that blocks further work.",
   "merge_conflict.body2": "You can fix these by either download the application as a zip-file and delete the changes, or just blast the application directly.",
   "merge_conflict.remove_my_changes": "Remove my changes",
-  "merge_conflict.download_zip_file": "Download as zip-file"
+  "merge_conflict.download_zip_file": "Download as zip-file",
+  "merge_conflict.download": "Download"
 }

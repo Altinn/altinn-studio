@@ -45,7 +45,7 @@ export const PolicyResourceFields = ({
             readOnly={!isEditable}
             aria-labelledby='resourceType'
           />
-          <ScreenReaderSpan id='resourceType' label='Ressurs type' />
+          <ScreenReaderSpan id='resourceType' label='Ressurstype' />
         </div>
         <div className={classes.textfieldWrapper}>
           <TextField

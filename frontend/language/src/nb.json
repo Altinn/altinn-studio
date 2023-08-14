@@ -1094,5 +1094,6 @@
   "merge_conflict.body1": "Det finnes endringer i denne applikasjonen som er i konflikt med dine siste endringer.",
   "merge_conflict.body2": "Måten å løse konflikten på er å fjerne dine siste endringer. Dersom du vil finne tilbake til endringene du nå mister, kan du laste ned siste versjon som zip-fil.",
   "merge_conflict.remove_my_changes": "Fjern mine endringer",
-  "merge_conflict.download_zip_file": "Last ned zip-fil"
+  "merge_conflict.download_zip_file": "Last ned zip-fil",
+  "merge_conflict.download": "Last ned"
 }

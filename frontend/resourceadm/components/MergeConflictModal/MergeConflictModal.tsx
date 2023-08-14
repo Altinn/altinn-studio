@@ -49,7 +49,7 @@ export const MergeConflictModal = ({
       <Paragraph size='small'>{t('merge_conflict.body2')}</Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.downloadWrapper}>
-          <Paragraph size='small'>Last ned</Paragraph>
+          <Paragraph size='small'>{t('merge_conflict.download')}</Paragraph>
           <Link
             href={repoDownloadPath(org, repo)}
             text='Last ned endret fil(er)'

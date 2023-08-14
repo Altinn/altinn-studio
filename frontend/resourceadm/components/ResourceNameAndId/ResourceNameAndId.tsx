@@ -11,7 +11,7 @@ interface Props {
   handleIdInput: (s: string) => void;
   handleClickEditButton: (isSave: boolean) => void;
   resourceIdExists: boolean;
-  titleAndIdSame: boolean;
+  bothFieldsHaveSameValue: boolean;
 }
 
 /**
@@ -25,7 +25,7 @@ interface Props {
  * @param props.handleEditId function to handle the editing of the id
  * @param props.handleClickEditButton function to be executed when edit button is clicked
  * @param props.resourceIdExists flag for id the ID already exists
- * @param props.titleAndIdSame flag for if ID and title has same display value
+ * @param props.bothFieldsHaveSameValue flag for if ID and title has same display value
  */
 export const ResourceNameAndId = ({
   isEditOpen,
@@ -35,7 +35,7 @@ export const ResourceNameAndId = ({
   handleIdInput,
   handleClickEditButton,
   resourceIdExists,
-  titleAndIdSame,
+  bothFieldsHaveSameValue,
 }: Props) => {
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
@@ -57,7 +57,7 @@ export const ResourceNameAndId = ({
   const getIdToDisplay = (): string => {
     if (isEditOpen) {
       return formatString(id);
-    } else if (!titleAndIdSame) {
+    } else if (!bothFieldsHaveSameValue) {
       return formatString(id);
     } else {
       return formatString(title);

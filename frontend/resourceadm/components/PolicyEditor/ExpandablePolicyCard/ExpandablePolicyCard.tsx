@@ -443,7 +443,7 @@ export const ExpandablePolicyCard = ({
             rows={5}
             aria-labelledby='ruleDescription'
           />
-          <ScreenReaderSpan id='ruleDescription' label='Beskrivelse ac regelen' />
+          <ScreenReaderSpan id='ruleDescription' label='Beskrivelse av regelen' />
         </div>
       </ExpandablePolicyElement>
       {showErrors && displayWarningCard(getRuleErrorText())}

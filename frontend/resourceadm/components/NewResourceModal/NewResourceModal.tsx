@@ -29,7 +29,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
   const [title, setTitle] = useState('');
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
   const [resourceIdExists, setResourceIdExists] = useState(false);
-  const [titleAndIdSame, setTitleAndIdSame] = useState(true);
+  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
 
   // Mutation function to create new resource
   const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
@@ -74,7 +74,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
    * @param val the title value typed
    */
   const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen && titleAndIdSame) {
+    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
       setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
@@ -91,10 +91,10 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
     setEditIdFieldOpen(isOpened);
 
     if (isSave) {
-      setTitleAndIdSame(false);
+      setBothFieldsHaveSameValue(false);
     } else {
       if (!isOpened) {
-        setTitleAndIdSame(true);
+        setBothFieldsHaveSameValue(true);
         // If we stop editing, set the ID to the title
         if (title !== id) setId(title.replace(/\s/g, '-'));
       }
@@ -122,7 +122,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
         handleIdInput={handleIDInput}
         handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
         resourceIdExists={resourceIdExists}
-        titleAndIdSame={titleAndIdSame}
+        bothFieldsHaveSameValue={bothFieldsHaveSameValue}
       />
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>

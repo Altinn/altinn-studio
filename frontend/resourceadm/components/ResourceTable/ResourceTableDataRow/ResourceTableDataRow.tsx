@@ -1,4 +1,5 @@
 import React from 'react';
+import cn from 'classnames';
 import classes from './ResourceTableDataRow.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
@@ -26,22 +27,22 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
   // TODO - translate
   return (
     <tr style={{ width: '100%' }}>
-      <td className={`${classes.tableDataXLarge} ${classes.tableData}`}>
+      <td className={cn(classes.tableDataXLarge, classes.tableData)}>
         {/* TODO - Fix translation of title */}
         <Paragraph size='small'>{resource.title['nb']}</Paragraph>
       </td>
-      <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
+      <td className={cn(classes.tableDataLarge, classes.tableData)}>
         <Paragraph size='small'>{resource.createdBy}</Paragraph>
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData} ${classes.tableDataDate}`}>
+      <td className={cn(classes.tableDataMedium, classes.tableData, classes.tableDataDate)}>
         <Paragraph size='small'>{resource.lastChanged}</Paragraph>
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
+      <td className={cn(classes.tableDataMedium, classes.tableData)}>
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
           {resource.hasPolicy ? 'Har tilgangsregler' : 'Mangler tilgangsregler'}
         </Tag>
       </td>
-      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
+      <td className={cn(classes.tableDataSmall, classes.tableData)}>
         <Button
           variant='quiet'
           color='secondary'
