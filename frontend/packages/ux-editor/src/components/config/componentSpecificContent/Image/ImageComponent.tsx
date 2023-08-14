@@ -73,24 +73,18 @@ export const ImageComponent = ({
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
-        {({ value, onChange }) => (
-          <TextField
-            name={`image_nb_src-input-${component.id}`}
-            onChange={(e) => onChange({ nb: e.target.value }, e)}
-            value={value?.nb || ''}
-          />
-        )}
+        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value?.nb || ''}/>}
       </FormField>
-        <TextResource
-          handleIdChange={handleAltTextChange}
-          label={t('ux_editor.modal_properties_image_alt_text_label')}
-          textResourceId={component.textResourceBindings?.altTextImg}
-          generateIdOptions={{
-            componentId: component.id,
-            layoutId: layoutName,
-            textResourceKey: 'altTextImg',
-          }}
-        />
+      <TextResource
+        handleIdChange={handleAltTextChange}
+        label={t('ux_editor.modal_properties_image_alt_text_label')}
+        textResourceId={component.textResourceBindings?.altTextImg}
+        generateIdOptions={{
+          componentId: component.id,
+          layoutId: layoutName,
+          textResourceKey: 'altTextImg',
+        }}
+      />
       <div className={classes.widthAndPlacement}>
         <FormField
           id={component.id}
@@ -100,12 +94,7 @@ export const ImageComponent = ({
           value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
-          {({ onChange }) => (
-            <TextField
-              name={`image_width-input-${component.id}`}
-              onChange={(e) => onChange(e.target.value, e)}
-            />
-          )}
+          {({ onChange }) =>  <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
         </FormField>
         <FormField
           id={component.id}
@@ -115,15 +104,13 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
         >
-          {() => (
-            <Select
-              // name={placementSelectId}
-              options={alignOptions}
-              // isClearable={true}
-              // placeholder=''
-              inputId={placementSelectId}
-            />
-          )}
+          {() => <Select
+            // name={placementSelectId}
+            options={alignOptions}
+            // isClearable={true}
+            // placeholder=''
+            inputId={placementSelectId}
+          />}
         </FormField>
       </div>
       <div>

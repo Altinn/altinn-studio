@@ -13,10 +13,7 @@ import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import {
-  ConditionalRenderingConnection,
-  ConditionalRenderingConnections,
-} from 'app-shared/types/RuleConfig';
+import { ConditionalRenderingConnection, ConditionalRenderingConnections } from 'app-shared/types/RuleConfig';
 import i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 

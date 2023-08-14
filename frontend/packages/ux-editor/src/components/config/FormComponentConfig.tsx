@@ -11,7 +11,7 @@ import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
-import type { TranslationKey } from 'app-shared/types/language';
+import { getComponentPropertyLabel } from '../../utils/language';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -222,7 +222,7 @@ export const FormComponentConfig = ({
           return (
             <Accordion key={propertyKey}>
               <Accordion.Item>
-                <Accordion.Header>{t(`ux_editor.component_properties.${propertyKey}` as TranslationKey)}</Accordion.Header>
+                <Accordion.Header>{getComponentPropertyLabel(propertyKey, t)}</Accordion.Header>
                 <Accordion.Content>
                   {rest[propertyKey]?.description && (
                     <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
@@ -247,6 +247,7 @@ export const FormComponentConfig = ({
         }
         return null;
       })}
+      {/* Show information about unsupported properties if there are any */}
       {unsupportedPropertyKeys.length > 0 && !hideUnsupported && (
         <Alert severity='info'>
           {t('ux_editor.edit_component.unsupported_properties_message')}

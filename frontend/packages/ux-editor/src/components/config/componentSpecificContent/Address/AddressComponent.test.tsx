@@ -1,11 +1,11 @@
 import React from 'react';
+import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { AddressComponent } from './AddressComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { waitFor, screen } from '@testing-library/react';
-import { IGenericEditComponent } from '../../componentConfig';
 
 // Test data:
 const component: FormAddressComponent = {
@@ -31,8 +31,7 @@ describe('AddressComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 

@@ -12,7 +12,8 @@ import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useSelector } from 'react-redux';
-import { useText } from '../../hooks';
+import { getComponentTitleByComponentType } from '../../utils/language';
+import { useTranslation } from 'react-i18next';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -26,7 +27,7 @@ export const EditFormComponent = ({
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const t = useText();
+  const { t } = useTranslation();
   const [showBetaFunc, setShowBetaFunc] = useState(false);
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
@@ -61,7 +62,7 @@ export const EditFormComponent = ({
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
       />
       <Heading level={2} size='xsmall'>
-        {component.type}
+        {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
       {showBetaFunc && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
       {showBetaFunc && (

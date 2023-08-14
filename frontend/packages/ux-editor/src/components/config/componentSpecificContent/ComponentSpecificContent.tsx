@@ -46,15 +46,15 @@ export function ComponentSpecificContent({
         />
       );
 
-      case ComponentType.Image: {
-        return (
-          <ImageComponent
-            component={component}
-            handleComponentChange={handleComponentChange}
-            layoutName={layoutName}
-          />
-        );
-      }
+    case ComponentType.Image: {
+      return (
+        <ImageComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
+        />
+      );
+    }
 
     case ComponentType.Panel: {
       return (
