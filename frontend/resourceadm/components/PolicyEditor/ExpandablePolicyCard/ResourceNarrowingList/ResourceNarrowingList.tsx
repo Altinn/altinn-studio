@@ -1,9 +1,10 @@
 import React from 'react';
 import classes from './ResourceNarrowingList.module.css';
-import { PolicyResourceFields } from '../PolicyResourceFields';
+import { PolicyResourceFields } from './PolicyResourceFields';
 import { PolicyRuleResourceType } from 'resourceadm/types/global';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';
+import { PlusIcon } from '@navikt/aksel-icons';
 
 interface Props {
   resources: PolicyRuleResourceType[];
@@ -66,9 +67,18 @@ export const ResourceNarrowingList = ({
         handleRemoveElement={handleRemoveElement}
       >
         {displayResources}
-        <Button type='button' onClick={handleClickAddResource} color='secondary'>
-          Legg til en innsnevring av ressursen {/* TODO - Komme med bedre navn + translation */}
-        </Button>
+        <div className={classes.buttonWrapper}>
+          <Button
+            type='button'
+            onClick={handleClickAddResource}
+            color='secondary'
+            dashedBorder
+            variant='outline'
+            icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+          >
+            Legg til en innsnevring av sub-ressursen
+          </Button>
+        </div>
       </ExpandablePolicyElement>
     </div>
   );

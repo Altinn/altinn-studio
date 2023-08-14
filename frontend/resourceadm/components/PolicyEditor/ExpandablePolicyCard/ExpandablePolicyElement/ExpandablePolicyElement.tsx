@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from './DropdownMenu';
+import { Label } from '@digdir/design-system-react';
 
 interface Props {
   title: string;
@@ -9,6 +10,7 @@ interface Props {
   isCard?: boolean;
   handleRemoveElement: () => void;
   handleDuplicateElement: () => void;
+  hasError?: boolean;
 }
 
 /**
@@ -27,22 +29,52 @@ export const ExpandablePolicyElement = ({
   isCard = true,
   handleRemoveElement,
   handleDuplicateElement,
+  hasError = false,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [isButtonFocused, setIsButtonFocused] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
 
   const handleClickMoreButton = () => {
     setIsDropdownOpen((prev) => !prev);
   };
 
+  const getTopWrapperErrorClassName = () => {
+    if (isCard && hasError) {
+      return `${classes.topWrapperError} ${isOpen && classes.topWrapperErrorOpen}`;
+    }
+  };
+
   return (
-    <div className={isCard ? classes.cardWrapper : classes.elementWrapper}>
-      <div className={classes.topWrapper}>
+    <div
+      className={`
+        ${classes.wrapper}
+        ${isCard ? classes.cardWrapper : classes.elementWrapper}
+        ${hasError && isCard && classes.cardError}
+        ${hasError && isCard && isButtonHovered && classes.cardErrorHover}
+        ${isButtonFocused && classes.buttonFocused}
+        ${!hasError && isButtonHovered && classes.buttonHovered}
+      `}
+    >
+      <div
+        className={`
+        ${classes.topWrapper}
+        ${isCard ? classes.topWrapperCard : classes.topWrapperElement}
+        ${isOpen && isCard && classes.topWrapperCardOpen}
+        ${isOpen && !isCard && classes.topWrapperElementOpen}
+        ${getTopWrapperErrorClassName()}`}
+      >
         <button
           className={isCard ? classes.cardExpandButton : classes.elementExpandButton}
           onClick={() => setIsOpen((prev) => !prev)}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+          onFocus={() => setIsButtonFocused(true)}
+          onBlur={() => setIsButtonFocused(false)}
         >
-          <p className={classes.title}>{cardTitle}</p>
+          <Label size='small'>{cardTitle}</Label>
           {isOpen ? (
             <ChevronUpIcon title='Close the card' fontSize='1.8rem' />
           ) : (
@@ -58,6 +90,7 @@ export const ExpandablePolicyElement = ({
             handleRemoveElement();
             setIsDropdownOpen(false);
           }}
+          isError={hasError}
         />
       </div>
       {isOpen && (

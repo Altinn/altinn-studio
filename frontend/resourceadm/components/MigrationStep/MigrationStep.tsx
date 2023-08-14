@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './MigrationStep.module.css';
-import { Checkbox } from '@digdir/design-system-react';
+import { Checkbox, Heading, Paragraph } from '@digdir/design-system-react';
 
 interface Props {
   /**
@@ -47,8 +47,12 @@ interface Props {
 export const MigrationStep = ({ title, text, checkboxText, isChecked, onToggle }: Props) => {
   return (
     <div className={classes.wrapper}>
-      <h2 className={classes.subHeader}>{title}</h2>
-      <p className={classes.text}>{text}</p>
+      <Heading size='xsmall' spacing level={2}>
+        {title}
+      </Heading>
+      <Paragraph className={classes.text} size='small'>
+        {text}
+      </Paragraph>
       <Checkbox
         label={checkboxText}
         checked={isChecked}

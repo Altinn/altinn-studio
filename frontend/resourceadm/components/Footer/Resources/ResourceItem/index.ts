@@ -1,1 +1,0 @@
-export { ResourceItem } from './ResourceItem';

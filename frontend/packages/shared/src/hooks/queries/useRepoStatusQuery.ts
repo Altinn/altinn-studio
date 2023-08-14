@@ -5,5 +5,8 @@ import { RepoStatus } from 'app-shared/types/RepoStatus';
 
 export const useRepoStatusQuery = (owner: string, app: string): UseQueryResult<RepoStatus> => {
   const { getRepoStatus } = useServicesContext();
-  return useQuery<RepoStatus>([QueryKey.RepoStatus, owner, app], () => getRepoStatus(owner, app));
+  return useQuery<RepoStatus>(
+    [QueryKey.RepoStatus, owner, app],
+    () => getRepoStatus(owner, app)
+  );
 };

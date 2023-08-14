@@ -1,19 +1,22 @@
 import React from 'react';
+import cn from 'classnames';
 import classes from './LeftNavigationBar.module.css';
 import {
   InformationSquareIcon,
   GavelSoundBlockIcon,
   UploadIcon,
-  BarChartIcon,
+  ArrowLeftIcon,
   MigrationIcon,
 } from '@navikt/aksel-icons';
 import { NavigationBarPageType } from 'resourceadm/types/global';
+import { Paragraph } from '@digdir/design-system-react';
 
 interface Props {
   currentPage: NavigationBarPageType;
   navigateToPage: (page: NavigationBarPageType) => void;
   goBack: () => void;
   showMigrate?: boolean;
+  newPageClicked: NavigationBarPageType;
 }
 
 /**
@@ -29,37 +32,73 @@ export const LeftNavigationBar = ({
   navigateToPage,
   goBack,
   showMigrate = false,
+  newPageClicked,
 }: Props) => {
-  const getNavElementClass = (page: NavigationBarPageType) => {
-    return currentPage === page ? classes.navigationElementSelected : classes.navigationElement;
-  };
-
   return (
     <div className={classes.navigationBar}>
-      <button className={classes.backButton} type='button' onClick={goBack}>
-        <BarChartIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
-        <p className={classes.buttonText}>Tilbake til dashboard</p>
-      </button>
       <div className={classes.navigationElements}>
-        <button className={getNavElementClass('about')} onClick={() => navigateToPage('about')}>
+        <button
+          className={cn(classes.navigationElement, classes.backButton)}
+          type='button'
+          onClick={goBack}
+        >
+          <ArrowLeftIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
+          <Paragraph size='small' short className={classes.buttonText}>
+            Tilbake til dashboard
+          </Paragraph>
+        </button>
+        <button
+          className={cn(
+            classes.navigationElement,
+            currentPage === 'about' && classes.selected,
+            newPageClicked === 'about' && classes.newPage
+          )}
+          onClick={() => navigateToPage('about')}
+        >
           <InformationSquareIcon className={classes.icon} title='Om ressursen' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Om ressursen</p>
+          <Paragraph size='small' short className={classes.buttonText}>
+            Om ressursen
+          </Paragraph>
         </button>
-        <button className={getNavElementClass('policy')} onClick={() => navigateToPage('policy')}>
+        <button
+          className={cn(
+            classes.navigationElement,
+            currentPage === 'policy' && classes.selected,
+            newPageClicked === 'policy' && classes.newPage
+          )}
+          onClick={() => navigateToPage('policy')}
+        >
           <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Policy</p>
+          <Paragraph size='small' short className={classes.buttonText}>
+            Tilgangsregler
+          </Paragraph>
         </button>
-        <button className={getNavElementClass('deploy')} onClick={() => navigateToPage('deploy')}>
+        <button
+          className={cn(
+            classes.navigationElement,
+            currentPage === 'deploy' && classes.selected,
+            newPageClicked === 'deploy' && classes.newPage
+          )}
+          onClick={() => navigateToPage('deploy')}
+        >
           <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Publiser</p>
+          <Paragraph size='small' short className={classes.buttonText}>
+            Publiser
+          </Paragraph>
         </button>
         {showMigrate && (
           <button
-            className={getNavElementClass('migration')}
+            className={cn(
+              classes.navigationElement,
+              currentPage === 'migration' && classes.selected,
+              newPageClicked === 'migration' && classes.newPage
+            )}
             onClick={() => navigateToPage('migration')}
           >
             <MigrationIcon className={classes.icon} title='Migrer' fontSize='1.8rem' />
-            <p className={classes.buttonText}>Migrer</p>
+            <Paragraph size='small' short className={classes.buttonText}>
+              Migrer
+            </Paragraph>
           </button>
         )}
       </div>

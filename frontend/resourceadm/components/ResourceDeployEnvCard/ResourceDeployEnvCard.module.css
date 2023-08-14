@@ -5,24 +5,13 @@
   width: 260px;
   padding: 20px;
   margin: 0;
-  background-color: #FFFFFF;
+  background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
-  border: solid 1px #D9D9D9;
+  border: solid 1px var(--fds-semantic-border-neutral-divider);
 }
 
 .envName {
-  font-weight: 500;
-  font-size: 16px;
   margin-bottom: 10px;
-}
-
-.versionText {
-  font-size: 16px;
-}
-
-.deploymentNotPossible {
- height: 30px;
- margin-top: 5px;
 }
 
 .buttonWrapper {
@@ -34,30 +23,6 @@
   align-items: center;
 }
 
-.currentEnv {
-  display: flex;
-  align-items: center;
-  background-color: #B3D0EA;
-  border-radius: 2px;
-  padding-block: 5px;
-  padding-inline: 10px;
-}
-
-.currentEnvText {
-  font-size: 16px;
-  padding-left: 10px;
-}
-
 .arrowWrapper {
-  padding-inline: 10px;
-}
-
-.newEnv {
-  display: flex;
-  align-items: center;
-  background-color: #F4F5F6;
-  border: 1px solid #68707C;
-  border-radius: 2px;
-  padding-block: 5px;
   padding-inline: 10px;
 }

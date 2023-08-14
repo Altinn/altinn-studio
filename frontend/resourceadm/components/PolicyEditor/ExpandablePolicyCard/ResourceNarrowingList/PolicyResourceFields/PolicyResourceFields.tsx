@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
   isEditable: boolean;
@@ -39,27 +40,36 @@ export const PolicyResourceFields = ({
           <TextField
             placeholder='Type'
             value={valueType}
+            label={!isEditable && 'Type'}
             onChange={(e) => onChangeType(e.target.value)}
-            disabled={!isEditable}
+            readOnly={!isEditable}
+            aria-labelledby='resourceType'
           />
+          <ScreenReaderSpan id='resourceType' label='Ressurstype' />
         </div>
         <div className={classes.textfieldWrapper}>
           <TextField
             placeholder='Id'
             value={valueId}
+            label={!isEditable && 'Id'}
             onChange={(e) => onChangeId(e.target.value)}
-            disabled={!isEditable}
+            readOnly={!isEditable}
+            aria-labelledby='resourceId'
           />
+          <ScreenReaderSpan id='resourceId' label='Ressurs id' />
         </div>
       </div>
-      <div>
-        <Button
-          variant='quiet'
-          icon={<MultiplyIcon title='Fjern ressursen' />}
-          disabled={!isEditable}
-          onClick={onRemove}
-          color='danger'
-        />
+      <div className={classes.buttonWrapper}>
+        {isEditable && (
+          <Button
+            variant='quiet'
+            icon={<MultiplyIcon title='Fjern ressursen' />}
+            disabled={!isEditable}
+            onClick={onRemove}
+            color='danger'
+            hidden={!isEditable}
+          />
+        )}
       </div>
     </div>
   );

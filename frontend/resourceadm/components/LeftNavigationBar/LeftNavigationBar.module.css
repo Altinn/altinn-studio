@@ -1,29 +1,11 @@
 .navigationBar {
-  background-color: #F4F5F6;
+  background-color: var(--fds-semantic-background-subtle);
   width: 250px;
   min-height: 100vh;
   height: 100%;
   left: 0;
-  border: 1px solid #bebebe;
+  border: 1px solid var(--fds-semantic-border-neutral-divider);
   border-top: none;
-}
-
-.backButton {
-  display: flex;
-  align-items: center;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  border-bottom: 2px solid #A0A0A0;
-  width: 100%;
-  padding-block: 20px;
-  padding-left: 15px;
-}
-
-.buttonText {
-  font-size: 16px;
-  font-weight: 400;
-  text-align: left;
 }
 
 .navigationElements {
@@ -37,35 +19,54 @@
   padding-left: 15px;
   padding-block: 20px;
   border: none;
-  border-bottom: 1px solid #bebebe;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   background-color: transparent;
   cursor: pointer;
+  composes: focusable from '../../utils/utility.module.css';
 }
 
-.navigationElementSelected {
-  display: flex;
-  align-items: center;
-  padding-left: 15px;
-  padding-block: 20px;
-  border: none;
-  border-bottom: 1px solid #bebebe;
-  background-color: #E3F7FF;
-  cursor: pointer;
+.backButton {
+  border-bottom: 2px solid var(--fds-semantic-border-neutral-divider);
 }
 
-.navigationElement:hover, .navigationElementSelected:hover, .backButton:hover {
-  background-color: #00315D;
-  color: #FFFFFF;
+.buttonText {
+  color: inherit;
 }
 
-.navigationElement:focus, .navigationElementSelected:focus, .backButton:focus {
-  background-color: #b3d0ea;
-  color: #000000;
+.navigationElement:hover {
+  background-color: var(--fds-semantic-background-default);
+  z-index: 1;
 }
 
-.navigationElement:focus:hover, .navigationElementSelected:focus:hover {
-  background-color: #d4e6f8;
-  color: #000000;
+.backButton:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.navigationElement:focus-within,
+.navigationElement:focus-visible {
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  background-color: var(--fds-semantic-background-default);
+  z-index: 2;
+}
+
+.navigationElement:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+.selected {
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-default) inset;
+  box-shadow: var(--fdsc-alert-box-shadow-left);
+}
+
+.selected:focus:not(:focus-visible) {
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
+  box-shadow: var(--fdsc-alert-box-shadow-left);
+}
+
+.newPage {
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
+  box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 
 .icon {

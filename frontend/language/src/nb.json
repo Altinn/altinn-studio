@@ -525,6 +525,7 @@
   "merge_conflict.download_zip_file": "Last ned zip-fil",
   "merge_conflict.headline": "Det er en konflikt i applikasjonen",
   "merge_conflict.remove_my_changes": "Fjern mine endringer",
+  "merge_conflict.download": "Last ned",
   "party_selection.binding_word": "eller",
   "party_selection.change_party": "skift aktør her",
   "party_selection.error_caption_prefix": "Feil",

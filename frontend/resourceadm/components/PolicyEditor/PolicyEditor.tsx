@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
 import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
 import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
-import { Button } from '@digdir/design-system-react';
+import { Button, Label, Alert } from '@digdir/design-system-react';
 import {
   PolicyBackendType,
   PolicyRuleCardType,
@@ -95,7 +95,9 @@ export const PolicyEditor = ({
    * updates the store of the next rule id
    */
   const getRuleId = () => {
-    const currentRuleId = lastRuleId;
+    const idTaken: boolean = policyRules.map((p) => p.ruleId).includes(lastRuleId.toString());
+
+    const currentRuleId = idTaken ? lastRuleId + 1 : lastRuleId;
     setLastRuleId(currentRuleId + 1);
     return currentRuleId;
   };
@@ -171,18 +173,12 @@ export const PolicyEditor = ({
 
   return (
     <div>
-      <div className={classes.policyEditorTop}>
-        <h1 className={classes.policyEditorHeader}>Policy editor</h1>
-        <h2 className={classes.subHeader}>Navn på ressursen</h2>
-        <div className={classes.textFieldIdWrapper}>
-          <div className={classes.idBox}>
-            <p className={classes.idBoxText}>id</p>
-          </div>
-          <p className={classes.idText}>{resourceId}</p>
-        </div>
+      <div className={classes.alertWrapper}>
+        <Alert iconTitle='Du må ha minimum en regel for å publisere ressursen.' severity='info'>
+          Du må ha minimum en regel for å publisere ressursen.
+        </Alert>
       </div>
       <div className={classes.selectAuthLevelWrapper}>
-        <h2 className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</h2>
         <div className={classes.selectAuthLevel}>
           <SelectAuthLevel
             value={requiredAuthLevel}
@@ -191,18 +187,20 @@ export const PolicyEditor = ({
           />
         </div>
       </div>
-      <h2 className={classes.subHeader}>Regler for policyen</h2>
+      <Label size='medium' className={classes.label}>
+        Regler
+      </Label>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
       </div>
       <Button type='button' onClick={() => handleSavePolicy(policyRules)}>
-        Lagre policyen
+        Lagre tilgangsregler
       </Button>
       <VerificationModal
         isOpen={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
-        text='Er du sikker på at du vil slette denne regelen fra policyen?'
+        text='Er du sikker på at du vil slette denne regelen?'
         closeButtonText='Nei, gå tilbake'
         actionButtonText='Ja, slett regel'
         onPerformAction={() => handleDeleteRule(ruleIdToDelete)}

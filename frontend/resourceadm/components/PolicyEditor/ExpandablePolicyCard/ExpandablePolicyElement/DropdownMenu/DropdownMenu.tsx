@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './DropdownMenu.module.css';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@navikt/aksel-icons';
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   handleCloseMenu: () => void;
   handleDuplicate: () => void;
   handleDelete: () => void;
+  isError?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export const DropdownMenu = ({
   handleCloseMenu,
   handleDuplicate,
   handleDelete,
+  isError = false,
 }: Props) => {
   const dropdownRef = useRef(null);
   const firstMenuItemRef = useRef<HTMLButtonElement>(null);
@@ -107,7 +109,8 @@ export const DropdownMenu = ({
         onClick={handleClickMoreIcon}
         onKeyDown={(e) => {}}
         variant='quiet'
-        color='secondary'
+        color={isError ? 'danger' : 'secondary'}
+        className={classes.button}
       />
       {isOpen && (
         <div className={classes.dropdownMenu}>
@@ -118,7 +121,9 @@ export const DropdownMenu = ({
             ref={firstMenuItemRef}
           >
             <TabsIcon title='Dupliser' fontSize='1.3rem' />
-            <p className={classes.dropdownItemText}>Lag kopi</p>
+            <Paragraph short size='xsmall' className={classes.dropdownItemText}>
+              Lag kopi
+            </Paragraph>
           </button>
           <button
             className={classes.dropdownDeleteButton}
@@ -127,7 +132,9 @@ export const DropdownMenu = ({
             ref={lastMenuItemRef}
           >
             <TrashIcon title='Slett' fontSize='1.3rem' />
-            <p className={classes.dropdownItemText}>Slett</p>
+            <Paragraph short size='xsmall' className={classes.dropdownItemText}>
+              Slett
+            </Paragraph>
           </button>
         </div>
       )}

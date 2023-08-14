@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceNameAndId.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon } from '@navikt/aksel-icons';
+import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
+import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 
 interface Props {
   isEditOpen: boolean;
@@ -9,7 +9,9 @@ interface Props {
   id: string;
   handleEditTitle: (s: string) => void;
   handleIdInput: (s: string) => void;
-  handleClickEditButton: () => void;
+  handleClickEditButton: (isSave: boolean) => void;
+  resourceIdExists: boolean;
+  bothFieldsHaveSameValue: boolean;
 }
 
 /**
@@ -22,6 +24,8 @@ interface Props {
  * @param props.handleEditTitle function to handle the editing of the title
  * @param props.handleEditId function to handle the editing of the id
  * @param props.handleClickEditButton function to be executed when edit button is clicked
+ * @param props.resourceIdExists flag for id the ID already exists
+ * @param props.bothFieldsHaveSameValue flag for if ID and title has same display value
  */
 export const ResourceNameAndId = ({
   isEditOpen,
@@ -30,6 +34,8 @@ export const ResourceNameAndId = ({
   handleEditTitle,
   handleIdInput,
   handleClickEditButton,
+  resourceIdExists,
+  bothFieldsHaveSameValue,
 }: Props) => {
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
@@ -51,6 +57,8 @@ export const ResourceNameAndId = ({
   const getIdToDisplay = (): string => {
     if (isEditOpen) {
       return formatString(id);
+    } else if (!bothFieldsHaveSameValue) {
+      return formatString(id);
     } else {
       return formatString(title);
     }
@@ -58,35 +66,44 @@ export const ResourceNameAndId = ({
 
   return (
     <>
-      <p className={classes.text}>Velg navn for ressursen.</p>
-      <p className={classes.text}>Navnet kan endres på frem til tjenesten er publisert.</p>
-      <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
+      <Paragraph size='medium'>Velg navn og id for ressursen.</Paragraph>
+      <Label className={classes.label} size='small'>
+        Ressursnavn (Bokmål)
+      </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
-          placeholder='Ressursnavn (Bokmål)'
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
           aria-label='Ressursnavn (Bokmål)'
         />
       </div>
-      <p className={classes.textfieldHeader}>Ressurs id</p>
+      <Label className={classes.label} size='small'>
+        Ressurs id
+      </Label>
       <div className={classes.editFieldWrapper}>
         {isEditOpen ? (
           <>
             <div className={classes.textfieldWrapper}>
               <TextField
-                placeholder='Ressurs id'
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
                 aria-label='Ressurs id'
-                // TODO - Potentially show error if ID exists
+                isValid={!resourceIdExists}
               />
             </div>
-            <div className={classes.stopEditingButton}>
+            <div className={classes.buttonWrapper}>
+              <div className={classes.stopEditingButton}>
+                <Button
+                  onClick={() => handleClickEditButton(false)}
+                  variant='quiet'
+                  color='danger'
+                  icon={<MultiplyIcon title='Slett ny ressurs id' />}
+                />
+              </div>
               <Button
-                onClick={handleClickEditButton}
+                onClick={() => handleClickEditButton(true)}
                 variant='quiet'
-                icon={<MultiplyIcon title='Slutt å endre ressurs id' />}
+                icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
               />
             </div>
           </>
@@ -95,13 +112,13 @@ export const ResourceNameAndId = ({
             <div className={classes.idBox}>
               <p className={classes.idText}>id</p>
             </div>
-            <p className={classes.text}>
+            <Paragraph size='small'>
               {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
               altinn.svv.<strong>{getIdToDisplay()}</strong>
-            </p>
+            </Paragraph>
             <div className={classes.editButtonWrapper}>
               <Button
-                onClick={handleClickEditButton}
+                onClick={() => handleClickEditButton(false)}
                 iconPlacement='right'
                 icon={<PencilWritingIcon title='Endre ressurs id' />}
                 variant='quiet'
@@ -111,6 +128,11 @@ export const ResourceNameAndId = ({
               </Button>
             </div>
           </>
+        )}
+      </div>
+      <div className={classes.resourceIdError}>
+        {resourceIdExists && (
+          <ErrorMessage size='small'>Ressurs med valgt id eksisterer allerede.</ErrorMessage>
         )}
       </div>
     </>

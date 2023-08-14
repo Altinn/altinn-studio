@@ -1,1 +1,1 @@
-export { ResourceDeployStatus, DeployErrorType } from './ResourceDeployStatus'
+export { ResourceDeployStatus } from './ResourceDeployStatus'

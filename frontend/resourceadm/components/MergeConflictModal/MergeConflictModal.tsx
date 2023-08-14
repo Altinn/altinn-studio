@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { Download } from '@navikt/ds-icons';
 import { repoDownloadPath, repoResetPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal';
@@ -45,11 +45,11 @@ export const MergeConflictModal = ({
   // TODO - more translation
   return (
     <Modal isOpen={isOpen} title={t('merge_conflict.headline')}>
-      <p className={classes.bodyText}>{t('merge_conflict.body1')} </p>
-      <p className={classes.bodyText}>{t('merge_conflict.body2')}</p>
+      <Paragraph size='small'>{t('merge_conflict.body1')}</Paragraph>
+      <Paragraph size='small'>{t('merge_conflict.body2')}</Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.downloadWrapper}>
-          <p className={classes.subHeader}>Last ned</p>
+          <Paragraph size='small'>{t('merge_conflict.download')}</Paragraph>
           <Link
             href={repoDownloadPath(org, repo)}
             text='Last ned endret fil(er)'

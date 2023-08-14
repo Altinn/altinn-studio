@@ -8,13 +8,17 @@ import { ResourceBackendType } from 'resourceadm/types/global';
  *
  * @param org the organisation of the user
  * @param repo the repo the user is in
+ * @param id the id of the resource
  */
-export const useEditResourceMutation = (org: string, id: string) => {
+export const useEditResourceMutation = (org: string, repo: string, id: string) => {
   const queryClient = useQueryClient();
   const { updateResource } = useServicesContext();
 
   return useMutation({
     mutationFn: (payload: ResourceBackendType) => updateResource(org, id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.SingleResource, org, id] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.SingleResource, org, repo, id] });
+    }
   })
 }

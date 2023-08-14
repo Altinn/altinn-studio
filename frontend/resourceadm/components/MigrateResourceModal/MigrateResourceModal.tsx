@@ -26,7 +26,6 @@ const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onPlanMigrate: () => void;
 }
 
 /**
@@ -39,9 +38,8 @@ interface Props {
  *
  * @param props.isOpen flag to decide if the modal is open or not
  * @param props.onClose function to be executed on close
- * @param props.onPlanMigrate function to be executed when the "plan migration" button is clicked
  */
-export const MigrateResourceModal = ({ isOpen, onClose, onPlanMigrate }: Props) => {
+export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');
@@ -139,11 +137,18 @@ export const MigrateResourceModal = ({ isOpen, onClose, onPlanMigrate }: Props) 
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}
             handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+            resourceIdExists={false} // TODO
+            bothFieldsHaveSameValue={false} // TODO
           />
         </>
       );
     }
     return null;
+  };
+
+  // TODO when connected with API calls
+  const onPlanMigrate = () => {
+    console.log('Migrating... Coming soon');
   };
 
   // TODO - translation

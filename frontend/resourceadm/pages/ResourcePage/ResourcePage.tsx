@@ -36,6 +36,7 @@ export const ResourcePage = () => {
   );
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
+  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -72,7 +73,7 @@ export const ResourcePage = () => {
     useResourceThematicAreaEurovocQuery(selectedContext);
 
   // Mutation function for editing a resource
-  const { mutate: editResource } = useEditResourceMutation(selectedContext, resourceId);
+  const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -95,37 +96,42 @@ export const ResourcePage = () => {
    * Navigates to the selected page
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
-    // Validate Resource and display errors + modal
-    if (currentPage === 'about') {
+    if (currentPage !== page) {
+      setNewPageClicked(page);
+
       await refetchResource();
-      const data = await refetchValidateResource();
-      const validationStatus = data?.data?.status ?? null;
 
-      if (validationStatus === 200) {
-        setShowResourceErrors(false);
-        handleNavigation(page);
-      } else {
-        setShowResourceErrors(true);
-        setNextPage(page);
-        setResourceErrorModalOpen(true);
-      }
-    }
-    // Validate Ppolicy and display errors + modal
-    else if (currentPage === 'policy') {
-      const data = await refetchValidatePolicy();
-      const validationStatus = data?.data?.status ?? null;
+      // Validate Resource and display errors + modal
+      if (currentPage === 'about') {
+        const data = await refetchValidateResource();
+        const validationStatus = data?.data?.status ?? null;
 
-      if (validationStatus === 200) {
-        setShowPolicyErrors(false);
-        handleNavigation(page);
-      } else {
-        setShowPolicyErrors(true);
-        setNextPage(page);
-        setPolicyErrorModalOpen(true);
+        if (validationStatus === 200) {
+          setShowResourceErrors(false);
+          handleNavigation(page);
+        } else {
+          setShowResourceErrors(true);
+          setNextPage(page);
+          setResourceErrorModalOpen(true);
+        }
       }
+      // Validate Ppolicy and display errors + modal
+      else if (currentPage === 'policy') {
+        const data = await refetchValidatePolicy();
+        const validationStatus = data?.data?.status ?? null;
+
+        if (validationStatus === 200) {
+          setShowPolicyErrors(false);
+          handleNavigation(page);
+        } else {
+          setShowPolicyErrors(true);
+          setNextPage(page);
+          setPolicyErrorModalOpen(true);
+        }
+      }
+      // Else navigate
+      else handleNavigation(page);
     }
-    // Else navigate
-    else handleNavigation(page);
   };
 
   /**
@@ -134,6 +140,7 @@ export const ResourcePage = () => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPageType) => {
+    setNewPageClicked(null);
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
@@ -183,6 +190,7 @@ export const ResourcePage = () => {
           navigateToPage={navigateToPage}
           goBack={goBack}
           showMigrate={getShowMigrate()}
+          newPageClicked={newPageClicked}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
@@ -211,7 +219,9 @@ export const ResourcePage = () => {
         {currentPage === 'deploy' && (
           <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
         )}
-        {currentPage === 'migration' && <MigrationPage />}
+        {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
+          <MigrationPage />
+        )}
       </div>
       {hasMergeConflict && (
         <MergeConflictModal
@@ -224,15 +234,21 @@ export const ResourcePage = () => {
       {policyErrorModalOpen && (
         <NavigationModal
           isOpen={policyErrorModalOpen}
-          onClose={() => setPolicyErrorModalOpen(false)}
+          onClose={() => {
+            setPolicyErrorModalOpen(false);
+            setNewPageClicked(null);
+          }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i policy'
+          title='Manglende informasjon i tilgangsregler'
         />
       )}
       {resourceErrorModalOpen && (
         <NavigationModal
           isOpen={resourceErrorModalOpen}
-          onClose={() => setResourceErrorModalOpen(false)}
+          onClose={() => {
+            setResourceErrorModalOpen(false);
+            setNewPageClicked(null);
+          }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i ressurs'
         />

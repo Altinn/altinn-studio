@@ -1,1 +1,1 @@
-export { AboutResourcePage, LanguageStringType } from './AboutResourcePage'
+export { AboutResourcePage } from './AboutResourcePage'

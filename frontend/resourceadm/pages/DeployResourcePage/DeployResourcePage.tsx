@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
-import { DeployErrorType, ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
+import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { TextField, Button, Spinner } from '@digdir/design-system-react';
+import { TextField, Button, Spinner, Heading, Label } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
@@ -73,7 +73,8 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     if (repoStatus) {
       setIsLocalRepoInSync(
         (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
-          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null)
+          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
+          repoStatus.contentStatus.length === 0
       );
     }
   }, [repoStatus]);
@@ -103,7 +104,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       const errorList: DeployErrorType[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
-          message: 'Du har mangler i ressursen',
+          message: validateResourceData.errors
+            ? `${validateResourceData.errors.length} felt mangler utfylling eller inneholder feil på siden "Om ressursen".`
+            : 'Det finnes mangler på siden "Om ressursen"',
           pageWithError: 'about',
         });
       }
@@ -111,8 +114,10 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         errorList.push({
           message:
             hasPolicyError === 'validationFailed'
-              ? 'Du har mangler i policyen'
-              : 'Du mangler policy',
+              ? validatePolicyData.errors
+                ? `${validatePolicyData.errors.length} felt mangler utfylling eller inneholder feil på siden "Tilgangsregler".`
+                : 'Det finnes mangler på siden "Tilgangsregler"'
+              : 'Du må ha minst en regel på siden "Tilgangsregler"',
           pageWithError: 'policy',
         });
       }
@@ -157,10 +162,12 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    * @returns a boolean for if it is possible
    */
   const isDeployPossible = (type: 'test' | 'prod', envVersion: string): boolean => {
+    const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
+
     if (
       type === 'test' &&
       validateResourceData.status === 200 &&
-      !hasPolicyError &&
+      !policyError &&
       isLocalRepoInSync &&
       envVersion !== versionData.resourceVersion
     ) {
@@ -169,7 +176,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
     if (
       type === 'prod' &&
       validateResourceData.status === 200 &&
-      !hasPolicyError &&
+      !policyError &&
       isLocalRepoInSync &&
       envVersion !== versionData.resourceVersion
     ) {
@@ -198,12 +205,15 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
 
       return (
         <>
-          <h1 className={classes.pageHeader}>Publiser ressursen</h1>
+          <Heading size='large' spacing level={1}>
+            Publiser ressursen
+          </Heading>
           <div className={classes.contentWrapper}>
             {displayStatusCard()}
             <div className={classes.newVersionWrapper}>
-              <h2 className={classes.subHeader}>Nytt versjonsnummer</h2>
-              <p className={classes.text}>Sett et versjonsnummer for endringene du har gjort</p>
+              <Label size='medium' spacing>
+                Nytt versjonsnummer
+              </Label>
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
                   <TextField
@@ -211,6 +221,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
                     value={newVersionText}
                     onChange={(e) => setNewVersionText(e.target.value)}
                     aria-labelledby='versionnumber-field'
+                    label='Sett et versjonsnummer for endringene du har gjort'
                   />
                 </div>
                 <ScreenReaderSpan id='versionnumber-field' label='Nytt versjonssnummer' />
@@ -227,7 +238,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
                 </Button>
               </div>
             </div>
-            <h2 className={classes.subHeader}>Velg miljø der du ønsker å publisere endringene</h2>
+            <Label size='medium' spacing>
+              Velg miljø der du ønsker å publisere endringene
+            </Label>
             <div className={classes.deployCardsWrapper}>
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('test', versionInTest)}
