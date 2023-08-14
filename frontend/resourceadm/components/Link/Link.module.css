@@ -9,7 +9,7 @@
   cursor: pointer;
   border: none;
   background-color: transparent;
-  font-size: 15.381px;
+  font-size: var(--fds-typography-paragraph-medium);
   margin: 0;
   padding: 0;
 }
