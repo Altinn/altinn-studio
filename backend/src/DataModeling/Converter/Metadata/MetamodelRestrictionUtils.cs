@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Metadata;
@@ -118,7 +117,7 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedStringRestrictions(IJsonSchemaKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedStringRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
     {
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
@@ -170,7 +169,7 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedNumberRestrictions(IJsonSchemaKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedNumberRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
     {
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
@@ -181,10 +180,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static bool TryGetKeywordFromSubSchemas(this IJsonSchemaKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordFromSubSchemas(this AllOfKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
     {
         keyword = default;
-        return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword(type))
+        return allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword(type))
             ?.TryGetKeywordByType(type, out keyword) ?? false;
     }
 
