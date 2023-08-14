@@ -9,6 +9,7 @@
   border-radius: 12px;
   border: solid 1px var(--fds-semantic-border-neutral-divider);
   cursor: pointer;
+  composes: focusable from '../../../utils/utility.module.css';
 }
 
 .button:hover {
@@ -17,13 +18,6 @@
 
 .button:focus-visible,
 .button:focus-within {
-  --fds-inner-focus-border-color: var(--fds-semantic-border-focus-boxshadow);
-  --fds-outer-focus-border-color: var(--fds-semantic-border-focus-outline);
-  --fds-focus-border-width: 3px;
-
   border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   background-color: var(--fds-semantic-background-default);
-  outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
-  outline-offset: var(--fds-focus-border-width);
-  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
 }
