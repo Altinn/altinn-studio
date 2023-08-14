@@ -202,12 +202,22 @@ export const MigrationPage = ({ navigateToPageWithError }: Props) => {
                       deployOK
                     )
                   }
-                  onClick={() => {}}
+                  onClick={
+                    validateResourceData.status === 200 &&
+                    validatePolicyData?.status === 200 &&
+                    deployOK
+                      ? () => {} // TODO
+                      : undefined
+                  }
                   className={classes.button}
                 >
                   Migrer delegeringer
                 </Button>
-                <Button aria-disabled onClick={() => {}} className={classes.button}>
+                <Button
+                  aria-disabled // Remember to do same check for aria-disabled as fot button below
+                  onClick={() => {}}
+                  className={classes.button}
+                >
                   Skru av tjenesten i Altinn 2
                 </Button>
               </div>
