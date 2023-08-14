@@ -201,6 +201,11 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
+        public async Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string contentType, string filename, Guid dataGuid, Stream stream)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataGuid)
         {
             string dataPath = TestDataUtil.GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);

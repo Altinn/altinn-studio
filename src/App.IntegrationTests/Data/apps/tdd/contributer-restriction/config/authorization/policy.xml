@@ -180,7 +180,7 @@
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">160694123</xacml:AttributeValue>
-            <xacml:AttributeDesignator AttributeId="urn:altinn:orgNumber" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:organizationnumber" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
       </xacml:AnyOf>      

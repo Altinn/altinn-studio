@@ -13,7 +13,7 @@
     "endEvent": "EndEvent_1"
   },
   "status": {
-    "isArchived": false,
+    "isArchived": true,
     "isSoftDeleted": false,
     "isHardDeleted": false,
     "readStatus": "Read"

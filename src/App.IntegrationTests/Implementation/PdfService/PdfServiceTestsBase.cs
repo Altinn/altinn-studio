@@ -19,6 +19,7 @@ using App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Options;
 using App.IntegrationTests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Moq;
 using Moq.Protected;
 
@@ -111,7 +112,9 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
         internal virtual AppResourcesSI BuildAppResourcesService()
         {
             var appOptionSettings = BuildAppOptionSettings();
-            var appMetadataService = new AppMetadata(appOptionSettings, new FrontendFeatures()); 
+            var featureManager = new Mock<IFeatureManager>();
+            featureManager.Setup(s => s.IsEnabledAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            var appMetadataService = new AppMetadata(appOptionSettings, new FrontendFeatures(featureManager.Object)); 
             var appResources = new AppResourcesSI(appOptionSettings, appMetadataService, null, null);
 
             return appResources;
