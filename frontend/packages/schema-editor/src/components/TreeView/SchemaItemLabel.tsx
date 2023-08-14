@@ -11,7 +11,6 @@ import {
   ObjectKind,
   addCombinationItem,
   addProperty,
-  deleteNode,
   getCapabilities,
   getNameFromPointer,
   pointerIsDefinition,
@@ -23,12 +22,15 @@ import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/ak
 import { useDispatch } from 'react-redux';
 import {
   navigateToType,
-  removeSelection,
   setSelectedAndFocusedNode,
   setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useTranslation } from 'react-i18next';
+import { AltinnConfirmDialog } from 'app-shared/components';
+import { deleteNode } from '@altinn/schema-model';
+import { removeSelection } from '../../features/editor/schemaEditorSlice';
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -52,11 +54,12 @@ export const SchemaItemLabel = ({
   selectedNode,
   translate,
 }: SchemaItemLabelProps) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -111,15 +114,16 @@ export const SchemaItemLabel = ({
       );
   });
 
-  const handleDeleteClick = wrapper(() => {
+  const handleDeleteClick = () => {
     mutate(deleteNode(data, selectedNode.pointer));
     dispatch(removeSelection(selectedNode.pointer));
-  });
+  };
 
   const isArray = selectedNode.isArray || refNode?.isArray;
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
+
   return (
     <div
       className={classNames(classes.propertiesLabel, {
@@ -222,16 +226,36 @@ export const SchemaItemLabel = ({
           />
         )}
         {capabilties.includes(Capabilites.CanBeDeleted) && (
-          <AltinnMenuItem
-            testId={SchemaItemLabelTestIds.contextMenuDelete}
-            id='delete-node-button'
-            key='delete'
-            className={classes.contextMenuLastItem}
-            onClick={handleDeleteClick}
-            text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
-            iconClass='fa fa-trash'
-            disabled={hasReferredNodes}
-          />
+          <AltinnConfirmDialog
+            open={isConfirmDeleteDialogOpen}
+            confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+            onConfirm={() => {
+              handleDeleteClick();
+              setContextAnchor(null);
+            }}
+            onClose={() => {
+              setIsConfirmDeleteDialogOpen(false);
+              setContextAnchor(null);
+            }}
+            trigger={
+              <AltinnMenuItem
+                testId={SchemaItemLabelTestIds.contextMenuDelete}
+                id='delete-node-button'
+                key='delete'
+                className={classes.contextMenuLastItem}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsConfirmDeleteDialogOpen(prevState => !prevState);
+                }}
+                text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
+                iconClass='fa fa-trash'
+                disabled={hasReferredNodes}
+              />
+            }
+          >
+            <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
+            <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+          </AltinnConfirmDialog>
         )}
       </AltinnMenu>
     </div>

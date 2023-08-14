@@ -1,35 +1,6 @@
-.wrapper {
-  display: flex;
-  width: 100%;
-}
-
 .cardWrapper {
   width: 595px;
   min-width: 595px;
-}
-
-.ruleWarning {
-  padding: 20px;
-  color: #E02E49;
-}
-
-.subHeader {
-  font-weight: 500;
-  font-size: 16px;
-  margin-bottom: 5px;
-  margin-top: 10px;
-}
-
-.text {
-  font-weight: 400;
-  font-size: 16px;
-}
-
-.smallText {
-  font-weight: 400;
-  font-size: 12px;
-  margin: 0;
-  padding: 0;
 }
 
 .chipWrapper {
@@ -42,9 +13,22 @@
 }
 
 .addResourceButton {
-  margin-top: 10px;
+  width: 100%;
 }
 
 .warningCardWrapper {
   margin-top: 10px;
+}
+
+.label {
+  margin-top: 40px;
+  margin-bottom: 5px;
+}
+
+.label:first-child {
+  margin-top: 10px;
+}
+
+.dropdownWrapper {
+  margin-bottom: 10px;
 }

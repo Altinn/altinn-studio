@@ -1,0 +1,20 @@
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-block: 10px;
+}
+
+.inputWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-right: 5px;
+}
+
+.textfieldWrapper {
+  width: 48%;
+}
+
+.buttonWrapper {
+  width: 32px;
+}

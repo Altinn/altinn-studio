@@ -122,6 +122,7 @@ export const TextResource = ({
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
             variant={ButtonVariant.Quiet}
+            size='small'
           />
         </span>
       )}
@@ -143,6 +144,7 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t('general.edit')}
                 variant={ButtonVariant.Quiet}
+                size='small'
               />
             ) : (
               <Button
@@ -154,6 +156,7 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t('general.add')}
                 variant={ButtonVariant.Quiet}
+                size='small'
               />
             )}
             <Button
@@ -165,6 +168,7 @@ export const TextResource = ({
               onClick={() => setIsSearchMode(true)}
               title={t('general.search')}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           </span>
         </span>

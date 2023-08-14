@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import cn from 'classnames';
 import classes from './ResourceTable.module.css';
 import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
@@ -34,13 +35,9 @@ export const ResourceTable = ({ list }: Props) => {
     <table className={classes.table}>
       <tbody>
         <tr>
-          <th className={`${classes.tableHeaderXLarge} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Ressurser</p>
-          </th>
-          <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Opprettet av</p>
-          </th>
-          <th className={`${classes.tableHeaderMedium} ${classes.tableHeaderLastChanged}`}>
+          <th className={cn(classes.tableHeaderXLarge, classes.tableHeader)}>Ressurser</th>
+          <th className={cn(classes.tableHeaderLarge, classes.tableHeader)}>Opprettet av</th>
+          <th className={cn(classes.tableHeaderMedium, classes.tableHeaderLastChanged)}>
             <Button
               variant='quiet'
               icon={
@@ -57,11 +54,9 @@ export const ResourceTable = ({ list }: Props) => {
               Sist endret
             </Button>
           </th>
-          <th className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}>
-            <p className={classes.tableHeaderText}>Policy</p>
-          </th>
+          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>Tilgangsregler</th>
           <th
-            className={`${classes.tableHeaderSmall} ${classes.tableHeader}`}
+            className={cn(classes.tableHeaderSmall, classes.tableHeader)}
             aria-label='Rediger ressurs kolonne'
           />
         </tr>

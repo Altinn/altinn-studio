@@ -17,7 +17,9 @@ export const useValidateResourceQuery = (org: string, repo: string, id: string):
 
   return useQuery<ValidationType>(
     [QueryKey.ValidateResource, org, repo, id],
-    () => getValidateResource(org, repo, id), { select: (data) => ({ status: data.status }) }
+    () => getValidateResource(org, repo, id), { select: (data) => {
+      return { status: data.status, errors: Object.keys(data.errors) }
+    } }
   )
 }
 

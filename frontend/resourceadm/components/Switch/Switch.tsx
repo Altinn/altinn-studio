@@ -4,6 +4,7 @@ import classes from './Switch.module.css';
 interface Props {
   onToggle: (isChecked: boolean) => void;
   isChecked: boolean;
+  onFocus: () => void;
 }
 
 /**
@@ -12,7 +13,7 @@ interface Props {
  * @param props.onToggle function to be executed when toggle
  * @param props.isChecked boolean for if the switch is chekced or not
  */
-export const Switch = ({ onToggle, isChecked }: Props) => {
+export const Switch = ({ onToggle, isChecked, onFocus }: Props) => {
   const handleToggle = () => {
     const newCheckedState = !isChecked;
     onToggle(newCheckedState);
@@ -27,6 +28,7 @@ export const Switch = ({ onToggle, isChecked }: Props) => {
         checked={isChecked}
         onChange={handleToggle}
         aria-label='toggleSwitch'
+        onFocus={onFocus}
       />
       <label
         aria-label='Toggle av eller på'

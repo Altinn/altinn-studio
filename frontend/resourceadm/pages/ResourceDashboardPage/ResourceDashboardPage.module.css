@@ -41,3 +41,8 @@
   font-weight: 500;
   margin-bottom: 10px;
 }
+
+.noResultText {
+  margin-top: 20px;
+  font-size: 16px;
+}

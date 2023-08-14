@@ -1,4 +1,3 @@
-import { firstAvailableLayout } from "../utils/formLayoutsUtils";
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { DndProvider } from 'react-dnd';
@@ -67,16 +66,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    if (searchParams.has('deletedLayout')) {
-      const layoutToSelect = firstAvailableLayout(
-        searchParams.get('deletedLayout'),
-        layoutPagesOrder
-      );
-      dispatch(FormLayoutActions.updateSelectedLayout(layoutToSelect));
-      setSearchParams(
-        layoutToSelect !== DEFAULT_SELECTED_LAYOUT_NAME ? { layout: layoutToSelect } : {}
-      );
-    } else if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
+    if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
       setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
       dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
     } else if (searchParams.has('layout')) {

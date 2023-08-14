@@ -5,13 +5,19 @@
   justify-content: space-between;
   padding: 20px;
   margin: 0;
-  background-color: #FFFFFF;
+  background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
-  border: solid 1px #D9D9D9;
+  border: solid 1px var(--fds-semantic-border-neutral-divider);
   cursor: pointer;
+  composes: focusable from '../../../utils/utility.module.css';
 }
 
-.buttonText {
-  font-size: 16px;
-  font-weight: 500;
+.button:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.button:focus-visible,
+.button:focus-within {
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  background-color: var(--fds-semantic-background-default);
 }

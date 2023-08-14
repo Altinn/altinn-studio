@@ -1,6 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientConfig } from '@tanstack/react-query';
 
-export const queryClientMock = new QueryClient({
+export const queryClientConfigMock: QueryClientConfig = {
   logger: {
     log: () => {},
     warn: () => {},
@@ -9,4 +9,8 @@ export const queryClientMock = new QueryClient({
   defaultOptions: {
     queries: { staleTime: Infinity },
   },
-});
+};
+
+export const createQueryClientMock = () => new QueryClient(queryClientConfigMock);
+
+export const queryClientMock = createQueryClientMock();

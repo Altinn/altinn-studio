@@ -37,7 +37,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
         options={options}
         value={selectedOption.value}
       />
-      <Button {...addButtonProps}>Legg til</Button>
+      <Button {...addButtonProps} size='small'>Legg til</Button>
     </div>
   );
 };

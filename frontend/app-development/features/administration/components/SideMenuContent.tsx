@@ -8,7 +8,7 @@ import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoStatusQuery } from '../../../hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Repository } from 'app-shared/types/Repository';
 
 interface ISideMenuContent {
@@ -76,6 +76,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         id='reset-repo-button'
         onClick={onClickResetRepo}
         variant={ButtonVariant.Outline}
+        size='small'
       >
         {t('administration.reset_repo_button')}
       </Button>
@@ -93,6 +94,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         color={ButtonColor.Secondary}
         onClick={toggleDownloadModal}
         variant={ButtonVariant.Outline}
+        size='small'
       >
         {t('administration.download_repo')}
       </Button>

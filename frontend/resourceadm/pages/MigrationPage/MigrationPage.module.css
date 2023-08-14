@@ -4,12 +4,6 @@
   padding: 40px;
 }
 
-.pageHeader {
-  margin-bottom: 40px;
-  font-weight: 400;
-  font-size: 30px;
-}
-
 .contentWrapper {
   width: 630px;
 }
@@ -20,25 +14,15 @@
   margin-bottom: 15px;
 }
 
-.header3 {
-  font-weight: 500;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
 .checkboxWrapper {
   display: flex;
   align-items: center;
   margin-bottom: 30px;
+  margin-top: 20px;
 }
 
 .linkWrapper {
   margin-left: 40px;
-}
-
-.text {
-  font-size: 16px;
-  font-weight: 400;
 }
 
 .datePickers {
@@ -48,10 +32,6 @@
 
 .datePickerWrapper:last-child {
   margin-left: 100px;
-}
-
-div, p, h3, strong {
-  margin: 0;
 }
 
 .migrateBox {

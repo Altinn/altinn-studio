@@ -1,5 +1,3 @@
-import { dataModellingReducer } from 'app-shared/features/dataModelling/sagas';
-import { dataModelsMetadataReducer } from 'app-shared/features/dataModelling/sagas/metadata';
 import handleServiceInformationReducer from '../features/administration/handleServiceInformationSlice';
 import appDeploymentReducer from '../sharedResources/appDeployment/appDeploymentSlice';
 import applicationMetadataReducer from '../sharedResources/applicationMetadata/applicationMetadataSlice';
@@ -15,7 +13,5 @@ export const rootReducer = {
   appReleases: appReleaseReducer,
   appDeployments: appDeploymentReducer,
   configuration: configurationReducer,
-  dataModelling: dataModellingReducer,
-  dataModelsMetadataState: dataModelsMetadataReducer,
   userState: userReducer,
 };

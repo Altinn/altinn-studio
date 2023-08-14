@@ -138,6 +138,7 @@ export const ExpressionContent = ({
               icon={<XMarkIcon/>}
               onClick={handleRemoveExpressionElement}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
             <div className={classes.expressionDetails}>
               <Select
@@ -178,6 +179,7 @@ export const ExpressionContent = ({
                 <Button
                   variant='quiet'
                   onClick={handleAddExpressionElement}
+                  size='small'
                 >
                   <i
                     className={cn('fa', classes.plusIcon, {

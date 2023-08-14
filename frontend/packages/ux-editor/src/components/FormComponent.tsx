@@ -20,6 +20,7 @@ import { useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -48,6 +49,7 @@ export const FormComponent = memo(function FormComponent({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
 
@@ -62,8 +64,7 @@ export const FormComponent = memo(function FormComponent({
 
   const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
 
-  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.stopPropagation();
+  const handleDelete = (): void => {
     deleteFormComponent(id);
     if (isEditMode) handleDiscard();
   };
@@ -112,15 +113,29 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
-        <Button
-          data-testid='component-delete-button'
-          color={ButtonColor.Secondary}
-          icon={<TrashIcon />}
-          onClick={handleDelete}
-          tabIndex={0}
-          title={t('general.delete')}
-          variant={ButtonVariant.Quiet}
-        />
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
+          confirmText={t('ux_editor.component_deletion_confirm')}
+          onConfirm={handleDelete}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
+          trigger={
+            <Button
+              data-testid='component-delete-button'
+              color={ButtonColor.Secondary}
+              icon={<TrashIcon />}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                setIsConfirmDeleteDialogOpen(prevState => !prevState);
+              }}
+              tabIndex={0}
+              title={t('general.delete')}
+              variant={ButtonVariant.Quiet}
+              size='small'
+            />
+          }
+        >
+          <p>{t('ux_editor.component_deletion_text')}</p>
+        </AltinnConfirmDialog>
         {
           isPreviewable && (
             <Button
@@ -129,6 +144,7 @@ export const FormComponent = memo(function FormComponent({
             onClick={handlePreview}
             title='Forhåndsvisning (under utvikling)'
             variant={ButtonVariant.Quiet}
+            size='small'
             />
           )
         }

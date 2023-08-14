@@ -3,11 +3,14 @@ import classes from './NewResourceModal.module.css';
 import { Button } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 import { ResourceNameAndId } from '../ResourceNameAndId';
+import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
+import { useNavigate, useParams } from 'react-router-dom';
+import { NewResourceType } from 'resourceadm/types/global';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onCreateNewResource: (id: string, title: string) => void;
 }
 
 /**
@@ -15,18 +18,53 @@ interface Props {
  *
  * @param props.isOpen boolean for if the modal is open or not
  * @param props.onClose function to close the modal
- * @param props.onCreateNewResource function that handles the creation of a new resource
  */
-export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props) => {
+export const NewResourceModal = ({ isOpen, onClose }: Props) => {
+  const navigate = useNavigate();
+
+  const { selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
+
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
+  const [resourceIdExists, setResourceIdExists] = useState(false);
+  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
+
+  // Mutation function to create new resource
+  const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+
+  /**
+   * Creates a new resource in backend, and navigates if success
+   */
+  const handleCreateNewResource = () => {
+    const idAndTitle: NewResourceType = {
+      identifier: id,
+      title: {
+        nb: title,
+        nn: '',
+        en: '',
+      },
+    };
+
+    createNewResource(idAndTitle, {
+      onSuccess: () =>
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+      onError: (error: any) => {
+        if (error.response.status === 409) {
+          setResourceIdExists(true);
+          setEditIdFieldOpen(true);
+        }
+      },
+    });
+  };
 
   /**
    * Replaces the spaces in the value typed with '-'.
    */
   const handleIDInput = (val: string) => {
     setId(val.replace(/\s/g, '-'));
+    setResourceIdExists(false);
   };
 
   /**
@@ -36,7 +74,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
    * @param val the title value typed
    */
   const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen) {
+    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
       setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
@@ -47,27 +85,45 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
    * so that it closes the edit field, the id is set to the title.
    *
    * @param isOpened the value of the button when it is pressed
+   * @param isSave if the save button is pressed, keep id and title separate
    */
-  const handleClickEditButton = (isOpened: boolean) => {
+  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
     setEditIdFieldOpen(isOpened);
 
-    // If we stop editing, set the ID to the title
-    if (!isOpened) {
-      if (title !== id) setId(title.replace(/\s/g, '-'));
+    if (isSave) {
+      setBothFieldsHaveSameValue(false);
+    } else {
+      if (!isOpened) {
+        setBothFieldsHaveSameValue(true);
+        // If we stop editing, set the ID to the title
+        if (title !== id) setId(title.replace(/\s/g, '-'));
+      }
     }
   };
 
+  /**
+   * Closes the modal and resets the fields
+   */
+  const handleClose = () => {
+    onClose();
+    setId('');
+    setTitle('');
+    setEditIdFieldOpen(false);
+    setResourceIdExists(false);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
+    <Modal isOpen={isOpen} onClose={handleClose} title='Opprett ny ressurs'>
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
-        handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+        handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
+        resourceIdExists={resourceIdExists}
+        bothFieldsHaveSameValue={bothFieldsHaveSameValue}
       />
-      {/* TODO - Add if the id is valid or not based on API calls later */}
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
           <Button onClick={onClose} color='primary' variant='quiet'>
@@ -75,7 +131,7 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
           </Button>
         </div>
         <Button
-          onClick={() => onCreateNewResource(id, title)}
+          onClick={() => handleCreateNewResource()}
           color='primary'
           disabled={id.length === 0 || title.length === 0}
         >

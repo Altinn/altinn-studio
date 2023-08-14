@@ -30,6 +30,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
           onClick={(e) => props.onClick(props.componentType, e)}
           icon={<InformationIcon />}
           variant={ButtonVariant.Quiet}
+          size='small'
         />
       </div>
     </div>

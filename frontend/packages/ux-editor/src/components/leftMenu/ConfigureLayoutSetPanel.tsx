@@ -103,6 +103,7 @@ export const ConfigureLayoutSetPanel = () => {
           className={classes.configureLayoutSetButton}
           variant={ButtonVariant.Quiet}
           onClick={handleConfigureLayoutSetButtonClick}
+          size='small'
         >
           {t('left_menu.configure_layout_sets')}
         </Button>

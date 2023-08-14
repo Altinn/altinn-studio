@@ -1,13 +1,9 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
-import { ArrowRightIcon, CheckmarkCircleIcon, ExternalLinkIcon } from '@navikt/aksel-icons';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { DeployErrorType, NavigationBarPageType } from 'resourceadm/types/global';
 import { LinkButton } from '../LinkButton';
-
-export interface DeployErrorType {
-  message: string;
-  pageWithError: 'about' | 'policy';
-}
+import { Alert, Paragraph } from '@digdir/design-system-react';
 
 interface Props {
   title: string;
@@ -21,7 +17,10 @@ interface Props {
  * Displays a red danger card or a green success card, as well as a message
  *
  * @param props.title title to display on the card
- * @param error either list of error object with message and the page to navigate to, or a string message
+ * @param props.error either list of error object with message and the page to navigate to, or a string message
+ * @param props.isSuccess flag for if it is success or alert
+ * @param props.onNavigateToPageWithError function that navigates to the page with error
+ * @param props.resourceId the id of the resource
  */
 export const ResourceDeployStatus = ({
   title,
@@ -38,31 +37,34 @@ export const ResourceDeployStatus = ({
       return (
         <div className={classes.cardElement}>
           <ArrowRightIcon title={error} fontSize='1.5rem' />
-          <p className={classes.text}>{error}</p>
+          <Paragraph size='small' className={classes.text}>
+            {error}
+          </Paragraph>
         </div>
       );
     }
-    return error.map((e, index) => (
-      <div className={classes.cardElement} key={index + resourceId}>
-        <ArrowRightIcon title={e.message} fontSize='1.5rem' />
-        <p className={classes.text}>{e.message}</p>
-        <LinkButton
-          text='Fikse det'
-          icon={<ExternalLinkIcon title='Gå til siden med feilen' fontSize='1.2rem' />}
-          onClick={() => onNavigateToPageWithError(e.pageWithError)}
-        />
-      </div>
-    ));
+    return error.map((e, index) => {
+      const textArr = e.message.split('"');
+
+      return (
+        <div className={classes.cardElement} key={index + resourceId}>
+          <ArrowRightIcon title={e.message} fontSize='1.5rem' />
+          <Paragraph size='small' className={classes.text}>
+            {textArr[0] + ' "'}
+            <LinkButton
+              text={textArr[1]}
+              onClick={() => onNavigateToPageWithError(e.pageWithError)}
+            />
+            {'"'}
+          </Paragraph>
+        </div>
+      );
+    });
   };
 
   const displayContent = () => {
     if (isSuccess) {
-      return (
-        <>
-          <CheckmarkCircleIcon className={classes.successIcon} title={title} fontSize='1.5rem' />
-          <p className={classes.text}>{title}</p>
-        </>
-      );
+      return <p className={classes.text}>{title}</p>;
     }
     return (
       <>
@@ -73,8 +75,8 @@ export const ResourceDeployStatus = ({
   };
 
   return (
-    <div className={`${isSuccess ? classes.success : classes.error} ${classes.card}`}>
+    <Alert className={classes.alert} severity={isSuccess ? 'success' : 'danger'}>
       {displayContent()}
-    </div>
+    </Alert>
   );
 };

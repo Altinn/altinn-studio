@@ -1,0 +1,12 @@
+.wrapper {
+  width: 100%;
+}
+
+.contentWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  height: 60px;
+  background-color: #284e6a;
+}

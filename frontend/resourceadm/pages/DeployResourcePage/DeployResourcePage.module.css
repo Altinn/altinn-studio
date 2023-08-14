@@ -4,42 +4,25 @@
   padding: 40px;
 }
 
-.pageHeader {
-  margin-bottom: 40px;
-  font-weight: 400;
-  font-size: 30px;
-}
-
 .contentWrapper {
   width: 630px;
-}
-
-.subHeader {
-  font-weight: 500;
-  margin-top: 40px;
-  margin-bottom: 5px;
-  font-size: 18px;
 }
 
 .deployCardsWrapper {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .newVersionWrapper {
   margin-top: 40px;
   width: 100%;
-}
-
-.text {
-  margin-bottom: 5px;
-  font-size: 16px;
-  font-weight: 400;
+  margin-bottom: 40px;
 }
 
 .textAndButton {
   display: flex;
+  align-items: flex-end;
   width: 100%;
 }
 
@@ -52,7 +35,9 @@
   margin-bottom: 20px;
 }
 
-p, h1, h2 {
+p,
+h1,
+h2 {
   margin: 0;
   line-height: 24px;
 }

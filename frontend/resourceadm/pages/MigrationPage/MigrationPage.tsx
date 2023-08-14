@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './MigrationPage.module.css';
 import { MigrationStep } from 'resourceadm/components/MigrationStep';
-import { Checkbox, Button, TextField } from '@digdir/design-system-react';
+import { Checkbox, Button, TextField, Heading, Paragraph } from '@digdir/design-system-react';
 import { Link } from 'resourceadm/components/Link';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
 
@@ -21,7 +21,9 @@ export const MigrationPage = () => {
 
   return (
     <div className={classes.pageWrapper}>
-      <h1 className={classes.pageHeader}>Migrering av Altinn II tjeneste</h1>
+      <Heading size='large' spacing level={1}>
+        Migrering av Altinn II tjeneste
+      </Heading>
       <div className={classes.contentWrapper}>
         <MigrationStep
           title='Steg 1:'
@@ -45,7 +47,9 @@ export const MigrationPage = () => {
           onToggle={(checked: boolean) => setStep3Checked(checked)}
         />
         <div className={classes.contentDivider} />
-        <h3 className={classes.header3}>Før du begynner migrering</h3>
+        <Heading size='xsmall' spacing level={2}>
+          Før du begynner migrering
+        </Heading>
         <div className={classes.checkboxWrapper}>
           <Checkbox
             label='Integrasjon mot Altinn funker'
@@ -60,12 +64,14 @@ export const MigrationPage = () => {
             />
           </div>
         </div>
-        <h3 className={classes.header3}>Velg tidspunkt for migrering</h3>
-        <p className={classes.text}>
+        <Heading size='xsmall' spacing level={3}>
+          Velg tidspunkt for migrering
+        </Heading>
+        <Paragraph size='small'>
           Velg dato og tid tjenesten skal migreres fra altinn II til altinn 3. Vi anbefaler at dette
           gjøres på et tidspunkt der tjenesten har lite eller ingen trafikk. For eksempel midt på
           natten.
-        </p>
+        </Paragraph>
         <div className={classes.datePickers}>
           <div className={classes.datePickerWrapper}>
             <TextField
@@ -85,13 +91,15 @@ export const MigrationPage = () => {
           </div>
         </div>
         <div className={classes.migrateBox}>
-          <h3 className={classes.header3}>Velg tidspunkt for migrering</h3>
-          <p className={classes.text}>
+          <Heading size='xsmall' spacing level={3}>
+            Migrering av tjeneste
+          </Heading>
+          <Paragraph size='small'>
             Jeg forstår at å trykke <strong>start migrering</strong> fører til at følgende
             handlinger iverksettes.
-          </p>
+          </Paragraph>
           <div className={classes.migrateSteps}>
-            <p>TODO steps</p>
+            <Paragraph size='small'>TODO steps</Paragraph>
           </div>
           <Button onClick={() => {}}>Start migrering</Button>
         </div>

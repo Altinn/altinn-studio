@@ -1,25 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner } from '@digdir/design-system-react';
-import { PlusCircleIcon } from '@navikt/aksel-icons';
+import { Button, Spinner, Heading } from '@digdir/design-system-react';
+import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { NewResourceType, ResourceType } from 'resourceadm/types/global';
-import { Footer } from 'resourceadm/components/Footer';
-import { useGetResourceListQuery, useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import { ResourceType } from 'resourceadm/types/global';
+import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModal';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 /**
  * Displays the page for the resource dashboard
  */
 export const ResourceDashboardPage = () => {
-  const navigate = useNavigate();
-
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -31,11 +27,11 @@ export const ResourceDashboardPage = () => {
 
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
-  const { data: resourceListData, isLoading: resourceListLoading } =
-    useGetResourceListQuery(selectedContext);
-
-  // Mutation function to create new resource
-  const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+  const {
+    data: resourceListData,
+    isLoading: resourceListLoading,
+    isRefetching: refetchingList,
+  } = useGetResourceListQuery(selectedContext);
 
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
@@ -59,101 +55,80 @@ export const ResourceDashboardPage = () => {
   };
 
   /**
-   * Creates a new resource in backend, and navigates if success
-   */
-  const handleCreateNewResource = (id: string, title: string) => {
-    const idAndTitle: NewResourceType = {
-      identifier: id,
-      title: {
-        nb: title,
-        nn: '',
-        en: '',
-      },
-    };
-
-    // TODO - Error handling on 409 conflict
-    createNewResource(idAndTitle, {
-      onSuccess: () =>
-        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
-    });
-  };
-
-  /**
    * Display different content based on the loading state
    */
   const displayContent = () => {
-    if (resourceListLoading) {
+    if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
         </div>
       );
     } else {
       return (
         <>
-          <h2 className={classes.subheader}>{`Alle ressurser (${resourceListData.length})`}</h2>
-          <ResourceTable list={filteredTableData(resourceListData)} />
+          <SearchBox onChange={(value: string) => setSearchValue(value)} />
+          <div style={{ width: '100%' }}>
+            <Heading size='xsmall' level={2}>
+              {`Alle ressurser (${resourceListData?.length ?? 0})`}
+            </Heading>
+          </div>
+          <ResourceTable list={filteredTableData(resourceListData ?? [])} />
+          {filteredTableData(resourceListData ?? []).length === 0 && (
+            <p className={classes.noResultText}>
+              Det finnes ingen ressursen som har navnet du søkte etter.
+            </p>
+          )}
         </>
       );
     }
   };
 
   return (
-    <>
-      <div className={classes.pageWrapper}>
-        <div className={classes.topWrapper}>
-          <h1>{`${selectedContext}'s ressurser`}</h1>
-          <div className={classes.topRightWrapper}>
-            <Button
-              variant='quiet'
-              color='secondary'
-              icon={<PlusCircleIcon title='Migrer ressurs' />}
-              iconPlacement='right'
-              onClick={() => setMigrateModalOpen(true)}
-              size='medium'
-            >
-              <strong>Migrer ressurs</strong>
-            </Button>
-            <div className={classes.verticalDivider} />
-            <Button
-              variant='quiet'
-              color='secondary'
-              icon={<PlusCircleIcon title='Opprett ny ressurs' />}
-              iconPlacement='right'
-              onClick={() => setNewResourceModalOpen(true)}
-              size='medium'
-            >
-              <strong>Opprett ny ressurs</strong>
-            </Button>
-          </div>
+    <div className={classes.pageWrapper}>
+      <div className={classes.topWrapper}>
+        <Heading size='large' level={1}>
+          {`${selectedContext}'s ressurser`}
+        </Heading>
+        <div className={classes.topRightWrapper}>
+          <Button
+            variant='quiet'
+            color='secondary'
+            icon={<MigrationIcon title='Migrer ressurs' />}
+            iconPlacement='right'
+            onClick={() => setMigrateModalOpen(true)}
+            size='medium'
+          >
+            <strong>Migrer ressurs</strong>
+          </Button>
+          <div className={classes.verticalDivider} />
+          <Button
+            variant='quiet'
+            color='secondary'
+            icon={<PlusCircleIcon title='Opprett ny ressurs' />}
+            iconPlacement='right'
+            onClick={() => setNewResourceModalOpen(true)}
+            size='medium'
+          >
+            <strong>Opprett ny ressurs</strong>
+          </Button>
         </div>
-        <div className={classes.horizontalDivider} />
-        <div className={classes.componentWrapper}>
-          <SearchBox onChange={(value: string) => setSearchValue(value)} />
-        </div>
-        <div className={classes.componentWrapper}>{displayContent()}</div>
-        {hasMergeConflict && (
-          <MergeConflictModal
-            isOpen={hasMergeConflict}
-            handleSolveMerge={refetch}
-            org={selectedContext}
-            repo={repo}
-          />
-        )}
-        <NewResourceModal
-          isOpen={newResourceModalOpen}
-          onClose={() => setNewResourceModalOpen(false)}
-          onCreateNewResource={handleCreateNewResource}
-        />
-        <MigrateResourceModal
-          isOpen={migrateModalOpen}
-          onClose={() => setMigrateModalOpen(false)}
-          onPlanMigrate={() => {
-            console.log('Migrating... Coming soon');
-          }} // TODO when connected with API calls
-        />
       </div>
-      <Footer />
-    </>
+      <div className={classes.horizontalDivider} />
+      <div className={classes.componentWrapper}>{displayContent()}</div>
+      {hasMergeConflict && (
+        <MergeConflictModal
+          isOpen={hasMergeConflict}
+          handleSolveMerge={refetch}
+          org={selectedContext}
+          repo={repo}
+        />
+      )}
+      <NewResourceModal
+        isOpen={newResourceModalOpen}
+        onClose={() => setNewResourceModalOpen(false)}
+      />
+      <MigrateResourceModal isOpen={migrateModalOpen} onClose={() => setMigrateModalOpen(false)} />
+    </div>
   );
 };

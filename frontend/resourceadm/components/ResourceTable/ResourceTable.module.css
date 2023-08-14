@@ -7,8 +7,9 @@
 
 .tableHeader {
   text-align: left;
-  border-bottom: 2px solid #BCC7CC;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   padding-block: 15px;
+  font-weight: var(--fds-typography-heading-medium);
 }
 
 .tableHeaderXLarge {
@@ -21,27 +22,17 @@
 }
 
 .tableHeaderMedium {
-  width: 18%;
+  width: 19%;
 }
 
 .tableHeaderSmall {
-  width: 10%;
-}
-
-.tableHeaderText {
-  font-size: 16px;
-  font-weight: 400;
-  font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #00315D;
+  width: 8%;
 }
 
 .tableHeaderLastChanged {
   text-align: left;
-  border-bottom: 2px solid #BCC7CC;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   padding-block: 5px;
   padding-right: 10px;
-}
-
-p {
-  margin: 0
+  font-weight: var(--fds-typography-heading-medium);
 }

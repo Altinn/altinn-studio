@@ -1,7 +1,7 @@
 import React from 'react';
+import cn from 'classnames';
 import classes from './ResourceTableDataRow.module.css';
-import { ResourceTableDataChip } from './ResourceTableDataChip';
-import { Button } from '@digdir/design-system-react';
+import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -26,21 +26,23 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
 
   // TODO - translate
   return (
-    <tr>
-      <td className={`${classes.tableDataXLarge} ${classes.tableData}`}>
+    <tr style={{ width: '100%' }}>
+      <td className={cn(classes.tableDataXLarge, classes.tableData)}>
         {/* TODO - Fix translation of title */}
-        <p className={classes.tableDataText}>{resource.title['nb']}</p>
+        <Paragraph size='small'>{resource.title['nb']}</Paragraph>
       </td>
-      <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
-        <p className={classes.tableDataText}>{resource.createdBy}</p>
+      <td className={cn(classes.tableDataLarge, classes.tableData)}>
+        <Paragraph size='small'>{resource.createdBy}</Paragraph>
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData} ${classes.tableDataDate}`}>
-        <p className={classes.tableDataText}>{resource.lastChanged}</p>
+      <td className={cn(classes.tableDataMedium, classes.tableData, classes.tableDataDate)}>
+        <Paragraph size='small'>{resource.lastChanged}</Paragraph>
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
-        <ResourceTableDataChip hasPolicy={resource.hasPolicy} />
+      <td className={cn(classes.tableDataMedium, classes.tableData)}>
+        <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
+          {resource.hasPolicy ? 'Har tilgangsregler' : 'Mangler tilgangsregler'}
+        </Tag>
       </td>
-      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
+      <td className={cn(classes.tableDataSmall, classes.tableData)}>
         <Button
           variant='quiet'
           color='secondary'

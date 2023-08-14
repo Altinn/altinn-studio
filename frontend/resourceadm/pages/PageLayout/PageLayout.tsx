@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import classes from './PageLayout.module.css';
 import { Outlet, useNavigate } from 'react-router-dom';
 
 import { HeaderContext } from 'app-shared/navigation/main-header/Header';
@@ -9,13 +10,14 @@ import { userHasAccessToSelectedContext } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { VersionControlHeader } from './VersionControlHeader';
+import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 
 export const PageLayout = () => {
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
   const selectedContext = useSelectedContext();
+  const repo = `${selectedContext}-resources`;
 
   const navigate = useNavigate();
 
@@ -39,8 +41,14 @@ export const PageLayout = () => {
   return (
     <>
       <HeaderContext.Provider value={headerContextValue}>
+        {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
         <AppHeader />
-        <VersionControlHeader />
+        <GiteaHeader
+          org={selectedContext}
+          app={repo}
+          menuOnlyHasRepository
+          className={classes.extraPadding}
+        />
       </HeaderContext.Provider>
       <Outlet />
     </>

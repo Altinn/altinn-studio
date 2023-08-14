@@ -20,7 +20,7 @@ import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 
-type SchemaItemProps = {
+export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
   isPropertiesView: boolean;
@@ -64,14 +64,15 @@ export function SchemaItem({
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
   const onMove = (from: DragItem, to: DragItem) =>
     mutate(changeChildrenOrder(data, { pointerA: from.itemId, pointerB: to.itemId }));
+
   return (
-    <DndItem index={index} itemId={selectedNode.pointer} containerId={base} onMove={onMove}>
-      <TreeItem
-        nodeId={selectedNode.pointer}
-        classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
-        onClick={(e: any) => onLabelClick(e, selectedNode)}
-        onFocusCapture={(e: any) => e.stopPropagation()}
-        label={
+    <TreeItem
+      nodeId={selectedNode.pointer}
+      classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
+      onClick={(e: any) => onLabelClick(e, selectedNode)}
+      onFocusCapture={(e: any) => e.stopPropagation()}
+      label={
+        <DndItem index={index} itemId={selectedNode.pointer} containerId={base} onMove={onMove}>
           <SchemaItemLabel
             icon={getIconStr(refNode ?? selectedNode)}
             key={`${selectedNode.pointer}-label`}
@@ -80,19 +81,19 @@ export function SchemaItem({
             translate={translate}
             hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
           />
-        }
-      >
-        {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
-          <SchemaItem
-            index={childNodeIndex}
-            isPropertiesView={isPropertiesView}
-            selectedNode={childNode}
-            key={`${keyPrefix}-${childNode.pointer}`}
-            translate={translate}
-            onLabelClick={(e: any) => onLabelClick(e, childNode)}
-          />
-        ))}
-      </TreeItem>
-    </DndItem>
+        </DndItem>
+      }
+    >
+      {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
+        <SchemaItem
+          index={childNodeIndex}
+          isPropertiesView={isPropertiesView}
+          selectedNode={childNode}
+          key={`${keyPrefix}-${childNode.pointer}`}
+          translate={translate}
+          onLabelClick={(e: any) => onLabelClick(e, childNode)}
+        />
+      ))}
+    </TreeItem>
   );
 }

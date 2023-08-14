@@ -17,8 +17,9 @@ export const useValidatePolicyQuery = (org: string, repo: string, id: string): U
 
   return useQuery<ValidationType>(
     [QueryKey.ValidatePolicy, org, repo, id],
-    () => getValidatePolicy(org, repo, id), { select: (data) =>  ({ status: data.status })
-    }
+    () => getValidatePolicy(org, repo, id), { select: (data) => {
+      return { status: data.status, errors: Object.keys(data.errors) }
+    } }
   )
 }
 

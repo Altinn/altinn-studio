@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
-import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import {
   fetchRemainingSession,
   keepAliveSession,
@@ -28,7 +26,7 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useRepoStatusQuery } from './hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 import { PageSpinner } from 'app-shared/components';
 
@@ -60,13 +58,6 @@ export function App() {
   const dispatch = useAppDispatch();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-    if (repositoryType === RepositoryType.App) {
-      dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
-    }
-  }, [app, dispatch, org, repositoryType]);
 
   useEffect(() => {
     dispatch(fetchRemainingSession());
@@ -147,7 +138,11 @@ export function App() {
     [dispatch]
   );
   if (!repoStatus) {
-    return <div className={classes.appSpinner}><PageSpinner/></div>
+    return (
+      <div className={classes.appSpinner}>
+        <PageSpinner />
+      </div>
+    );
   }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>

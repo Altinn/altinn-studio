@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button, TextArea } from '@digdir/design-system-react';
-import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
+import { Button, TextArea, Label, ErrorMessage, Select } from '@digdir/design-system-react';
+import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
   PolicyActionType,
@@ -8,12 +8,10 @@ import {
   PolicyRuleResourceType,
   PolicySubjectType,
 } from 'resourceadm/types/global';
-import { PolicyRuleSubjectListItem } from '../PolicyRuleSubjectListItem';
-import { PolicySubjectSelectButton } from '../PolicySubjectSelectButton';
-import { ResourceNarrowingList } from '../ResourceNarrowingList';
-import { WarningCard } from '../WarningCard';
-import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
-import { Chip } from '../Chip';
+import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
+import { ResourceNarrowingList } from './ResourceNarrowingList';
+import { ExpandablePolicyElement } from './ExpandablePolicyElement';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
   policyRule: PolicyRuleCardType;
@@ -94,6 +92,16 @@ export const ExpandablePolicyCard = ({
       .map((s) => ({ value: s.subjectTitle, label: s.subjectTitle }));
   };
   const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions());
+
+  /**
+   * Maps the action objects to option objects for display in the select component
+   */
+  const getActionOptions = () => {
+    return actions
+      .filter((a) => !policyRule.actions.includes(a.actionTitle))
+      .map((a) => ({ value: a.actionTitle, label: a.actionTitle }));
+  };
+  const [actionOptions, setActionOptions] = useState(getActionOptions());
 
   /**
    * Gets the id of the policy
@@ -189,39 +197,24 @@ export const ExpandablePolicyCard = ({
   /**
    * Displays the actions
    */
-  const displayActions = actions.map((a, i) => (
-    <Chip
-      key={i}
-      text={a.actionTitle}
-      isSelected={policyRule.actions.includes(a.actionTitle)}
-      onClick={() => handleClickAction(i, a.actionTitle)}
-    />
-  ));
+  const displayActions = policyRule.actions.map((a, i) => {
+    return <ActionAndSubjectListItem key={i} title={a} onRemove={() => handleRemoveAction(i, a)} />;
+  });
 
   /**
-   * Removes or adds an action
+   * Handles the removal of actions
    */
-  const handleClickAction = (index: number, action: string) => {
-    const updatedSelectedActions = [...policyRule.actions];
+  const handleRemoveAction = (index: number, actionTitle: string) => {
+    // Remove from selected list
+    const updatedActions = [...policyRule.actions];
+    updatedActions.splice(index, 1);
 
-    // If already present, remove it and check if there is an error
-    if (policyRule.actions.includes(actions[index].actionTitle)) {
-      const selectedActionIndex = policyRule.actions.findIndex((a) => a === action);
-      updatedSelectedActions.splice(selectedActionIndex, 1);
-      setHasRightsErrors(updatedSelectedActions.length === 0);
-    }
-    // else add it and remove the action error
-    else {
-      updatedSelectedActions.push(action);
-      setHasRightsErrors(false);
-    }
+    // Add to options list
+    setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
 
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      updatedSelectedActions,
-      policyRule.resources
-    );
+    updateRules(policyRule.description, policyRule.subject, updatedActions, policyRule.resources);
+
+    setHasRightsErrors(updatedActions.length === 0);
   };
 
   /**
@@ -229,16 +222,12 @@ export const ExpandablePolicyCard = ({
    */
   const displaySubjects = policyRule.subject.map((s, i) => {
     return (
-      <PolicyRuleSubjectListItem
-        key={i}
-        subjectTitle={s}
-        onRemove={() => handleRemoveSubject(i, s)}
-      />
+      <ActionAndSubjectListItem key={i} title={s} onRemove={() => handleRemoveSubject(i, s)} />
     );
   });
 
   /**
-   * Handles the removal of resources
+   * Handles the removal of subjects
    */
   const handleRemoveSubject = (index: number, subjectTitle: string) => {
     // Remove from selected list
@@ -247,7 +236,7 @@ export const ExpandablePolicyCard = ({
 
     // Add to options list
     setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
-    //updateRules(ruleDescription, updatedSubjects, selectedActions, resources);
+
     updateRules(policyRule.description, updatedSubjects, policyRule.actions, policyRule.resources);
 
     setHasSubjectsError(updatedSubjects.length === 0);
@@ -275,6 +264,34 @@ export const ExpandablePolicyCard = ({
       policyRule.description,
       updatedSubjectTitles,
       policyRule.actions,
+      policyRule.resources
+    );
+
+    setHasSubjectsError(false);
+  };
+
+  /**
+   * Handles the click on an action in the select list. It removes the clicked element
+   * from the options list, and adds it to the selected action title list.
+   */
+  const handleClickActionInList = (option: string) => {
+    // As the input field is multiple, the onChange function uses string[], but
+    // we are removing the element from the options list before it is displayed, so
+    // it will only ever be a first value in the array.
+    const clickedOption = option;
+
+    // Remove from options list
+    const index = actionOptions.findIndex((o) => o.value === clickedOption);
+    const updatedOptions = [...actionOptions];
+    updatedOptions.splice(index, 1);
+    setActionOptions(updatedOptions);
+
+    const updatedActionTitles = [...policyRule.actions, clickedOption];
+
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      updatedActionTitles,
       policyRule.resources
     );
 
@@ -326,7 +343,7 @@ export const ExpandablePolicyCard = ({
   const displayWarningCard = (text: string) => {
     return (
       <div className={classes.warningCardWrapper}>
-        <WarningCard text={text} />
+        <ErrorMessage size='small'>{text}</ErrorMessage>
       </div>
     );
   };
@@ -338,57 +355,98 @@ export const ExpandablePolicyCard = ({
     return hasResourceError || hasRightsError || hasSubjectsError;
   };
 
+  /**
+   * Gets the correct text to display for a rule with missing values
+   */
+  const getRuleErrorText = (): string => {
+    const arr: string[] = [];
+    if (hasResourceError) arr.push('sub-ressurs');
+    if (hasRightsError) arr.push('rettigheter');
+    if (hasSubjectsError) arr.push('roller');
+
+    if (arr.length === 1) {
+      return `Regel ${policyRule.ruleId} mangler ${arr[0]}`;
+    }
+    if (arr.length === 2) {
+      return `Regel ${policyRule.ruleId} mangler ${arr[0]} og ${arr[1]}`;
+    }
+    if (arr.length === 3) {
+      return `Regel ${policyRule.ruleId} mangler ${arr[0]}, ${arr[1]} og ${arr[2]}`;
+    }
+    return '';
+  };
+
   return (
-    <div className={classes.wrapper}>
-      <div className={classes.cardWrapper}>
-        <ExpandablePolicyElement
-          title={`Regel ${getPolicyRuleId()}`}
-          isCard
-          handleDuplicateElement={handleDuplicateRule}
-          handleRemoveElement={handleDeleteRule}
-        >
-          <p className={classes.subHeader}>Hvilken ressurser skal regelen gjelde for?</p>
-          {displayResources}
-          <div className={classes.addResourceButton}>
-            <Button type='button' onClick={handleClickAddResource} color='secondary'>
-              Legg til en ressurs
-            </Button>
-          </div>
-          {showErrors && hasResourceError && displayWarningCard('Du må legge til en ressurs')}
-          <p className={classes.subHeader}>Hvilke rettigheter skal gis?</p>
-          <p className={classes.smallText}>Velg minimum ett alternativ fra listen under</p>
-          <div className={classes.chipWrapper}>{displayActions}</div>
-          {showErrors &&
-            hasRightsError &&
-            displayWarningCard('Du må legge til hvilken rettigheter som skal gis')}
-          <p className={classes.subHeader}>Hvem skal ha disse rettighetene?</p>
-          {displaySubjects}
-          {subjectOptions.length > 0 && (
-            <PolicySubjectSelectButton
-              options={subjectOptions}
-              onChange={handleClickSubjectInList}
-            />
-          )}
-          {showErrors &&
-            hasSubjectsError &&
-            displayWarningCard('Du må legge til hvem rettighetene skal gjelde for')}
-          <p className={classes.subHeader}>Legg til en beskrivelse av regelen</p>
-          <div className={classes.textAreaWrapper}>
-            <TextArea
-              resize='vertical'
-              placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
-              value={policyRule.description}
-              onChange={(e) => handleChangeDescription(e.currentTarget.value)}
-              rows={5}
-            />
-          </div>
-        </ExpandablePolicyElement>
-      </div>
-      {showErrors && getHasRuleError() && (
-        <div className={classes.ruleWarning}>
-          <ExclamationmarkTriangleFillIcon title='The rule has a warning' fontSize='2rem' />
+    <div className={classes.cardWrapper}>
+      <ExpandablePolicyElement
+        title={`Regel ${getPolicyRuleId()}`}
+        isCard
+        handleDuplicateElement={handleDuplicateRule}
+        handleRemoveElement={handleDeleteRule}
+        hasError={showErrors && getHasRuleError()}
+      >
+        <Label className={classes.label} size='medium'>
+          Hvilken sub-ressurser skal regelen gjelde for?
+        </Label>
+        {displayResources}
+        <div className={classes.addResourceButton}>
+          <Button
+            type='button'
+            onClick={handleClickAddResource}
+            color='secondary'
+            fullWidth
+            icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+          >
+            Legg til en sub-ressurs
+          </Button>
         </div>
-      )}
+        {showErrors &&
+          hasResourceError &&
+          displayWarningCard('Du må legge til minimum en sub-ressurs.')}
+        <Label className={classes.label} size='medium'>
+          Hvilke rettigheter skal gis?
+        </Label>
+        <div className={classes.dropdownWrapper}>
+          <Select
+            options={actionOptions}
+            onChange={(value: string) => value !== null && handleClickActionInList(value)}
+            disabled={actionOptions.length === 0}
+            label={actionOptions.length === 0 ? 'Alle rettigheter er valgt' : 'Legg til rettighet'}
+            error={showErrors && hasRightsError}
+          />
+        </div>
+        <div className={classes.chipWrapper}>{displayActions}</div>
+        {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
+        <Label className={classes.label} size='medium'>
+          Hvem skal ha disse rettighetene?
+        </Label>
+        <div className={classes.dropdownWrapper}>
+          <Select
+            options={subjectOptions}
+            onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
+            disabled={subjectOptions.length === 0}
+            label={subjectOptions.length === 0 ? 'Alle roller er valgt' : 'Legg til rolle'}
+            error={showErrors && hasSubjectsError}
+          />
+        </div>
+        <div className={classes.chipWrapper}>{displaySubjects}</div>
+        {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
+        <Label className={classes.label} size='medium'>
+          Legg til en beskrivelse av regelen
+        </Label>
+        <div className={classes.textAreaWrapper}>
+          <TextArea
+            resize='vertical'
+            placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
+            value={policyRule.description}
+            onChange={(e) => handleChangeDescription(e.currentTarget.value)}
+            rows={5}
+            aria-labelledby='ruleDescription'
+          />
+          <ScreenReaderSpan id='ruleDescription' label='Beskrivelse av regelen' />
+        </div>
+      </ExpandablePolicyElement>
+      {showErrors && displayWarningCard(getRuleErrorText())}
     </div>
   );
 };

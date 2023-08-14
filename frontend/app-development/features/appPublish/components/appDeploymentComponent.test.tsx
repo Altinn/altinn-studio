@@ -31,20 +31,20 @@ describe('AppDeploymentComponent', () => {
   const user = userEvent.setup();
   it('should render', () => {
     render();
-    expect(screen.getByText(`${textMock('app_deploy.environment')}`)).toBeInTheDocument();
+    expect(screen.getByText(`${textMock('app_deploy.environment', { envName: 'test' })}`)).toBeInTheDocument();
   });
 
   it('should render with no deploy history', () => {
     render();
     expect(screen.getByText(textMock('app_deploy.no_app_deployed'))).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deploy_table.deployed_version_history_empty'))
+      screen.getByText(textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' }))
     ).toBeInTheDocument();
   });
 
   it('should render missing rights message if deployPermission is false', () => {
     render({ deployPermission: false });
-    expect(screen.getByText(textMock('app_publish.missing_rights'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_publish.missing_rights', { envName: 'test', orgName: 'test' }))).toBeInTheDocument();
   });
 
   it('should render with deploy history', () => {
@@ -68,9 +68,9 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ deployHistory });
-    expect(screen.getByText(textMock('app_deploy.deployed_version'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deploy.deployed_version', { appDeployedVersion: 'test' }))).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deploy_table.deployed_version_history'))
+      screen.getByText(textMock('app_deploy_table.deployed_version_history', { envName: 'test' }))
     ).toBeInTheDocument();
     expect(screen.getByText('test')).toBeInTheDocument();
   });
@@ -196,7 +196,7 @@ describe('AppDeploymentComponent', () => {
         screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') })
       )
     );
-    await act(() => user.click(screen.getByRole('button', { name: 'Ja' })));
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.yes') })));
     expect(mockConsoleError).toHaveBeenCalled();
     expect(screen.getByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
   });

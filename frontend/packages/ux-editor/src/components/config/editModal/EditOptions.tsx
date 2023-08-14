@@ -182,6 +182,7 @@ export function EditOptions({
                           icon={<XMarkIcon />}
                           onClick={removeItem}
                           variant={ButtonVariant.Quiet}
+                          size='small'
                         />
                       </div>
                     </div>
@@ -200,6 +201,7 @@ export function EditOptions({
             icon={<PlusIcon />}
             onClick={handleAddOption}
             variant={ButtonVariant.Outline}
+            size='small'
           >
             {t('ux_editor.modal_new_option')}
           </Button>

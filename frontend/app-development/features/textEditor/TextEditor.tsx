@@ -103,6 +103,7 @@ useEffect(() => {
             color={ButtonColor.Primary}
             onClick={() => setHideIntroPage(true)}
             variant={ButtonVariant.Outline}
+            size='small'
           >
             {t('general.close')}
           </Button>
@@ -110,6 +111,7 @@ useEffect(() => {
             color={ButtonColor.Secondary}
             onClick={handleHideIntroPageButtonClick}
             variant={ButtonVariant.Outline}
+            size='small'
           >
             {t('general.do_not_show_anymore')}
           </Button>

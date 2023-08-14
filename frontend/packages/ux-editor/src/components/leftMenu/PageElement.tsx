@@ -3,11 +3,10 @@ import classes from './PageElement.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
 import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
-import { ConfirmModal } from './ConfirmModal';
 import { Divider } from 'app-shared/primitives';
-import { MenuElipsisVerticalIcon, ChevronRightIcon } from '@navikt/aksel-icons';
+import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { deepCopy, removeKey } from 'app-shared/pure';
+import { deepCopy } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
@@ -18,7 +17,8 @@ import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMu
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
-import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { AltinnConfirmDialog } from 'app-shared/components';
+import { firstAvailableLayout } from "../../utils/formLayoutsUtils";
 
 export interface IPageElementProps {
   name: string;
@@ -41,9 +41,9 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [newName, setNewName] = useState<string>('');
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
-  const [deleteAnchorEl, setDeleteAnchorEl] = useState<null | Element>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   useEffect(() => {
     if (name !== selectedLayout) {
@@ -67,14 +67,16 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
-      setDeleteAnchorEl(event.currentTarget);
-    } else if (action === 'edit') {
-      setEditMode(true);
-      setNewName(name);
-    } else if (action === 'up' || action === 'down') {
-      updateLayoutOrder({ layoutName: name, direction: action });
+      setIsConfirmDeleteDialogOpen(prevState => !prevState);
+    } else {
+      if (action === 'edit') {
+        setEditMode(true);
+        setNewName(name);
+      } else if (action === 'up' || action === 'down') {
+        updateLayoutOrder({ layoutName: name, direction: action });
+      }
+      setMenuAnchorEl(null);
     }
-    setMenuAnchorEl(null);
   };
 
   const handleOnBlur = (_event: any) => {
@@ -118,16 +120,12 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     }
   };
 
-  const handleConfirmDeleteClose = () => setDeleteAnchorEl(null);
-
   const handleConfirmDelete = () => {
-    setDeleteAnchorEl(null);
     deleteLayout(name);
-    setSearchParams({
-      ...removeKey(searchParams, 'layout'),
-      deletedLayout: name,
-    });
-    dispatch(FormLayoutActions.updateSelectedLayout(DEFAULT_SELECTED_LAYOUT_NAME));
+    if (selectedLayout === name) {
+      const layoutToSelect = firstAvailableLayout(name, layoutOrder);
+      setSearchParams({ layout: layoutToSelect });
+    }
   };
 
   return (
@@ -135,29 +133,22 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       className={cn({ [classes.selected]: selectedLayout === name, [classes.invalid]: invalid })}
     >
       <div className={classes.elementContainer}>
-        <div>
-          <ChevronRightIcon
-            visibility={selectedLayout === name ? 'visible' : 'hidden'}
-            style={{
-              width: 'auto',
-              color: '#022F51',
-            }}
-          />
+        <div className={classes.pageContainer}>
+          {editMode ? (
+            <div className={classes.pageField}>
+              <TextField
+                onBlur={handleOnBlur}
+                onKeyDown={handleKeyPress}
+                onChange={handleOnChange}
+                defaultValue={name}
+                isValid={!errorMessage}
+              />
+              <div className={classes.errorMessage}>{errorMessage}</div>
+            </div>
+          ) : (
+            <div className={classes.pageButton} onClick={onPageClick}>{name}</div>
+          )}
         </div>
-        {editMode ? (
-          <div>
-            <TextField
-              onBlur={handleOnBlur}
-              onKeyDown={handleKeyPress}
-              onChange={handleOnChange}
-              defaultValue={name}
-              isValid={!errorMessage}
-            />
-            <div className={classes.errorMessage}>{errorMessage}</div>
-          </div>
-        ) : (
-          <div onClick={onPageClick}>{name}</div>
-        )}
         <Button
           className={classes.ellipsisButton}
           icon={<MenuElipsisVerticalIcon />}
@@ -165,6 +156,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           style={menuAnchorEl ? { visibility: 'visible' } : {}}
           variant={ButtonVariant.Quiet}
           title={t('general.options')}
+          size='small'
         />
       </div>
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
@@ -194,24 +186,30 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           disabled={invalid}
         />
         <Divider marginless />
-        <AltinnMenuItem
-          onClick={(event) => onMenuItemClick(event, 'delete')}
-          text={t('left_menu.page_menu_delete')}
-          iconClass='fa fa-trash'
-          id='delete-page-button'
-        />
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
+          confirmText={t('left_menu.page_delete_confirm')}
+          onConfirm={() => {
+            handleConfirmDelete();
+            setMenuAnchorEl(null);
+          }}
+          onClose={() => {
+            setIsConfirmDeleteDialogOpen(false);
+            setMenuAnchorEl(null);
+          }}
+          trigger={
+            <AltinnMenuItem
+              onClick={(event) => onMenuItemClick(event, 'delete')}
+              text={t('left_menu.page_menu_delete')}
+              iconClass='fa fa-trash'
+              id='delete-page-button'
+            />
+          }
+        >
+          <p>{t('left_menu.page_delete_text')}</p>
+          <p>{t('left_menu.page_delete_information')}</p>
+        </AltinnConfirmDialog>
       </AltinnMenu>
-      <ConfirmModal
-        anchorEl={deleteAnchorEl}
-        open={Boolean(deleteAnchorEl)}
-        header={t('left_menu.page_delete_header')}
-        description={t('left_menu.page_delete_information', { name })}
-        confirmText={t('left_menu.page_delete_confirm')}
-        cancelText={t('left_menu.page_delete_cancel')}
-        onClose={handleConfirmDeleteClose}
-        onCancel={handleConfirmDeleteClose}
-        onConfirm={handleConfirmDelete}
-      />
     </div>
   );
 }

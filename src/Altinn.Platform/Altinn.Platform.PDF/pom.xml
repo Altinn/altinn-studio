@@ -33,7 +33,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.1.1</version>
+    <version>3.1.2</version>
   </parent>
   <dependencies>
     <dependency>
@@ -67,7 +67,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-security-keyvault-secrets</artifactId>
-      <version>4.6.3</version>
+      <version>4.6.4</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.azure</groupId>
@@ -77,6 +77,9 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
+      <!-- Deploy fails when updating to 1.10.0. No such method:
+        com.azure.core.credential.TokenRequestContext.isCaeEnabled()
+      -->
       <version>1.9.2</version>
     </dependency>
     <dependency>

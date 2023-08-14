@@ -103,6 +103,7 @@ export interface NewResourceType {
 
 export interface ValidationType {
   status: number;
+  errors: any;
 }
 
 // TODO - Find out if the other fields are needed
@@ -114,4 +115,15 @@ export interface ResourceSectorType {
 // TODO - Find out if the other fields are needed
 export interface ResourceThematicType {
   uri: string;
+}
+
+export interface LanguageStringType {
+  nb?: string;
+  nn?: string;
+  en?: string;
+}
+
+export interface DeployErrorType {
+  message: string;
+  pageWithError: 'about' | 'policy';
 }

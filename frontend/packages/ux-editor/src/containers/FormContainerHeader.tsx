@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { ConnectDragSource } from 'react-dnd';
 import cn from 'classnames';
 import '../styles/index.css';
@@ -7,6 +7,7 @@ import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { useTranslation } from 'react-i18next';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface IFormContainerHeaderProps {
   id: string;
@@ -26,6 +27,8 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   dragHandleRef,
 } : IFormContainerHeaderProps) {
   const { t } = useTranslation();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+
   return (
     <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
       <div ref={dragHandleRef} className={classes.dragHandle}>
@@ -37,15 +40,32 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
           onClick={() => handleExpanded((previous) => !previous)}
           variant={ButtonVariant.Quiet}
+          size='small'
         />
         {t('ux_editor.component_group_header', { id })}
       </div>
       <div className={classes.formGroupButtons}>
-        <Button
-          icon={<TrashIcon title={t('general.delete')} />}
-          onClick={handleDelete}
-          variant={ButtonVariant.Quiet}
-        />
+        <AltinnConfirmDialog
+          open={isConfirmDeleteDialogOpen}
+          confirmText={t('ux_editor.component_deletion_confirm')}
+          onConfirm={handleDelete}
+          onClose={() => setIsConfirmDeleteDialogOpen(false)}
+          trigger={
+            <Button
+              className={classes.deleteGroupComponent}
+              icon={<TrashIcon />}
+              title={t('general.delete')}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                setIsConfirmDeleteDialogOpen(prevState => !prevState);
+              }}
+              variant={ButtonVariant.Quiet}
+              size='small'
+            />
+          }
+        >
+          <p>{t('ux_editor.component_deletion_text')}</p>
+        </AltinnConfirmDialog>
       </div>
     </div>
   );

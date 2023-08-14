@@ -1,9 +1,8 @@
 import React from 'react';
 import classes from './RightTranslationBar.module.css';
-import { QuestionmarkDiamondIcon } from '@navikt/aksel-icons';
-import { TextArea, TextField } from '@digdir/design-system-react';
-import { SupportedLanguageKey } from 'resourceadm/types/global';
-import { LanguageStringType } from 'resourceadm/pages/AboutResourcePage';
+import { GlobeIcon } from '@navikt/aksel-icons';
+import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
+import { LanguageStringType, SupportedLanguageKey } from 'resourceadm/types/global';
 
 interface Props {
   /**
@@ -23,6 +22,10 @@ interface Props {
    * @param value The language object
    */
   onChangeValue: (value: LanguageStringType) => void;
+  /**
+   * Flag to handle when to show the errors
+   */
+  showErrors: boolean;
 }
 
 /**
@@ -38,6 +41,7 @@ interface Props {
  * @property {boolean}[usesTextArea] - Optional Boolean flag to decide if a text area should be used instead of a text field
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
  * @property {(value: LanguageStringType) => void}[onChangeValue] - Function that updates the value when changes are made in the input field.
+ * @property {boolean}[showErrors] - Flag to handle when to show the errors
  *
  * @returns
  */
@@ -46,24 +50,24 @@ export const RightTranslationBar = ({
   usesTextArea = false,
   value,
   onChangeValue,
+  showErrors,
 }: Props) => {
   const handleChange = (lang: 'nn' | 'en', val: string) => {
     const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
     onChangeValue(obj);
   };
   const displayNField = (lang: 'nn' | 'en') => {
-    const label = lang === 'en' ? 'Engelsk' : 'Nynorsk';
-    const placeholder = lang === 'en' ? 'Translation goes here' : 'Omsetjing går her';
+    const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
 
     if (usesTextArea) {
       return (
         <TextArea
           value={value[lang]}
           resize='vertical'
-          placeholder={placeholder}
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
           label={label}
+          isValid={!(showErrors && value[lang] === '')}
         />
       );
     }
@@ -71,8 +75,8 @@ export const RightTranslationBar = ({
       <TextField
         value={value[lang]}
         onChange={(e) => handleChange(lang, e.target.value)}
-        placeholder={placeholder}
         label={label}
+        isValid={!(showErrors && value[lang] === '')}
       />
     );
   };
@@ -80,12 +84,20 @@ export const RightTranslationBar = ({
   return (
     <div className={classes.wrapper}>
       <div className={classes.topWrapper}>
-        <QuestionmarkDiamondIcon title='Oversettelse' fontSize='1.5rem' />
-        <p className={`${classes.text} ${classes.topText}`}>Oversettelse</p>
+        <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
+        <Heading size='xsmall' level={2} className={classes.topText}>
+          Oversettelse
+        </Heading>
       </div>
-      <h2 className={classes.subHeader}>{title}</h2>
-      <div className={classes.inputWrapper}>{displayNField('nn')}</div>
-      <div className={classes.inputWrapper}>{displayNField('en')}</div>
+      <div className={classes.bodyWrapper}>
+        <Alert severity='info' className={classes.alert}>
+          <Paragraph size='small'>
+            For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+          </Paragraph>
+        </Alert>
+        <div className={classes.inputWrapper}>{displayNField('nn')}</div>
+        <div className={classes.inputWrapper}>{displayNField('en')}</div>
+      </div>
     </div>
   );
 };

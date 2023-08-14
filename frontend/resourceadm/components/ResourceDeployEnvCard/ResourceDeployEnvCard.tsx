@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
-import { Button } from '@digdir/design-system-react';
-import { ArrowRightIcon, PackageFillIcon } from '@navikt/aksel-icons';
+import { Button, Tag, Paragraph } from '@digdir/design-system-react';
+import { ArrowRightIcon } from '@navikt/aksel-icons';
 
 interface Props {
   isDeployPossible: boolean;
@@ -28,25 +28,26 @@ export const ResourceDeployEnvCard = ({
   // TODO - Translation
   return (
     <div className={classes.cardWrapper}>
-      <p className={classes.envName}>{envName}</p>
+      <Paragraph size='small' className={classes.envName}>
+        <strong>{envName}</strong>
+      </Paragraph>
       <div className={classes.envWrapper}>
-        <div className={classes.currentEnv}>
-          <PackageFillIcon title={`Nåværende versjon i ${envName}`} />
-          <p className={classes.currentEnvText}>v{currentEnvVersion}</p>
-        </div>
+        <Tag color='neutral' variant='outlined'>
+          <Paragraph size='small'>v{currentEnvVersion}</Paragraph>
+        </Tag>
         {newEnvVersion && (
           <>
             <div className={classes.arrowWrapper}>
               <ArrowRightIcon title={`Ny versjon for ${envName}`} fontSize='1.5rem' />
             </div>
-            <div className={classes.newEnv}>
-              <p>v{newEnvVersion}</p>
-            </div>
+            <Tag color='success' variant='outlined'>
+              <Paragraph size='small'>v{newEnvVersion}</Paragraph>
+            </Tag>
           </>
         )}
       </div>
       <div className={classes.buttonWrapper}>
-        <Button disabled={!isDeployPossible}>Publiser til miljø</Button>
+        <Button disabled={!isDeployPossible}>Publiser til {envName}</Button>
       </div>
     </div>
   );

@@ -7,8 +7,6 @@ import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import {
   addProperty,
   deleteNode,
-  getNameFromPointer,
-  setPropertyName,
   setType,
 } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
@@ -45,14 +43,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes, fieldNodes]);
 
-  const onChangePropertyName = (path: string, value: string) =>
-    mutate(
-      setPropertyName(data, {
-        path,
-        name: value,
-      })
-    );
-
   const onChangeType = (path: string, type: FieldType) => mutate(setType(data, { path, type }));
 
   const onDeleteObjectClick = (path: string) => {
@@ -86,13 +76,11 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
           inputId={fieldNode.domId}
           key={fieldNode.pointer}
           onChangeType={onChangeType}
-          onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
           onEnterKeyPress={dispatchAddProperty}
           readOnly={readonly}
           required={fieldNode.isRequired}
           type={fieldNode.fieldType as FieldType}
-          value={getNameFromPointer(fieldNode)}
         />
       ))}
       {!readonly && (
@@ -102,6 +90,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
             variant={ButtonVariant.Outline}
+            size='small'
           >
             {t('schema_editor.add_property')}
           </Button>

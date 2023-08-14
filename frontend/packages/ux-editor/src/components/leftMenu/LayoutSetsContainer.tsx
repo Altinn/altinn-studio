@@ -27,7 +27,8 @@ export function LayoutSetsContainer() {
         return <Button
           variant={selectedLayoutSet === set ? ButtonVariant.Filled : ButtonVariant.Quiet}
           key={set}
-          onClick={() => onLayoutSetClick(set)}>
+          onClick={() => onLayoutSetClick(set)}
+          size='small'>
           {set}
         </Button>;
       }))}

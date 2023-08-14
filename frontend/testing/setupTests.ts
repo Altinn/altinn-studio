@@ -6,6 +6,7 @@ import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import { ReactNode } from 'react';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -39,7 +40,7 @@ jest.mock(
   'react-i18next',
   () => ({
     Trans: ({ i18nKey }) => textMock(i18nKey),
-    useTranslation: () => ({ t: (key: string) => textMock(key) }),
+    useTranslation: () => ({ t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables) }),
     withTranslation: () => (Component: ReactNode) => Component,
   }),
 );

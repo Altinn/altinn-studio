@@ -67,7 +67,3 @@
   gap: 1rem;
   padding: 15px;
 }
-
-.rightContentButtons > * {
-  flex: 1;
-}

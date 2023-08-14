@@ -80,6 +80,7 @@ export const TextEditor = ({
             color={ButtonColor.Primary}
             onClick={handleAddNewEntryClick}
             data-testid='text-editor-btn-add'
+            size='small'
           >
             Ny tekst
           </Button>
