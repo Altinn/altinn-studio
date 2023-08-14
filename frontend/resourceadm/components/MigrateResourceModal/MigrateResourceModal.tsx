@@ -138,7 +138,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
             handleIdInput={handleIDInput}
             handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
             resourceIdExists={false} // TODO
-            titleAndIdSame={false} // TODO
+            bothFieldsHaveSameValue={false} // TODO
           />
         </>
       );
