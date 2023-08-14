@@ -91,7 +91,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
       expressionElements: [],
     };
 
-    if (!validOperatorOrFunction(dynamic[0])) {
+    if (!validOperatorOrFunction(dynamic[0]) || dynamic.length < 3) {
       delete convertedDynamic.expressionElements;
       convertedDynamic.complexExpression = dynamic;
       return convertedDynamic;
