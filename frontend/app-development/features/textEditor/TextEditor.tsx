@@ -74,7 +74,7 @@ useEffect(() => {
       selectedLangCodes={selectedLangCodes}
       setSearchQuery={setSearchQuery}
       setSelectedLangCodes={handleSelectedLangCodes}
-      textResourceFiles={textResources || {}}
+      textResourceFiles={textResources}
       updateTextId={(data: TextResourceIdMutation) => textIdMutation([data])}
       upsertTextResource={upsertTextResource}
     />
