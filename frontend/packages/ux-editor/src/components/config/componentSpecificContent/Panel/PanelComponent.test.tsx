@@ -40,7 +40,7 @@ const waitForData = async () => {
 const render = async () => {
   await waitForData();
   renderWithMockStore()(<PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />);
-};
+}
 
 describe('PanelComponent', () => {
   afterEach(jest.clearAllMocks);

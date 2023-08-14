@@ -43,3 +43,4 @@ const render = async (props?: Partial<IGenericEditComponent>) => {
 
   return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);
 }
+

@@ -73,7 +73,7 @@ export const ImageComponent = ({
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
-        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value?.nb || ''}/>}
+        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value?.nb || ''} />}
       </FormField>
       <TextResource
         handleIdChange={handleAltTextChange}
@@ -94,7 +94,7 @@ export const ImageComponent = ({
           value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
-          {({ onChange }) =>  <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+          {({ onChange }) => <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
         </FormField>
         <FormField
           id={component.id}

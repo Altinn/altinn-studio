@@ -91,7 +91,7 @@ export const FileUploadComponent = ({
           value={fileUploaderComponent.validFileEndings}
           propertyPath={`${component.propertyPath}/properties/validFileEndings`}
         >
-          {({ onChange }) => <TextField name='modal-properties-valid-file-endings' onChange={(e) => onChange(e.target.value, e)}/>}
+          {({ onChange }) => <TextField name='modal-properties-valid-file-endings' onChange={(e) => onChange(e.target.value, e)} />}
         </FormField>
       )}
       {component.type === ComponentType.FileUpload && (
