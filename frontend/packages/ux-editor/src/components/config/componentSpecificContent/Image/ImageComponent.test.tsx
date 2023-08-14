@@ -1,12 +1,13 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ImageComponent, ImageComponentProps } from './ImageComponent';
+import { ImageComponent } from './ImageComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
+import { IGenericEditComponent } from '../../componentConfig';
 
 const user = userEvent.setup();
 
@@ -36,11 +37,10 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<ImageComponentProps> = {}) => {
-  const allProps: ImageComponentProps = {
+const render = async (props: Partial<IGenericEditComponent> = {}) => {
+  const allProps: IGenericEditComponent = {
     component: componentData,
     handleComponentChange: jest.fn(),
-    isProd: true,
     ...props,
   };
 

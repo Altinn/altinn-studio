@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Checkbox } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';

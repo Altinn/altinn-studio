@@ -11,6 +11,7 @@ import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
+import type { TranslationKey } from 'app-shared/types/language';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -221,7 +222,7 @@ export const FormComponentConfig = ({
           return (
             <Accordion key={propertyKey}>
               <Accordion.Item>
-                <Accordion.Header>{t(`ux_editor.component_properties.${propertyKey}`)}</Accordion.Header>
+                <Accordion.Header>{t(`ux_editor.component_properties.${propertyKey}` as TranslationKey)}</Accordion.Header>
                 <Accordion.Content>
                   {rest[propertyKey]?.description && (
                     <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>

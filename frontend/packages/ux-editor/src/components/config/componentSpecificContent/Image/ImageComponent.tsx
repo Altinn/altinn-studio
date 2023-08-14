@@ -7,16 +7,11 @@ import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 
-export interface ImageComponentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
-
 export const ImageComponent = ({
   component,
   handleComponentChange,
   layoutName,
-  isProd,
-}: ImageComponentProps) => {
+}: IGenericEditComponent) => {
   const t = useText();
   const alignOptions = [
     {
@@ -86,7 +81,6 @@ export const ImageComponent = ({
           />
         )}
       </FormField>
-      {isProd && (
         <TextResource
           handleIdChange={handleAltTextChange}
           label={t('ux_editor.modal_properties_image_alt_text_label')}
@@ -97,7 +91,6 @@ export const ImageComponent = ({
             textResourceKey: 'altTextImg',
           }}
         />
-      )}
       <div className={classes.widthAndPlacement}>
         <FormField
           id={component.id}
