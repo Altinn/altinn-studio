@@ -53,13 +53,13 @@ const render = (queryClient: QueryClient = createQueryClientMock()) => {
 describe('DataModelling', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should fetch models on mount', () => {
+  it('fetches models on mount', () => {
     render();
     expect(getDatamodels).toHaveBeenCalledTimes(1);
     expect(getDatamodelsXsd).toHaveBeenCalledTimes(1);
   });
 
-  it('Should show start dialog when no models are present and intro page is closed', () => {
+  it('shows start dialog when no models are present and intro page is closed', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], []);
     render(queryClient);
@@ -67,20 +67,20 @@ describe('DataModelling', () => {
     expect(dialogHeader).toBeInTheDocument();
   });
 
-  it('Should not show start dialog when the models have not been loaded yet', () => {
+  it('does not show start dialog when the models have not been loaded yet', () => {
     render();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).not.toBeInTheDocument();
   });
 
-  it('Should not show start dialog when there are models present', async () => {
+  it('does not show start dialog when there are models present', async () => {
     getDatamodels.mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
     render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).not.toBeInTheDocument();
   });
 
-  it('Should show an error message if an error occured', async () => {
+  it('shows an error message if an error occured', async () => {
     const errorMessage = 'error-message-test';
     jest
     .spyOn(reactQuery, 'useQuery')
