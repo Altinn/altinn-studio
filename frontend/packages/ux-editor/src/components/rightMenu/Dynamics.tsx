@@ -9,7 +9,7 @@ import {
   ExpressionPropertyForGroup,
   Dynamic,
   DataSource,
-  ExpressionElement, ExpressionFunction
+  ExpressionElement, ExpressionFunction, Operator
 } from '../../types/Expressions';
 import { LayoutItemType } from '../../types/global';
 import classes from './RightMenu.module.css';
@@ -18,25 +18,23 @@ import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Divider } from 'app-shared/primitives';
 import { FormComponent } from "../../types/FormComponent";
 
-type DynamicsTabProps = {
-  onShowNewDynamicsTab: (value: boolean) => void;
-  showNewDynamicsTab: boolean;
+type DynamicsProps = {
+  onShowNewDynamics: (value: boolean) => void;
+  showNewDynamics: boolean;
 };
 
-export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: DynamicsTabProps) => {
-  const { formId, form, handleUpdate, handleComponentSave } = useContext(FormContext);
+export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) => {
+  const { formId, form, handleSave } = useContext(FormContext);
   const t = useText();
 
-  if (!formId || !form) return t('right_menu.content_empty');
-
   // adapt list of actions if component is group
-  const expressionProperties = form.itemType === LayoutItemType.Container ?
+  const expressionProperties = form && (form.itemType === LayoutItemType.Container ?
     (Object.values(ExpressionPropertyBase) as string[])
-      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase);
-  const propertiesWithDynamics: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] = Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
-  const potentialConvertedExternalDynamics: Dynamic[] = propertiesWithDynamics.filter(property => typeof form[property] !== 'boolean').map(property => convertExternalDynamicToInternal(property, form[property]));
+      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase));
+  const propertiesWithDynamics: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined = expressionProperties && Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
+  const potentialConvertedExternalDynamics: Dynamic[] = propertiesWithDynamics && propertiesWithDynamics.filter(property => typeof form[property] !== 'boolean').map(property => convertExternalDynamicToInternal(property, form[property]));
   const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
-  const [dynamics, setDynamics] = React.useState<Dynamic[]>(potentialConvertedExternalDynamics || [defaultDynamic]); // default state should be already existing dynamics
+  const [dynamics, setDynamics] = React.useState<Dynamic[]>(potentialConvertedExternalDynamics || [defaultDynamic]);
   const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
 
   useEffect(() => {
@@ -47,11 +45,14 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
     }
   }, [dynamics]);
 
+  if (!formId || !form) return t('right_menu.content_empty');
+
   const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {
     if (dynamic.complexExpression) {
       return dynamic.complexExpression;
     }
-    const expressions: any[] = dynamic.expressionElements.map(expression => {
+    const expressions: any[] = [];
+    dynamic.expressionElements.map(expression => {
       const expressionObject = [];
       expressionObject[0] = expression.function;
       if (expression.dataSource === DataSource.ApplicationSettings ||
@@ -59,8 +60,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
         expression.dataSource === DataSource.DataModel ||
         expression.dataSource === DataSource.InstanceContext) {
         expressionObject[1] = [expression.dataSource, expression.value];
-      }
-      else {
+      } else {
         expressionObject[1] = expression.value;
       }
       if (expression.comparableDataSource === DataSource.ApplicationSettings ||
@@ -68,22 +68,21 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
         expression.comparableDataSource === DataSource.DataModel ||
         expression.comparableDataSource === DataSource.InstanceContext) {
         expressionObject[2] = [expression.comparableDataSource, expression.comparableValue];
-      }
-      else {
+      } else {
         expressionObject[2] = expression.comparableValue;
       }
-      return expressionObject;
+      expressions.push(expressionObject);
     });
-    return dynamic.operator ? [dynamic.operator, expressions] : expressions;
+    return dynamic.operator ? [dynamic.operator, expressions] : expressions[0];
   };
 
   function convertExternalDynamicToInternal(booleanValue: string, dynamic: any): Dynamic {
 
     const validOperatorOrFunction = (operatorOrFunction: string): boolean => {
-      return (operatorOrFunction === 'or' || operatorOrFunction === 'and' || Object.values(ExpressionFunction).includes(operatorOrFunction as ExpressionFunction));
+      return (Object.values(Operator).includes(operatorOrFunction as Operator) || Object.values(ExpressionFunction).includes(operatorOrFunction as ExpressionFunction));
     }
 
-    const hasMoreExpressions: boolean = (dynamic[0] === 'or' || dynamic[0] === 'and');
+    const hasMoreExpressions: boolean = Object.values(Operator).includes(dynamic[0] as Operator);
     const convertedDynamic: Dynamic = {
       id: uuidv4(),
       editMode: false,
@@ -91,7 +90,11 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
       expressionElements: [],
     };
 
-    if (!validOperatorOrFunction(dynamic[0]) || dynamic.length < 3) {
+    // Fall back to complex expression if:
+    // 1. Expression does not start with an operator or a function, or
+    // 2. Expression does not starts with an operator, but has two elements
+    // (Studio will only be able to visualize expressions that does not match any of the above conditions)
+    if (!validOperatorOrFunction(dynamic[0]) || (!Object.values(Operator).includes(dynamic[0]) && dynamic.length === 2)) {
       delete convertedDynamic.expressionElements;
       convertedDynamic.complexExpression = dynamic;
       return convertedDynamic;
@@ -105,14 +108,7 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
       const updatedExpAddingValue = convertExpressionElement(exp, dynamic[1], false);
       convertedDynamic.expressionElements.push(convertExpressionElement(updatedExpAddingValue, dynamic[2], true));
       return convertedDynamic;
-    }
-
-    else {
-      if (!validOperatorOrFunction(dynamic[0])) {
-        delete convertedDynamic.expressionElements;
-        convertedDynamic.complexExpression = dynamic;
-        return convertedDynamic;
-      }
+    } else {
       convertedDynamic.operator = dynamic[0];
       dynamic.slice(1).map(expEl => {
           const exp: ExpressionElement = {
@@ -137,10 +133,9 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
 
   function convertExpressionElement(internalExpEl: ExpressionElement, externalExpEl: any, isComparable: boolean): ExpressionElement {
     if (Array.isArray(externalExpEl)) {
-      isComparable ?  internalExpEl.comparableDataSource = externalExpEl[0] as DataSource : internalExpEl.dataSource = externalExpEl[0] as DataSource;
+      isComparable ? internalExpEl.comparableDataSource = externalExpEl[0] as DataSource : internalExpEl.dataSource = externalExpEl[0] as DataSource;
       isComparable ? internalExpEl.comparableValue = externalExpEl[1] : internalExpEl.value = externalExpEl[1];
-    }
-    else {
+    } else {
       isComparable ? internalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : internalExpEl.dataSource = (typeof externalExpEl as DataSource) // to string. Can be string, number, boolean or null
       isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
     }
@@ -151,11 +146,13 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
     // TODO: Convert dynamics object to correct format and save dynamic to layout with api call
     const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
     const nonEditableDynamics: Dynamic[] = await Promise.all([...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || prevDynamic.complexExpression)].map(async prevDynamic => {
-      debugger;
-      if (prevDynamic.property && prevDynamic.editMode) form[prevDynamic.property] = convertDynamicToExternalFormat(prevDynamic);
-      handleUpdate(form);
-      await handleComponentSave(formId, form as FormComponent);
-      debugger;
+      if (prevDynamic.property && prevDynamic.editMode)
+      {
+        // What if dynamic is invalid format?
+        form[prevDynamic.property] = convertDynamicToExternalFormat(prevDynamic);
+        //handleUpdate(form);
+        await handleSave(formId, form as FormComponent);
+      }
       return ({ ...prevDynamic, editMode: false })
     }));
     setDynamics(dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
@@ -163,35 +160,40 @@ export const DynamicsTab = ({ onShowNewDynamicsTab, showNewDynamicsTab }: Dynami
   };
 
   const editDynamic = (dynamic: Dynamic) => {
-    // Convert dynamic object to correct format and save dynamic to layout with api call
+    // TODO: Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
     const updatedDynamics = [...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || prevDynamic.complexExpression)].map(prevDynamic => {
       if (prevDynamic === dynamic) return { ...prevDynamic, editMode: true }
-    else return { ...prevDynamic, editMode: false } });
+      else return { ...prevDynamic, editMode: false }
+    });
 
     setDynamics([...updatedDynamics]);
   };
 
-  const removeDynamic = (dynamic: Dynamic) => {
-    // Convert dynamic object to correct format and save dynamic to layout with api call
+  const removeDynamic = async (dynamic: Dynamic) => {
+    // TODO: Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
     if (dynamics.length === 1) {
-      setDynamics((prevDynamics) =>
-        prevDynamics.filter((prevDynamic) => prevDynamic !== dynamic).concat(defaultDynamic)
-      );
+      // TODO: Isolate object that is set in a function for better testing opportunities
+      setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic).concat(defaultDynamic));
     } else {
-      setDynamics((prevDynamics) => prevDynamics.filter((prevDynamic) => prevDynamic !== dynamic));
+      setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic));
+    }
+    if (dynamic.property)
+    {
+      // What if dynamic is invalid format?
+      delete form[dynamic.property];
+      //handleUpdate(form);
+      await handleSave(formId, form as FormComponent);
     }
   };
 
   const getProperties = (dynamic: Dynamic) => {
-    const alreadyUsedProperties = dynamics.map((prevDynamic) => {
-      if (dynamic !== prevDynamic) return prevDynamic.property;
+    const alreadyUsedProperties = dynamics.map(prevDynamic => {
+      if (dynamic !== prevDynamic) return prevDynamic.property
     }) as string[];
-    const availableProperties = expressionProperties.filter(
-      (expressionProperty) => !Object.values(alreadyUsedProperties).includes(expressionProperty)
-    );
-    return { availableProperties, expressionProperties };
+    const availableProperties = expressionProperties.filter(expressionProperty => !Object.values(alreadyUsedProperties).includes(expressionProperty));
+    return { availableProperties, expressionProperties }
   };
 
   return (

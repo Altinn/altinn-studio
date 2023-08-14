@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Dynamic,
   ExpressionElement,
@@ -10,6 +10,8 @@ import {
 import { Alert, Button, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { Dynamic, ExpressionElement, Operator } from '../../../types/Expressions';
+import { Alert, Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
+import { ArrowRightIcon, PencilIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { ExpressionContent } from './ExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
@@ -45,7 +47,7 @@ export const DynamicContent = ({
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements] || []); // default state should be already existing expressions
   const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
   const [operator, setOperator] = React.useState<Operator>(dynamic.operator || undefined);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const dynamicInEditStateRef = useRef(null);
   const dynamicInPreviewStateRef = useRef(null);
 
@@ -88,13 +90,13 @@ export const DynamicContent = ({
     if (dynamic.expressionElements.length > 0) {
       return;
     }
-    const newExpressionElement: ExpressionElement = {id: uuidv4()};
+    const newExpressionElement: ExpressionElement = { id: uuidv4() };
     dynamic.expressionElements.push(newExpressionElement);
     setExpressionElements(dynamic.expressionElements);
   };
 
   const addExpressionElement = (dynamicOperator: Operator) => {
-    const newExpressionElement: ExpressionElement = {id: uuidv4()};
+    const newExpressionElement: ExpressionElement = { id: uuidv4() };
     const updatedExpressionElements = [...dynamic.expressionElements, newExpressionElement];
     dynamic.expressionElements.push(newExpressionElement);
     setOperator(dynamicOperator);
@@ -124,14 +126,14 @@ export const DynamicContent = ({
 
   const removeExpressionElement = (expressionElement: ExpressionElement) => {
     if (dynamic.expressionElements.length < 2) {
-      const newExpressionElement: ExpressionElement = {id: uuidv4()};
+      const newExpressionElement: ExpressionElement = { id: uuidv4() };
       dynamic.expressionElements = [newExpressionElement];
       setExpressionElements([newExpressionElement]);
     } else {
       const updatedExpressionElements = dynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
       const lastExpressionElement = updatedExpressionElements[updatedExpressionElements.length - 1];
-      dynamic.expressionElements = [...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), {...lastExpressionElement}];
-      setExpressionElements([...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), {...lastExpressionElement}]);
+      dynamic.expressionElements = [...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement }];
+      setExpressionElements([...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement }]);
     }
   };
 
@@ -167,15 +169,14 @@ export const DynamicContent = ({
             />
           )}
           <p>
-            <Trans
-              i18nKey={'right_menu.dynamics_action_on_component'}
-              values={{componentName: component.id}}
-              components={{bold: <strong/>}}/>
+                <Trans
+                  i18nKey={'right_menu.dynamics_action_on_component'}
+                  values={{componentName: component.id}}
+                  components={{bold: <strong/>}}/>
           </p>
           <Select
             onChange={(action) => addActionToDynamic(action)}
-            options={[{label: 'Velg handling...', value: 'default'}].concat(
-              propertiesList.map((property: string) => ({
+            options={[{ label: 'Velg handling...', value: 'default' }].concat(propertiesList.map((property: string) => ({
               label: expressionPropertyTexts(t)[property],
               value: property
             })))}
@@ -211,8 +212,22 @@ export const DynamicContent = ({
       ) : (
         <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
-            <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]} values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
-              {expressionElements.map((expEl: ExpressionElement, index: number) => (
+                <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]}
+                             values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
+            {dynamic.complexExpression ? (
+              <div className={classes.complexExpressionContainer}>
+                  <textarea
+                    className={classes.complexExpression}
+                    value={tryFormatExpression(complexExpression)}
+                    disabled={true}
+                  >
+                  </textarea>
+                <Alert>
+                  {t('right_menu.dynamics_complex_dynamic_message')}
+                </Alert>
+              </div>
+            ) : (
+              expressionElements.map((expEl: ExpressionElement, index: number) => (
                 <div key={expEl.id}>
                   <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
