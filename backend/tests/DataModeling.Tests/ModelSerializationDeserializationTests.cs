@@ -62,7 +62,7 @@ namespace DataModeling.Tests
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
-            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
+            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
 
             validationResults.IsValid.Should().BeTrue();
             return Task.CompletedTask;
@@ -87,7 +87,7 @@ namespace DataModeling.Tests
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
-            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
+            var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
 
             validationResults.IsValid.Should().BeTrue();
         }

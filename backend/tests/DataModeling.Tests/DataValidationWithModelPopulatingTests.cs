@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.Utils;
 using FluentAssertions;
+using Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
 

@@ -194,14 +194,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void ProcessRefKeyword(JsonPointer path, RefKeyword keyword, SchemaContext context)
         {
-            int subSchemaIndex = 0;
-            foreach (var subSchema in keyword.GetSubschemas())
-            {
-                var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
-                ProcessSubSchema(subSchemaPath, subSchema, context);
+            var refPath = JsonPointer.Parse(keyword.Reference.ToString());
+            var refSchema = _schema.FollowReference(refPath);
 
-                subSchemaIndex++;
-            }
+            ProcessSubSchema(refPath, refSchema, context);
         }
 
         private void ProcessOneOfKeyword(JsonPointer path, OneOfKeyword keyword, SchemaContext context)
@@ -213,7 +209,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
 
             int subSchemaIndex = 0;
-            foreach (var subSchema in keyword.GetSubschemas())
+            foreach (var subSchema in keyword.Schemas)
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
                 ProcessSubSchema(subSchemaPath, subSchema, context);
@@ -224,16 +220,16 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private static bool KeywordHasSingleNonNullSchema(OneOfKeyword keyword)
         {
-            if (keyword.GetSubschemas().Count() > 1)
+            if (keyword.Schemas.Count() > 1)
             {
                 return false;
             }
 
-            if (keyword.GetSubschemas().First().TryGetKeyword<TypeKeyword>(out var typeKeyword) && typeKeyword.Type != SchemaValueType.Null)
+            if (keyword.Schemas.First().TryGetKeyword<TypeKeyword>(out var typeKeyword) && typeKeyword.Type != SchemaValueType.Null)
             {
                 return true;
             }
-            else if (keyword.GetSubschemas().First().HasKeyword<RefKeyword>())
+            else if (keyword.Schemas.First().HasKeyword<RefKeyword>())
             {
                 return true;
             }
@@ -246,7 +242,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private void ProcessAnyOfKeyword(JsonPointer path, AnyOfKeyword keyword, SchemaContext context)
         {
             int subSchemaIndex = 0;
-            foreach (var subSchema in keyword.GetSubschemas())
+            foreach (var subSchema in keyword.Schemas)
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
                 ProcessSubSchema(subSchemaPath, subSchema, context);
@@ -258,7 +254,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private void ProcessAllOfKeyword(JsonPointer path, AllOfKeyword keyword, SchemaContext context)
         {
             int subSchemaIndex = 0;
-            foreach (var subSchema in keyword.GetSubschemas())
+            foreach (var subSchema in keyword.Schemas)
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
                 ProcessSubSchema(subSchemaPath, subSchema, context);
@@ -390,25 +386,25 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             var allOfKeyword = subSchema.GetKeyword<AllOfKeyword>();
 
             // If it's a single subschema with only a reference then follow it.
-            if (allOfKeyword.GetSubschemas().Count() == 1 && allOfKeyword.GetSubschemas().First().HasKeyword<RefKeyword>())
+            if (allOfKeyword.Schemas.Count() == 1 && allOfKeyword.Schemas.First().HasKeyword<RefKeyword>())
             {
-                var refSchema = allOfKeyword.GetSubschemas().First();
+                var refSchema = allOfKeyword.Schemas.First();
                 ProcessRefType(refSchema, context);
             }
             else
             {
-                var refKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeyword<RefKeyword>();
+                var refKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeyword<RefKeyword>();
                 if (refKeyword is not null)
                 {
                     PopulateRestrictions(allOfKeyword, context.Restrictions);
-                    ProcessRefType(allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()), context);
+                    ProcessRefType(allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()), context);
                     return;
                 }
 
-                var typeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
+                var typeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
                 context.SchemaValueType = typeKeyword.Type;
 
-                var enumSchema = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
+                var enumSchema = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
                 if (enumSchema != null)
                 {
                     AddElement(path, enumSchema, context);
@@ -435,7 +431,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             else
             {
                 var oneOfKeyword = subSchema.GetKeyword<OneOfKeyword>();
-                var schema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
+                var schema = oneOfKeyword.Schemas.FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
 
                 context.IsNillable = true;
 
@@ -473,7 +469,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XPath = xPath,
-                    JsonSchemaPointer = path.Source,
+                    JsonSchemaPointer = path.ToString(JsonPointerStyle.Plain),
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = ElementType.Group,
@@ -527,7 +523,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XsdValueType = xsdValueType,
                     XPath = xPath,
-                    JsonSchemaPointer = path.Source,
+                    JsonSchemaPointer = path.ToString(JsonPointerStyle.Plain),
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = @type,
@@ -634,7 +630,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
             else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
-                xsdTypeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
+                xsdTypeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
                     ?.GetKeyword<XsdTypeKeyword>();
                 if (xsdTypeKeyword is not null)
                 {
