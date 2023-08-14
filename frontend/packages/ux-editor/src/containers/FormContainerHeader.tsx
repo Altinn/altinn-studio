@@ -50,7 +50,6 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           confirmText={t('ux_editor.component_deletion_confirm')}
           onConfirm={handleDelete}
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
-          placement='bottom'
           trigger={
             <Button
               className={classes.deleteGroupComponent}
