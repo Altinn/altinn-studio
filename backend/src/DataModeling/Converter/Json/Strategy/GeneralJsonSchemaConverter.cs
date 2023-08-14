@@ -369,7 +369,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 if (keywords.TryPull<AllOfKeyword>(out var allOfKeyword))
                 {
                     var i = 0;
-                    foreach (var subSchema in allOfKeyword.GetSubschemas())
+                    foreach (var subSchema in allOfKeyword.Schemas)
                     {
                         if (subSchema.HasKeyword<RefKeyword>())
                         {
@@ -502,7 +502,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
+                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
                     element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
                 }
             }
@@ -512,8 +512,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private bool TryHandleCompositionNillableComplexType(XmlSchemaElement element, OneOfKeyword oneOfKeyword, JsonPointer path)
         {
-            var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-            var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+            var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+            var propertiesKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
 
             // Element with type reference to a ComplexType
             if (refKeywordSubSchema != null)
@@ -549,7 +549,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
             {
-                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
                 element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
                 element.IsNillable = true;
             }
@@ -1071,7 +1071,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             };
 
             var allOfKeyword = keywords.Pull<AllOfKeyword>();
-            var subSchemas = allOfKeyword.GetSubschemas();
+            var subSchemas = allOfKeyword.Schemas;
             var refKeywordSchema = subSchemas.First(k => k.Keywords.HasKeyword<RefKeyword>());
 
             // <xsd:extension base="...">
@@ -1388,7 +1388,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             // Nillable array
             if (schema.TryGetKeyword<OneOfKeyword>(out var oneOfKeyword))
             {
-                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
                 return GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
             }
 
