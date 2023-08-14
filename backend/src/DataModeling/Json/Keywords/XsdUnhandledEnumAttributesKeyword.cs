@@ -6,147 +6,143 @@ using System.Text.Json.Serialization;
 using Json.Pointer;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Json.Keywords
+namespace Altinn.Studio.DataModeling.Json.Keywords;
+
+/// <summary>
+/// Handles `@xsdUnhandledAttributes`.
+/// </summary>
+[SchemaKeyword(Name)]
+[SchemaSpecVersion(SpecVersion.Draft6)]
+[SchemaSpecVersion(SpecVersion.Draft7)]
+[SchemaSpecVersion(SpecVersion.Draft201909)]
+[SchemaSpecVersion(SpecVersion.Draft202012)]
+[SchemaSpecVersion(SpecVersion.DraftNext)]
+[JsonConverter(typeof(XsdUnhandledEnumAttributesKeywordJsonConverter))]
+public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdUnhandledEnumAttributesKeyword>
 {
     /// <summary>
-    /// Handles `@xsdUnhandledAttributes`.
+    /// The name of the keyword
     /// </summary>
-    [SchemaKeyword(Name)]
-    [SchemaDraft(Draft.Draft6)]
-    [SchemaDraft(Draft.Draft7)]
-    [SchemaDraft(Draft.Draft201909)]
-    [SchemaDraft(Draft.Draft202012)]
-    [JsonConverter(typeof(XsdUnhandledEnumAttributesKeywordJsonConverter))]
-    public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdUnhandledEnumAttributesKeyword>
+    internal const string Name = "@xsdUnhandledEnumAttributes";
+
+    /// <summary>
+    /// Creates a new <see cref="XsdUnhandledEnumAttributesKeyword"/>.
+    /// </summary>
+    public XsdUnhandledEnumAttributesKeyword()
+    {
+        Properties = new List<NamedKeyValuePairs>();
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="XsdUnhandledEnumAttributesKeyword"/>.
+    /// </summary>
+    /// <param name="values">The the unhandled attributes in order.</param>
+    public XsdUnhandledEnumAttributesKeyword(NamedKeyValuePairs[] values)
+    {
+        Properties = values.ToList();
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="XsdUnhandledEnumAttributesKeyword"/>.
+    /// </summary>
+    /// <param name="values">The unhandled attributes in order.</param>
+    public XsdUnhandledEnumAttributesKeyword(IEnumerable<NamedKeyValuePairs> values)
+    {
+        Properties = values as List<NamedKeyValuePairs> ?? values.ToList();
+    }
+
+    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    {
+        return new KeywordConstraint(Name, (e, c) => {});
+    }
+
+    /// <summary>
+    /// The all the unhandled attributes in order.
+    /// </summary>
+    public IReadOnlyList<NamedKeyValuePairs> Properties { get; }
+
+    /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
+    /// <param name="other">An object to compare with this object.</param>
+    /// <returns>true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.</returns>
+    public bool Equals(XsdUnhandledEnumAttributesKeyword other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return ReferenceEquals(this, other) || Properties.ContentsEqual(other.Properties);
+    }
+
+    /// <summary>Determines whether the specified object is equal to the current object.</summary>
+    /// <param name="obj">The object to compare with the current object.</param>
+    /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as XsdUnhandledEnumAttributesKeyword);
+    }
+
+    /// <summary>Serves as the default hash function.</summary>
+    /// <returns>A hash code for the current object.</returns>
+    public override int GetHashCode()
+    {
+        return Properties?.GetCollectionHashCode() ?? 0;
+    }
+
+    /// <summary>
+    /// Serializer for the @xsdUnhandledAttributes keyword
+    /// </summary>
+    public class XsdUnhandledEnumAttributesKeywordJsonConverter : JsonConverter<XsdUnhandledEnumAttributesKeyword>
     {
         /// <summary>
-        /// The name of the keyword
+        /// Read @xsdUnhandledAttributes keyword from json schema
         /// </summary>
-        internal const string Name = "@xsdUnhandledEnumAttributes";
-
-        /// <summary>
-        /// Creates a new <see cref="XsdUnhandledEnumAttributesKeyword"/>.
-        /// </summary>
-        public XsdUnhandledEnumAttributesKeyword()
+        public override XsdUnhandledEnumAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            Properties = new List<NamedKeyValuePairs>();
-        }
+            JsonDocument document = JsonDocument.ParseValue(ref reader);
 
-        /// <summary>
-        /// Creates a new <see cref="XsdUnhandledEnumAttributesKeyword"/>.
-        /// </summary>
-        /// <param name="values">The the unhandled attributes in order.</param>
-        public XsdUnhandledEnumAttributesKeyword(NamedKeyValuePairs[] values)
-        {
-            Properties = values.ToList();
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="XsdUnhandledEnumAttributesKeyword"/>.
-        /// </summary>
-        /// <param name="values">The unhandled attributes in order.</param>
-        public XsdUnhandledEnumAttributesKeyword(IEnumerable<NamedKeyValuePairs> values)
-        {
-            Properties = values as List<NamedKeyValuePairs> ?? values.ToList();
-        }
-
-        /// <summary>
-        /// The all the unhandled attributes in order.
-        /// </summary>
-        public IReadOnlyList<NamedKeyValuePairs> Properties { get; }
-
-        /// <summary>
-        /// Provides validation for the keyword.
-        /// </summary>
-        /// <param name="context">Contextual details for the validation process.</param>
-        public void Validate(ValidationContext context)
-        {
-            // No validation for keyword.
-        }
-
-        /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.</returns>
-        public bool Equals(XsdUnhandledEnumAttributesKeyword other)
-        {
-            if (other is null)
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return false;
+                throw new JsonException("Expected object");
             }
 
-            return ReferenceEquals(this, other) || Properties.ContentsEqual(other.Properties);
-        }
+            List<NamedKeyValuePairs> namedKeyValuePairsList = new List<NamedKeyValuePairs>();
+            foreach (var item in document.RootElement.EnumerateObject())
+            {
+                var namedValuedKeyPairs = new NamedKeyValuePairs(item.Name);
 
-        /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        /// <param name="obj">The object to compare with the current object.</param>
-        /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as XsdUnhandledEnumAttributesKeyword);
-        }
+                foreach (var keyPair in item.Value.EnumerateObject())
+                {
+                    namedValuedKeyPairs.Add(keyPair.Name, keyPair.Value.ToString());
+                }
 
-        /// <summary>Serves as the default hash function.</summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return Properties?.GetCollectionHashCode() ?? 0;
+                namedKeyValuePairsList.Add(namedValuedKeyPairs);
+            }
+
+            return new XsdUnhandledEnumAttributesKeyword(namedKeyValuePairsList);
         }
 
         /// <summary>
-        /// Serializer for the @xsdUnhandledAttributes keyword
+        /// Write @xsdUnhandledAttributes keyword to json
         /// </summary>
-        public class XsdUnhandledEnumAttributesKeywordJsonConverter : JsonConverter<XsdUnhandledEnumAttributesKeyword>
+        public override void Write(Utf8JsonWriter writer, XsdUnhandledEnumAttributesKeyword value, JsonSerializerOptions options)
         {
-            /// <summary>
-            /// Read @xsdUnhandledAttributes keyword from json schema
-            /// </summary>
-            public override XsdUnhandledEnumAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            writer.WritePropertyName(Name);
+            writer.WriteStartObject();
+
+            foreach (var item in value.Properties)
             {
-                JsonDocument document = JsonDocument.ParseValue(ref reader);
-
-                if (document.RootElement.ValueKind != JsonValueKind.Object)
-                {
-                    throw new JsonException("Expected object");
-                }
-
-                List<NamedKeyValuePairs> namedKeyValuePairsList = new List<NamedKeyValuePairs>();
-                foreach (var item in document.RootElement.EnumerateObject())
-                {
-                    var namedValuedKeyPairs = new NamedKeyValuePairs(item.Name);
-
-                    foreach (var keyPair in item.Value.EnumerateObject())
-                    {
-                        namedValuedKeyPairs.Add(keyPair.Name, keyPair.Value.ToString());
-                    }
-
-                    namedKeyValuePairsList.Add(namedValuedKeyPairs);
-                }
-
-                return new XsdUnhandledEnumAttributesKeyword(namedKeyValuePairsList);
-            }
-
-            /// <summary>
-            /// Write @xsdUnhandledAttributes keyword to json
-            /// </summary>
-            public override void Write(Utf8JsonWriter writer, XsdUnhandledEnumAttributesKeyword value, JsonSerializerOptions options)
-            {
-                writer.WritePropertyName(Name);
+                writer.WritePropertyName(item.Name);
                 writer.WriteStartObject();
-
-                foreach (var item in value.Properties)
+                foreach (var pair in item.Properties)
                 {
-                    writer.WritePropertyName(item.Name);
-                    writer.WriteStartObject();
-                    foreach (var pair in item.Properties)
-                    {
-                        writer.WriteString(pair.Key, pair.Value);
-                    }
-
-                    writer.WriteEndObject();
+                    writer.WriteString(pair.Key, pair.Value);
                 }
 
                 writer.WriteEndObject();
             }
+
+            writer.WriteEndObject();
         }
     }
 }

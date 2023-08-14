@@ -6,118 +6,114 @@ using System.Text.Json.Serialization;
 using Json.Pointer;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Json.Keywords
+namespace Altinn.Studio.DataModeling.Json.Keywords;
+
+/// <summary>
+/// Handles `@xsdSchemaAttributes`.
+/// </summary>
+[SchemaKeyword(Name)]
+[SchemaSpecVersion(SpecVersion.Draft6)]
+[SchemaSpecVersion(SpecVersion.Draft7)]
+[SchemaSpecVersion(SpecVersion.Draft201909)]
+[SchemaSpecVersion(SpecVersion.Draft202012)]
+[SchemaSpecVersion(SpecVersion.DraftNext)]
+[JsonConverter(typeof(XsdSchemaAttributesKeywordJsonConverter))]
+public sealed class XsdSchemaAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdSchemaAttributesKeyword>
 {
     /// <summary>
-    /// Handles `@xsdSchemaAttributes`.
+    /// The name of the keyword
     /// </summary>
-    [SchemaKeyword(Name)]
-    [SchemaDraft(Draft.Draft6)]
-    [SchemaDraft(Draft.Draft7)]
-    [SchemaDraft(Draft.Draft201909)]
-    [SchemaDraft(Draft.Draft202012)]
-    [JsonConverter(typeof(XsdSchemaAttributesKeywordJsonConverter))]
-    public sealed class XsdSchemaAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdSchemaAttributesKeyword>
+    internal const string Name = "@xsdSchemaAttributes";
+
+    /// <summary>
+    /// The xsd schema attributes in order.
+    /// </summary>
+    public IReadOnlyList<(string Name, string Value)> Properties { get; }
+
+    /// <summary>
+    /// Creates a new <see cref="XsdSchemaAttributesKeyword"/>.
+    /// </summary>
+    /// <param name="values">The schema attributes.</param>
+    public XsdSchemaAttributesKeyword(params (string Name, string Value)[] values)
+    {
+        Properties = values.ToList();
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="XsdSchemaAttributesKeyword"/>.
+    /// </summary>
+    /// <param name="values">The schema attributes.</param>
+    public XsdSchemaAttributesKeyword(IEnumerable<(string Name, string Value)> values)
+    {
+        Properties = values as List<(string, string)> ?? values.ToList();
+    }
+
+    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    {
+        return new KeywordConstraint(Name, (e, c) => {});
+    }
+
+    /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
+    /// <param name="other">An object to compare with this object.</param>
+    /// <returns>true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.</returns>
+    public bool Equals(XsdSchemaAttributesKeyword other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return ReferenceEquals(this, other) || Properties.ContentsEqual(other.Properties);
+    }
+
+    /// <summary>Determines whether the specified object is equal to the current object.</summary>
+    /// <param name="obj">The object to compare with the current object.</param>
+    /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as XsdSchemaAttributesKeyword);
+    }
+
+    /// <summary>Serves as the default hash function.</summary>
+    /// <returns>A hash code for the current object.</returns>
+    public override int GetHashCode()
+    {
+        return Properties?.GetCollectionHashCode() ?? 0;
+    }
+
+    /// <summary>
+    /// Serializer for the @xsdSchemaAttributes keyword
+    /// </summary>
+    internal class XsdSchemaAttributesKeywordJsonConverter : JsonConverter<XsdSchemaAttributesKeyword>
     {
         /// <summary>
-        /// The name of the keyword
+        /// Read @xsdSchemaAttributes keyword from json schema
         /// </summary>
-        internal const string Name = "@xsdSchemaAttributes";
-
-        /// <summary>
-        /// The xsd schema attributes in order.
-        /// </summary>
-        public IReadOnlyList<(string Name, string Value)> Properties { get; }
-
-        /// <summary>
-        /// Creates a new <see cref="XsdSchemaAttributesKeyword"/>.
-        /// </summary>
-        /// <param name="values">The schema attributes.</param>
-        public XsdSchemaAttributesKeyword(params (string Name, string Value)[] values)
+        public override XsdSchemaAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            Properties = values.ToList();
-        }
+            JsonDocument document = JsonDocument.ParseValue(ref reader);
 
-        /// <summary>
-        /// Creates a new <see cref="XsdSchemaAttributesKeyword"/>.
-        /// </summary>
-        /// <param name="values">The schema attributes.</param>
-        public XsdSchemaAttributesKeyword(IEnumerable<(string Name, string Value)> values)
-        {
-            Properties = values as List<(string, string)> ?? values.ToList();
-        }
-
-        /// <summary>
-        /// Provides validation for the keyword.
-        /// </summary>
-        /// <param name="context">Contextual details for the validation process.</param>
-        public void Validate(ValidationContext context)
-        {
-            // No validation for keyword.
-        }
-
-        /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.</returns>
-        public bool Equals(XsdSchemaAttributesKeyword other)
-        {
-            if (other is null)
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return false;
+                throw new JsonException("Expected object");
             }
 
-            return ReferenceEquals(this, other) || Properties.ContentsEqual(other.Properties);
-        }
-
-        /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        /// <param name="obj">The object to compare with the current object.</param>
-        /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as XsdSchemaAttributesKeyword);
-        }
-
-        /// <summary>Serves as the default hash function.</summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return Properties?.GetCollectionHashCode() ?? 0;
+            return new XsdSchemaAttributesKeyword(document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString())));
         }
 
         /// <summary>
-        /// Serializer for the @xsdSchemaAttributes keyword
+        /// Write @xsdSchemaAttributes keyword to json
         /// </summary>
-        internal class XsdSchemaAttributesKeywordJsonConverter : JsonConverter<XsdSchemaAttributesKeyword>
+        public override void Write(Utf8JsonWriter writer, XsdSchemaAttributesKeyword value, JsonSerializerOptions options)
         {
-            /// <summary>
-            /// Read @xsdSchemaAttributes keyword from json schema
-            /// </summary>
-            public override XsdSchemaAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            writer.WritePropertyName(Name);
+            writer.WriteStartObject();
+            foreach ((string name, string s) in value.Properties)
             {
-                JsonDocument document = JsonDocument.ParseValue(ref reader);
-
-                if (document.RootElement.ValueKind != JsonValueKind.Object)
-                {
-                    throw new JsonException("Expected object");
-                }
-
-                return new XsdSchemaAttributesKeyword(document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString())));
+                writer.WriteString(name, s);
             }
 
-            /// <summary>
-            /// Write @xsdSchemaAttributes keyword to json
-            /// </summary>
-            public override void Write(Utf8JsonWriter writer, XsdSchemaAttributesKeyword value, JsonSerializerOptions options)
-            {
-                writer.WritePropertyName(Name);
-                writer.WriteStartObject();
-                foreach ((string name, string s) in value.Properties)
-                {
-                    writer.WriteString(name, s);
-                }
-
-                writer.WriteEndObject();
-            }
+            writer.WriteEndObject();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,11 +14,11 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// Equivalent of totalDigits restriction in json schema
 /// </summary>
 [SchemaKeyword(Name)]
-[SchemaPriority(int.MinValue)]
-[SchemaDraft(Draft.Draft6)]
-[SchemaDraft(Draft.Draft7)]
-[SchemaDraft(Draft.Draft201909)]
-[SchemaDraft(Draft.Draft202012)]
+[SchemaSpecVersion(SpecVersion.Draft6)]
+[SchemaSpecVersion(SpecVersion.Draft7)]
+[SchemaSpecVersion(SpecVersion.Draft201909)]
+[SchemaSpecVersion(SpecVersion.Draft202012)]
+[SchemaSpecVersion(SpecVersion.DraftNext)]
 [JsonConverter(typeof(XsdTotalDigitsKeywordJsonConverter))]
 public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTotalDigitsKeyword>
 {
@@ -40,37 +41,31 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
         Value = value;
     }
 
-    /// <inheritdoc />
-    public void Validate(ValidationContext context)
+    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
     {
-        context.EnterKeyword(Name);
-        var schemaValueType = context.LocalInstance.GetSchemaValueType();
+        return new KeywordConstraint(Name, Evaluator);
+    }
+
+    private void Evaluator(KeywordEvaluation evaluation, EvaluationContext context)
+    {
+        var schemaValueType = evaluation.LocalInstance.GetSchemaValueType();
         if (schemaValueType is not (SchemaValueType.Number or SchemaValueType.Integer))
         {
-            context.LocalResult.Pass();
-            context.WrongValueKind(schemaValueType);
             return;
         }
 
-        var number = context.LocalInstance!.AsValue().GetNumber();
+        decimal? number = evaluation.LocalInstance!.AsValue().GetNumber();
 
         if (number is null)
         {
-            context.LocalResult.Fail();
-            context.ExitKeyword(Name, context.LocalResult.IsValid);
+            evaluation.Results.Fail();
             return;
         }
 
         if (!new Regex(TotalDigitsDecimalRegexString(Value)).IsMatch(number.Value.ToString("G", NumberFormatInfo.InvariantInfo)))
         {
-            context.LocalResult.Fail();
+           evaluation.Results.Fail(Name, "Invalid value for regex");
         }
-        else
-        {
-            context.LocalResult.Pass();
-        }
-
-        context.ExitKeyword(Name, context.LocalResult.IsValid);
     }
 
     /// <inheritdoc />

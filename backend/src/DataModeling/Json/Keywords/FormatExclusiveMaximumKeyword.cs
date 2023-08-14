@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Json.Schema;
@@ -9,11 +11,11 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// Used to represent exclusive maximum on the date types
 /// </summary>
 [SchemaKeyword(Name)]
-[SchemaPriority(int.MinValue)]
-[SchemaDraft(Draft.Draft6)]
-[SchemaDraft(Draft.Draft7)]
-[SchemaDraft(Draft.Draft201909)]
-[SchemaDraft(Draft.Draft202012)]
+[SchemaSpecVersion(SpecVersion.Draft6)]
+[SchemaSpecVersion(SpecVersion.Draft7)]
+[SchemaSpecVersion(SpecVersion.Draft201909)]
+[SchemaSpecVersion(SpecVersion.Draft202012)]
+[SchemaSpecVersion(SpecVersion.DraftNext)]
 [JsonConverter(typeof(FormatExclusiveMaximumKeywordJsonConverter))]
 public sealed class FormatExclusiveMaximumKeyword : IJsonSchemaKeyword, IEquatable<FormatExclusiveMaximumKeyword>
 {
@@ -36,10 +38,9 @@ public sealed class FormatExclusiveMaximumKeyword : IJsonSchemaKeyword, IEquatab
         Value = value;
     }
 
-    /// <inheritdoc />
-    public void Validate(ValidationContext context)
+    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
     {
-        // No validation for keyword.
+        return new KeywordConstraint(Name, (e, c) => {});
     }
 
     /// <inheritdoc />
