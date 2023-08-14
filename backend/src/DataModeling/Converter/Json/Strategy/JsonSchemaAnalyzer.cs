@@ -277,7 +277,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             // If it doesn't have a oneOf, or the oneOf only has one sub-schema, it's not a candidate for
             // a nillable element.
-            if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.GetSubschemas().Count() < 2)
+            if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.Schemas.Count() < 2)
             {
                 valueSchema = null;
                 return false;
@@ -285,7 +285,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             // If we have 2 or more sub-schema's, but none of them with a type keyword, it's not
             // a candidate for a nillable element.
-            var subSchemas = oneOfKeyword.GetSubschemas().ToList();
+            var subSchemas = oneOfKeyword.Schemas.ToList();
             var typeKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<TypeKeyword>());
 
             if (typeKeywordSubSchema == null)
@@ -333,7 +333,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
-                foreach (var subSchema in allOfKeyword.GetSubschemas())
+                foreach (var subSchema in allOfKeyword.Schemas)
                 {
                     var isComplexType = IsValidComplexType(subSchema);
                     if (isComplexType)
@@ -345,7 +345,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (schema.TryGetKeyword(out AnyOfKeyword anyOfKeyword))
             {
-                foreach (var subSchema in anyOfKeyword.GetSubschemas())
+                foreach (var subSchema in anyOfKeyword.Schemas)
                 {
                     var isComplexType = IsValidComplexType(subSchema);
                     if (isComplexType)
@@ -357,7 +357,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (schema.TryGetKeyword(out OneOfKeyword oneOfKeyword))
             {
-                foreach (var subSchema in oneOfKeyword.GetSubschemas())
+                foreach (var subSchema in oneOfKeyword.Schemas)
                 {
                     var isComplexType = IsValidComplexType(subSchema);
                     if (isComplexType)
@@ -580,7 +580,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (schema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
-                var subSchemas = allOfKeyword.GetSubschemas().ToList();
+                var subSchemas = allOfKeyword.Schemas.ToList();
                 var refKeywordSubSchemaCount = subSchemas.Count(s => s.Keywords.HasKeyword<RefKeyword>());
                 if (refKeywordSubSchemaCount > 1)
                 {
