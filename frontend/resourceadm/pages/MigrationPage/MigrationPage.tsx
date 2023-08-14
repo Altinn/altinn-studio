@@ -195,7 +195,7 @@ export const MigrationPage = ({ navigateToPageWithError }: Props) => {
               </Paragraph>
               <div className={classes.buttonWrapper}>
                 <Button
-                  disabled={
+                  aria-disabled={
                     !(
                       validateResourceData.status === 200 &&
                       validatePolicyData?.status === 200 &&
@@ -207,7 +207,7 @@ export const MigrationPage = ({ navigateToPageWithError }: Props) => {
                 >
                   Migrer delegeringer
                 </Button>
-                <Button disabled onClick={() => {}} className={classes.button}>
+                <Button aria-disabled onClick={() => {}} className={classes.button}>
                   Skru av tjenesten i Altinn 2
                 </Button>
               </div>

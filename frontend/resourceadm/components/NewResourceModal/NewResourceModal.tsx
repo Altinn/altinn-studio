@@ -133,7 +133,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
         <Button
           onClick={() => handleCreateNewResource()}
           color='primary'
-          disabled={id.length === 0 || title.length === 0}
+          aria-disabled={id.length === 0 || title.length === 0}
         >
           Opprett ressurs
         </Button>

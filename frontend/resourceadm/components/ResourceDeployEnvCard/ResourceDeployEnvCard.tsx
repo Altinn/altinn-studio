@@ -47,7 +47,7 @@ export const ResourceDeployEnvCard = ({
         )}
       </div>
       <div className={classes.buttonWrapper}>
-        <Button disabled={!isDeployPossible}>Publiser til {envName}</Button>
+        <Button aria-disabled={!isDeployPossible}>Publiser til {envName}</Button>
       </div>
     </div>
   );
