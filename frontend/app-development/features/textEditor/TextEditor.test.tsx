@@ -14,10 +14,9 @@ const org = 'test-org';
 const app = 'test-app';
 const testTextResourceKey = 'test-key';
 const testTextResourceValue = 'test-value';
+const languages = ['nb', 'en'];
 
-const queries: Partial<ServicesContextProps> = {
-  deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
-  upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
+const queriesMock: Partial<ServicesContextProps> = {
   getTextResources: jest.fn().mockImplementation(() => Promise.resolve({
     resources:[
       {
@@ -26,7 +25,7 @@ const queries: Partial<ServicesContextProps> = {
       }
     ]
   })),
-  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(['nb', 'en'])),
+  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(languages)),
 };
 
 const mockSetSearchParams = jest.fn();
@@ -76,17 +75,84 @@ describe('TextEditor', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ search });
   });
 
-  it('adds a text resource when clicking "New text" button', async () => {
-    await render();
+  it('adds new text resource when clicking add button', async () => {
+    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+
+    await render({ upsertTextResources });
 
     const addButton = screen.getByRole('button', { name: 'Ny tekst' });
     await act(() => user.click(addButton));
 
-    expect(queries.upsertTextResources).toBeCalledTimes(2);
+    expect(upsertTextResources).toBeCalledTimes(2);
   });
 
-  it('deletes a text resource when clicking delete button', async () => {
-    await render();
+  it('updates text resource when editing text', async () => {
+    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+
+    await render({ upsertTextResources });
+
+    const textarea = screen.getByRole('textbox', { name: 'nb translation' });
+    await act(() => user.clear(textarea));
+    await act(() => user.type(textarea, 'test'));
+    await act(() => user.tab());
+
+    expect(upsertTextResources).toBeCalledWith(org, app, 'nb', { [testTextResourceKey]: 'test' });
+  });
+
+  it('updates text id when editing text id', async () => {
+    const updateTextId = jest.fn().mockImplementation(() => Promise.resolve());
+
+    await render({ updateTextId });
+
+    const editButton = screen.getByRole('button', { name: 'toggle-textkey-edit' });
+    await act(() => editButton.click());
+
+    const textarea = screen.getByRole('textbox', { name: 'tekst key edit' });
+    await act(() => user.clear(textarea));
+    await act(() => user.type(textarea, 'test'));
+    await act(() => user.tab());
+
+    expect(updateTextId).toBeCalledWith(org, app, [{ 'newId': 'test', 'oldId': testTextResourceKey }]);
+  });
+
+  it('deletes text id when clicking delete button', async () => {
+    const updateTextId = jest.fn().mockImplementation(() => Promise.resolve());
+
+    await render({ updateTextId });
+
+    const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    await act(() => deleteButton.click());
+
+    const confirmButton = await screen.findByRole('button', { name: textMock('schema_editor.textRow-deletion-confirm') });
+    await act(() => user.click(confirmButton));
+
+    expect(updateTextId).toBeCalledWith(org, app, [{ 'oldId': testTextResourceKey }]);
+  });
+
+  it('adds new language when clicking add button', async () => {
+    const addLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
+
+    await render({ addLanguageCode });
+
+    const addBtn = screen.getByRole('button', {
+      name: /legg til/i,
+    });
+    expect(addBtn).toBeDisabled();
+    const select = screen.getByRole('combobox');
+
+    await act(() => user.type(select, 'nordsamisk'));
+    await act(() => user.click(screen.getByText('nordsamisk')));
+
+    expect(addBtn).not.toBeDisabled();
+    await act(() => user.click(addBtn));
+
+    expect(addLanguageCode).toBeCalledWith(org, app, 'se', { 'language': 'se', 'resources': [{ 'id': testTextResourceKey, 'value': '' }] });
+  });
+
+  it('deletes a language when clicking delete button', async () => {
+    const deleteLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
+
+    await render({ deleteLanguageCode });
 
     const deleteButton = screen.getByTestId('delete-en');
     await act(() => user.click(deleteButton));
@@ -94,7 +160,7 @@ describe('TextEditor', () => {
     const confirmButton = await screen.findByRole('button', { name: textMock('schema_editor.language_confirm_deletion') });
     await act(() => user.click(confirmButton));
 
-    expect(queries.deleteLanguageCode).toBeCalledWith(org, app, 'en');
+    expect(deleteLanguageCode).toBeCalledWith(org, app, 'en');
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -115,9 +181,12 @@ describe('TextEditor', () => {
   });
 });
 
-const render = async () => {
+const render = async (queries: Partial<ServicesContextProps> = {}) => {
   renderWithProviders(<TextEditor />, {
-    queries,
+    queries: {
+      ...queriesMock,
+      ...queries,
+    },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
 
