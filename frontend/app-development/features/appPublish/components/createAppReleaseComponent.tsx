@@ -70,6 +70,7 @@ export function CreateReleaseComponent() {
             ref={ref}
             onClick={handleBuildVersionClick}
             disabled={!versionNameValid(releases, tagName) || !tagName}
+            size='small'
           >
             {t('app_create_release.build_version')}
           </Button>

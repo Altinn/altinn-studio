@@ -39,8 +39,6 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
       branch: null,
       error: null,
     },
-    dataModelsMetadataState: null,
-    dataModelling: null,
     serviceInformation: null,
     userState: null,
   };

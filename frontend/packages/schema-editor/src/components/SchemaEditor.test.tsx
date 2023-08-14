@@ -16,17 +16,19 @@ import {
 } from '@altinn/schema-model';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/renderWithProviders';
-import { queryClientMock } from '../../test/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { getSavedModel } from '../../test/test-utils';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { jsonMetadata1Mock } from '../../test/mocks/metadataMocks';
 
 const user = userEvent.setup();
 
 // Test data:
 const org = 'org';
 const app = 'app';
-const modelPath = 'modelPath';
+const datamodelsMetadata = [jsonMetadata1Mock];
+const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 // Mocks:
 const saveDatamodel = jest.fn();
@@ -44,31 +46,11 @@ const renderEditor = (customState?: Partial<SchemaState>) => {
     ...customStateCopy,
   };
 
-
   return renderWithProviders({
     state,
     appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel }
-  })(
-    <SchemaEditor
-      LandingPagePanel={<div>landing page panel goes here</div>}
-      name='test'
-      onSaveSchema={jest.fn()}
-      schemaState={{ saving: false, error: null }}
-      toolbarProps={{
-        createNewOpen: false,
-        createPathOption: false,
-        handleCreateSchema: jest.fn(),
-        handleDeleteSchema: jest.fn(),
-        handleXsdUploaded: jest.fn(),
-        metadataOptions: [],
-        modelNames: [],
-        selectedOption: { value: { fileName: '', fileType: '.json', repositoryRelativeUrl: '' }, label: '' },
-        setCreateNewOpen: jest.fn(),
-        setSelectedOption: jest.fn(),
-      }}
-    />
-  );
+  })(<SchemaEditor/>);
 };
 
 const clickMenuItem = async (name: string) =>{
@@ -82,6 +64,7 @@ const clickOpenContextMenuButton = async () => {
 };
 
 const setSchema = (schema: JsonSchema): UiSchemaNodes => {
+  queryClientMock.setQueryData([QueryKey.DatamodelsMetadata, org, app], datamodelsMetadata);
   const uiSchema = buildUiSchema(schema);
   queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
   return uiSchema;
@@ -310,7 +293,7 @@ describe('SchemaEditor', () => {
     renderEditor();
     const type = screen.getByTestId(`type-item-#/${Keyword.Definitions}/TestType`);
     await act(() => user.click(type));
-    expect(screen.getByText(textMock('schema_editor.types_editing'))).toBeDefined();
+    expect(screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))).toBeDefined();
   });
 
   test('close type when clicking on close button', async () => {

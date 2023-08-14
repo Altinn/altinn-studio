@@ -19,7 +19,7 @@ export function AltinnConfirmDialog({
   cancelText,
   onConfirm,
   onClose,
-  placement = 'right',
+  placement,
   children,
   trigger = <div />,
   open = false,
@@ -65,6 +65,7 @@ export function AltinnConfirmDialog({
               onClose(event);
             }}
             className={classes.confirmButton}
+            size='small'
           >
             {confirmText || t('general.yes')}
           </Button>
@@ -75,6 +76,7 @@ export function AltinnConfirmDialog({
               event.stopPropagation();
               onClose(event);
             }}
+            size='small'
           >
             {cancelText || t('general.cancel')}
           </Button>

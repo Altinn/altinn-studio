@@ -2,6 +2,7 @@ export * from './AddLanguagePayload';
 export * from './AddRepoParams';
 export * from './AppDeploymentsResponse';
 export * from './AppReleasesResponse';
+export * from './CreateDatamodelPayload';
 export * from './CreateDeploymentPayload';
 export * from './CreateReleasePayload';
 export * from './CreateRepoCommitPayload';

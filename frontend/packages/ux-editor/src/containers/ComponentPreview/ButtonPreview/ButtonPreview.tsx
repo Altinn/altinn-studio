@@ -49,7 +49,7 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
   return (
     <div className={classes.root}>
       {buttonsToPreview.map(({ text, variant, color }) => (
-        <Button key={text} color={color} variant={variant}>
+        <Button key={text} color={color} variant={variant} size='small'>
           {text}
         </Button>
       ))}

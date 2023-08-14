@@ -31,6 +31,7 @@ export const ThreeDotsMenu = ({ onlyShowRepository = false, hasCloneModal = fals
             variant='quiet'
             color='inverted'
             data-testid='menuBtn'
+            size='small'
           />
         }
       >

@@ -8,7 +8,7 @@ import {
 import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { ExpressionContent, ExpressionElement } from './ExpressionContent';
-import { Dynamic } from '../../rightMenu/DynamicsTab';
+import { Dynamic } from '../../rightMenu/Dynamics';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { v4 as uuidv4 } from 'uuid';
@@ -105,6 +105,7 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
               icon={<XMarkIcon/>}
               onClick={() => onRemoveDynamic(dynamic)} // delete dynamic - should also set expression element state back to default
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           }
           <p>
@@ -148,11 +149,13 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
               icon={<XMarkIcon />}
               onClick={() => onRemoveDynamic(dynamic)}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
             <Button
               icon={<PencilIcon />}
               onClick={() => onEditDynamic(dynamic)}
               variant={ButtonVariant.Quiet}
+              size='small'
             />
           </div>
         </div>

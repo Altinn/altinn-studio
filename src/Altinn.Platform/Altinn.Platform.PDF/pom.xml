@@ -77,7 +77,10 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.10.0</version>
+      <!-- Deploy fails when updating to 1.10.0. No such method:
+        com.azure.core.credential.TokenRequestContext.isCaeEnabled()
+      -->
+      <version>1.9.2</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

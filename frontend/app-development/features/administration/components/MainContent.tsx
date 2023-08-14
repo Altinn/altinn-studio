@@ -60,6 +60,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           color={ButtonColor.Secondary}
           onClick={props.onEditAppNameClick}
           variant={ButtonVariant.Outline}
+          size='small'
         >
           {t('general.edit')}
         </Button>

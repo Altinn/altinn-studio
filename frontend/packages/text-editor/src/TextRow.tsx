@@ -80,7 +80,6 @@ export const TextRow = ({
             confirmText={t('schema_editor.textRow-deletion-confirm')}
             onConfirm={handleDeleteClick}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
-            placement='bottom'
             trigger={
               <Button
                 className={classes.deleteButton}
@@ -88,6 +87,7 @@ export const TextRow = ({
                 variant={ButtonVariant.Quiet}
                 onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
                 aria-label={t('schema_editor.delete')}
+                size='small'
               >
                 {t('schema_editor.delete')}
               </Button>

@@ -23,14 +23,12 @@ export function ReceiptPageElement() {
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
   };
   return receiptName ? (
-    <div className={classes.pageElementWrapper}>
-      <PageElement name={receiptName} />
+    <PageElement name={receiptName} />
+  ) : (
+    <div className={classes.buttonWrapper}>
+      <Button variant={ButtonVariant.Quiet} onClick={handleAddPage} className={classes.button} size='small'>
+        {t('receipt.create')}
+      </Button>
     </div>
-    ) : (
-      <div className={classes.buttonWrapper}>
-        <Button variant={ButtonVariant.Quiet} onClick={handleAddPage}>
-          {t('receipt.create')}
-        </Button>
-      </div>
-    );
+  );
 }

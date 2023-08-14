@@ -85,6 +85,7 @@ export const SyncModal = ({
             className={classes.button}
             onClick={btnClickedHandler}
             id='share_changes_modal_button'
+            size='small'
           >
             {btnText}
           </Button>

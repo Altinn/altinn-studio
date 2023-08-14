@@ -1,49 +1,34 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { XMarkIcon } from '@navikt/aksel-icons';
 import classes from './SchemaEditor.module.css';
 import {
   setSchemaName,
   setSelectedId,
   setUiSchema,
 } from '../features/editor/schemaEditorSlice';
-import { SchemaInspector } from './SchemaInspector';
-import { TopToolbar } from './TopToolbar';
+import { useTranslation } from 'react-i18next';
 import {
-  buildJsonSchema,
+  getRootChildren,
+  getRootNodes,
+  selectedDefinitionNodeIdSelector,
+  selectedIdSelector,
+  selectedPropertyNodeIdSelector,
+} from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { useParentSchemaSelector, useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
+import { TypesInspector } from '@altinn/schema-editor/components/TypesInspector';
+import classNames from 'classnames';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { XMarkIcon } from '@navikt/aksel-icons';
+import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
+import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
+import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import {
+  UiSchemaNode,
+  UiSchemaNodes,
   getNameFromPointer,
   isEmpty,
   pointerIsDefinition,
-  UiSchemaNode,
-  UiSchemaNodes
 } from '@altinn/schema-model';
-
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { ModelsPanel, TypesPanel } from './layout';
-import { useTranslation } from 'react-i18next';
-import { TypesInspector } from './TypesInspector';
-import classNames from 'classnames';
-import {
-  selectedPropertyNodeIdSelector,
-  selectedDefinitionNodeIdSelector,
-  selectedIdSelector,
-  getRootChildren,
-  getRootNodes
-} from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { useSchemaSelector, useParentSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { Toolbar, ToolbarProps } from 'app-shared/features/dataModelling/components/Toolbar';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { GenerateSchemaState } from 'app-shared/types/global';
-
-export interface IEditorProps {
-  LandingPagePanel: ReactNode;
-  name?: string;
-  onSaveSchema: (payload: JsonSchema) => void;
-  schemaState: GenerateSchemaState;
-  toolbarProps: Omit<ToolbarProps, 'disabled'>;
-}
 
 export enum SchemaEditorTestIds {
   menuAddReference = 'action-menu-add-reference',
@@ -55,30 +40,26 @@ export enum SchemaEditorTestIds {
   menuAddBoolean = 'action-menu-add-boolean',
 }
 
-export const SchemaEditor = ({
-  LandingPagePanel,
-  name,
-  onSaveSchema,
-  schemaState,
-  toolbarProps,
-}: IEditorProps) => {
+export interface SchemaEditorProps {
+  modelName?: string;
+}
+
+export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const dispatch = useDispatch();
   const { data } = useDatamodelQuery();
 
   useEffect(() => {
-    if (name) {
-      dispatch(setUiSchema({ name }));
-      dispatch(setSchemaName({ name }));
+    if (modelName) {
+      dispatch(setUiSchema({ name: modelName }));
+      dispatch(setSchemaName({ name: modelName }));
     }
-  }, [dispatch, name]);
+  }, [dispatch, modelName]);
+
+  const { t } = useTranslation();
+  const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
-
-  const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
-
-  const translation = useTranslation();
-  const t = (key: string, options: KeyValuePairs) => translation.t('schema_editor.' + key, options);
 
   const rootNodeMap = getRootNodes(data);
   const rootChildren = getRootChildren(data);
@@ -119,7 +100,7 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  const handleSaveSchema = () => onSaveSchema(buildJsonSchema(data));
+  if (isEmpty(data)) return null;
 
   const handleSelectType = (node: UiSchemaNode) => {
     setSelectedType(node);
@@ -132,70 +113,59 @@ export const SchemaEditor = ({
   };
 
   return (
-    <div className={classes.root}>
-      <TopToolbar
-        Toolbar={(<Toolbar {...toolbarProps} disabled={isEmpty(data)}/>)}
-        saveAction={name ? handleSaveSchema : undefined}
-        schemaState={schemaState}
-      />
-      <main className={classes.main}>
-        {isEmpty(data) ? LandingPagePanel : (
-          <aside className={classes.inspector}>
-            <TypesInspector
-              schemaItems={definitions}
-              handleSelectType={handleSelectType}
-              key={selectedType?.pointer || ''}
-              selectedNodePointer={selectedType?.pointer}
-            />
-          </aside>
-        )}
-        {name && !isEmpty(data) && selectedType && (
-          <div
-            data-testid='types-editor'
-            id='types-editor'
-            className={classNames(classes.editor, classes.editorTypes)}
-          >
-            <div className={classes.typeInfo}>
-              <span>
-                {t(
-                  'types_editing',
-                  { type: getNameFromPointer({ pointer: selectedType.pointer }) }
-                )}
-              </span>
-              <Button
-                onClick={handleResetSelectedType}
-                icon={<XMarkIcon />}
-                variant={ButtonVariant.Quiet}
-                color={ButtonColor.Inverted}
-                aria-label={t('close_type', null)}
-              />
-            </div>
-            <TypesPanel
-              uiSchemaNode={selectedType}
-              setExpandedDefNodes={setExpandedDefNodes}
-              expandedDefNodes={
-                expandedDefNodes.includes(selectedType?.pointer)
-                  ? expandedDefNodes
-                  : expandedDefNodes.concat([selectedType.pointer])
-              }
+    <>
+      <aside className={classes.inspector}>
+        <TypesInspector
+          schemaItems={definitions}
+          handleSelectType={handleSelectType}
+          key={selectedType?.pointer || ''}
+          selectedNodePointer={selectedType?.pointer}
+        />
+      </aside>
+      {selectedType ? (
+        <div
+          data-testid='types-editor'
+          id='types-editor'
+          className={classNames(classes.editor, classes.editorTypes)}
+        >
+          <div className={classes.typeInfo}>
+            <span>
+              {t(
+                'schema_editor.types_editing',
+                { type: getNameFromPointer({ pointer: selectedType.pointer }) }
+              )}
+            </span>
+            <Button
+              onClick={handleResetSelectedType}
+              icon={<XMarkIcon />}
+              variant={ButtonVariant.Quiet}
+              color={ButtonColor.Inverted}
+              aria-label={t('schema_editor.close_type')}
+              size='small'
             />
           </div>
-        )}
-        {name && !isEmpty(data) && !selectedType && (
-          <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
-            <ModelsPanel
-              setExpandedPropNodes={setExpandedPropNodes}
-              expandedPropNodes={expandedPropNodes}
-              properties={properties}
-            />
-          </div>
-        )}
-        {!isEmpty(data)  && (
-          <aside className={classes.inspector}>
-            <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
-          </aside>
-        )}
-      </main>
-    </div>
+          <TypesPanel
+            uiSchemaNode={selectedType}
+            setExpandedDefNodes={setExpandedDefNodes}
+            expandedDefNodes={
+              expandedDefNodes.includes(selectedType?.pointer)
+                ? expandedDefNodes
+                : expandedDefNodes.concat([selectedType.pointer])
+            }
+          />
+        </div>
+      ) : (
+        <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
+          <ModelsPanel
+            setExpandedPropNodes={setExpandedPropNodes}
+            expandedPropNodes={expandedPropNodes}
+            properties={properties}
+          />
+        </div>
+      )}
+      <aside className={classes.inspector}>
+        <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
+      </aside>
+    </>
   );
 };

@@ -51,6 +51,7 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
               color={ButtonColor.Secondary}
               onClick={props.onClose}
               variant={ButtonVariant.Outline}
+              size='small'
             >
               {t('general.cancel')}
             </Button>

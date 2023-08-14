@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
-import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import {
   fetchRemainingSession,
   keepAliveSession,
@@ -60,13 +58,6 @@ export function App() {
   const dispatch = useAppDispatch();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-    if (repositoryType === RepositoryType.App) {
-      dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
-    }
-  }, [app, dispatch, org, repositoryType]);
 
   useEffect(() => {
     dispatch(fetchRemainingSession());

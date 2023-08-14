@@ -87,11 +87,6 @@ export interface IGitStatus {
   hasMergeConflict: boolean;
 }
 
-export interface GenerateSchemaState {
-  error?: Error;
-  saving: boolean;
-}
-
 export interface ITextResources {
   [langCode: string]: ITextResource[];
 }

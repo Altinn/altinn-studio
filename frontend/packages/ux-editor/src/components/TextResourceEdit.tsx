@@ -51,6 +51,7 @@ export const TextResourceEdit = () => {
         icon={<XMarkIcon />}
         onClick={() => setEditId(undefined)}
         variant={ButtonVariant.Outline}
+        size='small'
       >
         {t('general.close')}
       </Button>

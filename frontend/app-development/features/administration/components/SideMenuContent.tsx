@@ -76,6 +76,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         id='reset-repo-button'
         onClick={onClickResetRepo}
         variant={ButtonVariant.Outline}
+        size='small'
       >
         {t('administration.reset_repo_button')}
       </Button>
@@ -93,6 +94,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         color={ButtonColor.Secondary}
         onClick={toggleDownloadModal}
         variant={ButtonVariant.Outline}
+        size='small'
       >
         {t('administration.download_repo')}
       </Button>

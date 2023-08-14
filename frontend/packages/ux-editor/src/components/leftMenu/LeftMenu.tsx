@@ -2,13 +2,14 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
+import { Button } from '@digdir/design-system-react';
 import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
 import { deepCopy } from 'app-shared/pure';
 import { useParams, useSearchParams } from 'react-router-dom';
+import cn from 'classnames';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
@@ -19,6 +20,7 @@ import { LayoutSetsContainer } from "./LayoutSetsContainer";
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { ConfigureLayoutSetPanel } from "./ConfigureLayoutSetPanel";
+import { Accordion } from '@digdir/design-system-react';
 
 export interface LeftMenuProps {
   className?: string;
@@ -57,43 +59,57 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   }
 
   return (
-    <div className={classes.leftMenu} data-testid={'ux-editor.left-menu'}>
-      {!_useIsProdHack() && (layoutSetNames ? (<>
-        <div className={classes.pagesHeader}>
-          <span>{t('left_menu.layout_sets')}</span>
-          <Button
-            aria-label={t('left_menu.pages_add_alt')}
-            icon={<PlusIcon/>}
-            onClick={handleAddLayoutSet}
-            variant={ButtonVariant.Quiet}
-            color={ButtonColor.Secondary}
-          />
-        </div>
-        <div className={classes.layoutSetList}>
-          <LayoutSetsContainer/>
-        </div>
-      </>) :
-        <ConfigureLayoutSetPanel />
-      )}
-      <div className={classes.pagesHeader}>
-        <span>{t('left_menu.pages')}</span>
-        <Button
-          aria-label={t('left_menu.pages_add_alt')}
-          icon={<PlusIcon/>}
-          onClick={handleAddPage}
-          variant={ButtonVariant.Quiet}
-          color={ButtonColor.Secondary}
-        />
-      </div>
-      <div className={classes.pagesList}>
-        <PagesContainer />
-      </div>
-      <div className={classes.receipt}>
-        <ReceiptPageElement />
-      </div>
-      <div className={classes.toolbar}>
-        {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
-      </div>
+    <div className={cn(className, classes.rightMenu)}>
+      <Accordion color="subtle">
+      {
+        !_useIsProdHack() && (
+          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
+            <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
+            <Accordion.Content>
+              {
+                layoutSetNames ? (
+                  <>
+                    <LayoutSetsContainer/>
+                    <div className={classes.addButton}>
+                      <Button
+                        icon={<PlusIcon/>}
+                        onClick={handleAddLayoutSet}
+                        size='small'
+                      >
+                        {t('left_menu.layout_sets_add')}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <ConfigureLayoutSetPanel />
+                )
+              }
+            </Accordion.Content>
+          </Accordion.Item>
+        )}
+        <Accordion.Item defaultOpen={true}>
+          <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
+          <Accordion.Content className={classes.pagesContent}>
+            <PagesContainer/>
+            <ReceiptPageElement/>
+            <div className={classes.addButton}>
+              <Button
+                icon={<PlusIcon/>}
+                onClick={handleAddPage}
+                size='small'
+              >
+                {t('left_menu.pages_add')}
+              </Button>
+            </div>
+          </Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item defaultOpen={true}>
+          <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
+          <Accordion.Content>
+            {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
     </div>
   );
 };

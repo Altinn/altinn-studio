@@ -6,7 +6,7 @@ import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { createNodeBase, Keyword, ObjectKind } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
 

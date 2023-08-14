@@ -90,6 +90,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
             variant={ButtonVariant.Outline}
+            size='small'
           >
             {t('schema_editor.add_property')}
           </Button>

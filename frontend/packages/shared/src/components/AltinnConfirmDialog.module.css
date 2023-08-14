@@ -1,4 +1,5 @@
 .popover {
+  position: fixed!important;
   max-width: 25rem;
   padding: var(--fds-spacing-4);
   z-index: 1301;
