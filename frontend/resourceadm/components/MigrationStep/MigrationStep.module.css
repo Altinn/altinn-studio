@@ -1,7 +1,8 @@
 .wrapper {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
-.text {
-  margin-bottom: 15px;
+.alert {
+  margin-left: 8px;
+  margin-top: 5px;
 }

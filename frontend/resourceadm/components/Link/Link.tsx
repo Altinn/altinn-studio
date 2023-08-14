@@ -5,6 +5,7 @@ interface Props {
   text: string;
   href: string;
   icon?: ReactNode;
+  openInNewWindow?: boolean;
 }
 
 /**
@@ -16,9 +17,14 @@ interface Props {
  *
  * TODO - Solve issue with visited.
  */
-export const Link = ({ text, href, icon }: Props) => {
+export const Link = ({ text, href, icon, openInNewWindow }: Props) => {
   return (
-    <a className={classes.link} href={href}>
+    <a
+      className={classes.link}
+      href={href}
+      target={openInNewWindow && '_blank'}
+      rel={openInNewWindow && 'noopener noreferrer'}
+    >
       {text}
       {icon}
     </a>
