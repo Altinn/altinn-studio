@@ -39,7 +39,7 @@ useEffect(() => {
   } = useTextResourcesQuery(org, app);
 
   const setSearchQuery = (search: string) => {
-    const params: any = { lang: searchParams.get('lang') };
+    const params: any = {};
     if (search.length > 0) {
       params.search = search;
     }
