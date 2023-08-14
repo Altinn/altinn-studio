@@ -5,7 +5,7 @@
     {
       "matchPackageNames": ["@digdir/design-system-react", "@digdir/design-system-tokens"],
       "groupName": "Digdir design system",
-      "schedule": ["0 8 * * 1-5"],
+      "schedule": ["* 0-7 * * 1-5"],
       "minimumReleaseAge": "0"
     }
   ]
