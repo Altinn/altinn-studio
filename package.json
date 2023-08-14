@@ -154,7 +154,7 @@
     "html-react-parser": "4.2.0",
     "json-schema-library": "^7.4.7",
     "jsonpointer": "5.0.1",
-    "marked": "5.1.1",
+    "marked": "7.0.2",
     "marked-mangle": "^1.0.1",
     "moment": "2.29.4",
     "node-polyfill-webpack-plugin": "^2.0.1",

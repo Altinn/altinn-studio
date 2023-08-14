@@ -5774,7 +5774,7 @@ __metadata:
     json-schema-library: ^7.4.7
     jsonpointer: 5.0.1
     lint-staged: 13.2.3
-    marked: 5.1.1
+    marked: 7.0.2
     marked-mangle: ^1.0.1
     mime: 3.0.0
     mini-css-extract-plugin: 2.7.6
@@ -12621,12 +12621,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:5.1.1":
-  version: 5.1.1
-  resolution: "marked@npm:5.1.1"
+"marked@npm:7.0.2":
+  version: 7.0.2
+  resolution: "marked@npm:7.0.2"
   bin:
     marked: bin/marked.js
-  checksum: e0c6d3a63d01c3b47f7758c3add02abdb3747701b6fce60c4b5602cc3b33122439c5c0a95ac1e8b5fcbb0f7d3aa7af2126aa56074c3d41e207bf9a9ed9948026
+  checksum: dabfd499c4852d671b73fbd10081a93349f74e4141a29697be99d33327e9aacd30e794bcc771a397ceb8060e5205e2f82862e1623c333802a3be0594134ba6c7
   languageName: node
   linkType: hard
 
