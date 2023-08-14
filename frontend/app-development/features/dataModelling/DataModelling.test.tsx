@@ -8,6 +8,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { jsonMetadata1Mock } from '../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryClient } from '@tanstack/react-query';
+import * as reactQuery from '@tanstack/react-query';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -77,5 +78,20 @@ describe('DataModelling', () => {
     render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).not.toBeInTheDocument();
+  });
+
+  it('Should show an error message if an error occured', async () => {
+    const errorMessage = 'error-message-test';
+    jest
+    .spyOn(reactQuery, 'useQuery')
+    .mockImplementation(
+        jest
+        .fn()
+        .mockReturnValue({ data: { }, isLoading: false, isSuccess: false, status: 'error', error: { message: errorMessage } })
+    );
+    render();
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 });
