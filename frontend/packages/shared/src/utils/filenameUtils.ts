@@ -1,3 +1,5 @@
+import { removeEnd } from 'app-shared/utils/stringUtils';
+
 /**
  * Remove extension from filename.
  * @param filename
@@ -7,3 +9,11 @@ export const removeExtension = (filename: string): string => {
   const indexOfLastDot = filename.lastIndexOf('.');
   return indexOfLastDot < 0 ? filename : filename.substring(0, indexOfLastDot);
 };
+
+/**
+ * Remove json.schema or .xsd extension from filename.
+ * @param filename
+ * @returns filename without extension if the extension is ".schema.json" or ".xsd", otherwise the filename is returned unchanged.
+ */
+export const removeSchemaExtension = (filename: string): string =>
+  removeEnd(filename, '.schema.json', '.xsd');

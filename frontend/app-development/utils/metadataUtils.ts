@@ -3,6 +3,7 @@ import { replaceEnd } from 'app-shared/utils/stringUtils';
 import { removeDuplicates } from 'app-shared/utils/arrayUtils';
 import { MetadataOption } from '../types/MetadataOption';
 import { MetadataOptionsGroup } from '../types/MetadataOptionsGroup';
+import { removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 
 /**
  * Filters out items from the Xsd data list if there are items in the Json data list with the same name.
@@ -37,7 +38,10 @@ export const mergeJsonAndXsdData = (
  * @returns The MetadataOption object.
  */
 export const convertMetadataToOption = (metadata: DatamodelMetadata): MetadataOption => {
-  const label = metadata.fileType === '.xsd' ? `${metadata.fileName} (XSD)` : metadata.fileName;
+  let label = removeSchemaExtension(metadata.fileName);
+  if (metadata.fileType === '.xsd') {
+    label += ' (XSD)';
+  }
   return { value: metadata, label };
 }
 
@@ -54,7 +58,7 @@ export const convertMetadataListToOptions = (metadataList: DatamodelMetadata[]):
  * @param metadataOptions The metadata options to group.
  * @returns A list of metadata option groups.
  */
-export const groupMetadataOptions = (metadataOptions: MetadataOption[]): MetadataOptionsGroup[] => [
+export const groupMetadataOptions = (metadataOptions: MetadataOption[]): MetadataOptionsGroup[] => ([
   {
     label: 'JSONSchema',
     options: metadataOptions.filter(({ value }) => value.fileType === '.json'),
@@ -63,7 +67,7 @@ export const groupMetadataOptions = (metadataOptions: MetadataOption[]): Metadat
     label: 'XSD',
     options: metadataOptions.filter(({ value }) => value.fileType === '.xsd'),
   },
-];
+] satisfies MetadataOptionsGroup[]).filter(({ options }) => options.length > 0);
 
 /**
  * Converts a list of DatamodelMetadata objects to grouped lists of MetadataOption objects.
@@ -132,3 +136,15 @@ export const computeSelectedOption = (
 
   return currentSelectedOption;
 }
+
+/**
+ * Finds a metadata option by its relative URL.
+ * @param metadataOptions The list of metadata options to search in.
+ * @param relativeUrl The relative URL to search for.
+ * @returns The metadata option with the given relative URL or undefined if there is no such option.
+ */
+export const findMetadataOptionByRelativeUrl = (
+  metadataOptions: MetadataOption[],
+  relativeUrl: string
+): MetadataOption | undefined =>
+  metadataOptions.find(({ value }) => value.repositoryRelativeUrl === relativeUrl);

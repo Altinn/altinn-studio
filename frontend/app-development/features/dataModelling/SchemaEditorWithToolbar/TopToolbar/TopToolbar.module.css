@@ -1,4 +1,5 @@
 .toolbar {
+  align-items: center;
   background: #fff;
   border-bottom: 1px solid #c9c9c9;
   display: flex;

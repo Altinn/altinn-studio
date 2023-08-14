@@ -5,13 +5,15 @@ import {
   convertMetadataToOption,
   extractModelNamesFromMetadataList,
   filterOutXsdDataIfJsonDataExist,
+  findMetadataOptionByRelativeUrl,
   findNewMetadataItem,
   groupMetadataOptions,
   mergeJsonAndXsdData,
   metadataItemExists
 } from './metadataUtils';
 import {
-  datamodel1NameMock, datamodel2NameMock,
+  datamodel1NameMock,
+  datamodel2NameMock,
   jsonMetadata1Mock,
   jsonMetadata2Mock,
   xsdMetadata1Mock,
@@ -19,6 +21,24 @@ import {
 } from '../../packages/schema-editor/test/mocks/metadataMocks';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { MetadataOption } from '../types/MetadataOption';
+
+// Test data:
+const jsonMetadataOption1: MetadataOption = {
+  label: datamodel1NameMock,
+  value: jsonMetadata1Mock,
+};
+const jsonMetadataOption2: MetadataOption = {
+  label: datamodel1NameMock,
+  value: jsonMetadata2Mock,
+};
+const xsdMetadataOption1: MetadataOption = {
+  label: `${datamodel1NameMock} (XSD)`,
+  value: xsdMetadata1Mock,
+};
+const xsdMetadataOption2: MetadataOption = {
+  label: `${datamodel1NameMock} (XSD)`,
+  value: xsdMetadata2Mock,
+};
 
 describe('metadataUtils', () => {
   describe('filterOutXsdDataIfJsonDataExist', () => {
@@ -40,18 +60,18 @@ describe('metadataUtils', () => {
   });
 
   describe('convertMetadataToOption', () => {
-    it('Converts a Json metadata item to an MetadataOption object with the file name as the label', () => {
+    it('Converts a Json metadata item to an MetadataOption object with the datamodel name as the label', () => {
       const result = convertMetadataToOption(jsonMetadata1Mock);
       expect(result).toEqual({
-        label: jsonMetadata1Mock.fileName,
+        label: datamodel1NameMock,
         value: jsonMetadata1Mock,
       });
     });
 
-    it('Converts an Xsd metadata item to an MetadataOption object with the file name suffixed with " (XSD)" as the label', () => {
+    it('Converts an Xsd metadata item to an MetadataOption object with the datamodel name suffixed with " (XSD)" as the label', () => {
       const result = convertMetadataToOption(xsdMetadata1Mock);
       expect(result).toEqual({
-        label: `${xsdMetadata1Mock.fileName} (XSD)`,
+        label: `${datamodel1NameMock} (XSD)`,
         value: xsdMetadata1Mock,
       });
     });
@@ -62,11 +82,11 @@ describe('metadataUtils', () => {
       const result = convertMetadataListToOptions([xsdMetadata1Mock, jsonMetadata2Mock]);
       expect(result).toEqual([
         {
-          label: `${xsdMetadata1Mock.fileName} (XSD)`,
+          label: `${datamodel1NameMock} (XSD)`,
           value: xsdMetadata1Mock,
         },
         {
-          label: jsonMetadata2Mock.fileName,
+          label: datamodel2NameMock,
           value: jsonMetadata2Mock,
         }
       ]);
@@ -75,22 +95,6 @@ describe('metadataUtils', () => {
 
   describe('groupMetadataOptions', () => {
     it('Groups metadata options by file type', () => {
-      const jsonMetadataOption1: MetadataOption = {
-        label: jsonMetadata1Mock.fileName,
-        value: jsonMetadata1Mock,
-      };
-      const jsonMetadataOption2: MetadataOption = {
-        label: jsonMetadata2Mock.fileName,
-        value: jsonMetadata2Mock,
-      };
-      const xsdMetadataOption1: MetadataOption = {
-        label: `${xsdMetadata1Mock.fileName} (XSD)`,
-        value: xsdMetadata1Mock,
-      };
-      const xsdMetadataOption2: MetadataOption = {
-        label: `${xsdMetadata2Mock.fileName} (XSD)`,
-        value: xsdMetadata2Mock,
-      };
       const list = [jsonMetadataOption1, jsonMetadataOption2, xsdMetadataOption1, xsdMetadataOption2];
       const result = groupMetadataOptions(list);
       expect(result).toEqual([
@@ -104,6 +108,17 @@ describe('metadataUtils', () => {
         },
       ]);
     });
+
+    it('Does not include the group if it has no options', () => {
+      const list = [jsonMetadataOption1, jsonMetadataOption2];
+      const result = groupMetadataOptions(list);
+      expect(result).toEqual([
+        {
+          label: 'JSONSchema',
+          options: [jsonMetadataOption1, jsonMetadataOption2],
+        },
+      ]);
+    });
   });
 
   describe('convertMetadataListToOptionGroups', () => {
@@ -114,7 +129,7 @@ describe('metadataUtils', () => {
           label: 'JSONSchema',
           options: [
             {
-              label: jsonMetadata2Mock.fileName,
+              label: datamodel2NameMock,
               value: jsonMetadata2Mock,
             },
           ],
@@ -123,7 +138,7 @@ describe('metadataUtils', () => {
           label: 'XSD',
           options: [
             {
-              label: `${xsdMetadata1Mock.fileName} (XSD)`,
+              label: `${datamodel1NameMock} (XSD)`,
               value: xsdMetadata1Mock,
             },
           ],
@@ -214,6 +229,21 @@ describe('metadataUtils', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata1Mock);
       expect(computeSelectedOption(currentSelectedOption, list, list)).toEqual(currentSelectedOption);
+    });
+  });
+
+  describe('findMetadataOptionByRelativeUrl', () => {
+    const list = [jsonMetadataOption1, jsonMetadataOption2, xsdMetadataOption1, xsdMetadataOption2];
+
+    it('Returns the metadata option with the given relative URL', () => {
+      const { repositoryRelativeUrl } = jsonMetadataOption2.value;
+      const result = findMetadataOptionByRelativeUrl(list, repositoryRelativeUrl);
+      expect(result).toEqual(jsonMetadataOption2);
+    });
+
+    it('Returns undefined if there is no metadata option with the given relative URL', () => {
+      const result = findMetadataOptionByRelativeUrl(list, 'bla/bla/bla');
+      expect(result).toBeUndefined();
     });
   });
 });
