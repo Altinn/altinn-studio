@@ -37,12 +37,12 @@ describe('isPropertyTypeSupported', () => {
       })
     ).toBe(true);
   });
-  it('should return false if property type is not supported', () => {
+  it('should return true for property type object', () => {
     expect(
       isPropertyTypeSupported({
         type: 'object',
       })
-    ).toBe(false);
+    ).toBe(true);
   });
   it('should return false if property ref is not supported', () => {
     expect(

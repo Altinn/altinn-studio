@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MapComponent, MapComponentProps } from './MapComponent';
+import { MapComponent } from './MapComponent';
 import {
   renderWithMockStore,
   renderHookWithMockStore,
@@ -9,6 +9,7 @@ import {
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { IGenericEditComponent } from '../../componentConfig';
 
 const texts: Record<string, string> = {
   'validation_errors.required': 'Feltet er påkrevd!',
@@ -37,8 +38,7 @@ const waitForData = async () => {
 const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = handleComponentChangeMock,
-  isProd = true,
-}: Partial<MapComponentProps>) => {
+}: Partial<IGenericEditComponent>) => {
   const user = userEvent.setup();
 
   await waitForData();
@@ -49,7 +49,6 @@ const renderMapComponent = async ({
     <MapComponent
       component={component}
       handleComponentChange={handleComponentChange}
-      isProd={isProd}
     />
   );
   return { user };

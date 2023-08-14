@@ -6,7 +6,6 @@ import { CalculationsTab } from './CalculationsTab';
 import { ContentTab } from './ContentTab';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { DynamicsTab } from './DynamicsTab';
 
 export interface RightMenuProps {
@@ -23,7 +22,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
         items={[
           {
             name: t('right_menu.content'),
-            content: <ContentTab isProd={_useIsProdHack()} />,
+            content: <ContentTab />,
           },
           {
             name: t('right_menu.dynamics'),

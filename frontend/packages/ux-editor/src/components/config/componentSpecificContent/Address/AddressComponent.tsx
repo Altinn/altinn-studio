@@ -9,15 +9,10 @@ import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
-export interface AddressComponentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
-
 export const AddressComponent = ({
   component,
   handleComponentChange,
-  isProd,
-}: AddressComponentProps) => {
+}: IGenericEditComponent) => {
   const t = useText();
 
   const handleToggleAddressSimple = (isChecked: boolean) => {
@@ -26,8 +21,6 @@ export const AddressComponent = ({
       simplified: isChecked,
     });
   };
-
-  if (!isProd) return null;
 
   return (
     <FieldSet className={classes.root} data-testid='address-component-container'>

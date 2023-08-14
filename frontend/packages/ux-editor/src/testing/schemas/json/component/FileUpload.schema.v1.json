@@ -24,6 +24,12 @@
       "properties": {
         "title": {
           "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
         }
       },
       "required": [

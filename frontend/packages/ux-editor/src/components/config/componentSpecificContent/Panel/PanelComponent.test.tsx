@@ -42,13 +42,12 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (isProd = true) => {
+const render = async () => {
   await waitForData();
   renderWithMockStore()(
     <PanelComponent
       component={component}
       handleComponentChange={mockHandleComponentChange}
-      isProd={isProd}
     />
   );
 };
@@ -81,11 +80,5 @@ describe('PanelComponent', () => {
       ...component,
       variant: FormPanelVariant.Warning,
     });
-  });
-
-  it('should render null when isProd is false', async () => {
-    await render(false);
-
-    expect(screen.queryByTestId('panel-component-container')).not.toBeInTheDocument();
   });
 });

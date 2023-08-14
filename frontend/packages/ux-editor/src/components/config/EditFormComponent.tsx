@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { FieldSet, Heading } from '@digdir/design-system-react';
+import { Checkbox, FieldSet, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -12,21 +12,22 @@ import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useSelector } from 'react-redux';
+import { useText } from '../../hooks';
 
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormComponent;
   handleComponentUpdate: (component: FormComponent) => void;
-  isProd: boolean;
 }
 
 export const EditFormComponent = ({
   editFormId,
   component,
-  isProd,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const t = useText();
+  const [showBetaFunc, setShowBetaFunc] = useState(false);
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
 
@@ -48,29 +49,30 @@ export const EditFormComponent = ({
     return componentSpecificEditConfig[component.type];
   };
 
+  const toggleShowBetaFunc = () => {
+    setShowBetaFunc(!showBetaFunc);
+  };
+
   return (
     <FieldSet className={classes.root}>
+      <Checkbox
+        onChange={toggleShowBetaFunc}
+        checked={showBetaFunc} label={t('ux_editor.edit_component.show_beta_func')}
+        helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
+      />
       <Heading level={2} size='xsmall'>
         {component.type}
       </Heading>
-      {!isProd && isLoading && <AltinnSpinner spinnerText='Loading...' />}
-      {!isProd && (
-        <>
-          <FormComponentConfig
-            schema={isLoading ? {} : schema}
-            component={component}
-            editFormId={editFormId}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-          <ComponentSpecificContent
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            layoutName={selectedLayout}
-            isProd={isProd}
-          />
-        </>
+      {showBetaFunc && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
+      {showBetaFunc && (
+        <FormComponentConfig
+          schema={isLoading ? {} : schema}
+          component={component}
+          editFormId={editFormId}
+          handleComponentUpdate={handleComponentUpdate}
+        />
       )}
-      {isProd && (
+      {!showBetaFunc && (
         <>
           <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
           {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
@@ -78,7 +80,6 @@ export const EditFormComponent = ({
             component={component}
             handleComponentChange={handleComponentUpdate}
             layoutName={selectedLayout}
-            isProd={isProd}
           />
         </>
       )}

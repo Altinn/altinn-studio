@@ -8,16 +8,11 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 
-export interface ComponentSpecificContentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
-
 export function ComponentSpecificContent({
   component,
   handleComponentChange,
   layoutName,
-  isProd,
-}: ComponentSpecificContentProps) {
+}: IGenericEditComponent) {
   switch (component.type) {
     case ComponentType.NavigationButtons:
     case ComponentType.Button:
@@ -29,7 +24,6 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
-          isProd={isProd}
         />
       );
 
@@ -39,7 +33,6 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
-          isProd={isProd}
         />
       );
 
@@ -50,27 +43,24 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
-          isProd={isProd}
         />
       );
 
-    case ComponentType.Image: {
-      return (
-        <ImageComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-          layoutName={layoutName}
-          isProd={isProd}
-        />
-      );
-    }
+      case ComponentType.Image: {
+        return (
+          <ImageComponent
+            component={component}
+            handleComponentChange={handleComponentChange}
+            layoutName={layoutName}
+          />
+        );
+      }
 
     case ComponentType.Panel: {
       return (
         <PanelComponent
           component={component}
           handleComponentChange={handleComponentChange}
-          isProd={isProd}
         />
       );
     }
@@ -79,7 +69,6 @@ export function ComponentSpecificContent({
       return (
         <MapComponent
           component={component}
-          isProd={isProd}
           handleComponentChange={handleComponentChange}
         />
       );

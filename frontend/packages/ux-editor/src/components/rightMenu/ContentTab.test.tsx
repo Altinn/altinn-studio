@@ -140,7 +140,7 @@ const render = async ({
         ...props,
       }}
     >
-      <ContentTab isProd={isProd} />
+      <ContentTab/>
     </FormContext.Provider>
   );
 };

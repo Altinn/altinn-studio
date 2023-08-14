@@ -8,7 +8,6 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-// import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 
 const user = userEvent.setup();
 
@@ -78,6 +77,10 @@ const getDatamodelMetadata = () =>
   });
 
 describe('EditFormComponent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('should return input specific content when type input', async () => {
     await render({
       componentProps: {
@@ -209,10 +212,7 @@ const waitForData = async () => {
     { getDatamodelMetadata }
   )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
-  // const componentSchemaResult = renderHookWithMockStore()(() => useComponentSchemaQuery('Input'))
-  //   .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-  // await waitFor(() => expect(componentSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({
@@ -249,7 +249,6 @@ const render = async ({
       editFormId={''}
       component={allComponentProps}
       handleComponentUpdate={handleComponentUpdate}
-      isProd={isProd}
     />
   );
 

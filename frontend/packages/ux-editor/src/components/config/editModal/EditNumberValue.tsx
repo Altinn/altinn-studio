@@ -19,6 +19,7 @@ export const EditNumberValue = ({
   const { t } = useTranslation();
 
   const handleValueChange = (newValue: number) => {
+    if (newValue === undefined || newValue === null) return;
     handleComponentChange({
       ...component,
       [propertyKey]: newValue,

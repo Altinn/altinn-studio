@@ -1,10 +1,11 @@
 import React from 'react';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { FileUploadComponent, FileUploadComponentProps } from './FileUploadComponent';
+import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 import { waitFor } from '@testing-library/react';
+import { IGenericEditComponent } from '../../componentConfig';
 
 // Test data:
 const component: FormFileUploaderComponent = {
@@ -21,10 +22,9 @@ const component: FormFileUploaderComponent = {
   dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
-const defaultProps: FileUploadComponentProps = {
+const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
-  isProd: true,
 };
 
 describe('FileUploadComponent', () => {
@@ -39,7 +39,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props?: Partial<FileUploadComponentProps>) => {
+const render = async (props?: Partial<IGenericEditComponent>) => {
   await waitForData();
 
   return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);

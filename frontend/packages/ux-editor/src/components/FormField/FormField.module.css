@@ -4,15 +4,13 @@
   align-items: flex-end;
 }
 .formField {
-  flex: 4;
+  flex: 1;
 }
 
 .helpText {
   padding-bottom: 4px;
 }
-.helpTextContainer {
-  flex: 0.5;
-}
+
 .errorMessageText {
   margin-top: 10px;
 }

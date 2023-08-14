@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { LayoutItemType } from '../../types/global';
 import { FormContext } from '../../containers/FormContext';
 
-export const ContentTab = ({ isProd }: { isProd: boolean }) => {
+export const ContentTab = () => {
   const { formId, form, handleUpdate, debounceSave } = useContext(FormContext);
   const editId = useSelector(getCurrentEditId);
 
@@ -28,7 +28,6 @@ export const ContentTab = ({ isProd }: { isProd: boolean }) => {
         <EditFormComponent
           editFormId={formId}
           component={form}
-          isProd={isProd}
           handleComponentUpdate={async (updatedComponent) => {
             handleUpdate(updatedComponent);
             debounceSave();

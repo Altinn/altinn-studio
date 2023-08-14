@@ -9,15 +9,10 @@ import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding
 import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
 import { FormComponent, FormNavigationButtonsComponent } from '../../../../types/FormComponent';
 
-export interface ButtonComponentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
-
 export const ButtonComponent = ({
   component,
   handleComponentChange,
-  isProd,
-}: ButtonComponentProps) => {
+}: IGenericEditComponent) => {
   const t = useText();
 
   const handleButtonTypeChange = (selected: string) => {
@@ -43,8 +38,7 @@ export const ButtonComponent = ({
     handleComponentChange(componentCopy as FormComponent);
   };
 
-  const types = !isProd
-    ? [
+  const types = [
         {
           value: ComponentType.Button,
           label: t('ux_editor.modal_properties_button_type_submit'),
@@ -65,50 +59,9 @@ export const ButtonComponent = ({
           value: ComponentType.InstantiationButton,
           label: t('ux_editor.modal_properties_button_type_InstantiationButton'),
         },
-      ]
-    : [
-        {
-          value: ComponentType.Button,
-          label: t('ux_editor.modal_properties_button_type_submit'),
-        },
-        {
-          value: ComponentType.NavigationButtons,
-          label: t('ux_editor.modal_properties_button_type_navigation'),
-        },
       ];
 
   if (!types.find((element) => element.value === component.type)) return null;
-
-  if (isProd) {
-    return (
-      <FieldSet className={classes.root}>
-        <div>
-          <Select
-            label={t('ux_editor.modal_properties_button_type_helper')}
-            options={types}
-            value={types.find((element) => element.value === component.type)?.value}
-            onChange={handleButtonTypeChange}
-          />
-        </div>
-        {component.type === ComponentType.Button && (
-          <EditTextResourceBinding
-            component={component}
-            handleComponentChange={handleComponentChange}
-            textKey={EditSettings.Title}
-            labelKey={`ux_editor.modal_properties_textResourceBindings_${EditSettings.Title}`}
-            placeholderKey={`ux_editor.modal_properties_textResourceBindings_${EditSettings.Title}_add`}
-          />
-        )}
-        {component.type === ComponentType.NavigationButtons && (
-          <EditTextResourceBindings
-            component={component}
-            handleComponentChange={handleComponentChange}
-            textResourceBindingKeys={['next', 'back']}
-          />
-        )}
-      </FieldSet>
-    );
-  }
 
   return (
     <FieldSet className={classes.root}>
@@ -121,6 +74,22 @@ export const ButtonComponent = ({
       >
         {({ onChange }) => <Select onChange={(e: any) => onChange(e)} options={types} />}
       </FormField>
+      {component.type === ComponentType.Button && (
+        <EditTextResourceBinding
+          component={component}
+          handleComponentChange={handleComponentChange}
+          textKey={EditSettings.Title}
+          labelKey={`ux_editor.modal_properties_textResourceBindings_${EditSettings.Title}`}
+          placeholderKey={`ux_editor.modal_properties_textResourceBindings_${EditSettings.Title}_add`}
+        />
+      )}
+      {component.type === ComponentType.NavigationButtons && (
+        <EditTextResourceBindings
+          component={component}
+          handleComponentChange={handleComponentChange}
+          textResourceBindingKeys={['next', 'back']}
+        />
+      )}
     </FieldSet>
   );
 };

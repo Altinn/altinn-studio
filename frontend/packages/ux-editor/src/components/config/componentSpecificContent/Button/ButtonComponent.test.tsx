@@ -3,9 +3,11 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { ButtonComponent, ButtonComponentProps } from './ButtonComponent';
+import { ButtonComponent } from './ButtonComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
+import { IGenericEditComponent } from '../../componentConfig';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const component: FormButtonComponent = {
@@ -16,10 +18,9 @@ const component: FormButtonComponent = {
   dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
-const defaultProps: ButtonComponentProps = {
+const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
-  isProd: true,
 };
 
 describe('ButtonComponent', () => {
@@ -34,8 +35,8 @@ describe('ButtonComponent', () => {
       type: ComponentType.NavigationButtons,
       showBackButton: true,
       textResourceBindings: {
-        next: undefined,
-        back: undefined,
+        next: 'next',
+        back: 'back',
       },
     });
   });
@@ -56,7 +57,7 @@ describe('ButtonComponent', () => {
       ...component,
       type: ComponentType.Button,
       textResourceBindings: {
-        title: undefined,
+        title: textMock('ux_editor.modal_properties_button_type_submit'),
       },
     });
   });
@@ -68,7 +69,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props?: Partial<ButtonComponentProps>) => {
+const render = async (props?: Partial<IGenericEditComponent>) => {
   const user = userEvent.setup();
 
   await waitForData();

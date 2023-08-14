@@ -1,8 +1,7 @@
 import React from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { Alert, Heading } from '@digdir/design-system-react';
+import { Accordion, Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
-import { useFormLayoutsSelector } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditTextResourceBindings } from './editModal/EditTextResourceBindings';
@@ -10,6 +9,8 @@ import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
+import { useSelector } from 'react-redux';
+import { useText } from '../../hooks';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -17,7 +18,7 @@ export interface IEditFormComponentProps {
   handleComponentUpdate: (component: FormComponent) => void;
 }
 
-const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string'];
+const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string', 'object'];
 const supportedPropertyRefs = [
   'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
 ];
@@ -43,7 +44,9 @@ export const FormComponentConfig = ({
   handleComponentUpdate,
   hideUnsupported,
 }: FormComponentConfigProps) => {
-  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const t = useText();
+
   if (!schema?.properties) return null;
 
   const {
@@ -75,7 +78,7 @@ export const FormComponentConfig = ({
       {textResourceBindings?.properties && (
         <>
           <Heading level={3} size='xxsmall'>
-            Tekster
+            {t('general.text')}
           </Heading>
           <EditTextResourceBindings
             component={component}
@@ -89,7 +92,7 @@ export const FormComponentConfig = ({
       {dataModelBindings?.properties && (
         <>
           <Heading level={3} size='xxsmall'>
-            Datamodell
+            {t('top_menu.datamodel')}
           </Heading>
           {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
             return (
@@ -108,6 +111,9 @@ export const FormComponentConfig = ({
           })}
         </>
       )}
+      {!hideUnsupported && <Heading level={3} size='xxsmall'>
+            {'Andre innstillinger'}
+          </Heading>}
       {options && optionsId && (
         <EditOptions
           component={component as any}
@@ -211,49 +217,44 @@ export const FormComponentConfig = ({
             />
           );
         }
-        // Disabled for now, as we need a better way to handle updating nested objects.
-        /* if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
+        if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
-            <>
-              <Heading level={3} size='xxsmall'>
-                {propertyKey}
-              </Heading>
-              <FormComponentConfig
+            <Accordion key={propertyKey}>
+              <Accordion.Item>
+                <Accordion.Header>{t(`ux_editor.component_properties.${propertyKey}`)}</Accordion.Header>
+                <Accordion.Content>
+                  {rest[propertyKey]?.description && (
+                    <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
+                  )}
+                <FormComponentConfig
                 key={propertyKey}
                 schema={rest[propertyKey]}
-                component={component}
+                component={component[propertyKey] || {}}
                 handleComponentUpdate={(updatedComponent: FormComponent) => {
-                  Object.keys(rest[propertyKey].properties).forEach((nestedPropertyKey) => {
-                    if (updatedComponent[nestedPropertyKey]) {
-                      updatedComponent[propertyKey] = {
-                        ...updatedComponent[propertyKey],
-                        [nestedPropertyKey]: updatedComponent[nestedPropertyKey],
-                      };
-                      delete updatedComponent[nestedPropertyKey];
-                    }
+                  handleComponentUpdate({
+                    ...component,
+                    [propertyKey]: updatedComponent,
                   });
-                  handleComponentUpdate(updatedComponent);
                 }}
                 editFormId={editFormId}
                 hideUnsupported
               />
-            </>
+                </Accordion.Content>
+              </Accordion.Item>
+            </Accordion>
           );
-        } */
+        }
         return null;
       })}
-      {unsupportedPropertyKeys.length && !hideUnsupported && (
+      {unsupportedPropertyKeys.length > 0 && !hideUnsupported && (
         <Alert severity='info'>
-          Vi jobber med å automatisere støtte for alle innstillinger. Følgende innstillinger er ikke
-          støttet automatisk i skjemaeditor ennå, men kan konfigureres manuelt:
+          {t('ux_editor.edit_component.unsupported_properties_message')}
           <ul>
             {unsupportedPropertyKeys.length > 0 &&
               unsupportedPropertyKeys.map((propertyKey) => (
                 <li key={propertyKey}>{propertyKey}</li>
               ))}
           </ul>
-          OBS! Noen komponenter har likevel støtte for noen av innstillingene i listen. Det vil i så
-          fall vises under dette panelet.
         </Alert>
       )}
     </>

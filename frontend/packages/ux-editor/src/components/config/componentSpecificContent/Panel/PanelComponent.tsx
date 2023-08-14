@@ -6,15 +6,10 @@ import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding
 import { FormPanelVariant } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 
-export interface PanelComponentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
-
 export const PanelComponent = ({
   component,
   handleComponentChange,
-  isProd,
-}: PanelComponentProps) => {
+}: IGenericEditComponent) => {
   const t = useText();
 
   const handleShowIconClick = (showIcon: boolean) => {
@@ -24,8 +19,6 @@ export const PanelComponent = ({
   const handleVariantClick = (variant: FormPanelVariant) => {
     handleComponentChange({ ...component, variant });
   };
-
-  if (!isProd) return null;
 
   return (
     <div data-testid='panel-component-container'>

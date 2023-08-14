@@ -14,14 +14,10 @@ import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { FormMapLayer } from '../../../../types/FormComponent';
 
-export interface MapComponentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
 export const MapComponent = ({
   component,
   handleComponentChange,
-  isProd,
-}: MapComponentProps): JSX.Element => {
+}: IGenericEditComponent): JSX.Element => {
   const t = useText();
 
   const handleCenterLocationChange = (value: number, propertyName: string): void => {
@@ -79,7 +75,6 @@ export const MapComponent = ({
           </FormField>
         </div>
       </div>
-      {isProd && (
         <div>
           <FormField
             id={component.id}
@@ -99,7 +94,6 @@ export const MapComponent = ({
             )}
           </FormField>
         </div>
-      )}
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
         <AddMapLayer component={component} handleComponentChange={handleComponentChange} />

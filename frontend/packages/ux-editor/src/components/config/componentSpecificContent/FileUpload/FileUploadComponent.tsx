@@ -9,18 +9,12 @@ import type {
   FormFileUploaderWithTagComponent,
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-
-export interface FileUploadComponentProps extends IGenericEditComponent {
-  isProd: boolean;
-}
 
 export const FileUploadComponent = ({
   component,
   handleComponentChange,
   layoutName,
-  isProd,
-}: FileUploadComponentProps) => {
+}: IGenericEditComponent) => {
   const t = useText();
 
   const fileUploaderComponent = component as FormFileUploaderComponent;
@@ -66,8 +60,6 @@ export const FileUploadComponent = ({
     componentCopy.maxFileSizeInMB = maxFileSizeInMB >= 0 ? maxFileSizeInMB : 0;
     handleComponentChange(componentCopy);
   };
-
-  if (!isProd) return null;
 
   return (
     <FieldSet className={classes.fieldset}>
