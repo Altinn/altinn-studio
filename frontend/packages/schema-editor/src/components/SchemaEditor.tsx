@@ -77,7 +77,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   useEffect(() => {
     if (selectedType) {
       const isExistingNode = !!rootNodeMap.get(selectedType.pointer);
-      if (!isExistingNode) setSelectedType(null);
+      setSelectedType(isExistingNode ? rootNodeMap.get(selectedType.pointer) : null);
     }
   }, [rootNodeMap, selectedType]);
 
