@@ -220,7 +220,7 @@ export const ResourcePage = () => {
           <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
         )}
         {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
-          <MigrationPage />
+          <MigrationPage navigateToPageWithError={navigateToPageWithError} />
         )}
       </div>
       {hasMergeConflict && (

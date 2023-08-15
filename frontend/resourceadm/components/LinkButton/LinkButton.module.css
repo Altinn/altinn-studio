@@ -5,11 +5,11 @@
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
-  color: #004E95;
+  color: #004e95;
   cursor: pointer;
   border: none;
   background-color: transparent;
-  font-size: 16px;
+  font-size: var(--fds-typography-paragraph-medium);
   margin: 0;
   padding: 0;
 }
@@ -26,13 +26,13 @@
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
-  outline: 2px solid #98177E;
+  outline: 2px solid #98177e;
   outline-offset: 5px;
   border-radius: 2px;
 }
 
 .linkButton:visited {
-  color: #7A1265;
+  color: #7a1265;
   text-decoration: none;
 }
 
@@ -40,5 +40,5 @@
   text-decoration: none;
   border: none;
   outline: none;
-  color: #004E95;
+  color: #004e95;
 }
