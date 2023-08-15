@@ -39,11 +39,7 @@ useEffect(() => {
   } = useTextResourcesQuery(org, app);
 
   const setSearchQuery = (search: string) => {
-    const params: any = {};
-    if (search.length > 0) {
-      params.search = search;
-    }
-    setSearchParams(params);
+    setSearchParams(search.length > 0 ? { search } : {});
   };
 
   const { mutate: addLanguageMutation } = useAddLanguageMutation(org, app);

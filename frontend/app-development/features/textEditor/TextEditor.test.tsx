@@ -7,8 +7,6 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
 
-const user = userEvent.setup();
-
 // Test data
 const org = 'test-org';
 const app = 'test-app';
@@ -66,6 +64,8 @@ describe('TextEditor', () => {
   });
 
   it('updates search query when searching text', async () => {
+    const user = userEvent.setup();
+
     await render();
 
     const search = '1';
@@ -76,6 +76,8 @@ describe('TextEditor', () => {
   });
 
   it('adds new text resource when clicking add button', async () => {
+    const user = userEvent.setup();
+
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
 
     await render({ upsertTextResources });
@@ -87,6 +89,8 @@ describe('TextEditor', () => {
   });
 
   it('updates text resource when editing text', async () => {
+    const user = userEvent.setup();
+
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
 
     await render({ upsertTextResources });
@@ -100,6 +104,8 @@ describe('TextEditor', () => {
   });
 
   it('updates text id when editing text id', async () => {
+    const user = userEvent.setup();
+
     const updateTextId = jest.fn().mockImplementation(() => Promise.resolve());
 
     await render({ updateTextId });
@@ -116,6 +122,8 @@ describe('TextEditor', () => {
   });
 
   it('deletes text id when clicking delete button', async () => {
+    const user = userEvent.setup();
+
     const updateTextId = jest.fn().mockImplementation(() => Promise.resolve());
 
     await render({ updateTextId });
@@ -130,6 +138,8 @@ describe('TextEditor', () => {
   });
 
   it('adds new language when clicking add button', async () => {
+    const user = userEvent.setup();
+
     const addLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
 
     await render({ addLanguageCode });
@@ -150,6 +160,8 @@ describe('TextEditor', () => {
   });
 
   it('deletes a language when clicking delete button', async () => {
+    const user = userEvent.setup();
+
     const deleteLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
 
     await render({ deleteLanguageCode });
@@ -182,7 +194,7 @@ describe('TextEditor', () => {
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  renderWithProviders(<TextEditor />, {
+  const view = renderWithProviders(<TextEditor />, {
     queries: {
       ...queriesMock,
       ...queries,
@@ -191,4 +203,6 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
   });
 
   await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+
+  return view;
 };

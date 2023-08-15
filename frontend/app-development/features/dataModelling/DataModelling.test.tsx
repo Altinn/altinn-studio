@@ -8,7 +8,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { jsonMetadata1Mock } from '../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryClient } from '@tanstack/react-query';
-import * as reactQuery from '@tanstack/react-query';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -33,22 +32,21 @@ const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([]));
 const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
 
-const render = (queryClient: QueryClient = createQueryClientMock()) => {
-
-  const queries: ServicesContextProps = {
+const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = createQueryClientMock()) => {
+  const allQueries: ServicesContextProps = {
     ...queriesMock,
     getDatamodel,
     getDatamodels,
-    getDatamodelsXsd
+    getDatamodelsXsd,
+    ...queries,
   };
 
   return rtlRender(
-    <ServicesContextProvider {...queries} client={queryClient}>
+    <ServicesContextProvider {...allQueries} client={queryClient}>
       <DataModelling/>
     </ServicesContextProvider>
   );
 };
-
 
 describe('DataModelling', () => {
   afterEach(jest.clearAllMocks);
@@ -62,7 +60,7 @@ describe('DataModelling', () => {
   it('shows start dialog when no models are present and intro page is closed', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], []);
-    render(queryClient);
+    render({}, queryClient);
     const dialogHeader = screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') });
     expect(dialogHeader).toBeInTheDocument();
   });
@@ -82,14 +80,10 @@ describe('DataModelling', () => {
 
   it('shows an error message if an error occured', async () => {
     const errorMessage = 'error-message-test';
-    jest
-    .spyOn(reactQuery, 'useQuery')
-    .mockImplementation(
-        jest
-        .fn()
-        .mockReturnValue({ data: { }, isLoading: false, isSuccess: false, status: 'error', error: { message: errorMessage } })
-    );
-    render();
+    render({
+      getDatamodels: () => Promise.reject({ message: errorMessage }),
+    });
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
     expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
