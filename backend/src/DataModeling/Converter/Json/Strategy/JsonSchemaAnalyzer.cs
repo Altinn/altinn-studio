@@ -277,7 +277,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             // If it doesn't have a oneOf, or the oneOf only has one sub-schema, it's not a candidate for
             // a nillable element.
-            if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.Schemas.Count() < 2)
+            if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.Schemas.Count < 2)
             {
                 valueSchema = null;
                 return false;

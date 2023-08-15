@@ -220,7 +220,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private static bool KeywordHasSingleNonNullSchema(OneOfKeyword keyword)
         {
-            if (keyword.Schemas.Count() > 1)
+            if (keyword.Schemas.Count > 1)
             {
                 return false;
             }
@@ -386,7 +386,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             var allOfKeyword = subSchema.GetKeywordOrNull<AllOfKeyword>();
 
             // If it's a single subschema with only a reference then follow it.
-            if (allOfKeyword.Schemas.Count() == 1 && allOfKeyword.Schemas.First().HasKeyword<RefKeyword>())
+            if (allOfKeyword.Schemas.Count == 1 && allOfKeyword.Schemas.First().HasKeyword<RefKeyword>())
             {
                 var refSchema = allOfKeyword.Schemas.First();
                 ProcessRefType(refSchema, context);

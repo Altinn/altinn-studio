@@ -502,7 +502,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    var refKeyword = itemsKeyword.SingleSchema.GetKeywordOrNull<OneOfKeyword>().Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
+                    var refKeyword = itemsKeyword.SingleSchema.GetKeywordOrNull<OneOfKeyword>()?.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeyword<RefKeyword>();
                     element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
                 }
             }
