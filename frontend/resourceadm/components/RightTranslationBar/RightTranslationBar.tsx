@@ -26,6 +26,10 @@ interface Props {
    * Flag to handle when to show the errors
    */
   showErrors: boolean;
+  /**
+   * Flag for if the alert should be shown
+   */
+  showAlert: boolean;
 }
 
 /**
@@ -35,6 +39,8 @@ interface Props {
  *      title='Navn på tjenesten'
  *      value={title}
  *      onChange={(value: LanguageStringType) => setTitle(value)}
+ *      showErrors
+ *      showAlert
  *    />
  *
  * @property {string}[title] - The title of the selected inputfield
@@ -42,6 +48,7 @@ interface Props {
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
  * @property {(value: LanguageStringType) => void}[onChangeValue] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
+ * @property {boolean}[showAlert] - Flag for if the alert should be shown
  *
  * @returns
  */
@@ -51,6 +58,7 @@ export const RightTranslationBar = ({
   value,
   onChangeValue,
   showErrors,
+  showAlert,
 }: Props) => {
   const handleChange = (lang: 'nn' | 'en', val: string) => {
     const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
@@ -90,11 +98,13 @@ export const RightTranslationBar = ({
         </Heading>
       </div>
       <div className={classes.bodyWrapper}>
-        <Alert severity='info' className={classes.alert}>
-          <Paragraph size='small'>
-            For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
-          </Paragraph>
-        </Alert>
+        {showAlert && (
+          <Alert severity='info' className={classes.alert}>
+            <Paragraph size='small'>
+              For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+            </Paragraph>
+          </Alert>
+        )}
         <div className={classes.inputWrapper}>{displayNField('nn')}</div>
         <div className={classes.inputWrapper}>{displayNField('en')}</div>
       </div>

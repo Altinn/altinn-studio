@@ -238,6 +238,7 @@ export const AboutResourcePage = ({
           onChangeValue={handleChangeTranslationValues}
           usesTextArea={translationType === 'description'}
           showErrors={showAllErrors}
+          showAlert={translationType !== 'rightDescription'}
         />
       </div>
     );
@@ -301,7 +302,7 @@ export const AboutResourcePage = ({
           Ressurstype
         </Label>
         <Paragraph short size='small'>
-          Velg et alternativ fra listen under
+          Velg en ressurstype fra listen under.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
@@ -323,8 +324,7 @@ export const AboutResourcePage = ({
         </Label>
         <Paragraph size='small'>
           Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass
-          på at navnet er forståelig og gjenkjennbart. Om mulig, bruk nøkkelord som man kan søke
-          etter.
+          på at navnet er forståelig og gjenkjennbart.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
