@@ -18,7 +18,7 @@ import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayo
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { firstAvailableLayout } from "../../utils/formLayoutsUtils";
+import { firstAvailableLayout } from '../../utils/formLayoutsUtils';
 
 export interface IPageElementProps {
   name: string;
@@ -67,7 +67,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
-      setIsConfirmDeleteDialogOpen(prevState => !prevState);
+      setIsConfirmDeleteDialogOpen((prevState) => !prevState);
     } else {
       if (action === 'edit') {
         setEditMode(true);
@@ -146,7 +146,9 @@ export function PageElement({ name, invalid }: IPageElementProps) {
               <div className={classes.errorMessage}>{errorMessage}</div>
             </div>
           ) : (
-            <div className={classes.pageButton} onClick={onPageClick}>{name}</div>
+            <div className={classes.pageButton} onClick={onPageClick}>
+              {name}
+            </div>
           )}
         </div>
         <Button

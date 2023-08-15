@@ -26,6 +26,11 @@ export const ResourceDeployEnvCard = ({
   newEnvVersion,
 }: Props) => {
   // TODO - Translation
+
+  const handleOnClick = () => {
+    console.log('Coming soon...');
+  };
+
   return (
     <div className={classes.cardWrapper}>
       <Paragraph size='small' className={classes.envName}>
@@ -47,7 +52,9 @@ export const ResourceDeployEnvCard = ({
         )}
       </div>
       <div className={classes.buttonWrapper}>
-        <Button disabled={!isDeployPossible}>Publiser til {envName}</Button>
+        <Button aria-disabled={!isDeployPossible} onClick={isDeployPossible && handleOnClick}>
+          Publiser til {envName}
+        </Button>
       </div>
     </div>
   );
