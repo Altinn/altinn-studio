@@ -4,12 +4,8 @@ import { screen, waitFor } from '@testing-library/react';
 import { EditNumberValue } from './EditNumberValue';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => mockUseTranslation({}),
-}));
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
@@ -41,6 +37,6 @@ const render = async ({ maxLength = undefined, handleComponentChange = jest.fn()
 describe('EditNumberValue', () => {
   it('should render', async () => {
     await render();
-    expect(screen.getByText('maxLength')).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.maxLength'))).toBeInTheDocument();
   });
 });

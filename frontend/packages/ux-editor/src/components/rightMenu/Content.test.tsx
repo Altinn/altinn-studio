@@ -45,8 +45,7 @@ describe('ContentTab', () => {
 
   describe('when editing a text resource', () => {
     it('should render the component', async () => {
-      await render({ props: {}, editId: textResourceEditTestId });
-
+      await render({ props: {}, editId: 'test' });
       expect(screen.getByTestId(textResourceEditTestId)).toBeInTheDocument();
     });
   });
@@ -116,11 +115,9 @@ const waitForData = async () => {
 const render = async ({
   props = {},
   editId,
-  isProd = true,
 }: {
   props: Partial<FormContext>;
   editId?: string;
-  isProd?: boolean;
 }) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,

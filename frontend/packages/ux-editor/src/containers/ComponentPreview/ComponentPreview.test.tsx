@@ -61,6 +61,7 @@ describe('ComponentPreview', () => {
   it.each([
     ComponentType.AddressComponent,
     ComponentType.AttachmentList,
+    ComponentType.Custom,
     ComponentType.Datepicker,
     ComponentType.Dropdown,
     ComponentType.FileUpload,
@@ -74,7 +75,6 @@ describe('ComponentPreview', () => {
     ComponentType.Panel,
     ComponentType.Paragraph,
     ComponentType.TextArea,
-    ComponentType.Custom,
   ])('Renders error text when component type is %s', (type: ComponentType) => {
     render({ component: componentMocks[type] });
     expect(

@@ -9,6 +9,7 @@ export enum QueryKey {
   DatamodelsXsd = 'DatamodelsXsd',
   DeployPermissions = 'DeployPermissions',
   Environments = 'Environments',
+  FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
   FormLayouts = 'FormLayouts',
   InstanceId = 'InstanceId',

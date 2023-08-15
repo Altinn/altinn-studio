@@ -69,10 +69,10 @@ export const ButtonComponent = ({
         id={'choose-button-type'}
         onChange={handleButtonTypeChange}
         value={component.type}
-        helpText={'Velg kappetype'}
+        helpText={t('ux_editor.modal_properties_button_type_help_text')}
         label={t('ux_editor.modal_properties_button_type_helper')}
       >
-        {({ onChange }) => <Select onChange={(e: any) => onChange(e)} options={types} />}
+        {({ onChange }) => <Select onChange={onChange} options={types} />}
       </FormField>
       {component.type === ComponentType.Button && (
         <EditTextResourceBinding

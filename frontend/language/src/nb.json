@@ -1009,6 +1009,7 @@
   "ux_editor.modal_properties_button_helper": "Søk etter tekst til knappen",
   "ux_editor.modal_properties_button_type_ActionButton": "ActionButton",
   "ux_editor.modal_properties_button_type_back": "Forrige",
+  "ux_editor.modal_properties_button_type_help_text": "Velg knappetype",
   "ux_editor.modal_properties_button_type_helper": "Type knapp",
   "ux_editor.modal_properties_button_type_InstantiationButton": "InstantiationButton",
   "ux_editor.modal_properties_button_type_navigation": "Navigasjon",

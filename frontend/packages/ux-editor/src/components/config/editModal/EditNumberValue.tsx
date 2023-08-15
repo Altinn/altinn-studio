@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { TextField } from '@digdir/design-system-react';
 import { getComponentPropertyLabel } from '../../../utils/language';
+import { setComponentProperty } from '../../../utils/component';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -20,10 +21,7 @@ export const EditNumberValue = ({
 
   const handleValueChange = (newValue: number) => {
     if (newValue === undefined || newValue === null) return;
-    handleComponentChange({
-      ...component,
-      [propertyKey]: newValue,
-    });
+    handleComponentChange(setComponentProperty(component, propertyKey, newValue));
   };
 
   return (

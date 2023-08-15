@@ -2,6 +2,7 @@
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { addSchemas, dereferenceSchema } from '../../utils/formValidationUtils';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export interface UseComponentSchemaQueryResult {
   queryResults: {
@@ -16,7 +17,7 @@ export const useComponentSchemaQuery = (component: string): UseQueryResult<any> 
   const queryClient = useQueryClient();
 
   return useQuery(
-    [component],
+    [QueryKey.FormComponent, component],
     () => {
       addSchemas([componentSchemaMocks[component]]);
       return Promise.resolve(dereferenceSchema(componentSchemaMocks[component]));

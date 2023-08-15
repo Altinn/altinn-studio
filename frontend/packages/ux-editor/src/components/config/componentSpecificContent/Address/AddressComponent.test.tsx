@@ -26,7 +26,7 @@ const defaultProps: IGenericEditComponent = {
 describe('AddressComponent', () => {
   it('Renders without errors', async () => {
     await render();
-    expect(screen.getByTestId('address-component-container')).toBeInTheDocument();
+    expect(screen.getByRole('group')).toBeInTheDocument();
   });
 });
 

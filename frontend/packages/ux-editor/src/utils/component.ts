@@ -93,3 +93,15 @@ export const generateFormItem = <T extends ComponentType>(type: T, id: string): 
   const { defaultProperties } = formItemConfigs[type];
   return type === ComponentType.Group ? defaultProperties : { ...defaultProperties, id };
 };
+
+/**
+ * Sets the given property of the given component to the given value.
+ * @param component The component to set the property on.
+ * @param propertyKey The property to set.
+ * @param value The value to set the property to.
+ * @returns The component with updated property.
+ */
+export const setComponentProperty = (component: FormComponent, propertyKey: string, value: any): FormComponent => ({
+  ...component,
+  [propertyKey]: value,
+});
