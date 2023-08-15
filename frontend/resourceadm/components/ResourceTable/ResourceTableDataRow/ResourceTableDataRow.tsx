@@ -29,7 +29,9 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
     <tr style={{ width: '100%' }}>
       <td className={cn(classes.tableDataXLarge, classes.tableData)}>
         {/* TODO - Fix translation of title */}
-        <Paragraph size='small'>{resource.title['nb']}</Paragraph>
+        <Paragraph size='small'>
+          {resource.title['nb'] === '' ? 'Mangler tittel på Bokmål' : resource.title['nb']}
+        </Paragraph>
       </td>
       <td className={cn(classes.tableDataLarge, classes.tableData)}>
         <Paragraph size='small'>{resource.createdBy}</Paragraph>
