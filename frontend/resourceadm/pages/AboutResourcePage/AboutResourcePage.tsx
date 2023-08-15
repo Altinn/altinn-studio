@@ -370,7 +370,7 @@ export const AboutResourcePage = ({
           Hjemmeside
         </Label>
         <Paragraph short size='small'>
-          Link til nettsiden der tjenesten kan startes av brukeren.
+          Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
