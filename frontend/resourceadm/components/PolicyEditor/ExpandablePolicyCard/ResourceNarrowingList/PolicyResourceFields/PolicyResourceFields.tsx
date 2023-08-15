@@ -64,7 +64,7 @@ export const PolicyResourceFields = ({
           <Button
             variant='quiet'
             icon={<MultiplyIcon title='Fjern ressursen' />}
-            disabled={!isEditable}
+            aria-disabled={!isEditable}
             onClick={onRemove}
             color='danger'
             hidden={!isEditable}

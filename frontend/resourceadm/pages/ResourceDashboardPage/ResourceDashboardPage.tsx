@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner, Heading } from '@digdir/design-system-react';
+import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
@@ -75,9 +75,9 @@ export const ResourceDashboardPage = () => {
           </div>
           <ResourceTable list={filteredTableData(resourceListData ?? [])} />
           {filteredTableData(resourceListData ?? []).length === 0 && (
-            <p className={classes.noResultText}>
+            <Paragraph size='small' className={classes.noResultText}>
               Det finnes ingen ressursen som har navnet du søkte etter.
-            </p>
+            </Paragraph>
           )}
         </>
       );

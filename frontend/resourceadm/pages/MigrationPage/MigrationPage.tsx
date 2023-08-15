@@ -1,109 +1,232 @@
 import React, { useState } from 'react';
 import classes from './MigrationPage.module.css';
+import { useParams } from 'react-router-dom';
+import { useValidatePolicyQuery, useValidateResourceQuery } from 'resourceadm/hooks/queries';
 import { MigrationStep } from 'resourceadm/components/MigrationStep';
-import { Checkbox, Button, TextField, Heading, Paragraph } from '@digdir/design-system-react';
+import {
+  Button,
+  TextField,
+  Select,
+  Heading,
+  Paragraph,
+  Spinner,
+  Label,
+} from '@digdir/design-system-react';
 import { Link } from 'resourceadm/components/Link';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
+import { NavigationBarPageType } from 'resourceadm/types/global';
+
+const envOptions = [
+  { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
+  { value: 'Produksjonsmiljø', label: 'Produksjonsmiljø' },
+];
+
+interface Props {
+  navigateToPageWithError: (page: NavigationBarPageType) => void;
+}
 
 /**
  * Page that shows the information about migrating from Altinn 2 to Altinn 3
  */
-export const MigrationPage = () => {
-  const [step1Checked, setStep1Checked] = useState(false);
-  const [step2Checked, setStep2Checked] = useState(false);
-  const [step3Checked, setStep3Checked] = useState(false);
-  const [beforeStartChecked, setBeforeStartChecked] = useState(false);
+export const MigrationPage = ({ navigateToPageWithError }: Props) => {
+  const { selectedContext, resourceId } = useParams();
+  const repo = `${selectedContext}-resources`;
+
+  const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
+    selectedContext,
+    repo,
+    resourceId
+  );
+  const { data: validateResourceData, isLoading: validateResourceLoading } =
+    useValidateResourceQuery(selectedContext, repo, resourceId);
+
+  // TODO - API call
+  const deployOK = false;
 
   // TODO - This might be a saved value from backend
   const initialDate = new Date().toISOString().split('T')[0];
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
+  const [selectedEnv, setSelectedEnv] = useState('');
+  const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
+  const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
 
-  return (
-    <div className={classes.pageWrapper}>
-      <Heading size='large' spacing level={1}>
-        Migrering av Altinn II tjeneste
-      </Heading>
-      <div className={classes.contentWrapper}>
-        <MigrationStep
-          title='Steg 1:'
-          text='Se over og fyll ut manglende informasjon for tjenesten'
-          checkboxText='Jeg har oppdatert om ressursen'
-          isChecked={step1Checked}
-          onToggle={(checked: boolean) => setStep1Checked(checked)}
-        />
-        <MigrationStep
-          title='Steg 2:'
-          text='Se over og oppdater tilgangene til tjenesten'
-          checkboxText='Jeg har oppdatert policy'
-          isChecked={step2Checked}
-          onToggle={(checked: boolean) => setStep2Checked(checked)}
-        />
-        <MigrationStep
-          title='Steg 3:'
-          text='Se over og publiser ressursen til produksjonsmiljøet'
-          checkboxText='Jeg har publisert ressursen til produksjonsmiljøet'
-          isChecked={step3Checked}
-          onToggle={(checked: boolean) => setStep3Checked(checked)}
-        />
-        <div className={classes.contentDivider} />
-        <Heading size='xsmall' spacing level={2}>
-          Før du begynner migrering
+  /**
+   * Display the content on the page
+   */
+  const displayContent = () => {
+    if (validatePolicyLoading || validateResourceLoading) {
+      return (
+        <div className={classes.spinnerWrapper}>
+          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+        </div>
+      );
+    }
+    return (
+      <>
+        <Heading size='large' spacing level={1}>
+          Migrering av Altinn II tjeneste
         </Heading>
-        <div className={classes.checkboxWrapper}>
-          <Checkbox
-            label='Integrasjon mot Altinn funker'
-            checked={beforeStartChecked}
-            onChange={(e) => setBeforeStartChecked(e.target.checked)}
+        <div className={classes.contentWrapper}>
+          <div className={classes.introWrapper}>
+            <Paragraph size='small'>
+              Denne ressursen er basert på en Altinn 2 lenketjeneste. På denne siden får du oversikt
+              over status på migrering av denne lenketjenesten fra Altinn 2.{' '}
+              <Link
+                text='Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.'
+                href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
+                icon={<ExternalLinkIcon title='Altinn integrasjon dokumentasjon' />}
+                openInNewWindow
+              />
+            </Paragraph>
+          </div>
+          <MigrationStep
+            title='Steg 1 - Om Ressursen'
+            text={
+              validateResourceData.status === 200
+                ? 'Ressursinformasjonen er klar for å fullføre migrering'
+                : `Det er ${validateResourceData.errors.length} mangler på siden "Om Ressursen" som må fikses før du kan fullføre migrering.`
+            }
+            isSuccess={validateResourceData.status === 200}
+            onNavigateToPageWithError={navigateToPageWithError}
+            page='about'
           />
-          <div className={classes.linkWrapper}>
-            <Link
-              text='Dokumentasjon'
-              href='' // TODO
-              icon={<ExternalLinkIcon title='Dokumentasjon' />}
-            />
-          </div>
-        </div>
-        <Heading size='xsmall' spacing level={3}>
-          Velg tidspunkt for migrering
-        </Heading>
-        <Paragraph size='small'>
-          Velg dato og tid tjenesten skal migreres fra altinn II til altinn 3. Vi anbefaler at dette
-          gjøres på et tidspunkt der tjenesten har lite eller ingen trafikk. For eksempel midt på
-          natten.
-        </Paragraph>
-        <div className={classes.datePickers}>
-          <div className={classes.datePickerWrapper}>
-            <TextField
-              type='date'
-              value={migrationDate}
-              onChange={(e) => setMigrationDate(e.target.value)}
-              label='Migreringsdato'
-            />
-          </div>
-          <div className={classes.datePickerWrapper}>
-            <TextField
-              type='time'
-              value={migrationTime}
-              onChange={(e) => setMigrationTime(e.target.value)}
-              label='Klokkeslett'
-            />
-          </div>
-        </div>
-        <div className={classes.migrateBox}>
-          <Heading size='xsmall' spacing level={3}>
-            Migrering av tjeneste
-          </Heading>
+          <MigrationStep
+            title='Steg 2 - Tilgangsregler'
+            text={
+              validatePolicyData === undefined
+                ? 'Det finnes ingen tilgangsregler på siden "Tilgangsregler". Du må ha minst en regel for å fullføre migreringen.'
+                : validatePolicyData.status === 200
+                ? 'Tilgangsreglene er klar for å fullføre migrering'
+                : `Det er ${validatePolicyData.errors.length} mangler på siden "Tilgangsregler" som må fikses før du kan fullføre migrering.`
+            }
+            isSuccess={validatePolicyData?.status === 200 ?? false}
+            onNavigateToPageWithError={navigateToPageWithError}
+            page='policy'
+          />
+          <MigrationStep
+            title='Steg 3 - Publisering'
+            text={
+              deployOK
+                ? 'Publisering er gjennomført'
+                : 'Du må publisere ressursen på siden "Publiser" før du kan fullføre migrering.'
+            }
+            isSuccess={deployOK}
+            onNavigateToPageWithError={navigateToPageWithError}
+            page='deploy'
+          />
+          <div className={classes.contentDivider} />
+          <Label size='medium' spacing>
+            Velg miljø du vil migrere til
+          </Label>
           <Paragraph size='small'>
-            Jeg forstår at å trykke <strong>start migrering</strong> fører til at følgende
-            handlinger iverksettes.
+            Velg et miljø fra listen under du vil migrere til. Vi anbefaler å teste en migrering til
+            test-miljøet før du gjennomfører en full migrering til produksjonsmiljøet.
           </Paragraph>
-          <div className={classes.migrateSteps}>
-            <Paragraph size='small'>TODO steps</Paragraph>
+          <div className={classes.selectEnv}>
+            <Select
+              label='Velg miljø å migrere til'
+              hideLabel
+              options={envOptions}
+              value={selectedEnv}
+              onChange={(o: string) => setSelectedEnv(o)}
+            />
           </div>
-          <Button onClick={() => {}}>Start migrering</Button>
+          {selectedEnv !== '' && (
+            <>
+              <Label size='medium' spacing>
+                Velg tidspunkt for å flytte delegeringer og fullføre migreringen
+              </Label>
+              <Paragraph size='small'>
+                Velg dato og tid der tjenesten skal flytte delegeringene, og fullføre migreringen
+                fra Altinn II til Altinn III. Vi anbefaler at dette gjøres på et tidspunkt der
+                tjenesten har lite eller ingen trafikk. For eksempel midt på natten.
+              </Paragraph>
+              <div className={classes.datePickers}>
+                <div className={classes.datePickerWrapper}>
+                  <TextField
+                    type='date'
+                    value={migrationDate}
+                    onChange={(e) => setMigrationDate(e.target.value)}
+                    label='Migreringsdato'
+                  />
+                </div>
+                <div className={classes.datePickerWrapper}>
+                  <TextField
+                    type='time'
+                    value={migrationTime}
+                    onChange={(e) => setMigrationTime(e.target.value)}
+                    label='Klokkeslett'
+                  />
+                </div>
+              </div>
+              <div className={classes.numDelegations}>
+                <Label size='medium' spacing>
+                  Antall delegeringer i Altinn 2 og Altinn 3
+                </Label>
+                <Button
+                  onClick={() => {
+                    // TODO - replace with API call
+                    setNumDelegationsA2(1000);
+                    setNumDelegationsA3(1000);
+                  }}
+                  className={classes.button}
+                >
+                  Hent antall delegeringer
+                </Button>
+                {numDelegationsA2 && numDelegationsA3 && (
+                  <div className={classes.delegations}>
+                    <Paragraph size='small'>
+                      Altinn 2: <strong>{numDelegationsA2}</strong> delegeringer
+                    </Paragraph>
+                    <Paragraph size='small'>
+                      Altinn 3: <strong>{numDelegationsA3}</strong> delegeringer
+                    </Paragraph>
+                  </div>
+                )}
+              </div>
+              <Label size='medium' spacing>
+                Fullfør migrering
+              </Label>
+              <Paragraph size='small'>
+                For at brukere med eksisterende tilganger til tjenesten i Altinn 2 skal videreføre
+                sine tilganger for ny tjeneste migrert til Altinn 2 må delegeringene migreres til
+                Altinn 3. Les detaljer om prosessen i vår dokumentasjon.
+              </Paragraph>
+              <div className={classes.buttonWrapper}>
+                <Button
+                  aria-disabled={
+                    !(
+                      validateResourceData.status === 200 &&
+                      validatePolicyData?.status === 200 &&
+                      deployOK
+                    )
+                  }
+                  onClick={
+                    validateResourceData.status === 200 &&
+                    validatePolicyData?.status === 200 &&
+                    deployOK
+                      ? () => {} // TODO
+                      : undefined
+                  }
+                  className={classes.button}
+                >
+                  Migrer delegeringer
+                </Button>
+                <Button
+                  aria-disabled // Remember to do same check for aria-disabled as fot button below
+                  onClick={() => {}}
+                  className={classes.button}
+                >
+                  Skru av tjenesten i Altinn 2
+                </Button>
+              </div>
+            </>
+          )}
         </div>
-      </div>
-    </div>
-  );
+      </>
+    );
+  };
+
+  return <div className={classes.pageWrapper}>{displayContent()}</div>;
 };

@@ -9,16 +9,19 @@
 }
 
 .contentDivider {
-  border: solid 1px #D6D6D6;
+  border: solid 1px #d6d6d6;
   margin-top: 25px;
   margin-bottom: 15px;
 }
 
-.checkboxWrapper {
-  display: flex;
-  align-items: center;
+.introWrapper {
   margin-bottom: 30px;
-  margin-top: 20px;
+}
+
+.selectEnv {
+  margin-top: 10px;
+  margin-bottom: 30px;
+  width: 350px;
 }
 
 .linkWrapper {
@@ -28,14 +31,23 @@
 .datePickers {
   display: flex;
   margin-top: 20px;
+  margin-bottom: 30px;
 }
 
 .datePickerWrapper:last-child {
   margin-left: 100px;
 }
 
+.buttonWrapper {
+  margin-top: 30px;
+}
+
+.button {
+  margin-block: 5px;
+}
+
 .migrateBox {
-  background-color: #E3F7FF;
+  background-color: #e3f7ff;
   margin-top: 40px;
   padding-inline: 30px;
   padding-block: 24px;
@@ -43,4 +55,12 @@
 
 .migrateSteps {
   margin-block: 20px;
+}
+
+.numDelegations {
+  margin-bottom: 30px;
+}
+
+.delegations {
+  margin-top: 10px;
 }

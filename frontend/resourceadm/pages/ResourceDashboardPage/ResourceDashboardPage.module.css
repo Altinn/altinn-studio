@@ -16,13 +16,13 @@
 }
 
 .verticalDivider {
-  border: 1px solid #BDBDBD;
+  border: 1px solid #bdbdbd;
   height: 20px;
   margin-inline: 10px;
 }
 
 .horizontalDivider {
-  border: 1px solid #BDBDBD;
+  border: 1px solid #bdbdbd;
   margin-block: 20px;
 }
 
@@ -34,15 +34,6 @@
   padding-block: 20px;
 }
 
-.subheader {
-  width: 100%;
-  text-align: left;
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
 .noResultText {
   margin-top: 20px;
-  font-size: 16px;
 }

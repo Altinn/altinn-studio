@@ -1,6 +1,8 @@
 import React from 'react';
 import classes from './MigrationStep.module.css';
-import { Checkbox, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph, Label } from '@digdir/design-system-react';
+import { NavigationBarPageType } from 'resourceadm/types/global';
+import { LinkButton } from '../LinkButton';
 
 interface Props {
   /**
@@ -8,56 +10,72 @@ interface Props {
    */
   title: string;
   /**
-   * Text to display above the Checkbox
+   * Text to display inside the Alert
    */
   text: string;
   /**
-   * The label of the Checkbox
+   * Flag for if the alert is green or not
    */
-  checkboxText: string;
+  isSuccess: boolean;
   /**
-   * Flag for if the checkbox is checked or not
+   * Function that navigates to the page with error
    */
-  isChecked: boolean;
+  onNavigateToPageWithError: (page: NavigationBarPageType) => void;
   /**
-   * Function to handle the onChange of the Checkbox
-   * @param b boolean of the value of the checkbox
+   * Page to navigate to if there is an error
    */
-  onToggle: (b: boolean) => void;
+  page: NavigationBarPageType;
 }
 
 /**
  * @component
  * @example
  *    <MigrationStep
- *        title='Title'
+ *        title='Some title'
  *        text='Some text'
- *        checkboxText='Checkbox label'
- *        isChecked={isChecked}
- *        onToggle={(b: boolean) => setIsChecked(b)}
+ *        isSuccess={isSuccess}
+ *        onNavigateToPageWithError={navigateToPageWithError}
+ *        page='about'
  *      />
  *
  * @property {string}[title] - Title of the field
- * @property {string}[text] - Text to display above the Checkbox
- * @property {string}[checkboxText] - The label of the Checkbox
- * @property {boolean}[isChecked] - Flag for if the checkbox is checked or not
- * @property {function}[onToggle] - Function to handle the onChange of the Checkbox
- * @returns
+ * @property {string}[text] - Text to displa inside the Alert
+ * @property {boolean}[isSuccess] - Flag for if the alert is green or not
+ * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
+ * @property {NavigationBarPageType}[page] - Page to navigate to if there is an error
+ *
+ * @returns {React.ReactNode} - The rendered Migration Step with text and alert
  */
-export const MigrationStep = ({ title, text, checkboxText, isChecked, onToggle }: Props) => {
+export const MigrationStep = ({
+  title,
+  text,
+  isSuccess,
+  onNavigateToPageWithError,
+  page,
+}: Props): React.ReactNode => {
+  const displayText = () => {
+    if (!isSuccess) {
+      const textArr = text.split('"');
+
+      return (
+        <Paragraph size='small' className={classes.text}>
+          {textArr[0] + ' "'}
+          <LinkButton text={textArr[1]} onClick={() => onNavigateToPageWithError(page)} />
+          {'" ' + textArr[2]}
+        </Paragraph>
+      );
+    }
+    return <Paragraph size='small'>{text}</Paragraph>;
+  };
+
   return (
     <div className={classes.wrapper}>
-      <Heading size='xsmall' spacing level={2}>
+      <Label size='medium' spacing>
         {title}
-      </Heading>
-      <Paragraph className={classes.text} size='small'>
-        {text}
-      </Paragraph>
-      <Checkbox
-        label={checkboxText}
-        checked={isChecked}
-        onChange={(e) => onToggle(e.target.checked)}
-      />
+      </Label>
+      <Alert severity={isSuccess ? 'success' : 'danger'} iconTitle={text} className={classes.alert}>
+        {displayText()}
+      </Alert>
     </div>
   );
 };

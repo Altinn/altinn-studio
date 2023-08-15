@@ -58,8 +58,8 @@ export const RemoveChangesModal = ({ isOpen, onClose, handleClickResetRepo, repo
         <Button
           color='danger'
           data-testid='confirm-reset-repo-button'
-          disabled={repo !== deleteRepoName}
-          onClick={handleDelete}
+          aria-disabled={repo !== deleteRepoName}
+          onClick={repo === deleteRepoName && handleDelete}
           variant='outline'
         >
           {t('administration.reset_repo_button')}
