@@ -39,7 +39,7 @@ public sealed class XsdStructureKeyword : IJsonSchemaKeyword, IEquatable<XsdStru
 
     public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
     {
-        return new KeywordConstraint(Name, (e, c) => {});
+        return new KeywordConstraint(Name, (e, c) => { });
     }
 
     /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>

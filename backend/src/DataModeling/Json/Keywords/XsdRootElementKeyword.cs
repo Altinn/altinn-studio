@@ -39,7 +39,7 @@ public sealed class XsdRootElementKeyword : IJsonSchemaKeyword, IEquatable<XsdRo
 
     public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
     {
-        return new KeywordConstraint(Name, (e, c) => {});
+        return new KeywordConstraint(Name, (e, c) => { });
     }
 
     /// <inheritdoc/>

@@ -38,7 +38,7 @@ public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinO
 
     public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
     {
-        return new KeywordConstraint(Name, (e, c) => {});
+        return new KeywordConstraint(Name, (e, c) => { });
     }
 
     /// <inheritdoc/>
