@@ -50,7 +50,7 @@ describe('ButtonComponent', () => {
         type: ComponentType.NavigationButtons,
       },
     });
-    const buttonTypeSelect = screen.getByRole('combobox');
+    const buttonTypeSelect = screen.getByRole('combobox', { name: textMock('ux_editor.modal_properties_button_type_helper') });
     await act(() => user.click(buttonTypeSelect));
     await act(() => user.click(screen.getAllByRole('option')[0]));
     expect(mockHandleComponentChange).toHaveBeenCalledWith({

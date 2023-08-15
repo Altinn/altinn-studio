@@ -57,7 +57,7 @@
     },
     "displayMode": {
       "title": "Display mode",
-      "description": "Sets the display mode for the file upload component.",
+      "description": "Sets the display mode for the file upload component. simple: hides the file uploader after 1 file has been uploaded, regardless of maximum number of files allowed. list: shows the file uploader until the maximum number of files has been uploaded.",
       "type": "string",
       "enum": [
         "simple",

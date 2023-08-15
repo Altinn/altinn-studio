@@ -156,7 +156,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Grid,
       propertyPath: 'definitions/gridComponent',
     },
-    icon: 'fa fa-grid',
+    icon: 'fa fa-group',
   },
   [ComponentType.Group]: {
     name: ComponentType.Group,
@@ -384,7 +384,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.AddressComponent],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
-  // formItemConfigs[ComponentType.Grid], // Commented out, as we currently have no good way to support this component
+  formItemConfigs[ComponentType.Grid],
   formItemConfigs[ComponentType.NavigationBar],
   formItemConfigs[ComponentType.Map],
 ];
