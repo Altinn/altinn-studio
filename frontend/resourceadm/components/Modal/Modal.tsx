@@ -19,21 +19,42 @@ const modalStyles = {
 };
 
 interface Props {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Title to be displayed in the modal
+   */
   title: string;
+  /**
+   * Function to handle close of the modal
+   * @returns void
+   */
   onClose?: () => void;
+  /**
+   * React components inside the Modal
+   */
   children: ReactNode;
 }
 
 /**
- * Modal component implementing the react-modal.
+ * @component
+ *    Modal component implementing the react-modal.
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.title the title in the modal
- * @param props.onClose function to be executed when the modal is closed
- * @param props.children the components inside the modal
+ * @example
+ *    <Modal isOpen={isOpen} onClose={handleClose} title='Some title'>
+ *      <div>...</div>
+ *    </Modal>
+ *
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {string}[title] - Title to be displayed in the modal
+ * @property {function}[onClose] - Function to handle close of the modal
+ * @property {ReactNode}[children] - React components inside the Modal
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const Modal = ({ isOpen, title, onClose, children }: Props) => {
+export const Modal = ({ isOpen, title, onClose, children }: Props): React.ReactNode => {
   return (
     <ReactModal
       isOpen={isOpen}

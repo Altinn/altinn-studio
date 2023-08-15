@@ -9,6 +9,8 @@ interface Props {
 }
 
 /**
+ * TODO - Will be replaced by Designsystemet component
+ *
  * 'a' element Link.
  *
  * @param props.text text to display on the element

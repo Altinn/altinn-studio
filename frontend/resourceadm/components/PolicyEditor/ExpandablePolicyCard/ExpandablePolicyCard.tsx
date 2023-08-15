@@ -14,32 +14,67 @@ import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
+  /**
+   * The rule to display in the card
+   */
   policyRule: PolicyRuleCardType;
+  /**
+   * The possible actions to select from
+   */
   actions: PolicyActionType[];
+  /**
+   * The possible subjects to select from
+   */
   subjects: PolicySubjectType[];
+  /**
+   * The list of all the rules
+   */
   rules: PolicyRuleCardType[];
+  /**
+   * useState function to update the list of rules
+   */
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>;
+  /**
+   * The ID of the resource
+   */
   resourceId: string;
+  /**
+   * The type of the resource
+   */
   resourceType: string;
+  /**
+   * Function to be executed when clicking duplicate rule
+   * @returns void
+   */
   handleDuplicateRule: () => void;
+  /**
+   * Function to be executed when clicking delete rule
+   * @returns void
+   */
   handleDeleteRule: () => void;
+  /**
+   * Flag to decide if errors should be shown or not
+   */
   showErrors: boolean;
 }
 
 /**
- * Component that displays a card where a user can view and update a policy rule
- * for a resource.
+ * @component
+ *    Component that displays a card where a user can view and update a policy rule
+ *    for a resource.
  *
- * @param props.policyRule the rule to display in the card
- * @param props.actions the possible actions to select from
- * @param props.subjects the possible subjects to select from
- * @param props.rules the list of all the rules
- * @param props.setPolicyRules useState function to update the list of rules
- * @param props.resourceId the ID of the resource
- * @param props.resourceType the type of the resource
- * @param props.handleDuplicateRule function to be executed when clicking duplicate rule
- * @param props.handleDeleteRule function to be executed when clicking delete rule
- * @param props.showErrors flag to decide if errors should be shown or not
+ * @property {PolicyRuleCardType}[policyRule] - The rule to display in the card
+ * @property {PolicyActionType[]}[actions] - The possible actions to select from
+ * @property {PolicySubjectType[]}[subjects] - The possible subjects to select from
+ * @property {PolicyRuleCardType[]}[rules] - The list of all the rules
+ * @property {React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>}[setPolicyRules] - useState function to update the list of rules
+ * @property {string}[resourceId] - The ID of the resource
+ * @property {string}[resourceType] - The type of the resource
+ * @property {function}[handleDuplicateRule] - Function to be executed when clicking duplicate rule
+ * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
+ * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const ExpandablePolicyCard = ({
   policyRule,
@@ -52,7 +87,7 @@ export const ExpandablePolicyCard = ({
   handleDuplicateRule,
   handleDeleteRule,
   showErrors,
-}: Props) => {
+}: Props): React.ReactNode => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
   const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);

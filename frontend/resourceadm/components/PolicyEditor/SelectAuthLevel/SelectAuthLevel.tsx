@@ -10,17 +10,29 @@ const authlevelOptions = [
 ];
 
 interface Props {
+  /**
+   * The value selected
+   */
   value: RequiredAuthLevelType;
+  /**
+   * Function that sets the value selected
+   * @param v the value
+   * @returns void
+   */
   setValue: (v: RequiredAuthLevelType) => void;
+  /**
+   * Hidden form label for the input field
+   */
   label: string;
 }
 
 /**
- * Select component for selecting the authentication level of the end user
+ * @component
+ *    Select component for selecting the authentication level of the end user
  *
- * @param props.value the value selected
- * @param props.setValue function that sets the value selected
- * @param props.label hidden form label for the input field
+ * @property {RequiredAuthLevelType}[value] - The value selected
+ * @property {function}[setValue] - Function that sets the value selected
+ * @property {string}[label] - Hidden form label for the input field
  */
 export const SelectAuthLevel = ({ value, setValue, label }: Props) => {
   return (

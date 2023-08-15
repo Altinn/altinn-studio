@@ -24,22 +24,32 @@ const dummyServices: ServiceType[] = [
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
 interface Props {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
 }
 
 /**
- * Displays the modal where the user can select an environemt and service from
- * Altinn 2 to migrate to Altinn 3.
- * The user must select which environment to import from to be able to select the service.
- * The user must then selct a service before the title and id will be visible.
- * When the environment and service is selected, the button to start planning the
- * migration will be available.
+ * @component
+ *    Displays the modal where the user can select an environemt and service from
+ *    Altinn 2 to migrate to Altinn 3.
+ *    The user must select which environment to import from to be able to select the service.
+ *    The user must then selct a service before the title and id will be visible.
+ *    When the environment and service is selected, the button to start planning the
+ *    migration will be available.
  *
- * @param props.isOpen flag to decide if the modal is open or not
- * @param props.onClose function to be executed on close
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
+export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');

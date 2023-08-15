@@ -9,17 +9,27 @@ import { NewResourceType } from 'resourceadm/types/global';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 interface Props {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
 }
 
 /**
- * Displays the modal telling the user that there is a merge conflict
+ * @component
+ *    Displays the modal telling the user that there is a merge conflict
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.onClose function to close the modal
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const NewResourceModal = ({ isOpen, onClose }: Props) => {
+export const NewResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
   const navigate = useNavigate();
 
   const { selectedContext } = useParams();

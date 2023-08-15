@@ -12,20 +12,51 @@ import { NavigationBarPageType } from 'resourceadm/types/global';
 import { Paragraph } from '@digdir/design-system-react';
 
 interface Props {
+  /**
+   * The currentPage displayed
+   */
   currentPage: NavigationBarPageType;
+  /**
+   * Function that navigates to another page in the navbar
+   * @param page the page to navigate to
+   * @returns void
+   */
   navigateToPage: (page: NavigationBarPageType) => void;
+  /**
+   * Function to go back to dashboard
+   * @returns void
+   */
   goBack: () => void;
+  /**
+   * Flag for if the migrate tab should be shown
+   */
   showMigrate?: boolean;
+  /**
+   * The page clicked in the menu
+   */
   newPageClicked: NavigationBarPageType;
 }
 
 /**
- * Displays a navigation bar component to the left of the screen.
- * This navigation bar contains 3 elements: "about", "policy", "deploy"
+ * @component
+ *    Displays a navigation bar component to the left of the screen.
+ *    This navigation bar contains 3 elements: "about", "policy", "deploy"
  *
- * @param props.currentPage the currentPage displayed
- * @param props.navigateToPage function that navigates to another page in the navbar
- * @param props.goBack function to go back
+ * @example
+ *    <LeftNavigationBar
+ *        currentPage={currentPage}
+ *        navigateToPage={navigateToPage}
+ *        goBack={goBack}
+ *        newPageClicked={newPageClicked}
+ *    />
+ *
+ * @property {NavigationBarPageType}[currentPage] - The currentPage displayed
+ * @property {function}[navigateToPage] - Function that navigates to another page in the navbar
+ * @property {function}[goBack] - Function to go back to dashboard
+ * @property {boolean}[showMigrate] - Flag for if the migrate tab should be shown
+ * @property {NavigationBarPageType}[newPageClicked] - The page clicked in the menu
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const LeftNavigationBar = ({
   currentPage,
@@ -33,7 +64,7 @@ export const LeftNavigationBar = ({
   goBack,
   showMigrate = false,
   newPageClicked,
-}: Props) => {
+}: Props): React.ReactNode => {
   return (
     <div className={classes.navigationBar}>
       <div className={classes.navigationElements}>

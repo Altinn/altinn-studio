@@ -10,26 +10,42 @@ import { Link } from '../Link';
 import { Modal } from '../Modal';
 
 interface Props {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to be executed when the merge is solved
+   * @returns void
+   */
   handleSolveMerge: () => void;
+  /**
+   * The name of the organisation
+   */
   org: string;
+  /**
+   * The name of the repo
+   */
   repo: string;
 }
 
 /**
- * Displays the modal telling the user that there is a merge conflict
+ * @component
+ *    Displays the modal telling the user that there is a merge conflict
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.onSolveMerge function to be executed when the merge is solved
- * @param props.org the name of the organisation
- * @param props.repo the name of the repo
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onSolveMerge] - Function to be executed when the merge is solved
+ * @property {string}[org] - The name of the organisation
+ * @property {string}[repo] - The name of the repo
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const MergeConflictModal = ({
   isOpen,
   handleSolveMerge: onSolveMerge,
   org,
   repo,
-}: Props) => {
+}: Props): React.ReactNode => {
   const { t } = useTranslation();
 
   const [resetModalOpen, setResetModalOpen] = useState(false);

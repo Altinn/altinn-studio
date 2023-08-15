@@ -29,6 +29,9 @@ interface Props {
 
 /**
  * @component
+ *    Displays the different steps on the migration page together with an alert
+ *    indicating if the step is success or warning.
+ *
  * @example
  *    <MigrationStep
  *        title='Some title'
@@ -36,7 +39,7 @@ interface Props {
  *        isSuccess={isSuccess}
  *        onNavigateToPageWithError={navigateToPageWithError}
  *        page='about'
- *      />
+ *     />
  *
  * @property {string}[title] - Title of the field
  * @property {string}[text] - Text to displa inside the Alert
