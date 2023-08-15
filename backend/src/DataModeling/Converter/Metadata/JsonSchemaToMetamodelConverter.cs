@@ -112,8 +112,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             var context = new SchemaContext() { Id = name, ParentId = string.Empty, Name = name, XPath = "/" };
             SetTargetNamespace(schema);
 
-            var propertiesKeyword = schema.GetKeyword<PropertiesKeyword>();
-            var requiredKeyword = schema.GetKeyword<RequiredKeyword>();
+            var propertiesKeyword = schema.GetKeywordOrNull<PropertiesKeyword>();
+            var requiredKeyword = schema.GetKeywordOrNull<RequiredKeyword>();
             if (propertiesKeyword != null)
             {
                 AddElement(rootPath, schema, context);
@@ -301,7 +301,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+            var typeKeyword = subSchema.GetKeywordOrNull<TypeKeyword>();
 
             if (typeKeyword == null)
             {
@@ -314,7 +314,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void ProcessArrayType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            var itemsKeyword = subSchema.GetKeyword<ItemsKeyword>();
+            var itemsKeyword = subSchema.GetKeywordOrNull<ItemsKeyword>();
             var singleSchema = itemsKeyword.SingleSchema;
             context.SchemaValueType = SchemaValueType.Array;
 
@@ -374,7 +374,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void ProcessRefType(JsonSchema subSchema, SchemaContext context)
         {
-            var refKeyword = subSchema.GetKeyword<RefKeyword>();
+            var refKeyword = subSchema.GetKeywordOrNull<RefKeyword>();
             var refPath = JsonPointer.Parse(refKeyword.Reference.ToString());
             var refSchema = _schema.FollowReference(refPath);
 
@@ -383,7 +383,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void ProcessRestrictionType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            var allOfKeyword = subSchema.GetKeyword<AllOfKeyword>();
+            var allOfKeyword = subSchema.GetKeywordOrNull<AllOfKeyword>();
 
             // If it's a single subschema with only a reference then follow it.
             if (allOfKeyword.Schemas.Count() == 1 && allOfKeyword.Schemas.First().HasKeyword<RefKeyword>())
@@ -393,7 +393,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
             else
             {
-                var refKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeyword<RefKeyword>();
+                var refKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeywordOrNull<RefKeyword>();
                 if (refKeyword is not null)
                 {
                     PopulateRestrictions(allOfKeyword, context.Restrictions);
@@ -401,7 +401,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     return;
                 }
 
-                var typeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
+                var typeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeywordOrNull<TypeKeyword>();
                 context.SchemaValueType = typeKeyword.Type;
 
                 var enumSchema = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
@@ -430,7 +430,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
             else
             {
-                var oneOfKeyword = subSchema.GetKeyword<OneOfKeyword>();
+                var oneOfKeyword = subSchema.GetKeywordOrNull<OneOfKeyword>();
                 var schema = oneOfKeyword.Schemas.FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
 
                 context.IsNillable = true;
@@ -631,7 +631,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
                 xsdTypeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
-                    ?.GetKeyword<XsdTypeKeyword>();
+                    ?.GetKeywordOrNull<XsdTypeKeyword>();
                 if (xsdTypeKeyword is not null)
                 {
                     parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
@@ -703,7 +703,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
             int minOccurs = IsRequired(context.Id, context.Name) ? 1 : 0;
 
-            var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
+            var minItemsKeyword = subSchema.GetKeywordOrNull<MinItemsKeyword>();
             if (minItemsKeyword?.Value > minOccurs)
             {
                 minOccurs = (int)minItemsKeyword.Value;
@@ -720,13 +720,13 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 maxOccurs = MAX_MAX_OCCURS;
             }
 
-            var maxitemsKeyword = subSchema.GetKeyword<MaxItemsKeyword>();
+            var maxitemsKeyword = subSchema.GetKeywordOrNull<MaxItemsKeyword>();
             return maxitemsKeyword == null ? maxOccurs : (int)maxitemsKeyword.Value;
         }
 
         private static string GetFixedValue(JsonSchema subSchema)
         {
-            var constKeyword = subSchema.GetKeyword<ConstKeyword>();
+            var constKeyword = subSchema.GetKeywordOrNull<ConstKeyword>();
             if (constKeyword != null)
             {
                 return constKeyword.Value?.ToString() ?? string.Empty;
@@ -737,7 +737,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private static ElementType GetType(JsonSchema subSchema)
         {
-            var xsdAttributeTypeKeyword = subSchema.GetKeyword<XsdAttributeKeyword>();
+            var xsdAttributeTypeKeyword = subSchema.GetKeywordOrNull<XsdAttributeKeyword>();
             if (xsdAttributeTypeKeyword?.Value == true)
             {
                 return ElementType.Attribute;
@@ -796,7 +796,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void CheckForRequiredPropertiesKeyword(JsonSchema subSchema, SchemaContext context)
         {
-            var requiredKeyword = subSchema.GetKeyword<RequiredKeyword>();
+            var requiredKeyword = subSchema.GetKeywordOrNull<RequiredKeyword>();
             if (requiredKeyword == null)
             {
                 return;
@@ -844,7 +844,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private static bool IsRefType(JsonSchema subSchema)
         {
-            var refkeyword = subSchema.GetKeyword<RefKeyword>();
+            var refkeyword = subSchema.GetKeywordOrNull<RefKeyword>();
 
             return refkeyword != null;
         }
@@ -905,7 +905,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         /// </summary>
         private static bool IsSchemaExclusivePrimitiveType(JsonSchema subSchema)
         {
-            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+            var typeKeyword = subSchema.GetKeywordOrNull<TypeKeyword>();
 
             if (typeKeyword == null)
             {
@@ -935,7 +935,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private static bool IsExclusiveArrayType(JsonSchema subSchema)
         {
-            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+            var typeKeyword = subSchema.GetKeywordOrNull<TypeKeyword>();
 
             if (typeKeyword == null)
             {
@@ -947,7 +947,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void SetTargetNamespace(JsonSchema jsonSchema)
         {
-            var attributesKeyword = jsonSchema.GetKeyword<XsdSchemaAttributesKeyword>();
+            var attributesKeyword = jsonSchema.GetKeywordOrNull<XsdSchemaAttributesKeyword>();
 
             var targetNamespace =
                 attributesKeyword?.Properties?.Where(x => x.Name == nameof(XmlSchema.TargetNamespace))

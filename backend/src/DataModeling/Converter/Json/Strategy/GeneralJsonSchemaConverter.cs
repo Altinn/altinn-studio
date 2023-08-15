@@ -330,9 +330,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             else
             {
                 var reference =
-                    (_schema.GetKeyword<AllOfKeyword>()?.Schemas[0] ??
-                     _schema.GetKeyword<AnyOfKeyword>()?.Schemas[0] ??
-                     _schema.GetKeyword<OneOfKeyword>()?.Schemas[0]).GetKeyword<RefKeyword>();
+                    (_schema.GetKeywordOrNull<AllOfKeyword>()?.Schemas[0] ??
+                     _schema.GetKeywordOrNull<AnyOfKeyword>()?.Schemas[0] ??
+                     _schema.GetKeywordOrNull<OneOfKeyword>()?.Schemas[0]).GetKeywordOrNull<RefKeyword>();
 
                 root.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
             }
@@ -495,14 +495,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                var oneOf = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>();
+                var oneOf = itemsKeyword.SingleSchema.GetKeywordOrNull<OneOfKeyword>();
                 if (oneOf is null && itemsKeyword.SingleSchema.TryGetKeyword(out RefKeyword itemsRef))
                 {
                     element.SchemaTypeName = GetTypeNameFromReference(itemsRef.Reference);
                 }
                 else
                 {
-                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
+                    var refKeyword = itemsKeyword.SingleSchema.GetKeywordOrNull<OneOfKeyword>().Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
                     element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
                 }
             }
@@ -518,7 +518,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             // Element with type reference to a ComplexType
             if (refKeywordSubSchema != null)
             {
-                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference);
                 return true;
             }
 
@@ -550,7 +550,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             else if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
             {
                 var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference);
                 element.IsNillable = true;
             }
             else if (keywords.TryPull(out RefKeyword reference))
@@ -913,7 +913,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     XmlQualifiedName typeName = SetType(typeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
                     return typeName;
                 case SchemaValueType.Array:
-                    var arrayTypeKeyword = keywords.GetKeyword<ItemsKeyword>().SingleSchema.GetKeyword<TypeKeyword>();
+                    var arrayTypeKeyword = keywords.GetKeyword<ItemsKeyword>().SingleSchema.GetKeywordOrNull<TypeKeyword>();
                     XmlQualifiedName arrayType = SetType(arrayTypeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
                     return arrayType;
                 default:
@@ -936,9 +936,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             simpleContent.Content = restriction;
 
             DeconstructSimpleContentRestriction(keywords, out var baseTypeSchema, out var baseTypeSchemaIndex, out var propertiesSchema, out var propertiesSchemaIndex);
-            DeconstructSimpleContentRestrictionProperties(propertiesSchema.GetKeyword<PropertiesKeyword>(), out var valuePropertySchema, out var attributePropertiesSchemas);
+            DeconstructSimpleContentRestrictionProperties(propertiesSchema.GetKeywordOrNull<PropertiesKeyword>(), out var valuePropertySchema, out var attributePropertiesSchemas);
 
-            restriction.BaseTypeName = GetTypeNameFromReference(baseTypeSchema.GetKeyword<RefKeyword>().Reference);
+            restriction.BaseTypeName = GetTypeNameFromReference(baseTypeSchema.GetKeywordOrNull<RefKeyword>().Reference);
 
             HandleSimpleContentRestrictionValueProperty(restriction, path, valuePropertySchema, propertiesSchemaIndex, baseTypeSchema, baseTypeSchemaIndex);
             HandleSimpleContentRestrictionAttributeProperties(restriction, path, attributePropertiesSchemas, propertiesSchemaIndex);
@@ -1055,8 +1055,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 };
 
                 HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/properties/{name}")));
-                SetFixed(attribute, schema.GetKeyword<ConstKeyword>());
-                SetDefault(attribute, schema.GetKeyword<DefaultKeyword>());
+                SetFixed(attribute, schema.GetKeywordOrNull<ConstKeyword>());
+                SetDefault(attribute, schema.GetKeywordOrNull<DefaultKeyword>());
                 SetRequired(attribute, required.Contains(name));
                 extension.Attributes.Add(attribute);
             }
@@ -1389,7 +1389,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             if (schema.TryGetKeyword<OneOfKeyword>(out var oneOfKeyword))
             {
                 var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                return GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                return GetTypeNameFromReference(refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference);
             }
 
             return new XmlQualifiedName();

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Metadata;
@@ -96,7 +97,7 @@ public static class MetamodelRestrictionUtils
     /// </summary>
     private static void AddStringRestrictions(JsonSchema subSchema, IDictionary<string, Restriction> restrictions)
     {
-        var enumKeyword = subSchema.GetKeyword<EnumKeyword>();
+        var enumKeyword = subSchema.GetKeywordOrNull<EnumKeyword>();
         if (enumKeyword != null)
         {
             AddEnumRestrictions(enumKeyword, restrictions);
