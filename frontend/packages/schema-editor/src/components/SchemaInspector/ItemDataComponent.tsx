@@ -46,9 +46,11 @@ import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { NameField } from './NameField';
 
-export type IItemDataComponentProps = Omit<UiSchemaNode, 'children'>;
+export type IItemDataComponentProps = {
+  schemaNode: UiSchemaNode;
+};
 
-export function ItemDataComponent(props: IItemDataComponentProps) {
+export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const {
     fieldType,
     pointer,
@@ -59,7 +61,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     objectKind,
     isArray,
     custom,
-  } = props;
+  } = schemaNode;
   const dispatch = useDispatch();
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
@@ -189,7 +191,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
           onChange={onChangeNullable}
         />
       )}
-      <ItemRestrictions {...props} />
+      <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (
         <>
           <Divider marginless/>

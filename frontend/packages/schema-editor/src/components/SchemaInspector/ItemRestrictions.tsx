@@ -39,17 +39,20 @@ export interface RestrictionItemProps {
   onChangeRestrictions: (id: string, restrictions: KeyValuePairs) => void;
 }
 
-export type ItemRestrictionsProps = Omit<UiSchemaNode, 'children'>;
+export type ItemRestrictionsProps = {
+  schemaNode: UiSchemaNode;
+};
 
-export const ItemRestrictions = ({
-  pointer,
-  isRequired,
-  reference,
-  isArray,
-  ['enum']: enums,
-  restrictions,
-  fieldType,
-}: ItemRestrictionsProps) => {
+export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
+  const {
+    pointer,
+    isRequired,
+    reference,
+    isArray,
+    enum: enums,
+    restrictions,
+    fieldType,
+  } = schemaNode;
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
 
