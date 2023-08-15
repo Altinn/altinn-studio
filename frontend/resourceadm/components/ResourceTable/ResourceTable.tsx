@@ -7,15 +7,21 @@ import { Button } from '@digdir/design-system-react';
 import { ResourceType } from 'resourceadm/types/global';
 
 interface Props {
+  /**
+   * The list to display in the table
+   */
   list: ResourceType[];
 }
 
 /**
- * Table to display a list of all resources available
+ * @component
+ *    Table to display a list of all resources available
  *
- * @param props.list the list to display in the table
+ * @property {ResourceType[]}[list] - The list to display in the table
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTable = ({ list }: Props) => {
+export const ResourceTable = ({ list }: Props): React.ReactNode => {
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
 
   /**

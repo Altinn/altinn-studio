@@ -8,17 +8,23 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { ResourceType } from 'resourceadm/types/global';
 
 interface Props {
+  /**
+   * The resource to display in the row
+   */
   resource: ResourceType;
 }
 
 /**
- * Display the row in the resource table. It displays values for
- * name, created by, the date changed, if it has policy or not, as well as
- * two buttons, one for editing a resource, and one for doing more actions
+ * @component
+ *    Display the row in the resource table. It displays values for
+ *    name, created by, the date changed, if it has policy or not, as well as
+ *    two buttons, one for editing a resource, and one for doing more actions
  *
- * @param props.resource the resource to display in the row
+ * @property {ResourceType}[resource] - The resource to display in the row
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTableDataRow = ({ resource }: Props) => {
+export const ResourceTableDataRow = ({ resource }: Props): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 

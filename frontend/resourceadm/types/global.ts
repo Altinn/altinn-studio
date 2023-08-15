@@ -19,25 +19,25 @@ export interface PolicySubjectType {
 }
 
 export interface PolicyActionType {
-  actionId: string,
-  actionTitle: string,
-  actionDescription: string | null
+  actionId: string;
+  actionTitle: string;
+  actionDescription: string | null;
 }
 
 export interface PolicyRuleBackendType {
-  ruleId: string,
-  description: string,
-  subject: string[],
-  actions: string[],
-  resources: string[][]
+  ruleId: string;
+  description: string;
+  subject: string[];
+  actions: string[];
+  resources: string[][];
 }
 
 export type RequiredAuthLevelType = '1' | '2' | '3' | '4';
 
 export interface PolicyBackendType {
-  rules: PolicyRuleBackendType[] | null,
-  requiredAuthenticationLevelEndUser: RequiredAuthLevelType,
-  requiredAuthenticationLevelOrg: string
+  rules: PolicyRuleBackendType[] | null;
+  requiredAuthenticationLevelEndUser: RequiredAuthLevelType;
+  requiredAuthenticationLevelOrg: string;
 }
 
 export type NavigationBarPageType = 'about' | 'policy' | 'deploy' | 'migration';
@@ -50,7 +50,7 @@ export interface ResourceType {
   identifier: string;
 }
 
-export type ResourceTypeOptionType = "Default" | "Systemresource" | "MaskinportenSchema";
+export type ResourceTypeOptionType = 'Default' | 'Systemresource' | 'MaskinportenSchema';
 
 export interface ResourceBackendType {
   identifier: string;
@@ -71,12 +71,18 @@ export interface ResourceBackendType {
 export interface ResourceReferenceType {
   referenceSource?: 'Default' | 'Altinn1' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
   reference?: string;
-  referenceType?: 'Default' | 'Uri' | 'DelegationSchemeId' | 'MaskinportenScope' | 'ServiceCode' | 'ServiceEditionCode';
+  referenceType?:
+    | 'Default'
+    | 'Uri'
+    | 'DelegationSchemeId'
+    | 'MaskinportenScope'
+    | 'ServiceCode'
+    | 'ServiceEditionCode';
 }
 
 export interface ResourceKeywordType {
   language: 'nb' | 'nn' | 'en';
-  word: string
+  word: string;
 }
 
 export interface SupportedLanguageKey<T> {

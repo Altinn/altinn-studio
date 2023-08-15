@@ -50,7 +50,7 @@ interface Props {
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
  * @property {boolean}[showAlert] - Flag for if the alert should be shown
  *
- * @returns
+ * @returns {React.ReactNode} - The rendered component
  */
 export const RightTranslationBar = ({
   title,
@@ -59,7 +59,7 @@ export const RightTranslationBar = ({
   onChangeValue,
   showErrors,
   showAlert,
-}: Props) => {
+}: Props): React.ReactNode => {
   const handleChange = (lang: 'nn' | 'en', val: string) => {
     const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
     onChangeValue(obj);

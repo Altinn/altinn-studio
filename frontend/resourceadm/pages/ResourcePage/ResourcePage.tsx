@@ -23,9 +23,12 @@ import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 /**
- * Displays the 3 pages to manage resources and a left navigation bar.
+ * @component
+ *    Displays the 4 pages to manage resources and a left navigation bar.
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourcePage = () => {
+export const ResourcePage = (): React.ReactNode => {
   const navigate = useNavigate();
 
   const { pageType, resourceId, selectedContext } = useParams();

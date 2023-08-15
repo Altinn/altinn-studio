@@ -39,21 +39,41 @@ const resourceTypeOptions = [
 const emptyLangauges: LanguageStringType = { nb: '', nn: '', en: '' };
 
 interface Props {
+  /**
+   * Flag to decide if all errors should be shown or not
+   */
   showAllErrors: boolean;
+  /**
+   * The metadata for the resource
+   */
   resourceData: ResourceBackendType;
+  /**
+   * The list of possible sectors
+   */
   sectorsData: ResourceSectorType[];
+  /**
+   * The list of possible thematic areas
+   */
   thematicData: ResourceThematicType[];
+  /**
+   * Function to be handled when saving the resource
+   * @param r the resource
+   * @returns void
+   */
   onSaveResource: (r: ResourceBackendType) => void;
 }
 
 /**
- * Page that displays information about a resource
+ * @component
+ *    Page that displays information about a resource
  *
- * @param props.showAllErrors flag to decide if all errors should be shown or not
- * @param props.resourceData the metadata for the resource
- * @param props.sectorsData the list of possible sectors
- * @param props.thematicData the list of possible thematic areas
- * @param props.onSaveResource function to be handled when saving the resource
+ * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
+ * @property {ResourceBackendType}[resourceData] - The metadata for the resource
+ * @property {ResourceSectorType[]}[sectorsData] - The list of possible sectors
+ * @property {ResourceThematicType[]}[thematicData] - The list of possible thematic areas
+ * @property {function}[onSaveResource] - Function to be handled when saving the resource
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const AboutResourcePage = ({
   showAllErrors,
@@ -61,7 +81,7 @@ export const AboutResourcePage = ({
   sectorsData,
   thematicData,
   onSaveResource,
-}: Props) => {
+}: Props): React.ReactNode => {
   // TODO - translation
   const { resourceId } = useParams();
 

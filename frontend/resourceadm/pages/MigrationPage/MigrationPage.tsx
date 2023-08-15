@@ -22,13 +22,23 @@ const envOptions = [
 ];
 
 interface Props {
+  /**
+   * Function that navigates to a page with errors
+   * @param page the page to navigate to
+   * @returns void
+   */
   navigateToPageWithError: (page: NavigationBarPageType) => void;
 }
 
 /**
- * Page that shows the information about migrating from Altinn 2 to Altinn 3
+ * @component
+ *    Page that shows the information about migrating from Altinn 2 to Altinn 3
+ *
+ * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const MigrationPage = ({ navigateToPageWithError }: Props) => {
+export const MigrationPage = ({ navigateToPageWithError }: Props): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 

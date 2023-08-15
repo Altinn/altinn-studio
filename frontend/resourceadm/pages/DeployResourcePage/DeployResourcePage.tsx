@@ -15,15 +15,23 @@ import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 interface Props {
+  /**
+   * Function that navigates to a page with errors
+   * @param page the page to navigate to
+   * @returns void
+   */
   navigateToPageWithError: (page: NavigationBarPageType) => void;
 }
 
 /**
- * Displays the deploy page for resources
+ * @component
+ *    Displays the deploy page for resources
  *
- * @param props.isLocalRepoInSync boolean for if the local repo is in sync or not
+ * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
+export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 

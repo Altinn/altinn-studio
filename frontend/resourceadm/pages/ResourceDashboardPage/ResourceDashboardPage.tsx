@@ -13,9 +13,12 @@ import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModa
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 /**
- * Displays the page for the resource dashboard
+ * @component
+ *    Displays the page for the resource dashboard
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceDashboardPage = () => {
+export const ResourceDashboardPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
