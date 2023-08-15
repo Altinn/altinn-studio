@@ -86,6 +86,7 @@ export const TextEditor = ({
           </Button>
           <div>
             <SearchField
+              id='text-editor-search'
               label='Søk etter tekst eller id'
               value={searchQuery}
               onChange={handleSearchChange}
