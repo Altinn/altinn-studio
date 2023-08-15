@@ -14,5 +14,6 @@ export const useAutoSizeTextArea = (
       const scrollHeight = textAreaRef.scrollHeight;
       textAreaRef.style.height = scrollHeight + 'px';
     }
+    // Added windowSize to the dependency array to recalculate the height of the textarea when the window size changes
   }, [textAreaRef, value, windowSize]);
 };
