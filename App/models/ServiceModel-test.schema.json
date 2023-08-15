@@ -1588,7 +1588,8 @@
         },
         "value": {
           "$ref": "#/definitions/Tekst50-repformat-70",
-          "@xsdType": "XmlSimpleContentExtension"
+          "@xsdType": "XmlSimpleContentExtension",
+          "maxLength": 4
         }
       },
       "required": [
