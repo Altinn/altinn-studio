@@ -3,3 +3,10 @@
   flex-direction: column;
   gap: var(--fieldset-gap);
 }
+
+.addContainer {
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+  align-items: flex-end;
+}

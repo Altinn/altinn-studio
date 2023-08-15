@@ -6,7 +6,7 @@ import {
   Select,
   SingleSelectOption,
 } from '@digdir/design-system-react';
-import { PlusIcon, XMarkIcon, PencilIcon, MagnifyingGlassIcon } from '@navikt/aksel-icons';
+import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@navikt/aksel-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentEditId, } from '../features/appData/textResources/textResourcesSlice';
@@ -24,10 +24,12 @@ import cn from 'classnames';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
 import { FormField } from './FormField';
+import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 
 export interface TextResourceProps {
   description?: string;
   handleIdChange: (id: string) => void;
+  handleRemoveTextResource?: () => void;
   label?: string;
   placeholder?: string;
   previewMode?: boolean;
@@ -51,6 +53,7 @@ export const generateId = (options?: GenerateTextResourceIdOptions) => {
 export const TextResource = ({
   description,
   handleIdChange,
+  handleRemoveTextResource,
   label,
   placeholder,
   previewMode,
@@ -65,6 +68,7 @@ export const TextResource = ({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>(false);
 
   const editId = useSelector(getCurrentEditId);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -79,6 +83,11 @@ export const TextResource = ({
       handleIdChange(id);
       setEditId(id);
     }
+  };
+
+  const handleDeleteButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    handleRemoveTextResource();
   };
 
   const searchOptions: SingleSelectOption[] = prepend<SingleSelectOption>(
@@ -170,6 +179,31 @@ export const TextResource = ({
               variant={ButtonVariant.Quiet}
               size='small'
             />
+            {handleRemoveTextResource && textResourceId && <AltinnConfirmDialog
+            open={isConfirmDeleteDialogOpen}
+            confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
+            onConfirm={handleDeleteButtonClick}
+            onClose={() => setIsConfirmDeleteDialogOpen(false)}
+            trigger={
+              <Button
+              aria-label={t('general.delete')}
+              className={classes.button}
+              color={ButtonColor.Secondary}
+              disabled={isSearchMode}
+              icon={<TrashIcon />}
+              onClick={() => setIsConfirmDeleteDialogOpen(true)}
+              title={t('general.delete')}
+              variant={ButtonVariant.Quiet}
+              size='small'
+            />
+            }
+          >
+            <div>
+              <p>{t('ux_editor.text_resource_bindings.delete_confirm_question')}</p>
+              <p>{t('ux_editor.text_resource_bindings.delete_info')}</p>
+            </div>
+
+          </AltinnConfirmDialog>}
           </span>
         </span>
       </span>
