@@ -334,7 +334,10 @@ export const AboutResourcePage = ({
             aria-labelledby='resource-title'
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
           />
-          <ScreenReaderSpan id='resource-title' label='Navn på tjenesten' />
+          <ScreenReaderSpan
+            id='resource-title'
+            label='Navn på tjenesten - Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på at navnet er forståelig og gjenkjennbart.'
+          />
           {showAllErrors &&
             hasTitleError &&
             displayWarningCard(getMissingInputLanguage(title, true))}
@@ -343,7 +346,7 @@ export const AboutResourcePage = ({
         <Label size='medium' spacing>
           Beskrivelse (Bokmål)
         </Label>
-        <Paragraph short size='small'>
+        <Paragraph size='small'>
           Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
           offentlige nettløsninger.
         </Paragraph>
@@ -359,7 +362,10 @@ export const AboutResourcePage = ({
             aria-labelledby='resource-description'
             isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
           />
-          <ScreenReaderSpan id='resource-description' label='Beskrivelse' />
+          <ScreenReaderSpan
+            id='resource-description'
+            label='Beskrivelse - Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av offentlige nettløsninger.'
+          />
           {showAllErrors &&
             hasDescriptionError &&
             displayWarningCard(getMissingInputLanguage(description, false))}
@@ -370,7 +376,7 @@ export const AboutResourcePage = ({
           Hjemmeside
         </Label>
         <Paragraph short size='small'>
-          Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den
+          Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
@@ -379,14 +385,19 @@ export const AboutResourcePage = ({
             aria-labelledby='resource-homepage'
             onFocus={() => setTranslationType('none')}
           />
-          <ScreenReaderSpan id='resource-homepage' label='Hjemmeside' />
+          <ScreenReaderSpan
+            id='resource-homepage'
+            label='Hjemmeside - Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den.'
+          />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
           Nøkkelord
         </Label>
-        <Paragraph short size='small'>
-          {'Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'}
+        <Paragraph size='small'>
+          {
+            'Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
+          }
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
@@ -395,14 +406,18 @@ export const AboutResourcePage = ({
             aria-labelledby='resource-keywords'
             onFocus={() => setTranslationType('none')}
           />
-          <ScreenReaderSpan id='resource-keywords' label='Nøkkelord' />
+          <ScreenReaderSpan
+            id='resource-keywords'
+            label='Nøkkelord - Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
+          />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Hvilken sektor er tjenesten relatert til?
+          Sektor
         </Label>
-        <Paragraph short size='small'>
-          En tjeneste kan relateres til flere industrier/sektorer
+        <Paragraph size='small'>
+          Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere
+          industrier/sektorer.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
@@ -411,24 +426,25 @@ export const AboutResourcePage = ({
             options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
             onChange={(e) => setSector(e)}
             value={sector}
-            label='Hvilken sektor er tjenesten relatert til?'
+            label='Sektor - Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere industrier/sektorer.'
             hideLabel
             onFocus={() => setTranslationType('none')}
           />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Hvilket tematiske område dekker tjenesten?
+          Tematisk område
         </Label>
-        <Paragraph short size='small'>
-          En tjeneste kan relateres til et tematisk område
+        <Paragraph size='small'>
+          Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk
+          område.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
             onChange={(e: string) => setThematicArea(e)}
             value={thematicArea}
-            label='Velg tematisk område'
+            label='Tematisk område - Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk område.'
             hideLabel
             onFocus={() => setTranslationType('none')}
           />
@@ -437,6 +453,10 @@ export const AboutResourcePage = ({
         <Label size='medium' spacing>
           Delegasjonstekst
         </Label>
+        <Paragraph size='small'>
+          Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker
+          av rettigheter kan utføre på vegne av den som han har fått rettighet for.
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={rightDescription['nb']}
@@ -444,7 +464,10 @@ export const AboutResourcePage = ({
             aria-labelledby='resource-delegationtext'
             onFocus={() => setTranslationType('rightDescription')}
           />
-          <ScreenReaderSpan id='resource-delegationtext' label='Delegasjonstekst' />
+          <ScreenReaderSpan
+            id='resource-delegationtext'
+            label='Delegasjonstekst - Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for'
+          />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
