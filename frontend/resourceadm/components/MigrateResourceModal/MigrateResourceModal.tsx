@@ -133,6 +133,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
           <ResourceNameAndId
             isEditOpen={editIdFieldOpen}
             title={title}
+            text='Ressursnavn er foreslått basert på servicen du har valgt, og språkstøtte kan legges til på neste side. Id er foreslått basert på ressursnavnet, og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.'
             id={id}
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}

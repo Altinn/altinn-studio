@@ -6,6 +6,7 @@ import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-ic
 interface Props {
   isEditOpen: boolean;
   title: string;
+  text: string;
   id: string;
   handleEditTitle: (s: string) => void;
   handleIdInput: (s: string) => void;
@@ -30,6 +31,7 @@ interface Props {
 export const ResourceNameAndId = ({
   isEditOpen,
   title,
+  text,
   id,
   handleEditTitle,
   handleIdInput,
@@ -66,7 +68,7 @@ export const ResourceNameAndId = ({
 
   return (
     <>
-      <Paragraph size='medium'>Velg navn og id for ressursen.</Paragraph>
+      <Paragraph size='small'>{text}</Paragraph>
       <Label className={classes.label} size='small'>
         Ressursnavn (Bokmål)
       </Label>

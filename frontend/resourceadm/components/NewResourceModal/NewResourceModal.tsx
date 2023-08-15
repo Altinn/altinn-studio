@@ -117,6 +117,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
+        text='Velg navn og id for ressursen. Språkstøtte på navn kan legges til på neste side. Id er foreslått basert på navnet du skriver, og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.'
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
