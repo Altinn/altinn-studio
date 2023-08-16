@@ -36,6 +36,6 @@ const createWebStorage = (storage: WebStorage): TypedStorage => {
 };
 
 /* Only localStorage is implemented for now, but we can add session storage if needed by adding:
- * const typedSessionStorage = createWebStorage(window.sessionStorage)
+ * const typedSessionStorage = createWebStorage(window?.sessionStorage)
  */
 export const typedLocalStorage = createWebStorage(window?.localStorage);
