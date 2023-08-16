@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - chore/cypress-cloud
     paths:
       - 'frontend/**'
       - '.github/workflows/cypress.yml'
