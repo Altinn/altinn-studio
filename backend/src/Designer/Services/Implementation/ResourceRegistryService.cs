@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -38,7 +39,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             string fullResourceRegistryUrl;
-            if (env != null)
+
+            if (env == null || string.IsNullOrEmpty(env))
+            {
+                return new StatusCodeResult(400);
+            }
+
+            //Checks if tested locally by passing dev as env parameter
+            if (!env.ToLower().Equals("dev"))
             {
                 fullResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
                 tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);

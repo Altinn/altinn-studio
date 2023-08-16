@@ -64,6 +64,8 @@
     <Compile Remove="Controllers\ManualTestingController.cs" />
     <None Remove="jwtselfsignedcert.pfx" />
     <Watch Remove="Configuration\CacheSettings.cs" />
+    <Watch Remove="Configuration\ResourceRegistryBaseUrlSetting.cs" />
+    <Watch Remove="Configuration\ResourceRegistryIntegrationSettings.cs" />
     <Watch Remove="Controllers\PolicyController.cs" />
     <Watch Remove="Configuration\MaskinportenClientSettings.cs" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />
