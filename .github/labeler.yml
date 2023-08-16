@@ -1,5 +1,4 @@
 # Labels for solutions
-
 solution/platform:
   - 'src/Altinn.Platform/**/*'
 
@@ -14,7 +13,6 @@ solution/studio/repos:
   - 'gitea/**/*'
 
 # Labels for areas
-
 area/app-deploy:
   - 'frontend/app-development/features/appPublish/**/*'
   - 'frontend/app-development/sharedResources/appDeployment/**/*'
@@ -27,13 +25,14 @@ area/dashboard:
 area/data-modeling:
   - 'frontend/packages/schema-editor/**/*'
   - 'frontend/packages/schema-model/**/*'
+  - 'frontend/app-development/features/dataModelling/**/*'
   - 'backend/src/DataModeling/**/*'
 
 area/pdf:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
 
-area/ui-editor:
-  - 'frontend/packages/ux-editor/**/*'
+area/resource-registry:
+  - 'frontend/resourceAdm/**/*'
 
 area/test:
   - 'src/test/**/*'
@@ -42,9 +41,24 @@ area/text-editor:
   - 'frontend/packages/text-editor/**'
   - 'frontend/app-development/features/textEditor/**/*'
 
-area/resource-registry:
-  - 'frontend/resourceAdm/**/*'
+area/ui-editor:
+  - 'frontend/packages/ux-editor/**/*'
 
+## Other labels
 kind/dependencies:
   - 'backend/packagegroups/NuGet.props'
   - 'frontend/**/package.json'
+
+quality/testing:
+  - 'frontend/testing/**/*'
+  - 'backend/tests/**/*'
+  - 'testdata/**/*'
+
+skip-release-notes:
+  - '.github/**/*'
+  - '.husky/**/*'
+  - '.vscode/**/*'
+  - '.yarn/**/*'
+  - 'testdata/**/*'
+  - 'development/**/*'
+  - 'src/**/*'
