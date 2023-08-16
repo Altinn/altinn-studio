@@ -54,7 +54,7 @@ quality/testing:
   - 'backend/tests/**/*'
   - 'testdata/**/*'
 
-skip-release-notes:
+skip-releasenotes:
   - '.github/**/*'
   - '.husky/**/*'
   - '.vscode/**/*'
