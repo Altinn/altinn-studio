@@ -51,7 +51,7 @@ export const InformationPanelComponent = ({
       </div>
       <div className={classNames(classes.informationPanelLink)}>
         <a
-          href='https://docs.altinn.studio/technology/solutions/altinn-studio/designer/functional/build-app/ui-designer/components/'
+          href='https://docs.altinn.studio/app/development/ux/components/'
           target='_blank'
           rel='noopener noreferrer'
         >
