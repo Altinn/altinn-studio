@@ -13,8 +13,8 @@ import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
-import { selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
+import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -26,7 +26,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
   const { t } = useTranslation();
-  const { custom } = useSchemaSelector(selectedIdSelector);
+  const { custom } = useSchemaAndReduxSelector(selectedItemSelector);
 
   function changeProperties(properties: KeyValuePairs) {
     mutate(setCustomProperties(data, { path, properties }));

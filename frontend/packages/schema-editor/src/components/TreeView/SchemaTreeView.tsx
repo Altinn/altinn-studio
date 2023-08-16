@@ -1,5 +1,4 @@
 import React from 'react';
-import classes from './SchemaTreeView.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { DndProvider } from 'react-dnd';
 import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
@@ -27,7 +26,6 @@ export const SchemaTreeView = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <TreeView
-        className={classes.treeView}
         multiSelect={false}
         selected={selectedPointer}
         defaultCollapseIcon={<ChevronDownIcon />}
