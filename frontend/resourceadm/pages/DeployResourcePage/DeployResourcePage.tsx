@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { TextField, Button, Spinner, Heading, Label } from '@digdir/design-system-react';
+import { TextField, Button, Spinner, Heading, Label, Paragraph } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
 import {
@@ -13,6 +13,7 @@ import {
 import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { Link } from 'resourceadm/components/Link';
 
 interface Props {
   /**
@@ -218,10 +219,21 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.Re
           </Heading>
           <div className={classes.contentWrapper}>
             {displayStatusCard()}
+            <Paragraph size='small' className={classes.informationText}>
+              Ved å publisere ressurser blir informasjonen tilgjengelig på{' '}
+              <Link text='Altinn.no' href='https://www.altinn.no/' openInNewWindow /> og andre
+              nettsteder som lister ressurser i Altinn. Sluttbrukere kan da starte delegere
+              rettigheter til ressursen. Man bør verifisere i testmiljø først at tekster og metadata
+              blir presentert som tenkt før man publiserer til produksjon.
+            </Paragraph>
             <div className={classes.newVersionWrapper}>
               <Label size='medium' spacing>
                 Nytt versjonsnummer
               </Label>
+              <Paragraph size='small' className={classes.newVersionParagraph}>
+                En ressurs trenger å ha et versjonsnummer før den blir publisert. Ved endringer må
+                versjonsnummer oppdateres før ny publisering.
+              </Paragraph>
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
                   <TextField

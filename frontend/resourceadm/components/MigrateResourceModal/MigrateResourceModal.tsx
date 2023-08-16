@@ -55,6 +55,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
+  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
 
   /**
    * Reset fields on close
@@ -82,7 +83,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
    * @param val the title value typed
    */
   const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen) {
+    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
       setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
@@ -94,12 +95,17 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
    *
    * @param isOpened the value of the button when it is pressed
    */
-  const handleClickEditButton = (isOpened: boolean) => {
+  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
     setEditIdFieldOpen(isOpened);
 
-    // If we stop editing, set the ID to the title
-    if (!isOpened) {
-      if (title !== id) setId(title.replace(/\s/g, '-'));
+    if (isSave) {
+      setBothFieldsHaveSameValue(false);
+    } else {
+      if (!isOpened) {
+        setBothFieldsHaveSameValue(true);
+        // If we stop editing, set the ID to the title
+        if (title !== id) setId(title.replace(/\s/g, '-'));
+      }
     }
   };
 
@@ -147,9 +153,11 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
             id={id}
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}
-            handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+            handleClickEditButton={(isSave: boolean) =>
+              handleClickEditButton(!editIdFieldOpen, isSave)
+            }
             resourceIdExists={false} // TODO
-            bothFieldsHaveSameValue={false} // TODO
+            bothFieldsHaveSameValue={bothFieldsHaveSameValue}
           />
         </>
       );

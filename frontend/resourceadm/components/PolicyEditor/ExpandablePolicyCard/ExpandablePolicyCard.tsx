@@ -330,7 +330,7 @@ export const ExpandablePolicyCard = ({
       policyRule.resources
     );
 
-    setHasSubjectsError(false);
+    setHasRightsErrors(false);
   };
 
   /**
