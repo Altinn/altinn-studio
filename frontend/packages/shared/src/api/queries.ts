@@ -59,7 +59,7 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { User } from 'app-shared/types/User';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { orgsListUrl } from '../cdn-paths';
+import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
@@ -95,6 +95,8 @@ export const getOptionListIds = (owner: string, app: string) => get<string[]>(op
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
 export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl());
+export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
+export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
 // Resourceadm
 export const getPolicy = (org: string, repo: string, id: string) => get<PolicyBackendType>(resourcePolicyPath(org, repo, id));

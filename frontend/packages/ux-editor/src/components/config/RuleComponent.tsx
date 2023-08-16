@@ -176,6 +176,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                           />
                           <div>
                             <SelectDataModelComponent
+                              label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                               selectedElement={this.state.ruleConnection.inputParams[paramName]}
                               hideRestrictions={true}
@@ -206,6 +207,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                   />
                   <div>
                     <SelectDataModelComponent
+                      label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                       onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
                       selectedElement={this.state.ruleConnection.outParams.outParam0}
                       hideRestrictions={true}
@@ -222,7 +224,11 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
               </button>
             ) : null}
             {this.props.connectionId ? (
-              <button type='button' className={classes.dangerButton} onClick={this.handleDeleteConnection}>
+              <button
+                type='button'
+                className={classes.dangerButton}
+                onClick={this.handleDeleteConnection}
+              >
                 {this.props.t('general.delete')}
               </button>
             ) : null}

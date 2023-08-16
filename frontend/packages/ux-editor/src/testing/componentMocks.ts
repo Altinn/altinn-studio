@@ -19,7 +19,7 @@ import {
   FormParagraphComponent,
   FormRadioButtonsComponent,
   FormTextareaComponent,
-  FormThirdPartyComponent
+  FormThirdPartyComponent,
 } from '../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -124,7 +124,7 @@ const attachmentListComponent: FormAttachmentListComponent = {
 };
 const thirdPartyComponent: FormThirdPartyComponent = {
   ...commonProps,
-  type: ComponentType.ThirdParty,
+  type: ComponentType.Custom,
   tagName: 'test',
   framework: 'test',
 };
@@ -163,5 +163,5 @@ export const componentMocks = {
   [ComponentType.Paragraph]: paragraphComponent,
   [ComponentType.RadioButtons]: radiosComponent,
   [ComponentType.TextArea]: textareaComponent,
-  [ComponentType.ThirdParty]: thirdPartyComponent,
+  [ComponentType.Custom]: thirdPartyComponent,
 };

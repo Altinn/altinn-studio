@@ -159,7 +159,10 @@
           "$ref": "#/definitions/pageBreak"
         }
       },
-      "required": ["id", "type"],
+      "required": [
+        "id",
+        "type"
+      ],
       "allOf": [
         {
           "if": {
@@ -517,10 +520,19 @@
           "title": "Header size",
           "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
           "type": "string",
-          "enum": ["L", "M", "S", "h2", "h3", "h4"]
+          "enum": [
+            "L",
+            "M",
+            "S",
+            "h2",
+            "h3",
+            "h4"
+          ]
         }
       },
-      "required": ["size"]
+      "required": [
+        "size"
+      ]
     },
     "panelComponent": {
       "properties": {
@@ -528,7 +540,11 @@
           "title": "Panel variant",
           "description": "Change the look of the panel.",
           "type": "string",
-          "enum": ["info", "warning", "success"],
+          "enum": [
+            "info",
+            "warning",
+            "success"
+          ],
           "default": "info"
         },
         "showIcon": {
@@ -563,7 +579,10 @@
           "title": "Display mode",
           "description": "Sets the display mode for the file upload component.",
           "type": "string",
-          "enum": ["simple", "list"]
+          "enum": [
+            "simple",
+            "list"
+          ]
         },
         "hasCustomFileEndings": {
           "title": "Has custom file endings",
@@ -573,7 +592,15 @@
         "validFileEndings": {
           "title": "Valid file endings",
           "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
-          "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
+          "examples": [
+            ".csv",
+            ".doc",
+            ".docx",
+            ".gif",
+            ".jpeg",
+            ".pdf",
+            ".txt"
+          ],
           "anyOf": [
             {
               "type": "string"
@@ -611,7 +638,9 @@
           "description": "Optionally used to map options"
         }
       },
-      "required": ["optionsId"]
+      "required": [
+        "optionsId"
+      ]
     },
     "datepickerComponent": {
       "properties": {
@@ -637,7 +666,11 @@
           "type": "string",
           "title": "Date format",
           "description": "Long date format used when displaying the date to the user. The user date format from the locale will be prioritized over this setting.",
-          "examples": ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"],
+          "examples": [
+            "DD/MM/YYYY",
+            "MM/DD/YYYY",
+            "YYYY-MM-DD"
+          ],
           "default": "DD.MM.YYYY"
         }
       },
@@ -710,7 +743,9 @@
           "type": "object",
           "title": "Layers",
           "description": "Map layer",
-          "required": ["url"],
+          "required": [
+            "url"
+          ],
           "properties": {
             "url": {
               "type": "string",
@@ -760,7 +795,9 @@
       "type": "integer",
       "maximum": 12,
       "minimum": 1,
-      "examples": [12]
+      "examples": [
+        12
+      ]
     },
     "gridSettings": {
       "allOf": [
@@ -831,7 +868,9 @@
           }
         }
       },
-      "required": ["rows"]
+      "required": [
+        "rows"
+      ]
     },
     "gridRow": {
       "properties": {
@@ -870,7 +909,9 @@
           }
         }
       },
-      "required": ["cells"]
+      "required": [
+        "cells"
+      ]
     },
     "gridCellText": {
       "properties": {
@@ -881,7 +922,9 @@
         }
       },
       "$ref": "#/definitions/tableColumnOptions",
-      "required": ["text"]
+      "required": [
+        "text"
+      ]
     },
     "gridCellComponent": {
       "properties": {
@@ -892,7 +935,9 @@
         }
       },
       "$ref": "#/definitions/tableColumnOptions",
-      "required": ["component"]
+      "required": [
+        "component"
+      ]
     },
     "buttonGroupComponent": {
       "properties": {
@@ -906,7 +951,9 @@
           "uniqueItems": true
         }
       },
-      "required": ["children"]
+      "required": [
+        "children"
+      ]
     },
     "groupComponent": {
       "properties": {
@@ -1002,7 +1049,9 @@
           }
         }
       },
-      "required": ["children"]
+      "required": [
+        "children"
+      ]
     },
     "groupEditOptions": {
       "properties": {
@@ -1010,7 +1059,13 @@
           "title": "Edit mode",
           "description": "Mode for how repeating group table is displayed in edit mode",
           "type": "string",
-          "enum": ["hideTable", "likert", "showAll", "showTable", "onlyTable"]
+          "enum": [
+            "hideTable",
+            "likert",
+            "showAll",
+            "showTable",
+            "onlyTable"
+          ]
         },
         "filter": {
           "title": "Filter",
@@ -1065,7 +1120,10 @@
             },
             {
               "type": "string",
-              "enum": ["first", "last"]
+              "enum": [
+                "first",
+                "last"
+              ]
             }
           ]
         },
@@ -1087,7 +1145,10 @@
           "title": "Icon url",
           "description": "Url of the icon to be shown in panel. Can be relative if hosted by app or full if referencing a cdn or other hosting.",
           "type": "string",
-          "examples": ["fancyIcon.svg", "https://cdn.example.com/fancyIcon.svg"]
+          "examples": [
+            "fancyIcon.svg",
+            "https://cdn.example.com/fancyIcon.svg"
+          ]
         },
         "iconAlt": {
           "title": "Icon alt",
@@ -1103,7 +1164,10 @@
               "type": "string",
               "title": "Group",
               "description": "Group reference. Can be either the group id or the group data model binding.",
-              "examples": ["the-group-id", "some.model.theGroup"]
+              "examples": [
+                "the-group-id",
+                "some.model.theGroup"
+              ]
             }
           }
         }
@@ -1150,7 +1214,11 @@
           "title": "Align Text",
           "description": "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
           "type": "string",
-          "enum": ["left", "center", "right"]
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
         },
         "textOverflow": {
           "title": "Text Overflow",
@@ -1193,7 +1261,10 @@
           "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding."
         }
       },
-      "required": ["label", "value"]
+      "required": [
+        "label",
+        "value"
+      ]
     },
     "triggers": {
       "title": "Triggers",
@@ -1245,34 +1316,50 @@
               "type": "string",
               "title": "Group",
               "description": "The repeating group to base options on.",
-              "examples": ["model.some.group"]
+              "examples": [
+                "model.some.group"
+              ]
             },
             "label": {
               "type": "string",
               "title": "Label",
               "description": "Reference to a text resource to be used as the option label.",
-              "examples": ["some.text.key"]
+              "examples": [
+                "some.text.key"
+              ]
             },
             "value": {
               "type": "string",
               "title": "Label",
               "description": "Field in the group that should be used as value",
-              "examples": ["model.some.group[{0}].someField"]
+              "examples": [
+                "model.some.group[{0}].someField"
+              ]
             },
             "description": {
               "type": "string",
               "title": "Description",
               "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
-              "examples": ["some.text.key", "My Description"]
+              "examples": [
+                "some.text.key",
+                "My Description"
+              ]
             },
             "helpText": {
               "type": "string",
               "title": "Help Text",
               "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
-              "examples": ["some.text.key", "My Help Text"]
+              "examples": [
+                "some.text.key",
+                "My Help Text"
+              ]
             }
           },
-          "required": ["group", "label", "value"]
+          "required": [
+            "group",
+            "label",
+            "value"
+          ]
         },
         "mapping": {
           "$ref": "#/definitions/mapping",
@@ -1292,7 +1379,11 @@
       "properties": {
         "layout": {
           "type": "string",
-          "enum": ["column", "row", "table"],
+          "enum": [
+            "column",
+            "row",
+            "table"
+          ],
           "title": "Layout",
           "description": "Define the layout style for the options"
         }
@@ -1304,7 +1395,11 @@
           "type": "string",
           "title": "Style",
           "description": "The style of the button",
-          "enum": ["primary", "secondary", "link"]
+          "enum": [
+            "primary",
+            "secondary",
+            "link"
+          ]
         },
         "openInNewTab": {
           "type": "boolean",
@@ -1312,7 +1407,9 @@
           "description": "Boolean value indicating if the link should be opened in a new tab. Defaults to false."
         }
       },
-      "required": ["style"]
+      "required": [
+        "style"
+      ]
     },
     "addressComponent": {
       "properties": {
@@ -1335,7 +1432,9 @@
           "description": "Web component tag name to use"
         }
       },
-      "required": ["tagName"]
+      "required": [
+        "tagName"
+      ]
     },
     "actionButtonComponent": {
       "properties": {
@@ -1343,13 +1442,18 @@
           "type": "string",
           "title": "Action",
           "description": "The action to be triggered when the button is clicked.",
-          "examples": ["sign, confirm, reject"]
+          "examples": [
+            "sign, confirm, reject"
+          ]
         },
         "buttonStyle": {
           "type": "string",
           "title": "Button style",
           "description": "The style of the button.",
-          "enum": ["primary", "secondary"]
+          "enum": [
+            "primary",
+            "secondary"
+          ]
         }
       }
     },
@@ -1408,7 +1512,12 @@
           },
           "title": "Data type IDs",
           "description": "List of data type IDs for the attachment list to show.",
-          "examples": [["SomeDataType", "SomeOtherDataType"]]
+          "examples": [
+            [
+              "SomeDataType",
+              "SomeOtherDataType"
+            ]
+          ]
         },
         "includePDF": {
           "type": "boolean",
@@ -1448,7 +1557,9 @@
             "width": {
               "type": "string",
               "title": "Image width",
-              "examples": ["100%"]
+              "examples": [
+                "100%"
+              ]
             },
             "align": {
               "type": "string",
@@ -1463,7 +1574,11 @@
               ]
             }
           },
-          "required": ["src", "width", "align"]
+          "required": [
+            "src",
+            "width",
+            "align"
+          ]
         }
       }
     },
@@ -1481,7 +1596,10 @@
           "type": "string",
           "title": "Input Variant",
           "description": "An enum to choose if the inputfield it is a normal textfield or a searchbar",
-          "enum": ["text", "search"]
+          "enum": [
+            "text",
+            "search"
+          ]
         },
         "autocomplete": {
           "$ref": "#/definitions/autocomplete"
@@ -1735,7 +1853,10 @@
           "type": "string",
           "title": "Position of the currency/unit symbol (only when using currency or unit options)",
           "description": "Display the unit as prefix or suffix. Default is prefix",
-          "enum": ["prefix", "suffix"]
+          "enum": [
+            "prefix",
+            "suffix"
+          ]
         },
         "number": {
           "$ref": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json"
@@ -1744,7 +1865,11 @@
           "type": "string",
           "title": "Align input",
           "description": "The alignment for Input field (eg. right aligning a series of numbers).",
-          "enum": ["left", "center", "right"]
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
         }
       }
     },
@@ -1839,7 +1964,9 @@
           "description": "(Optional) Used to map data model paths to query parameters when fetching list data."
         }
       },
-      "required": ["dataListId"]
+      "required": [
+        "dataListId"
+      ]
     },
     "paginationProperties": {
       "type": "object",
@@ -1858,7 +1985,10 @@
           "description": "The pagination size that is set to default."
         }
       },
-      "required": ["alternatives", "default"]
+      "required": [
+        "alternatives",
+        "default"
+      ]
     },
     "pageBreak": {
       "type": "object",
@@ -1866,14 +1996,22 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": ["auto", "always", "avoid"],
+          "examples": [
+            "auto",
+            "always",
+            "avoid"
+          ],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": ["auto", "always", "avoid"],
+          "examples": [
+            "auto",
+            "always",
+            "avoid"
+          ],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }

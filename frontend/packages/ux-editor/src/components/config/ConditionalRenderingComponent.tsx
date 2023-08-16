@@ -328,6 +328,7 @@ class ConditionalRendering extends React.Component<
 
                           <div>
                             <SelectDataModelComponent
+                              label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                               selectedElement={
                                 this.state.conditionalRendering.inputParams[paramName]

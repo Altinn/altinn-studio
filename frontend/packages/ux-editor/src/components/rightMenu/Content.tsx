@@ -27,10 +27,14 @@ export const Content = () => {
           debounceSave();
         }} />
       ) : (
-        <EditFormComponent editFormId={formId} component={form} handleComponentUpdate={async (updatedComponent) => {
-          handleUpdate(updatedComponent);
-          debounceSave();
-        }} />
+        <EditFormComponent
+          editFormId={formId}
+          component={form}
+          handleComponentUpdate={async (updatedComponent) => {
+            handleUpdate(updatedComponent);
+            debounceSave();
+          }}
+        />
       )
     }
   </>

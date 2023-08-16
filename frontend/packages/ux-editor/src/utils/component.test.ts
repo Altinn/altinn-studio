@@ -4,6 +4,7 @@ import {
   changeComponentOptionLabel,
   changeTextResourceBinding,
   generateFormItem,
+  setComponentProperty,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
@@ -169,4 +170,21 @@ describe('Component utils', () => {
       }));
     });
   });
+
+  describe('setComponentProperty', () => {
+    it('Sets given property on given component', () => {
+      const component: FormComponent = {
+        id: 'test',
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: {},
+      };
+      const propertyKey = 'testProperty';
+      const value = 'testValue';
+      expect(setComponentProperty(component, propertyKey, value)).toEqual({
+        ...component,
+        [propertyKey]: value,
+      });
+    });
+  })
 });
