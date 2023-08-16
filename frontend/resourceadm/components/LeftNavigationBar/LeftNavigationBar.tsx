@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import cn from 'classnames';
 import classes from './LeftNavigationBar.module.css';
 import {
@@ -31,10 +31,6 @@ interface Props {
    * Flag for if the migrate tab should be shown
    */
   showMigrate?: boolean;
-  /**
-   * The page clicked in the menu
-   */
-  newPageClicked: NavigationBarPageType;
 }
 
 /**
@@ -47,14 +43,12 @@ interface Props {
  *        currentPage={currentPage}
  *        navigateToPage={navigateToPage}
  *        goBack={goBack}
- *        newPageClicked={newPageClicked}
  *    />
  *
  * @property {NavigationBarPageType}[currentPage] - The currentPage displayed
  * @property {function}[navigateToPage] - Function that navigates to another page in the navbar
  * @property {function}[goBack] - Function to go back to dashboard
  * @property {boolean}[showMigrate] - Flag for if the migrate tab should be shown
- * @property {NavigationBarPageType}[newPageClicked] - The page clicked in the menu
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -63,8 +57,16 @@ export const LeftNavigationBar = ({
   navigateToPage,
   goBack,
   showMigrate = false,
-  newPageClicked,
 }: Props): React.ReactNode => {
+  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
+
+  const handleClick = (page: NavigationBarPageType) => {
+    if (page !== currentPage) {
+      setNewPageClicked(page);
+      navigateToPage(page);
+    }
+  };
+
   return (
     <div className={classes.navigationBar}>
       <div className={classes.navigationElements}>
@@ -80,11 +82,11 @@ export const LeftNavigationBar = ({
         </button>
         <button
           className={cn(
-            classes.navigationElement,
             currentPage === 'about' && classes.selected,
-            newPageClicked === 'about' && classes.newPage
+            newPageClicked === 'about' ? classes.newPage : classes.navigationElement
           )}
-          onClick={() => navigateToPage('about')}
+          onClick={() => handleClick('about')}
+          onBlur={() => setNewPageClicked(null)}
         >
           <InformationSquareIcon className={classes.icon} title='Om ressursen' fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
@@ -93,11 +95,11 @@ export const LeftNavigationBar = ({
         </button>
         <button
           className={cn(
-            classes.navigationElement,
             currentPage === 'policy' && classes.selected,
-            newPageClicked === 'policy' && classes.newPage
+            newPageClicked === 'policy' ? classes.newPage : classes.navigationElement
           )}
-          onClick={() => navigateToPage('policy')}
+          onClick={() => handleClick('policy')}
+          onBlur={() => setNewPageClicked(null)}
         >
           <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
@@ -106,11 +108,11 @@ export const LeftNavigationBar = ({
         </button>
         <button
           className={cn(
-            classes.navigationElement,
             currentPage === 'deploy' && classes.selected,
-            newPageClicked === 'deploy' && classes.newPage
+            newPageClicked === 'deploy' ? classes.newPage : classes.navigationElement
           )}
-          onClick={() => navigateToPage('deploy')}
+          onClick={() => handleClick('deploy')}
+          onBlur={() => setNewPageClicked(null)}
         >
           <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
@@ -120,11 +122,11 @@ export const LeftNavigationBar = ({
         {showMigrate && (
           <button
             className={cn(
-              classes.navigationElement,
               currentPage === 'migration' && classes.selected,
-              newPageClicked === 'migration' && classes.newPage
+              newPageClicked === 'migration' ? classes.newPage : classes.navigationElement
             )}
-            onClick={() => navigateToPage('migration')}
+            onClick={() => handleClick('migration')}
+            onBlur={() => setNewPageClicked(null)}
           >
             <MigrationIcon className={classes.icon} title='Migrer' fontSize='1.8rem' />
             <Paragraph size='small' short className={classes.buttonText}>

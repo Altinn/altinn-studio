@@ -75,7 +75,7 @@ export const MigrationPage = ({ navigateToPageWithError }: Props): React.ReactNo
     return (
       <>
         <Heading size='large' spacing level={1}>
-          Migrering av Altinn II tjeneste
+          Migrering av Altinn 2 tjeneste
         </Heading>
         <div className={classes.contentWrapper}>
           <div className={classes.introWrapper}>
@@ -149,7 +149,7 @@ export const MigrationPage = ({ navigateToPageWithError }: Props): React.ReactNo
               </Label>
               <Paragraph size='small'>
                 Velg dato og tid der tjenesten skal flytte delegeringene, og fullføre migreringen
-                fra Altinn II til Altinn III. Vi anbefaler at dette gjøres på et tidspunkt der
+                fra Altinn 2 til Altinn 3. Vi anbefaler at dette gjøres på et tidspunkt der
                 tjenesten har lite eller ingen trafikk. For eksempel midt på natten.
               </Paragraph>
               <div className={classes.datePickers}>

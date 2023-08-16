@@ -39,7 +39,6 @@ export const ResourcePage = (): React.ReactNode => {
   );
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
-  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -99,8 +98,9 @@ export const ResourcePage = (): React.ReactNode => {
    * Navigates to the selected page
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
+    console.log('hei');
     if (currentPage !== page) {
-      setNewPageClicked(page);
+      //setNewPageClicked(page);
 
       await refetchResource();
 
@@ -143,7 +143,6 @@ export const ResourcePage = (): React.ReactNode => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPageType) => {
-    setNewPageClicked(null);
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
@@ -193,7 +192,6 @@ export const ResourcePage = (): React.ReactNode => {
           navigateToPage={navigateToPage}
           goBack={goBack}
           showMigrate={getShowMigrate()}
-          newPageClicked={newPageClicked}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
@@ -239,7 +237,6 @@ export const ResourcePage = (): React.ReactNode => {
           isOpen={policyErrorModalOpen}
           onClose={() => {
             setPolicyErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i tilgangsregler'
@@ -250,7 +247,6 @@ export const ResourcePage = (): React.ReactNode => {
           isOpen={resourceErrorModalOpen}
           onClose={() => {
             setResourceErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i ressurs'
