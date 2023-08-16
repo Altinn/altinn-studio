@@ -56,7 +56,7 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
     {
         var schema = JsonSchema.FromText(TotalDigitsSchema(totalDigitsValue));
         var node = JsonNode.Parse(TotalDigitsJson(jsonDataValue));
-        var validationResults = schema.Validate(node, new ValidationOptions { ProcessCustomKeywords = true });
+        var validationResults = schema.Evaluate(node, new EvaluationOptions() { ProcessCustomKeywords = true });
         shouldBeValid.Should().Be(validationResults.IsValid);
     }
 

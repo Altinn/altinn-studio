@@ -5,122 +5,118 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Json.Keywords
+namespace Altinn.Studio.DataModeling.Json.Keywords;
+
+/// <summary>
+/// Adds @xsdAny keyword to schema
+/// </summary>
+[SchemaKeyword(Name)]
+[SchemaSpecVersion(SpecVersion.Draft6)]
+[SchemaSpecVersion(SpecVersion.Draft7)]
+[SchemaSpecVersion(SpecVersion.Draft201909)]
+[SchemaSpecVersion(SpecVersion.Draft202012)]
+[SchemaSpecVersion(SpecVersion.DraftNext)]
+[JsonConverter(typeof(XsdAnyKeywordJsonConverter))]
+public sealed class XsdAnyKeyword : IJsonSchemaKeyword, IEquatable<XsdAnyKeyword>
 {
     /// <summary>
-    /// Adds @xsdAny keyword to schema
+    /// The name of the keyword
     /// </summary>
-    [SchemaKeyword(Name)]
-    [SchemaPriority(int.MinValue)]
-    [SchemaDraft(Draft.Draft6)]
-    [SchemaDraft(Draft.Draft7)]
-    [SchemaDraft(Draft.Draft201909)]
-    [SchemaDraft(Draft.Draft202012)]
-    [JsonConverter(typeof(XsdAnyKeywordJsonConverter))]
-    public sealed class XsdAnyKeyword : IJsonSchemaKeyword, IEquatable<XsdAnyKeyword>
+    internal const string Name = "@xsdAny";
+
+    /// <summary>
+    /// The value
+    /// </summary>
+    public List<string> Value { get; }
+
+    /// <summary>
+    /// Create a new instance of XsdAnyKeyword with the specified value
+    /// </summary>
+    /// <param name="value">info value</param>
+    public XsdAnyKeyword(IEnumerable<string> value)
+    {
+        Value = new List<string>(value);
+    }
+
+    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    {
+        return new KeywordConstraint(Name, (e, c) => { });
+    }
+
+    /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
+    /// <param name="other">An object to compare with this object.</param>
+    /// <returns><see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <see langword="false" />.</returns>
+    public bool Equals(XsdAnyKeyword other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return ReferenceEquals(this, other) || Value.SequenceEqual(other.Value);
+    }
+
+    /// <summary>Determines whether the specified object is equal to the current object.</summary>
+    /// <param name="obj">The object to compare with the current object.</param>
+    /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as XsdAnyKeyword);
+    }
+
+    /// <summary>Serves as the default hash function.</summary>
+    /// <returns>A hash code for the current object.</returns>
+    public override int GetHashCode()
+    {
+        return Value.GetHashCode();
+    }
+
+    /// <summary>
+    /// Serializer for @xsdAny info keyword
+    /// </summary>
+    internal class XsdAnyKeywordJsonConverter : JsonConverter<XsdAnyKeyword>
     {
         /// <summary>
-        /// The name of the keyword
+        /// Read @xsdAny keyword from json schema
         /// </summary>
-        internal const string Name = "@xsdAny";
-
-        /// <summary>
-        /// The value
-        /// </summary>
-        public List<string> Value { get; }
-
-        /// <summary>
-        /// Create a new instance of XsdAnyKeyword with the specified value
-        /// </summary>
-        /// <param name="value">info value</param>
-        public XsdAnyKeyword(IEnumerable<string> value)
+        public override XsdAnyKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            Value = new List<string>(value);
-        }
-
-        /// <summary>
-        /// Always validates as true
-        /// </summary>
-        public void Validate(ValidationContext context)
-        {
-            // No validation for keyword.
-        }
-
-        /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns><see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <see langword="false" />.</returns>
-        public bool Equals(XsdAnyKeyword other)
-        {
-            if (other is null)
+            if (reader.TokenType != JsonTokenType.StartArray)
             {
-                return false;
+                throw new JsonException("Expected array");
             }
 
-            return ReferenceEquals(this, other) || Value.SequenceEqual(other.Value);
-        }
+            List<string> parts = new List<string>();
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (reader.TokenType != JsonTokenType.String)
+                {
+                    throw new JsonException("Expected all elements of array to be string");
+                }
 
-        /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        /// <param name="obj">The object to compare with the current object.</param>
-        /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as XsdAnyKeyword);
-        }
+                parts.Add(reader.GetString());
+            }
 
-        /// <summary>Serves as the default hash function.</summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode();
+            if (reader.TokenType != JsonTokenType.EndArray)
+            {
+                throw new JsonException("Unexpected end of array");
+            }
+
+            return new XsdAnyKeyword(parts);
         }
 
         /// <summary>
-        /// Serializer for @xsdAny info keyword
+        /// Write @xsdAny keyword to json
         /// </summary>
-        internal class XsdAnyKeywordJsonConverter : JsonConverter<XsdAnyKeyword>
+        public override void Write(Utf8JsonWriter writer, XsdAnyKeyword value, JsonSerializerOptions options)
         {
-            /// <summary>
-            /// Read @xsdAny keyword from json schema
-            /// </summary>
-            public override XsdAnyKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            writer.WriteStartArray(Name);
+            foreach (string item in value.Value)
             {
-                if (reader.TokenType != JsonTokenType.StartArray)
-                {
-                    throw new JsonException("Expected array");
-                }
-
-                List<string> parts = new List<string>();
-                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-                {
-                    if (reader.TokenType != JsonTokenType.String)
-                    {
-                        throw new JsonException("Expected all elements of array to be string");
-                    }
-
-                    parts.Add(reader.GetString());
-                }
-
-                if (reader.TokenType != JsonTokenType.EndArray)
-                {
-                    throw new JsonException("Unexpected end of array");
-                }
-
-                return new XsdAnyKeyword(parts);
+                writer.WriteStringValue(item);
             }
 
-            /// <summary>
-            /// Write @xsdAny keyword to json
-            /// </summary>
-            public override void Write(Utf8JsonWriter writer, XsdAnyKeyword value, JsonSerializerOptions options)
-            {
-                writer.WriteStartArray(Name);
-                foreach (string item in value.Value)
-                {
-                    writer.WriteStringValue(item);
-                }
-
-                writer.WriteEndArray();
-            }
+            writer.WriteEndArray();
         }
     }
 }
