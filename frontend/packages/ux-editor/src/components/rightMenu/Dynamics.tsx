@@ -15,15 +15,15 @@ import {
   ExpressionPropertyForGroup,
   Dynamic,
 } from '../../types/Expressions';
-import {convertDynamicToExternalFormat, convertExternalDynamicToInternal} from './DynamicsUtils';
-import {LayoutItemType} from '../../types/global';
+import { convertDynamicToExternalFormat, convertExternalDynamicToInternal } from './DynamicsUtils';
+import { LayoutItemType } from '../../types/global';
 import classes from './RightMenu.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Divider } from 'app-shared/primitives';
-import { FormComponent } from "../../types/FormComponent";
-import {useUpdateFormComponentMutation} from "../../hooks/mutations/useUpdateFormComponentMutation";
-import {selectedLayoutNameSelector, selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
+import { FormComponent } from '../../types/FormComponent';
+import { useUpdateFormComponentMutation } from '../../hooks/mutations/useUpdateFormComponentMutation';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 
 type DynamicsProps = {
   onShowNewDynamics: (value: boolean) => void;
@@ -38,7 +38,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSetName);
   const [dynamics, setDynamics] = React.useState<Dynamic[]>([]);
   const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
-  const [successfullyAddedMark, setSuccessfullyAddedMark] = React.useState<boolean>(false);
+  const [successfullyAddedDynamicId, setSuccessfullyAddedDynamicId] = React.useState<string>('default');
   const t = useText();
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
       // adapt list of actions if component is group
       const propertiesWithDynamics: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined = expressionProperties && Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
       const potentialConvertedExternalDynamics: Dynamic[] = propertiesWithDynamics?.filter(property => typeof form[property] !== 'boolean')?.map(property => convertExternalDynamicToInternal(property, form[property]));
-      const defaultDynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
+      const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
       setDynamics(potentialConvertedExternalDynamics?.length === 0 ? [defaultDynamic] : potentialConvertedExternalDynamics)
     }
   }, [form])
@@ -171,16 +171,16 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
         // TODO: What if dynamic is invalid format? Have some way to validate with app-frontend dev-tools
         form[prevDynamic.property] = convertDynamicToExternalFormat(prevDynamic);
         try {
-        await updateFormComponent({updatedComponent: form as FormComponent, id: formId});
-        setSuccessfullyAddedMark(true);
+        await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
+        setSuccessfullyAddedDynamicId(prevDynamic.id);
         }
         catch (error) {
-          setSuccessfullyAddedMark(false);
+          setSuccessfullyAddedDynamicId('default');
         }
       }
-      return ({...prevDynamic, editMode: false})
+      return ({ ...prevDynamic, editMode: false })
     }));
-    const dynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
+    const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
     setDynamics(dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
 
   };
@@ -199,7 +199,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
     // Set editMode fields for all prev dynamics to false
     if (dynamics.length === 1) {
       // TODO: Isolate object that is set in a function for better testing opportunities
-      const defaultDynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
+      const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
       setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic).concat(defaultDynamic));
     } else {
       setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic));
@@ -208,7 +208,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
     {
       // TODO: What if the property was set to true or false before?
       delete form[dynamic.property];
-      await updateFormComponent({updatedComponent: form as FormComponent, id: formId});
+      await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
     }
   };
 
@@ -217,7 +217,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
       if (dynamic !== prevDynamic) return prevDynamic.property
     }) as string[];
     const availableProperties = expressionProperties.filter(expressionProperty => !Object.values(alreadyUsedProperties).includes(expressionProperty));
-    return {availableProperties, expressionProperties}
+    return { availableProperties, expressionProperties }
   };
 
   console.log('dynamics: ', dynamics)
@@ -231,7 +231,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
             onGetProperties={() => getProperties(dynamic)}
             showRemoveDynamicButton={showRemoveDynamicButton}
             onAddDynamic={() => addDynamic()}
-            onSuccessfullyAddedMark={successfullyAddedMark}
+            successfullyAddedDynamicId={successfullyAddedDynamicId}
             onRemoveDynamic={() => removeDynamic(dynamic)}
             onEditDynamic={() => editDynamic(dynamic)}
           />

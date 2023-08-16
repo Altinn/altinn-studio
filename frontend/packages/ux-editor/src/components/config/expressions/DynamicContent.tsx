@@ -30,7 +30,7 @@ interface ExpressionProps {
   }; // actions?
   showRemoveDynamicButton: boolean;
   onAddDynamic: () => void;
-  onSuccessfullyAddedMark: boolean;
+  successfullyAddedDynamicId: string;
   onRemoveDynamic: (dynamic: Dynamic) => void;
   onEditDynamic: (dynamic: Dynamic) => void;
 }
@@ -41,6 +41,7 @@ export const DynamicContent = ({
     onGetProperties,
     onAddDynamic,
     showRemoveDynamicButton,
+    successfullyAddedDynamicId,
     onRemoveDynamic,
     onEditDynamic,
 }: ExpressionProps) => {
@@ -48,9 +49,9 @@ export const DynamicContent = ({
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements] || []); // default state should be already existing expressions
   const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
   const [operator, setOperator] = React.useState<Operator>(dynamic.operator || undefined);
-  const { t } = useTranslation();
   const dynamicInEditStateRef = useRef(null);
   const dynamicInPreviewStateRef = useRef(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,9 +78,8 @@ export const DynamicContent = ({
     };
   }, [dynamic.editMode, onAddDynamic]);
 
-  const allowToSpecifyExpression = Object.values(
-    onGetProperties(dynamic).expressionProperties
-  ).includes(selectedAction);
+  const successfullyAddedMark = dynamic.id === successfullyAddedDynamicId;
+  const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
   const propertiesList = onGetProperties(dynamic).availableProperties;
 
   const addActionToDynamic = (action: string) => {
@@ -123,7 +123,7 @@ export const DynamicContent = ({
       dynamic.complexExpression = newComplexExpression.length > 0 ? newComplexExpression : '[]';
       setComplexExpression(newComplexExpression);
     }
-  }
+  };
 
   const removeExpressionElement = (expressionElement: ExpressionElement) => {
     if (dynamic.expressionElements.length < 2) {
@@ -149,7 +149,7 @@ export const DynamicContent = ({
     } catch (error) {
       return expression.toString();
     }
-  }
+  };
 
   console.log('dynamic', dynamic); // TODO: Remove when fully tested
   return (
@@ -237,12 +237,12 @@ export const DynamicContent = ({
                     <span>{expEl.comparableValue}</span></p>
                   {index !== expressionElements.length - 1 && (
                     <p className={classes.bold}>{dynamic.operator === Operator.And ? 'Og' : 'Eller'}</p>)}
-                </div> // TODO: Add a green checkmark if successful API call to POST layout
+                </div>
               ))
             )}
-            {onSuccessfullyAddedMark && (
+            {successfullyAddedMark && (
               <div className={classes.checkMark}>
-                <CheckmarkIcon fontSize='1.5rem'/>{'Lagt til'}
+                <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.dynamics_successfully_added_text')}
             </div>
             )}
           </div>

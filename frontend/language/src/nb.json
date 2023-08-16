@@ -626,6 +626,7 @@
   "right_menu.dynamics_property_preview_required": "Sett <bold>{{componentName}}</bold> som påkrevd hvis",
   "right_menu.dynamics_property_read_only": "Sett felt som read only dersom",
   "right_menu.dynamics_property_required": "Sett felt som påkrevd dersom",
+  "right_menu.dynamics_successfully_added_text": "Lagt til",
   "right_menu.rules_calculations": "Regel for beregninger",
   "right_menu.rules_calculations_add_alt": "Legg til regel for beregninger",
   "right_menu.rules_conditional_rendering": "Regel for vis/skjul felt",
