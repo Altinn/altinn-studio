@@ -112,6 +112,7 @@
     "frontend/packages/schema-model",
     "frontend/packages/shared",
     "frontend/packages/text-editor",
-    "frontend/packages/ux-editor"
+    "frontend/packages/ux-editor",
+    "frontend/packages/app-process"
   ]
 }
