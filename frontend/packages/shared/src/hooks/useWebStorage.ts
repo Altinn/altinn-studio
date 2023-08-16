@@ -18,5 +18,5 @@ const useWebStorage = <T>(
   return [value, setStorageValue];
 };
 
-export const useLocalStorage = <T>(key: string, initialValue?: T) =>
-  useWebStorage<T>(typedLocalStorage, key, initialValue);
+export const useLocalStorage = <T, K = string>(key: K, initialValue?: T) =>
+  useWebStorage<T>(typedLocalStorage, key as string, initialValue);
