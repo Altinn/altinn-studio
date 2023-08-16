@@ -91,6 +91,8 @@ export const PolicyEditor = ({
   // To keep track of which rule to delete
   const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
 
+  const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
+
   /**
    * Displays all the rule cards
    */
@@ -110,7 +112,15 @@ export const PolicyEditor = ({
             setVerificationModalOpen(true);
             setRuleIdToDelete(pr.ruleId);
           }}
-          showErrors={showAllErrors ? true : i !== policyRules.length - 1}
+          showErrors={
+            showAllErrors
+              ? true
+              : showErrorsOnAllRulesAboveNew
+              ? policyRules.length - 1 !== i
+                ? true
+                : false
+              : false
+          }
         />
       </div>
     );
@@ -132,6 +142,7 @@ export const PolicyEditor = ({
    * Handles adding of more cards
    */
   const handleAddCardClick = () => {
+    setShowErrorsOnAllRulesAboveNew(true);
     setPolicyRules((prevRules) => [
       ...prevRules,
       ...[
