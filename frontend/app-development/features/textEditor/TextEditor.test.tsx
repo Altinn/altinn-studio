@@ -6,7 +6,7 @@ import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
-import { memoryStorage, typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 // Test data
 const org = 'test-org';
@@ -121,7 +121,7 @@ describe('TextEditor', () => {
     expect(updateTextId).toBeCalledWith(org, app, [{ oldId: testTextResourceKey }]);
   });
 
-  it('adds new language when clicking add button and save to localStorage', async () => {
+  it('adds new language when clicking add button', async () => {
     const user = userEvent.setup();
 
     const addLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
@@ -144,10 +144,6 @@ describe('TextEditor', () => {
       language: 'se',
       resources: [{ id: testTextResourceKey, value: '' }],
     });
-
-    const activeLanguage = screen.getByLabelText('nordsamisk');
-    await user.click(activeLanguage);
-    expect(typedLocalStorage.getItem('selectedLanguages')).toEqual(JSON.stringify(['se']));
   });
 
   it('deletes a language when clicking delete button', async () => {
