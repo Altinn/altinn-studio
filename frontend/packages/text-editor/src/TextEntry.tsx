@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TextTableRowEntry, UpsertTextResourceMutation } from './types';
 import { TextArea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
-import { autosize } from './utils';
+import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;
@@ -10,8 +10,15 @@ export interface TextEntryProps extends TextTableRowEntry {
   className?: string;
 }
 
-export const TextEntry = ({ textId, lang, translation, upsertTextResource, className }: TextEntryProps) => {
+export const TextEntry = ({
+  textId,
+  lang,
+  translation,
+  upsertTextResource,
+  className,
+}: TextEntryProps) => {
   const [textEntryValue, setTextEntryValue] = useState(translation);
+  const textareaRef = useAutoSizeTextArea(textEntryValue);
 
   const variables = [];
 
@@ -28,7 +35,7 @@ export const TextEntry = ({ textId, lang, translation, upsertTextResource, class
         value={textEntryValue}
         onBlur={handleTextEntryBlur}
         onChange={handleTextEntryChange}
-        ref={autosize}
+        ref={textareaRef}
         resize={'vertical'}
       />
       <Variables variables={variables} />
