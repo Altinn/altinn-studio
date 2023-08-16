@@ -151,17 +151,17 @@ export const ExpandablePolicyCard = ({
    * @param index the index of the element in the resource block
    * @param field the type of textfield to update
    * @param value the value types in the textfield
-   * @param resourceIndex the index of the resource block
+   * @param ruleIndex the index of the rule
    */
   const handleInputChange = (
     index: number,
     field: 'id' | 'type',
     value: string,
-    resourceIndex: number
+    ruleIndex: number
   ) => {
     const updatedResources = [...policyRule.resources];
-    updatedResources[resourceIndex][index] = {
-      ...updatedResources[resourceIndex][index],
+    updatedResources[ruleIndex][index] = {
+      ...updatedResources[ruleIndex][index],
       [field]: value,
     };
     updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
@@ -223,9 +223,9 @@ export const ExpandablePolicyCard = ({
   /**
    * Handles the removal of the narrowed resources
    */
-  const handleRemoveNarrowingResource = (index: number, resourceIndex: number) => {
+  const handleRemoveNarrowingResource = (index: number, ruleIndex: number) => {
     const updatedResources = [...policyRule.resources];
-    updatedResources[resourceIndex].splice(index, 1);
+    updatedResources[ruleIndex].splice(index, 1);
     updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 
