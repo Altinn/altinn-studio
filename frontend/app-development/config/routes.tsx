@@ -5,6 +5,7 @@ import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
+import { AppProcess } from 'app-development/features/appProcess/AppProcess';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -80,5 +81,13 @@ export const routes: IRoute[] = [
     exact: true,
     menu: 'texts',
     subapp: TextEditor,
+  },
+  {
+    activeSubHeaderSelection: TopBarMenu.AppProcess,
+    activeLeftMenuSelection: '',
+    path: '/:org/:app/process',
+    exact: true,
+    menu: 'app-process',
+    subapp: AppProcess,
   },
 ];
