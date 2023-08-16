@@ -21,11 +21,12 @@
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
       "@altinn/schema-model": ["./packages/schema-model/src/*"],
       "@altinn/text-editor": ["./packages/schema-model/src/*"],
-      "@altinn/ux-editor": ["./packages/ux-editor/src/*"]
+      "@altinn/ux-editor": ["./packages/ux-editor/src/*"],
+      "@altinn/app-process": ["./packages/app-process/src/*"]
     },
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**","dist"]
+  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist"]
 }
