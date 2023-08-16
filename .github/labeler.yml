@@ -41,3 +41,10 @@ area/test:
 area/text-editor:
   - 'frontend/packages/text-editor/**'
   - 'frontend/app-development/features/textEditor/**/*'
+
+area/resource-registry:
+  - 'frontend/resourceAdm/**/*'
+
+kind/dependencies:
+  - 'backend/packagegroups/NuGet.props'
+  - 'frontend/**/package.json'
