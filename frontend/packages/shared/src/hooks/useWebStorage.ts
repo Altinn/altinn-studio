@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { TypedStorage, typedLocalStorage } from 'app-shared/utils/webStorage';
+
 const useWebStorage = <T>(
   typedStorage: TypedStorage,
   key: string,
