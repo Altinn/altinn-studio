@@ -32,7 +32,7 @@ export interface PolicyRuleBackendType {
   resources: string[][];
 }
 
-export type RequiredAuthLevelType = '1' | '2' | '3' | '4';
+export type RequiredAuthLevelType = '0' | '3' | '4';
 
 export interface PolicyBackendType {
   rules: PolicyRuleBackendType[] | null;

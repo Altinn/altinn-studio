@@ -220,7 +220,7 @@ export const PolicyEditor = ({
           <SelectAuthLevel
             value={requiredAuthLevel}
             setValue={(v) => setRequiredAuthLevel(v)}
-            label='Velg påkrevd sikkerhetsnivå for bruker'
+            label='Velg minimum påkrevd sikkerhetsnivå for bruker'
           />
         </div>
       </div>

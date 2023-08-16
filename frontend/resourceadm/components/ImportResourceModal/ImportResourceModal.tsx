@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './MigrateResourceModal.module.css';
+import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
@@ -38,18 +38,18 @@ interface Props {
 /**
  * @component
  *    Displays the modal where the user can select an environemt and service from
- *    Altinn 2 to migrate to Altinn 3.
+ *    Altinn 2 to import to Altinn 3.
  *    The user must select which environment to import from to be able to select the service.
  *    The user must then selct a service before the title and id will be visible.
  *    When the environment and service is selected, the button to start planning the
- *    migration will be available.
+ *    importing will be available.
  *
  * @property {boolean}[isOpen] - Boolean for if the modal is open
  * @property {function}[onClose] - Function to handle close
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
+export const ImportResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');
@@ -128,7 +128,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
             options={dummyServices.map((s) => ({ value: s.name, label: s.name }))}
             onChange={handleSelectService}
             value={selectedService}
-            label='Velg servicen du vil migrere'
+            label='Velg servicen du vil importere'
           />
         </div>
       );
@@ -166,13 +166,13 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
   };
 
   // TODO when connected with API calls
-  const onPlanMigrate = () => {
-    console.log('Migrating... Coming soon');
+  const handleImportResource = () => {
+    console.log('Importing... Coming soon');
   };
 
   // TODO - translation
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Migrer en ressurs fra Altinn II'>
+    <Modal isOpen={isOpen} onClose={handleClose} title='Importer en ressurs fra Altinn 2'>
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
@@ -188,9 +188,9 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props): React.ReactNod
           Avbryt
         </Button>
         {selectedEnv && selectedService && (
-          <div className={classes.migrateButton}>
-            <Button onClick={onPlanMigrate} color='primary'>
-              Planlegg migrering
+          <div className={classes.importButton}>
+            <Button onClick={handleImportResource} color='primary'>
+              Importer ressurs
             </Button>
           </div>
         )}

@@ -9,7 +9,7 @@ import { ResourceType } from 'resourceadm/types/global';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModal';
+import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 /**
@@ -26,7 +26,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
-  const [migrateModalOpen, setMigrateModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
@@ -97,12 +97,12 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <Button
             variant='quiet'
             color='secondary'
-            icon={<MigrationIcon title='Migrer ressurs' />}
+            icon={<MigrationIcon title='Importer ressurs' />}
             iconPlacement='right'
-            onClick={() => setMigrateModalOpen(true)}
+            onClick={() => setImportModalOpen(true)}
             size='medium'
           >
-            <strong>Migrer ressurs</strong>
+            <strong>Importer ressurs</strong>
           </Button>
           <div className={classes.verticalDivider} />
           <Button
@@ -131,7 +131,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
         isOpen={newResourceModalOpen}
         onClose={() => setNewResourceModalOpen(false)}
       />
-      <MigrateResourceModal isOpen={migrateModalOpen} onClose={() => setMigrateModalOpen(false)} />
+      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
     </div>
   );
 };
