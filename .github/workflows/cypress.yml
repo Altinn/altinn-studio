@@ -11,6 +11,13 @@ on:
 jobs:
   cypress-run:
     runs-on: ubuntu-latest
+    # Runs tests in parallel with matrix strategy https://docs.cypress.io/guides/guides/parallelization
+    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
+    # Also see warning here https://github.com/cypress-io/github-action#parallel
+    strategy:
+      fail-fast: false # https://github.com/cypress-io/github-action/issues/48
+      matrix:
+        containers: [1, 2] # Uses 2 parallel instances
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@v3
@@ -39,9 +46,9 @@ jobs:
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
 
-      - name: Wait for deploy to environment
-        run: sleep 6m
-        shell: bash
+      # - name: Wait for deploy to environment
+      #   run: sleep 6m
+      #   shell: bash
 
       - name: Cypress run
         uses: cypress-io/github-action@v5
@@ -50,6 +57,11 @@ jobs:
           working-directory: frontend/testing/cypress
           env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           spec: src/integration/studio/*.js
+          record: true
+          parallel: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Store artifacts
         uses: actions/upload-artifact@v3
