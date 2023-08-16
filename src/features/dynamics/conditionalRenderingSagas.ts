@@ -66,10 +66,9 @@ export function* removeHiddenValidationsSaga({
 
 export function runExpressionRules(layouts: LayoutPages, future: Set<string>) {
   const shouldIncludeGroups = true;
-  const shouldRespectLegacyHidden = false;
   for (const layout of Object.values(layouts.all())) {
     for (const node of layout.flat(shouldIncludeGroups)) {
-      if (node.isHidden(shouldRespectLegacyHidden)) {
+      if (node.isHidden({ respectLegacy: false })) {
         future.add(node.item.id);
       }
     }

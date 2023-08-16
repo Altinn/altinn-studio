@@ -94,6 +94,10 @@ export class LayoutPages<
     return Object.values(this.objects).flatMap((layout) => layout.flat(true));
   }
 
+  public allPageKeys(): string[] {
+    return Object.keys(this.objects);
+  }
+
   public flat<L extends keyof Collection>(exceptLayout?: L) {
     return [
       ...Object.keys(this.objects)

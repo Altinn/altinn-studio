@@ -78,10 +78,10 @@ describe('SummaryGroupComponent', () => {
             dataModelBinding: 'mockGroup',
           },
         },
-        currentView: 'FormLayout',
+        currentView: 'page1',
         navigationConfig: {},
         tracks: {
-          order: [],
+          order: ['page1'],
           hidden: [],
           hiddenExpr: {},
         },

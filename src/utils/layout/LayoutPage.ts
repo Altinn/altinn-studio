@@ -1,4 +1,5 @@
 import { runValidationOnNodes } from 'src/utils/validation/validation';
+import type { IUiConfig } from 'src/types';
 import type { AnyItem, HComponent } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
@@ -138,5 +139,32 @@ export class LayoutPage implements LayoutObject {
    */
   public runValidations(validationContext: IValidationContext): IValidationObject[] {
     return runValidationOnNodes(this.allChildren, validationContext);
+  }
+
+  public isHiddenViaTracks(uiConfig: IUiConfig): boolean {
+    const myKey = this.top.myKey;
+    if (myKey === uiConfig.currentView) {
+      // If this is the current view, then it's never hidden. This avoids settings fields as hidden when
+      // code caused this to be the current view even if it's not in the common order.
+      return false;
+    }
+
+    if (myKey === uiConfig.receiptLayoutName) {
+      // If this is the custom receipt layout, then it's never hidden.
+      return false;
+    }
+
+    if (myKey === uiConfig.pdfLayoutName) {
+      // If this is the pdf layout, then it's never hidden.
+      return false;
+    }
+
+    const { order } = uiConfig.tracks || {};
+    if (!order) {
+      // If no tracks are provided, then we can't determine if this is hidden or not
+      return false;
+    }
+
+    return !order.includes(myKey);
   }
 }

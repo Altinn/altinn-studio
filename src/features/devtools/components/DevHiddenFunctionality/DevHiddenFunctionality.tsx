@@ -22,7 +22,7 @@ export function DevHiddenFunctionality() {
       if (node) {
         if (ref.style.filter === pseudoHiddenCssFilter && state !== 'disabled') {
           ref.style.filter = '';
-        } else if (state === 'disabled' && node.isHidden(true, false)) {
+        } else if (state === 'disabled' && node.isHidden({ respectDevTools: false })) {
           ref.style.filter = pseudoHiddenCssFilter;
         }
       }
