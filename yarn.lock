@@ -3686,15 +3686,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/jest@npm:0.2.27":
-  version: 0.2.27
-  resolution: "@swc/jest@npm:0.2.27"
+"@swc/jest@npm:0.2.29":
+  version: 0.2.29
+  resolution: "@swc/jest@npm:0.2.29"
   dependencies:
     "@jest/create-cache-key-function": ^27.4.2
     jsonc-parser: ^3.2.0
   peerDependencies:
     "@swc/core": "*"
-  checksum: db258e13f9eb9441d4d924684452939fb49016a4a2eaf7700cbf5eb4f90dff96bb7ce240ed539adbcd41b45fe62bacdc1d3f3d995403af44d54501b41f1ec72f
+  checksum: 9eaad322310f34e81f67d41411a7d60663341af1bd9fb65456faa914c936d849d6f643fa3b942a187d52e71e62c33097098c639d25c2047fa874f49bf51cec76
   languageName: node
   linkType: hard
 
@@ -5127,7 +5127,7 @@ __metadata:
     "@redux-saga/symbols": 1.1.3
     "@svgr/webpack": 8.0.1
     "@swc/core": 1.3.76
-    "@swc/jest": 0.2.27
+    "@swc/jest": 0.2.29
     "@tanstack/react-query": 4.32.6
     "@tanstack/react-query-devtools": 4.32.6
     "@testing-library/dom": 9.3.1
