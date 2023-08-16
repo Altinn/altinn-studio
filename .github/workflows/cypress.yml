@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - chore/cypress-cloud
     paths:
       - 'frontend/**'
       - '.github/workflows/cypress.yml'
@@ -18,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false # https://github.com/cypress-io/github-action/issues/48
       matrix:
-        containers: [1] # Uses 4 parallel instances
+        containers: [1] # No parallelization
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@v3
@@ -47,9 +46,9 @@ jobs:
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
 
-      # - name: Wait for deploy to environment
-      #   run: sleep 6m
-      #   shell: bash
+      - name: Wait for deploy to environment
+        run: sleep 6m
+        shell: bash
 
       - name: Cypress run
         uses: cypress-io/github-action@v5
@@ -59,7 +58,7 @@ jobs:
           env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           spec: src/integration/studio/*.js
           record: true
-          parallel: true
+          parallel: false
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
