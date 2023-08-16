@@ -11,7 +11,13 @@ namespace Designer.Tests.Helpers
 {
     public class PolicyHelperTests : IDisposable
     {
+        /// <summary>
+        /// Used to remove the converted policy after the test is run
+        /// </summary>
         private string _convertedXmlPolicyName;
+        /// <summary>
+        /// Used to remove the converted policy after the test is run
+        /// </summary>
         private string _convertedJsonPolicyName;
 
         [Theory]
@@ -37,6 +43,9 @@ namespace Designer.Tests.Helpers
             AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
         }
 
+        /// <summary>
+        /// Checks if the converted policies are created on the file system and deletes them after the test is run
+        /// </summary>
         public void Dispose()
         {
             string xmlPath = Path.Combine(AuthorizationUtil.GetPolicyPath(), _convertedXmlPolicyName);
