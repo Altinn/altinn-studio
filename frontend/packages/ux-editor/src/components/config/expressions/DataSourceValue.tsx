@@ -58,7 +58,7 @@ export const DataSourceValue = ({
     const duplicatedComponentIds = findDuplicatedIds(componentIds);
     return [...new Set(componentIds)].map(compId => {
       if (Object.values(duplicatedComponentIds).includes(compId)) {
-        // Mark duplicated ids with a star so add developer know that there are multiple components with the same id across layouts
+        // Mark duplicated ids with a star so app developer know that there are multiple components with the same id across layouts
         onSetDuplicatedComponentIdsDiscovered(true); // TODO: Set state while not in render to avoid console error
         return { label: `${compId} *`, value: compId };
       } else {

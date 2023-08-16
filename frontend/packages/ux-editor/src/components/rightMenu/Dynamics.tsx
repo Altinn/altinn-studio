@@ -1,5 +1,11 @@
 import React, { useContext, useEffect } from 'react';
+<<<<<<< HEAD
 import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
+=======
+import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { Alert, Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox } from '@digdir/design-system-react';
+>>>>>>> 3cc7c9af7 (Make sure dynamics are updated when switching component)
 import { DynamicContent } from '../config/expressions/DynamicContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../hooks';
@@ -8,15 +14,16 @@ import {
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
   Dynamic,
-  DataSource,
-  ExpressionElement, ExpressionFunction, Operator
 } from '../../types/Expressions';
-import { LayoutItemType } from '../../types/global';
+import {convertDynamicToExternalFormat, convertExternalDynamicToInternal} from './DynamicsUtils';
+import {LayoutItemType} from '../../types/global';
 import classes from './RightMenu.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Divider } from 'app-shared/primitives';
 import { FormComponent } from "../../types/FormComponent";
+import {useUpdateFormComponentMutation} from "../../hooks/mutations/useUpdateFormComponentMutation";
+import {selectedLayoutNameSelector, selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
 
 type DynamicsProps = {
   onShowNewDynamics: (value: boolean) => void;
@@ -24,29 +31,42 @@ type DynamicsProps = {
 };
 
 export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) => {
-  const { formId, form, handleSave } = useContext(FormContext);
+  const { formId, form } = useContext(FormContext);
+  const { org, app } = useParams();
+  const selectedLayoutName = useSelector(selectedLayoutNameSelector);
+  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
+  const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSetName);
+  const [dynamics, setDynamics] = React.useState<Dynamic[]>([]);
+  const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
+  const [successfullyAddedMark, setSuccessfullyAddedMark] = React.useState<boolean>(false);
   const t = useText();
 
-  // adapt list of actions if component is group
-  const expressionProperties = form && (form.itemType === LayoutItemType.Container ?
-    (Object.values(ExpressionPropertyBase) as string[])
-      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase));
-  const propertiesWithDynamics: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined = expressionProperties && Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
-  const potentialConvertedExternalDynamics: Dynamic[] = propertiesWithDynamics && propertiesWithDynamics.filter(property => typeof form[property] !== 'boolean').map(property => convertExternalDynamicToInternal(property, form[property]));
-  const defaultDynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
-  const [dynamics, setDynamics] = React.useState<Dynamic[]>(potentialConvertedExternalDynamics || [defaultDynamic]);
-  const [showRemoveDynamicButton, setShowRemoveDynamicButton] = React.useState<boolean>(false);
-
   useEffect(() => {
-    if (dynamics && dynamics.length < 2) {
+    if (dynamics?.length < 2) {
       setShowRemoveDynamicButton(false);
     } else {
       setShowRemoveDynamicButton(true);
     }
   }, [dynamics]);
 
+  const expressionProperties = form && (form.itemType === LayoutItemType.Container ?
+    (Object.values(ExpressionPropertyBase) as string[])
+      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase));
+
+  useEffect(() => {
+    if (form) {
+      // adapt list of actions if component is group
+      const propertiesWithDynamics: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined = expressionProperties && Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
+      const potentialConvertedExternalDynamics: Dynamic[] = propertiesWithDynamics?.filter(property => typeof form[property] !== 'boolean')?.map(property => convertExternalDynamicToInternal(property, form[property]));
+      const defaultDynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
+      setDynamics(potentialConvertedExternalDynamics?.length === 0 ? [defaultDynamic] : potentialConvertedExternalDynamics)
+    }
+  }, [form])
+
+
   if (!formId || !form) return t('right_menu.content_empty');
 
+<<<<<<< HEAD
   const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {
     if (dynamic.complexExpression) {
       return dynamic.complexExpression;
@@ -142,49 +162,53 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
     return internalExpEl;
   }
 
+=======
+>>>>>>> 3cc7c9af7 (Make sure dynamics are updated when switching component)
   const addDynamic = async () => {
-    // TODO: Convert dynamics object to correct format and save dynamic to layout with api call
-    const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
+    // TODO: Consider have a state for dynamicIdInEditMode instead of iterating over all every time to adapt the editMode prop
     const nonEditableDynamics: Dynamic[] = await Promise.all([...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || prevDynamic.complexExpression)].map(async prevDynamic => {
-      if (prevDynamic.property && prevDynamic.editMode)
-      {
-        // What if dynamic is invalid format?
+      if (prevDynamic.property && prevDynamic.editMode) {
+        // TODO: What if dynamic is invalid format? Have some way to validate with app-frontend dev-tools
         form[prevDynamic.property] = convertDynamicToExternalFormat(prevDynamic);
-        //handleUpdate(form);
-        await handleSave(formId, form as FormComponent);
+        try {
+        await updateFormComponent({updatedComponent: form as FormComponent, id: formId});
+        setSuccessfullyAddedMark(true);
+        }
+        catch (error) {
+          setSuccessfullyAddedMark(false);
+        }
       }
-      return ({ ...prevDynamic, editMode: false })
+      return ({...prevDynamic, editMode: false})
     }));
+    const dynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
     setDynamics(dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
 
   };
 
   const editDynamic = (dynamic: Dynamic) => {
-    // TODO: Convert dynamic object to correct format and save dynamic to layout with api call
+    // TODO: Consider have a state for dynamicIdInEditMode instead of iterating over all every time to adapt the editMode prop
     // Set editMode fields for all prev dynamics to false
     const updatedDynamics = [...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || prevDynamic.complexExpression)].map(prevDynamic => {
       if (prevDynamic === dynamic) return { ...prevDynamic, editMode: true }
       else return { ...prevDynamic, editMode: false }
     });
-
     setDynamics([...updatedDynamics]);
   };
 
   const removeDynamic = async (dynamic: Dynamic) => {
-    // TODO: Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
     if (dynamics.length === 1) {
       // TODO: Isolate object that is set in a function for better testing opportunities
+      const defaultDynamic: Dynamic = {id: uuidv4(), editMode: true, expressionElements: []};
       setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic).concat(defaultDynamic));
     } else {
       setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic));
     }
     if (dynamic.property)
     {
-      // What if dynamic is invalid format?
+      // TODO: What if the property was set to true or false before?
       delete form[dynamic.property];
-      //handleUpdate(form);
-      await handleSave(formId, form as FormComponent);
+      await updateFormComponent({updatedComponent: form as FormComponent, id: formId});
     }
   };
 
@@ -193,9 +217,10 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
       if (dynamic !== prevDynamic) return prevDynamic.property
     }) as string[];
     const availableProperties = expressionProperties.filter(expressionProperty => !Object.values(alreadyUsedProperties).includes(expressionProperty));
-    return { availableProperties, expressionProperties }
+    return {availableProperties, expressionProperties}
   };
 
+  console.log('dynamics: ', dynamics)
   return (
     <div className={classes.dynamics}>
       {Object.values(dynamics).map((dynamic: Dynamic) => (
@@ -205,7 +230,8 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
             dynamic={dynamic}
             onGetProperties={() => getProperties(dynamic)}
             showRemoveDynamicButton={showRemoveDynamicButton}
-            onAddDynamic={addDynamic}
+            onAddDynamic={() => addDynamic()}
+            onSuccessfullyAddedMark={successfullyAddedMark}
             onRemoveDynamic={() => removeDynamic(dynamic)}
             onEditDynamic={() => editDynamic(dynamic)}
           />

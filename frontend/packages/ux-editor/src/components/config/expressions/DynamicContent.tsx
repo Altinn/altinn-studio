@@ -11,7 +11,7 @@ import { Alert, Button, Select } from '@digdir/design-system-react';
 import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { Dynamic, ExpressionElement, Operator } from '../../../types/Expressions';
 import { Alert, Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
-import { ArrowRightIcon, PencilIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon, CheckmarkIcon, PencilIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { ExpressionContent } from './ExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
@@ -30,6 +30,7 @@ interface ExpressionProps {
   }; // actions?
   showRemoveDynamicButton: boolean;
   onAddDynamic: () => void;
+  onSuccessfullyAddedMark: boolean;
   onRemoveDynamic: (dynamic: Dynamic) => void;
   onEditDynamic: (dynamic: Dynamic) => void;
 }
@@ -163,8 +164,9 @@ export const DynamicContent = ({
               className={classes.removeDynamicButton}
               color='danger'
               icon={<XMarkIcon />}
-              onClick={() => onRemoveDynamic(dynamic)} // delete dynamic - should also set expression element state back to default
+              onClick={() => onRemoveDynamic(dynamic)}
               variant='quiet'
+
               size='small'
             />
           )}
@@ -196,7 +198,7 @@ export const DynamicContent = ({
           ) : (
             expressionElements.map((expEl: ExpressionElement) => (
               <div key={expEl.id}>
-                <ExpressionContent // context?
+                <ExpressionContent // change name to ExpressionContext?
                   expressionAction={allowToSpecifyExpression}
                   expressionElement={expEl}
                   dynamicOperator={operator}
@@ -231,10 +233,18 @@ export const DynamicContent = ({
                 <div key={expEl.id}>
                   <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
-                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '} <span>{expEl.comparableValue}</span></p>
-                  {index !== expressionElements.length - 1 && (<p className={classes.bold}>{dynamic.operator}</p>)}
-                </div> // add a green checkmark if successful API call to POST layout
-              ))}
+                  <p><ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '}
+                    <span>{expEl.comparableValue}</span></p>
+                  {index !== expressionElements.length - 1 && (
+                    <p className={classes.bold}>{dynamic.operator === Operator.And ? 'Og' : 'Eller'}</p>)}
+                </div> // TODO: Add a green checkmark if successful API call to POST layout
+              ))
+            )}
+            {onSuccessfullyAddedMark && (
+              <div className={classes.checkMark}>
+                <CheckmarkIcon fontSize='1.5rem'/>{'Lagt til'}
+            </div>
+            )}
           </div>
           <div>
             <Button
