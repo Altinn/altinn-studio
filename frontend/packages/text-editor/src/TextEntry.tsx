@@ -18,10 +18,7 @@ export const TextEntry = ({
   className,
 }: TextEntryProps) => {
   const [textEntryValue, setTextEntryValue] = useState(translation);
-
-  // Use useState instead of useRef to ensure that the textarea is resized on initial render when ref is set
-  const [textAreaRef, setTextAreaRef] = useState<HTMLTextAreaElement>(null);
-  useAutoSizeTextArea(textAreaRef, textEntryValue);
+  const textareaRef = useAutoSizeTextArea(textEntryValue);
 
   const variables = [];
 
@@ -38,7 +35,7 @@ export const TextEntry = ({
         value={textEntryValue}
         onBlur={handleTextEntryBlur}
         onChange={handleTextEntryChange}
-        ref={(ref) => setTextAreaRef(ref)}
+        ref={textareaRef}
         resize={'vertical'}
       />
       <Variables variables={variables} />

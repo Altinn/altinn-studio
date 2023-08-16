@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useOnWindowSizeChange } from './useOnWindowSizeChange';
 
-export const useAutoSizeTextArea = (
-  textAreaRef: HTMLTextAreaElement | null,
-  value: string
-): void => {
+export const useAutoSizeTextArea = (value: string) => {
+  const [textAreaRef, setTextAreaRef] = useState<HTMLTextAreaElement>(null);
   const { windowSize } = useOnWindowSizeChange();
 
   useEffect(() => {
@@ -16,4 +14,6 @@ export const useAutoSizeTextArea = (
     }
     // Added windowSize to the dependency array to recalculate the height of the textarea when the window size changes
   }, [textAreaRef, value, windowSize]);
+
+  return setTextAreaRef;
 };
