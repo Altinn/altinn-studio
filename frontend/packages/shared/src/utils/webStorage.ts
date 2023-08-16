@@ -1,6 +1,6 @@
 /*
  * Utils for interacting with the browser's storage API with type safety.
- * This abstract the need to manually serialize and deserialize values.
+ * This abstract the needs to manually serialize and deserialize values.
  */
 export type TypedStorage = {
   setItem: <T>(key: string, value: T) => void;
