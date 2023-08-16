@@ -21,21 +21,26 @@ See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
-1. Newest [.NET 6 SDK][2]
-2. [Node.js][3] (version 16.\*)
-3. Newest [Git][4]
+1. [.NET 6 SDK][2] - latest version
+2. [Node.js][3] - version 16.\* recommended
+3. [Git][4] - latest version
 4. A code editor - we like [Visual Studio Code][5]
    - Also install [recommended extensions][6] (f.ex. [C#][7])
-5. [Docker Desktop][8]
-6. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
-   Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
-   container mode all files are automatically shared by Windows.
-7. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" right click and
+5. [Docker Desktop][8] - latest version
+
+> ### On Windows:
+> If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
+> Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
+> container mode all files are automatically shared by Windows.
+
+> World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" right click and
    choose "stop"
 
-_NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
+> ### On MacOS:
+> _NOTE: If you want to use Safari on MacOS add > `127.0.0.1 studio.localhost` to `/private/etc/> hosts`_
 
-### Running the solution locally
+
+### Run locally - setup
 
 Clone the [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
 
@@ -53,7 +58,7 @@ node ./development/setup.js
 
 More about that script and development in general, [can be found here](development/README.md).
 
-#### Docker Compose
+#### Docker container config
 
 The development environment consist of several services defined in [docker-compose.yml](docker-compose.yml).
 
@@ -61,6 +66,8 @@ The development environment consist of several services defined in [docker-compo
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
 - `studio-repos` which is [gitea][20] with some custom config. More [here](gitea/README.md).
 - `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
+
+## Local solution - run
 
 Run all parts of the solution in containers (Make sure docker is running), with docker compose as follows:
 
