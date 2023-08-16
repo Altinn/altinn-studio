@@ -15,6 +15,7 @@ module.exports = {
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
       '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
+      '@altinn/app-process': path.resolve(__dirname, 'packages/app-process/src'),
     },
     fallback: {
       'react/jsx-runtime': 'react/jsx-runtime.js',
