@@ -6,7 +6,6 @@ import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 // Test data
 const org = 'test-org';
