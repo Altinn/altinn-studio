@@ -36,14 +36,14 @@ interface ExpressionProps {
 }
 
 export const DynamicContent = ({
-    component,
-    dynamic,
-    onGetProperties,
-    onAddDynamic,
-    showRemoveDynamicButton,
-    successfullyAddedDynamicId,
-    onRemoveDynamic,
-    onEditDynamic,
+  component,
+  dynamic,
+  onGetProperties,
+  showRemoveDynamicButton,
+  onAddDynamic,
+  successfullyAddedDynamicId,
+  onRemoveDynamic,
+  onEditDynamic,
 }: ExpressionProps) => {
   const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
   const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements] || []); // default state should be already existing expressions
