@@ -556,6 +556,7 @@ export const AboutResourcePage = ({
             ref={rightDescriptionRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
+            isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
           />
           <ScreenReaderSpan
             id='resource-delegationtext'
@@ -585,10 +586,6 @@ export const AboutResourcePage = ({
             className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
           >{`Ressursen ${isPublicService ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
         </div>
-        {/*<div className={classes.buttonWrapper}>
-          {/* TODO - Find out if this button should be here, and if a success message should be shown *
-          <Button onClick={handleSaveResource}>Lagre ressurs</Button>
-        </div>*/}
       </>
     );
   };
