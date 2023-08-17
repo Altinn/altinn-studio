@@ -6,11 +6,9 @@ import {
   expressionInPreviewPropertyTexts,
   ExpressionPropertyBase,
   expressionPropertyTexts,
+  Operator,
 } from '../../../types/Expressions';
 import { Alert, Button, Select } from '@digdir/design-system-react';
-import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
-import { Dynamic, ExpressionElement, Operator } from '../../../types/Expressions';
-import { Alert, Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
 import { ArrowRightIcon, CheckmarkIcon, PencilIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { ExpressionContent } from './ExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
@@ -166,7 +164,6 @@ export const DynamicContent = ({
               icon={<XMarkIcon />}
               onClick={() => onRemoveDynamic(dynamic)}
               variant='quiet'
-
               size='small'
             />
           )}
