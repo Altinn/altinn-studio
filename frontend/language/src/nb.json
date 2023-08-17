@@ -1146,7 +1146,7 @@
   "ux_editor.subdomains_label": "Subdomener (kommaseparert)",
   "ux_editor.subdomains_placeholder": "domene1, domene2, domene3",
   "ux_editor.success": "Vellykket",
-  "ux_editor.text_resource_bindings.add_label": "Legg til tekstressurs",
+  "ux_editor.text_resource_bindings.add_label": "Velg teksttype å legge til",
   "ux_editor.text_resource_bindings.delete_confirm": "Ja, fjern teksten",
   "ux_editor.text_resource_bindings.delete_confirm_question": "Er du sikker på at du vil fjerne denne teksten fra komponenten?",
   "ux_editor.text_resource_bindings.delete_info": "Merk at selve tekstressursen ikke slettes, kun knytningen til denne komponenten.",

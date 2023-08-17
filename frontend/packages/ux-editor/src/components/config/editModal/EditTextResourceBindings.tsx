@@ -4,7 +4,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { Button, Select } from '@digdir/design-system-react';
+import { Select } from '@digdir/design-system-react';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
@@ -25,20 +25,17 @@ export const EditTextResourceBindings = ({
 
   const [keysToAdd, setKeysToAdd] = React.useState<string[]>(textResourceBindingKeys.filter((key) => !keysSet.includes(key)));
 
-  const [selectedKeyToAdd, setSelectedKeyToAdd] = React.useState<string | undefined>(undefined);
-
   useEffect(() => {
     setKeysToAdd(textResourceBindingKeys.filter((key) => !keysSet.includes(key)));
   }, [keysSet, setKeysToAdd, textResourceBindingKeys]);
 
-  const handleAddKey = () => {
-    if (!selectedKeyToAdd) return;
-    setKeysSet([...keysSet, selectedKeyToAdd]);
+  const handleAddKey = (key: string) => {
+    setKeysSet([...keysSet, key]);
     handleComponentChange({
       ...component,
       textResourceBindings: {
         ...component.textResourceBindings,
-        [selectedKeyToAdd]: '',
+        [key]: '',
       },
     });
   };
@@ -68,17 +65,14 @@ export const EditTextResourceBindings = ({
         />
       ))}
       {keysToAdd.length > 0 && <div className={classes.addContainer}>
-        <span style={{ flex: 1 }}>
-          <Select
-            options={keysToAdd.map((key) => ({
-              label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
-              value: key,
-            }))}
-            onChange={(value) => setSelectedKeyToAdd(value)}
-            label={t('ux_editor.text_resource_bindings.add_label')}
-          />
-        </span>
-        <Button size='small' variant='quiet' onClick={handleAddKey}>{t('general.add')}</Button>
+        <Select
+          options={keysToAdd.map((key) => ({
+            label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
+            value: key,
+          }))}
+          onChange={(value) => handleAddKey(value)}
+          label={t('ux_editor.text_resource_bindings.add_label')}
+        />
       </div>}
     </div>
   );

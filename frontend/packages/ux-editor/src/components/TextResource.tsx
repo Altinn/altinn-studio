@@ -25,6 +25,9 @@ import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
 import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
+import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
+import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export interface TextResourceProps {
   description?: string;
@@ -66,9 +69,14 @@ export const TextResource = ({
     textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId)
   );
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
-  const t = useText();
+  const { t } = useTranslation();
+  const { org, app } = useParams();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>(false);
+  const [showBetaComponentEditView] = useLocalStorage(
+    `${org}:${app}:componentConfigBeta`,
+    false,
+  );
 
   const editId = useSelector(getCurrentEditId);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -179,7 +187,7 @@ export const TextResource = ({
               variant={ButtonVariant.Quiet}
               size='small'
             />
-            {handleRemoveTextResource && textResourceId && <AltinnConfirmDialog
+            <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
             onConfirm={handleDeleteButtonClick}
@@ -189,7 +197,7 @@ export const TextResource = ({
               aria-label={t('general.delete')}
               className={classes.button}
               color={ButtonColor.Secondary}
-              disabled={isSearchMode}
+              disabled={!handleRemoveTextResource || !(!!textResourceId || showBetaComponentEditView)}
               icon={<TrashIcon />}
               onClick={() => setIsConfirmDeleteDialogOpen(true)}
               title={t('general.delete')}
@@ -203,7 +211,7 @@ export const TextResource = ({
               <p>{t('ux_editor.text_resource_bindings.delete_info')}</p>
             </div>
 
-          </AltinnConfirmDialog>}
+          </AltinnConfirmDialog>
           </span>
         </span>
       </span>
