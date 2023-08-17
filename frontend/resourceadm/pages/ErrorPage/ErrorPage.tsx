@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './ErrorPage.module.css';
-import { Heading } from '@digdir/design-system-react';
-import { Link } from 'resourceadm/components/Link';
+import { Heading, Link } from '@digdir/design-system-react';
 
 /**
  * @component
@@ -15,7 +14,7 @@ export const ErrorPage = (): React.ReactNode => {
       <Heading size='medium' level={1} spacing>
         Du har nådd en ugyldig adresse
       </Heading>
-      <Link href='/' text='Gå tilbake til dashboard' />
+      <Link href='/'>Gå tilbake til dashboard</Link>
     </div>
   );
 };

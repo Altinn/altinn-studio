@@ -11,9 +11,8 @@ import {
   Paragraph,
   Spinner,
   Label,
+  Link,
 } from '@digdir/design-system-react';
-import { Link } from 'resourceadm/components/Link';
-import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 
 const envOptions = [
@@ -82,13 +81,14 @@ export const MigrationPage = ({ navigateToPageWithError }: Props): React.ReactNo
             <Paragraph size='small'>
               Denne ressursen er basert på en Altinn 2 lenketjeneste. På denne siden får du oversikt
               over status på migrering av denne lenketjenesten fra Altinn 2.{' '}
-              <Link
-                text='Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.'
-                href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
-                icon={<ExternalLinkIcon title='Altinn integrasjon dokumentasjon' />}
-                openInNewWindow
-              />
             </Paragraph>
+            <Link
+              href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
+              rel='noopener noreferrer'
+              target='_blank'
+            >
+              Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.
+            </Link>
           </div>
           <MigrationStep
             title='Steg 1 - Om Ressursen'
