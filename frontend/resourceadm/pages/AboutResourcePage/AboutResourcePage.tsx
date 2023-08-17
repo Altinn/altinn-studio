@@ -4,7 +4,6 @@ import {
   Select,
   TextField,
   TextArea,
-  Button,
   ErrorMessage,
   Heading,
   Paragraph,
@@ -185,6 +184,7 @@ export const AboutResourcePage = ({
     };
 
     onSaveResource(editedResourceObject);
+    console.log('saved from the page');
   };
 
   /**
@@ -318,6 +318,7 @@ export const AboutResourcePage = ({
           showErrors={showAllErrors}
           ref={rightTranslationBarRef}
           onLeaveLastField={handleLeaveLastFieldRightBar}
+          onBlur={handleSaveResource}
         />
       </div>
     );
@@ -391,6 +392,7 @@ export const AboutResourcePage = ({
             hideLabel
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
+            onBlur={handleSaveResource}
           />
           {showAllErrors &&
             hasResourceTypeError &&
@@ -413,6 +415,7 @@ export const AboutResourcePage = ({
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
             ref={titleFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
+            onBlur={handleSaveResource}
           />
           <ScreenReaderSpan
             id='resource-title'
@@ -443,6 +446,7 @@ export const AboutResourcePage = ({
             isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
             ref={descriptionFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
+            onBlur={handleSaveResource}
           />
           <ScreenReaderSpan
             id='resource-description'
@@ -467,6 +471,7 @@ export const AboutResourcePage = ({
             aria-labelledby='resource-homepage'
             onFocus={() => setTranslationType('none')}
             ref={homePageRef}
+            onBlur={handleSaveResource}
           />
           <ScreenReaderSpan
             id='resource-homepage'
@@ -488,6 +493,7 @@ export const AboutResourcePage = ({
             onChange={(e) => setKeywords(e.target.value)}
             aria-labelledby='resource-keywords'
             onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
           />
           <ScreenReaderSpan
             id='resource-keywords'
@@ -512,6 +518,7 @@ export const AboutResourcePage = ({
             label='Sektor - Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere industrier/sektorer.'
             hideLabel
             onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
@@ -530,6 +537,7 @@ export const AboutResourcePage = ({
             label='Tematisk område - Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk område.'
             hideLabel
             onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
@@ -548,6 +556,7 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('rightDescription')}
             ref={rightDescriptionRef}
             onKeyDown={handleTabKeyIntoRightBar}
+            onBlur={handleSaveResource}
           />
           <ScreenReaderSpan
             id='resource-delegationtext'
@@ -571,15 +580,16 @@ export const AboutResourcePage = ({
             onToggle={(b: boolean) => setIsPublicService(b)}
             onFocus={() => setTranslationType('none')}
             ref={isPublicServiceRef}
+            onBlur={handleSaveResource}
           />
           <p
             className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
           >{`Ressursen ${isPublicService ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
         </div>
-        <div className={classes.buttonWrapper}>
-          {/* TODO - Find out if this button should be here, and if a success message should be shown */}
+        {/*<div className={classes.buttonWrapper}>
+          {/* TODO - Find out if this button should be here, and if a success message should be shown *
           <Button onClick={handleSaveResource}>Lagre ressurs</Button>
-        </div>
+        </div>*/}
       </>
     );
   };

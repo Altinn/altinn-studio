@@ -17,6 +17,11 @@ interface Props {
    * @returns void
    */
   onFocus: () => void;
+  /**
+   * Function to be executed on blur
+   * @returns void
+   */
+  onBlur: () => void;
 }
 
 /**
@@ -26,11 +31,12 @@ interface Props {
  * @property {function}[onToggle] - Function to be executed when toggle
  * @property {boolean}[isChecked] - Flag for if the switch is chekced or not
  * @property {function}[onFocus] - Function to be executed on focus
+ * @property {function}[onBlur] - Function to be executed on blur
  *
  * @returns {React.ReactNode} - The rendered component
  */
 export const Switch = forwardRef<HTMLInputElement, Props>(
-  ({ onToggle, isChecked, onFocus }, ref): React.ReactNode => {
+  ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
     const handleToggle = () => {
       const newCheckedState = !isChecked;
       onToggle(newCheckedState);
@@ -46,6 +52,7 @@ export const Switch = forwardRef<HTMLInputElement, Props>(
           onChange={handleToggle}
           aria-label='toggleSwitch'
           onFocus={onFocus}
+          onBlur={onBlur}
           ref={ref}
         />
         <label

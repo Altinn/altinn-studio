@@ -28,8 +28,16 @@ interface Props {
   showErrors: boolean;
   /**
    * Function to be executed when leaving the last field in the translation bar
+   *
+   * @param e the keyboard event
+   * @returns void
    */
   onLeaveLastField: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  /**
+   * Function to be executed on blur
+   * @returns
+   */
+  onBlur: () => void;
 }
 
 /**
@@ -48,12 +56,14 @@ interface Props {
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
  * @property {(value: LanguageStringType) => void}[onChangeValue] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
+ * @property {function}[onLeaveLastField] - Function to be executed when leaving the last field in the translation bar
+ * @property {function}[onBlur] - Function to be executed on blur
  *
  * @returns {React.ReactNode} - The rendered component
  */
 export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputElement, Props>(
   (
-    { title, usesTextArea = false, value, onChangeValue, showErrors, onLeaveLastField },
+    { title, usesTextArea = false, value, onChangeValue, showErrors, onLeaveLastField, onBlur },
     ref
   ): React.ReactNode => {
     const handleChange = (lang: 'nn' | 'en', val: string) => {
@@ -84,6 +94,7 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
             isValid={!(showErrors && value[lang] === '')}
             ref={!isLast ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
             onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
+            onBlur={onBlur}
           />
         );
       }
@@ -95,6 +106,7 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
           isValid={!(showErrors && value[lang] === '')}
           ref={!isLast ? (ref as React.Ref<HTMLInputElement>) : undefined}
           onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
+          onBlur={onBlur}
         />
       );
     };
