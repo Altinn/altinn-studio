@@ -113,6 +113,6 @@
     "frontend/packages/shared",
     "frontend/packages/text-editor",
     "frontend/packages/ux-editor",
-    "frontend/packages/app-process"
+    "frontend/packages/process-editor"
   ]
 }

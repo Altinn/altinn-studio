@@ -1,6 +1,6 @@
 {
-  "name": "@altinn/app-process",
-  "description": "Package to handle Bpmn process for apps",
+  "name": "@altinn/process-editor",
+  "description": "Package for the process editor in Altinn Studio",
   "version": "0.0.1",
   "license": "MIT",
   "main": "index.ts",

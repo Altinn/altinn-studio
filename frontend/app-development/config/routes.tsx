@@ -87,7 +87,7 @@ export const routes: IRoute[] = [
     activeLeftMenuSelection: '',
     path: '/:org/:app/process',
     exact: true,
-    menu: 'app-process',
+    menu: 'process-editor',
     subapp: AppProcess,
   },
 ];

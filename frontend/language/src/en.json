@@ -749,7 +749,7 @@
   "top_menu.preview_is_beta_message": "This functionality is in beta. We are working to improve it.",
   "top_menu.texts": "Texts",
   "top_menu.texts_old": "Texts *",
-  "top_menu.app-process": "Process",
+  "top_menu.process-editor": "Process",
   "ux_editor.add_map_layer": "Add map layer",
   "ux_editor.add_option": "Add option",
   "ux_editor.add_option_description_add": "Add description",

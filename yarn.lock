@@ -51,9 +51,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/app-process@workspace:frontend/packages/app-process":
+"@altinn/figma-design-tokens@npm:6.0.1, @altinn/figma-design-tokens@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "@altinn/figma-design-tokens@npm:6.0.1"
+  checksum: f87abb0d8e2c070987f7d37eddfc40a6f206ef307d7edc108eeb79cb3f734fcae434b28a89111d23d4c2d85d386d4cd0fc001175a70f773d3f3de7b943804afd
+  languageName: node
+  linkType: hard
+
+"@altinn/process-editor@workspace:frontend/packages/process-editor":
   version: 0.0.0-use.local
-  resolution: "@altinn/app-process@workspace:frontend/packages/app-process"
+  resolution: "@altinn/process-editor@workspace:frontend/packages/process-editor"
   dependencies:
     jest: 29.6.2
   peerDependencies:
@@ -62,13 +69,6 @@ __metadata:
     typescript: 5.1.6
   languageName: unknown
   linkType: soft
-
-"@altinn/figma-design-tokens@npm:6.0.1, @altinn/figma-design-tokens@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "@altinn/figma-design-tokens@npm:6.0.1"
-  checksum: f87abb0d8e2c070987f7d37eddfc40a6f206ef307d7edc108eeb79cb3f734fcae434b28a89111d23d4c2d85d386d4cd0fc001175a70f773d3f3de7b943804afd
-  languageName: node
-  linkType: hard
 
 "@altinn/schema-editor@workspace:frontend/packages/schema-editor":
   version: 0.0.0-use.local

@@ -23,7 +23,7 @@ export enum TopBarMenu {
   Preview = 'top_menu.preview',
   Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
-  AppProcess = 'top_menu.app-process',
+  processEditor = 'top_menu.process-editor',
   None = '',
 }
 

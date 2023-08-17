@@ -1,6 +1,6 @@
-import { AppProcess as AppProcessImpl } from '@altinn/app-process';
+import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
 import React from 'react';
 
-export const AppProcess = () => {
-  return <AppProcessImpl />;
+export const ProcessEditor = () => {
+  return <ProcessEditorImpl />;
 };
