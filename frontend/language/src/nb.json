@@ -894,7 +894,7 @@
   "ux_editor.component_properties.componentRef": "ID på komponenten det gjelder (componentRef)",
   "ux_editor.component_properties.config_is_expression_message": "Denne egenskapen er konfigurert som et uttrykk, og kan foreløpig ikke redigeres her.",
   "ux_editor.component_properties.dataTypeIds": "Liste med ID på datatyper som skal vises",
-  "ux_editor.component_properties.dateSent": "Dato instansen ble sendt inn",
+  "ux_editor.component_properties.dateSent": "Datoinstansen ble sendt inn",
   "ux_editor.component_properties.display": "Visning",
   "ux_editor.component_properties.elements": "Elementer som skal vises (når ingen er satt vises alle)",
   "ux_editor.component_properties.formatting": "Formattering (formatting)",
