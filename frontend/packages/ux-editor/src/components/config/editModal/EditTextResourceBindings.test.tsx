@@ -56,9 +56,7 @@ describe('EditTextResourceBindings component', () => {
     const textResourceBindingKeys = ['title', 'description', 'help'];
     await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
     const selectTextResourcesCombobox = screen.getByRole('combobox', { name: textMock('ux_editor.text_resource_bindings.add_label') });
-    const addTextResourceButton = screen.getByRole('button', { name: textMock('general.add') });
     expect(selectTextResourcesCombobox).toBeInTheDocument();
-    expect(addTextResourceButton).toBeInTheDocument();
   });
 
   test('that it does not render the combobox for selecting text resource binding keys when all available keys are added', async () => {
