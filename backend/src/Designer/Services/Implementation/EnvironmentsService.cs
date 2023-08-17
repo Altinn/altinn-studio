@@ -66,7 +66,7 @@ public class EnvironmentsService : IEnvironmentsService
     public async Task<IEnumerable<EnvironmentModel>> GetEnvironmentsForOrganization(string org)
     {
         const string cacheKey = $"{nameof(GetEnvironmentsForOrganization)}_{nameof(org)}";
-        if(_cache.TryGetValue(cacheKey, out List<EnvironmentModel> environments))
+        if (_cache.TryGetValue(cacheKey, out List<EnvironmentModel> environments))
         {
             return environments;
         }
@@ -76,8 +76,8 @@ public class EnvironmentsService : IEnvironmentsService
 
         string content = await response.Content.ReadAsStringAsync();
         var responseJsonContent = JsonNode.Parse(content);
-        var orgEnvironmentNames =  JsonSerializer.Deserialize<List<string>>(responseJsonContent["orgs"][org]["environments"].ToJsonString(), new JsonSerializerOptions
-            { PropertyNameCaseInsensitive = true});
+        var orgEnvironmentNames = JsonSerializer.Deserialize<List<string>>(responseJsonContent["orgs"][org]["environments"].ToJsonString(), new JsonSerializerOptions
+        { PropertyNameCaseInsensitive = true });
 
         var allEnvs = await GetEnvironments();
         var orgEnvModels = allEnvs.Where(env => orgEnvironmentNames.Contains(env.Name)).ToList();
