@@ -178,6 +178,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.Re
       validateResourceData.status === 200 &&
       !policyError &&
       isLocalRepoInSync &&
+      versionData.resourceVersion !== null &&
       envVersion !== versionData.resourceVersion
     ) {
       return true;
@@ -187,6 +188,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.Re
       validateResourceData.status === 200 &&
       !policyError &&
       isLocalRepoInSync &&
+      versionData.resourceVersion !== null &&
       envVersion !== versionData.resourceVersion
     ) {
       return true;
