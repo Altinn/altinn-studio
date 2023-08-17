@@ -93,9 +93,5 @@ export const ResourceDeployStatus = ({
     );
   };
 
-  return (
-    <Alert className={classes.alert} severity={isSuccess ? 'success' : 'danger'}>
-      {displayContent()}
-    </Alert>
-  );
+  return <Alert severity={isSuccess ? 'success' : 'danger'}>{displayContent()}</Alert>;
 };

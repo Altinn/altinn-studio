@@ -120,7 +120,7 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
           </Heading>
         </div>
         <div className={classes.bodyWrapper}>
-          <Alert severity='info' className={classes.alert}>
+          <Alert severity='info'>
             <Paragraph size='small'>
               For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
             </Paragraph>
