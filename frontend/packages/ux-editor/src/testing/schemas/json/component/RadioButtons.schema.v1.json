@@ -36,7 +36,12 @@
       "type": "string",
       "enum": ["column", "row", "table"],
       "title": "Layout",
-      "description": "Define the layout style for the options"
+      "description": "Define the layout style for the options. Default (if nothing is set) is \"row\" for up to 2 options, and \"column\" for 3 or more options."
+    },
+    "showAsCard": {
+      "type": "boolean",
+      "title": "Show as card",
+      "description": "Boolean value indicating if the options should be displayed as cards. Defaults to false."
     },
     "preselectedOptionIndex": {
       "type": "integer",
@@ -102,11 +107,6 @@
         "label",
         "value"
       ]
-    },
-    "showAsCard": {
-      "type": "boolean",
-      "title": "Show as card",
-      "description": "Boolean value indicating if the options should be displayed as cards. Defaults to false."
     },
     "mapping": {
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/mapping",

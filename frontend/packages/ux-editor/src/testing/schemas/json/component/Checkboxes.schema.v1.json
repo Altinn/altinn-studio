@@ -36,7 +36,7 @@
       "type": "string",
       "enum": ["column", "row", "table"],
       "title": "Layout",
-      "description": "Define the layout style for the options"
+      "description": "Define the layout style for the options. Default (if nothing is set) is \"row\" for up to 2 options, and \"column\" for 3 or more options."
     },
     "preselectedOptionIndex": {
       "type": "integer",
