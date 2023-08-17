@@ -32,6 +32,12 @@
     "optionsId": {
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/optionsId"
     },
+    "layout": {
+      "type": "string",
+      "enum": ["column", "row", "table"],
+      "title": "Layout",
+      "description": "Define the layout style for the options"
+    },
     "preselectedOptionIndex": {
       "type": "integer",
       "title": "Preselected option index",
