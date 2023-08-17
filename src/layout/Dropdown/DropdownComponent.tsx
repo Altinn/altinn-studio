@@ -3,9 +3,9 @@ import React from 'react';
 import { Select } from '@digdir/design-system-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { SelectOptionItem } from 'src/components/form/SelectOptionItem';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
+import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useHasChangedIgnoreUndefined } from 'src/hooks/useHasChangedIgnoreUndefined';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -36,7 +36,6 @@ export function DropdownComponent({ node, formData, handleDataChange, isValid, o
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);
 
   const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding, 200);
-  const listHasDescription = (options || staticOptions)?.some((option) => option.description) || false;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
@@ -61,20 +60,7 @@ export function DropdownComponent({ node, formData, handleDataChange, isValid, o
     }
   }, [optionsHasChanged, formData, setValue]);
 
-  const optionsMap = React.useMemo(
-    () =>
-      options?.map((option) => ({
-        label: langAsString(option.label ?? option.value),
-        formattedLabel: (
-          <SelectOptionItem
-            option={option}
-            listHasDescription={listHasDescription}
-          />
-        ),
-        value: option.value,
-      })) || [],
-    [langAsString, options, listHasDescription],
-  );
+  const formattedOptions = useFormattedOptions(options);
 
   return (
     <>
@@ -90,7 +76,7 @@ export function DropdownComponent({ node, formData, handleDataChange, isValid, o
           value={value}
           disabled={readOnly}
           error={!isValid}
-          options={optionsMap}
+          options={formattedOptions}
           aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
         />
       )}

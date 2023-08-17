@@ -83,7 +83,7 @@ export function FileTableComponent({
           >
             <th>{lang('form_filler.file_uploader_list_header_name')}</th>
             {!mobileView ? <th>{lang('form_filler.file_uploader_list_header_file_size')}</th> : null}
-            {hasTag ? <th>{tagTitle}</th> : null}
+            {hasTag ? <th>{lang(tagTitle)}</th> : null}
             {!(hasTag && mobileView) ? <th>{lang('form_filler.file_uploader_list_header_status')}</th> : null}
             <th>
               <p className='sr-only'>{lang('form_filler.file_uploader_list_header_delete_sr')}</p>

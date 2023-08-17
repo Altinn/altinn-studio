@@ -1,10 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { Select } from '@digdir/design-system-react';
-import type { MultiSelectOption } from '@digdir/design-system-react';
 
-import { SelectOptionItem } from 'src/components/form/SelectOptionItem';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
+import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { duplicateOptionFilter } from 'src/utils/options';
@@ -24,27 +23,9 @@ export function MultipleSelectComponent({
   const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding);
   const { langAsString } = useLanguage();
 
-  const listHasDescription = (apiOptions || options)?.some((option) => option.description) || false;
+  const calculatedOptions = (apiOptions || options)?.filter(duplicateOptionFilter);
 
-  const calculatedOptions: MultiSelectOption[] = useMemo(
-    () =>
-      (apiOptions || options)?.filter(duplicateOptionFilter).map((option) => {
-        const label = langAsString(option.label ?? option.value);
-
-        return {
-          label,
-          formattedLabel: (
-            <SelectOptionItem
-              option={option}
-              listHasDescription={listHasDescription}
-            />
-          ),
-          value: option.value,
-          deleteButtonLabel: `${langAsString('general.delete')} ${label}`,
-        };
-      }) || [],
-    [apiOptions, langAsString, options, listHasDescription],
-  );
+  const formattedOptions = useFormattedOptions(calculatedOptions, true);
 
   const handleChange = (values: string[]) => {
     setValue(values.join(','));
@@ -58,7 +39,7 @@ export function MultipleSelectComponent({
     <Select
       label={langAsString('general.choose')}
       hideLabel={true}
-      options={calculatedOptions}
+      options={formattedOptions}
       deleteButtonLabel={langAsString('general.delete')}
       multiple
       inputId={id}
