@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 
+/*
+ * @Deprecated
+ * This hook is deprecated and is replaced by "import { useLocalStorage } app-shared/hooks/useWebStorage"
+ */
 export const useLocalStorage = (key: string) => {
   const [valueInStorage, setValueInStorage] = useState(localStorage.getItem(key));
 
