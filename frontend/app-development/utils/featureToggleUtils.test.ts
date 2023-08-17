@@ -1,18 +1,19 @@
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { shouldDisplayFeature } from './featureToggleUtils';
 
 describe('featureToggle localStorage', () => {
   it('should return true if feature is enabled in the localStorage', () => {
-    window?.localStorage.setItem('featureFlags', 'process');
+    typedLocalStorage.setItem<string[]>('featureFlags', ['process']);
     expect(shouldDisplayFeature('process')).toBe(true);
   });
 
   it('should return true if featureFlag includes in feature params', () => {
-    window?.localStorage.setItem('featureFlags', 'demo,process');
+    typedLocalStorage.setItem<string[]>('featureFlags', ['demo', 'process']);
     expect(shouldDisplayFeature('process')).toBe(true);
   });
 
   it('should return false if feature is not enabled in the localStorage', () => {
-    window?.localStorage.setItem('featureFlags', 'demo');
+    typedLocalStorage.setItem<string[]>('featureFlags', ['demo']);
     expect(shouldDisplayFeature('process')).toBe(false);
   });
 

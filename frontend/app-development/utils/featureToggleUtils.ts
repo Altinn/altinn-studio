@@ -1,3 +1,5 @@
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
+
 const featureFlagKey = 'featureFlags';
 
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
@@ -42,11 +44,6 @@ const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean =>
 
 // Check if feature includes in local storage, feature=[featureName]
 const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): boolean => {
-  // TODO wait for PR #10816 to be merged to use the new TypedLocalStorage and then use it here
-  const featureParam = localStorage.getItem(featureFlagKey);
-  if (featureParam) {
-    const features = featureParam.split(',');
-    return features.includes(featureFlag);
-  }
-  return false;
+  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
+  return featureFlagsFromStorage.includes(featureFlag);
 };
