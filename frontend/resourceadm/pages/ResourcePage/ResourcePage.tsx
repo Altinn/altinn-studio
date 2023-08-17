@@ -98,7 +98,6 @@ export const ResourcePage = (): React.ReactNode => {
    * Navigates to the selected page
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
-    console.log('hei');
     if (currentPage !== page) {
       //setNewPageClicked(page);
 

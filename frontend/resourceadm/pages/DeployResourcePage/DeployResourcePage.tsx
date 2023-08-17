@@ -131,10 +131,10 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.Re
         });
       }
       return errorList;
-    } else if (!isLocalRepoInSync) {
-      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
     } else if (versionData.resourceVersion === null) {
       return 'Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.';
+    } else if (!isLocalRepoInSync) {
+      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
     }
     return [];
   };
