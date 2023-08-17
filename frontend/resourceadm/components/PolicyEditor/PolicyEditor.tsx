@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
 import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
 import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
-import { Button, Label, Alert } from '@digdir/design-system-react';
+import { Label, Alert } from '@digdir/design-system-react';
 import {
   PolicyBackendType,
   PolicyRuleCardType,
@@ -121,6 +121,7 @@ export const PolicyEditor = ({
                 : false
               : false
           }
+          savePolicy={(rules: PolicyRuleCardType[]) => handleSavePolicy(rules)}
         />
       </div>
     );
@@ -143,8 +144,9 @@ export const PolicyEditor = ({
    */
   const handleAddCardClick = () => {
     setShowErrorsOnAllRulesAboveNew(true);
-    setPolicyRules((prevRules) => [
-      ...prevRules,
+
+    const updatedRules: PolicyRuleCardType[] = [
+      ...policyRules,
       ...[
         {
           ...emptyPolicyRule,
@@ -152,7 +154,10 @@ export const PolicyEditor = ({
           resources: [[{ type: resourceType, id: resourceId }]],
         },
       ],
-    ]);
+    ];
+
+    setPolicyRules(updatedRules);
+    handleSavePolicy(updatedRules);
   };
 
   /**
@@ -170,8 +175,9 @@ export const PolicyEditor = ({
     const deepCopiedRuleToDuplicate: PolicyRuleCardType = JSON.parse(
       JSON.stringify(ruleToDuplicate)
     );
-
-    setPolicyRules([...policyRules, deepCopiedRuleToDuplicate]);
+    const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
+    setPolicyRules(updatedRules);
+    handleSavePolicy(updatedRules);
   };
 
   /**
@@ -221,6 +227,7 @@ export const PolicyEditor = ({
             value={requiredAuthLevel}
             setValue={(v) => setRequiredAuthLevel(v)}
             label='Velg minimum påkrevd sikkerhetsnivå for bruker'
+            onBlur={() => handleSavePolicy(policyRules)}
           />
         </div>
       </div>
@@ -231,9 +238,6 @@ export const PolicyEditor = ({
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
       </div>
-      <Button type='button' onClick={() => handleSavePolicy(policyRules)}>
-        Lagre tilgangsregler
-      </Button>
       <VerificationModal
         isOpen={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}

@@ -184,7 +184,6 @@ export const AboutResourcePage = ({
     };
 
     onSaveResource(editedResourceObject);
-    console.log('saved from the page');
   };
 
   /**

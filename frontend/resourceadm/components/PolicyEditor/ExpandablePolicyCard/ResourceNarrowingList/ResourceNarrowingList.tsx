@@ -40,6 +40,11 @@ interface Props {
    * @returns void
    */
   handleDuplicateElement: () => void;
+  /**
+   * Function to be executed on blur
+   * @returns
+   */
+  onBlur: () => void;
 }
 
 /**
@@ -53,6 +58,7 @@ interface Props {
  * @property {function}[handleClickAddResource] - Function that adds a resource to the list
  * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
  * @property {function}[handleDuplicateElement] - Function to be executed when the element is duplicated
+ * @property {function}[onBlur] - Function to be executed on blur
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -63,6 +69,7 @@ export const ResourceNarrowingList = ({
   handleClickAddResource,
   handleRemoveElement,
   handleDuplicateElement,
+  onBlur,
 }: Props): React.ReactNode => {
   /**
    * Displays the list of resources
@@ -77,6 +84,7 @@ export const ResourceNarrowingList = ({
         valueType={r.type}
         onChangeId={(s: string) => handleInputChange(i, 'id', s)}
         onChangeType={(s: string) => handleInputChange(i, 'type', s)}
+        onBlur={onBlur}
       />
     );
   });

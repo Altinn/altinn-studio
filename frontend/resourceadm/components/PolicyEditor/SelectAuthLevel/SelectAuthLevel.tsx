@@ -23,6 +23,11 @@ interface Props {
    * Hidden form label for the input field
    */
   label: string;
+  /**
+   * Function to be executed on blur
+   * @returns
+   */
+  onBlur: () => void;
 }
 
 /**
@@ -32,14 +37,16 @@ interface Props {
  * @property {RequiredAuthLevelType}[value] - The value selected
  * @property {function}[setValue] - Function that sets the value selected
  * @property {string}[label] - Hidden form label for the input field
+ * @property {function}[onBlur] - Function to be executed on blur
  */
-export const SelectAuthLevel = ({ value, setValue, label }: Props) => {
+export const SelectAuthLevel = ({ value, setValue, label, onBlur }: Props) => {
   return (
     <Select
       options={authlevelOptions}
       onChange={(v: RequiredAuthLevelType) => setValue(v)}
       value={value}
       label={label}
+      onBlur={onBlur}
     />
   );
 };

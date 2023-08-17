@@ -34,6 +34,11 @@ interface Props {
    * @returns void
    */
   onChangeType: (s: string) => void;
+  /**
+   * Function to be executed on blur
+   * @returns
+   */
+  onBlur: () => void;
 }
 
 /**
@@ -48,6 +53,7 @@ interface Props {
  * @property {function}[onChangeId] - Function to be executed when the id value changes
  * @property {string}[valueType] - The value of the type field
  * @property {function}[onChangeType] - Function to be executed when the type value changes
+ * @property {function}[onBlur] - Function to be executed on blur
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -58,6 +64,7 @@ export const PolicyResourceFields = ({
   valueType,
   onChangeId,
   onChangeType,
+  onBlur,
 }: Props): React.ReactNode => {
   return (
     <div className={classes.wrapper}>
@@ -70,6 +77,7 @@ export const PolicyResourceFields = ({
             onChange={(e) => onChangeType(e.target.value)}
             readOnly={!isEditable}
             aria-labelledby='resourceType'
+            onBlur={onBlur}
           />
           <ScreenReaderSpan id='resourceType' label='Ressurstype' />
         </div>
@@ -81,6 +89,7 @@ export const PolicyResourceFields = ({
             onChange={(e) => onChangeId(e.target.value)}
             readOnly={!isEditable}
             aria-labelledby='resourceId'
+            onBlur={onBlur}
           />
           <ScreenReaderSpan id='resourceId' label='Ressurs id' />
         </div>

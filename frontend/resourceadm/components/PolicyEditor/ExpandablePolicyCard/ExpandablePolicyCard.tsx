@@ -56,6 +56,11 @@ interface Props {
    * Flag to decide if errors should be shown or not
    */
   showErrors: boolean;
+  /**
+   * Function to save the policy
+   * @returns
+   */
+  savePolicy: (rules: PolicyRuleCardType[]) => void;
 }
 
 /**
@@ -73,6 +78,7 @@ interface Props {
  * @property {function}[handleDuplicateRule] - Function to be executed when clicking duplicate rule
  * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
  * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
+ * @property {function}[onBlur] - Function to save the policy
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -87,6 +93,7 @@ export const ExpandablePolicyCard = ({
   handleDuplicateRule,
   handleDeleteRule,
   showErrors,
+  savePolicy,
 }: Props): React.ReactNode => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
@@ -102,8 +109,15 @@ export const ExpandablePolicyCard = ({
    * @param s the selected subjectTitle array
    * @param a the selected actions array
    * @param r the selected resources array
+   * @param saveOnUpdate flag to decide if the policy should be saved on update
    */
-  const updateRules = (d: string, s: string[], a: string[], r: PolicyRuleResourceType[][]) => {
+  const updateRules = (
+    d: string,
+    s: string[],
+    a: string[],
+    r: PolicyRuleResourceType[][],
+    saveOnUpdate: boolean
+  ) => {
     const updatedRules = [...rules];
     const ruleIndex = rules.findIndex((rule) => rule.ruleId === policyRule.ruleId);
 
@@ -116,6 +130,7 @@ export const ExpandablePolicyCard = ({
     };
 
     setPolicyRules(updatedRules);
+    saveOnUpdate && savePolicy(updatedRules);
   };
 
   /**
@@ -164,7 +179,13 @@ export const ExpandablePolicyCard = ({
       ...updatedResources[ruleIndex][index],
       [field]: value,
     };
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      false
+    );
   };
 
   /**
@@ -179,7 +200,13 @@ export const ExpandablePolicyCard = ({
       },
     ];
     const updatedResources = [...policyRule.resources, newResource];
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true
+    );
 
     setHasResourceError(false);
   };
@@ -202,6 +229,7 @@ export const ExpandablePolicyCard = ({
         handleClickAddResource={() => handleClickAddResourceNarrowing(i)}
         handleDuplicateElement={() => handleDuplicateResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
+        onBlur={() => savePolicy(rules)}
       />
     );
   });
@@ -217,7 +245,13 @@ export const ExpandablePolicyCard = ({
     const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex].push(newResource);
 
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true
+    );
   };
 
   /**
@@ -226,7 +260,13 @@ export const ExpandablePolicyCard = ({
   const handleRemoveNarrowingResource = (index: number, ruleIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources[ruleIndex].splice(index, 1);
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true
+    );
   };
 
   /**
@@ -247,7 +287,13 @@ export const ExpandablePolicyCard = ({
     // Add to options list
     setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
 
-    updateRules(policyRule.description, policyRule.subject, updatedActions, policyRule.resources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      updatedActions,
+      policyRule.resources,
+      true
+    );
 
     setHasRightsErrors(updatedActions.length === 0);
   };
@@ -272,7 +318,13 @@ export const ExpandablePolicyCard = ({
     // Add to options list
     setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
 
-    updateRules(policyRule.description, updatedSubjects, policyRule.actions, policyRule.resources);
+    updateRules(
+      policyRule.description,
+      updatedSubjects,
+      policyRule.actions,
+      policyRule.resources,
+      true
+    );
 
     setHasSubjectsError(updatedSubjects.length === 0);
   };
@@ -299,7 +351,8 @@ export const ExpandablePolicyCard = ({
       policyRule.description,
       updatedSubjectTitles,
       policyRule.actions,
-      policyRule.resources
+      policyRule.resources,
+      true
     );
 
     setHasSubjectsError(false);
@@ -327,7 +380,8 @@ export const ExpandablePolicyCard = ({
       policyRule.description,
       policyRule.subject,
       updatedActionTitles,
-      policyRule.resources
+      policyRule.resources,
+      true
     );
 
     setHasRightsErrors(false);
@@ -337,7 +391,7 @@ export const ExpandablePolicyCard = ({
    * Updates the description of the rule
    */
   const handleChangeDescription = (description: string) => {
-    updateRules(description, policyRule.subject, policyRule.actions, policyRule.resources);
+    updateRules(description, policyRule.subject, policyRule.actions, policyRule.resources, false);
   };
 
   /**
@@ -354,7 +408,13 @@ export const ExpandablePolicyCard = ({
     );
 
     const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true
+    );
   };
 
   /**
@@ -365,7 +425,13 @@ export const ExpandablePolicyCard = ({
   const handleDeleteResourceGroup = (resourceIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources.splice(resourceIndex, 1);
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true
+    );
 
     setHasResourceError(updatedResources.length === 0);
   };
@@ -477,6 +543,7 @@ export const ExpandablePolicyCard = ({
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
             aria-labelledby='ruleDescription'
+            onBlur={() => savePolicy(rules)}
           />
           <ScreenReaderSpan id='ruleDescription' label='Beskrivelse av regelen' />
         </div>
