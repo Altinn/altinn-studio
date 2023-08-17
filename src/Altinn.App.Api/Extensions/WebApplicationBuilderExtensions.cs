@@ -1,4 +1,6 @@
+#nullable enable
 using System.Reflection;
+using Altinn.App.Api.Configuration;
 using Altinn.App.Api.Helpers;
 using Prometheus;
 
@@ -16,20 +18,15 @@ public static class WebApplicationBuilderExtensions
     /// <returns></returns>
     public static IApplicationBuilder UseAltinnAppCommonConfiguration(this IApplicationBuilder app)
     {
+        var appId = StartupHelper.GetApplicationId();
         if (app is WebApplication webApp && webApp.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+            webApp.UseAltinnPrometheus(appId);
         }
         
         app.UseHttpMetrics();
         app.UseMetricServer();
-        var appId = StartupHelper.GetApplicationId();
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
-        Metrics.DefaultRegistry.SetStaticLabels(new Dictionary<string, string>()
-        {
-            { "application_id", appId },
-            { "nuget_package_version", version }
-        });
         app.UseDefaultSecurityHeaders();
         app.UseRouting();
         app.UseStaticFiles('/' + appId);
@@ -42,5 +39,22 @@ public static class WebApplicationBuilderExtensions
         });
         app.UseHealthChecks("/health");
         return app;
+    }
+
+    private static void UseAltinnPrometheus(this WebApplication webApp, string appId)
+    {
+        var metricsSettings = webApp.Configuration.GetSection("MetricsSettings")?.Get<MetricsSettings>() ?? new MetricsSettings();
+        if (!metricsSettings.Enabled)
+        {
+            return;
+        }
+
+        webApp.UseHttpMetrics();
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
+        Metrics.DefaultRegistry.SetStaticLabels(new Dictionary<string, string>()
+        {
+            { "application_id", appId },
+            { "nuget_package_version", version }
+        });
     }
 }

@@ -24,6 +24,7 @@ using Microsoft.Extensions.Options;
 // external api's etc. should be mocked.
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions() { ApplicationName = "Altinn.App.Api.Tests" });
+builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
 
@@ -56,22 +57,7 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
 
 void Configure()
 {
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-
-    app.UseDefaultSecurityHeaders();
-    app.UseRouting();
-    app.UseStaticFiles();
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapControllers();
-    });
-    app.UseHealthChecks("/health");
+    app.UseAltinnAppCommonConfiguration();
 }
 
 // This "hack" (documentet by Microsoft) is done to

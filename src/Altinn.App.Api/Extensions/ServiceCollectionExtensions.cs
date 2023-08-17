@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+using System;
+using Altinn.App.Api.Configuration;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
@@ -18,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 
 namespace Altinn.App.Api.Extensions
 {
@@ -74,6 +77,7 @@ namespace Altinn.App.Api.Extensions
             services.AddHttpClient<AuthorizationApiClient>();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddMetricsServer(config);
         }
 
         private static void AddApplicationInsights(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
@@ -143,6 +147,16 @@ namespace Altinn.App.Api.Extensions
             });
 
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
+        }
+
+        private static void AddMetricsServer(this IServiceCollection services, IConfiguration config)
+        {
+            var metricsSettings = config.GetSection("MetricsSettings").Get<MetricsSettings>() ?? new MetricsSettings();
+            if (metricsSettings.Enabled)
+            {
+                ushort port = metricsSettings.Port;
+                services.AddMetricServer(options => { options.Port = port; });
+            }
         }
     }
 }

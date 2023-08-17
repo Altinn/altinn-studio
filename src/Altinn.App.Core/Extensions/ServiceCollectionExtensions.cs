@@ -1,3 +1,4 @@
+using Altinn.App.Api.Configuration;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -80,7 +81,6 @@ namespace Altinn.App.Core.Extensions
             services.AddHttpClient<IDataClient, DataClient>();
             services.AddHttpClient<IOrganizationClient, RegisterERClient>();
             services.AddHttpClient<IInstanceClient, InstanceClient>();
-            services.Decorate<IInstanceClient, InstanceClientMetricsDecorator>();
             services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
             services.AddHttpClient<IEventsClient, EventsClient>();
             services.AddHttpClient<IPDF, PDFClient>();
@@ -162,6 +162,7 @@ namespace Altinn.App.Core.Extensions
             AddProcessServices(services);
             AddFileAnalyserServices(services);
             AddFileValidatorServices(services);
+            AddMetricsDecorators(services, configuration);
 
             if (!env.IsDevelopment())
             {
@@ -236,7 +237,6 @@ namespace Altinn.App.Core.Extensions
         private static void AddProcessServices(IServiceCollection services)
         {
             services.TryAddTransient<IProcessEngine, ProcessEngine>();
-            services.Decorate<IProcessEngine, ProcessEngineMetricsDecorator>();
             services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
             services.TryAddSingleton<IProcessReader, ProcessReader>();
             services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
@@ -263,6 +263,16 @@ namespace Altinn.App.Core.Extensions
         {
             services.TryAddTransient<IFileValidationService, FileValidationService>();
             services.TryAddTransient<IFileValidatorFactory, FileValidatorFactory>();
+        }
+
+        private static void AddMetricsDecorators(IServiceCollection services, IConfiguration configuration)
+        {
+            MetricsSettings metricsSettings = configuration.GetSection("MetricsSettings")?.Get<MetricsSettings>() ?? new MetricsSettings();
+            if (metricsSettings.Enabled)
+            {
+                services.Decorate<IInstanceClient, InstanceClientMetricsDecorator>();
+                services.Decorate<IProcessEngine, ProcessEngineMetricsDecorator>();
+            }
         }
     }
 }
