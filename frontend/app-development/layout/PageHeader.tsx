@@ -13,10 +13,10 @@ import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 
-interface SubMenuContentProps {
+type SubMenuContentProps = {
   org: string;
   app: string;
-}
+};
 
 export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
   return <GiteaHeader org={org} app={app} hasCloneModal />;
@@ -46,11 +46,11 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
   return actions;
 };
 
-interface PageHeaderProps {
+type PageHeaderProps = {
   showSubMenu: boolean;
   org: string;
   app: string;
-}
+};
 
 export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
   const repoType = getRepositoryType(org, app);
@@ -58,6 +58,7 @@ export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
   const { data: user } = useUserQuery();
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menu = getTopBarMenu(org, app, repoType, t);
+
   return (
     <Routes>
       {routes.map((route) => (
