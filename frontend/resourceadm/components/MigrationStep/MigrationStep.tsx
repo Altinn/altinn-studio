@@ -63,7 +63,7 @@ export const MigrationStep = ({
       return (
         <Paragraph size='small' className={classes.text}>
           {textArr[0] + ' "'}
-          <LinkButton text={textArr[1]} onClick={() => onNavigateToPageWithError(page)} />
+          <LinkButton onClick={() => onNavigateToPageWithError(page)}>{textArr[1]}</LinkButton>
           {'" ' + textArr[2]}
         </Paragraph>
       );

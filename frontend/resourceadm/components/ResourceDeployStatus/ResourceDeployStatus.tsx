@@ -2,8 +2,8 @@ import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
 import { DeployErrorType, NavigationBarPageType } from 'resourceadm/types/global';
-import { LinkButton } from '../LinkButton';
 import { Alert, Paragraph } from '@digdir/design-system-react';
+import { LinkButton } from '../LinkButton';
 
 interface Props {
   /**
@@ -71,10 +71,9 @@ export const ResourceDeployStatus = ({
           <ArrowRightIcon title={e.message} fontSize='1.5rem' />
           <Paragraph size='small' className={classes.text}>
             {textArr[0] + ' "'}
-            <LinkButton
-              text={textArr[1]}
-              onClick={() => onNavigateToPageWithError(e.pageWithError)}
-            />
+            <LinkButton onClick={() => onNavigateToPageWithError(e.pageWithError)}>
+              {textArr[1]}
+            </LinkButton>
             {'"'}
           </Paragraph>
         </div>
