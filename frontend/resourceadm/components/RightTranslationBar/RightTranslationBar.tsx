@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
@@ -30,6 +30,7 @@ interface Props {
    * Flag for if the alert should be shown
    */
   showAlert: boolean;
+  onLeaveLastField: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 /**
@@ -52,62 +53,76 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const RightTranslationBar = ({
-  title,
-  usesTextArea = false,
-  value,
-  onChangeValue,
-  showErrors,
-  showAlert,
-}: Props): React.ReactNode => {
-  const handleChange = (lang: 'nn' | 'en', val: string) => {
-    const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
-    onChangeValue(obj);
-  };
-  const displayNField = (lang: 'nn' | 'en') => {
-    const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
+export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputElement, Props>(
+  (
+    { title, usesTextArea = false, value, onChangeValue, showErrors, showAlert, onLeaveLastField },
+    ref
+  ): React.ReactNode => {
+    const handleChange = (lang: 'nn' | 'en', val: string) => {
+      const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
+      onChangeValue(obj);
+    };
 
-    if (usesTextArea) {
+    const handleTabOutOfTranslationBar = (
+      e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        onLeaveLastField(e);
+      }
+    };
+
+    const displayNField = (lang: 'nn' | 'en') => {
+      const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
+
+      if (usesTextArea) {
+        return (
+          <TextArea
+            value={value[lang]}
+            resize='vertical'
+            onChange={(e) => handleChange(lang, e.currentTarget.value)}
+            rows={5}
+            label={label}
+            isValid={!(showErrors && value[lang] === '')}
+            ref={lang === 'nn' ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
+            onKeyDown={lang === 'en' ? handleTabOutOfTranslationBar : undefined}
+          />
+        );
+      }
       return (
-        <TextArea
+        <TextField
           value={value[lang]}
-          resize='vertical'
-          onChange={(e) => handleChange(lang, e.currentTarget.value)}
-          rows={5}
+          onChange={(e) => handleChange(lang, e.target.value)}
           label={label}
           isValid={!(showErrors && value[lang] === '')}
+          ref={lang === 'nn' ? (ref as React.Ref<HTMLInputElement>) : undefined}
+          onKeyDown={lang === 'en' ? handleTabOutOfTranslationBar : undefined}
         />
       );
-    }
-    return (
-      <TextField
-        value={value[lang]}
-        onChange={(e) => handleChange(lang, e.target.value)}
-        label={label}
-        isValid={!(showErrors && value[lang] === '')}
-      />
-    );
-  };
+    };
 
-  return (
-    <div className={classes.wrapper}>
-      <div className={classes.topWrapper}>
-        <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
-        <Heading size='xsmall' level={2} className={classes.topText}>
-          Oversettelse
-        </Heading>
+    return (
+      <div className={classes.wrapper}>
+        <div className={classes.topWrapper}>
+          <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
+          <Heading size='xsmall' level={2} className={classes.topText}>
+            Oversettelse
+          </Heading>
+        </div>
+        <div className={classes.bodyWrapper}>
+          {showAlert && (
+            <Alert severity='info' className={classes.alert}>
+              <Paragraph size='small'>
+                For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+              </Paragraph>
+            </Alert>
+          )}
+          <div className={classes.inputWrapper}>{displayNField('nn')}</div>
+          <div className={classes.inputWrapper}>{displayNField('en')}</div>
+        </div>
       </div>
-      <div className={classes.bodyWrapper}>
-        {showAlert && (
-          <Alert severity='info' className={classes.alert}>
-            <Paragraph size='small'>
-              For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
-            </Paragraph>
-          </Alert>
-        )}
-        <div className={classes.inputWrapper}>{displayNField('nn')}</div>
-        <div className={classes.inputWrapper}>{displayNField('en')}</div>
-      </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+RightTranslationBar.displayName = 'RightTranslationBar';

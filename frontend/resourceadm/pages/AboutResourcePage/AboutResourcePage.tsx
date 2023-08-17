@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import {
   Select,
@@ -147,6 +147,14 @@ export const AboutResourcePage = ({
       resourceData.description.en === ''
   );
 
+  // useRefs to handle tabbing between the input elements and the right translation bar
+  const rightTranslationBarRef = useRef(null);
+  const titleFieldRef = useRef(null);
+  const descriptionFieldRef = useRef(null);
+  const homePageRef = useRef(null);
+  const rightDescriptionRef = useRef(null);
+  const isPublicServiceRef = useRef(null);
+
   /**
    * Function that saves the resource to backend
    */
@@ -235,6 +243,48 @@ export const AboutResourcePage = ({
   };
 
   /**
+   * Function that handles the tabbing into the right translation bar
+   */
+  const handleTabKeyIntoRightBar = (e: any) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (rightTranslationBarRef.current) {
+        rightTranslationBarRef.current.focus();
+      }
+    }
+  };
+
+  /**
+   * Function that handles the leaving of the right translation bar.
+   * It sets the ref to the next element on the page so that the
+   * navigation feels natural.
+   */
+  const handleLeaveLastFieldRightBar = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (e.key === 'Tab') {
+      if (translationType === 'title') {
+        if (descriptionFieldRef.current) {
+          e.preventDefault();
+          descriptionFieldRef.current.focus();
+        }
+      }
+      if (translationType === 'description') {
+        if (homePageRef.current) {
+          e.preventDefault();
+          homePageRef.current.focus();
+        }
+      }
+      if (translationType === 'rightDescription') {
+        if (isPublicServiceRef.current) {
+          e.preventDefault();
+          isPublicServiceRef.current.focus(null);
+        }
+      }
+    }
+  };
+
+  /**
    * Displays the correct content in the right translation bar.
    */
   const displayRightTranslationBar = () => {
@@ -259,6 +309,8 @@ export const AboutResourcePage = ({
           usesTextArea={translationType === 'description'}
           showErrors={showAllErrors}
           showAlert={translationType !== 'rightDescription'}
+          ref={rightTranslationBarRef}
+          onLeaveLastField={handleLeaveLastFieldRightBar}
         />
       </div>
     );
@@ -353,6 +405,8 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('title')}
             aria-labelledby='resource-title'
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
+            ref={titleFieldRef}
+            onKeyDown={handleTabKeyIntoRightBar}
           />
           <ScreenReaderSpan
             id='resource-title'
@@ -381,6 +435,8 @@ export const AboutResourcePage = ({
             rows={5}
             aria-labelledby='resource-description'
             isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
+            ref={descriptionFieldRef}
+            onKeyDown={handleTabKeyIntoRightBar}
           />
           <ScreenReaderSpan
             id='resource-description'
@@ -404,6 +460,7 @@ export const AboutResourcePage = ({
             onChange={(e) => setHomepage(e.target.value)}
             aria-labelledby='resource-homepage'
             onFocus={() => setTranslationType('none')}
+            ref={homePageRef}
           />
           <ScreenReaderSpan
             id='resource-homepage'
@@ -483,6 +540,8 @@ export const AboutResourcePage = ({
             onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
             aria-labelledby='resource-delegationtext'
             onFocus={() => setTranslationType('rightDescription')}
+            ref={rightDescriptionRef}
+            onKeyDown={handleTabKeyIntoRightBar}
           />
           <ScreenReaderSpan
             id='resource-delegationtext'
@@ -502,6 +561,7 @@ export const AboutResourcePage = ({
             isChecked={isPublicService}
             onToggle={(b: boolean) => setIsPublicService(b)}
             onFocus={() => setTranslationType('none')}
+            ref={isPublicServiceRef}
           />
           <p
             className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}

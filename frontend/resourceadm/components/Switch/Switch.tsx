@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import classes from './Switch.module.css';
 
 interface Props {
@@ -29,28 +29,33 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const Switch = ({ onToggle, isChecked, onFocus }: Props): React.ReactNode => {
-  const handleToggle = () => {
-    const newCheckedState = !isChecked;
-    onToggle(newCheckedState);
-  };
+export const Switch = forwardRef<HTMLInputElement, Props>(
+  ({ onToggle, isChecked, onFocus }, ref): React.ReactNode => {
+    const handleToggle = () => {
+      const newCheckedState = !isChecked;
+      onToggle(newCheckedState);
+    };
 
-  return (
-    <div className={classes.switch}>
-      <input
-        type='checkbox'
-        id='toggleSwitch'
-        className={classes.checkbox}
-        checked={isChecked}
-        onChange={handleToggle}
-        aria-label='toggleSwitch'
-        onFocus={onFocus}
-      />
-      <label
-        aria-label='Toggle av eller på'
-        htmlFor='toggleSwitch'
-        className={classes.slider}
-      ></label>
-    </div>
-  );
-};
+    return (
+      <div className={classes.switch}>
+        <input
+          type='checkbox'
+          id='toggleSwitch'
+          className={classes.checkbox}
+          checked={isChecked}
+          onChange={handleToggle}
+          aria-label='toggleSwitch'
+          onFocus={onFocus}
+          ref={ref}
+        />
+        <label
+          aria-label='Toggle av eller på'
+          htmlFor='toggleSwitch'
+          className={classes.slider}
+        ></label>
+      </div>
+    );
+  }
+);
+
+Switch.displayName = 'Switch';
