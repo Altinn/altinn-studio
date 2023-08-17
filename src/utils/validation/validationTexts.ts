@@ -1,11 +1,10 @@
 import type { ValidLanguageKey } from 'src/hooks/useLanguage';
+import type { ValidationIssueSources } from 'src/utils/validation/backendValidation';
 
 export type IValidationTextMap = {
-  [source: string]:
-    | undefined
-    | {
-        [code: string]: ValidLanguageKey | undefined;
-      };
+  [source in ValidationIssueSources]?: {
+    [code: string]: ValidLanguageKey | undefined;
+  };
 };
 
 /**

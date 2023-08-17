@@ -25,12 +25,21 @@ export const severityMap: { [s in BackendValidationSeverity]: ValidationSeverity
   [BackendValidationSeverity.Unspecified]: 'unspecified',
 };
 
+export enum ValidationIssueSources {
+  File = 'File',
+  ModelState = 'ModelState',
+  Required = 'Required',
+}
+
 /**
  * Some validations performed by the backend are also performed by the frontend.
  * We need to ignore these to prevent duplicate errors.
  */
-function shouldExcludeValidationIssue(issue: IValidationIssue): boolean {
-  // eslint-disable-next-line sonarjs/prefer-single-boolean-return
+export function shouldExcludeValidationIssue(issue: IValidationIssue): boolean {
+  /*
+   * Legacy required validation detection
+   * Remove this condition in v4, assuming that a minimum backend version is required.
+   */
   if (issue.code == 'required' && issue.code != issue.description) {
     // Ignore required validations from backend. They will be duplicated by frontend running the same logic.
     // verify that code != description because user validations always have code == description
@@ -41,6 +50,18 @@ function shouldExcludeValidationIssue(issue: IValidationIssue): boolean {
     // errors with a shared code. (eg, only display one error with code "required" per component)
     return true;
   }
+
+  if (issue.source === ValidationIssueSources.Required) {
+    // Required validations are handled by the frontend.
+    return true;
+  }
+
+  // eslint-disable-next-line sonarjs/prefer-single-boolean-return
+  if (issue.source === ValidationIssueSources.ModelState) {
+    // This is handled by schema validation.
+    return true;
+  }
+
   return false;
 }
 
