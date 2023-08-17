@@ -46,7 +46,7 @@ export const DynamicContent = ({
   onEditDynamic,
 }: ExpressionProps) => {
   const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
-  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements && [...dynamic.expressionElements] || []); // default state should be already existing expressions
+  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements ? [...dynamic.expressionElements] : []); // default state should be already existing expressions
   const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
   const [operator, setOperator] = React.useState<Operator>(dynamic.operator || undefined);
   const dynamicInEditStateRef = useRef(null);
