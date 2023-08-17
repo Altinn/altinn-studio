@@ -8,7 +8,7 @@ const render = () => {
   const queries = {
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test'))
   };
-  return renderWithMockStore({ errors: { errorList: [] } }, queries)(
+  return renderWithMockStore({}, queries)(
     <App />
   );
 };
