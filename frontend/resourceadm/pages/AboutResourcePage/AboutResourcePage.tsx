@@ -308,7 +308,6 @@ export const AboutResourcePage = ({
           onChangeValue={handleChangeTranslationValues}
           usesTextArea={translationType === 'description'}
           showErrors={showAllErrors}
-          showAlert={translationType !== 'rightDescription'}
           ref={rightTranslationBarRef}
           onLeaveLastField={handleLeaveLastFieldRightBar}
         />

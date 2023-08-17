@@ -27,9 +27,8 @@ interface Props {
    */
   showErrors: boolean;
   /**
-   * Flag for if the alert should be shown
+   * Function to be executed when leaving the last field in the translation bar
    */
-  showAlert: boolean;
   onLeaveLastField: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
@@ -49,13 +48,12 @@ interface Props {
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
  * @property {(value: LanguageStringType) => void}[onChangeValue] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
- * @property {boolean}[showAlert] - Flag for if the alert should be shown
  *
  * @returns {React.ReactNode} - The rendered component
  */
 export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputElement, Props>(
   (
-    { title, usesTextArea = false, value, onChangeValue, showErrors, showAlert, onLeaveLastField },
+    { title, usesTextArea = false, value, onChangeValue, showErrors, onLeaveLastField },
     ref
   ): React.ReactNode => {
     const handleChange = (lang: 'nn' | 'en', val: string) => {
@@ -72,7 +70,7 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
       }
     };
 
-    const displayNField = (lang: 'nn' | 'en') => {
+    const displayNField = (lang: 'nn' | 'en', isLast: boolean) => {
       const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
 
       if (usesTextArea) {
@@ -84,8 +82,8 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
             rows={5}
             label={label}
             isValid={!(showErrors && value[lang] === '')}
-            ref={lang === 'nn' ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
-            onKeyDown={lang === 'en' ? handleTabOutOfTranslationBar : undefined}
+            ref={!isLast ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
+            onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
           />
         );
       }
@@ -95,8 +93,8 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
           onChange={(e) => handleChange(lang, e.target.value)}
           label={label}
           isValid={!(showErrors && value[lang] === '')}
-          ref={lang === 'nn' ? (ref as React.Ref<HTMLInputElement>) : undefined}
-          onKeyDown={lang === 'en' ? handleTabOutOfTranslationBar : undefined}
+          ref={!isLast ? (ref as React.Ref<HTMLInputElement>) : undefined}
+          onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
         />
       );
     };
@@ -110,15 +108,13 @@ export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputEle
           </Heading>
         </div>
         <div className={classes.bodyWrapper}>
-          {showAlert && (
-            <Alert severity='info' className={classes.alert}>
-              <Paragraph size='small'>
-                For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
-              </Paragraph>
-            </Alert>
-          )}
-          <div className={classes.inputWrapper}>{displayNField('nn')}</div>
-          <div className={classes.inputWrapper}>{displayNField('en')}</div>
+          <Alert severity='info' className={classes.alert}>
+            <Paragraph size='small'>
+              For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+            </Paragraph>
+          </Alert>
+          <div className={classes.inputWrapper}>{displayNField('nn', false)}</div>
+          <div className={classes.inputWrapper}>{displayNField('en', true)}</div>
         </div>
       </div>
     );
