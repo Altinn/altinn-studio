@@ -97,7 +97,7 @@ public static class MetamodelRestrictionUtils
     /// </summary>
     private static void AddStringRestrictions(JsonSchema subSchema, IDictionary<string, Restriction> restrictions)
     {
-        var enumKeyword = subSchema.GetKeyword<EnumKeyword>();
+        var enumKeyword = subSchema.GetKeywordOrNull<EnumKeyword>();
         if (enumKeyword != null)
         {
             AddEnumRestrictions(enumKeyword, restrictions);
@@ -118,7 +118,7 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedStringRestrictions(IJsonSchemaKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedStringRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
     {
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
@@ -170,7 +170,7 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedNumberRestrictions(IJsonSchemaKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedNumberRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
     {
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
@@ -181,10 +181,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static bool TryGetKeywordFromSubSchemas(this IJsonSchemaKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordFromSubSchemas(this AllOfKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
     {
         keyword = default;
-        return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword(type))
+        return allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword(type))
             ?.TryGetKeywordByType(type, out keyword) ?? false;
     }
 

@@ -11,7 +11,7 @@ import { fieldNode1Mock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaM
 const user = userEvent.setup();
 
 // Test data:
-const defaultProps: ItemRestrictionsProps = { ...fieldNode1Mock };
+const defaultProps: ItemRestrictionsProps = { schemaNode: fieldNode1Mock };
 const org = 'org';
 const app = 'app';
 const modelPath = 'test';

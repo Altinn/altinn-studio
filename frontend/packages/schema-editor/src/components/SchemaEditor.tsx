@@ -7,14 +7,6 @@ import {
   setUiSchema,
 } from '../features/editor/schemaEditorSlice';
 import { useTranslation } from 'react-i18next';
-import {
-  getRootChildren,
-  getRootNodes,
-  selectedDefinitionNodeIdSelector,
-  selectedIdSelector,
-  selectedPropertyNodeIdSelector,
-} from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { useParentSchemaSelector, useSchemaSelector } from '@altinn/schema-editor/hooks/useSchemaSelector';
 import { TypesInspector } from '@altinn/schema-editor/components/TypesInspector';
 import classNames from 'classnames';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
@@ -29,6 +21,13 @@ import {
   isEmpty,
   pointerIsDefinition,
 } from '@altinn/schema-model';
+import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
+import {
+  selectedDefinitionParentSelector,
+  selectedItemSelector,
+  selectedPropertyParentSelector
+} from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
+import { rootChildrenSelector, rootNodesSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
 
 export enum SchemaEditorTestIds {
   menuAddReference = 'action-menu-add-reference',
@@ -61,8 +60,8 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
 
-  const rootNodeMap = getRootNodes(data);
-  const rootChildren = getRootChildren(data);
+  const rootNodeMap = rootNodesSelector(data);
+  const rootChildren = rootChildrenSelector(data);
   const properties: UiSchemaNodes = [];
   const definitions: UiSchemaNodes = [];
   rootChildren?.forEach(
@@ -71,13 +70,13 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useParentSchemaSelector(selectedPropertyNodeIdSelector);
-  const selectedItem = useSchemaSelector(selectedIdSelector);
+  const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
+  const selectedItem = useSchemaAndReduxSelector(selectedItemSelector);
 
   useEffect(() => {
     if (selectedType) {
       const isExistingNode = !!rootNodeMap.get(selectedType.pointer);
-      if (!isExistingNode) setSelectedType(null);
+      setSelectedType(isExistingNode ? rootNodeMap.get(selectedType.pointer) : null);
     }
   }, [rootNodeMap, selectedType]);
 
@@ -93,7 +92,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useParentSchemaSelector(selectedDefinitionNodeIdSelector);
+  const selectedDefinitionParent = useSchemaAndReduxSelector(selectedDefinitionParentSelector);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);

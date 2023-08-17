@@ -92,23 +92,3 @@ export const validateTextId = (textIdToValidate: string): string => {
 
   return '';
 };
-
-export const autosize = (element) => {
-  if (!element || !element.nodeName || element.nodeName !== 'TEXTAREA') return;
-
-  const computed = window.getComputedStyle(element);
-
-  let newHeight;
-
-  if (computed.boxSizing === 'content-box') {
-    newHeight = element.scrollHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom));
-  } else {
-    newHeight = element.scrollHeight + parseFloat(computed.borderTopWidth) + parseFloat(computed.borderBottomWidth);
-  }
-
-  if (computed.maxHeight !== 'none' && newHeight > parseFloat(computed.maxHeight)) {
-    newHeight = parseFloat(computed.maxHeight);
-  }
-
-  element.style.height = newHeight + 'px';
-}

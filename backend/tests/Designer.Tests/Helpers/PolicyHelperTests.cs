@@ -1,4 +1,6 @@
-﻿using Altinn.AccessManagement.Tests.Utils;
+﻿using System;
+using System.IO;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.PolicyAdmin;
 using Altinn.Studio.PolicyAdmin.Models;
@@ -7,104 +9,56 @@ using Xunit;
 
 namespace Designer.Tests.Helpers
 {
-    public class PolicyHelperTests
+    public class PolicyHelperTests : IDisposable
     {
+        /// <summary>
+        /// Used to remove the converted policy after the test is run
+        /// </summary>
+        private string _convertedXmlPolicyName;
+        /// <summary>
+        /// Used to remove the converted policy after the test is run
+        /// </summary>
+        private string _convertedJsonPolicyName;
 
-        [Fact]
-        public void TestXacmlToJson_brg_rrh_innrapportering()
+        [Theory]
+        [InlineData("brg_rrh-innrapportering.xml", "brg_rrh-innrapportering_converted.xml", "brg_rrh-innrapportering_converted.json")]
+        [InlineData("ssb_ra1000-01.xml", "ssb_ra1000-01_converted.xml", "ssb_ra1000-01_converted.json")]
+        [InlineData("krt_krt-1012a-1.xml", "krt_krt-1012a-1_converted.xml", "krt_krt-1012a-1_converted.json")]
+        [InlineData("hmrhf_newsamhandlingsavik.xml", "hmrhf_newsamhandlingsavik_converted.xml", "hmrhf_newsamhandlingsavik_converted.json")]
+        [InlineData("dsb_uhell_med_eksplosiver.xml", "dsb_uhell_med_eksplosiver_converted.xml", "dsb_uhell_med_eksplosiver_converted.json")]
+        [InlineData("skd_sirius_skattemelding_sit_tk.xml", "skd_sirius_skattemelding_sit_tk_converted.xml", "skd_sirius_skattemelding_sit_tk_converted.json")]
+        [InlineData("skd_mva-melding-innsending-v1.xml", "skd_mva-melding-innsending-v1_converted.xml", "skd_mva-melding-innsending-v1.json")]
+        [InlineData("resource_registry_delegatableapi.xml", "resource_registry_delegatableapi_converted.xml", "resource_registry_delegatableapi.json")]
+        public void TestXacmlToJson(string xmlPolicy, string convertedXamlPolicyName, string convertedJsonPolicyName)
         {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("brg_rrh-innrapportering.xml");
+            _convertedJsonPolicyName = convertedJsonPolicyName;
+            _convertedXmlPolicyName = convertedXamlPolicyName;
+
+            XacmlPolicy policy = AuthorizationUtil.ParsePolicy(xmlPolicy);
             ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
             Assert.NotNull(convertedPolicy);
             XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("brg_rrh-innrapportering.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("brg_rrh-innrapportering_converted.xml", convertedBackPolicy);
+            AuthorizationUtil.WriteJsonPolicy(convertedJsonPolicyName, convertedPolicy);
+            AuthorizationUtil.WritePolicy(convertedXamlPolicyName, convertedBackPolicy);
             AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
         }
 
-        [Fact]
-        public void TestXacmlToJson_ssb_ra1000_01()
+        /// <summary>
+        /// Checks if the converted policies are created on the file system and deletes them after the test is run
+        /// </summary>
+        public void Dispose()
         {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("ssb_ra1000-01.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("ssb_ra1000-01.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("ssb_ra1000-01_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
-        }
+            string xmlPath = Path.Combine(AuthorizationUtil.GetPolicyPath(), _convertedXmlPolicyName);
+            string jsonPath = Path.Combine(AuthorizationUtil.GetPolicyPath(), _convertedJsonPolicyName);
+            if (File.Exists(xmlPath))
+            {
+                File.Delete(xmlPath);
+            }
 
-        [Fact]
-        public void TestXacmlToJson_krt_krt_1012a_1()
-        {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("krt_krt-1012a-1.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("krt_krt-1012a-1.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("krt_krt-1012a-1_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
-        }
-
-        [Fact]
-        public void TestXacmlToJson_hmrhf_newsamhandlingsavik()
-        {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("hmrhf_newsamhandlingsavik.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("hmrhf_newsamhandlingsavik.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("hmrhf_newsamhandlingsavik_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
-        }
-
-        [Fact]
-        public void TestXacmlToJson_dsb_uhell_med_eksplosiver()
-        {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("dsb_uhell_med_eksplosiver.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("dsb_uhell_med_eksplosiver.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("dsb_uhell_med_eksplosiver_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
-        }
-
-
-        [Fact]
-        public void TestXacmlToJson_skd_sirius_skattemelding_sit_tk()
-        {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("skd_sirius_skattemelding_sit_tk.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("skd_sirius_skattemelding_sit_tk.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("skd_sirius_skattemelding_sit_tk_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
-        }
-
-        [Fact]
-        public void TestXacmlToJson_skd_mva_melding_innsending_v1()
-        {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("skd_mva-melding-innsending-v1.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("skd_mva-melding-innsending-v1.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("skd_mva-melding-innsending-v1_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
-        }
-
-        [Fact]
-        public void TestXacmlToJson_resource_registry_delegatableapi()
-        {
-            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("resource_registry_delegatableapi.xml");
-            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
-            Assert.NotNull(convertedPolicy);
-            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            AuthorizationUtil.WriteJsonPolicy("resource_registry_delegatableapi.json", convertedPolicy);
-            AuthorizationUtil.WritePolicy("resource_registry_delegatableapi_converted.xml", convertedBackPolicy);
-            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
+            if (File.Exists(jsonPath))
+            {
+                File.Delete(jsonPath);
+            }
         }
 
     }

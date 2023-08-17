@@ -16,7 +16,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;

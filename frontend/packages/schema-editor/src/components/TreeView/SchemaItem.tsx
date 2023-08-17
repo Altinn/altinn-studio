@@ -18,7 +18,8 @@ import { DndItem } from './DnDWrapper';
 import type { DragItem } from './dnd-helpers';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { getRefNodeSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
+import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
 
 export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
