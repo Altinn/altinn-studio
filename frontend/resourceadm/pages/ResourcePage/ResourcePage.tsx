@@ -99,8 +99,6 @@ export const ResourcePage = (): React.ReactNode => {
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
     if (currentPage !== page) {
-      //setNewPageClicked(page);
-
       await refetchResource();
 
       // Validate Resource and display errors + modal
