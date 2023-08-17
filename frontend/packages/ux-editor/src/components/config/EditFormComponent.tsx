@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
@@ -14,6 +14,8 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useSelector } from 'react-redux';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
+import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
+import { useParams } from 'react-router-dom';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -28,7 +30,13 @@ export const EditFormComponent = ({
 }: IEditFormComponentProps) => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const { t } = useTranslation();
-  const [showBetaFunc, setShowBetaFunc] = useState(false);
+  const { org, app } = useParams();
+  const showBetaViewStorageKey = `${org}:${app}:componentConfigBeta`
+  const [showBetaView, setShowBetaView] = useLocalStorage<boolean>(
+    showBetaViewStorageKey,
+    false,
+  );
+
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
 
@@ -51,21 +59,21 @@ export const EditFormComponent = ({
   };
 
   const toggleShowBetaFunc = () => {
-    setShowBetaFunc(!showBetaFunc);
+    setShowBetaView(!showBetaView);
   };
 
   return (
     <FieldSet className={classes.root}>
       <Checkbox
         onChange={toggleShowBetaFunc}
-        checked={showBetaFunc} label={t('ux_editor.edit_component.show_beta_func')}
+        checked={showBetaView} label={t('ux_editor.edit_component.show_beta_func')}
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
       />
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showBetaFunc && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
-      {showBetaFunc && (
+      {showBetaView && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
+      {showBetaView && (
         <FormComponentConfig
           schema={isLoading ? {} : schema}
           component={component}
@@ -73,7 +81,7 @@ export const EditFormComponent = ({
           handleComponentUpdate={handleComponentUpdate}
         />
       )}
-      {!showBetaFunc && (
+      {!showBetaView && (
         <>
           <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
           {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
