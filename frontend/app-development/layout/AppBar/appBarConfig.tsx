@@ -3,11 +3,16 @@ import { AltinnHeaderMenuItem } from 'app-shared/components/altinnHeaderMenu/Alt
 import { RepositoryType } from 'app-shared/types/global';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
+import {
+  SupportedFeatureFlags,
+  shouldDisplayFeature,
+} from 'app-development/utils/featureToggleUtils';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;
   link: string;
   repositoryTypes: RepositoryType[];
+  featureFlagName?: SupportedFeatureFlags;
 }
 
 export enum TopBarMenu {
@@ -47,6 +52,7 @@ export const menu: TopBarMenuItem[] = [
     key: TopBarMenu.AppProcess,
     link: '/:org/:app/process',
     repositoryTypes: [RepositoryType.App],
+    featureFlagName: 'processEditor',
   },
 ];
 
@@ -58,10 +64,18 @@ export const getTopBarMenu = (
 ): AltinnHeaderMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
+    .filter(filterRoutesByFeatureFlag)
     .map((item) => {
       return {
         key: item.key,
         link: <Link to={item.link.replace(':org', org).replace(':app', app)}>{t(item.key)} </Link>,
       } as AltinnHeaderMenuItem;
     });
+};
+
+const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
+  // If no feature tag is set, the menu item should be displayed
+  if (!menuItem.featureFlagName) return true;
+
+  return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
 };
