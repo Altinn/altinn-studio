@@ -23,7 +23,7 @@ export enum TopBarMenu {
   Preview = 'top_menu.preview',
   Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
-  processEditor = 'top_menu.process-editor',
+  ProcessEditor = 'top_menu.process-editor',
   None = '',
 }
 
@@ -49,8 +49,8 @@ export const menu: TopBarMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
   },
   {
-    key: TopBarMenu.AppProcess,
-    link: '/:org/:app/process',
+    key: TopBarMenu.ProcessEditor,
+    link: '/:org/:app/process-editor',
     repositoryTypes: [RepositoryType.App],
     featureFlagName: 'processEditor',
   },
