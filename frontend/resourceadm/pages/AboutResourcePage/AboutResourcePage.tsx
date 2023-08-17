@@ -20,6 +20,7 @@ import {
   ResourceSectorType,
   ResourceThematicType,
   LanguageStringType,
+  TranslationType,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
@@ -124,9 +125,7 @@ export const AboutResourcePage = ({
   const [isPublicService, setIsPublicService] = useState(resourceData.isPublicService ?? false);
 
   // To handle which translation value is shown in the right menu
-  const [translationType, setTranslationType] = useState<
-    'none' | 'title' | 'description' | 'rightDescription'
-  >('none');
+  const [translationType, setTranslationType] = useState<TranslationType>('none');
 
   // To handle the error state of the page
   const [hasResourceTypeError, setHasResourceTypeError] = useState(
@@ -145,6 +144,13 @@ export const AboutResourcePage = ({
       resourceData.description.nb === '' ||
       resourceData.description.nn === '' ||
       resourceData.description.en === ''
+  );
+  const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
+    resourceData.rightDescription === undefined ||
+      resourceData.rightDescription === null ||
+      resourceData.rightDescription.nb === '' ||
+      resourceData.rightDescription.nn === '' ||
+      resourceData.rightDescription.en === ''
   );
 
   // useRefs to handle tabbing between the input elements and the right translation bar
@@ -229,15 +235,17 @@ export const AboutResourcePage = ({
    * @param value the value typed in the input field
    */
   const handleChangeTranslationValues = (value: LanguageStringType) => {
+    const error = value.nb === '' || value.nn === '' || value.en === '';
     if (translationType === 'title') {
-      setHasTitleError(value.nb === '' || value.nn === '' || value.en === '');
+      setHasTitleError(error);
       setTitle(value);
     }
     if (translationType === 'description') {
-      setHasDescriptionError(value.nb === '' || value.nn === '' || value.en === '');
+      setHasDescriptionError(error);
       setDescription(value);
     }
     if (translationType === 'rightDescription') {
+      setHasRightDescriptionError(error);
       setRightDescription(value);
     }
   };
@@ -328,11 +336,10 @@ export const AboutResourcePage = ({
    * Gets the correct text to display for input fields with missing value
    *
    * @param val the value
-   * @param isTitle if the field is title or description
+   * @param type the type of the field
    */
-  const getMissingInputLanguage = (val: LanguageStringType, isTitle: boolean) => {
+  const getMissingInputLanguage = (val: LanguageStringType, type: string) => {
     const valArr: ('nb' | 'nn' | 'en')[] = [];
-    const type = isTitle ? 'tittel' : 'beskrivelse';
 
     // Add the different languages
     if (val.nb === '') {
@@ -413,7 +420,7 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguage(title, true))}
+            displayWarningCard(getMissingInputLanguage(title, 'tittel'))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
@@ -443,7 +450,7 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguage(description, false))}
+            displayWarningCard(getMissingInputLanguage(description, 'beskrivelse'))}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
@@ -546,6 +553,9 @@ export const AboutResourcePage = ({
             id='resource-delegationtext'
             label='Delegasjonstekst - Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for'
           />
+          {showAllErrors &&
+            hasRightDescriptionError &&
+            displayWarningCard(getMissingInputLanguage(rightDescription, 'delegasjonstekst'))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>

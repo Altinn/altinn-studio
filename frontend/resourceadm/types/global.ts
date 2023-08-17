@@ -133,3 +133,5 @@ export interface DeployErrorType {
   message: string;
   pageWithError: 'about' | 'policy';
 }
+
+export type TranslationType = 'none' | 'title' | 'description' | 'rightDescription';
