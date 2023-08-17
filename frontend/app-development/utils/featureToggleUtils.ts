@@ -31,7 +31,7 @@ const isDefaultActivatedFeature = (featureFlag: SupportedFeatureFlags): boolean 
   return defaultActiveFeatures.includes(featureFlag);
 };
 
-// Check if feature includes in the url query, (url)?feature=[featureName]
+// Check if feature includes in the url query, (url)?featureFlags=[featureName]
 const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean => {
   const urlParams = new URLSearchParams(window.location.search);
   const featureParam = urlParams.get(featureFlagKey);
@@ -42,7 +42,7 @@ const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean =>
   return false;
 };
 
-// Check if feature includes in local storage, feature=[featureName]
+// Check if feature includes in local storage, featureFlags: ["featureName"]
 const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): boolean => {
   const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
   return featureFlagsFromStorage.includes(featureFlag);
