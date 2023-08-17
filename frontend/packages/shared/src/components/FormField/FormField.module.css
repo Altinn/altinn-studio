@@ -1,3 +1,16 @@
+.container {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.formField {
+  flex: 1;
+}
+
+.helpText {
+  padding-bottom: 4px;
+}
+
 .errorMessageText {
   margin-top: 10px;
 }

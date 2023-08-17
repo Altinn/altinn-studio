@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.Utils;
 using FluentAssertions;
+using Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -113,7 +114,7 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
         });
         var jsonNode = JsonNode.Parse(json);
-        var validationResults = ConvertedJsonSchema.Validate(jsonNode);
+        var validationResults = ConvertedJsonSchema.Evaluate(jsonNode);
         validationResults.IsValid.Should().BeTrue();
     }
 }

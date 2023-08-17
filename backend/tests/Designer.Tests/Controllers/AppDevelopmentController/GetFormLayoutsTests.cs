@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
         }
 
-        [SkipOnWindowsTheory]
+        [SkipOnOsPlatformsTheory(OsPlatformConsts.Windows)]
         [ClassData(typeof(FormLayoutsTestData))]
         public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, string layoutSetName, params string[] expectedLayoutPaths)
         {

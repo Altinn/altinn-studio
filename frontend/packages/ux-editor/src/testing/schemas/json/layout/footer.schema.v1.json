@@ -23,10 +23,17 @@
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["Email", "Link", "Phone", "Text"]
+          "enum": [
+            "Email",
+            "Link",
+            "Phone",
+            "Text"
+          ]
         }
       },
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "allOf": [
         {
           "if": {
@@ -82,7 +89,11 @@
       "type": "string",
       "title": "Icon",
       "description": "Icon to show next to the component.",
-      "enum": ["information", "email", "phone"]
+      "enum": [
+        "information",
+        "email",
+        "phone"
+      ]
     },
     "title": {
       "type": "string",
@@ -102,7 +113,10 @@
           "description": "The email to link to. Can be a text resource."
         }
       },
-      "required": ["title", "target"]
+      "required": [
+        "title",
+        "target"
+      ]
     },
     "linkComponent": {
       "additionalProperties": false,
@@ -120,7 +134,10 @@
           "$ref": "#/definitions/icon"
         }
       },
-      "required": ["title", "target"]
+      "required": [
+        "title",
+        "target"
+      ]
     },
     "phoneComponent": {
       "additionalProperties": false,
@@ -135,7 +152,10 @@
           "description": "The phone number to link to. Can be a text resource."
         }
       },
-      "required": ["title", "target"]
+      "required": [
+        "title",
+        "target"
+      ]
     },
     "textComponent": {
       "additionalProperties": false,
@@ -145,7 +165,9 @@
           "$ref": "#/definitions/title"
         }
       },
-      "required": ["title"]
+      "required": [
+        "title"
+      ]
     }
   }
 }

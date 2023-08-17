@@ -1,12 +1,13 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ButtonComponent } from './ButtonComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
+import { IGenericEditComponent } from '../../componentConfig';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const component: FormButtonComponent = {
@@ -34,8 +35,8 @@ describe('ButtonComponent', () => {
       type: ComponentType.NavigationButtons,
       showBackButton: true,
       textResourceBindings: {
-        next: undefined,
-        back: undefined,
+        next: 'next',
+        back: 'back',
       },
     });
   });
@@ -49,21 +50,22 @@ describe('ButtonComponent', () => {
         type: ComponentType.NavigationButtons,
       },
     });
-    const buttonTypeSelect = screen.getByRole('combobox');
+    const buttonTypeSelect = screen.getByRole('combobox', { name: textMock('ux_editor.modal_properties_button_type_helper') });
     await act(() => user.click(buttonTypeSelect));
     await act(() => user.click(screen.getAllByRole('option')[0]));
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
       type: ComponentType.Button,
       textResourceBindings: {
-        title: undefined,
+        title: textMock('ux_editor.modal_properties_button_type_submit'),
       },
     });
   });
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 

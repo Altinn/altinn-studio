@@ -14,14 +14,14 @@ export const PanelComponent = ({
 
   const handleShowIconClick = (showIcon: boolean) => {
     handleComponentChange({ ...component, showIcon });
-  }
+  };
 
   const handleVariantClick = (variant: FormPanelVariant) => {
     handleComponentChange({ ...component, variant });
-  }
+  };
 
   return (
-    <>
+    <div data-testid='panel-component-container'>
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}
@@ -36,10 +36,9 @@ export const PanelComponent = ({
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
       >
-        {({ value, onChange }) => <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-        />}
+        {({ value, onChange }) => (
+          <Checkbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+        )}
       </FormField>
       <FormField
         id={component.id}
@@ -48,15 +47,15 @@ export const PanelComponent = ({
         onChange={handleVariantClick}
         propertyPath={`${component.propertyPath}/properties/variant`}
       >
-        {
-          () => <Select
+        {() => (
+          <Select
             options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
               label: t(`ux_editor.${value}`),
               value,
             }))}
           />
-        }
+        )}
       </FormField>
-    </>
+    </div>
   );
 };

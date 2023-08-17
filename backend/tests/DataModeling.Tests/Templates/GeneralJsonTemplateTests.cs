@@ -25,10 +25,10 @@ namespace DataModeling.Tests.Templates
 
             // Assert
             JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
-            var idKeyword = jsonSchema.GetKeyword<IdKeyword>();
+            var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
             idKeyword.Id.Should().Be(expectedId);
-            jsonSchema.GetKeyword<XsdRootElementKeyword>().Value.Should().Be(expectedModelName);
-            var properties = jsonSchema.GetKeyword<PropertiesKeyword>();
+            jsonSchema.GetKeywordOrNull<XsdRootElementKeyword>().Value.Should().Be(expectedModelName);
+            var properties = jsonSchema.GetKeywordOrNull<PropertiesKeyword>();
             properties.Properties.Should().NotBeEmpty();
             properties.Properties.Count.Should().Be(3);
         }

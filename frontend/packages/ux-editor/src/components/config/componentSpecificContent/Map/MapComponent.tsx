@@ -14,11 +14,10 @@ import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { FormMapLayer } from '../../../../types/FormComponent';
 
-export interface MapComponentProps extends IGenericEditComponent {}
 export const MapComponent = ({
   component,
   handleComponentChange,
-}: MapComponentProps): JSX.Element => {
+}: IGenericEditComponent): JSX.Element => {
   const t = useText();
 
   const handleCenterLocationChange = (value: number, propertyName: string): void => {
@@ -50,7 +49,12 @@ export const MapComponent = ({
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
           >
-            {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
+            {({ onChange }) => (
+              <TextField
+                formatting={{ number: {} }}
+                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+              />
+            )}
           </FormField>
           <FormField
             id={component.id}
@@ -62,24 +66,34 @@ export const MapComponent = ({
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
           >
-            {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
+            {({ onChange }) => (
+              <TextField
+                formatting={{ number: {} }}
+                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+              />
+            )}
           </FormField>
         </div>
       </div>
-      <div>
-        <FormField
-          id={component.id}
-          label={t('ux_editor.adjust_zoom')}
-          value={component.zoom}
-          onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
-          propertyPath={`${component.propertyPath}/properties/zoom`}
-          customValidationMessages={(errorCode: string) => {
-            if (errorCode === 'type') return t('validation_errors.numbers_only');
-          }}
-        >
-          {({ onChange }) => <TextField formatting={{ number: {} }} onChange={(e) => onChange(parseInt(e.target.value, 10), e)} />}
-        </FormField>
-      </div>
+        <div>
+          <FormField
+            id={component.id}
+            label={t('ux_editor.adjust_zoom')}
+            value={component.zoom}
+            onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
+            propertyPath={`${component.propertyPath}/properties/zoom`}
+            customValidationMessages={(errorCode: string) => {
+              if (errorCode === 'type') return t('validation_errors.numbers_only');
+            }}
+          >
+            {({ onChange }) => (
+              <TextField
+                formatting={{ number: {} }}
+                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+              />
+            )}
+          </FormField>
+        </div>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
         <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
@@ -117,7 +131,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
         subdomains,
       },
       ...component.layers.slice(index + 1),
-    ]
+    ];
   };
 
   const handleAddLayer = (): void => {
@@ -170,7 +184,9 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
             >
-              {({ onChange }) => <TextField name='url' onChange={(e) => onChange(e.target.value, e)} />}
+              {({ onChange }) => (
+                <TextField name='url' onChange={(e) => onChange(e.target.value, e)} />
+              )}
             </FormField>
             <div className={classes.formGroup}>
               <FormField
@@ -180,7 +196,9 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 onChange={(value, event) => handleOnLayerChange(index, event)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
               >
-                {({ onChange }) => <TextField name='attribution' onChange={(e) => onChange(e.target.value, e)} />}
+                {({ onChange }) => (
+                  <TextField name='attribution' onChange={(e) => onChange(e.target.value, e)} />
+                )}
               </FormField>
               <FormField
                 id={component.id}
@@ -189,12 +207,14 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
               >
-                {({ value, onChange }) => <TextField
-                  name='subdomains'
-                  placeholder={t('ux_editor.subdomains_placeholder')}
-                  onChange={(e) => onChange(stringToArray(e.target.value), e)}
-                  value={arrayToString(value) || ''}
-                />}
+                {({ value, onChange }) => (
+                  <TextField
+                    name='subdomains'
+                    placeholder={t('ux_editor.subdomains_placeholder')}
+                    onChange={(e) => onChange(stringToArray(e.target.value), e)}
+                    value={arrayToString(value) || ''}
+                  />
+                )}
               </FormField>
             </div>
           </FieldSet>

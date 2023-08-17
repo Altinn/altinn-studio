@@ -1,11 +1,9 @@
-import type { IItemDataComponentProps } from './ItemDataComponent';
 import { ItemDataComponent } from './ItemDataComponent';
 import { getNodeByPointer, UiSchemaNode } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { SchemaState } from '@altinn/schema-editor/types';
-import { deepCopy } from 'app-shared/pure';
 import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
@@ -21,26 +19,19 @@ import { getSavedModel } from '../../../test/test-utils';
 
 const user = userEvent.setup();
 
-// Test utils:
-const convertNodeToProps = (node: UiSchemaNode): IItemDataComponentProps => {
-  const props = deepCopy(node);
-  delete props.children;
-  return props;
-};
-
 // Test data:
 const org = 'org';
 const app = 'app';
 const modelPath = 'test';
 const saveDatamodel = jest.fn();
-const defaultProps: IItemDataComponentProps = convertNodeToProps(parentNodeMock);
+const defaultNode: UiSchemaNode = parentNodeMock;
 const defaultState: Partial<SchemaState> = {
   selectedEditorTab: 'properties',
   selectedPropertyNodeId: parentNodeMock.pointer,
 };
 
 const renderItemDataComponent = (
-  props: Partial<IItemDataComponentProps> = {},
+  schemaNode: Partial<UiSchemaNode> = {},
   state: Partial<SchemaState> = {}
 ) => {
 
@@ -53,7 +44,7 @@ const renderItemDataComponent = (
     state: { ...defaultState, ...state },
     appContextProps: { modelPath },
     servicesContextProps: { saveDatamodel },
-  })(<ItemDataComponent {...defaultProps} {...props}/>)
+  })(<ItemDataComponent schemaNode={{ ...defaultNode, ...schemaNode }}/>);
 };
 
 describe('ItemDataComponent', () => {
@@ -61,7 +52,7 @@ describe('ItemDataComponent', () => {
 
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
     renderItemDataComponent(
-      convertNodeToProps(fieldNode1Mock),
+      fieldNode1Mock,
       { selectedPropertyNodeId: fieldNode1Mock.pointer }
     );
     expect(await screen.findByLabelText(textMock('schema_editor.multiple_answers'))).toBeDefined();
@@ -75,7 +66,7 @@ describe('ItemDataComponent', () => {
 
   test('Model is saved when "multiple answers" checkbox is checked', async () => {
     renderItemDataComponent(
-      convertNodeToProps(toggableNodeMock),
+      toggableNodeMock,
       { selectedPropertyNodeId: toggableNodeMock.pointer }
     );
     const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
@@ -91,7 +82,7 @@ describe('ItemDataComponent', () => {
 
   test('"Nullable" checkbox should not appear if selected item is not combination', async () => {
     renderItemDataComponent(
-      convertNodeToProps(fieldNode1Mock),
+      fieldNode1Mock,
       { selectedPropertyNodeId: fieldNode1Mock.pointer }
     );
     await screen.findAllByRole('combobox');
@@ -148,7 +139,7 @@ describe('ItemDataComponent', () => {
 
   it('Renders custom properties section if there are custom properties', async () => {
     renderItemDataComponent(
-      convertNodeToProps(nodeWithCustomPropsMock),
+      nodeWithCustomPropsMock,
       { selectedPropertyNodeId: nodeWithCustomPropsMock.pointer }
     );
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();

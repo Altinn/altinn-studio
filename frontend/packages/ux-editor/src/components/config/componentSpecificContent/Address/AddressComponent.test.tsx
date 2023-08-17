@@ -5,13 +5,13 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { AddressComponent } from './AddressComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
-import { waitFor } from '@testing-library/react';
+import { waitFor, screen } from '@testing-library/react';
 
 // Test data:
 const component: FormAddressComponent = {
   type: ComponentType.AddressComponent,
   dataModelBindings: {
-    test: 'test'
+    test: 'test',
   },
   id: '1',
   simplified: false,
@@ -26,6 +26,7 @@ const defaultProps: IGenericEditComponent = {
 describe('AddressComponent', () => {
   it('Renders without errors', async () => {
     await render();
+    expect(screen.getByRole('group')).toBeInTheDocument();
   });
 });
 
@@ -38,5 +39,4 @@ const render = async (props?: Partial<IGenericEditComponent>) => {
   await waitForData();
 
   return renderWithMockStore()(<AddressComponent {...defaultProps} {...props} />);
-}
-
+};

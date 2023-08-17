@@ -16,7 +16,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <typeparam name="T">The keyword type to search for</typeparam>
         /// <param name="schema">Look for the keyword in this schema instance</param>
         /// <returns>The keyword or <code>null</code> if not found</returns>
-        public static T GetKeyword<T>(this JsonSchema schema)
+        public static T GetKeywordOrNull<T>(this JsonSchema schema)
             where T : IJsonSchemaKeyword
         {
             return schema.Keywords.GetKeyword<T>();
