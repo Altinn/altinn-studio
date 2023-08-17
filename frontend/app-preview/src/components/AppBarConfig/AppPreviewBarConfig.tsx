@@ -27,11 +27,6 @@ export enum TopBarAppPreviewMenu {
   Preview = 'general.preview',
 }
 
-const handleChangeViewSizeClick = (selectedViewSize: string, setViewSize: (value: any) => void) => {
-  localStorage.setItem('viewSize', selectedViewSize);
-  setViewSize(selectedViewSize);
-};
-
 export const menu: TopBarAppPreviewMenuItem[] = [
   {
     key: TopBarAppPreviewMenu.Preview,
@@ -75,7 +70,7 @@ export const SubPreviewMenuLeftContent = ({ viewSize, setViewSize, selectedLayou
               value: 'mobile',
             },
           ]}
-          onChange={(value) => handleChangeViewSizeClick(value, setViewSize)}
+          onChange={setViewSize}
           selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
         />
       </div>
