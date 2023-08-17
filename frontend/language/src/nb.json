@@ -892,6 +892,7 @@
   "ux_editor.component_properties.breakAfter": "Sideskift ETTER komponenten",
   "ux_editor.component_properties.breakBefore": "Sideskift FØR komponenten",
   "ux_editor.component_properties.centerLocation": "Sentrum av kartet",
+  "ux_editor.component_properties.compact": "Bruk kompakt visning",
   "ux_editor.component_properties.componentRef": "ID på komponenten det gjelder (componentRef)",
   "ux_editor.component_properties.config_is_expression_message": "Denne egenskapen er konfigurert som et uttrykk, og kan foreløpig ikke redigeres her.",
   "ux_editor.component_properties.dataTypeIds": "Liste med ID på datatyper som skal vises",
