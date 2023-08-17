@@ -136,7 +136,7 @@ export const DropdownMenu = ({
         onKeyDown={(e) => {}}
         variant='quiet'
         color={isError ? 'danger' : 'secondary'}
-        className={classes.button}
+        className={isError && classes.errorButton}
       />
       {isOpen && (
         <div className={classes.dropdownMenu}>
