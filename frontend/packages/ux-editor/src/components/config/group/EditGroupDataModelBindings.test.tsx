@@ -1,11 +1,7 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 
-import {
-  appDataMock,
-  renderWithMockStore,
-  textResourcesMock,
-} from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import {
   EditGroupDataModelBindings,
@@ -28,13 +24,10 @@ const render = (
     dataModelBindings: {},
     onDataModelChange: jest.fn(),
   };
-  const user = userEvent.setup();
 
   renderWithMockStore({ appData: { ...mockAppData, ...appData } })(
     <EditGroupDataModelBindings {...defaultProps} {...props} />
   );
-
-  return { user };
 };
 
 describe('EditDataModelBindings', () => {
@@ -55,8 +48,9 @@ describe('EditDataModelBindings', () => {
   });
 
   it.skip('should respond to selecting data model field', async () => {
+    const user = userEvent.setup();
     const onDataModelChange = jest.fn();
-    const { user } = render({ onDataModelChange });
+    render({ onDataModelChange });
 
     const selectElement = screen.getByRole('combobox');
     await act(() => user.click(selectElement));
