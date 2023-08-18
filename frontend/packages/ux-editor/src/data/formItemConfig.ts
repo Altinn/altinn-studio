@@ -20,6 +20,7 @@ export const formItemConfigs: FormItemConfigs = {
       severity: 'info',
       propertyPath: 'definitions/alertComponent',
     },
+    icon: 'fa fa-circle-exclamation',
   },
   // [ComponentType.Accordion]: {
   //   name: ComponentType.Accordion,

@@ -926,6 +926,7 @@
   "ux_editor.component_properties.sandbox": "Sandbox",
   "ux_editor.component_properties.secure": "Bruk sikret versjon av API for å hente valg (secure)",
   "ux_editor.component_properties.sender": "Hvem som har sendt inn skjema",
+  "ux_editor.component_properties.severity": "Alvorlighetsgrad",
   "ux_editor.component_properties.showAsCard": "Vis som \"cards\"",
   "ux_editor.component_properties.showIcon": "Vis ikon",
   "ux_editor.component_properties.source": "Kilde (source)",
