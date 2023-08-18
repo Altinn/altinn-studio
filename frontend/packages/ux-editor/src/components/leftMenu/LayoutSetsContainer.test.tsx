@@ -1,8 +1,7 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { renderWithMockStore } from '../../testing/mocks';
 import { layoutSetsMock } from "../../testing/layoutMock";
 import { useDispatch } from 'react-redux';
