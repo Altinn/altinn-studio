@@ -1,4 +1,5 @@
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import dotenv from 'dotenv';
 import JsonPointer from 'jsonpointer';
 import fs from 'node:fs';
@@ -143,38 +144,33 @@ describe('Layout schema', () => {
     }
 
     const ajv = new Ajv();
+    addFormats(ajv);
     const validate = ajv.compile(applicationMetadataSchema);
 
     for (const app of getAllApps(dir)) {
-      const folder = `${dir}/${app}/App/config/applicationmetadata/`;
-      if (!fs.existsSync(folder)) {
+      const metaDataFile = `${dir}/${app}/App/config/applicationmetadata.json`;
+      if (!fs.existsSync(metaDataFile)) {
         continue;
       }
-      const resourceFiles = fs.readdirSync(folder);
-      for (const resourceFile of resourceFiles) {
-        if (!resourceFile.match(/^applicationmetadata\.json$/)) {
-          continue;
-        }
-        let resources: any;
-        try {
-          const content = fs.readFileSync(`${folder}/${resourceFile}`, 'utf-8');
-          resources = JSON.parse(content);
-        } catch (e) {
-          console.error(`Failed to parse ${folder}/${resourceFile}`, e);
-          continue;
-        }
-
-        it(`${app}/${resourceFile}`, () => {
-          validate(resources);
-          expect(
-            (validate.errors || []).map((err) => {
-              const pointer = JsonPointer.compile(err.instancePath);
-              const value = pointer.get(resources);
-              return { ...err, value };
-            }),
-          ).toEqual([]);
-        });
+      let metadata: any;
+      try {
+        const content = fs.readFileSync(metaDataFile, 'utf-8');
+        metadata = JSON.parse(content);
+      } catch (e) {
+        console.error(`Failed to parse ${metaDataFile}`, e);
+        continue;
       }
+
+      it(metaDataFile, () => {
+        validate(metadata);
+        expect(
+          (validate.errors || []).map((err) => {
+            const pointer = JsonPointer.compile(err.instancePath);
+            const value = pointer.get(metadata);
+            return { ...err, value };
+          }),
+        ).toEqual([]);
+      });
     }
   });
 });

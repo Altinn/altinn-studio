@@ -4,8 +4,22 @@
   "title": "Application metadata settings",
   "description": "Schema that describes the properties that can be configured in the application metadata json file.",
   "type": "object",
-  "additionalProperties": true,
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "org",
+    "created",
+    "createdBy",
+    "partyTypesAllowed",
+    "dataTypes"
+  ],
   "properties": {
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The schema that the application metadata file adheres to."
+    },
     "processId": {
       "type": "string",
       "title": "Process id",
@@ -113,6 +127,10 @@
       "type": "object",
       "title": "On entry",
       "description": "The on entry settings for the application.",
+      "additionalProperties": false,
+      "required": [
+        "show"
+      ],
       "properties": {
         "show": {
           "type": "string",
@@ -128,6 +146,7 @@
       "type": "object",
       "title": "Instance selection",
       "description": "The instance selection settings for the application.",
+      "additionalProperties": false,
       "properties": {
         "sortDirection": {
           "type": "string",
@@ -153,21 +172,31 @@
       "type": "object",
       "title": "EFormidling",
       "description": "Defines the eFormidling shipment contract related to an application",
+      "additionalProperties": false,
       "properties": {
         "serviceId": {
-          "type": "string",
+          "enum": ["DPO", "DPV", "DPF", "DPI"],
           "title": "Enabled",
           "description": "Service identifier for the process, available services are DPO, DPV, DPF and DPI."
         },
         "dpfShipmentType": {
           "type": "string",
           "title": "DPF shipment type",
-          "description": "The DPF shipment type used for routing in the receiving system."
+          "description": "The DPF shipment type used for routing in the receiving system.",
+          "examples": [
+            "altinn3.skjema"
+          ]
         },
         "receiver": {
           "type": "string",
           "title": "Description",
-          "description": "Org number for the receiver of the shipment."
+          "description": "Org number for the receiver of the shipment.",
+          "pattern": "^[0-9]{9}$"
+        },
+        "sendAfterTaskId": {
+          "type": "string",
+          "title": "Send after task id",
+          "description": "The id of the last task to be completed before the shipment is sent"
         },
         "process": {
           "type": "string",
@@ -182,7 +211,9 @@
         "typeVersion": {
           "type": "string",
           "title": "Type version",
-          "description": "Version of the document type."
+          "description": "Version of the document type.",
+          "pattern": "^\\d+\\.\\d+$",
+          "examples": ["2.0"]
         },
         "type": {
           "type": "string",
@@ -190,7 +221,7 @@
           "description": "The document type e.g. 'arkivmelding'."
         },
         "securityLevel": {
-          "type": "string",
+          "type": ["string", "integer"],
           "title": "Security level",
           "description": "The security level to be set for the standard business document."
         },
@@ -208,21 +239,27 @@
       "type": "object",
       "title": "Data field",
       "description": "Holds the definition of a data field for an application, ie. a named reference to a form data field.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "path",
+        "dataTypeId"
+      ],
       "properties": {
         "id": {
           "type": "string",
           "title": "Id",
-          "description": "The id of the presentation field."
+          "description": "An id or key to identify the specific rule."
         },
         "path": {
           "type": "string",
           "title": "Path",
-          "description": "The path of the presentation field."
+          "description": "A path to a specific field or property in the form model."
         },
         "dataTypeId": {
           "type": "string",
           "title": "Data type id",
-          "description": "The data type where the presentation field is defined."
+          "description": "The name/id of the datatype (from the list in the dataTypes property)."
         }
       }
     },
@@ -230,6 +267,7 @@
       "type": "object",
       "title": "Party types allowed",
       "description": "A set of settings that defines what types of parties that are allowed to instantiate an application.",
+      "additionalProperties": false,
       "properties": {
         "bankruptcyEstate": {
           "type": "boolean",
@@ -257,6 +295,8 @@
       "type": "object",
       "title": "Data type",
       "description": "Holds the definition of a data type for an application, ie. a named reference to a form data type.",
+      "additionalProperties": false,
+      "required": ["id"],
       "properties": {
         "id": {
           "type": "string",
@@ -360,6 +400,7 @@
       "type": "object",
       "title": "Application logic",
       "description": "Holds information about how a data type representing a form is connected to a model.",
+      "additionalProperties": false,
       "properties": {
         "autoCreate": {
           "type": "boolean",
@@ -389,13 +430,12 @@
         "shadowFields": {
           "$ref": "#/definitions/shadowFields"
         }
-        }
-
+      }
     },
     "shadowFields": {
       "type": "object",
       "title": "Shadow fields",
-      "description": "",
+      "additionalProperties": false,
       "properties": {
         "prefix": {
           "type": "string",
@@ -413,6 +453,7 @@
       "type": "object",
       "title": "Copy instance settings",
       "description": "Settings for copying instance data from one instance to another.",
+      "additionalProperties": false,
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -441,6 +482,10 @@
       "type": "object",
       "title": "Title",
       "description": "The title of the application",
+      "additionalProperties": {
+        "type": "string",
+        "title": "Other language"
+      },
       "properties": {
         "nb": {
           "type": "string",
@@ -452,12 +497,20 @@
           "title": "English",
           "description": "The title in English"
         }
-      }
+      },
+      "examples": [
+        {
+          "nb": "Tittel",
+          "nn": "Tittel",
+          "en": "Title"
+        }
+      ]
     },
     "messageBoxConfig": {
       "type": "object",
       "title": "Message box config",
       "description": "Settings for message box",
+      "additionalProperties": false,
       "properties": {
         "hideSettings": {
           "$ref": "#/definitions/hideSettings"
@@ -465,24 +518,37 @@
       }
     },
     "hideSettings": {
-      "type": "object",
-      "title": "Hide settings",
-      "description": "Settings for hiding message box settings",
-      "properties": {
-        "hideAlways": {
-          "type": "boolean",
-          "title": "Hide always",
-          "description": "A value indicating if message box settings should be hidden always."
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "Hide settings",
+          "description": "Settings for hiding message box settings",
+          "properties": {
+            "hideAlways": {
+              "type": "boolean",
+              "title": "Hide always",
+              "description": "A boolean indicating that the instance should always be hidden"
+            }
+          }
         },
-        "hiddenOnTask": {
-          "type": "array",
-          "title": "Hidden on task",
-          "description": "A list of tasks where hide should be applied.",
-          "items": {
-            "type": "string"
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "Hide settings",
+          "description": "Settings for hiding message box settings",
+          "properties": {
+            "hideOnTask": {
+              "type": "array",
+              "title": "Hide on task",
+              "description": "A list of tasks where the instance should be hidden from the message box",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
-      }
+      ]
     }
   }
 }
