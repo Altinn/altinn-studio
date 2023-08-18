@@ -1,10 +1,16 @@
 import React from 'react';
 
-export const ProcessEditor = () => (
-  <div>
-    <h1>ProcessEditor</h1>
-    <p>
-      This is just some placeholder markup. This will be replaced while the package get developed.
-    </p>
-  </div>
-);
+type ProcessEditorProps = {
+  bpmnXml: string | undefined | null;
+};
+export const ProcessEditor = ({ bpmnXml }: ProcessEditorProps): JSX.Element => {
+  if (bpmnXml === undefined) {
+    return <div>Loading Bpmn XML</div>;
+  }
+
+  if (bpmnXml === null) {
+    return <div>No Bpmn XML was found during loading</div>;
+  }
+
+  return <div>Process Editor</div>;
+};

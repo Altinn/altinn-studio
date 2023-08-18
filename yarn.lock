@@ -62,6 +62,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:frontend/packages/process-editor"
   dependencies:
+    bpmn-js: ^13.2.2
     jest: 29.6.2
   peerDependencies:
     react: 18.2.0
@@ -1612,6 +1613,16 @@ __metadata:
   version: 0.2.3
   resolution: "@bcoe/v8-coverage@npm:0.2.3"
   checksum: 850f9305536d0f2bd13e9e0881cb5f02e4f93fad1189f7b2d4bebf694e3206924eadee1068130d43c11b750efcc9405f88a8e42ef098b6d75239c0f047de1a27
+  languageName: node
+  linkType: hard
+
+"@bpmn-io/diagram-js-ui@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@bpmn-io/diagram-js-ui@npm:0.2.2"
+  dependencies:
+    htm: ^3.1.1
+    preact: ^10.11.2
+  checksum: a67eeb03c647659ca1c6cdeb0c8f9d4dc100e10ce9688c08dca1ec95135ee668ef7e126a0e2cdd3e082b286b32b10d163eb96d4d8d1b767bc53ad9487d9a4a46
   languageName: node
   linkType: hard
 
@@ -5864,6 +5875,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bpmn-js@npm:^13.2.2":
+  version: 13.2.2
+  resolution: "bpmn-js@npm:13.2.2"
+  dependencies:
+    bpmn-moddle: ^8.0.0
+    diagram-js: ^12.2.0
+    diagram-js-direct-editing: ^2.0.0
+    ids: ^1.0.0
+    inherits-browser: ^0.1.0
+    min-dash: ^4.0.0
+    min-dom: ^4.0.3
+    object-refs: ^0.3.0
+    tiny-svg: ^3.0.0
+  checksum: 592beefe4422a66daad4c15e9e8d8ef56c77cbb37874b83701e6f577ae141589e6d1ceafa15ff8e0c6f8d419c9f5f0f5ac7a25bd7af4ae50a9a832c98737609a
+  languageName: node
+  linkType: hard
+
+"bpmn-moddle@npm:^8.0.0":
+  version: 8.0.1
+  resolution: "bpmn-moddle@npm:8.0.1"
+  dependencies:
+    min-dash: ^4.0.0
+    moddle: ^6.0.0
+    moddle-xml: ^10.0.0
+  checksum: b98e469d6211ff0bef06aeb2ebfc374b0a63a36c16b9a73c3df9f9e4d1d04a4615928504af7867687bbed7670f24d43d1ba5bc06cf9560b3be18eae153b9cd5e
+  languageName: node
+  linkType: hard
+
 "brace-expansion@npm:^1.1.7":
   version: 1.1.11
   resolution: "brace-expansion@npm:1.1.11"
@@ -6423,6 +6462,13 @@ __metadata:
   version: 1.8.2
   resolution: "common-tags@npm:1.8.2"
   checksum: 767a6255a84bbc47df49a60ab583053bb29a7d9687066a18500a516188a062c4e4cd52de341f22de0b07062e699b1b8fe3cfa1cb55b241cb9301aeb4f45b4dff
+  languageName: node
+  linkType: hard
+
+"component-event@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "component-event@npm:0.2.1"
+  checksum: bf828d43cb396b2353fd65fd11263f4e176b3a15c19a8ec85b3c50fc114f81fe366f797fc934ed058a513e126a8fdb67a37bec19ce56411295da7f633eba2ef4
   languageName: node
   linkType: hard
 
@@ -7149,6 +7195,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"diagram-js-direct-editing@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "diagram-js-direct-editing@npm:2.0.0"
+  dependencies:
+    min-dash: ^4.0.0
+    min-dom: ^4.0.2
+  peerDependencies:
+    diagram-js: "*"
+  checksum: ada740658d2aa1aee2ab2921ca8c06b0fb1fc5f595aff765e82ba7158e1ac8e9dc91d61cf8c32303670c5d44dd6ad7ff57044bcbaab5f765963a3c41baec5973
+  languageName: node
+  linkType: hard
+
+"diagram-js@npm:^12.2.0":
+  version: 12.2.0
+  resolution: "diagram-js@npm:12.2.0"
+  dependencies:
+    "@bpmn-io/diagram-js-ui": ^0.2.2
+    clsx: ^1.2.1
+    didi: ^9.0.2
+    hammerjs: ^2.0.1
+    inherits-browser: ^0.1.0
+    min-dash: ^4.1.0
+    min-dom: ^4.1.0
+    object-refs: ^0.3.0
+    path-intersection: ^2.2.1
+    tiny-svg: ^3.0.1
+  checksum: ed7ef98440d0d324290b3e845c36624cf4c45fbdea8485924a5f0921332bc63a555b92958c9ce3f7c3078d33457159485b149555d4bb3eff3cd60e52688ebc97
+  languageName: node
+  linkType: hard
+
+"didi@npm:^9.0.2":
+  version: 9.0.2
+  resolution: "didi@npm:9.0.2"
+  checksum: 491b69211372b44babfb145f5feeced06d7be9f681a2904b51d90f12ef4f6d666e887ddfc9e3b9171fec3863e53c19ae2fcaa188c69f334487119a9fb0d55ed8
+  languageName: node
+  linkType: hard
+
 "diff-sequences@npm:^29.4.3":
   version: 29.4.3
   resolution: "diff-sequences@npm:29.4.3"
@@ -7289,6 +7372,13 @@ __metadata:
   dependencies:
     domelementtype: ^2.3.0
   checksum: 0f58f4a6af63e6f3a4320aa446d28b5790a009018707bce2859dcb1d21144c7876482b5188395a188dfa974238c019e0a1e610d2fc269a12b2c192ea2b0b131c
+  languageName: node
+  linkType: hard
+
+"domify@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "domify@npm:1.4.1"
+  checksum: d1165e840093fee2790107e4de2070e89e8c6fae47a4839838248d8adcfa56ff44614de46cd7579b7b0670a37e5fe4b7228ea8f34059f329575ba74bc9a76d42
   languageName: node
   linkType: hard
 
@@ -8935,6 +9025,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hammerjs@npm:^2.0.1":
+  version: 2.0.8
+  resolution: "hammerjs@npm:2.0.8"
+  checksum: b092da7d1565a165d7edb53ef0ce212837a8b11f897aa3cf81a7818b66686b0ab3f4747fbce8fc8a41d1376594639ce3a054b0fd4889ca8b5b136a29ca500e27
+  languageName: node
+  linkType: hard
+
 "handle-thing@npm:^2.0.0":
   version: 2.0.1
   resolution: "handle-thing@npm:2.0.1"
@@ -9054,6 +9151,13 @@ __metadata:
     readable-stream: ^2.0.1
     wbuf: ^1.1.0
   checksum: 2de144115197967ad6eeee33faf41096c6ba87078703c5cb011632dcfbffeb45784569e0cf02c317bd79c48375597c8ec88c30fff5bb0b023e8f654fb6e9c06e
+  languageName: node
+  linkType: hard
+
+"htm@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "htm@npm:3.1.1"
+  checksum: 1827a0cafffcff69690b048a4df59944086d7503fe5eb7c10b40834439205bdf992941e7aa25e92b3c2c086170565b4ed7c365bc072d31067c6e7a4e478776bd
   languageName: node
   linkType: hard
 
@@ -9322,6 +9426,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ids@npm:^1.0.0":
+  version: 1.0.5
+  resolution: "ids@npm:1.0.5"
+  checksum: c964546d4e012c7c7b5de7abf2e5d02667a70509120ace429ab9ebeef03e31aed0a98c8a423c07ec86536c3a48fa30275e401d6f8e4c032ef424664cd8e35995
+  languageName: node
+  linkType: hard
+
 "ieee754@npm:^1.1.13":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
@@ -9416,6 +9527,13 @@ __metadata:
     once: ^1.3.0
     wrappy: 1
   checksum: f4f76aa072ce19fae87ce1ef7d221e709afb59d445e05d47fba710e85470923a75de35bfae47da6de1b18afc3ce83d70facf44cfb0aff89f0a3f45c0a0244dfd
+  languageName: node
+  linkType: hard
+
+"inherits-browser@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "inherits-browser@npm:0.1.0"
+  checksum: 5f48394cdaed8046f8d287810a6eef195b258a5cc3f80722629edb55bc6921d09a92bfb27a4edce70d1f2c39aebe0b40a52c88c12a1a911953596bc2f39a76b4
   languageName: node
   linkType: hard
 
@@ -11372,6 +11490,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"min-dash@npm:^4.0.0, min-dash@npm:^4.1.0":
+  version: 4.1.1
+  resolution: "min-dash@npm:4.1.1"
+  checksum: e8ac86200da39d1efa5d3b54326dc4dcd1488d7cd778059512bd462f06ac0d2cd021cdd41e8cfb2e0ea2d3825688bf6f65b6713cc1d0c0cbe805e2a58d0ac630
+  languageName: node
+  linkType: hard
+
+"min-dom@npm:^4.0.2, min-dom@npm:^4.0.3, min-dom@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "min-dom@npm:4.1.0"
+  dependencies:
+    component-event: ^0.2.1
+    domify: ^1.4.1
+    min-dash: ^4.0.0
+  checksum: d79befe17a4b6b8a75e997a7391581fc611d0481d1dc7ca9ed7172304b22baac3170ce11577fbc07b7cc49a665bbcb80530a63cc66391f5a07af63f0b78df414
+  languageName: node
+  linkType: hard
+
 "min-indent@npm:^1.0.0":
   version: 1.0.1
   resolution: "min-indent@npm:1.0.1"
@@ -11539,6 +11675,26 @@ __metadata:
   bin:
     mkdirp: dist/cjs/src/bin.js
   checksum: 8a1d09ffac585e55f41c54f445051f5bc33a7de99b952bb04c576cafdf1a67bb4bae8cb93736f7da6838771fbf75bc630430a3a59e1252047d2278690bd150ee
+  languageName: node
+  linkType: hard
+
+"moddle-xml@npm:^10.0.0":
+  version: 10.1.0
+  resolution: "moddle-xml@npm:10.1.0"
+  dependencies:
+    min-dash: ^4.0.0
+    moddle: ^6.0.0
+    saxen: ^8.1.2
+  checksum: 0eefdce39398c2d4cf1139e315592782008ba6500c0f27d3e76e097680e594e4354447e13b582b10d6df602b3d1402ab0b790fd405c7cd840369e8ba70c6351d
+  languageName: node
+  linkType: hard
+
+"moddle@npm:^6.0.0":
+  version: 6.2.3
+  resolution: "moddle@npm:6.2.3"
+  dependencies:
+    min-dash: ^4.0.0
+  checksum: 38083dc461bd408cadc24ad67f619c6d45e21acbe6ca863d4f3686d2a279881a53106bdbcf378e44baed0dc83709e4696875b3f3b824e15d7dc41bbcdb503452
   languageName: node
   linkType: hard
 
@@ -11893,6 +12049,13 @@ __metadata:
   version: 1.1.1
   resolution: "object-keys@npm:1.1.1"
   checksum: b363c5e7644b1e1b04aa507e88dcb8e3a2f52b6ffd0ea801e4c7a62d5aa559affe21c55a07fd4b1fd55fc03a33c610d73426664b20032405d7b92a1414c34d6a
+  languageName: node
+  linkType: hard
+
+"object-refs@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "object-refs@npm:0.3.0"
+  checksum: 7fcfb03f62d6a4e46e99a2945e82ec2b0ca03ee8ef27c5dee83e0aec8ce9c72dda0ca4ba4f7ec0a9622dbf507523514e2b4257983df5a70a3024a578462e567e
   languageName: node
   linkType: hard
 
@@ -12282,6 +12445,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"path-intersection@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "path-intersection@npm:2.2.1"
+  checksum: 50fb531e4c49e0d2025c463e9b79ecd5dae7b1ef49a300a40f774d40fb69eb8d42c86949e9b45997ade8f7ffb348a39aabd46410e8ebce6e0e843f4146712fc6
+  languageName: node
+  linkType: hard
+
 "path-is-absolute@npm:^1.0.0":
   version: 1.0.1
   resolution: "path-is-absolute@npm:1.0.1"
@@ -12538,6 +12708,13 @@ __metadata:
     picocolors: ^1.0.0
     source-map-js: ^1.0.2
   checksum: e39ac60ccd1542d4f9d93d894048aac0d686b3bb38e927d8386005718e6793dbbb46930f0a523fe382f1bbd843c6d980aaea791252bf5e176180e5a4336d9679
+  languageName: node
+  linkType: hard
+
+"preact@npm:^10.11.2":
+  version: 10.17.0
+  resolution: "preact@npm:10.17.0"
+  checksum: a106a5dd4e4e38a24f4ab62a42b4e0d9b14f0a0146819f1f2800b7033b316941987f77913893b78fe4ceb6750ec013f407ad98e2f416978fe8aecc8d7f4d086b
   languageName: node
   linkType: hard
 
@@ -13717,6 +13894,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"saxen@npm:^8.1.2":
+  version: 8.1.2
+  resolution: "saxen@npm:8.1.2"
+  checksum: 07c251935cde43eedabd1a493cd92f8acc9a49bf6eb9fe1ac73c302471ddb2ce949dc7d862c2e0675f19fc9ab3aaf7e3140fe9e86d0461de1ab1e04fc171fbd1
+  languageName: node
+  linkType: hard
+
 "saxes@npm:^6.0.0":
   version: 6.0.0
   resolution: "saxes@npm:6.0.0"
@@ -14796,6 +14980,13 @@ __metadata:
   version: 1.1.0
   resolution: "thunky@npm:1.1.0"
   checksum: 993096c472b6b8f30e29dc777a8d17720e4cab448375041f20c0cb802a09a7fb2217f2a3e8cdc11851faa71c957e2db309357367fc9d7af3cb7a4d00f4b66034
+  languageName: node
+  linkType: hard
+
+"tiny-svg@npm:^3.0.0, tiny-svg@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "tiny-svg@npm:3.0.1"
+  checksum: 8fe9dfa7dc6587076def1b20ba57ab6270b315ad03a0b33313a303fb107c2b77165d95b2222930a9c529a7bd1b267eeb7488c4e7714524a70f34718948bfdace
   languageName: node
   linkType: hard
 
