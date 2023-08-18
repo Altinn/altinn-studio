@@ -15,15 +15,7 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import {
-  Button,
-  ButtonColor,
-  ButtonSize,
-  ButtonVariant,
-  Checkbox,
-  FieldSet,
-  ErrorMessage,
-} from '@digdir/design-system-react';
+import { Button, Checkbox, Fieldset, ErrorMessage } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
@@ -85,8 +77,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const onDeleteEnumClick = (path: string, value: string) =>
     mutate(deleteEnumValue(data, { path, value }));
 
-  const dispatchAddEnum = () =>
-    mutate(addEnumValue(data, { path: pointer, value: 'value' }));
+  const dispatchAddEnum = () => mutate(addEnumValue(data, { path: pointer, value: 'value' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -106,7 +97,8 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       {!pointerIsDefinition(pointer) && (
         <Checkbox
           checked={isRequired}
-          label={t('schema_editor.required')}
+          aria-label={t('schema_editor.required')}
+          value='checkedRequired'
           name='checkedRequired'
           onChange={handleRequiredChanged}
         />
@@ -121,8 +113,8 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       {isArray && <ArrayRestrictions {...restrictionProps} />}
       {[FieldType.String, FieldType.Integer, FieldType.Number].includes(fieldType as FieldType) && (
         <>
-          <Divider marginless/>
-          <FieldSet legend={t('schema_editor.enum_legend')}>
+          <Divider marginless />
+          <Fieldset legend={t('schema_editor.enum_legend')}>
             {!enums?.length && (
               <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
             )}
@@ -146,18 +138,18 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
             <div className={classes.addEnumButton}>
               <Button
                 aria-label={t('schema_editor.add_enum')}
-                color={ButtonColor.Secondary}
+                color='secondary'
                 fullWidth
                 icon={<PlusIcon />}
                 id='add-enum-button'
                 onClick={onAddEnumButtonClick}
-                size={ButtonSize.Small}
-                variant={ButtonVariant.Outline}
+                size='small'
+                variant='outline'
               >
                 {t('schema_editor.add_enum')}
               </Button>
             </div>
-          </FieldSet>
+          </Fieldset>
         </>
       )}
     </>

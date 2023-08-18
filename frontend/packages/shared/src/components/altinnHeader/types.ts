@@ -1,12 +1,11 @@
-import { ButtonVariant, ButtonColor } from '@digdir/design-system-react';
-
 export type AltinnHeaderVariant = 'regular' | 'preview';
 
 export interface AltinnButtonActionItem {
   title: string;
   menuKey: string;
-  buttonVariant: ButtonVariant;
-  buttonColor?: ButtonColor;
+  path?: (org: string, app: string) => string;
+  buttonVariant: 'filled' | 'outline' | 'quiet';
+  buttonColor?: 'inverted';
   headerButtonsClasses: any;
   handleClick: () => void;
   inBeta?: boolean;

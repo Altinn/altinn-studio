@@ -3,13 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  Checkbox,
-  FieldSet,
-} from '@digdir/design-system-react';
+import { Button, Checkbox, Fieldset } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
@@ -35,11 +29,11 @@ export const RightMenu = ({
   const { t } = useTranslation();
   const [langCodeToDelete, setLangCodeToDelete] = useState<string>();
 
-  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>{
+  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     target.checked
-    ? setSelectedLanguages([...selectedLanguages, target.name])
-    : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
-  }
+      ? setSelectedLanguages([...selectedLanguages, target.name])
+      : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
+  };
 
   const handleDeleteLanguage = (langCode: LangCode) => {
     setSelectedLanguages(removeItemByValue(selectedLanguages, langCode));
@@ -55,46 +49,50 @@ export const RightMenu = ({
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.RightMenu__verticalContent}>
-        <FieldSet legend='Aktive språk:'>
+        <Fieldset legend='Aktive språk:'>
           <div className={classes.RightMenu__radioGroup}>
             {availableLanguages?.map((langCode) => {
               return (
-              <div key={langCode}>
-                <div className={classes.RightMenu__radio}>
-                  <Checkbox
-                    label={getLangName({ code: langCode })}
-                    name={langCode}
-                    onChange={handleSelectChange}
-                    checked={selectedLanguages.includes(langCode)}
-                  />
-                  <AltinnConfirmDialog
-                    open={langCode === langCodeToDelete}
-                    confirmText={t('schema_editor.language_confirm_deletion')}
-                    onConfirm={() => handleDeleteLanguage(langCode)}
-                    onClose={() => setLangCodeToDelete(undefined)}
-                    trigger={
-                      <Button
-                        variant={
-                          canDeleteLang(langCode) ? ButtonVariant.Filled : ButtonVariant.Outline
-                        }
-                        data-testid={`delete-${langCode}`}
-                        color={ButtonColor.Danger}
-                        onClick={() => setLangCodeToDelete((prevState) => prevState === langCode ? undefined : langCode)}
-                        disabled={!canDeleteLang(langCode)}
-                        aria-label={t('schema_editor.language_delete_button')}
-                        size='small'
-                      >
-                        {t('schema_editor.language_delete_button')}
-                      </Button>
-                    }
-                  >
-                    <p>{t('schema_editor.language_display_confirm_delete')}</p>
-                  </AltinnConfirmDialog>
+                <div key={langCode}>
+                  <div className={classes.RightMenu__radio}>
+                    <Checkbox
+                      aria-label={getLangName({ code: langCode })}
+                      name={langCode}
+                      value={langCode}
+                      onChange={handleSelectChange}
+                      checked={selectedLanguages.includes(langCode)}
+                    />
+                    <AltinnConfirmDialog
+                      open={langCode === langCodeToDelete}
+                      confirmText={t('schema_editor.language_confirm_deletion')}
+                      onConfirm={() => handleDeleteLanguage(langCode)}
+                      onClose={() => setLangCodeToDelete(undefined)}
+                      trigger={
+                        <Button
+                          variant={canDeleteLang(langCode) ? 'filled' : 'outline'}
+                          data-testid={`delete-${langCode}`}
+                          color='danger'
+                          onClick={() =>
+                            setLangCodeToDelete((prevState) =>
+                              prevState === langCode ? undefined : langCode
+                            )
+                          }
+                          disabled={!canDeleteLang(langCode)}
+                          aria-label={t('schema_editor.language_delete_button')}
+                          size='small'
+                        >
+                          {t('schema_editor.language_delete_button')}
+                        </Button>
+                      }
+                    >
+                      <p>{t('schema_editor.language_display_confirm_delete')}</p>
+                    </AltinnConfirmDialog>
+                  </div>
                 </div>
-              </div>
-            )})}
+              );
+            })}
           </div>
-        </FieldSet>
+        </Fieldset>
       </div>
       <div className={classes.RightMenu__verticalContent}>
         <div className={classes['LangEditor__title-sm']}>

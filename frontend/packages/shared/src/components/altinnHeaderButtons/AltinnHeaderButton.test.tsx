@@ -3,7 +3,6 @@ import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AltinnHeaderButton, AltinnHeaderButtonProps } from './AltinnHeaderButton';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { ButtonVariant } from '@digdir/design-system-react';
 
 const user = userEvent.setup();
 
@@ -16,7 +15,7 @@ describe('AltinnHeaderbuttons', () => {
   it('should render the button for the provided action', () => {
     render({
       action: {
-        buttonVariant: ButtonVariant.Filled,
+        buttonVariant: 'filled',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -30,7 +29,7 @@ describe('AltinnHeaderbuttons', () => {
     const handleClick = jest.fn();
     render({
       action: {
-        buttonVariant: ButtonVariant.Filled,
+        buttonVariant: 'filled',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -46,7 +45,7 @@ describe('AltinnHeaderbuttons', () => {
   it('should render information icon if action is in beta', () => {
     render({
       action: {
-        buttonVariant: ButtonVariant.Filled,
+        buttonVariant: 'filled',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -60,7 +59,7 @@ describe('AltinnHeaderbuttons', () => {
   it('should render popover with beta message when hovering over information icon', async () => {
     render({
       action: {
-        buttonVariant: ButtonVariant.Filled,
+        buttonVariant: 'filled',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -78,7 +77,7 @@ describe('AltinnHeaderbuttons', () => {
 const render = (props?: Partial<AltinnHeaderButtonProps>) => {
   const defaultProps: AltinnHeaderButtonProps = {
     action: {
-      buttonVariant: ButtonVariant.Filled,
+      buttonVariant: 'filled',
       headerButtonsClasses: undefined,
       menuKey: 'menu-1',
       title: 'Button1',

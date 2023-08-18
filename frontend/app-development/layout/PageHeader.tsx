@@ -8,7 +8,6 @@ import { useUserQuery } from 'app-development/hooks/queries';
 import { useAppSelector } from 'app-development/hooks';
 import { previewPath, publishPath } from 'app-shared/api/paths';
 import { TopBarMenu } from './AppBar/appBarConfig';
-import { ButtonVariant, ButtonColor } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
@@ -23,13 +22,13 @@ export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
 };
 
 export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
-  const actions = [
+  const actions: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview',
       path: previewPath,
       menuKey: TopBarMenu.Preview,
-      buttonVariant: ButtonVariant.Outline,
-      buttonColor: ButtonColor.Inverted,
+      buttonVariant: 'outline',
+      buttonColor: 'inverted',
       headerButtonsClasses: undefined,
       handleClick: () => (window.location.href = previewPath(org, app)),
       inBeta: true,
@@ -38,7 +37,7 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
       title: 'top_menu.deploy',
       path: publishPath,
       menuKey: TopBarMenu.Deploy,
-      buttonVariant: ButtonVariant.Outline,
+      buttonVariant: 'outline',
       headerButtonsClasses: undefined,
       handleClick: () => (window.location.href = publishPath(org, app)),
     },

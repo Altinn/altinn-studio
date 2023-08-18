@@ -1,5 +1,5 @@
 import React, { MouseEvent } from 'react';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { FieldType, Keyword, makePointer, UiSchemaNode, addRootItem } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
@@ -29,14 +29,16 @@ export const TypesInspector = ({
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
-    mutate(addRootItem(data,{
-      name: 'name',
-      location: makePointer(Keyword.Definitions),
-      props: { fieldType: FieldType.Object },
-      callback: (newPointer) => {
-        dispatch(setSelectedAndFocusedNode(newPointer));
-      }
-    }));
+    mutate(
+      addRootItem(data, {
+        name: 'name',
+        location: makePointer(Keyword.Definitions),
+        props: { fieldType: FieldType.Object },
+        callback: (newPointer) => {
+          dispatch(setSelectedAndFocusedNode(newPointer));
+        },
+      })
+    );
   };
 
   if (!schemaItems) {
@@ -57,7 +59,7 @@ export const TypesInspector = ({
           <span className={classes.addRowText}>{t('schema_editor.types')}</span>
           <Button
             className={classes.addRowButton}
-            variant={ButtonVariant.Quiet}
+            variant='quiet'
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
             size='small'

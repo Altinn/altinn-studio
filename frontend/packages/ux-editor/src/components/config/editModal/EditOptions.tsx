@@ -1,14 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  FieldSet,
-  RadioGroup,
-  RadioGroupVariant,
-  TextField,
-} from '@digdir/design-system-react';
+import { Button, Fieldset, Radio, TextField } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -16,10 +8,14 @@ import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
-import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormRadioButtonsComponent,
+} from '../../../types/FormComponent';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { FormField } from '../../FormField';
-export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
+export interface ISelectionEditComponentProvidedProps
+  extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
   };
@@ -83,7 +79,7 @@ export function EditOptions({
       ...component,
       options: component.options.map((option, idx) =>
         idx === index ? { ...option, label: id } : option
-      )
+      ),
     });
   };
 
@@ -92,7 +88,7 @@ export function EditOptions({
       ...component,
       options: component.options.map((option, idx) =>
         idx === index ? { ...option, value: e.target.value } : option
-      )
+      ),
     });
   };
 
@@ -110,27 +106,21 @@ export function EditOptions({
 
   return (
     <>
-      <RadioGroup
-        items={[
-          {
-            value: 'codelist',
-            label: t('ux_editor.modal_add_options_codelist'),
-          },
-          {
-            value: 'manual',
-            label: t('ux_editor.modal_add_options_manual'),
-          },
-        ]}
+      <Radio.Group
+        onChange={handleOptionsTypeChange}
         legend={
           component.type === 'RadioButtons'
             ? t('ux_editor.modal_properties_add_radio_button_options')
             : t('ux_editor.modal_properties_add_check_box_options')
         }
         name={`${component.id}-options`}
-        onChange={handleOptionsTypeChange}
         value={selectedOptionsType}
-        variant={RadioGroupVariant.Horizontal}
-      />
+        inline
+      >
+        <Radio value='codelist'>{t('ux_editor.modal_add_options_codelist')}</Radio>
+        <Radio value='manual'>{t('ux_editor.modal_add_options_manual')}</Radio>
+      </Radio.Group>
+
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
@@ -143,52 +133,51 @@ export function EditOptions({
           {() => (
             <div>
               {component.options?.map((option, index) => {
-                  const updateValue = (e: any) => handleUpdateOptionValue(index, e);
-                  const removeItem = () => handleRemoveOption(index);
-                  const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
-                  const optionTitle = `${
-                    component.type === 'RadioButtons'
-                      ? t('ux_editor.modal_radio_button_increment')
-                      : t('ux_editor.modal_check_box_increment')
-                  } ${index + 1}`;
-                  return (
-                    <div className={classes.optionContainer} key={key}>
-                      <div className={classes.optionContentWrapper}>
-                        <FieldSet legend={optionTitle}>
-                          <div className={classes.optionContent}>
-                            <TextResource
-                              handleIdChange={handleUpdateOptionLabel(index)}
-                              placeholder={
-                                component.type === 'RadioButtons'
-                                  ? t('ux_editor.modal_radio_button_add_label')
-                                  : t('ux_editor.modal_check_box_add_label')
-                              }
-                              textResourceId={option.label}
+                const updateValue = (e: any) => handleUpdateOptionValue(index, e);
+                const removeItem = () => handleRemoveOption(index);
+                const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
+                const optionTitle = `${
+                  component.type === 'RadioButtons'
+                    ? t('ux_editor.modal_radio_button_increment')
+                    : t('ux_editor.modal_check_box_increment')
+                } ${index + 1}`;
+                return (
+                  <div className={classes.optionContainer} key={key}>
+                    <div className={classes.optionContentWrapper}>
+                      <Fieldset legend={optionTitle}>
+                        <div className={classes.optionContent}>
+                          <TextResource
+                            handleIdChange={handleUpdateOptionLabel(index)}
+                            placeholder={
+                              component.type === 'RadioButtons'
+                                ? t('ux_editor.modal_radio_button_add_label')
+                                : t('ux_editor.modal_check_box_add_label')
+                            }
+                            textResourceId={option.label}
+                          />
+                          <div>
+                            <TextField
+                              label={t('general.value')}
+                              onChange={updateValue}
+                              placeholder={t('general.value')}
+                              value={option.value}
                             />
-                            <div>
-                              <TextField
-                                label={t('general.value')}
-                                onChange={updateValue}
-                                placeholder={t('general.value')}
-                                value={option.value}
-                              />
-                            </div>
                           </div>
-                        </FieldSet>
-                      </div>
-                      <div>
-                        <Button
-                          color={ButtonColor.Danger}
-                          icon={<XMarkIcon />}
-                          onClick={removeItem}
-                          variant={ButtonVariant.Quiet}
-                          size='small'
-                        />
-                      </div>
+                        </div>
+                      </Fieldset>
                     </div>
-                  );
-                })
-              }
+                    <div>
+                      <Button
+                        color='danger'
+                        icon={<XMarkIcon />}
+                        onClick={removeItem}
+                        variant='quiet'
+                        size='small'
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </FormField>
@@ -200,20 +189,14 @@ export function EditOptions({
             fullWidth
             icon={<PlusIcon />}
             onClick={handleAddOption}
-            variant={ButtonVariant.Outline}
+            variant='outline'
             size='small'
           >
             {t('ux_editor.modal_new_option')}
           </Button>
         </div>
       )}
-      {
-        errorMessage && (
-          <ErrorMessage size="small">
-            {errorMessage}
-          </ErrorMessage>
-        )
-      }
+      {errorMessage && <ErrorMessage size='small'>{errorMessage}</ErrorMessage>}
     </>
   );
 }
