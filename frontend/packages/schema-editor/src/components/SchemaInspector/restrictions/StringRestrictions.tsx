@@ -3,7 +3,7 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Checkbox, FieldSet, Select, TextField } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Select, TextField } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -71,7 +71,7 @@ export function StringRestrictions({
 
   return (
     <>
-      <Divider marginless/>
+      <Divider marginless />
       <Select
         inputId='format-select-input'
         label={t('format')}
@@ -101,7 +101,8 @@ export function StringRestrictions({
               />
               <Checkbox
                 checked={formatState.earliestIsInclusive}
-                label={t('format_date_inclusive')}
+                aria-label={t('format_date_inclusive')}
+                value={t('format_date_inclusive')}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
                 }
@@ -120,7 +121,8 @@ export function StringRestrictions({
               />
               <Checkbox
                 checked={formatState.latestIsInclusive}
-                label={t('format_date_inclusive')}
+                aria-label={t('format_date_inclusive')}
+                value={t('format_date_inclusive')}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
                 }
@@ -147,8 +149,8 @@ export function StringRestrictions({
           />
         </div>
       </div>
-      <Divider marginless/>
-      <FieldSet className={classes.fieldSet} legend={t('regex')}>
+      <Divider marginless />
+      <Fieldset className={classes.fieldSet} legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKey.pattern}
           label={t(StrRestrictionKey.pattern)}
@@ -182,7 +184,7 @@ export function StringRestrictions({
             <TextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
           </div>
         </div>
-      </FieldSet>
+      </Fieldset>
     </>
   );
 }

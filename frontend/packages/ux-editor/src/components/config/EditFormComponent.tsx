@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Checkbox, FieldSet, Heading } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -55,16 +55,18 @@ export const EditFormComponent = ({
   };
 
   return (
-    <FieldSet className={classes.root}>
+    <Fieldset className={classes.root}>
       <Checkbox
         onChange={toggleShowBetaFunc}
-        checked={showBetaFunc} label={t('ux_editor.edit_component.show_beta_func')}
-        helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
+        checked={showBetaFunc}
+        value={t('ux_editor.edit_component.show_beta_func')}
+        aria-label={t('ux_editor.edit_component.show_beta_func')}
+        description={t('ux_editor.edit_component.show_beta_func_helptext')}
       />
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showBetaFunc && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
+      {showBetaFunc && isLoading && <AltinnSpinner spinnerText={t('general.loading')} />}
       {showBetaFunc && (
         <FormComponentConfig
           schema={isLoading ? {} : schema}
@@ -84,6 +86,6 @@ export const EditFormComponent = ({
           />
         </>
       )}
-    </FieldSet>
+    </Fieldset>
   );
 };

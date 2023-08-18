@@ -1,6 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
@@ -36,7 +36,7 @@ export const CheckboxGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <CheckboxGroup
+      <Checkbox.Group
         legend={
           <TextResource
             handleIdChange={changeLegend}
@@ -63,21 +63,18 @@ export const CheckboxGroupPreview = ({
             }}
           />
         }
-        items={
-          component.options?.map(({ value, label }) => ({
-            name: value,
-            label: (
-              <TextResource
-                handleIdChange={(id) => changeOptionLabel(value, id)}
-                placeholder={tCheckboxes('option_label_placeholder')}
-                previewMode
-                textResourceId={label}
-              />
-            ),
-          })) || []
-        }
-        presentation
-      />
+      >
+        {component.options?.map(({ value, label }, i) => (
+          <Checkbox name={value} value={value} key={i}>
+            <TextResource
+              handleIdChange={(id) => changeOptionLabel(value, id)}
+              placeholder={tCheckboxes('option_label_placeholder')}
+              previewMode
+              textResourceId={label}
+            />
+          </Checkbox>
+        )) || []}
+      </Checkbox.Group>
       {!component.optionsId && (
         <AddOption<FormCheckboxesComponent>
           addButtonClass={classes.addCheckbox}

@@ -67,6 +67,7 @@ describe('When loading AccessControlContainer', () => {
     expect(checkboxes).toHaveLength(4);
     checkboxes.forEach((c) => {
       if (partyTypesAllowed[c.getAttribute('name')]) {
+        console.log(c);
         expect(c).toBeChecked();
       } else {
         expect(c).not.toBeChecked();

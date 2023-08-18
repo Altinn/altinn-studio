@@ -8,13 +8,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import {
-  Checkbox,
-  FieldSet,
-  Select,
-  TextArea,
-  TextField,
-} from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Select, TextArea, TextField } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import {
@@ -167,7 +161,8 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
         <Checkbox
           checked={isArray}
-          label={t('schema_editor.multiple_answers')}
+          aria-label={t('schema_editor.multiple_answers')}
+          value={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
         />
@@ -184,9 +179,10 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {objectKind === ObjectKind.Combination && (
         <Checkbox
-          checkboxId='multiple-answers-checkbox'
+          id='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
-          label={t('schema_editor.nullable')}
+          aria-label={t('schema_editor.nullable')}
+          value={t('schema_editor.nullable')}
           name='checkedNullable'
           onChange={onChangeNullable}
         />
@@ -194,12 +190,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (
         <>
-          <Divider marginless/>
-          <CustomProperties path={pointer}/>
+          <Divider marginless />
+          <CustomProperties path={pointer} />
         </>
       )}
-      <Divider marginless/>
-      <FieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
+      <Divider marginless />
+      <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <TextField
             id={titleId}
@@ -223,7 +219,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             value={itemDescription}
           />
         </div>
-      </FieldSet>
+      </Fieldset>
     </div>
   );
 }
