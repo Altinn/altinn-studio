@@ -25,8 +25,9 @@ const defaultProps: IGenericEditComponent = {
 
 describe('ButtonComponent', () => {
   it('changing button type to navigation buttons should call handleComponentChange with expected properties', async () => {
+    const user = userEvent.setup();
     const mockHandleComponentChange = jest.fn();
-    const { user } = await render({ handleComponentChange: mockHandleComponentChange });
+    await render({ handleComponentChange: mockHandleComponentChange });
     const buttonTypeSelect = screen.getByRole('combobox');
     await act(() => user.click(buttonTypeSelect));
     await act(() => user.click(screen.getAllByRole('option')[1]));
@@ -42,8 +43,9 @@ describe('ButtonComponent', () => {
   });
 
   it('changing button type to submit should call handleComponentChange with expected properties', async () => {
+    const user = userEvent.setup();
     const mockHandleComponentChange = jest.fn();
-    const { user } = await render({
+    await render({
       handleComponentChange: mockHandleComponentChange,
       component: {
         ...component,
@@ -70,10 +72,7 @@ const waitForData = async () => {
 };
 
 const render = async (props?: Partial<IGenericEditComponent>) => {
-  const user = userEvent.setup();
-
   await waitForData();
 
   renderWithMockStore()(<ButtonComponent {...defaultProps} {...props} />);
-  return { user };
 };
