@@ -39,19 +39,11 @@ const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = handleComponentChangeMock,
 }: Partial<IGenericEditComponent>) => {
-  const user = userEvent.setup();
-
   await waitForData();
 
   renderWithMockStore({
     appData: { ...appDataMock },
-  })(
-    <MapComponent
-      component={component}
-      handleComponentChange={handleComponentChange}
-    />
-  );
-  return { user };
+  })(<MapComponent component={component} handleComponentChange={handleComponentChange} />);
 };
 
 describe('MapComponent', () => {
@@ -71,7 +63,8 @@ describe('MapComponent', () => {
   });
 
   test('should be able to set latitude', async () => {
-    const { user } = await renderMapComponent({
+    const user = userEvent.setup();
+    await renderMapComponent({
       handleComponentChange: handleComponentChangeMock,
     });
 
@@ -84,7 +77,8 @@ describe('MapComponent', () => {
   });
 
   test('should be able to set longitude', async () => {
-    const { user } = await renderMapComponent({
+    const user = userEvent.setup();
+    await renderMapComponent({
       handleComponentChange: handleComponentChangeMock,
     });
 
@@ -97,7 +91,8 @@ describe('MapComponent', () => {
   });
 
   test('should be able to set zoom', async () => {
-    const { user } = await renderMapComponent({
+    const user = userEvent.setup();
+    await renderMapComponent({
       handleComponentChange: handleComponentChangeMock,
     });
 
@@ -141,7 +136,8 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set link', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.url_label']);
     await act(() => user.type(input, 'test'));
@@ -158,7 +154,8 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set attribution', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
     await act(() => user.type(input, 'test'));
@@ -175,7 +172,8 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set subdomains', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
     await act(() => user.type(input, 'test'));
@@ -192,7 +190,8 @@ describe('AddMapLayer', () => {
   });
 
   it('calls handleAddLayer on button click', async () => {
-    const { user } = await renderMapComponent({});
+    const user = userEvent.setup();
+    await renderMapComponent({});
 
     const button = screen.getByRole('button');
 
