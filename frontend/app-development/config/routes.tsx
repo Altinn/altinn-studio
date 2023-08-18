@@ -5,7 +5,7 @@ import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
-import { ProcessEditor } from 'app-development/features/appProcess/AppProcess';
+import { ProcessEditor } from 'app-development/features/processEditor/ProcessEditor';
 
 interface IRouteProps {
   headerTextKey?: string;

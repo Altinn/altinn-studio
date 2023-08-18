@@ -30,6 +30,7 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   OptionListIds = 'OptionListIds',
+  FetchBpmn = 'FetchBpmn',
 
   // Resourceadm
   ResourcePolicy = 'ResourcePolicy',
@@ -42,5 +43,5 @@ export enum QueryKey {
   ValidateResource = 'ValidateResource',
   ResourceSectors = 'ResourceSectors',
   ResourceThematicLos = 'ResourceThematicLos',
-  ResourceThematicEurovoc = 'ResourceThematicEurovoc'
+  ResourceThematicEurovoc = 'ResourceThematicEurovoc',
 }
