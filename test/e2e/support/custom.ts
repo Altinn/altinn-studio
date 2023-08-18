@@ -173,6 +173,8 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
       focused.blur();
     }
   });
+
+  // eslint-disable-next-line cypress/unsafe-to-chain-command
   cy.focused().should('not.exist');
 
   // Wait for elements marked as loading are not loading anymore

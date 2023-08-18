@@ -55,7 +55,7 @@ export const DownloadXMLButton = () => {
           onDrop={uploadXML}
           accept={{ 'application/xml': ['.xml'] }}
         >
-          {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
+          {({ getRootProps, getInputProps }) => (
             <Button
               {...getRootProps({
                 onClick: (e) => e.preventDefault(),

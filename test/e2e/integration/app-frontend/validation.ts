@@ -217,6 +217,7 @@ describe('Validation', () => {
     for (const { text, shouldFocus } of expectedErrors) {
       cy.get(appFrontend.errorReport).should('contain.text', text);
       cy.get(`button:contains("${text}")`).click();
+      // eslint-disable-next-line cypress/unsafe-to-chain-command
       cy.focused().closest('[data-componentid]').should('have.attr', 'data-componentid', shouldFocus);
     }
   });
@@ -471,6 +472,7 @@ describe('Validation', () => {
     // Note that we're testing expected functionality here, but if you're actually implementing this in an app, you
     // should trigger validation before saving and closing the group row, so that the user cannot reach this state
     // (although they still could if refreshing the page, so it's not the best idea).
+    // eslint-disable-next-line cypress/unsafe-to-chain-command
     cy.focused().should('have.text', 'Du må fylle ut 2. endre verdi til');
 
     // Clicking the next validation message should focus the component already open in editing mode

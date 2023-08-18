@@ -150,6 +150,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.grid.grid).find('tr:eq(2) td:eq(0)').should('contain.text', 'Dette er en beskrivende tekst');
     cy.get(appFrontend.grid.grid).find('tr:eq(2) td:eq(0)').find(appFrontend.helpText.open).click();
     cy.get(appFrontend.grid.grid).find('tr:eq(2) td:eq(0) label').click();
+    // eslint-disable-next-line cypress/unsafe-to-chain-command
     cy.focused().should('have.attr', 'id', 'fordeling-studie');
   });
 });
