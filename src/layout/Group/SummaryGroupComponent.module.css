@@ -9,7 +9,7 @@
 }
 @media print {
   .border {
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
 
