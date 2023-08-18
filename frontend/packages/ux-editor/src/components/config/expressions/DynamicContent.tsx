@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  Dynamic,
+  Dynamic, expressionDataSourceTexts,
   ExpressionElement,
   expressionFunctionTexts,
   expressionInPreviewPropertyTexts,
@@ -228,9 +228,9 @@ export const DynamicContent = ({
             ) : (
               expressionElements.map((expEl: ExpressionElement, index: number) => (
                 <div key={expEl.id}>
-                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
+                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.dataSource]} {' '} <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
-                  <p><ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '}
+                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.comparableDataSource]} {' '}
                     <span>{expEl.comparableValue}</span></p>
                   {index !== expressionElements.length - 1 && (
                     <p className={classes.bold}>{dynamic.operator === Operator.And ? 'Og' : 'Eller'}</p>)}
