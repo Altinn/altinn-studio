@@ -1,6 +1,6 @@
 import 'jest';
-import '@testing-library/jest-dom/extend-expect';
 import 'whatwg-fetch';
+import '@testing-library/jest-dom/jest-globals'
 
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';

@@ -3820,9 +3820,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:6.0.0":
-  version: 6.0.0
-  resolution: "@testing-library/jest-dom@npm:6.0.0"
+"@testing-library/jest-dom@npm:6.0.1":
+  version: 6.0.1
+  resolution: "@testing-library/jest-dom@npm:6.0.1"
   dependencies:
     "@adobe/css-tools": ^4.0.1
     "@babel/runtime": ^7.9.2
@@ -3846,7 +3846,7 @@ __metadata:
       optional: true
     vitest:
       optional: true
-  checksum: 9b978e993f084553f8e39215b08f6e09e84a4c78e578db35d361bb4259aed84418f1b17ce52f23ead4d81cc7cad5ae5b18a6596d6d531a6d2252be66409e7167
+  checksum: b5c35e2a79d646753f0305bf7f461c5d6fb873016527a78606a20a5fcc7e55a2f5e9eb394d376c47739cee566af133c6f53d8f49681d623db1cf6f236c5971df
   languageName: node
   linkType: hard
 
@@ -5136,7 +5136,7 @@ __metadata:
     "@tanstack/react-query": 4.32.6
     "@tanstack/react-query-devtools": 4.32.6
     "@testing-library/dom": 9.3.1
-    "@testing-library/jest-dom": 6.0.0
+    "@testing-library/jest-dom": 6.0.1
     "@testing-library/react": 14.0.0
     "@testing-library/user-event": 14.4.3
     "@types/css-modules": 1.0.2
