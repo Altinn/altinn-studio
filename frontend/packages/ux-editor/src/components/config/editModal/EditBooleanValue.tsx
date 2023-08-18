@@ -27,7 +27,7 @@ export const EditBooleanValue = ({
 
   const isValueExpression = (value: any) => {
     return Array.isArray(value);
-  }
+  };
 
   return (
     <FormField
@@ -37,17 +37,23 @@ export const EditBooleanValue = ({
       onChange={handleChange}
       propertyPath={component.propertyPath}
       componentType={component.type}
-      helpText={isValueExpression(component[propertyKey]) ? t('ux_editor.component_properties.config_is_expression_message') : helpText}
+      helpText={
+        isValueExpression(component[propertyKey])
+          ? t('ux_editor.component_properties.config_is_expression_message')
+          : helpText
+      }
     >
       {({ value, onChange }) => {
         return (
-            <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-          checkboxId={`${propertyKey}-checkbox-${component.id}`}
-          disabled={isValueExpression(value)}
-        />
-      )}}
+          <Checkbox
+            value={value}
+            checked={value}
+            onChange={(e) => onChange(e.target.checked, e)}
+            id={`${propertyKey}-checkbox-${component.id}`}
+            disabled={isValueExpression(value)}
+          />
+        );
+      }}
     </FormField>
   );
 };

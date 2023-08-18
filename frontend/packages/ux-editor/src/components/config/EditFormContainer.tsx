@@ -210,10 +210,11 @@ export const EditFormContainer = ({
                 <Checkbox.Group
                   error={tableHeadersError}
                   legend={t('ux_editor.modal_properties_group_table_headers')}
+                  value={items.filter((id) => !!components[id])}
                 >
                   {items
                     .filter((id) => !!components[id])
-                    .map((id, i) => (
+                    .map((id) => (
                       <Checkbox
                         name={id}
                         checked={
@@ -221,7 +222,7 @@ export const EditFormContainer = ({
                           container.tableHeaders.includes(id)
                         }
                         value={id}
-                        key={i}
+                        key={id}
                       >
                         {getTextResource(
                           components[id]?.textResourceBindings?.title,

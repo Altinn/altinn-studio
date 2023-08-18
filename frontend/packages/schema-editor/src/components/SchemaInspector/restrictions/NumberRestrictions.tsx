@@ -102,7 +102,8 @@ export function NumberRestrictions({
           <Checkbox
             aria-checked='true'
             checked={formatState.isMinInclusive}
-            label={t('schema_editor.format_date_inclusive')}
+            aria-label={t('schema_editor.format_date_inclusive')}
+            value={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
             }
@@ -124,10 +125,11 @@ export function NumberRestrictions({
             </div>
           </div>
           <Checkbox
-            checkboxId='include-minimum-value-checkbox'
+            id='include-minimum-value-checkbox'
             aria-checked='true'
             checked={formatState.isMaxInclusive}
-            label={t('schema_editor.format_date_inclusive')}
+            aria-label={t('schema_editor.format_date_inclusive')}
+            value={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)
             }

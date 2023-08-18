@@ -22,7 +22,6 @@ const render = (props: Partial<RestrictionItemProps> = {}) => {
   return rtlRender(<ArrayRestrictions {...allProps} />);
 };
 
-
 describe('ArrayRestrictions', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -45,7 +44,11 @@ describe('ArrayRestrictions', () => {
     const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.minItems));
     userEvent.type(minItems, 'test 2');
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.minItems, '12')
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+        pathMock,
+        ArrRestrictionKey.minItems,
+        '12'
+      )
     );
   });
 
@@ -59,7 +62,11 @@ describe('ArrayRestrictions', () => {
     const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.maxItems));
     userEvent.type(maxItems, 'test 2');
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.maxItems, '12')
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+        pathMock,
+        ArrRestrictionKey.maxItems,
+        '12'
+      )
     );
   });
 
@@ -70,10 +77,16 @@ describe('ArrayRestrictions', () => {
       },
     };
     render(props);
-    const uniqueItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.uniqueItems));
+    const uniqueItems = screen.getByLabelText(
+      textMock('schema_editor.' + ArrRestrictionKey.uniqueItems)
+    );
     userEvent.click(uniqueItems);
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.uniqueItems, true)
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+        pathMock,
+        ArrRestrictionKey.uniqueItems,
+        true
+      )
     );
   });
 });

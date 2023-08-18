@@ -22,10 +22,9 @@ export const EditRequired = ({ component, handleComponentChange }: IGenericEditC
       onChange={handleChange}
       propertyPath='definitions/component/properties/required'
     >
-      {({ value, onChange }) => <Checkbox
-        checked={value}
-        onChange={(e) => onChange(e.target.checked, e)}
-      />}
+      {({ value, onChange }) => (
+        <Checkbox value={value} checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+      )}
     </FormField>
   );
 };

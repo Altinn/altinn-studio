@@ -88,8 +88,9 @@ export function PropertyItem({
         <Checkbox
           checked={required ?? false}
           disabled={readOnly}
-          hideLabel
-          label={t('schema_editor.required')}
+          // hideLabel - Not possible anymore
+          aria-label={t('schema_editor.required')}
+          value={t('schema_editor.required')}
           name='checkedArray'
           onChange={changeRequiredHandler}
         />
@@ -103,7 +104,7 @@ export function PropertyItem({
           <IconButton
             ariaLabel={t('schema_editor.delete_field')}
             icon={IconImage.Wastebucket}
-            onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
+            onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
           />
         }
       >

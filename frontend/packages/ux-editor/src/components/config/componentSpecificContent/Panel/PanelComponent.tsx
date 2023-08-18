@@ -6,10 +6,7 @@ import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding
 import { FormPanelVariant } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 
-export const PanelComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
 
   const handleShowIconClick = (showIcon: boolean) => {
@@ -37,7 +34,7 @@ export const PanelComponent = ({
         propertyPath={`${component.propertyPath}/properties/showIcon`}
       >
         {({ value, onChange }) => (
-          <Checkbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <Checkbox value={value} checked={value} onChange={(e) => onChange(e.target.checked, e)} />
         )}
       </FormField>
       <FormField

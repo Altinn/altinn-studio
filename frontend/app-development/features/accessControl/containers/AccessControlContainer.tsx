@@ -102,15 +102,16 @@ export function AccessControlContainer() {
           description={t('access_control.party_type')}
           legend={t('access_control.party_type_header')}
           onChange={(values) => handlePartyTypesAllowedChange(values)}
+          value={partyTypeKeys.filter((key: keyof IPartyTypesAllowed) => partyTypesAllowed[key])}
         >
-          {partyTypeKeys.map((key: keyof IPartyTypesAllowed, i: number) => (
+          {partyTypeKeys.map((key: keyof IPartyTypesAllowed) => (
             <Checkbox
               value={key}
               name={key}
               disabled={false}
               checked={!!partyTypesAllowed[key]}
               id={undefined}
-              key={i}
+              key={key}
             >
               {t(`access_control.${key}`) as string}
             </Checkbox>

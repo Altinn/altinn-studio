@@ -33,7 +33,7 @@ const FormContextProviderMock = {
   handleUpdate: jest.fn(),
   handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
   debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
-}
+};
 
 // Mocks:
 jest.mock('../TextResourceEdit', () => ({
@@ -112,13 +112,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({
-  props = {},
-  editId,
-}: {
-  props: Partial<FormContext>;
-  editId?: string;
-}) => {
+const render = async ({ props = {}, editId }: { props: Partial<FormContext>; editId?: string }) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
     currentEditId: editId,
@@ -131,10 +125,12 @@ const render = async ({
   await waitForData();
 
   return renderWithMockStore({ appData })(
-    <FormContext.Provider value={{
-      ...FormContextProviderMock,
-      ...props
-    }}>
+    <FormContext.Provider
+      value={{
+        ...FormContextProviderMock,
+        ...props,
+      }}
+    >
       <Content />
     </FormContext.Provider>
   );
