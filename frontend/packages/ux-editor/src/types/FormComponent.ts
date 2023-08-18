@@ -26,6 +26,13 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   propertyPath?: string;
 }
 
+export interface FormAlertComponent extends FormComponentBase<ComponentType.Alert> {
+  severity: 'success' | 'info' | 'warning' | 'danger';
+}
+
+// Uncomment these when we have JSON schemas for them
+// export type FormAccordionComponent = FormComponentBase<ComponentType.Accordion>;
+// export type FormAccordionGroupComponent = FormComponentBase<ComponentType.AccordionGroup>;
 interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
   options?: IOption[];
   preselectedOptionIndex?: number;
@@ -136,6 +143,10 @@ export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
 }
 
 export type FormComponent<T extends ComponentType = ComponentType> = {
+  [ComponentType.Alert]: FormAlertComponent;
+  // Uncomment these when we have JSON schemas for them
+  // [ComponentType.Accordion]: FormAccordionComponent;
+  // [ComponentType.AccordionGroup]: FormAccordionGroupComponent;
   [ComponentType.ActionButton]: FormComponentBase<ComponentType.ActionButton>;
   [ComponentType.AddressComponent]: FormAddressComponent;
   [ComponentType.AttachmentList]: FormAttachmentListComponent;

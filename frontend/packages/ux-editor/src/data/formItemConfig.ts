@@ -11,6 +11,34 @@ export type FormItemConfig<T extends ComponentType = ComponentType> = {
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
+  [ComponentType.Alert]: {
+    name: ComponentType.Alert,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Alert,
+      severity: 'info',
+      propertyPath: 'definitions/alertComponent',
+    },
+  },
+  // [ComponentType.Accordion]: {
+  //   name: ComponentType.Accordion,
+  //   defaultProperties: {
+  //     id: '',
+  //     itemType: 'COMPONENT',
+  //     type: ComponentType.Accordion,
+  //     propertyPath: 'definitions/accordionComponent',
+  //   },
+  // },
+  // [ComponentType.AccordionGroup]: {
+  //   name: ComponentType.AccordionGroup,
+  //   defaultProperties: {
+  //     id: '',
+  //     itemType: 'COMPONENT',
+  //     type: ComponentType.AccordionGroup,
+  //     propertyPath: 'definitions/accordionGroupComponent',
+  //   },
+  // },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
     defaultProperties: {
@@ -412,6 +440,7 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
+  formItemConfigs[ComponentType.Alert],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
