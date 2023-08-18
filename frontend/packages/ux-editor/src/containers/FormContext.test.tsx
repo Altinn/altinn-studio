@@ -38,8 +38,6 @@ mockUseUpdateFormComponentMutation.mockReturnValue({
   mutateAsync: mockUpdateFormComponent,
 } as unknown as UseMutationResult<{ currentId: string; newId: string }, unknown, UpdateFormComponentMutationArgs, unknown>);
 
-const user = userEvent.setup();
-
 const render = (ChildComponent: React.ElementType) => {
   return renderWithMockStore()(
     <FormContextProvider>
@@ -52,6 +50,7 @@ describe('FormContext', () => {
   afterEach(jest.clearAllMocks);
 
   it('should update the form when calling handleUpdate', async () => {
+    const user = userEvent.setup();
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
@@ -77,6 +76,7 @@ describe('FormContext', () => {
   });
 
   it('should edit the form when calling handleEdit', async () => {
+    const user = userEvent.setup();
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     const { store } = render(() => {
@@ -108,6 +108,7 @@ describe('FormContext', () => {
   });
 
   it('should discard the form when calling handleDiscard', async () => {
+    const user = userEvent.setup();
     const { store } = render(() => {
       const { formId, form, handleDiscard } = React.useContext(FormContext);
       return (
@@ -133,6 +134,7 @@ describe('FormContext', () => {
   });
 
   it('should save the container when calling handleSave', async () => {
+    const user = userEvent.setup();
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
@@ -147,6 +149,7 @@ describe('FormContext', () => {
   });
 
   it('should save the container and its new id when calling handleSave', async () => {
+    const user = userEvent.setup();
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
@@ -160,7 +163,7 @@ describe('FormContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await user.click(button);
+    await act(() => user.click(button));
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id)
@@ -169,6 +172,7 @@ describe('FormContext', () => {
   });
 
   it('should save the container when calling debounceSave', async () => {
+    const user = userEvent.setup();
     const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
 
     render(() => {
@@ -185,6 +189,7 @@ describe('FormContext', () => {
   });
 
   it('should save the component when calling handleSave', async () => {
+    const user = userEvent.setup();
     const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
 
     render(() => {
@@ -199,6 +204,7 @@ describe('FormContext', () => {
   });
 
   it('should save the component and its new id when calling handleSave', async () => {
+    const user = userEvent.setup();
     const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
 
     render(() => {
@@ -212,7 +218,7 @@ describe('FormContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await user.click(button);
+    await act(() => user.click(button));
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id)
@@ -221,6 +227,7 @@ describe('FormContext', () => {
   });
 
   it('should save the component when calling debounceSave', async () => {
+    const user = userEvent.setup();
     const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
 
     render(() => {
