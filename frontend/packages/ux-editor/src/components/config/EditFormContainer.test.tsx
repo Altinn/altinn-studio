@@ -25,13 +25,13 @@ describe('EditFormContainer', () => {
   it('should render the component', async () => {
     await render();
 
-    expect(screen.getByText(textMock('ux_editor.modal_properties_group_change_id') + ' *')).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_group_change_id'))).toBeInTheDocument();
   });
 
   it('should update form when editing field', async () => {
     await render();
 
-    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
+    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
     await act(() => user.type(containerIdInput, "test"));
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
@@ -39,7 +39,7 @@ describe('EditFormContainer', () => {
   it('should display an error when containerId is invalid', async () => {
     await render();
 
-    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
+    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
     await act(() => user.type(containerIdInput, "test@"));
     expect(screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid'))).toBeInTheDocument();
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
