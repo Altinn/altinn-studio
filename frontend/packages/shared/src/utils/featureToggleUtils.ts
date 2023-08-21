@@ -20,6 +20,11 @@ const defaultActiveFeatures: SupportedFeatureFlags[] = [];
  * @example shouldDisplayFeature('myFeatureName')
  */
 export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolean => {
+  // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
+  if (shouldPersistInSession()) {
+    addFeatureFlagToSessionStorage(featureFlag);
+  }
+
   return (
     isDefaultActivatedFeature(featureFlag) ||
     isFeatureActivatedByUrl(featureFlag) ||
@@ -37,15 +42,10 @@ const isDefaultActivatedFeature = (featureFlag: SupportedFeatureFlags): boolean 
 const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean => {
   const urlParams = new URLSearchParams(window.location.search);
   const featureParam = urlParams.get(featureFlagKey);
+
   if (featureParam) {
     const features = featureParam.split(',');
     return features.includes(featureFlag);
-  }
-
-  // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
-  const shouldPersistInSession = urlParams.get(persistFeatureKey);
-  if (shouldPersistInSession) {
-    addFeatureFlagToSessionStorage(featureFlag);
   }
 
   return false;
@@ -57,9 +57,17 @@ const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): b
   return featureFlagsFromStorage.includes(featureFlag);
 };
 
+// Check if feature includes in session storage, featureFlags: ["featureName"]
 const isFeatureActivatedBySessionStorage = (featureFlag: SupportedFeatureFlags): boolean => {
   const featureFlagsFromStorage = typedSessionStorage.getItem<string[]>(featureFlagKey) || [];
   return featureFlagsFromStorage.includes(featureFlag);
+};
+
+// Check if the feature should be persisted in session storage, (url)?persistFeatureFlag=true
+const shouldPersistInSession = (): boolean => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const shouldPersistInSession = urlParams.get(persistFeatureKey);
+  return !!shouldPersistInSession;
 };
 
 // Add feature to session storage to persist the feature in the current session
