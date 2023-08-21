@@ -2,7 +2,7 @@ import React, { ReactNode, useCallback } from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import { DraggableEditorItemType, DndItem, HandleDrop } from '../../types/dndTypes';
 import classes from './DroppableList.module.css';
-import { cypressTestid } from '../../../../../testing/cypress/cypressTestid';
+import { testids } from '../../../../../testing/testids';
 
 export interface DroppableListProps {
   children: ReactNode;
@@ -40,7 +40,7 @@ export const DroppableList = ({
   return (
     <div
       className={classes.root}
-      data-testid={cypressTestid.droppableList}
+      data-testid={testids.droppableList}
       ref={drop}
       style={{ backgroundColor }}
     >
