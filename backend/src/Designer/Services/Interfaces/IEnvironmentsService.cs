@@ -13,7 +13,7 @@ public interface IEnvironmentsService
     /// <returns>List of environments</returns>
     Task<List<EnvironmentModel>> GetEnvironments();
 
-    Task<IEnumerable<EnvironmentModel>> GetEnvironmentsForOrganization(string org);
+    Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(string org);
 
     Task<Uri> CreatePlatformUri(string envName);
 

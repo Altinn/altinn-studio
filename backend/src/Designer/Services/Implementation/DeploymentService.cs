@@ -88,7 +88,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
             IEnumerable<DeploymentEntity> deploymentEntities = results as DeploymentEntity[] ?? results.ToArray();
 
-            var environments = await _environmentsService.GetEnvironmentsForOrganization(org);
+            var environments = await _environmentsService.GetOrganizationEnvironments(org);
             foreach (EnvironmentModel env in environments)
             {
                 try
