@@ -2,6 +2,7 @@ import { MutableRefObject, useRef, useEffect } from 'react';
 import Modeler from 'bpmn-js/lib/Modeler';
 import SupportedContextPadProvider from '../bpmnProviders/SupportedContextPadProvider';
 import SupportedPaletteProvider from '../bpmnProviders/SupportedPaletteProvider';
+import { useBpmnContext } from '../contexts/BpmnContext';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -10,9 +11,9 @@ type UseBpmnViewerResult = {
   modelerRef: MutableRefObject<Modeler>;
 };
 
-export const useBpmnEditor = (bpmnXml: string): UseBpmnViewerResult => {
+export const useBpmnEditor = (): UseBpmnViewerResult => {
+  const { bpmnXml, modelerRef, setNumberOfUnsavedChanges } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const modelerRef = useRef<Modeler | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -27,7 +28,15 @@ export const useBpmnEditor = (bpmnXml: string): UseBpmnViewerResult => {
       },
       additionalModules: [SupportedPaletteProvider, SupportedContextPadProvider],
     });
+
+    // set modelerRef.current to the Context so that it can be used in other components
     modelerRef.current = modeler;
+
+    const initializeUnsavedChangesCount = () => {
+      modeler.on('commandStack.changed', () => {
+        setNumberOfUnsavedChanges((prev) => prev + 1);
+      });
+    };
 
     const initializeEditor = async () => {
       try {
@@ -40,7 +49,8 @@ export const useBpmnEditor = (bpmnXml: string): UseBpmnViewerResult => {
     };
 
     initializeEditor();
-  }, [bpmnXml]);
+    initializeUnsavedChangesCount();
+  }, [bpmnXml, modelerRef, setNumberOfUnsavedChanges]);
 
   return { canvasRef, modelerRef };
 };

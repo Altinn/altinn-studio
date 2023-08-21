@@ -1,5 +1,6 @@
 import { MutableRefObject, useRef, useEffect } from 'react';
 import BpmnJS from 'bpmn-js/dist/bpmn-navigated-viewer.development.js';
+import { useBpmnContext } from '../contexts/BpmnContext';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -7,7 +8,8 @@ type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
 };
 
-export const useBpmnViewer = (bpmnXml: string): UseBpmnViewerResult => {
+export const useBpmnViewer = (): UseBpmnViewerResult => {
+  const { bpmnXml } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {

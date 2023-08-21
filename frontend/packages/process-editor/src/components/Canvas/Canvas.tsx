@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@digdir/design-system-react';
 import { CogIcon, EyeFillIcon } from '@navikt/aksel-icons';
@@ -10,29 +10,23 @@ import 'bpmn-js/dist/assets/bpmn-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
-import Modeler from 'bpmn-js/lib/Modeler';
+import { useBpmnContext } from '../../contexts/BpmnContext';
 
 export type CanvasProps = {
-  bpmnXml: string | undefined | null;
   onSave: (bpmnXml: string) => void;
 };
 
-export const Canvas = ({ bpmnXml, onSave }: CanvasProps): JSX.Element => {
+export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
   const { t } = useTranslation();
-  const [isEditorView, setIsEditorView] = React.useState(false);
-  const modelerRef = React.useRef<Modeler | null>(null);
+  const { getUpdatedXml, numberOfUnsavedChanges } = useBpmnContext();
+  const [isEditorView, setIsEditorView] = useState(false);
 
   const toggleViewModus = (): void => {
     setIsEditorView((prevIsEditorView) => !prevIsEditorView);
   };
 
-  const handleOnSave = async () => {
-    if (!modelerRef.current) {
-      console.warn('Modeler not ready');
-      return;
-    }
-    const { xml } = await modelerRef.current.saveXML({ format: true });
-    onSave(xml);
+  const handleOnSave = async (): Promise<void> => {
+    onSave(await getUpdatedXml());
   };
 
   return (
@@ -43,36 +37,28 @@ export const Canvas = ({ bpmnXml, onSave }: CanvasProps): JSX.Element => {
           variant='outline'
           icon={isEditorView ? <EyeFillIcon /> : <CogIcon />}
         >
-          {isEditorView ? t('process_editor_view_mode') : t('process_editor_edit_mode')}
+          {isEditorView ? t('process_editor.view_mode') : t('process_editor.edit_mode')}
         </Button>
-
+        {numberOfUnsavedChanges > 0 && (
+          <span className={classes.unsavedChanges}>
+            {t('process_editor.unsaved_changes', { count: numberOfUnsavedChanges })}
+          </span>
+        )}
         <Button onClick={handleOnSave} variant='outline' color='success'>
-          {t('process_editor_save')}
+          {t('process_editor.save')}
         </Button>
       </span>
-      {isEditorView ? (
-        <Editor bpmnXml={bpmnXml} onModelerReady={(modeler) => (modelerRef.current = modeler)} />
-      ) : (
-        <Viewer bpmnXml={bpmnXml} />
-      )}
+      {isEditorView ? <Editor /> : <Viewer />}
     </>
   );
 };
 
-const Viewer = ({ bpmnXml }: Pick<CanvasProps, 'bpmnXml'>): JSX.Element => {
-  const { canvasRef } = useBpmnViewer(bpmnXml);
+const Viewer = (): JSX.Element => {
+  const { canvasRef } = useBpmnViewer();
   return <div ref={canvasRef}></div>;
 };
 
-const Editor = ({
-  bpmnXml,
-  onModelerReady,
-}: Pick<CanvasProps, 'bpmnXml'> & { onModelerReady: (modeler: Modeler) => void }): JSX.Element => {
-  const { canvasRef, modelerRef } = useBpmnEditor(bpmnXml);
-
-  useEffect(() => {
-    onModelerReady(modelerRef.current);
-  }, [modelerRef, onModelerReady]);
-
+const Editor = (): JSX.Element => {
+  const { canvasRef } = useBpmnEditor();
   return <div ref={canvasRef}></div>;
 };

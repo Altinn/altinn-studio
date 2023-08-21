@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
 import { Canvas } from './components/Canvas';
+import { BpmnContextProvider } from './contexts/BpmnContext';
 
 type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
@@ -11,7 +12,7 @@ type ProcessEditorProps = {
 export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
   if (bpmnXml === undefined) {
-    return <PageLoading title={t('process_editor_loading')} />;
+    return <PageLoading title={t('process_editor.loading')} />;
   }
 
   if (bpmnXml === null) {
@@ -25,5 +26,9 @@ export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Elem
     );
   }
 
-  return <Canvas bpmnXml={bpmnXml} onSave={onSave}/>;
+  return (
+    <BpmnContextProvider bpmnXml={bpmnXml}>
+      <Canvas onSave={onSave} />
+    </BpmnContextProvider>
+  );
 };
