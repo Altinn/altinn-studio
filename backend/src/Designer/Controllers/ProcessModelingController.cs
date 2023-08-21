@@ -23,14 +23,14 @@ namespace Altinn.Studio.Designer.Controllers
             _appDevelopmentService = appDevelopmentService;
         }
 
-        [HttpGet("definition")]
+        [HttpGet("process-definition")]
         public Task<string> GetProcessDefinition(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             return _appDevelopmentService.GetBpmnFile(org, repo, developer);
         }
 
-        [HttpPut("definition")]
+        [HttpPut("process-definition")]
         public async Task<IActionResult> SaveProcessDefinition(string org, string repo)
         {
             string bpmnFileContent = await ReadRequestBodyContentAsync();
