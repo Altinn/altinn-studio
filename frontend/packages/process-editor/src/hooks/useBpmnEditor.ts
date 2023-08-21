@@ -1,7 +1,6 @@
 import { MutableRefObject, useRef, useEffect } from 'react';
 import Modeler from 'bpmn-js/lib/Modeler';
-
-import qaExtension from './qaExtension.json';
+import CustomPaletteProvider from '../palette';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -19,13 +18,11 @@ export const useBpmnEditor = (bpmnXml: string): UseBpmnViewerResult => {
     }
 
     const modeler = new Modeler({
-      moddleExtensions: {
-        qa: qaExtension,
-      },
       container: canvasRef.current,
       keyboard: {
         bindTo: document,
       },
+      additionalModules: [CustomPaletteProvider],
     });
 
     const initializeEditor = async () => {
