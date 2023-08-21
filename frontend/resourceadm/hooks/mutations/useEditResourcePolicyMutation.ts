@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { PolicyBackendType } from 'resourceadm/types/global';
 
 /**
  * Mutation to edit an existing policy in a resource.

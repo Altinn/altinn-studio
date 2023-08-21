@@ -1,50 +1,6 @@
 import { get } from 'app-shared/utils/networking';
-import {
-  branchStatusPath,
-  datamodelMetadataPath,
-  datamodelPath,
-  datamodelsPath,
-  datamodelsXsdPath,
-  deployPermissionsPath,
-  deploymentsPath,
-  envConfigPath,
-  formLayoutsPath,
-  instanceIdForPreviewPath,
-  layoutSetsPath,
-  layoutSettingsPath,
-  optionListIdsPath,
-  orgsListPath,
-  releasesPath,
-  repoMetaPath,
-  repoPullPath,
-  repoSearchPath,
-  repoStatusPath,
-  resourceActionsPath,
-  resourceListPath,
-  resourcePolicyPath,
-  resourcePublishStatusPath,
-  resourceSectorsPath,
-  resourceSinglePath,
-  resourceSubjectsPath,
-  resourceThematicEurovocPath,
-  resourceThematicLosPath,
-  resourceValidatePolicyPath,
-  resourceValidateResourcePath,
-  ruleConfigPath,
-  ruleHandlerPath,
-  textLanguagesPath,
-  textResourcesPath,
-  userCurrentPath,
-  userStarredListPath,
-  widgetSettingsPath,
-} from './paths';
-import {
-  AppDeploymentsResponse,
-  AppReleasesResponse,
-  DatamodelMetadataResponse,
-  SearchRepoFilterParams,
-  SearchRepositoryResponse,
-} from 'app-shared/types/api';
+import { branchStatusPath, datamodelMetadataPath, datamodelPath, datamodelsPath, datamodelsXsdPath, deployPermissionsPath, deploymentsPath, envConfigPath, formLayoutsPath, instanceIdForPreviewPath, layoutSetsPath, layoutSettingsPath, optionListIdsPath, orgsListPath, releasesPath, repoMetaPath, repoPullPath, repoSearchPath, repoStatusPath, resourceActionsPath, resourceListPath, resourcePolicyPath, resourcePublishStatusPath, resourceSectorsPath, resourceSinglePath, resourceSubjectsPath, resourceThematicEurovocPath, resourceThematicLosPath, resourceValidatePolicyPath, resourceValidateResourcePath, ruleConfigPath, ruleHandlerPath, textLanguagesPath, textResourcesPath, userCurrentPath, userStarredListPath, widgetSettingsPath } from './paths';
+import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -62,7 +18,8 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
-import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
+import { ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType } from 'app-shared/types/PolicyEditorTypes';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));

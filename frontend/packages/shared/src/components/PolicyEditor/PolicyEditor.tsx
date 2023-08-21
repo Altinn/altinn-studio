@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
-import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
-import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
+import { ExpandablePolicyCard } from 'app-shared/components/PolicyEditor/ExpandablePolicyCard';
+import { CardButton } from 'app-shared/components/PolicyEditor/CardButton';
 import { Label, Alert } from '@digdir/design-system-react';
-import {
-  PolicyBackendType,
-  PolicyRuleCardType,
-  PolicyRuleBackendType,
-  PolicySubjectType,
-  RequiredAuthLevelType,
-  PolicyActionType,
-} from 'resourceadm/types/global';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
-} from 'resourceadm/utils/policyEditorUtils';
-import { VerificationModal } from 'resourceadm/components/PolicyEditor/VerificationModal';
-import { SelectAuthLevel } from 'resourceadm/components/PolicyEditor/SelectAuthLevel';
+} from 'app-shared/utils/policyEditorUtils';
+import { VerificationModal } from 'app-shared/components/PolicyEditor/VerificationModal';
+import { SelectAuthLevel } from 'app-shared/components/PolicyEditor/SelectAuthLevel';
+import {
+  PolicyActionType,
+  PolicyBackendType,
+  PolicyRuleBackendType,
+  PolicyRuleCardType,
+  PolicySubjectType,
+  RequiredAuthLevelType,
+} from 'app-shared/types/PolicyEditorTypes';
 
 interface Props {
   /**

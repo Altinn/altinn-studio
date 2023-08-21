@@ -1,8 +1,7 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
-import { PolicyBackendType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
+import { PolicyEditor } from 'app-shared/components/PolicyEditor';
 import { mapPolicyResultToPolicyObject } from 'resourceadm/utils/mapperUtils';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
@@ -11,6 +10,7 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'resourceadm/hooks/queries';
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
+import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
 
 interface Props {
   /**

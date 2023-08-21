@@ -1,7 +1,7 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { useServicesContext } from "app-shared/contexts/ServicesContext";
-import { QueryKey } from "app-shared/types/QueryKey";
-import { PolicyActionType } from "resourceadm/types/global";
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { PolicyActionType } from 'app-shared/types/PolicyEditorTypes';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
  * Query to get the list of actions for the policy of a resource.
@@ -11,12 +11,13 @@ import { PolicyActionType } from "resourceadm/types/global";
  *
  * @returns UseQueryResult with a list of actions of PolicyActionType
  */
-export const useResourcePolicyActionsQuery = (org: string, repo: string): UseQueryResult<PolicyActionType[]> => {
+export const useResourcePolicyActionsQuery = (
+  org: string,
+  repo: string
+): UseQueryResult<PolicyActionType[]> => {
   const { getPolicyActions } = useServicesContext();
 
-  return useQuery<PolicyActionType[]>(
-    [QueryKey.ResourcePolicyActions, org, repo],
-    () => getPolicyActions(org, repo)
-  )
-}
-
+  return useQuery<PolicyActionType[]>([QueryKey.ResourcePolicyActions, org, repo], () =>
+    getPolicyActions(org, repo)
+  );
+};

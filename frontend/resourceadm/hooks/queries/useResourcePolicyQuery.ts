@@ -1,7 +1,7 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { useServicesContext } from "app-shared/contexts/ServicesContext";
-import { QueryKey } from "app-shared/types/QueryKey";
-import { PolicyBackendType } from "resourceadm/types/global";
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
  * Query to get a policy of a resource.
@@ -12,17 +12,22 @@ import { PolicyBackendType } from "resourceadm/types/global";
  *
  * @returns UseQueryResult with an object of PolicyBackendType
  */
-export const useResourcePolicyQuery = (org: string, repo: string, id: string): UseQueryResult<PolicyBackendType> => {
+export const useResourcePolicyQuery = (
+  org: string,
+  repo: string,
+  id: string
+): UseQueryResult<PolicyBackendType> => {
   const { getPolicy } = useServicesContext();
 
   return useQuery<PolicyBackendType>(
     [QueryKey.ResourcePolicy, org, repo, id],
-    () => getPolicy(org, repo, id), { select: (data) => ({
+    () => getPolicy(org, repo, id),
+    {
+      select: (data) => ({
         rules: data.rules ?? [],
         requiredAuthenticationLevelEndUser: '3',
         requiredAuthenticationLevelOrg: '3',
-      })
+      }),
     }
-  )
-}
-
+  );
+};

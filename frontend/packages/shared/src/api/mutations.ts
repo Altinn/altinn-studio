@@ -1,29 +1,5 @@
 import { del, get, post, put } from 'app-shared/utils/networking';
-import {
-  appMetadataAttachmentPath,
-  copyAppPath,
-  createRepoPath,
-  deploymentsPath,
-  formLayoutNamePath,
-  formLayoutPath,
-  layoutSetsPath,
-  layoutSetPath,
-  layoutSettingsPath,
-  releasesPath,
-  repoCommitPath,
-  repoCommitPushPath,
-  repoPushPath,
-  repoResetPath,
-  ruleConfigPath,
-  textResourceIdsPath,
-  textResourcesPath,
-  userLogoutPath,
-  userStarredRepoPath,
-  datamodelPath,
-  resourcePolicyPath,
-  resourceCreatePath,
-  resourceEditPath, datamodelAddXsdFromRepoPath, createDatamodelPath
-} from 'app-shared/api/paths';
+import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoCommitPushPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath, datamodelPath, resourcePolicyPath, resourceCreatePath, resourceEditPath, datamodelAddXsdFromRepoPath, createDatamodelPath } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
@@ -37,8 +13,9 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { NewResourceType, PolicyBackendType, ResourceBackendType } from 'resourceadm/types/global';
+import { NewResourceType, ResourceBackendType } from 'resourceadm/types/global';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
+import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
 
 const headers = {
   Accept: 'application/json',

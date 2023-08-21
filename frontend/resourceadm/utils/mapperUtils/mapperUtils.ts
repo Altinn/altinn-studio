@@ -1,4 +1,5 @@
-import { PolicyBackendType, ResourceType } from "resourceadm/types/global";
+import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
+import { ResourceType } from 'resourceadm/types/global';
 
 /**
  * Maps from an uknown response object from backend to the correct policy type
@@ -7,9 +8,7 @@ import { PolicyBackendType, ResourceType } from "resourceadm/types/global";
  *
  * @returns a mapped policy backend type
  */
-export const mapPolicyResultToPolicyObject = (
-  res: unknown
-): PolicyBackendType => {
+export const mapPolicyResultToPolicyObject = (res: unknown): PolicyBackendType => {
   const policyResult: PolicyBackendType = res as PolicyBackendType;
   return {
     rules: policyResult.rules ?? [],
@@ -29,7 +28,7 @@ export const mapPolicyResultToPolicyObject = (
 const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString().replaceAll('/', '.');
-}
+};
 
 /**
  * Sorts a resource list by the date so the newest is at the top, then maps
@@ -40,13 +39,12 @@ const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
  * @returns the sorted and mapped list
  */
 export const sortResourceListByDateAndMap = (resourceList: ResourceType[]): ResourceType[] => {
+  const sorted = resourceList.sort((a, b) => {
+    return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
+  });
 
-  const sorted =  resourceList.sort((a, b) => {
-    return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime()
-  })
-
-  return sorted.map(r => ({
+  return sorted.map((r) => ({
     ...r,
     lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
-  }))
-}
+  }));
+};

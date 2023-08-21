@@ -4,7 +4,7 @@ import {
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
-} from 'resourceadm/types/global';
+} from 'app-shared/types/PolicyEditorTypes';
 
 /**
  * Empty rule when new card added

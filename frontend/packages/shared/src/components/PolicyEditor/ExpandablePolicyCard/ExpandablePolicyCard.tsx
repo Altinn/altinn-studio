@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { Button, TextArea, Label, ErrorMessage, Select } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
+import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
+import { ResourceNarrowingList } from './ResourceNarrowingList';
+import { ExpandablePolicyElement } from './ExpandablePolicyElement';
+import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import {
   PolicyActionType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
-} from 'resourceadm/types/global';
-import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
-import { ResourceNarrowingList } from './ResourceNarrowingList';
-import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+} from 'app-shared/types/PolicyEditorTypes';
 
 interface Props {
   /**
