@@ -40,7 +40,17 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             XDocument responseXml = XDocument.Parse(responseContent);
             XDocument expectedXml = XDocument.Parse(fileContent);
             XNode.DeepEquals(responseXml, expectedXml).Should().BeTrue();
+        }
 
+        [Theory]
+        [InlineData("ttd", "app-with-options", "testUser")]
+        public async Task GetProcessDefinitionTests_If_Doesnt_Exists_ShouldReturnNotFound(string org, string app, string developer)
+        {
+            string url = VersionPrefix(org, app);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         private async Task<string> AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)

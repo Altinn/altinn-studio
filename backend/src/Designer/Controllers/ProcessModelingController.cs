@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -36,11 +38,18 @@ namespace Altinn.Studio.Designer.Controllers
             string bpmnFileContent = await ReadRequestBodyContentAsync();
 
             if(bpmnFileContent.Length > 100_000) return BadRequest("BPMN file is too large");
-            Guard.AssertValidXmlContent(bpmnFileContent);
+            try
+            {
+                Guard.AssertValidXmlContent(bpmnFileContent);
+            }
+            catch (Exception)
+            {
+                return BadRequest("BPMN file is not valid XML");
+            }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             await _appDevelopmentService.SaveBpmnFile(org, repo, developer, bpmnFileContent);
-            return Ok();
+            return Ok(bpmnFileContent);
         }
 
         private async Task<string> ReadRequestBodyContentAsync()

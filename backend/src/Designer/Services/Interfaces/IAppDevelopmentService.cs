@@ -144,6 +144,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 
         public Task<string> GetBpmnFile(string org, string app, string developer);
 
-        public Task SaveBpmnFile(string org, string app, string developer, string bpmnXml);
+        public Task<string> SaveBpmnFile(string org, string app, string developer, string bpmnXml);
     }
 }

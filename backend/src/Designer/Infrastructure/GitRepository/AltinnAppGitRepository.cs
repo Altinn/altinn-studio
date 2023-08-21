@@ -715,20 +715,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return optionListIds.ToArray();
         }
 
-        public async Task SaveProcessDefinitionFile(string file)
+        public async Task<string> SaveProcessDefinitionFile(string file)
         {
             Guard.AssertNotNullOrEmpty(file, nameof(file));
             if (file.Length > 100_000) throw new ArgumentException("Bpmn file is too large");
             Guard.AssertValidXmlContent(file);
 
             await WriteTextByRelativePathAsync(ProcessDefinitionFilePath, file, true);
+            return file;
         }
 
         public async Task<string> GetProcessDefinitionFile()
         {
             if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
             {
-                throw new FileNotFoundException("Bpmn file not found.");
+                throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
             return await ReadTextByRelativePathAsync(ProcessDefinitionFilePath);

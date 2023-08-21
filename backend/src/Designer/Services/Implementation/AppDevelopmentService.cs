@@ -207,7 +207,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return altinnAppGitRepository.GetProcessDefinitionFile();
 
         }
-        public Task SaveBpmnFile(string org, string app, string developer, string bpmnXml)
+        public Task<string> SaveBpmnFile(string org, string app, string developer, string bpmnXml)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             return altinnAppGitRepository.SaveProcessDefinitionFile(bpmnXml);
