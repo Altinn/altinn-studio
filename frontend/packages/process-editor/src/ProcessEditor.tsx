@@ -6,8 +6,9 @@ import { Canvas } from './components/Canvas';
 
 type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
+  onSave: (bpmnXml: string) => void;
 };
-export const ProcessEditor = ({ bpmnXml }: ProcessEditorProps): JSX.Element => {
+export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
   if (bpmnXml === undefined) {
     return <PageLoading title={t('process_editor_loading')} />;
@@ -24,5 +25,5 @@ export const ProcessEditor = ({ bpmnXml }: ProcessEditorProps): JSX.Element => {
     );
   }
 
-  return <Canvas bpmnXml={bpmnXml} />;
+  return <Canvas bpmnXml={bpmnXml} onSave={onSave}/>;
 };

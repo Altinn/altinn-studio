@@ -1,51 +1,6 @@
-import { get } from 'app-shared/utils/networking';
-import {
-  branchStatusPath,
-  datamodelMetadataPath,
-  datamodelPath,
-  datamodelsPath,
-  datamodelsXsdPath,
-  deployPermissionsPath,
-  deploymentsPath,
-  envConfigPath,
-  formLayoutsPath,
-  instanceIdForPreviewPath,
-  layoutSetsPath,
-  layoutSettingsPath,
-  optionListIdsPath,
-  orgsListPath,
-  processEditorPath,
-  releasesPath,
-  repoMetaPath,
-  repoPullPath,
-  repoSearchPath,
-  repoStatusPath,
-  resourceActionsPath,
-  resourceListPath,
-  resourcePolicyPath,
-  resourcePublishStatusPath,
-  resourceSectorsPath,
-  resourceSinglePath,
-  resourceSubjectsPath,
-  resourceThematicEurovocPath,
-  resourceThematicLosPath,
-  resourceValidatePolicyPath,
-  resourceValidateResourcePath,
-  ruleConfigPath,
-  ruleHandlerPath,
-  textLanguagesPath,
-  textResourcesPath,
-  userCurrentPath,
-  userStarredListPath,
-  widgetSettingsPath,
-} from './paths';
-import {
-  AppDeploymentsResponse,
-  AppReleasesResponse,
-  DatamodelMetadataResponse,
-  SearchRepoFilterParams,
-  SearchRepositoryResponse,
-} from 'app-shared/types/api';
+import { get, put } from 'app-shared/utils/networking';
+import { branchStatusPath, datamodelMetadataPath, datamodelPath, datamodelsPath, datamodelsXsdPath, deployPermissionsPath, deploymentsPath, envConfigPath, formLayoutsPath, instanceIdForPreviewPath, layoutSetsPath, layoutSettingsPath, optionListIdsPath, orgsListPath, processEditorPath, releasesPath, repoMetaPath, repoPullPath, repoSearchPath, repoStatusPath, resourceActionsPath, resourceListPath, resourcePolicyPath, resourcePublishStatusPath, resourceSectorsPath, resourceSinglePath, resourceSubjectsPath, resourceThematicEurovocPath, resourceThematicLosPath, resourceValidatePolicyPath, resourceValidateResourcePath, ruleConfigPath, ruleHandlerPath, textLanguagesPath, textResourcesPath, userCurrentPath, userStarredListPath, widgetSettingsPath } from './paths';
+import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -113,4 +68,10 @@ export const getResourceThematicLos = (org: string) => get<ResourceThematicType[
 export const getResourceThematicEurovoc = (org: string) => get<ResourceThematicType[]>(resourceThematicEurovocPath(org));
 
 // ProcessEditor
-export const getBpnmFile = (org: string, repo: string) => get(processEditorPath(org, repo));
+export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));
+export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
+  put(processEditorPath(org, app), bpmnXml, {
+    headers: {
+      'Content-Type': 'application/xml',
+    },
+  });

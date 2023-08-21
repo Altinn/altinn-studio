@@ -1,4 +1,4 @@
-export default class SupportedContextPadProvider {
+class SupportedContextPadProvider {
   constructor(contextPad) {
     contextPad.registerProvider(this);
   }
@@ -11,3 +11,8 @@ export default class SupportedContextPadProvider {
     };
   }
 }
+
+export default {
+  __init__: ['SupportedContextPadProvider'],
+  SupportedContextPadProvider: ['type', SupportedContextPadProvider],
+};

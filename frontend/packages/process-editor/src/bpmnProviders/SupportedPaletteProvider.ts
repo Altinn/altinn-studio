@@ -5,7 +5,7 @@ const supportedEntries: string[] = [
   'create.task',
 ];
 
-export class SupportedPaletteProvider {
+class SupportedPaletteProvider {
   constructor(palette) {
     palette.registerProvider(this);
   }
@@ -32,3 +32,8 @@ export class SupportedPaletteProvider {
     return !supportedEntries.includes(entry);
   }
 }
+
+export default {
+  __init__: ['SupportedPaletteProvider'],
+  SupportedPaletteProvider: ['type', SupportedPaletteProvider],
+};
