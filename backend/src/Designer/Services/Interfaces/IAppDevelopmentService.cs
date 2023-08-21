@@ -141,5 +141,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutSetName">The name of the layout set.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task SaveRuleConfig(string org, string app, string developer, JsonNode ruleConfig, [CanBeNull] string layoutSetName);
+
+        public Task<string> GetBpmnFile(string org, string app, string developer);
+
+        public Task SaveBpmnFile(string org, string app, string developer, string bpmnXml);
     }
 }
