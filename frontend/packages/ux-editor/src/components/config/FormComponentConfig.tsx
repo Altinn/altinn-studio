@@ -24,7 +24,10 @@ const supportedPropertyRefs = [
   'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
 ];
 
-export const isPropertyTypeSupported = (property: any) => {
+const knownUnsupportedPropertyKeys = ['children'];
+
+export const isPropertyTypeSupported = (property: any, propertyKey: string) => {
+  if (propertyKey === 'children') return false;
   if (property.$ref) {
     return supportedPropertyRefs.includes(property.$ref);
   }
@@ -61,12 +64,13 @@ export const FormComponentConfig = ({
     optionsId,
     hasCustomFileEndings,
     validFileEndings,
+    children,
     ...rest
   } = schema.properties;
 
-  const unsupportedPropertyKeys: string[] = Object.keys(rest).filter((propertyKey) => {
-    return !isPropertyTypeSupported(rest[propertyKey]);
-  });
+  const unsupportedPropertyKeys: string[] = knownUnsupportedPropertyKeys.concat(Object.keys(rest).filter((propertyKey) => {
+    return !isPropertyTypeSupported(rest[propertyKey], propertyKey);
+  }));
   return (
     <>
       {id && (

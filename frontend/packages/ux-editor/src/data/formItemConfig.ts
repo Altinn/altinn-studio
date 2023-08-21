@@ -22,24 +22,24 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-circle-exclamation',
   },
-  // [ComponentType.Accordion]: {
-  //   name: ComponentType.Accordion,
-  //   defaultProperties: {
-  //     id: '',
-  //     itemType: 'COMPONENT',
-  //     type: ComponentType.Accordion,
-  //     propertyPath: 'definitions/accordionComponent',
-  //   },
-  // },
-  // [ComponentType.AccordionGroup]: {
-  //   name: ComponentType.AccordionGroup,
-  //   defaultProperties: {
-  //     id: '',
-  //     itemType: 'COMPONENT',
-  //     type: ComponentType.AccordionGroup,
-  //     propertyPath: 'definitions/accordionGroupComponent',
-  //   },
-  // },
+  [ComponentType.Accordion]: {
+    name: ComponentType.Accordion,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Accordion,
+      propertyPath: 'definitions/accordionComponent',
+    },
+  },
+  [ComponentType.AccordionGroup]: {
+    name: ComponentType.AccordionGroup,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.AccordionGroup,
+      propertyPath: 'definitions/accordionGroupComponent',
+    },
+  },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
     defaultProperties: {
@@ -184,6 +184,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Grid,
       propertyPath: 'definitions/gridComponent',
+      rows: [],
     },
     icon: 'fa fa-group',
   },
@@ -416,6 +417,9 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Grid],
   formItemConfigs[ComponentType.NavigationBar],
   formItemConfigs[ComponentType.Map],
+  formItemConfigs[ComponentType.ButtonGroup],
+  formItemConfigs[ComponentType.Accordion],
+  formItemConfigs[ComponentType.AccordionGroup],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [

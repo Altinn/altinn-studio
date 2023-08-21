@@ -1,7 +1,7 @@
 export enum ComponentType {
   Alert = 'Alert',
-  // Accordion = 'Accordion', // Unncomment these when we have JSON schemas for them
-  // AccordionGroup = 'AccordionGroup',
+  Accordion = 'Accordion',
+  AccordionGroup = 'AccordionGroup',
   ActionButton = 'ActionButton',
   AddressComponent = 'AddressComponent',
   AttachmentList = 'AttachmentList',
