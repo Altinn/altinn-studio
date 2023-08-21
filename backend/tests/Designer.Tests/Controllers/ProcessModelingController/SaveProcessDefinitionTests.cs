@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class SaveProcessDefinitionTests: DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, SaveProcessDefinitionTests>
+    public class SaveProcessDefinitionTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, SaveProcessDefinitionTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var content = new StringContent(fileContent, Encoding.UTF8, MediaTypeNames.Application.Xml);
 
-            using var response = await HttpClient.Value.PutAsync(url, content );
+            using var response = await HttpClient.Value.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -56,7 +56,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var content = new StringContent(nonXmlContent, Encoding.UTF8, MediaTypeNames.Application.Xml);
 
-            using var response = await HttpClient.Value.PutAsync(url, content );
+            using var response = await HttpClient.Value.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
     }

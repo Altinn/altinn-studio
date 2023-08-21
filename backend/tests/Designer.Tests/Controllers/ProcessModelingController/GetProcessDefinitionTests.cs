@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         [Theory]
         [InlineData("ttd", "app-with-options", "testUser")]
-        public async Task GetProcessDefinitionTests_If_Doesnt_Exists_ShouldReturnNotFound(string org, string app, string developer)
+        public async Task GetProcessDefinitionTests_If_Doesnt_Exists_ShouldReturnNotFound(string org, string app)
         {
             string url = VersionPrefix(org, app);
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -58,7 +58,8 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string fileContent = SharedResourcesHelper.LoadTestDataAsString(fileToCopyPath);
             string filePath = Path.Combine(TestRepoPath, relativeCopyRepoLocation);
             string folderPath = Path.GetDirectoryName(filePath);
-            if(!Directory.Exists(folderPath)) {
+            if (!Directory.Exists(folderPath))
+            {
                 Directory.CreateDirectory(folderPath);
             }
             await File.WriteAllTextAsync(filePath, fileContent);

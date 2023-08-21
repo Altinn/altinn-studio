@@ -718,7 +718,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task<string> SaveProcessDefinitionFile(string file)
         {
             Guard.AssertNotNullOrEmpty(file, nameof(file));
-            if (file.Length > 100_000) throw new ArgumentException("Bpmn file is too large");
+            if (file.Length > 100_000)
+            {
+                throw new ArgumentException("Bpmn file is too large");
+            }
+
             Guard.AssertValidXmlContent(file);
 
             await WriteTextByRelativePathAsync(ProcessDefinitionFilePath, file, true);

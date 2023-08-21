@@ -37,7 +37,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string bpmnFileContent = await ReadRequestBodyContentAsync();
 
-            if(bpmnFileContent.Length > 100_000) return BadRequest("BPMN file is too large");
+            if (bpmnFileContent.Length > 100_000)
+            {
+                return BadRequest("BPMN file is too large");
+            }
+
             try
             {
                 Guard.AssertValidXmlContent(bpmnFileContent);
