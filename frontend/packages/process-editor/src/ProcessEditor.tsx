@@ -1,28 +1,28 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
+import { Canvas } from './components/Canvas';
 
 type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
 };
 export const ProcessEditor = ({ bpmnXml }: ProcessEditorProps): JSX.Element => {
+  const { t } = useTranslation();
   if (bpmnXml === undefined) {
-    return <PageLoading title='Retrieving your BPMN file' />;
+    return <PageLoading title={t('process_editor_loading')} />;
   }
 
   if (bpmnXml === null) {
     return (
       <Alert severity='danger' style={{ height: 'min-content' }}>
         <Heading size='medium' level={2}>
-          Something went wrong
+          {t('process_editor.fetch_bpmn_error_title')}
         </Heading>
-        <Paragraph>
-          The BPMN file you're looking for could not be found. You might want to consider refreshing
-          the page to attempting to refetch the BPMN file.
-        </Paragraph>
+        <Paragraph>{t('process_editor.fetch_bpmn_error_message')}</Paragraph>
       </Alert>
     );
   }
 
-  return <div>Process Editor</div>;
+  return <Canvas bpmnXml={bpmnXml} />;
 };

@@ -3,67 +3,87 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Mocked data until we have a endpoint to fetch the data from
 const mockedBpmnXml = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:custom="http://custom/ns" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="Process_1" isExecutable="false">
-    <bpmn:startEvent id="StartEvent_1">
-      <bpmn:outgoing>SequenceFlow_0b6cm13</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0b6cm13" sourceRef="StartEvent_1" targetRef="Task_0zlv465" />
-    <bpmn:endEvent id="EndEvent_09arx8f">
-      <bpmn:incoming>SequenceFlow_035kn8o</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_17w8608" sourceRef="Task_0zlv465" targetRef="Task_1xewseo" />
-    <bpmn:task id="Task_1xewseo" name="Do more work">
-      <bpmn:incoming>SequenceFlow_17w8608</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_035kn8o</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="SequenceFlow_035kn8o" sourceRef="Task_1xewseo" targetRef="EndEvent_09arx8f" />
-    <bpmn:serviceTask id="Task_0zlv465" name="Do work" custom:topic="my.custom.topic">
-      <bpmn:incoming>SequenceFlow_0b6cm13</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_17w8608</bpmn:outgoing>
-    </bpmn:serviceTask>
-  </bpmn:process>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:qa="http://some-company/schema/bpmn/qa" id="_RdgBELNaEeSYkoSLDs6j-w" targetNamespace="http://activiti.org/bpmn">
+  <bpmn2:process id="Process_1">
+    <bpmn2:task id="Task_1" name="Examine Situation" qa:suitable="0.7">
+      <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
+      <bpmn2:extensionElements>
+        <qa:analysisDetails lastChecked="2019-03-27T13:59:37.098Z" nextCheck="2019-03-28T13:59:37.098Z">
+          <qa:comment author="Klaus">
+            Our operators always have a hard time to figure out, what they need to do here.
+          </qa:comment>
+          <qa:comment author="Walter">
+            I believe this can be split up in a number of activities and partly automated.
+          </qa:comment>
+        </qa:analysisDetails>
+      </bpmn2:extensionElements>
+    </bpmn2:task>
+    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="Task_1" targetRef="ExclusiveGateway_1"/>
+    <bpmn2:exclusiveGateway id="ExclusiveGateway_1" name="Things OK?">
+      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
+      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_1"/>
+    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_2"/>
+    <bpmn2:endEvent id="EndEvent_1" name="Notification Sent">
+      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_1"/>
+    </bpmn2:endEvent>
+    <bpmn2:endEvent id="EndEvent_2" name="Error Propagated">
+      <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
+      <bpmn2:errorEventDefinition id="ErrorEventDefinition_1"/>
+    </bpmn2:endEvent>
+  </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
-        <dc:Bounds x="173" y="188" width="36" height="36" />
+      <bpmndi:BPMNShape id="_BPMNShape_Task_2" bpmnElement="Task_1">
+        <dc:Bounds height="80.0" width="100.0" x="96.0" y="196.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_2" bpmnElement="EndEvent_1">
+        <dc:Bounds height="36.0" width="36.0" x="396.0" y="300.0"/>
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="146" y="224" width="90" height="20" />
+          <dc:Bounds height="0.0" width="0.0" x="414.0" y="341.0"/>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0b6cm13_di" bpmnElement="SequenceFlow_0b6cm13">
-        <di:waypoint x="209" y="206" />
-        <di:waypoint x="256" y="206" />
+      <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_2" bpmnElement="ExclusiveGateway_1" isMarkerVisible="true">
+        <dc:Bounds height="50.0" width="50.0" x="276.0" y="210.0"/>
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="192.5" y="110" width="90" height="20" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_09arx8f_di" bpmnElement="EndEvent_09arx8f">
-        <dc:Bounds x="552" y="188" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="404" y="138" width="90" height="20" />
+          <dc:Bounds height="21.0" width="74.0" x="333.0" y="226.0"/>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_17w8608_di" bpmnElement="SequenceFlow_17w8608">
-        <di:waypoint x="356" y="206" />
-        <di:waypoint x="399" y="206" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_Task_2" targetElement="_BPMNShape_ExclusiveGateway_2">
+        <di:waypoint xsi:type="dc:Point" x="196.0" y="236.0"/>
+        <di:waypoint xsi:type="dc:Point" x="276.0" y="235.0"/>
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="353.5" y="110" width="90" height="20" />
+          <dc:Bounds height="6.0" width="6.0" x="214.0" y="236.0"/>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Task_1xewseo_di" bpmnElement="Task_1xewseo">
-        <dc:Bounds x="399" y="166" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_035kn8o_di" bpmnElement="SequenceFlow_035kn8o">
-        <di:waypoint x="499" y="206" />
-        <di:waypoint x="552" y="206" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_ExclusiveGateway_2" targetElement="_BPMNShape_EndEvent_2">
+        <di:waypoint xsi:type="dc:Point" x="301.0" y="260.0"/>
+        <di:waypoint xsi:type="dc:Point" x="301.0" y="318.0"/>
+        <di:waypoint xsi:type="dc:Point" x="396.0" y="318.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="6.0" width="6.0" x="298.0" y="301.0"/>
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ServiceTask_0wob562_di" bpmnElement="Task_0zlv465">
-        <dc:Bounds x="256" y="166" width="100" height="80" />
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_3" bpmnElement="EndEvent_2">
+        <dc:Bounds height="36.0" width="36.0" x="396.0" y="132.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="414.0" y="173.0"/>
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_ExclusiveGateway_2" targetElement="_BPMNShape_EndEvent_3">
+        <di:waypoint xsi:type="dc:Point" x="301.0" y="210.0"/>
+        <di:waypoint xsi:type="dc:Point" x="301.0" y="150.0"/>
+        <di:waypoint xsi:type="dc:Point" x="396.0" y="150.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="6.0" width="6.0" x="333.0" y="150.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-</bpmn:definitions>
+</bpmn2:definitions>
 `;
 
 // Mocked API response with promise to simulate a real API call

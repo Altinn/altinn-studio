@@ -1,0 +1,6 @@
+.canvasMenuContainer {
+  padding: 18px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 8px;
+}
