@@ -17,7 +17,8 @@ const defaultActiveFeatures: SupportedFeatureFlags[] = [];
  * @param featureFlag
  * @returns boolean
  * @description This function will check if the feature should be displayed or not. The feature can be toggled on by the url query, by local storage or set as default active feature.
- * @example shouldDisplayFeature('myFeatureName')
+ * @example shouldDisplayFeature('myFeatureName') && <MyFeatureComponent />
+ * @example The feature can be toggled and persisted by the url query, (url)?featureFlags=[featureName]&persistFeatureFlag=true
  */
 export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolean => {
   // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
