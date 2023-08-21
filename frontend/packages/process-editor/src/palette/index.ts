@@ -1,6 +1,6 @@
-import { CustomPaletteProvider } from './CustomPaletteProvider';
+import { SupportedPaletteProvider } from './CustomPaletteProvider';
 
 export default {
-  __init__: ['customPaletteProvider'],
-  customPaletteProvider: ['type', CustomPaletteProvider],
+  __init__: ['supportedPaletteProvider'],
+  supportedPaletteProvider: ['type', SupportedPaletteProvider],
 };

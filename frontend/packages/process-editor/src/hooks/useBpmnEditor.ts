@@ -1,6 +1,7 @@
 import { MutableRefObject, useRef, useEffect } from 'react';
 import Modeler from 'bpmn-js/lib/Modeler';
-import CustomPaletteProvider from '../palette';
+import SupportedPaletteProvider from '../palette';
+import SupportedContextPadProvider from '../contextPad';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -22,7 +23,7 @@ export const useBpmnEditor = (bpmnXml: string): UseBpmnViewerResult => {
       keyboard: {
         bindTo: document,
       },
-      additionalModules: [CustomPaletteProvider],
+      additionalModules: [SupportedPaletteProvider, SupportedContextPadProvider],
     });
 
     const initializeEditor = async () => {

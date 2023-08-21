@@ -5,7 +5,7 @@ const supportedEntries: string[] = [
   'create.task',
 ];
 
-export class CustomPaletteProvider {
+export class SupportedPaletteProvider {
   constructor(palette) {
     palette.registerProvider(this);
   }
