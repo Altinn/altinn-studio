@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, Fieldset } from '@digdir/design-system-react';
+import { LegacyCheckbox, Fieldset } from '@digdir/design-system-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -29,7 +29,7 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
         propertyPath={`${component.propertyPath}/properties/simplified`}
       >
         {({ value, onChange }) => (
-          <Checkbox value={value} checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
         )}
       </FormField>
       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { Radio } from '@digdir/design-system-react';
+import { LegacyRadioGroup } from '@digdir/design-system-react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import classes from './RadioGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
@@ -38,7 +38,7 @@ export const RadioGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <Radio.Group
+      <LegacyRadioGroup
         legend={
           <TextResource
             handleIdChange={changeLegend}
@@ -65,19 +65,22 @@ export const RadioGroupPreview = ({
             }}
           />
         }
+        items={
+          component.options?.map(({ value, label }) => ({
+            value,
+            label: (
+              <TextResource
+                handleIdChange={(id) => changeOptionLabel(value, id)}
+                placeholder={tRadios('option_label_placeholder')}
+                previewMode
+                textResourceId={label}
+              />
+            ),
+          })) || []
+        }
         name={radioGroupName.current}
-      >
-        {component.options?.map(({ value, label }, i) => (
-          <Radio key={i} value={value}>
-            <TextResource
-              handleIdChange={(id) => changeOptionLabel(value, id)}
-              placeholder={tRadios('option_label_placeholder')}
-              previewMode
-              textResourceId={label}
-            />
-          </Radio>
-        )) || []}
-      </Radio.Group>
+        presentation
+      />
       {!component.optionsId && (
         <AddOption<FormRadioButtonsComponent>
           addButtonClass={classes.addRadioButton}

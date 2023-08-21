@@ -3,7 +3,7 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Checkbox, Fieldset, Select, TextField } from '@digdir/design-system-react';
+import { LegacyCheckbox, Fieldset, Select, TextField } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -99,10 +99,9 @@ export function StringRestrictions({
                 }
                 value={formatState.earliest}
               />
-              <Checkbox
+              <LegacyCheckbox
                 checked={formatState.earliestIsInclusive}
-                aria-label={t('format_date_inclusive')}
-                value={t('format_date_inclusive')}
+                label={t('format_date_inclusive')}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
                 }
@@ -119,10 +118,9 @@ export function StringRestrictions({
                 }
                 value={formatState.latest}
               />
-              <Checkbox
+              <LegacyCheckbox
                 checked={formatState.latestIsInclusive}
-                aria-label={t('format_date_inclusive')}
-                value={t('format_date_inclusive')}
+                label={t('format_date_inclusive')}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
                 }

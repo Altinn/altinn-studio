@@ -1,6 +1,6 @@
 import type { ChangeEventHandler, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { Checkbox, Select } from '@digdir/design-system-react';
+import { LegacyCheckbox, Select } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';
@@ -85,12 +85,11 @@ export function PropertyItem({
         />
       </div>
       <span className={`${classes.requiredCheckCell} ${classes.gridItem}`}>
-        <Checkbox
+        <LegacyCheckbox
           checked={required ?? false}
           disabled={readOnly}
-          // hideLabel - Not possible anymore
-          aria-label={t('schema_editor.required')}
-          value={t('schema_editor.required')}
+          hideLabel
+          label={t('schema_editor.required')}
           name='checkedArray'
           onChange={changeRequiredHandler}
         />

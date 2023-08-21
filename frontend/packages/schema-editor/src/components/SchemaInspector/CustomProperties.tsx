@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Checkbox, Fieldset, HelpText, TextField } from '@digdir/design-system-react';
+import { Button, LegacyCheckbox, Fieldset, HelpText, TextField } from '@digdir/design-system-react';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -130,7 +130,7 @@ export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked);
-  return <Checkbox value={id} id={id} onChange={handleChange} checked={value} />;
+  return <LegacyCheckbox checkboxId={id} onChange={handleChange} checked={value} />;
 };
 
 export const UnsupportedInput = () => {

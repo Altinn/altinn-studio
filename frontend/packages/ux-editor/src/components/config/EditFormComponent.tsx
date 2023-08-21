@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
+import { LegacyCheckbox, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -56,12 +56,11 @@ export const EditFormComponent = ({
 
   return (
     <Fieldset className={classes.root}>
-      <Checkbox
+      <LegacyCheckbox
         onChange={toggleShowBetaFunc}
         checked={showBetaFunc}
-        value={t('ux_editor.edit_component.show_beta_func')}
-        aria-label={t('ux_editor.edit_component.show_beta_func')}
-        description={t('ux_editor.edit_component.show_beta_func_helptext')}
+        label={t('ux_editor.edit_component.show_beta_func')}
+        helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
       />
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})

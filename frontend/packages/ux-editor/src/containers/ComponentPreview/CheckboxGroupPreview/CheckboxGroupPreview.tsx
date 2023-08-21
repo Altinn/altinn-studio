@@ -63,6 +63,7 @@ export const CheckboxGroupPreview = ({
             }}
           />
         }
+        role='presentation'
       >
         {component.options?.map(({ value, label }, i) => (
           <Checkbox name={value} value={value} key={i}>
