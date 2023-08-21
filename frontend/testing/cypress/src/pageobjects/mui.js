@@ -1,5 +1,5 @@
 // Standard Material UI components
-export const common = {
+export const mui = {
   gridItem: '.MuiGrid-item',
   gridContainer: '.MuiGrid-container',
   gridRow: '.MuiDataGrid-row',
