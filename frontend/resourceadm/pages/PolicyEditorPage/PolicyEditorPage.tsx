@@ -13,15 +13,21 @@ import {
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
 
 interface Props {
+  /**
+   * Flag to decide if all errors should be shown or not
+   */
   showAllErrors: boolean;
 }
 
 /**
- * Displays the content where a user can add and edit a policy
+ * @component
+ *    Page that displays the content where a user can add and edit a policy
  *
- * @param props.showAllErrors flag to decide if all errors should be shown or not
+ * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const PolicyEditorPage = ({ showAllErrors }: Props) => {
+export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
   // TODO - translation
 
   const { resourceId, selectedContext } = useParams();

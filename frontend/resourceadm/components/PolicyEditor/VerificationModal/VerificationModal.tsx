@@ -16,23 +16,47 @@ const modalStyles = {
 };
 
 interface Props {
+  /**
+   * Boolean for if the modal is open or not
+   */
   isOpen: boolean;
+  /**
+   * Function to be executed when closing the modal
+   * @returns void
+   */
   onClose: () => void;
+  /**
+   * The text to display in the modal
+   */
   text: string;
+  /**
+   * The text to display on the close button
+   */
   closeButtonText: string;
+  /**
+   * The text to display on the action button
+   */
   actionButtonText: string;
+  /**
+   * Function to be executed when the action button is clicked
+   * @returns void
+   */
   onPerformAction: () => void;
 }
 
 /**
- * Displays a verification modal. To be used when the user needs one extra level
- * of chekcing if they really want to perform an action.
+ * @component
+ *    Displays a verification modal. To be used when the user needs one extra level
+ *    of chekcing if they really want to perform an action.
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.onClose function to be executed when closing the modal
- * @param props.closeButtonText the text to display on the close button
- * @param props.actionButtonText the text to display on the action button
- * @param props.onPerformAction function to be executed when the action button is clicked
+ * @property {boolean}[isOpen] - Boolean for if the modal is open or not
+ * @property {function}[onClose] - Function to be executed when closing the modal
+ * @property {string}[text] -The text to display in the modal
+ * @property {string}[closeButtonText] - The text to display on the close button
+ * @property {string}[actionButtonText] - The text to display on the action button
+ * @property {function}[onPerformAction] - Function to be executed when the action button is clicked
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const VerificationModal = ({
   isOpen,
@@ -41,7 +65,7 @@ export const VerificationModal = ({
   closeButtonText,
   actionButtonText,
   onPerformAction,
-}: Props) => {
+}: Props): React.ReactNode => {
   return (
     <Modal
       isOpen={isOpen}
