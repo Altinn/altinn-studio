@@ -1,15 +1,12 @@
 import React from 'react';
-import { Checkbox, Select } from '@digdir/design-system-react';
+import { LegacyCheckbox, Select } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 
-export const PanelComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
 
   const handleShowIconClick = (showIcon: boolean) => {
@@ -37,7 +34,7 @@ export const PanelComponent = ({
         propertyPath={`${component.propertyPath}/properties/showIcon`}
       >
         {({ value, onChange }) => (
-          <Checkbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
         )}
       </FormField>
       <FormField

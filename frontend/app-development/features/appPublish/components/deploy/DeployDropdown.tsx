@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnIcon, AltinnSpinner, AltinnConfirmDialog } from 'app-shared/components';
-import {
-  Button,
-  ButtonColor,
-  Select,
-} from '@digdir/design-system-react';
+import { Button, Select } from '@digdir/design-system-react';
 import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
@@ -55,14 +51,14 @@ export const DeployDropdown = ({
       <div className={classes.deployButton}>
         <AltinnConfirmDialog
           open={isConfirmDeployDialogOpen}
-          confirmColor={ButtonColor.Primary}
+          confirmColor='primary'
           onConfirm={onStartDeployClick}
           onClose={() => setIsConfirmDeployDialogOpen(false)}
           placement='right'
           trigger={
             <Button
               disabled={disabled}
-              onClick={() => setIsConfirmDeployDialogOpen(prevState => !prevState)}
+              onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
               id={`deploy-button-${envName.toLowerCase()}`}
               size='small'
             >
@@ -70,12 +66,14 @@ export const DeployDropdown = ({
             </Button>
           }
         >
-          <p>{appDeployedVersion
-            ? t('app_deploy_messages.deploy_confirmation', {
-                selectedImageTag,
-                appDeployedVersion,
-              })
-            : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}</p>
+          <p>
+            {appDeployedVersion
+              ? t('app_deploy_messages.deploy_confirmation', {
+                  selectedImageTag,
+                  appDeployedVersion,
+                })
+              : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}
+          </p>
         </AltinnConfirmDialog>
       </div>
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (

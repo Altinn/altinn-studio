@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  FieldSet,
-  TextArea,
-} from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, TextArea } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -32,10 +26,10 @@ export const TextResourceEdit = () => {
   }
 
   return (
-    <FieldSet
+    <LegacyFieldSet
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id', { id: editId })}
-      contentClassName={classes.textBoxList}
+      className={classes.textBoxList}
     >
       {languages.map((language) => (
         <TextBox
@@ -47,15 +41,15 @@ export const TextResourceEdit = () => {
         />
       ))}
       <Button
-        color={ButtonColor.Secondary}
+        color='secondary'
         icon={<XMarkIcon />}
         onClick={() => setEditId(undefined)}
-        variant={ButtonVariant.Outline}
+        variant='outline'
         size='small'
       >
         {t('general.close')}
       </Button>
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };
 
@@ -77,14 +71,14 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
 
     mutate({
       language,
-      textResources: [{ id: textResourceId, value: text, variables:textResource?.variables }],
+      textResources: [{ id: textResourceId, value: text, variables: textResource?.variables }],
     });
   };
 
   const [value, setValue] = useState<string>(textResourceValue);
 
   useEffect(() => {
-    setValue(textResourceValue)
+    setValue(textResourceValue);
   }, [textResourceValue]);
 
   return (

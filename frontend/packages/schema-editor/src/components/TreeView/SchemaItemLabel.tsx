@@ -17,7 +17,7 @@ import {
   promoteProperty,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
@@ -99,19 +99,19 @@ export const SchemaItemLabel = ({
     const { pointer } = selectedNode;
     selectedNode.objectKind === ObjectKind.Combination
       ? mutate(
-        addCombinationItem(data, {
-          pointer,
-          props,
-          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer))
-        })
-      )
+          addCombinationItem(data, {
+            pointer,
+            props,
+            callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+          })
+        )
       : mutate(
-        addProperty(data, {
-          pointer,
-          props,
-          callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer))
-        })
-      );
+          addProperty(data, {
+            pointer,
+            props,
+            callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer)),
+          })
+        );
   });
 
   const handleDeleteClick = () => {
@@ -164,8 +164,8 @@ export const SchemaItemLabel = ({
         title={translate('open_action_menu')}
         onClick={handleToggleContextMenuClick}
         icon={<MenuElipsisVerticalIcon />}
-        variant={ButtonVariant.Quiet}
-        size={ButtonSize.Small}
+        variant='quiet'
+        size='small'
       />
       <AltinnMenu
         id='root-properties-context-menu'
@@ -245,7 +245,7 @@ export const SchemaItemLabel = ({
                 className={classes.contextMenuLastItem}
                 onClick={(event) => {
                   event.stopPropagation();
-                  setIsConfirmDeleteDialogOpen(prevState => !prevState);
+                  setIsConfirmDeleteDialogOpen((prevState) => !prevState);
                 }}
                 text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
                 iconClass='fa fa-trash'

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/hooks';
@@ -97,21 +97,26 @@ export function AccessControlContainer() {
   return (
     <div>
       <AltinnColumnLayout header={t('access_control.header')} sideMenuChildren={<SideMenu />}>
-        <CheckboxGroup
+        <Checkbox.Group
           data-testid='access-control-container'
           description={t('access_control.party_type')}
-          items={partyTypeKeys.map((key: keyof IPartyTypesAllowed) => ({
-            checkboxId: undefined,
-            checked: !!partyTypesAllowed[key],
-            description: undefined,
-            disabled: false,
-            label: t(`access_control.${key}`) as string,
-            name: key,
-          }))}
           legend={t('access_control.party_type_header')}
           onChange={(values) => handlePartyTypesAllowedChange(values)}
-          variant={CheckboxGroupVariant.Horizontal}
-        />
+          value={partyTypeKeys.filter((key: keyof IPartyTypesAllowed) => partyTypesAllowed[key])}
+        >
+          {partyTypeKeys.map((key: keyof IPartyTypesAllowed) => (
+            <Checkbox
+              value={key}
+              name={key}
+              disabled={false}
+              checked={!!partyTypesAllowed[key]}
+              id={undefined}
+              key={key}
+            >
+              {t(`access_control.${key}`) as string}
+            </Checkbox>
+          ))}
+        </Checkbox.Group>
       </AltinnColumnLayout>
     </div>
   );
