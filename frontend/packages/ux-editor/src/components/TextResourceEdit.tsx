@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import { Button, Fieldset, TextArea } from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, TextArea } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -26,7 +26,7 @@ export const TextResourceEdit = () => {
   }
 
   return (
-    <Fieldset
+    <LegacyFieldSet
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id', { id: editId })}
       className={classes.textBoxList}
@@ -49,7 +49,7 @@ export const TextResourceEdit = () => {
       >
         {t('general.close')}
       </Button>
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };
 

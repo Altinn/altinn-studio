@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyCheckbox, Fieldset } from '@digdir/design-system-react';
+import { LegacyCheckbox, LegacyFieldSet } from '@digdir/design-system-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -20,7 +20,7 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
   };
 
   return (
-    <Fieldset className={classes.root} data-testid='address-component-container'>
+    <LegacyFieldSet className={classes.root} data-testid='address-component-container'>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_configure_address_component_simplified')}
@@ -51,6 +51,6 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
           />
         );
       })}
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };

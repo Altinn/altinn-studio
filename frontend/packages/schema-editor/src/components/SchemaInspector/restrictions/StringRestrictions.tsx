@@ -3,7 +3,7 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { LegacyCheckbox, Fieldset, Select, TextField } from '@digdir/design-system-react';
+import { LegacyCheckbox, LegacyFieldSet, Select, TextField } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -148,7 +148,7 @@ export function StringRestrictions({
         </div>
       </div>
       <Divider marginless />
-      <Fieldset className={classes.fieldSet} legend={t('regex')}>
+      <LegacyFieldSet className={classes.fieldSet} legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKey.pattern}
           label={t(StrRestrictionKey.pattern)}
@@ -182,7 +182,7 @@ export function StringRestrictions({
             <TextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
           </div>
         </div>
-      </Fieldset>
+      </LegacyFieldSet>
     </>
   );
 }

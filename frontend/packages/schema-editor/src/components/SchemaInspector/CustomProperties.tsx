@@ -1,5 +1,11 @@
 import React from 'react';
-import { Button, LegacyCheckbox, Fieldset, HelpText, TextField } from '@digdir/design-system-react';
+import {
+  Button,
+  LegacyCheckbox,
+  LegacyFieldSet,
+  HelpText,
+  TextField,
+} from '@digdir/design-system-react';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -81,7 +87,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
   }
 
   return (
-    <Fieldset
+    <LegacyFieldSet
       className={classes.root}
       description={t('schema_editor.custom_props_help')}
       legend={t('schema_editor.custom_props')}
@@ -101,7 +107,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
           />
         </div>
       ))}
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };
 

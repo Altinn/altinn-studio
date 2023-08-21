@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
-import { Fieldset, Button, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, Button, TextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
@@ -29,7 +29,7 @@ export const MapComponent = ({
   };
 
   return (
-    <Fieldset className={classes.fieldSetContent}>
+    <LegacyFieldSet className={classes.fieldSetContent}>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
         <div className={classes.formGroup}>
@@ -92,7 +92,7 @@ export const MapComponent = ({
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
         <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
       </div>
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };
 
@@ -155,7 +155,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       {component.layers?.map(
         (layer, index): JSX.Element => (
           // Find a way to avoid using index as key
-          <Fieldset key={index} className={classes.fieldSet}>
+          <LegacyFieldSet key={index} className={classes.fieldSet}>
             <div className={classes.layerHeaderContainer}>
               <p className={classes.numericLayerText}>
                 {t('ux_editor.map_layer')} {index + 1}
@@ -211,7 +211,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 )}
               </FormField>
             </div>
-          </Fieldset>
+          </LegacyFieldSet>
         )
       )}
       <Button

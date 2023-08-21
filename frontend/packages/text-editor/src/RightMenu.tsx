@@ -3,7 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Button, LegacyCheckbox, Fieldset } from '@digdir/design-system-react';
+import { Button, LegacyCheckbox, LegacyFieldSet } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
@@ -49,7 +49,7 @@ export const RightMenu = ({
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.RightMenu__verticalContent}>
-        <Fieldset legend='Aktive språk:'>
+        <LegacyFieldSet legend='Aktive språk:'>
           <div className={classes.RightMenu__radioGroup}>
             {availableLanguages?.map((langCode) => {
               return (
@@ -91,7 +91,7 @@ export const RightMenu = ({
               );
             })}
           </div>
-        </Fieldset>
+        </LegacyFieldSet>
       </div>
       <div className={classes.RightMenu__verticalContent}>
         <div className={classes['LangEditor__title-sm']}>

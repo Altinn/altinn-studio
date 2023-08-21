@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Button, Fieldset, Radio, TextField } from '@digdir/design-system-react';
+import { Button, Fieldset, LegacyRadioGroup, TextField } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -106,7 +106,17 @@ export function EditOptions({
 
   return (
     <>
-      <Radio.Group
+      <LegacyRadioGroup
+        items={[
+          {
+            value: 'codelist',
+            label: t('ux_editor.modal_add_options_codelist'),
+          },
+          {
+            value: 'manual',
+            label: t('ux_editor.modal_add_options_manual'),
+          },
+        ]}
         onChange={handleOptionsTypeChange}
         legend={
           component.type === 'RadioButtons'
@@ -115,12 +125,8 @@ export function EditOptions({
         }
         name={`${component.id}-options`}
         value={selectedOptionsType}
-        inline
-      >
-        <Radio value='codelist'>{t('ux_editor.modal_add_options_codelist')}</Radio>
-        <Radio value='manual'>{t('ux_editor.modal_add_options_manual')}</Radio>
-      </Radio.Group>
-
+        variant='horizontal'
+      />
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AddOption.module.css';
 import { TextResource } from './TextResource';
-import { Button, Fieldset, TextField } from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
 import { IOption } from '../types/global';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -49,7 +49,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
 
   return isAddMode ? (
     <div className={classes.addSection}>
-      <Fieldset
+      <LegacyFieldSet
         className={classes.fieldSetContent}
         error={errorMessage}
         legend={t('ux_editor.add_option')}
@@ -83,7 +83,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
             {t('general.cancel')}
           </Button>
         </div>
-      </Fieldset>
+      </LegacyFieldSet>
     </div>
   ) : (
     <div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from '@digdir/design-system-react';
-import { Fieldset, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, TextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
@@ -65,7 +65,7 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <Fieldset className={classes.root}>
+    <LegacyFieldSet className={classes.root}>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_properties_image_src_value_label')}
@@ -137,6 +137,6 @@ export const ImageComponent = ({
           </a>
         </p>
       </div>
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset, LegacyRadioGroup, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, LegacyRadioGroup, TextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -62,7 +62,7 @@ export const FileUploadComponent = ({
   };
 
   return (
-    <Fieldset className={classes.fieldset}>
+    <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={component.id}
         onChange={handleHasCustomFileEndingsChange}
@@ -175,6 +175,6 @@ export const FileUploadComponent = ({
           />
         )}
       </FormField>
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };

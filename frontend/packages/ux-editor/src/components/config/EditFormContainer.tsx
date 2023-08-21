@@ -8,7 +8,7 @@ import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import {
   LegacyCheckbox,
   LegacyCheckboxGroup,
-  Fieldset,
+  LegacyFieldSet,
   TextField,
 } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
@@ -138,7 +138,7 @@ export const EditFormContainer = ({
   };
 
   return (
-    <Fieldset className={classes.fieldset}>
+    <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={container.id}
         label={t('ux_editor.modal_properties_group_change_id')}
@@ -233,6 +233,6 @@ export const EditFormContainer = ({
           )}
         </>
       )}
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };

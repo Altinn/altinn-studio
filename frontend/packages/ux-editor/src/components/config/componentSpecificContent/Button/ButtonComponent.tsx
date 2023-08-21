@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset, Select } from '@digdir/design-system-react';
+import { LegacyFieldSet, Select } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
 import { useText } from '../../../../hooks';
 import { EditSettings, IGenericEditComponent } from '../../componentConfig';
@@ -61,7 +61,7 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
   if (!types.find((element) => element.value === component.type)) return null;
 
   return (
-    <Fieldset className={classes.root}>
+    <LegacyFieldSet className={classes.root}>
       <FormField
         id={'choose-button-type'}
         onChange={handleButtonTypeChange}
@@ -87,6 +87,6 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
           textResourceBindingKeys={['next', 'back']}
         />
       )}
-    </Fieldset>
+    </LegacyFieldSet>
   );
 };
