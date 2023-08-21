@@ -166,7 +166,7 @@ export function en() {
     },
     input_components: {
       character_limit_sr_label: 'Textfield has a maximum length of {0} characters',
-      remaining_characters: 'You have {0} characters left',
+      remaining_characters: 'You have {0} of {1} characters left',
       exceeded_max_limit: 'You have exceeded the maximum limit with {0} characters',
     },
     instance_selection: {

@@ -168,7 +168,7 @@ export function nb(): FixedLanguageList {
     },
     input_components: {
       character_limit_sr_label: 'Tekstfeltet kan inneholde maks {0} tegn',
-      remaining_characters: 'Du har {0} tegn igjen',
+      remaining_characters: 'Du har {0} av {1} tegn igjen',
       exceeded_max_limit: 'Du har overskredet maks antall tegn med {0}',
     },
     instance_selection: {

@@ -168,7 +168,7 @@ export function nn(): FixedLanguageList {
     },
     input_components: {
       character_limit_sr_label: 'Tekstfeltet kan innehalde maks {0} teikn.',
-      remaining_characters: 'Du har {0} teikn igjen',
+      remaining_characters: 'Du har {0} av {1} teikn igjen',
       exceeded_max_limit: 'Du har overskride maks teikn med {0}',
     },
     instance_selection: {

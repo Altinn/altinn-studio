@@ -390,7 +390,7 @@ describe('Summary', () => {
 
       cy.navPage('form').click();
       cy.get(appFrontend.changeOfName.newFirstName).clear();
-      cy.get(appFrontend.changeOfName.newFirstName).type(`Hello world`);
+      cy.get(appFrontend.changeOfName.newFirstName).type(`Anne`);
       cy.get(appFrontend.changeOfName.newLastName).clear();
       cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
       cy.get(appFrontend.nextButton).click();
@@ -423,7 +423,7 @@ describe('Summary', () => {
       }
       cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
-      cy.get(newFirstNameSummary).should('contain.text', `Hello world`);
+      cy.get(newFirstNameSummary).should('contain.text', `Anne`);
 
       const assertErrorReport = () => {
         if (trigger === Triggers.ValidateAllPages) {

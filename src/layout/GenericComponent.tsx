@@ -105,7 +105,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   const GetFocusSelector = makeGetFocus();
   const hasValidationMessages = node.hasValidationMessages('any');
   const hidden = node.isHidden();
-  const { lang } = useLanguage();
+  const { lang, langAsString } = useLanguage();
 
   const formData = node.getFormData();
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
@@ -116,6 +116,24 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     (state) => state.formValidations.validations[currentView]?.[id],
     shallowEqual,
   );
+
+  const filterValidationErrors = () => {
+    const maxLength = node.item?.maxLength;
+
+    if (!maxLength) {
+      return componentValidations?.simpleBinding;
+    }
+
+    // If maxLength is set in both schema and component, don't display the schema error message
+    const errorMessageMaxLength = langAsString('validation_errors.maxLength', [maxLength]) as string;
+    const componentErrors = componentValidations?.simpleBinding?.errors || [];
+    const updatedErrors = componentErrors.filter((error: string) => error !== errorMessageMaxLength);
+
+    return {
+      ...componentValidations.simpleBinding,
+      errors: updatedErrors,
+    };
+  };
 
   const formComponentContext = useMemo<IFormComponentContext>(
     () => ({
@@ -311,7 +329,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
           {...gridBreakpoints(item.grid?.innerGrid)}
         >
           <RenderComponent {...componentProps} />
-          {showValidationMessages && renderValidationMessagesForComponent(componentValidations?.simpleBinding, id)}
+          {showValidationMessages && renderValidationMessagesForComponent(filterValidationErrors(), id)}
         </Grid>
       </Grid>
     </FormComponentContext.Provider>

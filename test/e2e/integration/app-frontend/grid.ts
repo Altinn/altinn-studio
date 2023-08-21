@@ -34,7 +34,7 @@ describe('Grid component', () => {
     // Fill out the rest of the form, so that we can attempt to send it and only get the validation message we care
     // about for Grid.
     cy.navPage('form').click();
-    cy.get(appFrontend.changeOfName.newFirstName).type('first name');
+    cy.get(appFrontend.changeOfName.newFirstName).type('anna');
     cy.get(appFrontend.changeOfName.newLastName).type('last name');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
