@@ -201,15 +201,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             await altinnAppGitRepository.SaveRuleConfiguration(layoutSetName, ruleConfig);
         }
-        public Task<string> GetBpmnFile(string org, string app, string developer)
+        public Task<string> GetBpmnFile(AltinnAppContext altinnAppContext)
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnAppContext.Org, altinnAppContext.App, altinnAppContext.Developer);
             return altinnAppGitRepository.GetProcessDefinitionFile();
 
         }
-        public Task<string> SaveBpmnFile(string org, string app, string developer, string bpmnXml)
+        public Task<string> SaveBpmnFile(AltinnAppContext altinnAppContext, string bpmnXml)
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnAppContext.Org, altinnAppContext.App, altinnAppContext.Developer);
             return altinnAppGitRepository.SaveProcessDefinitionFile(bpmnXml);
         }
     }

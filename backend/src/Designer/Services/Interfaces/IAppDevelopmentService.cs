@@ -142,8 +142,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task SaveRuleConfig(string org, string app, string developer, JsonNode ruleConfig, [CanBeNull] string layoutSetName);
 
-        public Task<string> GetBpmnFile(string org, string app, string developer);
+        public Task<string> GetBpmnFile(AltinnAppContext altinnAppContext);
 
-        public Task<string> SaveBpmnFile(string org, string app, string developer, string bpmnXml);
+        public Task<string> SaveBpmnFile(AltinnAppContext altinnAppContext, string bpmnXml);
     }
 }
