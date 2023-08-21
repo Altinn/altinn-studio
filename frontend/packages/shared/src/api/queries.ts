@@ -14,6 +14,7 @@ import {
   layoutSettingsPath,
   optionListIdsPath,
   orgsListPath,
+  processEditorPath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
@@ -110,3 +111,6 @@ export const getValidateResource = (org: string, repo: string, id: string) => ge
 export const getResourceSectors = (org: string) => get<ResourceSectorType[]>(resourceSectorsPath(org));
 export const getResourceThematicLos = (org: string) => get<ResourceThematicType[]>(resourceThematicLosPath(org));
 export const getResourceThematicEurovoc = (org: string) => get<ResourceThematicType[]>(resourceThematicEurovocPath(org));
+
+// ProcessEditor
+export const getBpnmFile = (org: string, repo: string) => get(processEditorPath(org, repo));

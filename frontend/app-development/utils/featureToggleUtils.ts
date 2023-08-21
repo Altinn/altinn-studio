@@ -1,6 +1,7 @@
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage, typedSessionStorage } from 'app-shared/utils/webStorage';
 
 const featureFlagKey = 'featureFlags';
+const persistFeatureKey = 'persistFeatureFlag';
 
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
 export type SupportedFeatureFlags = 'processEditor';
@@ -22,6 +23,7 @@ export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolea
   return (
     isDefaultActivatedFeature(featureFlag) ||
     isFeatureActivatedByUrl(featureFlag) ||
+    isFeatureActivatedBySessionStorage(featureFlag) ||
     isFeatureActivatedByLocalStorage(featureFlag)
   );
 };
@@ -39,6 +41,13 @@ const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean =>
     const features = featureParam.split(',');
     return features.includes(featureFlag);
   }
+
+  // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
+  const shouldPersistInSession = urlParams.get(persistFeatureKey);
+  if (shouldPersistInSession) {
+    addFeatureFlagToSessionStorage(featureFlag);
+  }
+
   return false;
 };
 
@@ -46,4 +55,15 @@ const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean =>
 const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): boolean => {
   const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
   return featureFlagsFromStorage.includes(featureFlag);
+};
+
+const isFeatureActivatedBySessionStorage = (featureFlag: SupportedFeatureFlags): boolean => {
+  const featureFlagsFromStorage = typedSessionStorage.getItem<string[]>(featureFlagKey) || [];
+  return featureFlagsFromStorage.includes(featureFlag);
+};
+
+// Add feature to session storage to persist the feature in the current session
+const addFeatureFlagToSessionStorage = (featureFlag: SupportedFeatureFlags): void => {
+  const featureFlagsFromStorage = typedSessionStorage.getItem<string[]>(featureFlagKey) || [];
+  typedSessionStorage.setItem<string[]>(featureFlagKey, [...featureFlagsFromStorage, featureFlag]);
 };
