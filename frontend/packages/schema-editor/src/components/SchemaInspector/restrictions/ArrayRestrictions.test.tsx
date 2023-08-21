@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor, act } from '@testing-library/react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
@@ -35,6 +35,7 @@ describe('ArrayRestrictions', () => {
   });
 
   it('should render minItems as a number field', async () => {
+    const user = userEvent.setup();
     const props = {
       restrictions: {
         minItems: '1',
@@ -42,7 +43,7 @@ describe('ArrayRestrictions', () => {
     };
     render(props);
     const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.minItems));
-    userEvent.type(minItems, 'test 2');
+    await act(() => user.type(minItems, 'test 2'));
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
@@ -53,6 +54,7 @@ describe('ArrayRestrictions', () => {
   });
 
   it('should render maxItems as a number field', async () => {
+    const user = userEvent.setup();
     const props = {
       restrictions: {
         maxItems: '1',
@@ -60,7 +62,7 @@ describe('ArrayRestrictions', () => {
     };
     render(props);
     const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.maxItems));
-    userEvent.type(maxItems, 'test 2');
+    await act(() => user.type(maxItems, 'test 2'));
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
@@ -71,6 +73,7 @@ describe('ArrayRestrictions', () => {
   });
 
   it('should render uniqueItems as a checkbox', async () => {
+    const user = userEvent.setup();
     const props = {
       restrictions: {
         uniqueItems: false,
@@ -80,7 +83,7 @@ describe('ArrayRestrictions', () => {
     const uniqueItems = screen.getByLabelText(
       textMock('schema_editor.' + ArrRestrictionKey.uniqueItems)
     );
-    userEvent.click(uniqueItems);
+    await act(() => user.click(uniqueItems));
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,

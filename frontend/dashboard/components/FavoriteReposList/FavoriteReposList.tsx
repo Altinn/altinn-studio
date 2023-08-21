@@ -8,7 +8,7 @@ export const FavoriteReposList = () => {
   const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } = useStarredReposQuery();
 
   return (
-    <div data-testid='favorite-repos-list'>
+    <div>
       <h2>{t('dashboard.favourites')}</h2>
       <RepoList
         repos={userStarredRepos}

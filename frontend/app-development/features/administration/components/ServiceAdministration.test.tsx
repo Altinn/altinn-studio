@@ -125,7 +125,7 @@ describe('Administration', () => {
       .querySelector('#administrationInputAppName_textField'); // eslint-disable-line testing-library/no-node-access
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
 
-    await fireEvent.change(inputElement, mockEvent);
+    fireEvent.change(inputElement, mockEvent);
     expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
     fireEvent.blur(inputElement);
@@ -158,10 +158,10 @@ describe('Administration', () => {
       .querySelector('#administrationInputDescription_textField'); // eslint-disable-line testing-library/no-node-access
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
 
-    await fireEvent.change(inputElement, mockEvent);
+    fireEvent.change(inputElement, mockEvent);
     expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
-    await fireEvent.blur(inputElement);
+    fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
@@ -191,10 +191,10 @@ describe('Administration', () => {
       .querySelector('#administrationInputAppId_textField'); // eslint-disable-line testing-library/no-node-access
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
-    await fireEvent.change(inputElement, mockEvent);
+    fireEvent.change(inputElement, mockEvent);
     expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
-    await fireEvent.blur(inputElement);
+    fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({

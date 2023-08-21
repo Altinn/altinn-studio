@@ -1,10 +1,8 @@
 import React from 'react';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AltinnHeaderButton, AltinnHeaderButtonProps } from './AltinnHeaderButton';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-
-const user = userEvent.setup();
 
 describe('AltinnHeaderbuttons', () => {
   it('should render nothing if action is undefined', () => {
@@ -26,6 +24,8 @@ describe('AltinnHeaderbuttons', () => {
   });
 
   it('should trigger the handleClick function when a button is clicked', async () => {
+    const user = userEvent.setup();
+
     const handleClick = jest.fn();
     render({
       action: {
@@ -38,7 +38,7 @@ describe('AltinnHeaderbuttons', () => {
     });
 
     const button = screen.getByRole('button', { name: textMock('Button1') });
-    user.click(button);
+    await act(() => user.click(button));
     await waitFor(() => expect(handleClick).toHaveBeenCalledTimes(1));
   });
 
@@ -57,6 +57,8 @@ describe('AltinnHeaderbuttons', () => {
   });
 
   it('should render popover with beta message when hovering over information icon', async () => {
+    const user = userEvent.setup();
+
     render({
       action: {
         buttonVariant: 'filled',
@@ -68,7 +70,7 @@ describe('AltinnHeaderbuttons', () => {
       },
     });
     const button = screen.getByRole('img', { name: 'information' });
-    user.hover(button);
+    await act(() => user.hover(button));
 
     await screen.findByText(textMock('top_menu.preview_is_beta_message'));
   });

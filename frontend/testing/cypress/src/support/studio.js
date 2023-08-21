@@ -1,9 +1,10 @@
 /// <reference types="cypress" />
 import '@testing-library/cypress/add-commands';
-import { login } from '../pageobjects/loginandreg';
-import { dashboard } from '../pageobjects/dashboard';
+import { login } from '../selectors/login';
+import { dashboard as dashboard2 } from '../pageobjects/dashboard';
 import { designer } from '../pageobjects/designer';
-import { header } from '../pageobjects/header';
+import { dashboard } from '../selectors/dashboard';
+import { header } from '../selectors/header';
 
 import '@testing-library/cypress/add-commands';
 
@@ -13,10 +14,10 @@ import '@testing-library/cypress/add-commands';
 Cypress.Commands.add('studiologin', (userName, userPwd) => {
   cy.session([userName, userPwd], () => {
     cy.visit('/');
-    cy.get(login.loginButton).should('be.visible').click();
-    cy.get(login.userName).should('be.visible').type(userName);
-    cy.get(login.userPwd).should('be.visible').type(userPwd, { log: false });
-    cy.get(login.submit).should('be.visible').click();
+    login.getLoginButton().should('be.visible').click();
+    login.getUsernameField().should('be.visible').type(userName);
+    login.getPasswordField().should('be.visible').type(userPwd, { log: false });
+    login.getLoginButton().should('be.visible').click();
   });
 });
 
@@ -26,11 +27,16 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
  */
 Cypress.Commands.add('switchSelectedContext', (context) => {
   cy.intercept('GET', '**/repos/search**').as('fetchApps');
-  cy.get(header.profileIcon).should('be.visible').click();
-  if (['self', 'all'].includes(context)) {
-    cy.get(header.menu[context]).should('be.visible').click();
-  } else {
-    cy.get(header.menu.org(context)).should('be.visible').click();
+  header.getAvatar().should('be.visible').click();
+  switch (context) {
+    case 'self':
+      header.getMenuItemUser().should('be.visible').click();
+      break;
+    case 'all':
+      header.getMenuItemAll().should('be.visible').click();
+      break;
+    default:
+      header.getMenuItemOrg(context).should('be.visible').click();
   }
 });
 
@@ -39,12 +45,12 @@ Cypress.Commands.add('switchSelectedContext', (context) => {
  */
 Cypress.Commands.add('createapp', (orgName, appName) => {
   cy.visit('/dashboard');
-  cy.get(dashboard.newApp).should('be.visible').click();
-  cy.get(dashboard.appOwners).should('be.visible').click();
-  cy.contains(dashboard.appOwnersList, orgName).click();
-  cy.get(dashboard.appName).should('be.visible').type(appName);
+  dashboard.getNewAppLink().should('be.visible').click();
+  dashboard.getAppOwnerField().should('be.visible').click();
+  dashboard.getOrgOption(orgName).click();
+  dashboard.getSavedNameField().should('be.visible').type(appName);
   cy.intercept('POST', '**/designer/api/repos/**').as('postCreateApp');
-  cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
+  dashboard.getCreateAppButton().should('be.visible').click();
   cy.wait('@postCreateApp', { timeout: 30000 }).its('response.statusCode').should('eq', 201);
 });
 
@@ -112,10 +118,10 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
 Cypress.Commands.add('searchAndOpenApp', (appId) => {
   const [_, appName] = appId.split('/');
   cy.visit('/dashboard');
-  cy.get(dashboard.searchApp).type(appName);
-  cy.contains(dashboard.apps.name, appName)
-    .siblings(dashboard.apps.links)
-    .find(dashboard.apps.edit)
+  dashboard.getSearchReposField().type(appName);
+  cy.contains(dashboard2.apps.name, appName)
+    .siblings(dashboard2.apps.links)
+    .find(dashboard2.apps.edit)
     .click();
 });
 
