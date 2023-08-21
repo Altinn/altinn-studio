@@ -24,6 +24,7 @@ export enum TopBarMenu {
   Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
   ProcessEditor = 'top_menu.process-editor',
+  PolicyEditor = 'top_menu.policy-editor',
   None = '',
 }
 
@@ -53,6 +54,12 @@ export const menu: TopBarMenuItem[] = [
     link: '/:org/:app/process-editor',
     repositoryTypes: [RepositoryType.App],
     featureFlagName: 'processEditor',
+  },
+  {
+    key: TopBarMenu.PolicyEditor,
+    link: '/:org/:app/policy-editor',
+    repositoryTypes: [RepositoryType.App],
+    //featureFlagName: 'policyEditor',
   },
 ];
 

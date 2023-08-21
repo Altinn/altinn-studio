@@ -750,6 +750,7 @@
   "top_menu.texts": "Texts",
   "top_menu.texts_old": "Texts *",
   "top_menu.process-editor": "Process",
+  "top_menu.policy-editor": "Policy",
   "ux_editor.add_map_layer": "Add map layer",
   "ux_editor.add_option": "Add option",
   "ux_editor.add_option_description_add": "Add description",
