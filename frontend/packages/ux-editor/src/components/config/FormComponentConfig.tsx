@@ -27,7 +27,7 @@ const supportedPropertyRefs = [
 const knownUnsupportedPropertyKeys = ['children'];
 
 export const isPropertyTypeSupported = (property: any, propertyKey?: string) => {
-  if (propertyKey && knownUnsupportedPropertyKeys.includes[propertyKey]) return false;
+  if (propertyKey && knownUnsupportedPropertyKeys.includes(propertyKey)) return false;
   if (property.$ref) {
     return supportedPropertyRefs.includes(property.$ref);
   }

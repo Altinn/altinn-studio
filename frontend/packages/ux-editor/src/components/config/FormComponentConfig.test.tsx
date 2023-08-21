@@ -51,6 +51,27 @@ describe('isPropertyTypeSupported', () => {
       })
     ).toBe(false);
   });
+
+  it('should return true if property type is supported and propertyKey is undefined', () => {
+    expect(
+      isPropertyTypeSupported(
+        {
+          type: 'string',
+        },
+      )
+    ).toBe(true);
+  });
+
+  it('should return false if propertyKey is known to be unsupported', () => {
+    expect(
+      isPropertyTypeSupported(
+        {
+          type: 'string',
+        },
+        'children'
+      )
+    ).toBe(false);
+  });
 });
 
 describe('FormComponentConfig', () => {
