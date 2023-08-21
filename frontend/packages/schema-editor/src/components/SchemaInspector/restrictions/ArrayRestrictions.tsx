@@ -5,7 +5,7 @@ import { TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { Checkbox } from '@digdir/design-system-react';
+import { LegacyCheckbox } from '@digdir/design-system-react';
 
 export function ArrayRestrictions({
   restrictions,
@@ -39,10 +39,9 @@ export function ArrayRestrictions({
         </div>
       </div>
       <div>
-        <Checkbox
+        <LegacyCheckbox
           checked={restrictions[ArrRestrictionKey.uniqueItems]}
-          aria-label={t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
-          value={t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
+          label={t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
           onChange={(e) =>
             onChangeRestrictionValue(path, ArrRestrictionKey.uniqueItems, e.target.checked)
           }

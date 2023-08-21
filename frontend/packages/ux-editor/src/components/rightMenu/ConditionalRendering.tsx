@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Checkbox } from '@digdir/design-system-react';
+import { Button, LegacyCheckbox } from '@digdir/design-system-react';
 import classes from './ConditionalRendering.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
@@ -48,10 +48,9 @@ export const ConditionalRendering = ({
       <div className={classes.dynamicsVersionCheckBox}>
         <Divider />
         {!_useIsProdHack() && (
-          <Checkbox
-            aria-label={t('right_menu.show_new_dynamics')}
+          <LegacyCheckbox
+            label={t('right_menu.show_new_dynamics')}
             name={'checkbox-name'}
-            value={'checkbox-name'}
             checked={showNewDynamics}
             onChange={() => onShowNewDynamics(!showNewDynamics)}
           />

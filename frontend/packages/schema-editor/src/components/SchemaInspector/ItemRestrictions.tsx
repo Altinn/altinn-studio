@@ -15,7 +15,7 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Button, Checkbox, Fieldset, ErrorMessage } from '@digdir/design-system-react';
+import { Button, LegacyCheckbox, Fieldset, ErrorMessage } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
@@ -95,10 +95,9 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   return (
     <>
       {!pointerIsDefinition(pointer) && (
-        <Checkbox
+        <LegacyCheckbox
           checked={isRequired}
-          aria-label={t('schema_editor.required')}
-          value='checkedRequired'
+          label={t('schema_editor.required')}
           name='checkedRequired'
           onChange={handleRequiredChanged}
         />

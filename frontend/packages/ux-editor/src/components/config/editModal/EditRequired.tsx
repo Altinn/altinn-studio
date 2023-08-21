@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox } from '@digdir/design-system-react';
+import { LegacyCheckbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
@@ -23,7 +23,7 @@ export const EditRequired = ({ component, handleComponentChange }: IGenericEditC
       propertyPath='definitions/component/properties/required'
     >
       {({ value, onChange }) => (
-        <Checkbox value={value} checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+        <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
       )}
     </FormField>
   );

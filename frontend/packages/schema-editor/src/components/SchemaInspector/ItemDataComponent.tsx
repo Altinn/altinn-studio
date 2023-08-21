@@ -8,7 +8,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { Checkbox, Fieldset, Select, TextArea, TextField } from '@digdir/design-system-react';
+import { LegacyCheckbox, Fieldset, Select, TextArea, TextField } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import {
@@ -159,10 +159,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
-        <Checkbox
+        <LegacyCheckbox
           checked={isArray}
-          aria-label={t('schema_editor.multiple_answers')}
-          value={t('schema_editor.multiple_answers')}
+          label={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
         />
@@ -178,11 +177,10 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind === ObjectKind.Combination && (
-        <Checkbox
-          id='multiple-answers-checkbox'
+        <LegacyCheckbox
+          checkboxId='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
-          aria-label={t('schema_editor.nullable')}
-          value={t('schema_editor.nullable')}
+          label={t('schema_editor.nullable')}
           name='checkedNullable'
           onChange={onChangeNullable}
         />

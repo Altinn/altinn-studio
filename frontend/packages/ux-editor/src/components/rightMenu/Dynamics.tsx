@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Alert, Button, Checkbox } from '@digdir/design-system-react';
+import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
 import { DynamicContent } from '../config/expressions/DynamicContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../hooks';
@@ -136,10 +136,9 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
       <div className={classes.dynamicsVersionCheckBox}>
         <Divider />
         {!_useIsProdHack() && (
-          <Checkbox
-            aria-label={t('right_menu.show_new_dynamics')}
+          <LegacyCheckbox
+            label={t('right_menu.show_new_dynamics')}
             name={'checkbox-name'}
-            value={'checkbox-name'}
             checked={showNewDynamics}
             onChange={() => onShowNewDynamics(!showNewDynamics)}
           />

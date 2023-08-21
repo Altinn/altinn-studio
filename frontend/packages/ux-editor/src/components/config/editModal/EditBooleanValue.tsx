@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox } from '@digdir/design-system-react';
+import { LegacyCheckbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
@@ -45,11 +45,10 @@ export const EditBooleanValue = ({
     >
       {({ value, onChange }) => {
         return (
-          <Checkbox
-            value={value}
+          <LegacyCheckbox
             checked={value}
             onChange={(e) => onChange(e.target.checked, e)}
-            id={`${propertyKey}-checkbox-${component.id}`}
+            checkboxId={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(value)}
           />
         );
