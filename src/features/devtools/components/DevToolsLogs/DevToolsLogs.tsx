@@ -54,11 +54,13 @@ export const DevToolsLogs = () => {
         <Button
           onClick={clearLogs}
           color={'secondary'}
+          size='small'
           icon={<TrashIcon title='slett alle logger' />}
         />
         <Button
           onClick={saveLogs}
           color={'secondary'}
+          size='small'
           icon={<DownloadIcon title='lagre logger til fil' />}
         />
         <div className={classes.filterField}>
@@ -71,16 +73,19 @@ export const DevToolsLogs = () => {
 
         <Button
           onClick={() => toggleShow('error')}
+          size='small'
           color={showLevels.error ? 'secondary' : 'inverted'}
           icon={<XMarkOctagonFillIcon title='vis/skjul error' />}
         />
         <Button
           onClick={() => toggleShow('warn')}
+          size='small'
           color={showLevels.warn ? 'secondary' : 'inverted'}
           icon={<ExclamationmarkTriangleFillIcon title='vis/skjul advarsler' />}
         />
         <Button
           onClick={() => toggleShow('info')}
+          size='small'
           color={showLevels.info ? 'secondary' : 'inverted'}
           icon={<InformationSquareFillIcon title='vis/skjul informasjon' />}
         />

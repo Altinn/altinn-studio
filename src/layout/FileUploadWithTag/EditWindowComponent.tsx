@@ -231,6 +231,7 @@ export function EditWindowComponent({
               />
             ) : (
               <Button
+                size='small'
                 onClick={() => handleSave(attachment)}
                 id={`attachment-save-tag-button-${attachment.id}`}
                 disabled={saveIsDisabled}

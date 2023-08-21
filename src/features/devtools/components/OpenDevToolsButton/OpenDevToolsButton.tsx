@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { CodeIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -50,8 +50,9 @@ export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonPro
         )}
         <Button
           tabIndex={-1}
-          variant={ButtonVariant.Outline}
-          color={ButtonColor.Secondary}
+          size='small'
+          variant='outline'
+          color='secondary'
           onClick={onClick}
           aria-label='åpne utviklerverkøy'
           icon={<CodeIcon aria-hidden />}

@@ -49,6 +49,7 @@ export function DeleteWarningPopover({
         <Button
           data-testid='warning-popover-delete-button'
           variant='filled'
+          size='small'
           color='danger'
           onClick={onPopoverDeleteClick}
         >
@@ -57,6 +58,7 @@ export function DeleteWarningPopover({
         <Button
           data-testid='warning-popover-cancel-button'
           variant='quiet'
+          size='small'
           color='secondary'
           onClick={onCancelClick}
         >

@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useCallback, useEffect } from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
 
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -72,8 +72,9 @@ export const NodeInspector = () => {
             </div>
             <Button
               onClick={() => setSelected(undefined)}
-              variant={ButtonVariant.Quiet}
-              color={ButtonColor.Secondary}
+              size='small'
+              variant='quiet'
+              color='secondary'
               aria-label={'close'}
               icon={<Close aria-hidden />}
             />

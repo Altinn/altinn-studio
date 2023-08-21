@@ -100,6 +100,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='quiet'
+                    size='small'
                     color='secondary'
                     icon={<EditIcon />}
                     iconPlacement='right'
@@ -155,6 +156,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='quiet'
+                    size='small'
                     color='secondary'
                     icon={<EditIcon />}
                     iconPlacement='right'

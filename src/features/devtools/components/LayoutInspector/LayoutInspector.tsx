@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -135,8 +135,9 @@ export const LayoutInspector = () => {
             </div>
             <Button
               onClick={() => setSelectedComponent(undefined)}
-              variant={ButtonVariant.Quiet}
-              color={ButtonColor.Secondary}
+              variant='quiet'
+              color='secondary'
+              size='small'
               aria-label={'close'}
               icon={<Close aria-hidden />}
             />
@@ -154,7 +155,14 @@ export const LayoutInspector = () => {
             }}
           />
           {error && <span className={classes.error}>Ugyldig JSON</span>}
-          {propertiesHaveChanged && <Button onClick={handleSave}>Lagre</Button>}
+          {propertiesHaveChanged && (
+            <Button
+              size='small'
+              onClick={handleSave}
+            >
+              Lagre
+            </Button>
+          )}
         </div>
       )}
     </SplitView>

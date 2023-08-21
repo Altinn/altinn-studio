@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Close, FullscreenEnter, FullscreenExit, Left } from '@navikt/ds-icons';
 import cn from 'classnames';
 
@@ -41,8 +41,9 @@ export const NavBar = (props: INavBarProps) => {
             data-testid='form-back-button'
             className={classes.buttonMargin}
             onClick={props.handleBack}
-            variant={ButtonVariant.Quiet}
-            color={ButtonColor.Secondary}
+            variant='quiet'
+            color='secondary'
+            size='small'
             aria-label={langAsString('general.back')}
             icon={<Left aria-hidden />}
           />
@@ -57,8 +58,9 @@ export const NavBar = (props: INavBarProps) => {
             data-testid='form-expand-button'
             className={cn(classes.buttonMargin, { [classes.hideExpandButtonMaxWidth]: !expandedWidth })}
             onClick={handleExpand}
-            variant={ButtonVariant.Quiet}
-            color={ButtonColor.Secondary}
+            variant='quiet'
+            color='secondary'
+            size='small'
             aria-label={langAsString('general.expand_form')}
             icon={
               expandedWidth ? (
@@ -81,8 +83,9 @@ export const NavBar = (props: INavBarProps) => {
             data-testid='form-close-button'
             className={classes.buttonMargin}
             onClick={props.handleClose}
-            variant={ButtonVariant.Quiet}
-            color={ButtonColor.Secondary}
+            variant='quiet'
+            color='secondary'
+            size='small'
             aria-label={langAsString('general.close_schema')}
             icon={<Close aria-hidden />}
           />

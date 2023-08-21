@@ -119,6 +119,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         <Grid item>
           <Button
             ref={refPrev}
+            size='small'
             onClick={onClickPrevious}
             disabled={disableBack}
           >
@@ -130,6 +131,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         <Grid item>
           <Button
             ref={refNext}
+            size='small'
             onClick={OnClickNext}
             disabled={disableNext}
           >

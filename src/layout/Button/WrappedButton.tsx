@@ -40,6 +40,7 @@ export const WrappedButton = ({
     <ButtonLoader isLoading={thisIsLoading}>
       <Button
         data-is-loading={thisIsLoading ? 'true' : 'false'}
+        size='small'
         variant={variant}
         color={color}
         onClick={handleClick}

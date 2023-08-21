@@ -44,6 +44,7 @@ export function LinkComponent({ node }: ILinkComponent) {
         style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
         color={color}
         variant={variant}
+        size='small'
         onClick={() => window.open(langAsString(textResourceBindings?.target), openInNewTab ? '_blank' : '_self')}
       >
         {lang(textResourceBindings?.title)}

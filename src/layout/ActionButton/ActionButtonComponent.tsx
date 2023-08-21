@@ -52,6 +52,7 @@ export function ActionButtonComponent({ node }: IActionButton) {
       }}
     >
       <Button
+        size='small'
         id={`action-button-${id}`}
         variant={variant}
         color={color}

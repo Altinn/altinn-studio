@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Edit } from '@navikt/ds-icons';
 
 export interface IEditButtonProps {
@@ -12,8 +12,9 @@ export interface IEditButtonProps {
 export function EditButton(props: IEditButtonProps) {
   return (
     <Button
-      variant={ButtonVariant.Quiet}
-      color={ButtonColor.Secondary}
+      variant='quiet'
+      color='secondary'
+      size='small'
       icon={<Edit aria-hidden={true} />}
       iconPlacement='right'
       onClick={props.onClick}

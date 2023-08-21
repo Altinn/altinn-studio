@@ -37,7 +37,12 @@ export function UnknownError() {
             Sjekk loggen for mer informasjon.
             <br />
             <br />
-            <Button onClick={openLog}>Vis logg</Button>
+            <Button
+              size='small'
+              onClick={openLog}
+            >
+              Vis logg
+            </Button>
           </>
         )}
       </>

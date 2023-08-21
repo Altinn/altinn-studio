@@ -149,6 +149,7 @@ export const PartySelection = () => {
             direction='row'
           >
             <Button
+              size='small'
               variant='outline'
               dashedBorder={true}
               icon={<PlusIcon aria-hidden />}

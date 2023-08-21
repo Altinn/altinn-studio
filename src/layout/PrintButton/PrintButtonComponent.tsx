@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -15,8 +15,9 @@ export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintB
   return (
     <Button
       style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
-      variant={ButtonVariant.Outline}
-      color={ButtonColor.Primary}
+      variant='outline'
+      color='primary'
+      size='small'
       onClick={window.print}
     >
       {lang(textResourceBindings?.title ?? 'general.print_button_text')}

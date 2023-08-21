@@ -63,6 +63,7 @@ export const VersionSwitcher = () => {
       {selectedVersion && <span>Last inn siden på nytt for å gå tilbake til opprinnelig versjon.</span>}
       <Button
         id='version-switcher-button'
+        size='small'
         style={{ width: '100%' }}
         disabled={!selectedVersion}
         onClick={onClick}

@@ -219,6 +219,7 @@ export function RepeatingGroupTableRow({
                   aria-controls={isEditingRow ? `group-edit-container-${id}-${index}` : undefined}
                   variant='quiet'
                   color='secondary'
+                  size='small'
                   icon={rowHasErrors ? <ErrorIcon aria-hidden='true' /> : <EditIcon aria-hidden='true' />}
                   iconPlacement='right'
                   onClick={onEditClick}
@@ -267,6 +268,7 @@ export function RepeatingGroupTableRow({
                 aria-controls={isEditingRow ? `group-edit-container-${id}-${index}` : undefined}
                 variant='quiet'
                 color='secondary'
+                size='small'
                 icon={rowHasErrors ? <ErrorIcon aria-hidden='true' /> : <EditIcon aria-hidden='true' />}
                 iconPlacement='right'
                 onClick={onEditClick}
@@ -348,6 +350,7 @@ const DeleteElement = ({
       color='danger'
       icon={<DeleteIcon aria-hidden='true' />}
       iconPlacement='right'
+      size='small'
       disabled={deleting}
       onClick={() => handleDeleteClick(popoverOpen, setPopoverOpen, () => onDeleteClick(index), edit?.alertOnDelete)}
       aria-label={`${deleteButtonText}-${firstCellData}`}

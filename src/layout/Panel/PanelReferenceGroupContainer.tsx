@@ -127,6 +127,7 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
                         <Button
                           id={`save-reference-button-${container.id}`}
                           onClick={handleSave}
+                          size='small'
                         >
                           {lang('general.save')}
                         </Button>

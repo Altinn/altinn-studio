@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
@@ -180,8 +180,9 @@ function RepeatingGroupsEditContainerInternal({
         >
           <Grid item={true}>
             <Button
-              variant={ButtonVariant.Quiet}
-              color={ButtonColor.Danger}
+              variant='quiet'
+              color='danger'
+              size='small'
               icon={<DeleteIcon />}
               iconPlacement='right'
               disabled={deleting}
@@ -222,8 +223,9 @@ function RepeatingGroupsEditContainerInternal({
                   <Grid item={true}>
                     <Button
                       icon={<Back aria-hidden='true' />}
-                      variant={ButtonVariant.Quiet}
-                      color={ButtonColor.Secondary}
+                      size='small'
+                      variant='quiet'
+                      color='secondary'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)}
                     >
                       {lang('general.back')}
@@ -237,8 +239,9 @@ function RepeatingGroupsEditContainerInternal({
                     <Button
                       icon={<Next aria-hidden='true' />}
                       iconPlacement='right'
-                      variant={ButtonVariant.Quiet}
-                      color={ButtonColor.Secondary}
+                      size='small'
+                      variant='quiet'
+                      color='secondary'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)}
                     >
                       {lang('general.next')}
@@ -257,8 +260,9 @@ function RepeatingGroupsEditContainerInternal({
                 <Button
                   id={`next-button-grp-${id}`}
                   onClick={nextClicked}
-                  variant={ButtonVariant.Filled}
-                  color={ButtonColor.Primary}
+                  variant='filled'
+                  color='primary'
+                  size='small'
                 >
                   {lang(texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next')}
                 </Button>
@@ -269,8 +273,9 @@ function RepeatingGroupsEditContainerInternal({
                 <Button
                   id={`add-button-grp-${id}`}
                   onClick={saveClicked}
-                  variant={saveAndNextButtonVisible ? ButtonVariant.Outline : ButtonVariant.Filled}
-                  color={ButtonColor.Primary}
+                  variant={saveAndNextButtonVisible ? 'outline' : 'filled'}
+                  color='primary'
+                  size='small'
                 >
                   {lang(texts?.save_button ? texts?.save_button : 'general.save_and_close')}
                 </Button>

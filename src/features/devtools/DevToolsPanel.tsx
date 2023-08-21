@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
 
 import classes from 'src/features/devtools/DevTools.module.css';
@@ -81,8 +81,9 @@ export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) 
             <div className={classes.closeButton}>
               <Button
                 onClick={close}
-                variant={ButtonVariant.Quiet}
-                color={ButtonColor.Secondary}
+                variant='quiet'
+                color='secondary'
+                size='small'
                 aria-label={'close'}
                 icon={<Close aria-hidden />}
               />

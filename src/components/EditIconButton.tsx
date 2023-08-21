@@ -15,6 +15,7 @@ export function EditIconButton({ id, label, onClick }: IEditIconButtonProps) {
   return (
     <Button
       className={classes.editButton}
+      size='small'
       id={id}
       variant='quiet'
       icon={<PencilIcon aria-hidden />}

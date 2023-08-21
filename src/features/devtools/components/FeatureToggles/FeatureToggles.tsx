@@ -92,6 +92,7 @@ export function FeatureToggles() {
         ))}
         <div className={classes.button}>
           <Button
+            size='small'
             disabled={Object.keys(overrides).length <= 0}
             onClick={() => {
               const { org, app } = window;
