@@ -715,6 +715,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return optionListIds.ToArray();
         }
 
+        /// <summary>
+        /// Saves bpmn file to disk.
+        /// </summary>
+        /// <param name="file">Content of bpmn file.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">Throws argument exception if size of syntax validation of the file fails.</exception>
         public async Task<string> SaveProcessDefinitionFile(string file)
         {
             Guard.AssertNotNullOrEmpty(file, nameof(file));
@@ -729,6 +735,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return file;
         }
 
+        /// <summary>
+        /// Gets the Bpmn file from App/config/process/process.bpmn location
+        /// </summary>
+        /// <returns>Content of Bpmn file</returns>
+        /// <exception cref="NotFoundHttpRequestException">If file doesn't exists.</exception>
         public async Task<string> GetProcessDefinitionFile()
         {
             if (!FileExistsByRelativePath(ProcessDefinitionFilePath))

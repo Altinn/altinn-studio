@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Controllers
         public Task<string> GetProcessDefinition(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            return _appDevelopmentService.GetBpmnFile(new AltinnAppContext(org, repo, developer));
+            return _appDevelopmentService.GetProcessDefinition(new AltinnAppContext(org, repo, developer));
         }
 
         [HttpPut("process-definition")]
@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _appDevelopmentService.SaveBpmnFile(new AltinnAppContext(org, repo, developer), bpmnFileContent);
+            await _appDevelopmentService.SaveProcessDefinition(new AltinnAppContext(org, repo, developer), bpmnFileContent);
             return Ok(bpmnFileContent);
         }
 
