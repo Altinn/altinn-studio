@@ -3,7 +3,7 @@ class SupportedContextPadProvider {
     contextPad.registerProvider(this);
   }
 
-  getContextPadEntries() {
+  public getContextPadEntries() {
     return function (entries) {
       // Should not be able to replace the entry
       delete entries['replace'];

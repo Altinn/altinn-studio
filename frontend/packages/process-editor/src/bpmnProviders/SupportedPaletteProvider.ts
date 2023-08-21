@@ -10,7 +10,7 @@ class SupportedPaletteProvider {
     palette.registerProvider(this);
   }
 
-  getPaletteEntries() {
+  public getPaletteEntries() {
     return (entries) => {
       this.deleteUnsupportedEntries(entries);
       return entries;
