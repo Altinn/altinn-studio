@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import classes from './PolicyEditor.module.css';
-import { ExpandablePolicyCard } from 'app-shared/components/PolicyEditor/ExpandablePolicyCard';
-import { CardButton } from 'app-shared/components/PolicyEditor/CardButton';
 import { Label, Alert } from '@digdir/design-system-react';
-import {
-  mapPolicyRulesBackendObjectToPolicyRuleCardType,
-  emptyPolicyRule,
-  mapPolicyRuleToPolicyRuleBackendObject,
-} from 'app-shared/utils/policyEditorUtils';
-import { VerificationModal } from 'app-shared/components/PolicyEditor/VerificationModal';
-import { SelectAuthLevel } from 'app-shared/components/PolicyEditor/SelectAuthLevel';
 import {
   PolicyActionType,
   PolicyBackendType,
@@ -19,7 +9,15 @@ import {
   PolicySubjectType,
   RequiredAuthLevelType,
   policyEditorUsageType,
-} from 'app-shared/types/PolicyEditorTypes';
+  mapPolicyRulesBackendObjectToPolicyRuleCardType,
+  emptyPolicyRule,
+  mapPolicyRuleToPolicyRuleBackendObject,
+} from '@altinn/policy-editor';
+import classes from './PolicyEditor.module.css';
+import { VerificationModal } from './VerificationModal';
+import { SelectAuthLevel } from './SelectAuthLevel';
+import { ExpandablePolicyCard } from './ExpandablePolicyCard';
+import { CardButton } from './CardButton';
 
 interface Props {
   /**

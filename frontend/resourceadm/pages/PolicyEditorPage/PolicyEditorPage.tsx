@@ -1,7 +1,11 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from 'app-shared/components/PolicyEditor';
+import {
+  PolicyEditor,
+  PolicyBackendType,
+  mapPolicyResultToPolicyObject,
+} from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
@@ -9,8 +13,6 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'resourceadm/hooks/queries';
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
-import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
-import { mapPolicyResultToPolicyObject } from 'app-shared/utils/policyEditorUtils';
 
 interface Props {
   /**

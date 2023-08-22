@@ -15,7 +15,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { NewResourceType, ResourceBackendType } from 'resourceadm/types/global';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
-import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
+import { PolicyBackendType } from '@altinn/policy-editor/src/PolicyEditorTypes';
 
 const headers = {
   Accept: 'application/json',

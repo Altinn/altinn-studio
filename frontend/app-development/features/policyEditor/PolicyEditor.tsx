@@ -1,13 +1,13 @@
 import React from 'react';
 import classes from './PolicyEditor.module.css';
-import { PolicyEditor as PolicyEditorImpl } from 'app-shared/components/PolicyEditor';
-import { Heading, Spinner } from '@digdir/design-system-react';
-import { mapPolicyResultToPolicyObject } from 'app-shared/utils/policyEditorUtils';
 import {
+  PolicyEditor as PolicyEditorImpl,
+  mapPolicyResultToPolicyObject,
   PolicyActionType,
   PolicyBackendType,
   PolicySubjectType,
-} from 'app-shared/types/PolicyEditorTypes';
+} from '@altinn/policy-editor';
+import { Heading, Spinner } from '@digdir/design-system-react';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useParams } from 'react-router-dom';
 import { useEditAppPolicyMutation } from 'app-development/hooks/mutations';

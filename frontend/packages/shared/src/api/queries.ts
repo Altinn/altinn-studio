@@ -19,7 +19,7 @@ import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 import { ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
-import { PolicyActionType, PolicyBackendType, PolicySubjectType } from 'app-shared/types/PolicyEditorTypes';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType } from '@altinn/policy-editor/src/PolicyEditorTypes';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));

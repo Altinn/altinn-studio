@@ -5,7 +5,7 @@ import {
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
-} from 'app-shared/types/PolicyEditorTypes';
+} from '@altinn/policy-editor';
 
 /**
  * Empty rule when new card added

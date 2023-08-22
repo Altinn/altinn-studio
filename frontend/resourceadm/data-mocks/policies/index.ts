@@ -4,7 +4,7 @@ import {
   PolicyRuleBackendType,
   PolicyRuleResourceType,
   PolicySubjectType,
-} from 'app-shared/types/PolicyEditorTypes';
+} from '@altinn/policy-editor/src/PolicyEditorTypes';
 
 // RESOURCE ID
 export const resourceIdMock1: string = 'resource_id_1';

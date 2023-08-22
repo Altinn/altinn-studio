@@ -133,7 +133,7 @@ export const DropdownMenu = ({
       <Button
         icon={<MenuElipsisVerticalIcon title='More' fontSize='1.8rem' />}
         onClick={handleClickMoreIcon}
-        onKeyDown={(e) => {}}
+        onKeyDown={() => {}}
         variant='quiet'
         color={isError ? 'danger' : 'secondary'}
         className={isError && classes.errorButton}

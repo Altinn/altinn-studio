@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { PolicyActionType } from 'app-shared/types/PolicyEditorTypes';
+import { PolicyActionType } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
