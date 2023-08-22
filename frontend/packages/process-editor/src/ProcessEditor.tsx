@@ -16,19 +16,24 @@ export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Elem
   }
 
   if (bpmnXml === null) {
-    return (
-      <Alert severity='danger' style={{ height: 'min-content' }}>
-        <Heading size='medium' level={2}>
-          {t('process_editor.fetch_bpmn_error_title')}
-        </Heading>
-        <Paragraph>{t('process_editor.fetch_bpmn_error_message')}</Paragraph>
-      </Alert>
-    );
+    <NoBpmnFoundAlert />;
   }
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml}>
       <Canvas onSave={onSave} />
     </BpmnContextProvider>
+  );
+};
+
+const NoBpmnFoundAlert = (): JSX.Element => {
+  const { t } = useTranslation();
+  return (
+    <Alert severity='danger' style={{ height: 'min-content' }}>
+      <Heading size='medium' level={2}>
+        {t('process_editor.fetch_bpmn_error_title')}
+      </Heading>
+      <Paragraph>{t('process_editor.fetch_bpmn_error_message')}</Paragraph>
+    </Alert>
   );
 };
