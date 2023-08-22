@@ -32,7 +32,7 @@ interface Props {
  *    Displays the modal telling the user that there is a merge conflict
  *
  * @property {boolean}[isOpen] - Boolean for if the modal is open
- * @property {function}[onSolveMerge] - Function to be executed when the merge is solved
+ * @property {function}[handleSolveMerge] - Function to be executed when the merge is solved
  * @property {string}[org] - The name of the organisation
  * @property {string}[repo] - The name of the repo
  *
@@ -40,7 +40,7 @@ interface Props {
  */
 export const MergeConflictModal = ({
   isOpen,
-  handleSolveMerge: onSolveMerge,
+  handleSolveMerge,
   org,
   repo,
 }: Props): React.ReactNode => {
@@ -53,7 +53,7 @@ export const MergeConflictModal = ({
    */
   const handleClickResetRepo = () => {
     get(repoResetPath(org, repo));
-    onSolveMerge();
+    handleSolveMerge();
   };
 
   // TODO - more translation
@@ -66,9 +66,13 @@ export const MergeConflictModal = ({
           <Label size='medium' spacing weight='medium'>
             {t('merge_conflict.download')}
           </Label>
-          <Link href={repoDownloadPath(org, repo)}>Last ned endret fil(er)</Link>
+          <Link href={repoDownloadPath(org, repo)}>
+            {t('merge_conflict.download_edited_files')}
+          </Link>
           <div className={classes.linkDivider}>
-            <Link href={repoDownloadPath(org, repo, true)}>Last ned helerepoet</Link>
+            <Link href={repoDownloadPath(org, repo, true)}>
+              {t('merge_conflict.download_entire_repo')}
+            </Link>
           </div>
         </div>
         <Button onClick={() => setResetModalOpen(true)}>
