@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 
@@ -15,14 +15,17 @@ export interface ButtonProps extends BaseButtonProps {
   children: React.ReactNode;
 }
 
+export type ButtonVariant = Parameters<typeof Button>[0]['variant'];
+export type ButtonColor = Parameters<typeof Button>[0]['color'];
+
 interface Props extends ButtonProps {
   variant?: ButtonVariant;
   color?: ButtonColor;
 }
 
 export const WrappedButton = ({
-  variant = ButtonVariant.Outline,
-  color = ButtonColor.Primary,
+  variant = 'outline',
+  color = 'primary',
   onClick,
   id,
   children,

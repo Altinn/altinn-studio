@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
 
-import { Button, Checkbox, TextField } from '@digdir/design-system-react';
+import { Button, LegacyCheckbox, TextField } from '@digdir/design-system-react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
@@ -322,7 +322,7 @@ export const PartySelection = () => {
                   container={true}
                   direction='row'
                 >
-                  <Checkbox
+                  <LegacyCheckbox
                     checked={showDeleted}
                     onChange={toggleShowDeleted}
                     label={langAsString('party_selection.show_deleted')}
@@ -337,7 +337,7 @@ export const PartySelection = () => {
                   container={true}
                   direction='row'
                 >
-                  <Checkbox
+                  <LegacyCheckbox
                     checked={showSubUnits}
                     onChange={toggleShowSubUnits}
                     label={langAsString('party_selection.show_sub_unit')}

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Pagination } from '@altinn/altinn-design-system';
-import { FieldSet, ResponsiveTable } from '@digdir/design-system-react';
+import { LegacyFieldSet, ResponsiveTable } from '@digdir/design-system-react';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 import type { ChangeProps, ResponsiveTableConfig, SortProps } from '@digdir/design-system-react';
 
@@ -130,13 +130,13 @@ export const ListComponent = ({ node, formData, handleDataChange, legend }: ILis
   };
 
   return (
-    <FieldSet
+    <LegacyFieldSet
       legend={<RenderLegend />}
       style={{ width: '100%' }}
     >
       <div style={{ overflow: 'auto' }}>
         <ResponsiveTable config={config}></ResponsiveTable>
       </div>
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

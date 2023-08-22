@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Chip, FieldSet, Select } from '@digdir/design-system-react';
+import { Chip, Fieldset, Select } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
@@ -66,7 +66,7 @@ export const DevNavigationButtons = () => {
   const compactView = allPages.length > 8;
 
   return (
-    <FieldSet legend='Navigasjon'>
+    <Fieldset legend='Navigasjon'>
       <div className={compactView ? classes.hidden : classes.responsiveButtons}>
         <Chip.Group
           size='small'
@@ -105,6 +105,6 @@ export const DevNavigationButtons = () => {
           onChange={handleChange}
         />
       </div>
-    </FieldSet>
+    </Fieldset>
   );
 };

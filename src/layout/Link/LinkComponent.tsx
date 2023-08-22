@@ -1,18 +1,19 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
 import { useLanguage } from 'src/hooks/useLanguage';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 import type { LinkStyle } from 'src/layout/Link/types';
 
 export const buttonStyles: {
   [style in Exclude<LinkStyle, 'link'>]: { color: ButtonColor; variant: ButtonVariant };
 } = {
-  primary: { variant: ButtonVariant.Filled, color: ButtonColor.Success },
-  secondary: { variant: ButtonVariant.Outline, color: ButtonColor.Primary },
+  primary: { variant: 'filled', color: 'success' },
+  secondary: { variant: 'outline', color: 'primary' },
 };
 
 export type ILinkComponent = PropsFromGenericComponent<'Link'>;

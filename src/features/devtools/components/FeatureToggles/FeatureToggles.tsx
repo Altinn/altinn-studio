@@ -46,8 +46,9 @@ export function FeatureToggles() {
               <Checkbox
                 disabled={source === 'window'}
                 checked={overrides[key] ?? value}
-                checkboxId={`${key}-checkbox`}
+                id={`${key}-checkbox`}
                 onChange={(ev) => setFeature(key, ev.target.checked)}
+                value='nothing'
               />
             </div>
             <label

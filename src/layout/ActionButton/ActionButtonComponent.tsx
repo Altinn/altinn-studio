@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -11,10 +11,11 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/types';
+import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 
 export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
-  primary: { variant: ButtonVariant.Filled, color: ButtonColor.Success },
-  secondary: { variant: ButtonVariant.Outline, color: ButtonColor.Primary },
+  primary: { variant: 'filled', color: 'success' },
+  secondary: { variant: 'outline', color: 'primary' },
 };
 
 export type IActionButton = PropsFromGenericComponent<'ActionButton'>;

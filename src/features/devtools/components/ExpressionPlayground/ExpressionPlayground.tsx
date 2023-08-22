@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { Checkbox, FieldSet, Select, Tabs } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Select, Tabs } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';
@@ -171,7 +171,7 @@ export const ExpressionPlayground = () => {
           )}
         </SplitView>
         <div className={classes.rightColumn}>
-          <FieldSet legend={'Kjør uttrykk i kontekst av komponent'}>
+          <Fieldset legend={'Kjør uttrykk i kontekst av komponent'}>
             <Select
               value={`${forPage}|${forComponentId}`}
               onChange={(value) => {
@@ -208,13 +208,15 @@ export const ExpressionPlayground = () => {
                   resetOutputHistory();
                   setShowAllSteps(ev.target.checked);
                 }}
-                label={'Vis alle steg i evalueringen'}
-              />
+                value='nothing'
+              >
+                Vis alle steg i evalueringen
+              </Checkbox>
             </div>
-          </FieldSet>
+          </Fieldset>
           <br />
           <br />
-          <FieldSet legend={'Dokumentasjon'}>
+          <Fieldset legend={'Dokumentasjon'}>
             Les mer om uttrykk{' '}
             <a
               href={'https://docs.altinn.studio/nb/app/development/logic/expressions/'}
@@ -223,7 +225,7 @@ export const ExpressionPlayground = () => {
             >
               i dokumentasjonen
             </a>
-          </FieldSet>
+          </Fieldset>
         </div>
       </SplitView>
     </div>

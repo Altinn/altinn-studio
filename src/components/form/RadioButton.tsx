@@ -1,13 +1,13 @@
 import React, { useRef } from 'react';
 
-import { RadioButton as DesignSystemRadioButton } from '@digdir/design-system-react';
-import type { RadioButtonProps } from '@digdir/design-system-react';
+import { LegacyRadioButton as DesignSystemRadioButton } from '@digdir/design-system-react';
+import type { LegacyRadioButtonProps } from '@digdir/design-system-react';
 
 import classes from 'src/components/form/RadioButton.module.css';
 
 const Card = ({ children }: { children: React.ReactNode }) => <div className={classes.card}>{children}</div>;
 
-export interface IRadioButtonProps extends RadioButtonProps {
+export interface IRadioButtonProps extends LegacyRadioButtonProps {
   showAsCard?: boolean;
 }
 

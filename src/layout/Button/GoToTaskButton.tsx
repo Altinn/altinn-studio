@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { ButtonVariant } from '@digdir/design-system-react';
-
 import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
@@ -22,12 +20,13 @@ export const GoToTaskButton = ({ children, ...props }: React.PropsWithChildren<I
       );
     }
   };
+
   return (
     <WrappedButton
       disabled={!canGoToTask}
       onClick={navigateToTask}
       {...props}
-      variant={ButtonVariant.Outline}
+      variant={'outline'}
     >
       {children}
     </WrappedButton>

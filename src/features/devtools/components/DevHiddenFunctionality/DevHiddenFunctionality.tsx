@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FieldSet, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Fieldset, ToggleButtonGroup } from '@digdir/design-system-react';
 
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
@@ -35,7 +35,7 @@ export function DevHiddenFunctionality() {
   });
 
   return (
-    <FieldSet legend='Skjulte komponenter'>
+    <Fieldset legend='Skjulte komponenter'>
       <div>
         <ToggleButtonGroup
           onChange={(selectedValue) =>
@@ -62,6 +62,6 @@ export function DevHiddenFunctionality() {
           ]}
         />
       </div>
-    </FieldSet>
+    </Fieldset>
   );
 }

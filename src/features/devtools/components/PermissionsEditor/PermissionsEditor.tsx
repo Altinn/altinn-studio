@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Checkbox, FieldSet } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
@@ -35,30 +35,38 @@ export const PermissionsEditor = () => {
   }
 
   return (
-    <FieldSet
+    <Checkbox.Group
       legend='Policy'
-      contentClassName={classes.checkboxWrapper}
+      className={classes.checkboxWrapper}
     >
       <Checkbox
         checked={Boolean(write)}
-        label='Write'
         onChange={(e) => handleChange((obj) => (obj.write = e.target.checked))}
-      />
+        value='nothing'
+      >
+        Write
+      </Checkbox>
       <Checkbox
         checked={Boolean(actions?.confirm)}
-        label='Confirm'
         onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, confirm: e.target.checked }))}
-      />
+        value='nothing'
+      >
+        Confirm
+      </Checkbox>
       <Checkbox
         checked={Boolean(actions?.sign)}
-        label='Sign'
         onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, sign: e.target.checked }))}
-      />
+        value='nothing'
+      >
+        Sign
+      </Checkbox>
       <Checkbox
         checked={Boolean(actions?.reject)}
-        label='Reject'
         onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, reject: e.target.checked }))}
-      />
-    </FieldSet>
+        value='nothing'
+      >
+        Reject
+      </Checkbox>
+    </Checkbox.Group>
   );
 };

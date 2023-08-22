@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react';
+import { LegacyCheckboxGroup } from '@digdir/design-system-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
@@ -110,7 +110,7 @@ export const CheckboxContainerComponent = ({
       key={`checkboxes_group_${id}`}
       onBlur={handleBlur}
     >
-      <CheckboxGroup
+      <LegacyCheckboxGroup
         compact={false}
         disabled={readOnly}
         onChange={(values) => handleChange(values)}
@@ -126,8 +126,8 @@ export const CheckboxContainerComponent = ({
             layout,
             optionsCount: calculatedOptions.length,
           })
-            ? CheckboxGroupVariant.Horizontal
-            : CheckboxGroupVariant.Vertical
+            ? 'horizontal'
+            : 'vertical'
         }
         items={calculatedOptions.map((option) => ({
           name: option.value,
