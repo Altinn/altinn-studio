@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState, useRef  } from 'react';
 import '../styles/index.css';
 import classes from './FormComponent.module.css';
 import cn from 'classnames';
@@ -75,18 +75,40 @@ export const FormComponent = memo(function FormComponent({
   };
 
   const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
+ 
+  const [isActive, setIsActive] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsActive(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [wrapperRef]);
+  
 
   return (
     <div
-      className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
-      role='listitem'
-      onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
-        event.stopPropagation();
-        if (isEditMode) return;
-        await handleSave();
+    ref={wrapperRef}
+    className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode, isActive && classes.active)}
+    role='listitem'
+    onClick={
+      (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      if (isEditMode) return;
+      setIsActive(!isActive);
+      if(!isActive){
+        handleSave();
         handleEdit(component);
-      }}
-    >
+      }
+    }}
+  >
+  
       <div className={classes.formComponentWithHandle}>
         <div ref={dragHandleRef} className={classes.dragHandle}>
           <DragHandle />
