@@ -8,11 +8,11 @@ export const ProcessEditor = () => {
   const { org, app } = useParams<{ org: string; app: string }>();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
 
-  const bpmnMutation = useBpmnMutation();
+  const bpmnMutation = useBpmnMutation(org, app);
 
   const saveBpmnXml = async (xml: string): Promise<void> => {
     await bpmnMutation.mutateAsync(
-      { org, app, bpmnXml: xml },
+      { bpmnXml: xml },
       {
         onSuccess: () => {
           // TODO show success toast when issue #10735 is resolved

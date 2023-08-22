@@ -1,15 +1,18 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateBpmnXml } from 'app-shared/api/queries';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 type UseBpmnMutationPayload = {
   bpmnXml: string;
-  org: string;
-  app: string;
 };
 
-export const useBpmnMutation = () => {
+export const useBpmnMutation = (org: string, app: string) => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ org, app, bpmnXml }: UseBpmnMutationPayload) =>
+    mutationFn: ({ bpmnXml }: UseBpmnMutationPayload) =>
       updateBpmnXml(org, app, bpmnXml).then(() => bpmnXml),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.FetchBpmn, org, app] });
+    },
   });
 };
