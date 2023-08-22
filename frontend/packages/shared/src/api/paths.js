@@ -119,6 +119,8 @@ export const userReposPath = () => `${basePath}/user/repos`; // Get
 export const userStarredListPath = () => `${basePath}/user/starred`; // Get
 export const userStarredRepoPath = (org, app) => `${basePath}/user/starred/${org}/${app}`; // Put, Delete
 
+export const appPolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy`; // Get, Put
+
 // Resourceadm
 export const resourcePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy/${id}`; // Get, Put
 export const resourceActionsPath = (org, repo) => `${basePath}/${org}/${repo}/policy/actionoptions`; // Get

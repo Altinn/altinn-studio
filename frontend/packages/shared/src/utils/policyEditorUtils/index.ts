@@ -4,5 +4,6 @@ export {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   mapResourceFromBackendToResourceType,
   mapPolicyRuleToPolicyRuleBackendObject,
-  mapSubjectTitleToSubjectString
-} from './policyEditorUtils'
+  mapSubjectTitleToSubjectString,
+  mapPolicyResultToPolicyObject,
+} from './policyEditorUtils';

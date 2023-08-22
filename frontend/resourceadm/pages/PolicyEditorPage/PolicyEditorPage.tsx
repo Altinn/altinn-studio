@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
 import { PolicyEditor } from 'app-shared/components/PolicyEditor';
-import { mapPolicyResultToPolicyObject } from 'resourceadm/utils/mapperUtils';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
@@ -11,6 +10,7 @@ import {
 } from 'resourceadm/hooks/queries';
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
 import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
+import { mapPolicyResultToPolicyObject } from 'app-shared/utils/policyEditorUtils';
 
 interface Props {
   /**
@@ -40,6 +40,7 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     repo,
     resourceId
   );
+  console.log(policyData);
   const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
     selectedContext,
     repo
@@ -48,6 +49,7 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     selectedContext,
     repo
   );
+  console.log(subjectData);
 
   // Mutation function to update policy
   const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(

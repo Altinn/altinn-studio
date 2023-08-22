@@ -1,0 +1,11 @@
+.policyEditorWrapper {
+  padding-inline: 100px;
+}
+
+.spinnerrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

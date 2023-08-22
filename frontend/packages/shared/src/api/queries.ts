@@ -1,5 +1,5 @@
 import { get } from 'app-shared/utils/networking';
-import { branchStatusPath, datamodelMetadataPath, datamodelPath, datamodelsPath, datamodelsXsdPath, deployPermissionsPath, deploymentsPath, envConfigPath, formLayoutsPath, instanceIdForPreviewPath, layoutSetsPath, layoutSettingsPath, optionListIdsPath, orgsListPath, releasesPath, repoMetaPath, repoPullPath, repoSearchPath, repoStatusPath, resourceActionsPath, resourceListPath, resourcePolicyPath, resourcePublishStatusPath, resourceSectorsPath, resourceSinglePath, resourceSubjectsPath, resourceThematicEurovocPath, resourceThematicLosPath, resourceValidatePolicyPath, resourceValidateResourcePath, ruleConfigPath, ruleHandlerPath, textLanguagesPath, textResourcesPath, userCurrentPath, userStarredListPath, widgetSettingsPath } from './paths';
+import { appPolicyPath, branchStatusPath, datamodelMetadataPath, datamodelPath, datamodelsPath, datamodelsXsdPath, deployPermissionsPath, deploymentsPath, envConfigPath, formLayoutsPath, instanceIdForPreviewPath, layoutSetsPath, layoutSettingsPath, optionListIdsPath, orgsListPath, releasesPath, repoMetaPath, repoPullPath, repoSearchPath, repoStatusPath, resourceActionsPath, resourceListPath, resourcePolicyPath, resourcePublishStatusPath, resourceSectorsPath, resourceSinglePath, resourceSubjectsPath, resourceThematicEurovocPath, resourceThematicLosPath, resourceValidatePolicyPath, resourceValidateResourcePath, ruleConfigPath, ruleHandlerPath, textLanguagesPath, textResourcesPath, userCurrentPath, userStarredListPath, widgetSettingsPath } from './paths';
 import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
@@ -55,9 +55,11 @@ export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl()
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
+export const getAppPolicy = (org: string, repo: string) => get<PolicyBackendType>(appPolicyPath(org, repo));
+
 // Resourceadm
-export const getPolicy = (org: string, repo: string, id: string) => get<PolicyBackendType>(resourcePolicyPath(org, repo, id));
 export const getPolicyActions = (org: string, repo: string) => get<PolicyActionType[]>(resourceActionsPath(org, repo));
+export const getPolicy = (org: string, repo: string, id: string) => get<PolicyBackendType>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjectType[]>(resourceSubjectsPath(org, repo));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
