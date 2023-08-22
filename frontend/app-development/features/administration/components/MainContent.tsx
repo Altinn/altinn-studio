@@ -21,6 +21,10 @@ interface IMainContentProps {
   appNameAnchorEl: any;
 }
 
+const nameLabelId = 'administrationInputAppNameHeader';
+const descriptionLabelId = 'administrationInputAppDescriptionHeader';
+const appIdLabelId = 'administrationInputAppIdHeader';
+
 export const MainContent = (props: IMainContentProps): JSX.Element => {
   const [searchParams] = useSearchParams();
   const copiedApp = Boolean(searchParams.get('copiedApp'));
@@ -39,11 +43,11 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           </p>
         </>
       )}
-      <h2>{t('general.service_name')}</h2>
+      <h2 id={nameLabelId}>{t('general.service_name')}</h2>
       <p>{t('administration.service_name_administration_description')}</p>
       <div className={classes.sideBySide}>
         <TextField
-          id='administrationInputAppName_textField'
+          aria-labelledby={nameLabelId}
           onChange={props.onAppNameChange}
           value={props.appName}
           onBlur={props.onAppNameBlur}
@@ -63,10 +67,10 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
         anchorEl={props.appNameAnchorEl}
         message={t('administration.service_name_empty_message')}
       />
-      <h2>{t('administration.service_id')}</h2>
+      <h2 id={appIdLabelId}>{t('administration.service_id')}</h2>
       <p>{t('administration.service_id_description')}</p>
       <TextField
-        id='administrationInputAppId_textField'
+        aria-labelledby={appIdLabelId}
         onChange={props.onAppIdChange}
         value={props.appId}
         onBlur={props.onAppIdBlur}
@@ -74,10 +78,10 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       <h2>{t('general.service_saved_name')}</h2>
       <p>{t('administration.service_saved_name_administration_description')}</p>
       <TextField id='administrationInputReponame' value={props.repositoryName} disabled={true} />
-      <h2>{t('administration.service_comment')}</h2>
+      <h2 id={descriptionLabelId}>{t('administration.service_comment')}</h2>
       <p>{t('administration.service_comment_description')}</p>
       <TextArea
-        id='administrationInputDescription_textField'
+        aria-labelledby={descriptionLabelId}
         onChange={props.onAppDescriptionChange}
         rows={7}
         value={props.appDescription}

@@ -1,12 +1,11 @@
 /// <reference types="cypress" />
 import '@testing-library/cypress/add-commands';
-import { login } from '../selectors/login';
-import { designer } from '../pageobjects/designer';
-import { dashboard } from '../selectors/dashboard';
-import { header } from '../selectors/header';
-import * as texts from '../../../../language/src/nb.json';
-
 import '@testing-library/cypress/add-commands';
+import * as texts from '../../../../language/src/nb.json';
+import { dashboard } from '../selectors/dashboard';
+import { designer } from '../selectors/designer';
+import { header } from '../selectors/header';
+import { login } from '../selectors/login';
 
 /**
  * Login to studio with user name and password
@@ -60,58 +59,20 @@ Cypress.Commands.add('createapp', (orgName, appName) => {
  * Delete all the added components in ux-editor
  */
 Cypress.Commands.add('deletecomponents', () => {
-  cy.get(designer.dragToArea)
-    .find("[role='listitem']")
+  designer
+    .getDroppableList()
+    .findAllByRole('listitem')
     .then(($elements) => {
-      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
+      if ($elements.length > 0 && $elements.text().indexOf(texts['ux_editor.container_empty']) === -1) {
         cy.get($elements).each(($element) => {
           cy.wrap($element).trigger('mouseover');
+          cy.wrap($element).findByTitle(texts['general.delete']).click({ force: true });
+          cy.wrap($element)
+            .findByRole('button', { name: texts['ux_editor.component_deletion_confirm'] })
+            .click();
         });
-        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
       }
     });
-});
-
-/**
- * Delete all the added components with specified test in ux-editor
- */
-Cypress.Commands.add('deletecomponentsWithText', (text) => {
-  cy.get(designer.dragToArea)
-    .find("[role='listitem']")
-    .then(($elements) => {
-      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
-        cy.get($elements).each(($element) => {
-          if ($element.get(text)) {
-            cy.wrap($element).trigger('mouseover');
-          }
-        });
-        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
-      }
-    });
-});
-
-/**
- * Delete local changes of an app for a logged in user
- */
-Cypress.Commands.add('deleteLocalChanges', (appId) => {
-  cy.getCookie('AltinnStudioDesigner').should('exist');
-  cy.visit(`editor/${appId}#/`);
-  cy.get(designer.aboutApp.repoName).should('be.visible');
-  cy.get(designer.sideMenu)
-    .find(designer.deleteChanges.reset)
-    .should(($button) => {
-      expect(Cypress.dom.isDetached($button), 'button should not be detached').to.eq(false);
-    })
-    .should('be.visible')
-    .click();
-  cy.get(designer.deleteChanges.name)
-    .should('be.visible')
-    .type(`${appId.split('/')[1]}`)
-    .blur();
-  cy.intercept('GET', '**/reset').as('resetRepo');
-  cy.get(designer.deleteChanges.confirm).should('be.visible').click();
-  cy.wait('@resetRepo');
-  cy.get(designer.deleteChanges.name).should('not.exist');
 });
 
 /**

@@ -5,6 +5,7 @@ const getMenuItem = (name) => cy.findByRole('menuitem', { name });
 
 export const header = {
   getAvatar: () => cy.findByAltText(texts['shared.header_button_alt']),
+  getCreateLink: () => cy.findByRole('link', { name: texts['top_menu.create'] }),
   getDatamodelLink: () => cy.findByRole('link', { name: texts['top_menu.datamodel'] }),
   getMenuItem,
   getMenuItemAll: () => getMenuItem(texts['shared.header_all']),
