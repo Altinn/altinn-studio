@@ -58,7 +58,7 @@ interface Props {
  * @property {string}[text] - The text to display above the fields
  * @property {string}[id] - The value of the id
  * @property {function}[handleEditTitle] - Function to handle the editing of the title
- * @property {function}[handleEditId] - Function to handle the editing of the id
+ * @property {function}[handleIdInput] - Function to handle the editing of the id
  * @property {function}[handleClickEditButton] - Function to be executed when edit button is clicked
  * @property {boolean}[resourceIdExists] - Flag for id the ID already exists
  * @property {boolean}[bothFieldsHaveSameValue] - Flag for if ID and title has same display value

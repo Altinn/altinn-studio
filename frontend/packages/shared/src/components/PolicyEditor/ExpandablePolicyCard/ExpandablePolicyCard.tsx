@@ -83,7 +83,7 @@ interface Props {
  * @property {function}[handleDuplicateRule] - Function to be executed when clicking duplicate rule
  * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
  * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
- * @property {function}[onBlur] - Function to save the policy
+ * @property {function}[savePolicy] - Function to save the policy
  * @property {policyEditorUsageType}[usageType] - The usage type of the policy editor
  *
  * @returns {React.ReactNode} - The rendered component
