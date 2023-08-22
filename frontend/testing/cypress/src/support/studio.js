@@ -15,6 +15,8 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
   cy.session([userName, userPwd], () => {
     cy.visit('/');
     login.getLoginButton().should('be.visible').click();
+    login.getLanguageMenu().should('be.visible').click();
+    login.getLanguageMenuItem('Norsk').should('be.visible').click();
     login.getUsernameField().should('be.visible').type(userName);
     login.getPasswordField().should('be.visible').type(userPwd, { log: false });
     login.getLoginButton().should('be.visible').click();
