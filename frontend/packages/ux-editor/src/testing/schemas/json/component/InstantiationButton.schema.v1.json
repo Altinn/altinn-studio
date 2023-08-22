@@ -32,12 +32,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/mapping",
       "description": "Creates a new app instance with data collected from a stateless part of the app."
     },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
-    },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",

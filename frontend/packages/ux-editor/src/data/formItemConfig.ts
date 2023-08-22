@@ -434,7 +434,11 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
-  formItemConfigs[ComponentType.Button], //There is custom code that allows for switching between button types once it is added to the form
+  formItemConfigs[ComponentType.Button],
+  formItemConfigs[ComponentType.NavigationButtons],
+  formItemConfigs[ComponentType.PrintButton],
+  formItemConfigs[ComponentType.InstantiationButton],
+  formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
