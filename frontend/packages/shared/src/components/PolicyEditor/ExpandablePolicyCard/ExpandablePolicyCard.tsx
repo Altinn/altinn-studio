@@ -61,6 +61,10 @@ interface Props {
    * @returns
    */
   savePolicy: (rules: PolicyRuleCardType[]) => void;
+  /**
+   * Flag to decided if all sub-resoruce fields ar editable
+   */
+  allSubResourcesEditable: boolean;
 }
 
 /**
@@ -79,6 +83,7 @@ interface Props {
  * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
  * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
  * @property {function}[onBlur] - Function to save the policy
+ * @property {bolean}[allSubResourcesEditable] - Flag to decided if all sub-resoruce fields ar editable
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -94,6 +99,7 @@ export const ExpandablePolicyCard = ({
   handleDeleteRule,
   showErrors,
   savePolicy,
+  allSubResourcesEditable = false,
 }: Props): React.ReactNode => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
@@ -230,6 +236,7 @@ export const ExpandablePolicyCard = ({
         handleDuplicateElement={() => handleDuplicateResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
+        firstFieldEditable={allSubResourcesEditable}
       />
     );
   });

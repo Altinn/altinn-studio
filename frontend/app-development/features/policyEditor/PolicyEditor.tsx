@@ -54,17 +54,15 @@ const dummysubjectData: PolicySubjectType[] = [
   },
 ];
 
+// TODO - Missing functionality to save the policy
 export const PolicyEditor = () => {
   // TODO - Replace with queries
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 
   const { org, app } = useParams();
-  console.log('org', org);
-  console.log('app', app);
 
   // Get the data
   const { data: policyData, isLoading: policyLoading } = useResourceAppPolicyQuery(org, app);
-  console.log(policyData);
 
   const handleSavePolicy = (p: PolicyBackendType) => {
     console.log('Todo, save policy. Policy: ', p);
@@ -90,6 +88,7 @@ export const PolicyEditor = () => {
         resourceId={'resourceId'} // TODO - Rename and refactor all the way when we know how its gonna be used
         onSave={handleSavePolicy}
         showAllErrors={false} // TODO - Find out how this should be handled for apps, then refactor
+        allSubResourcesEditable
       />
     </div>
   );

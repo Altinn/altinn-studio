@@ -45,6 +45,10 @@ interface Props {
    * @returns
    */
   onBlur: () => void;
+  /**
+   * Flag for if first field is editable
+   */
+  firstFieldEditable?: boolean;
 }
 
 /**
@@ -59,6 +63,7 @@ interface Props {
  * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
  * @property {function}[handleDuplicateElement] - Function to be executed when the element is duplicated
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {boolean}[firstFieldEditable] - FFlag for if first field is editable
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -70,6 +75,7 @@ export const ResourceNarrowingList = ({
   handleRemoveElement,
   handleDuplicateElement,
   onBlur,
+  firstFieldEditable = false,
 }: Props): React.ReactNode => {
   /**
    * Displays the list of resources
@@ -78,7 +84,7 @@ export const ResourceNarrowingList = ({
     return (
       <PolicyResourceFields
         key={i}
-        isEditable={i > 0}
+        isEditable={firstFieldEditable || i > 0}
         onRemove={() => handleRemoveResource(i)}
         valueId={r.id}
         valueType={r.type}
