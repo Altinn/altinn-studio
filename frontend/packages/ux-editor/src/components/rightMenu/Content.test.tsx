@@ -58,18 +58,13 @@ describe('ContentTab', () => {
 
     it('should render the component', async () => {
       await render({ props });
-
-      expect(
-        screen.getByText(textMock('ux_editor.modal_properties_group_change_id') + ' *')
-      ).toBeInTheDocument();
+      expect(screen.getByText(textMock('ux_editor.modal_properties_group_change_id'))).toBeInTheDocument();
     });
 
     it('should auto-save when updating a field', async () => {
       await render({ props });
 
-      const idInput = screen.getByLabelText(
-        textMock('ux_editor.modal_properties_group_change_id') + ' *'
-      );
+      const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
       await act(() => user.type(idInput, 'test'));
 
       expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
@@ -86,18 +81,13 @@ describe('ContentTab', () => {
     it('should render the component', async () => {
       jest.spyOn(console, 'error').mockImplementation(); // Silence error from Select component
       await render({ props });
-
-      expect(
-        screen.getByText(textMock('ux_editor.modal_properties_component_change_id') + ' *')
-      ).toBeInTheDocument();
+      expect(screen.getByText(textMock('ux_editor.modal_properties_component_change_id'))).toBeInTheDocument();
     });
 
     it('should auto-save when updating a field', async () => {
       await render({ props });
 
-      const idInput = screen.getByLabelText(
-        textMock('ux_editor.modal_properties_component_change_id') + ' *'
-      );
+      const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id'));
       await act(() => user.type(idInput, 'test'));
 
       expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);

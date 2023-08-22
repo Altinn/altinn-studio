@@ -3,7 +3,6 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import { header as headerPageobject } from '../../pageobjects/header';
 import { header } from '../../selectors/header';
 
 context(
@@ -54,8 +53,8 @@ context(
         .click();
 
       // Repos
-      cy.findByRole('img', { name: headerPageobject.profileIconName }).should('be.visible').click();
-      header.getAddRepoLink()
+      header.getProfileIcon().should('be.visible').click();
+      header.getOpenRepoLink()
         .should('be.visible')
         .invoke('attr', 'href')
         .then((href) => {
