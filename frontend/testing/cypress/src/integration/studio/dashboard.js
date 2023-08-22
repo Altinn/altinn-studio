@@ -24,7 +24,7 @@ context('Dashboard', () => {
   });
 
   it('is possible to check for broken anchor links, including in Footer', () => {
-    cy.get("a").each(link => {
+    cy.findAllByRole('link').each(link => {
       if (link.prop('href')) 
         cy.request({
           url: link.prop('href'),    
