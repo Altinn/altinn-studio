@@ -76,15 +76,8 @@ export const ServicesContextProvider = ({
     >
       <ToastContainer
         position='top-center'
-        autoClose={50000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable={false}
+        autoClose={5000}
         theme='colored'
-        pauseOnHover
         transition={Slide}
       />
       <QueryClientProvider client={client || queryClient}>
