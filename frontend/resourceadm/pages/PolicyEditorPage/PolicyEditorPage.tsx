@@ -39,8 +39,6 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     repo,
     resourceId
   );
-  console.log(policyData);
-
   const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
     selectedContext,
     repo

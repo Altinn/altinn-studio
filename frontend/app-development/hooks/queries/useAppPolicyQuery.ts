@@ -8,7 +8,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  *
  * @param org the organisation of the user
  * @param app the app the user is in
- * @param id the id of the resource
  *
  * @returns UseQueryResult with an object of PolicyBackendType
  */

@@ -55,7 +55,6 @@ const dummysubjectData: PolicySubjectType[] = [
   },
 ];
 
-// TODO - Missing functionality to save the policy
 export const PolicyEditor = () => {
   const { org, app } = useParams();
 
