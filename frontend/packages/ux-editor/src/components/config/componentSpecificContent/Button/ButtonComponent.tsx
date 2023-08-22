@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldSet, Select } from '@digdir/design-system-react';
+import { LegacyFieldSet, Select } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
 import { useText } from '../../../../hooks';
 import { EditSettings, IGenericEditComponent } from '../../componentConfig';
@@ -9,10 +9,7 @@ import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding
 import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
 import { FormComponent, FormNavigationButtonsComponent } from '../../../../types/FormComponent';
 
-export const ButtonComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
 
   const handleButtonTypeChange = (selected: string) => {
@@ -39,32 +36,32 @@ export const ButtonComponent = ({
   };
 
   const types = [
-        {
-          value: ComponentType.Button,
-          label: t('ux_editor.modal_properties_button_type_submit'),
-        },
-        {
-          value: ComponentType.NavigationButtons,
-          label: t('ux_editor.modal_properties_button_type_navigation'),
-        },
-        {
-          value: ComponentType.ActionButton,
-          label: t('ux_editor.modal_properties_button_type_ActionButton'),
-        },
-        {
-          value: ComponentType.PrintButton,
-          label: t('ux_editor.modal_properties_button_type_PrintButton'),
-        },
-        {
-          value: ComponentType.InstantiationButton,
-          label: t('ux_editor.modal_properties_button_type_InstantiationButton'),
-        },
-      ];
+    {
+      value: ComponentType.Button,
+      label: t('ux_editor.modal_properties_button_type_submit'),
+    },
+    {
+      value: ComponentType.NavigationButtons,
+      label: t('ux_editor.modal_properties_button_type_navigation'),
+    },
+    {
+      value: ComponentType.ActionButton,
+      label: t('ux_editor.modal_properties_button_type_ActionButton'),
+    },
+    {
+      value: ComponentType.PrintButton,
+      label: t('ux_editor.modal_properties_button_type_PrintButton'),
+    },
+    {
+      value: ComponentType.InstantiationButton,
+      label: t('ux_editor.modal_properties_button_type_InstantiationButton'),
+    },
+  ];
 
   if (!types.find((element) => element.value === component.type)) return null;
 
   return (
-    <FieldSet className={classes.root}>
+    <LegacyFieldSet className={classes.root}>
       <FormField
         id={'choose-button-type'}
         onChange={handleButtonTypeChange}
@@ -90,6 +87,6 @@ export const ButtonComponent = ({
           textResourceBindingKeys={['next', 'back']}
         />
       )}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

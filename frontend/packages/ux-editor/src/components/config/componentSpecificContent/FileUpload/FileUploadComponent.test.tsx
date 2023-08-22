@@ -34,7 +34,8 @@ describe('FileUploadComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
@@ -42,5 +43,4 @@ const render = async (props?: Partial<IGenericEditComponent>) => {
   await waitForData();
 
   return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);
-}
-
+};

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  TextArea,
-  TextField,
-} from '@digdir/design-system-react';
+import { Button, TextArea, TextField } from '@digdir/design-system-react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import classes from './MainContent.module.css';
 import { Trans, useTranslation } from 'react-i18next';
@@ -57,9 +51,9 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
         />
         <Button
           data-testid={'administrationInputAppName_ChangeButton'}
-          color={ButtonColor.Secondary}
+          color='secondary'
           onClick={props.onEditAppNameClick}
-          variant={ButtonVariant.Outline}
+          variant='outline'
           size='small'
         >
           {t('general.edit')}

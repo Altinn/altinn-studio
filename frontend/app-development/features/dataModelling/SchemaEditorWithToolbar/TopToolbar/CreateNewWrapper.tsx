@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  ErrorMessage,
-  TextField,
-  Popover,
-} from '@digdir/design-system-react';
+import { Button, ErrorMessage, TextField, Popover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
@@ -89,7 +82,7 @@ export function CreateNewWrapper({
           id='create-new-datamodel-button'
           disabled={disabled}
           icon={<PlusIcon />}
-          variant={ButtonVariant.Quiet}
+          variant='quiet'
           onClick={() => setCreateNewOpen(!createNewOpen)}
           size='small'
         >
@@ -108,10 +101,10 @@ export function CreateNewWrapper({
       />
       {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       <Button
-        color={ButtonColor.Secondary}
+        color='secondary'
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
-        variant={ButtonVariant.Outline}
+        variant='outline'
         size='small'
       >
         {t('schema_editor.create_model_confirm_button')}

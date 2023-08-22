@@ -2,15 +2,7 @@ import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  ErrorMessage,
-  TableCell,
-  TableRow,
-  TextField,
-} from '@digdir/design-system-react';
+import { Button, ErrorMessage, TableCell, TableRow, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
@@ -84,8 +76,8 @@ export const TextRow = ({
               <Button
                 className={classes.deleteButton}
                 icon={<TrashIcon title={`Slett ${textId}`} />}
-                variant={ButtonVariant.Quiet}
-                onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
+                variant='quiet'
+                onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 aria-label={t('schema_editor.delete')}
                 size='small'
               >
@@ -107,7 +99,12 @@ export const TextRow = ({
         }
         return (
           <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
-            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} className={classes.textEntryComponent}/>
+            <TextEntry
+              {...translation}
+              upsertTextResource={upsertTextResource}
+              textId={textId}
+              className={classes.textEntryComponent}
+            />
           </TableCell>
         );
       })}
@@ -134,8 +131,8 @@ export const TextRow = ({
             <Button
               aria-label={'toggle-textkey-edit'}
               icon={<PencilIcon className={classes.smallIcon} />}
-              variant={ButtonVariant.Quiet}
-              size={ButtonSize.Small}
+              variant='quiet'
+              size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}

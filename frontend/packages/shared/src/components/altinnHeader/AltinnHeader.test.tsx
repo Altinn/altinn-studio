@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { AltinnHeader, AltinnHeaderProps } from './AltinnHeader';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('AltinnHeader', () => {
@@ -21,7 +21,7 @@ describe('AltinnHeader', () => {
     render({
       buttonActions: [
         {
-          buttonVariant: ButtonVariant.Quiet,
+          buttonVariant: 'quiet',
           headerButtonsClasses: undefined,
           menuKey: 'test-button',
           title: 'TestButton',

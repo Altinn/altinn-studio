@@ -25,31 +25,44 @@ describe('EditFormContainer', () => {
   it('should render the component', async () => {
     await render();
 
-    expect(screen.getByText(textMock('ux_editor.modal_properties_group_change_id'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_group_change_id'))
+    ).toBeInTheDocument();
   });
 
   it('should update form when editing field', async () => {
     await render();
 
-    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
-    await act(() => user.type(containerIdInput, "test"));
+    const containerIdInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_group_change_id')
+    );
+    await act(() => user.type(containerIdInput, 'test'));
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
 
   it('should display an error when containerId is invalid', async () => {
     await render();
 
-    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
-    await act(() => user.type(containerIdInput, "test@"));
-    expect(screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid'))).toBeInTheDocument();
+    const containerIdInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_group_change_id')
+    );
+    await act(() => user.type(containerIdInput, 'test@'));
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid'))
+    ).toBeInTheDocument();
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
 });
 
 const waitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet)
+  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet)
+  ).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
@@ -60,7 +73,7 @@ const render = async (props: Partial<IEditFormContainerProps> = {}) => {
     editFormId: container1IdMock,
     container: { ...layoutMock.containers[container1IdMock], id: 'test' },
     handleContainerUpdate: handleContainerUpdateMock,
-    ...props
+    ...props,
   };
 
   await waitForData();
