@@ -16,7 +16,7 @@ export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Elem
   }
 
   if (bpmnXml === null) {
-    <NoBpmnFoundAlert />;
+    return <NoBpmnFoundAlert />;
   }
 
   return (
