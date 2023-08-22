@@ -4,7 +4,7 @@ import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { PolicyRuleResourceType } from '@altinn/policy-editor';
+import { PolicyRuleResourceType } from '@altinn/policy-editor/src/types';
 
 interface Props {
   /**
