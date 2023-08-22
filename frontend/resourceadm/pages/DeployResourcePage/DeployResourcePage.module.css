@@ -14,10 +14,18 @@
   margin-top: 10px;
 }
 
+.informationText {
+  margin-top: 30px;
+}
+
 .newVersionWrapper {
-  margin-top: 40px;
+  margin-top: 30px;
   width: 100%;
   margin-bottom: 40px;
+}
+
+.newVersionParagraph {
+  margin-bottom: 10px;
 }
 
 .textAndButton {

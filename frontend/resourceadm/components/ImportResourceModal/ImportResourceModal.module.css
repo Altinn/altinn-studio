@@ -14,12 +14,12 @@
   margin-top: 40px;
 }
 
-.migrateButton {
+.importButton {
   margin-left: 10px;
 }
 
 .contentDivider {
-  border: solid 1px #D6D6D6;
+  border: solid 1px #d6d6d6;
   margin-top: 25px;
   margin-bottom: 15px;
   width: 80%;

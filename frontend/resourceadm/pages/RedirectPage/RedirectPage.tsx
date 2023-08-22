@@ -3,7 +3,13 @@ import { useParams, Navigate } from 'react-router-dom';
 import classes from './RedirectPage.module.css';
 import { ErrorPage } from '../ErrorPage';
 
-export const RedirectPage = () => {
+/**
+ * @component
+ *    Displays an error page or redirects the user
+ *
+ * @returns {React.ReactNode} - The rendered component
+ */
+export const RedirectPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
 
   return (
