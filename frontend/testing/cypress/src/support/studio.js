@@ -1,10 +1,10 @@
 /// <reference types="cypress" />
 import '@testing-library/cypress/add-commands';
 import { login } from '../selectors/login';
-import { dashboard as dashboard2 } from '../pageobjects/dashboard';
 import { designer } from '../pageobjects/designer';
 import { dashboard } from '../selectors/dashboard';
 import { header } from '../selectors/header';
+import * as texts from '../../../../language/src/nb.json';
 
 import '@testing-library/cypress/add-commands';
 
@@ -119,9 +119,9 @@ Cypress.Commands.add('searchAndOpenApp', (appId) => {
   const [_, appName] = appId.split('/');
   cy.visit('/dashboard');
   dashboard.getSearchReposField().type(appName);
-  cy.contains(dashboard2.apps.name, appName)
-    .siblings(dashboard2.apps.links)
-    .find(dashboard2.apps.edit)
+  dashboard
+    .getLinksCellForSearchResultApp(appName)
+    .findByRole('menuitem', { name: texts['dashboard.edit_app'] })
     .click();
 });
 

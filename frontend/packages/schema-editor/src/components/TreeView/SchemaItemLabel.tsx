@@ -136,7 +136,7 @@ export const SchemaItemLabel = ({
           <i className={`fa ${icon}`} />
         </span>{' '}
         <span>{getNameFromPointer(selectedNode)}</span>
-        {selectedNode.isRequired && <span> *</span>}
+        {selectedNode.isRequired && <span aria-hidden> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (
           <span

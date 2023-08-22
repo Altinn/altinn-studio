@@ -1,5 +1,5 @@
 //Selectors in designer
-import { testids } from '../../../testids';
+import * as testids from '../../../testids';
 
 export const designer = {
   appMenu: {
