@@ -1,6 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup } from '@digdir/design-system-react';
+import { LegacyCheckboxGroup } from '@digdir/design-system-react';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
@@ -36,7 +36,7 @@ export const CheckboxGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <CheckboxGroup
+      <LegacyCheckboxGroup
         legend={
           <TextResource
             handleIdChange={changeLegend}

@@ -3,7 +3,7 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import { header } from '../../pageobjects/header';
+import { header } from '../../selectors/header';
 
 context(
   'Bruksmønster',
@@ -53,8 +53,8 @@ context(
         .click();
 
       // Repos
-      cy.findByRole('img', { name: header.profileIconName }).should('be.visible').click();
-      cy.findByRole('link', { name: header.menu.appRepoLinkName })
+      header.getProfileIcon().should('be.visible').click();
+      header.getOpenRepoLink()
         .should('be.visible')
         .invoke('attr', 'href')
         .then((href) => {

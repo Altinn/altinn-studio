@@ -5,7 +5,7 @@ import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../utils/repoUtils';
 import { applicationAboutPage } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
-import { Button, ButtonColor } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
 import { Organization } from 'app-shared/types/Organization';
@@ -63,7 +63,9 @@ type CreateServiceProps = {
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
   const selectedFormat = DatamodelFormat.XSD;
   const selectedContext = useSelectedContext();
-  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(selectedContext === SelectedContextType.Self ? user.login : selectedContext);
+  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext
+  );
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
@@ -136,10 +138,10 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
       ) : (
         <div className={classes.buttonContainer}>
-          <Button color={ButtonColor.Primary} onClick={handleCreateService} size='small'>
+          <Button color='primary' onClick={handleCreateService} size='small'>
             {t('dashboard.create_service_btn')}
           </Button>
-          <Button color={ButtonColor.Inverted} onClick={() => navigate(-1)} size='small'>
+          <Button color='inverted' onClick={() => navigate(-1)} size='small'>
             {t('general.cancel')}
           </Button>
         </div>

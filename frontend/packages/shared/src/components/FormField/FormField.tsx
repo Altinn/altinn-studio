@@ -96,9 +96,6 @@ export const FormField = <T extends unknown, TT extends unknown>({
   };
 
   const renderChildren = (childList: React.ReactNode) => {
-    let fieldLabel: string;
-    if (label) fieldLabel = `${label}${isRequired ? ' *' : ''}`;
-
     return React.Children.map(childList, (child) => {
       if (React.isValidElement(child)) {
         const props =
@@ -106,7 +103,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
             ? {
                 value: tmpValue,
                 required: isRequired,
-                label: fieldLabel,
+                label,
                 onChange: handleOnChange,
                 isValid: !errorCode,
                 ...child.props,

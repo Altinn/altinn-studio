@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { ConnectDragSource } from 'react-dnd';
 import cn from 'classnames';
 import '../styles/index.css';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/dragAndDrop/DragHandle';
@@ -15,7 +15,7 @@ export interface IFormContainerHeaderProps {
   isEditMode: boolean;
   handleExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   handleDelete: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  dragHandleRef: ConnectDragSource
+  dragHandleRef: ConnectDragSource;
 }
 
 export const FormContainerHeader = memo(function FormContainerHeader({
@@ -25,7 +25,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   handleExpanded,
   handleDelete,
   dragHandleRef,
-} : IFormContainerHeaderProps) {
+}: IFormContainerHeaderProps) {
   const { t } = useTranslation();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
@@ -36,10 +36,10 @@ export const FormContainerHeader = memo(function FormContainerHeader({
       </div>
       <div className={classes.formGroupBar}>
         <Button
-          color={ButtonColor.Secondary}
+          color='secondary'
           icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
           onClick={() => handleExpanded((previous) => !previous)}
-          variant={ButtonVariant.Quiet}
+          variant='quiet'
           size='small'
         />
         {t('ux_editor.component_group_header', { id })}
@@ -57,9 +57,9 @@ export const FormContainerHeader = memo(function FormContainerHeader({
               title={t('general.delete')}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
-                setIsConfirmDeleteDialogOpen(prevState => !prevState);
+                setIsConfirmDeleteDialogOpen((prevState) => !prevState);
               }}
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               size='small'
             />
           }

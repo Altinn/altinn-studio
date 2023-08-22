@@ -5,7 +5,7 @@ import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQu
 import { useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
-import { ErrorMessage, Button, ButtonVariant } from '@digdir/design-system-react';
+import { ErrorMessage, Button } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
 
@@ -36,7 +36,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         <>
           <p>
             <Button
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
               size='small'
             >
@@ -52,14 +52,14 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
             >
-              {
-                () => <Select
+              {() => (
+                <Select
                   options={optionListIds.map((option) => ({
                     label: option,
                     value: option,
                   }))}
                 />
-              }
+              )}
             </FormField>
           )}
         </>

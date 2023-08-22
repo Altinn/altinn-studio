@@ -3,11 +3,13 @@ import { AltinnHeaderMenuItem } from 'app-shared/components/altinnHeaderMenu/Alt
 import { RepositoryType } from 'app-shared/types/global';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
+import { SupportedFeatureFlags, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;
   link: string;
   repositoryTypes: RepositoryType[];
+  featureFlagName?: SupportedFeatureFlags;
 }
 
 export enum TopBarMenu {
@@ -18,6 +20,7 @@ export enum TopBarMenu {
   Preview = 'top_menu.preview',
   Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
+  ProcessEditor = 'top_menu.process-editor',
   None = '',
 }
 
@@ -42,6 +45,12 @@ export const menu: TopBarMenuItem[] = [
     link: '/:org/:app/text-editor',
     repositoryTypes: [RepositoryType.App],
   },
+  {
+    key: TopBarMenu.ProcessEditor,
+    link: '/:org/:app/process-editor',
+    repositoryTypes: [RepositoryType.App],
+    featureFlagName: 'processEditor',
+  },
 ];
 
 export const getTopBarMenu = (
@@ -52,10 +61,18 @@ export const getTopBarMenu = (
 ): AltinnHeaderMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
+    .filter(filterRoutesByFeatureFlag)
     .map((item) => {
       return {
         key: item.key,
         link: <Link to={item.link.replace(':org', org).replace(':app', app)}>{t(item.key)} </Link>,
       } as AltinnHeaderMenuItem;
     });
+};
+
+const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
+  // If no feature tag is set, the menu item should be displayed
+  if (!menuItem.featureFlagName) return true;
+
+  return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
 };

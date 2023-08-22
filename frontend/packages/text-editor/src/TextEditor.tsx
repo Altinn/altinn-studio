@@ -7,7 +7,7 @@ import type {
   UpsertTextResourceMutation,
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
@@ -76,8 +76,8 @@ export const TextEditor = ({
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
           <Button
-            variant={ButtonVariant.Filled}
-            color={ButtonColor.Primary}
+            variant='filled'
+            color='primary'
             onClick={handleAddNewEntryClick}
             data-testid='text-editor-btn-add'
             size='small'

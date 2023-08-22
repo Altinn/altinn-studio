@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button, ButtonColor, ButtonVariant, TextField } from '@digdir/design-system-react';
+import { Button, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
@@ -90,12 +90,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 })}
               </div>
               <div className={classes.buttonContainer}>
-                <Button
-                  color={ButtonColor.Secondary}
-                  onClick={onCloseWrapper}
-                  variant={ButtonVariant.Outline}
-                  size='small'
-                >
+                <Button color='secondary' onClick={onCloseWrapper} variant='outline' size='small'>
                   {t('general.close')}
                 </Button>
               </div>
@@ -105,22 +100,17 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           {!repoResetMutation.isLoading && !repoResetMutation.isSuccess && (
             <div className={classes.buttonContainer}>
               <Button
-                color={ButtonColor.Danger}
+                color='danger'
                 data-testid='confirm-reset-repo-button'
                 disabled={!canDelete}
                 id='confirm-reset-repo-button'
                 onClick={onResetWrapper}
-                variant={ButtonVariant.Outline}
+                variant='outline'
                 size='small'
               >
                 {t('administration.reset_repo_button')}
               </Button>
-              <Button
-                color={ButtonColor.Secondary}
-                onClick={onCloseWrapper}
-                variant={ButtonVariant.Outline}
-                size='small'
-              >
+              <Button color='secondary' onClick={onCloseWrapper} variant='outline' size='small'>
                 {t('general.cancel')}
               </Button>
             </div>

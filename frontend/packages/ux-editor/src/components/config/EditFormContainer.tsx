@@ -5,7 +5,12 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { Checkbox, CheckboxGroup, FieldSet, TextField } from '@digdir/design-system-react';
+import {
+  LegacyCheckbox,
+  LegacyCheckboxGroup,
+  LegacyFieldSet,
+  TextField,
+} from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
@@ -27,7 +32,7 @@ export interface IEditFormContainerProps {
   editFormId: string;
   container: FormContainer;
   handleContainerUpdate: (updatedContainer: FormContainer) => void;
-};
+}
 
 export const EditFormContainer = ({
   editFormId,
@@ -133,7 +138,7 @@ export const EditFormContainer = ({
   };
 
   return (
-    <FieldSet className={classes.fieldset}>
+    <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={container.id}
         label={t('ux_editor.modal_properties_group_change_id')}
@@ -145,16 +150,21 @@ export const EditFormContainer = ({
           }
         }}
         customValidationMessages={(errorCode: string) => {
-          if (errorCode === "unique") {
-            return t('ux_editor.modal_properties_group_id_not_unique_error')
+          if (errorCode === 'unique') {
+            return t('ux_editor.modal_properties_group_id_not_unique_error');
           }
-          if (errorCode === "pattern") {
+          if (errorCode === 'pattern') {
             return t('ux_editor.modal_properties_group_id_not_valid');
           }
         }}
         onChange={handleIdChange}
       >
-        {({ onChange }) => <TextField name={`group-id${container.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+        {({ onChange }) => (
+          <TextField
+            name={`group-id${container.id}`}
+            onChange={(e) => onChange(e.target.value, e)}
+          />
+        )}
       </FormField>
       <FormField
         id={container.id}
@@ -162,10 +172,9 @@ export const EditFormContainer = ({
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
       >
-        {({ value, onChange }) => <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-        />}
+        {({ value, onChange }) => (
+          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+        )}
       </FormField>
       {container.maxCount > 1 && (
         <>
@@ -180,13 +189,14 @@ export const EditFormContainer = ({
             value={container.maxCount}
             propertyPath={`${container.propertyPath}/properties/maxCount`}
           >
-            {({ onChange }) =>
-            <TextField
-              id='modal-properties-maximum-files'
-              disabled={!!container.dataModelBindings?.group}
-              formatting={{ number: {} }}
-              onChange={(e) => onChange(parseInt(e.target.value), e)}
-            />}
+            {({ onChange }) => (
+              <TextField
+                id='modal-properties-maximum-files'
+                disabled={!!container.dataModelBindings?.group}
+                formatting={{ number: {} }}
+                onChange={(e) => onChange(parseInt(e.target.value), e)}
+              />
+            )}
           </FormField>
           <TextResource
             description={t('ux_editor.modal_properties_group_add_button_description')}
@@ -201,22 +211,28 @@ export const EditFormContainer = ({
               value={items}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
             >
-              {({ value }) => <CheckboxGroup
-                error={tableHeadersError}
-                items={items
-                  .filter((id) => !!components[id])
-                  .map((id) => ({
-                    label: getTextResource(components[id]?.textResourceBindings?.title, textResources) || id,
-                    name: id,
-                    checked:
-                      container.tableHeaders === undefined || container.tableHeaders.includes(id),
-                }))}
-                legend={t('ux_editor.modal_properties_group_table_headers')}
-              />}
+              {({ value }) => (
+                <LegacyCheckboxGroup
+                  error={tableHeadersError}
+                  items={items
+                    .filter((id) => !!components[id])
+                    .map((id) => ({
+                      label:
+                        getTextResource(
+                          components[id]?.textResourceBindings?.title,
+                          textResources
+                        ) || id,
+                      name: id,
+                      checked:
+                        container.tableHeaders === undefined || container.tableHeaders.includes(id),
+                    }))}
+                  legend={t('ux_editor.modal_properties_group_table_headers')}
+                />
+              )}
             </FormField>
           )}
         </>
       )}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };
