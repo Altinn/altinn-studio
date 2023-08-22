@@ -11,6 +11,7 @@ import {
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
+  policyEditorUsageType,
 } from 'app-shared/types/PolicyEditorTypes';
 
 interface Props {
@@ -62,9 +63,9 @@ interface Props {
    */
   savePolicy: (rules: PolicyRuleCardType[]) => void;
   /**
-   * Flag to decided if all sub-resoruce fields ar editable
+   * The usage type of the policy editor
    */
-  allSubResourcesEditable: boolean;
+  usageType: policyEditorUsageType;
 }
 
 /**
@@ -83,7 +84,7 @@ interface Props {
  * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
  * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
  * @property {function}[onBlur] - Function to save the policy
- * @property {bolean}[allSubResourcesEditable] - Flag to decided if all sub-resoruce fields ar editable
+ * @property {policyEditorUsageType}[usageType] - The usage type of the policy editor
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -99,7 +100,7 @@ export const ExpandablePolicyCard = ({
   handleDeleteRule,
   showErrors,
   savePolicy,
-  allSubResourcesEditable = false,
+  usageType,
 }: Props): React.ReactNode => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
@@ -199,12 +200,18 @@ export const ExpandablePolicyCard = ({
    * resource block is set to the resource's ID and type.
    */
   const handleClickAddResource = () => {
-    const newResource: PolicyRuleResourceType[] = [
-      {
-        type: resourceType,
-        id: resourceId,
-      },
-    ];
+    const newResource: PolicyRuleResourceType[] =
+      usageType === 'app'
+        ? [
+            { type: `${resourceType}:[org]`, id: '[ORG]' },
+            { type: `${resourceType}:[app]`, id: '[APP]' },
+          ]
+        : [
+            {
+              type: resourceType,
+              id: resourceId,
+            },
+          ];
     const updatedResources = [...policyRule.resources, newResource];
     updateRules(
       policyRule.description,
@@ -236,7 +243,7 @@ export const ExpandablePolicyCard = ({
         handleDuplicateElement={() => handleDuplicateResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
-        firstFieldEditable={allSubResourcesEditable}
+        firstFieldEditable={usageType === 'app'}
       />
     );
   });

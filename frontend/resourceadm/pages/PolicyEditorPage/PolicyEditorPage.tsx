@@ -31,7 +31,6 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
   // TODO - translation
 
   const { resourceId, selectedContext } = useParams();
-  const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
   const repo = `${selectedContext}-resources`;
 
   // Get the data
@@ -41,6 +40,7 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     resourceId
   );
   console.log(policyData);
+
   const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
     selectedContext,
     repo
@@ -49,7 +49,6 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     selectedContext,
     repo
   );
-  console.log(subjectData);
 
   // Mutation function to update policy
   const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(
@@ -86,10 +85,10 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
         policy={mapPolicyResultToPolicyObject(policyData)}
         actions={actionData}
         subjects={subjectData}
-        resourceType={resourceType}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
+        usageType='resource'
       />
     );
   };

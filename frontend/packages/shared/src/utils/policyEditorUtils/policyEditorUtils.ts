@@ -150,8 +150,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   subjectOptions: PolicySubjectType[],
   actionOptions: PolicyActionType[],
   policyRule: PolicyRuleCardType,
-  resourceType: string,
-  resourceId: string
+  ruleId: string
 ): PolicyRuleBackendType => {
   const resources: string[][] = policyRule.resources.map((resource) =>
     resource
@@ -167,7 +166,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   );
 
   return {
-    ruleId: `${resourceType}:${resourceId}:ruleid:${policyRule.ruleId}`,
+    ruleId,
     description: policyRule.description,
     subject: subject,
     actions: actions,

@@ -39,3 +39,5 @@ export interface PolicyBackendType {
   requiredAuthenticationLevelEndUser: RequiredAuthLevelType;
   requiredAuthenticationLevelOrg: string;
 }
+
+export type policyEditorUsageType = 'app' | 'resource';
