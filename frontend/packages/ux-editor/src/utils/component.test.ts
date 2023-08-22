@@ -4,6 +4,7 @@ import {
   changeComponentOptionLabel,
   changeTextResourceBinding,
   generateFormItem,
+  getUnsupportedPropertyTypes,
   setComponentProperty,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -186,5 +187,72 @@ describe('Component utils', () => {
         [propertyKey]: value,
       });
     });
-  })
+  });
+
+  describe('getUnsupportedPropertyTypes', () => {
+    it('Returns empty array when only properties are provided', () => {
+      const properties = {
+        'testProperty1': {
+          type: 'string',
+        },
+        'testProperty2': {
+          type: 'number',
+        },
+        'testProperty3': {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        'testProperty4': {
+          $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+        },
+        'testProperty5': {
+          type: 'integer',
+        },
+        'testProperty6': {
+          type: 'object',
+        },
+        'testProperty7': {
+          type: 'boolean',
+        },
+      };
+      expect(getUnsupportedPropertyTypes(
+        properties,
+      )).toEqual([]);
+    });
+    it('Returns empty array when no properties are provided', () => {
+      const properties = {};
+      expect(getUnsupportedPropertyTypes(
+        properties,
+      )).toEqual([]);
+    });
+    it('Returns array of unsupported property keys when known unsupported property keys are provided', () => {
+      const properties = {
+        'children': 'testValue',
+      };
+      expect(getUnsupportedPropertyTypes(
+        properties,
+        ['children'],
+      )).toEqual(['children']);
+    });
+    it('Returns array of unsupported property keys when unsupported property keys are given', () => {
+      const properties = {
+        'testProperty1': {
+          $ref: 'testRef',
+        },
+        'testProperty2': {
+          type: 'array',
+          items: {
+            type: 'object',
+          },
+        },
+        'testProperty3': {
+          type: 'string',
+        },
+      };
+      const result = getUnsupportedPropertyTypes(properties);
+      expect(result).toEqual(['testProperty1', 'testProperty2']);
+    });
+  });
 });
