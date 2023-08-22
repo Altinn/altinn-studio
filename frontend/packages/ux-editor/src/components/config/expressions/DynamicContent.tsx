@@ -21,14 +21,11 @@ import classes from './DynamicContent.module.css';
 interface ExpressionProps {
   component: FormComponent | FormContainer;
   dynamic: Dynamic;
-
-  onGetProperties: (dynamic: Dynamic) => {
-    availableProperties: string[];
-    expressionProperties: string[];
-  }; // actions?
+  onGetProperties: (dynamic: Dynamic) => { availableProperties: string[], expressionProperties: string[] };
   showRemoveDynamicButton: boolean;
   onAddDynamic: () => void;
   successfullyAddedDynamicId: string;
+  onUpdateDynamic: (newDynamic: Dynamic) => void;
   onRemoveDynamic: (dynamic: Dynamic) => void;
   onEditDynamic: (dynamic: Dynamic) => void;
 }
@@ -40,13 +37,10 @@ export const DynamicContent = ({
   showRemoveDynamicButton,
   onAddDynamic,
   successfullyAddedDynamicId,
+  onUpdateDynamic,
   onRemoveDynamic,
   onEditDynamic,
 }: ExpressionProps) => {
-  const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
-  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>(dynamic.expressionElements ? [...dynamic.expressionElements] : []); // default state should be already existing expressions
-  const [complexExpression, setComplexExpression] = React.useState<any>(dynamic.complexExpression); // default state should be already existing expressions
-  const [operator, setOperator] = React.useState<Operator>(dynamic.operator || undefined);
   const dynamicInEditStateRef = useRef(null);
   const dynamicInPreviewStateRef = useRef(null);
   const { t } = useTranslation();
@@ -77,69 +71,68 @@ export const DynamicContent = ({
   }, [dynamic.editMode, onAddDynamic]);
 
   const successfullyAddedMark = dynamic.id === successfullyAddedDynamicId;
-  const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
+  const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(dynamic.property);
   const propertiesList = onGetProperties(dynamic).availableProperties;
 
   const addActionToDynamic = (action: string) => {
     if (action === 'default') {
       return;
     }
-    setSelectedAction(action);
     dynamic.property = action as ExpressionPropertyBase;
+    let newDynamic: Dynamic = { id: uuidv4(), ...dynamic };
+    onUpdateDynamic(newDynamic);
     if (dynamic.expressionElements.length > 0) {
       return;
     }
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
     dynamic.expressionElements.push(newExpressionElement);
-    setExpressionElements(dynamic.expressionElements);
+    newDynamic = { id: uuidv4(), ...dynamic }
+    onUpdateDynamic(newDynamic);
   };
 
   const addExpressionElement = (dynamicOperator: Operator) => {
     const newExpressionElement: ExpressionElement = { id: uuidv4() };
-    const updatedExpressionElements = [...dynamic.expressionElements, newExpressionElement];
     dynamic.expressionElements.push(newExpressionElement);
-    setOperator(dynamicOperator);
     dynamic.operator = dynamicOperator;
-    setExpressionElements(updatedExpressionElements);
+    const newDynamic: Dynamic = { id: uuidv4(), ...dynamic }
+    onUpdateDynamic(newDynamic);
   };
 
   const updateDynamicOperator = (dynamicOperator: Operator) => {
-    setOperator(dynamicOperator);
+    dynamic.operator = dynamicOperator;
+    const newDynamic: Dynamic = { id: uuidv4(), ...dynamic }
+    onUpdateDynamic(newDynamic);
   };
 
-  const updateExpressionElement = () => {
-    const updatedExpressionElements = [...dynamic.expressionElements];
-    setExpressionElements(updatedExpressionElements);
+  const updateExpressionElement = (index: number, expressionElement: ExpressionElement) => {
+    dynamic.expressionElements[index] = { id: uuidv4(), ...expressionElement };
+    const newDynamic: Dynamic = { id: uuidv4(), ...dynamic }
+    onUpdateDynamic(newDynamic);
   };
 
   const handleUpdateComplexExpression = (newComplexExpression: any) => {
     try {
-      const parsedComplexExpression = JSON.parse(newComplexExpression.replaceAll('\'', '\"'));
       dynamic.complexExpression = JSON.parse(newComplexExpression.replaceAll('\'', '\"'));
-      setComplexExpression(parsedComplexExpression);
     } catch (error) {
       dynamic.complexExpression = newComplexExpression.length > 0 ? newComplexExpression : '[]';
-      setComplexExpression(newComplexExpression);
     }
+    const newDynamic: Dynamic = { id: uuidv4(), ...dynamic }
+    onUpdateDynamic(newDynamic);
   };
 
   const removeExpressionElement = (expressionElement: ExpressionElement) => {
-    if (dynamic.expressionElements.length < 2) {
-      const newExpressionElement: ExpressionElement = { id: uuidv4() };
-      dynamic.expressionElements = [newExpressionElement];
-      setExpressionElements([newExpressionElement]);
-    } else {
-      const updatedExpressionElements = dynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
-      const lastExpressionElement = updatedExpressionElements[updatedExpressionElements.length - 1];
-      dynamic.expressionElements = [...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement }];
-      setExpressionElements([...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement }]);
-    }
+    const updatedExpressionElements = dynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
+    // Add default if the last expression was deleted
+    const newExpressionElement: ExpressionElement = { id: uuidv4() };
+    dynamic.expressionElements = dynamic.expressionElements.length < 2 ? [newExpressionElement] : updatedExpressionElements;
+    const newDynamic: Dynamic = { id: uuidv4(), ...dynamic }
+    onUpdateDynamic(newDynamic);
   };
 
   const tryFormatExpression = (expression: any): string => {
     try {
       // Implies during editing and when the expression has not been able to be parsed to JSON due to syntax
-      if (typeof expression === "string") {
+      if (typeof expression === 'string') {
         return expression;
       }
       // Attempt to format the JSON input
@@ -184,7 +177,7 @@ export const DynamicContent = ({
           {dynamic.complexExpression ? (
             <div className={classes.complexExpressionContainer}>
               <textarea
-                value={tryFormatExpression(complexExpression)}
+                value={tryFormatExpression(dynamic.complexExpression)}
                 onChange={event => handleUpdateComplexExpression(event.target.value)}
                 className={classes.complexExpression}
               />
@@ -193,15 +186,15 @@ export const DynamicContent = ({
               </Alert>
             </div>
           ) : (
-            expressionElements.map((expEl: ExpressionElement) => (
+            dynamic.expressionElements.map((expEl: ExpressionElement, index: number) => (
               <div key={expEl.id}>
                 <ExpressionContent // change name to ExpressionContext?
                   expressionAction={allowToSpecifyExpression}
                   expressionElement={expEl}
-                  dynamicOperator={operator}
+                  dynamicOperator={index == dynamic.expressionElements.length -1 ? undefined : dynamic.operator}
                   onAddExpressionElement={(dynamicOp: Operator) => addExpressionElement(dynamicOp)}
-                  onUpdateExpressionElement={updateExpressionElement}
-                  onUpdateDynamicOperator={updateDynamicOperator}
+                  onUpdateExpressionElement={(expressionElement: ExpressionElement) => updateExpressionElement(index, expressionElement)}
+                  onUpdateDynamicOperator={(dynamicOp: Operator) => updateDynamicOperator(dynamicOp)}
                   onRemoveExpressionElement={() => removeExpressionElement(expEl)}
                 />
               </div>
@@ -217,7 +210,7 @@ export const DynamicContent = ({
               <div className={classes.complexExpressionContainer}>
                   <textarea
                     className={classes.complexExpression}
-                    value={tryFormatExpression(complexExpression)}
+                    value={tryFormatExpression(dynamic.complexExpression)}
                     disabled={true}
                   >
                   </textarea>
@@ -226,13 +219,13 @@ export const DynamicContent = ({
                 </Alert>
               </div>
             ) : (
-              expressionElements.map((expEl: ExpressionElement, index: number) => (
+              dynamic.expressionElements.map((expEl: ExpressionElement, index: number) => (
                 <div key={expEl.id}>
                   <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.dataSource]} {' '} <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
                   <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.comparableDataSource]} {' '}
                     <span>{expEl.comparableValue}</span></p>
-                  {index !== expressionElements.length - 1 && (
+                  {index !== dynamic.expressionElements.length - 1 && (
                     <p className={classes.bold}>{dynamic.operator === Operator.And ? 'Og' : 'Eller'}</p>)}
                 </div>
               ))

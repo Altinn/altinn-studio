@@ -23,7 +23,6 @@ interface IExpressionContentProps {
   onRemoveExpressionElement: (expressionElement: ExpressionElement) => void;
 }
 
-// change name to CreateExpressionElement?
 export const ExpressionContent = ({
     expressionAction,
     expressionElement,
@@ -32,13 +31,10 @@ export const ExpressionContent = ({
     onRemoveExpressionElement,
 }: IExpressionContentProps) => {
   const { t } = useTranslation();
-  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
-  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] =
-    React.useState<boolean>(false);
+  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] = React.useState<boolean>(false);
 
-  const allowToSpecifyExpression =
-    expressionAction &&
-    Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
+  const showAddExpressionButton: boolean = !dynamicOperator;
+  const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
   const addFunctionToExpressionElement = (func: string) => {
     expressionElement.function = func as ExpressionFunction;
@@ -100,7 +96,6 @@ export const ExpressionContent = ({
   };
 
   const handleAddExpressionElement = (expressionOperator: Operator) => {
-    setShowAddExpressionButton(!showAddExpressionButton);
     onAddExpressionElement(expressionOperator);
   }
 
@@ -194,7 +189,7 @@ export const ExpressionContent = ({
             </div>
           </div>
           <div className={classes.addExpression}>
-            {!dynamicOperator || showAddExpressionButton ? (
+            {showAddExpressionButton ? (
                 <Button
                   variant='quiet'
                   size='small'
@@ -207,8 +202,8 @@ export const ExpressionContent = ({
                     })}
                   />
                   {t('right_menu.dynamics_add_expression')}
-                </Button>)
-              : (
+                </Button>
+              ) : (
                 <div className={classes.andOrToggleButtons}>
                 <ToggleButtonGroup
                   items={[

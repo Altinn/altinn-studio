@@ -34,7 +34,7 @@ export const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {
     }
     expressions.push(expressionObject);
   });
-  return dynamic.operator ? [dynamic.operator, expressions] : expressions[0];
+  return dynamic.operator ? [dynamic.operator].concat(expressions) : expressions[0];
 };
 
 export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: any): Dynamic => {
