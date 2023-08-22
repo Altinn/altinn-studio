@@ -28,7 +28,7 @@ import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { IValidationIssue } from 'src/utils/validation/types';
+import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const getApplicationMetaData = (store: IRuntimeState) => store.applicationMetadata?.applicationMetadata;
@@ -61,7 +61,7 @@ export function* submitFormSaga(): SagaIterator {
 function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages) {
   // run validations against the datamodel
   const instanceId = state.instanceData.instance?.id;
-  const serverValidations: IValidationIssue[] | undefined = instanceId
+  const serverValidations: BackendValidationIssue[] | undefined = instanceId
     ? yield call(httpGet, getValidationUrl(instanceId))
     : undefined;
 

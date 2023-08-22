@@ -5,6 +5,7 @@ import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayoutSets } from 'src/types';
 import type { IInstance } from 'src/types/shared';
+import type { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
 
 /**
  * Contains all of the necessary elements from the redux store to run frontend validations.
@@ -110,12 +111,12 @@ export type ValidationKeyOrAny = ValidationKey | 'any';
 /**
  * This format is used by the backend to send validation issues to the frontend.
  */
-export interface IValidationIssue {
+export interface BackendValidationIssue {
   code: string;
   description: string;
   field: string;
   scope: string | null;
-  severity: ValidationIssueSeverity;
+  severity: BackendValidationSeverity;
   targetId: string;
   source?: string;
   customTextKey?: string;

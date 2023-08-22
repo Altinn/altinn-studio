@@ -21,7 +21,7 @@ import {
 import type { IUpdateRepeatingGroupsEditIndex } from 'src/features/layout/formLayoutTypes';
 import type { IRuntimeState } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { IValidationIssue } from 'src/utils/validation/types';
+import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 export function* updateRepeatingGroupEditIndexSaga({
   payload: { group, index, validate, shouldAddRow },
@@ -76,7 +76,7 @@ export function* updateRepeatingGroupEditIndexSaga({
         return;
       }
 
-      const serverValidations: IValidationIssue[] = yield call(
+      const serverValidations: BackendValidationIssue[] = yield call(
         httpGet,
         getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId),
         options,

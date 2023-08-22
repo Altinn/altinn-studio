@@ -33,7 +33,7 @@ import {
 import type { ICalculatePageOrderAndMoveToNextPage, IUpdateCurrentView } from 'src/features/layout/formLayoutTypes';
 import type { IRuntimeState, IUiConfig } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { IValidationIssue } from 'src/utils/validation/types';
+import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectFormData = (state: IRuntimeState) => state.formData;
@@ -121,7 +121,7 @@ export function* updateCurrentViewSaga({
       );
 
       const validationOptions = runValidations === Triggers.ValidatePage ? options : undefined;
-      const serverValidations: IValidationIssue[] =
+      const serverValidations: BackendValidationIssue[] =
         instanceId && currentTaskDataId
           ? yield call(httpGet, getDataValidationUrl(instanceId, currentTaskDataId), validationOptions)
           : [];

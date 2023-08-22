@@ -15,7 +15,7 @@ import type { IRunSingleFieldValidation } from 'src/features/validation/validati
 import type { ILayoutSets, IRuntimeState } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { IValidationIssue } from 'src/utils/validation/types';
+import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 export const selectLayoutsState = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectApplicationMetadataState = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
@@ -53,7 +53,7 @@ export function* runSingleFieldValidationSaga({
     };
 
     try {
-      const serverValidations: IValidationIssue[] = yield call(httpGet, url, options);
+      const serverValidations: BackendValidationIssue[] = yield call(httpGet, url, options);
       const validationObjects = mapValidationIssues(
         serverValidations,
         resolvedNodes,

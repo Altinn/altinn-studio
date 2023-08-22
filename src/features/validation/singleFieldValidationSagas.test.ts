@@ -18,9 +18,9 @@ import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { resolvedLayoutsFromState, ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpGet } from 'src/utils/network/networking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
-import { BackendValidationSeverity } from 'src/utils/validation/backendValidation';
+import { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
 import type { IRuntimeState } from 'src/types';
-import type { IValidationIssue, IValidationObject } from 'src/utils/validation/types';
+import type { BackendValidationIssue, IValidationObject } from 'src/utils/validation/types';
 
 describe('singleFieldValidationSagas', () => {
   let mockState: IRuntimeState;
@@ -43,7 +43,7 @@ describe('singleFieldValidationSagas', () => {
       },
     };
 
-    const validationIssues: IValidationIssue[] = [
+    const validationIssues: BackendValidationIssue[] = [
       {
         code: 'error',
         description: mockErrorMessage,

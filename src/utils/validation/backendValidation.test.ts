@@ -1,5 +1,5 @@
 import { shouldExcludeValidationIssue, ValidationIssueSources } from 'src/utils/validation/backendValidation';
-import type { IValidationIssue } from 'src/utils/validation/types';
+import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 describe('backendValidation', () => {
   describe('shouldExcludeValidationIssue', () => {
@@ -14,7 +14,7 @@ describe('backendValidation', () => {
             severity: 1,
             description: 'This is a custom validation',
             field: 'skjema.navn',
-          } as IValidationIssue,
+          } as BackendValidationIssue,
         ],
         expected: false,
       },
@@ -27,7 +27,7 @@ describe('backendValidation', () => {
             customTextKey: 'contentNotAllowed',
             source: ValidationIssueSources.File,
             field: 'skjema.navn',
-          } as IValidationIssue,
+          } as BackendValidationIssue,
         ],
         expected: false,
       },
@@ -39,7 +39,7 @@ describe('backendValidation', () => {
             severity: 1,
             description: 'skjema.navn is required in component with id navn',
             field: 'skjema.navn',
-          } as IValidationIssue,
+          } as BackendValidationIssue,
         ],
         expected: true,
       },
@@ -51,7 +51,7 @@ describe('backendValidation', () => {
             description: 'required',
             source: ValidationIssueSources.Required,
             field: 'skjema.navn',
-          } as IValidationIssue,
+          } as BackendValidationIssue,
         ],
         expected: true,
       },
@@ -63,7 +63,7 @@ describe('backendValidation', () => {
             description: 'regex',
             source: ValidationIssueSources.ModelState,
             field: 'skjema.navn',
-          } as IValidationIssue,
+          } as BackendValidationIssue,
         ],
         expected: true,
       },
