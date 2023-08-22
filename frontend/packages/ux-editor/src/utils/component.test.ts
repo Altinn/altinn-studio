@@ -5,6 +5,7 @@ import {
   changeTextResourceBinding,
   generateFormItem,
   getUnsupportedPropertyTypes,
+  isPropertyTypeSupported,
   setComponentProperty,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -253,6 +254,58 @@ describe('Component utils', () => {
       };
       const result = getUnsupportedPropertyTypes(properties);
       expect(result).toEqual(['testProperty1', 'testProperty2']);
+    });
+  });
+
+  describe('isPropertyTypeSupported', () => {
+    it('should return true if property type is supported', () => {
+      expect(
+        isPropertyTypeSupported({
+          type: 'string',
+        })
+      ).toBe(true);
+    });
+
+    it('should return true if property ref is supported', () => {
+      expect(
+        isPropertyTypeSupported({
+          $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+        })
+      ).toBe(true);
+    });
+    it('should return true for property of array type with items that are type string', () => {
+      expect(
+        isPropertyTypeSupported({
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        })
+      ).toBe(true);
+    });
+    it('should return true for property type object', () => {
+      expect(
+        isPropertyTypeSupported({
+          type: 'object',
+        })
+      ).toBe(true);
+    });
+    it('should return false if property ref is not supported', () => {
+      expect(
+        isPropertyTypeSupported({
+          $ref: 'test',
+        })
+      ).toBe(false);
+    });
+
+    it('should return true if property type is supported and propertyKey is undefined', () => {
+      expect(
+        isPropertyTypeSupported(
+          {
+            type: 'string',
+          },
+        )
+      ).toBe(true);
     });
   });
 });
