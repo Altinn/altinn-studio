@@ -24,17 +24,17 @@ const supportedPropertyRefs = [
   'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
 ];
 
-const knownUnsupportedPropertyKeys = ['children'];
+const knownUnsupportedPropertyKeys = ['children', 'tableHeaders'];
 
 export const isPropertyTypeSupported = (property: any, propertyKey?: string) => {
   if (propertyKey && knownUnsupportedPropertyKeys.includes(propertyKey)) return false;
-  if (property.$ref) {
+  if (property?.$ref) {
     return supportedPropertyRefs.includes(property.$ref);
   }
   if (property?.type === 'array' && property?.items?.type === 'string') {
     return true;
   }
-  return supportedPropertyTypes.includes(property.type);
+  return supportedPropertyTypes.includes(property?.type);
 };
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
@@ -172,6 +172,7 @@ export const FormComponentConfig = ({
         />
       )}
       {Object.keys(rest).map((propertyKey) => {
+        if (!rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'boolean' ||
           rest[propertyKey].$ref?.endsWith('layout/expression.schema.v1.json#/definitions/boolean')

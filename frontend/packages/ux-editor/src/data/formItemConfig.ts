@@ -420,6 +420,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.ButtonGroup],
   formItemConfigs[ComponentType.Accordion],
   formItemConfigs[ComponentType.AccordionGroup],
+  formItemConfigs[ComponentType.List],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
