@@ -8,8 +8,9 @@ import {
   PolicyBackendType,
   PolicySubjectType,
 } from 'app-shared/types/PolicyEditorTypes';
-import { useResourceAppPolicyQuery } from 'app-development/hooks/queries';
+import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useParams } from 'react-router-dom';
+import { useEditAppPolicyMutation } from 'app-development/hooks/mutations';
 
 /**
  * The different actioons a policy can have. TODO - Find out if there should be more
@@ -59,11 +60,20 @@ export const PolicyEditor = () => {
   const { org, app } = useParams();
 
   // Get the data
-  const { data: policyData, isLoading: policyLoading } = useResourceAppPolicyQuery(org, app);
-  console.log(policyData);
+  const { data: policyData, isLoading: policyLoading } = useAppPolicyQuery(org, app);
 
+  // Mutation function to update policy
+  const { mutate: updateAppPolicyMutation } = useEditAppPolicyMutation(org, app);
+
+  /**
+   * Saves the policy to backend
+   */
   const handleSavePolicy = (p: PolicyBackendType) => {
-    console.log('Todo, save policy. Policy: ', p);
+    updateAppPolicyMutation(p, {
+      onSuccess: () => {
+        console.log('success');
+      },
+    });
   };
 
   if (policyLoading) {

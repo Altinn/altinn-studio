@@ -1,0 +1,22 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { PolicyBackendType } from 'app-shared/types/PolicyEditorTypes';
+import { QueryKey } from 'app-shared/types/QueryKey';
+
+/**
+ * Mutation to edit an existing policy in an app.
+ *
+ * @param org the organisation of the user
+ * @param app the app the user is in
+ */
+export const useEditAppPolicyMutation = (org: string, app: string) => {
+  const queryClient = useQueryClient();
+  const { updateAppPolicy } = useServicesContext();
+
+  return useMutation({
+    mutationFn: (payload: PolicyBackendType) => updateAppPolicy(org, app, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppPolicy, org, app] });
+    },
+  });
+};

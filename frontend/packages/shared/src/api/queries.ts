@@ -55,7 +55,7 @@ export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl()
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
-export const getAppPolicy = (org: string, repo: string) => get<PolicyBackendType>(appPolicyPath(org, repo));
+export const getAppPolicy = (org: string, app: string) => get<PolicyBackendType>(appPolicyPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyActionType[]>(resourceActionsPath(org, repo));

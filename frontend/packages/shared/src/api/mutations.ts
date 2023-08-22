@@ -1,5 +1,5 @@
 import { del, get, post, put } from 'app-shared/utils/networking';
-import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoCommitPushPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath, datamodelPath, resourcePolicyPath, resourceCreatePath, resourceEditPath, datamodelAddXsdFromRepoPath, createDatamodelPath } from 'app-shared/api/paths';
+import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoCommitPushPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath, datamodelPath, resourcePolicyPath, resourceCreatePath, resourceEditPath, datamodelAddXsdFromRepoPath, createDatamodelPath, appPolicyPath } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
@@ -53,6 +53,7 @@ export const updateFormLayoutName = (org: string, app: string, oldName: string, 
 export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayload) => put<void, UpdateTextIdPayload>(textResourceIdsPath(org, app), payload);
 export const updateTranslationByLangCode = (org: string, app: string, language, payload) => post(textResourcesPath(org, app, language), payload);
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
+export const updateAppPolicy = (org: string, app: string, payload: PolicyBackendType) => put(appPolicyPath(org, app), payload);
 
 // Resourceadm
 export const updatePolicy = (org: string, repo: string, id: string, payload: PolicyBackendType) => put(resourcePolicyPath(org, repo, id), payload);
