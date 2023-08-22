@@ -26,8 +26,10 @@ interface IExpressionContentProps {
 export const ExpressionContent = ({
     expressionAction,
     expressionElement,
+    dynamicOperator,
     onAddExpressionElement,
     onUpdateExpressionElement,
+    onUpdateDynamicOperator,
     onRemoveExpressionElement,
 }: IExpressionContentProps) => {
   const { t } = useTranslation();
@@ -56,7 +58,7 @@ export const ExpressionContent = ({
   };
 
   const specifyTriggerDataSource = (dataSourceKind: string) => {
-    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
+    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
     if (dataSourceKind === 'default' || dataSourceKind === 'NotImplementedYet') {
       delete expressionElement.value;
       handleUpdateExpressionElement();
@@ -81,7 +83,7 @@ export const ExpressionContent = ({
   };
 
   const specifyComparableTriggerDataSource = (compDataSourceKind: string) => {
-    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
+    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
     if (compDataSourceKind === 'default' || compDataSourceKind === 'NotImplementedYet') {
       delete expressionElement.comparableValue;
       handleUpdateExpressionElement();
@@ -97,7 +99,7 @@ export const ExpressionContent = ({
 
   const handleAddExpressionElement = (expressionOperator: Operator) => {
     onAddExpressionElement(expressionOperator);
-  }
+  };
 
   const handleUpdateExpressionElement = () => {
     if (
@@ -116,7 +118,7 @@ export const ExpressionContent = ({
   return (
     <div>
       <p>{t('right_menu.dynamics_function_on_action')}</p>
-      <Select
+      <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         onChange={(func: string) => addFunctionToExpressionElement(func)}
         options={[{ label: 'Velg oppsett...', value: 'default' }].concat(
           Object.values(ExpressionFunction).map((func: string) => ({

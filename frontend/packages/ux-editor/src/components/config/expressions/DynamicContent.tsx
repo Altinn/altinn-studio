@@ -15,7 +15,6 @@ import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { v4 as uuidv4 } from 'uuid';
 import { Trans, useTranslation } from 'react-i18next';
-
 import classes from './DynamicContent.module.css';
 
 interface ExpressionProps {
@@ -47,6 +46,7 @@ export const DynamicContent = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // TODO: Consider the user friendliness of this functionality? Issue: #10858
       // Need to check for dropdown explicit because it is rendered in a portal outside the component
       const isDropDown =
         event.target.tagName === 'BUTTON' && event.target.getAttribute('role') === 'option';
@@ -161,10 +161,10 @@ export const DynamicContent = ({
             />
           )}
           <p>
-                <Trans
-                  i18nKey={'right_menu.dynamics_action_on_component'}
-                  values={{componentName: component.id}}
-                  components={{bold: <strong/>}}/>
+            <Trans
+              i18nKey={'right_menu.dynamics_action_on_component'}
+              values={{ componentName: component.id }}
+              components={{ bold: <strong/> }}/>
           </p>
           <Select
             onChange={(action) => addActionToDynamic(action)}
@@ -191,7 +191,7 @@ export const DynamicContent = ({
                 <ExpressionContent // change name to ExpressionContext?
                   expressionAction={allowToSpecifyExpression}
                   expressionElement={expEl}
-                  dynamicOperator={index == dynamic.expressionElements.length -1 ? undefined : dynamic.operator}
+                  dynamicOperator={index == dynamic.expressionElements.length - 1 ? undefined : dynamic.operator}
                   onAddExpressionElement={(dynamicOp: Operator) => addExpressionElement(dynamicOp)}
                   onUpdateExpressionElement={(expressionElement: ExpressionElement) => updateExpressionElement(index, expressionElement)}
                   onUpdateDynamicOperator={(dynamicOp: Operator) => updateDynamicOperator(dynamicOp)}
@@ -221,7 +221,8 @@ export const DynamicContent = ({
             ) : (
               dynamic.expressionElements.map((expEl: ExpressionElement, index: number) => (
                 <div key={expEl.id}>
-                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.dataSource]} {' '} <span>{expEl.value}</span></p>
+                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.dataSource]} {' '}
+                    <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
                   <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.comparableDataSource]} {' '}
                     <span>{expEl.comparableValue}</span></p>
@@ -233,7 +234,7 @@ export const DynamicContent = ({
             {successfullyAddedMark && (
               <div className={classes.checkMark}>
                 <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.dynamics_successfully_added_text')}
-            </div>
+              </div>
             )}
           </div>
           <div>
@@ -245,7 +246,7 @@ export const DynamicContent = ({
               size='small'
             />
             <Button
-              icon={<PencilIcon/>}
+              icon={<PencilIcon />}
               onClick={() => onEditDynamic(dynamic)}
               variant='quiet'
               size='small'

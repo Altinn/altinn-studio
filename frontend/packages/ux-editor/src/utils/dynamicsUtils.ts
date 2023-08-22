@@ -5,7 +5,7 @@ import {
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
   Operator
-} from '../../types/Expressions';
+} from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
 
 export const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {

@@ -32,7 +32,7 @@ export const DataSourceValue = ({
   const dataModelElementsData = datamodelQuery?.data ?? [];
   const formLayoutsData = formLayoutsQuery?.data ?? [];
 
-  // TODO: Make sure all data model fields are included - what if there are multiple data models?
+  // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
   const getDataModelElementNames = (dataModelElements: DatamodelFieldElement[]) => {
     return dataModelElements
       .filter(element => element.dataBindingName)
@@ -52,14 +52,14 @@ export const DataSourceValue = ({
   };
 
   const getUniqueComponentIds = (formLayouts: IFormLayouts) => {
-    // TODO: Make sure all components from the layout set are included, also those inside groups
+    // TODO: Make sure all components from the layout set are included, also those inside groups. Issue #10855
     const components = Object.values(formLayouts).flatMap(layout => Object.values(layout.components));
     const componentIds = Object.values(components).map((comp: FormComponent) => comp.id);
     const duplicatedComponentIds = findDuplicatedIds(componentIds);
     return [...new Set(componentIds)].map(compId => {
       if (Object.values(duplicatedComponentIds).includes(compId)) {
         // Mark duplicated ids with a star so app developer know that there are multiple components with the same id across layouts
-        onSetDuplicatedComponentIdsDiscovered(true); // TODO: Set state while not in render to avoid console error
+        onSetDuplicatedComponentIdsDiscovered(true); // TODO: Set state while not in render to avoid console error. Related issue: 10857
         return { label: `${compId} *`, value: compId };
       } else {
         return { label: compId, value: compId };
@@ -76,7 +76,7 @@ export const DataSourceValue = ({
       case DataSource.InstanceContext:
         return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({ label: dsv, value: dsv }));
       case DataSource.ApplicationSettings:
-        // TODO: Should convert appmetadatasagas to react-query before implementing this
+        // TODO: Should convert appmetadatasagas to react-query before implementing this. Issue #10856
         return [{ label: 'Not implemented yet', value: 'NotImplementedYet' }];
       default:
         return [];

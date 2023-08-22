@@ -6,7 +6,7 @@ import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal'
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type ConditionalRenderingProps = {
   onShowNewDynamics: (value: boolean) => void;
@@ -45,17 +45,17 @@ export const ConditionalRendering = ({
         <Divider marginless />
         <OldDynamicsInfo />
       </div>
-      <div className={classes.dynamicsVersionCheckBox}>
+      {shouldDisplayFeature('expressions') && (
+        <div className={classes.dynamicsVersionCheckBox}>
         <Divider />
-        {!_useIsProdHack() && (
           <LegacyCheckbox
             label={t('right_menu.show_new_dynamics')}
             name={'checkbox-name'}
             checked={showNewDynamics}
             onChange={() => onShowNewDynamics(!showNewDynamics)}
           />
-        )}
       </div>
+      )}
     </>
   );
 };
