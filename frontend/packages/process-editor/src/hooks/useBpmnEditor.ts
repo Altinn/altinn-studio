@@ -34,7 +34,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     const initializeUnsavedChangesCount = () => {
       modeler.on('commandStack.changed', () => {
-        setNumberOfUnsavedChanges((prev) => prev + 1);
+        setNumberOfUnsavedChanges((prevCount) => prevCount + 1);
       });
     };
 
