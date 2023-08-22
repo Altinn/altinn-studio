@@ -1675,27 +1675,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.22.0":
-  version: 0.22.0
-  resolution: "@digdir/design-system-react@npm:0.22.0"
+"@digdir/design-system-react@npm:0.23.0":
+  version: 0.23.0
+  resolution: "@digdir/design-system-react@npm:0.23.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.2.0
+    "@digdir/design-system-tokens": ^0.3.0
     "@floating-ui/react": 0.24.1
     "@navikt/aksel-icons": ^3.2.4
-    "@navikt/ds-icons": ^2.3.0
     react-number-format: 5.2.2
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 775fcc91a25bb0f9ae447706c853f7f494c067a7b738bf2420d47e0c0955492d663bdf1cdfc23c7530664b5179067bc57748b2dc9b755f515ab17107633c33d7
+  checksum: c6c9d6fd15995f32f98a2c79f9b42694a32fa761e276bf1c68cdf859011edb464c30059a1fba3400fbe1bdaa0e4ce1f156910af63b0d32c40b7bc4bc4dcb6a7e
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.2.0, @digdir/design-system-tokens@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@digdir/design-system-tokens@npm:0.2.0"
-  checksum: 33e4ad9fc47a41ff60d30e98e06c71d80766fd412984c4a6f3c01e7c0afaee706ff83a514d0b5b0fd8dbdd16bbb3d88a940324b3e10c9a2fcb89ee9f89d928e5
+"@digdir/design-system-tokens@npm:0.3.0, @digdir/design-system-tokens@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@digdir/design-system-tokens@npm:0.3.0"
+  checksum: 77a409f4cc43a8d57c783d94111b492a289fc05c8540becc1f11b238883592fbd480ce9652405d7b458d69ad61edd7ededa7a376b8fd306e4ff869e43b858a1c
   languageName: node
   linkType: hard
 
@@ -3820,20 +3819,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:5.17.0":
-  version: 5.17.0
-  resolution: "@testing-library/jest-dom@npm:5.17.0"
+"@testing-library/jest-dom@npm:6.0.1":
+  version: 6.0.1
+  resolution: "@testing-library/jest-dom@npm:6.0.1"
   dependencies:
     "@adobe/css-tools": ^4.0.1
     "@babel/runtime": ^7.9.2
-    "@types/testing-library__jest-dom": ^5.9.1
     aria-query: ^5.0.0
     chalk: ^3.0.0
     css.escape: ^1.5.1
     dom-accessibility-api: ^0.5.6
     lodash: ^4.17.15
     redent: ^3.0.0
-  checksum: 9f28dbca8b50d7c306aae40c3aa8e06f0e115f740360004bd87d57f95acf7ab4b4f4122a7399a76dbf2bdaaafb15c99cc137fdcb0ae457a92e2de0f3fbf9b03b
+  peerDependencies:
+    "@jest/globals": ">= 28"
+    "@types/jest": ">= 28"
+    jest: ">= 28"
+    vitest: ">= 0.32"
+  peerDependenciesMeta:
+    "@jest/globals":
+      optional: true
+    "@types/jest":
+      optional: true
+    jest:
+      optional: true
+    vitest:
+      optional: true
+  checksum: b5c35e2a79d646753f0305bf7f461c5d6fb873016527a78606a20a5fcc7e55a2f5e9eb394d376c47739cee566af133c6f53d8f49681d623db1cf6f236c5971df
   languageName: node
   linkType: hard
 
@@ -4119,16 +4131,6 @@ __metadata:
   dependencies:
     "@types/istanbul-lib-report": "*"
   checksum: f1ad54bc68f37f60b30c7915886b92f86b847033e597f9b34f2415acdbe5ed742fa559a0a40050d74cdba3b6a63c342cac1f3a64dba5b68b66a6941f4abd7903
-  languageName: node
-  linkType: hard
-
-"@types/jest@npm:*":
-  version: 29.4.0
-  resolution: "@types/jest@npm:29.4.0"
-  dependencies:
-    expect: ^29.0.0
-    pretty-format: ^29.0.0
-  checksum: 23760282362a252e6690314584d83a47512d4cd61663e957ed3398ecf98195fe931c45606ee2f9def12f8ed7d8aa102d492ec42d26facdaf8b78094a31e6568e
   languageName: node
   linkType: hard
 
@@ -4465,15 +4467,6 @@ __metadata:
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 205fdbe3326b7046d7eaf5e494d8084f2659086a266f3f9cf00bccc549c8e36e407f88168ad4383c8b07099957ad669f75f2532ed4bc70be2b037330f7bae019
-  languageName: node
-  linkType: hard
-
-"@types/testing-library__jest-dom@npm:^5.9.1":
-  version: 5.14.5
-  resolution: "@types/testing-library__jest-dom@npm:5.14.5"
-  dependencies:
-    "@types/jest": "*"
-  checksum: dcb05416758fe88c1f4f3aa97b4699fcb46a5ed8f53c6b81721e66155452a48caf12ecb97dfdfd4130678e65efd66b9fca0ac434b3d63affec84842a84a6bf38
   languageName: node
   linkType: hard
 
@@ -5128,8 +5121,8 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.0
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.22.0
-    "@digdir/design-system-tokens": 0.2.0
+    "@digdir/design-system-react": 0.23.0
+    "@digdir/design-system-tokens": 0.3.0
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.10
@@ -5142,7 +5135,7 @@ __metadata:
     "@tanstack/react-query": 4.32.6
     "@tanstack/react-query-devtools": 4.32.6
     "@testing-library/dom": 9.3.1
-    "@testing-library/jest-dom": 5.17.0
+    "@testing-library/jest-dom": 6.0.1
     "@testing-library/react": 14.0.0
     "@testing-library/user-event": 14.4.3
     "@types/css-modules": 1.0.2
@@ -5166,7 +5159,7 @@ __metadata:
     eslint-plugin-prettier: 5.0.0
     eslint-plugin-react: 7.33.1
     eslint-plugin-react-hooks: 4.6.0
-    eslint-plugin-testing-library: 5.11.1
+    eslint-plugin-testing-library: 6.0.0
     glob: 10.3.3
     html-webpack-plugin: 5.5.3
     husky: 8.0.3
@@ -7966,14 +7959,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-testing-library@npm:5.11.1":
-  version: 5.11.1
-  resolution: "eslint-plugin-testing-library@npm:5.11.1"
+"eslint-plugin-testing-library@npm:6.0.0":
+  version: 6.0.0
+  resolution: "eslint-plugin-testing-library@npm:6.0.0"
   dependencies:
     "@typescript-eslint/utils": ^5.58.0
   peerDependencies:
     eslint: ^7.5.0 || ^8.0.0
-  checksum: 9f3fc68ef9f13016a4381b33ab5dbffcc189e5de3eaeba184bcf7d2771faa7f54e59c04b652162fb1c0f83fb52428dd909db5450a25508b94be59eba69fcc990
+  checksum: 35ca701bc7cd788b0a1505a191d5c00721ede4bbb6ffd126d6700713dc104397451edefbca52b7c6c3eae2d4b55174ea6630a28dc3642b8b73ee2e2ba997cde4
   languageName: node
   linkType: hard
 

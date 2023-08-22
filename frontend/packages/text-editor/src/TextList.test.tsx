@@ -54,14 +54,15 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
     selectedLanguages: ['nb', 'en', 'nn'],
     ...props,
   };
-  const user = userEvent.setup();
-  return { initPros: allProps, user, ...rtlRender(<TextList {...allProps} />) };
+
+  return { initPros: allProps, ...rtlRender(<TextList {...allProps} />) };
 };
 
 describe('TextList', () => {
   test('updateEntryId should be called when id has been changed', async () => {
+    const user = userEvent.setup();
     const updateEntryId = jest.fn();
-    const { user, rerender, initPros } = renderTextList({ updateEntryId });
+    const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
     const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
     await act(() => user.click(toggleEditButton[0]));
@@ -74,8 +75,9 @@ describe('TextList', () => {
   });
 
   test('that the user is warned when an id already exists', async () => {
+    const user = userEvent.setup();
     const updateEntryId = jest.fn();
-    const { user, rerender, initPros } = renderTextList({ updateEntryId });
+    const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
     const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
     await act(() => user.click(toggleEditButton[0]));

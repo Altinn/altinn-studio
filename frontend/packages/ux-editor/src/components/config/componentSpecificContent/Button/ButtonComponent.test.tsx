@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ButtonComponent } from './ButtonComponent';
@@ -48,10 +47,7 @@ const waitForData = async () => {
 };
 
 const render = async (props?: Partial<IGenericEditComponent>) => {
-  const user = userEvent.setup();
-
   await waitForData();
 
   renderWithMockStore()(<ButtonComponent {...defaultProps} {...props} />);
-  return { user };
 };

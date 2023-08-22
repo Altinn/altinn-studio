@@ -1,5 +1,5 @@
 import classes from './TopToolbar.module.css';
-import { Button, ButtonVariant, ErrorMessage, Popover, Spinner } from '@digdir/design-system-react';
+import { Button, ErrorMessage, Popover, Spinner } from '@digdir/design-system-react';
 import cn from 'classnames';
 import { CogIcon } from '@navikt/aksel-icons';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
@@ -52,7 +52,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
               data-testid='save-model-button'
               onClick={handleGenerateButtonClick}
               icon={<CogIcon />}
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               size='small'
             >
               {t('schema_editor.generate_model_files')}
@@ -62,11 +62,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
           {error?.message ? (
             <>
               <ErrorMessage role='alertdialog'>{error.message}</ErrorMessage>
-              <Button
-                onClick={() => setShowGenerationState(false)}
-                variant={ButtonVariant.Outline}
-                size='small'
-              >
+              <Button onClick={() => setShowGenerationState(false)} variant='outline' size='small'>
                 {t('general.close')}
               </Button>
             </>

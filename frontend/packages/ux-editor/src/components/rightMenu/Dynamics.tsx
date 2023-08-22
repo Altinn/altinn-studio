@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Alert, Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox } from '@digdir/design-system-react';
+import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
 import { DynamicContent } from '../config/expressions/DynamicContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../hooks';
@@ -35,8 +35,7 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
   useEffect(() => {
     if (dynamics && dynamics.length < 2) {
       setShowRemoveDynamicButton(false);
-    }
-    else {
+    } else {
       setShowRemoveDynamicButton(true);
     }
   }, [dynamics]);
@@ -44,24 +43,36 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
   if (!formId || !form) return t('right_menu.content_empty');
 
   // adapt list of actions if component is group
-  const expressionProperties = form.itemType === LayoutItemType.Container ?
-    (Object.values(ExpressionPropertyBase) as string[])
-      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase);
+  const expressionProperties =
+    form.itemType === LayoutItemType.Container
+      ? (Object.values(ExpressionPropertyBase) as string[]).concat(
+          Object.values(ExpressionPropertyForGroup) as string[]
+        )
+      : Object.values(ExpressionPropertyBase);
 
   const addDynamic = () => {
     // Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
     const dynamic: Dynamic = { id: uuidv4(), editMode: true, expressionElements: [] };
-    const nonEditableDynamics: Dynamic[] = [...dynamics.filter(prevDynamic => prevDynamic.expressionElements.length > 0)].map(prevDynamic => ({ ...prevDynamic, editMode: false }));
-    setDynamics( dynamics.length < expressionProperties.length ? nonEditableDynamics.concat(dynamic) : nonEditableDynamics);
+    const nonEditableDynamics: Dynamic[] = [
+      ...dynamics.filter((prevDynamic) => prevDynamic.expressionElements.length > 0),
+    ].map((prevDynamic) => ({ ...prevDynamic, editMode: false }));
+    setDynamics(
+      dynamics.length < expressionProperties.length
+        ? nonEditableDynamics.concat(dynamic)
+        : nonEditableDynamics
+    );
   };
 
   const editDynamic = (dynamic: Dynamic) => {
     // Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
-    const updatedDynamics = [...dynamics.filter(prevDynamic => prevDynamic.expressionElements.length > 0)].map(prevDynamic => {
-      if (prevDynamic === dynamic) return { ...prevDynamic, editMode: true }
-    else return { ...prevDynamic, editMode: false } });
+    const updatedDynamics = [
+      ...dynamics.filter((prevDynamic) => prevDynamic.expressionElements.length > 0),
+    ].map((prevDynamic) => {
+      if (prevDynamic === dynamic) return { ...prevDynamic, editMode: true };
+      else return { ...prevDynamic, editMode: false };
+    });
 
     setDynamics([...updatedDynamics]);
   };
@@ -70,17 +81,22 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
     // Convert dynamic object to correct format and save dynamic to layout with api call
     // Set editMode fields for all prev dynamics to false
     if (dynamics.length === 1) {
-      setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic).concat(defaultDynamic));
-    }
-    else {
-      setDynamics(prevDynamics => prevDynamics.filter(prevDynamic => prevDynamic !== dynamic));
+      setDynamics((prevDynamics) =>
+        prevDynamics.filter((prevDynamic) => prevDynamic !== dynamic).concat(defaultDynamic)
+      );
+    } else {
+      setDynamics((prevDynamics) => prevDynamics.filter((prevDynamic) => prevDynamic !== dynamic));
     }
   };
 
   const getProperties = (dynamic: Dynamic) => {
-    const alreadyUsedProperties = dynamics.map(prevDynamic => {if (dynamic !== prevDynamic) return prevDynamic.property}) as string[];
-    const availableProperties = expressionProperties.filter(expressionProperty => !Object.values(alreadyUsedProperties).includes(expressionProperty));
-    return { availableProperties, expressionProperties }
+    const alreadyUsedProperties = dynamics.map((prevDynamic) => {
+      if (dynamic !== prevDynamic) return prevDynamic.property;
+    }) as string[];
+    const availableProperties = expressionProperties.filter(
+      (expressionProperty) => !Object.values(alreadyUsedProperties).includes(expressionProperty)
+    );
+    return { availableProperties, expressionProperties };
   };
 
   // Need to collect all existing expressions and list them here - or send a state prop to all the mapped expressions
@@ -99,35 +115,35 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
           />
         </div>
       ))}
-      {dynamics.length < expressionProperties.length ?
-        (<Button
+      {dynamics.length < expressionProperties.length ? (
+        <Button
           aria-label={t('right_menu.dynamics_add')}
-          color={ButtonColor.Secondary}
+          color='primary'
           fullWidth
-          icon={<PlusIcon/>}
+          icon={<PlusIcon />}
           id='right_menu.dynamics_add'
           onClick={addDynamic}
-          size={ButtonSize.Small}
-          variant={ButtonVariant.Outline}
+          size='small'
+          variant='outline'
         >
           {t('right_menu.dynamics_add')}
         </Button>
-        ) : (
-          <Alert className={classes.dynamicsAlert}>
-            {t('right_menu.dynamics_dynamics_limit_reached_alert')}
-          </Alert>
-        )
-      }
+      ) : (
+        <Alert className={classes.dynamicsAlert}>
+          {t('right_menu.dynamics_dynamics_limit_reached_alert')}
+        </Alert>
+      )}
       <div className={classes.dynamicsVersionCheckBox}>
         <Divider />
-        { !_useIsProdHack() &&
-          <Checkbox
+        {!_useIsProdHack() && (
+          <LegacyCheckbox
             label={t('right_menu.show_new_dynamics')}
             name={'checkbox-name'}
             checked={showNewDynamics}
-            onChange={() => onShowNewDynamics(!showNewDynamics)}/>
-        }
+            onChange={() => onShowNewDynamics(!showNewDynamics)}
+          />
+        )}
       </div>
-  </div>
+    </div>
   );
 };

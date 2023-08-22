@@ -3,7 +3,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
-import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
+import { Button, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -40,7 +40,7 @@ export const ConfigureLayoutSetPanel = () => {
 
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      handleConfigureLayoutSet()
+      handleConfigureLayoutSet();
       setEditLayoutSetName(false);
     } else if (event.key === 'Escape') {
       setEditLayoutSetName(false);
@@ -64,7 +64,7 @@ export const ConfigureLayoutSetPanel = () => {
 
   const handleConfigureLayoutSetButtonClick = () => {
     setEditLayoutSetName(!editLayoutSetName);
-  }
+  };
 
   const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
@@ -81,14 +81,9 @@ export const ConfigureLayoutSetPanel = () => {
   };
 
   return (
-    <div
-      ref={configPanelRef}
-      className={classes.configureLayoutSet}
-    >
+    <div ref={configPanelRef} className={classes.configureLayoutSet}>
       {editLayoutSetName ? (
-        <div
-          className={classes.configureLayoutSetName}
-        >
+        <div className={classes.configureLayoutSetName}>
           <span>{t('left_menu.configure_layout_sets_name')}</span>
           <TextField
             onKeyDown={handleKeyPress}
@@ -101,18 +96,15 @@ export const ConfigureLayoutSetPanel = () => {
       ) : (
         <Button
           className={classes.configureLayoutSetButton}
-          variant={ButtonVariant.Quiet}
+          variant='quiet'
           onClick={handleConfigureLayoutSetButtonClick}
           size='small'
         >
           {t('left_menu.configure_layout_sets')}
         </Button>
       )}
-      <div
-        aria-haspopup="true"
-        onMouseEnter={handlePopoverOpen}
-      >
-        <InformationIcon className={classes.informationButton}/>
+      <div aria-haspopup='true' onMouseEnter={handlePopoverOpen}>
+        <InformationIcon className={classes.informationButton} />
       </div>
       {popoverOpen && (
         <Popover

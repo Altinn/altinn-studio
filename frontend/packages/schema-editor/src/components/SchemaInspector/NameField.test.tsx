@@ -50,7 +50,7 @@ describe('NameField', () => {
   it('renders the component', async () => {
     await render();
 
-    expect(screen.getByText(`${defaultProps.label} *`)).toBeInTheDocument();
+    expect(screen.getByText(defaultProps.label)).toBeInTheDocument();
     expect(screen.getByRole('textbox').getAttribute('value')).toBe('test');
   });
 

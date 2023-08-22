@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './MigrateResourceModal.module.css';
+import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
@@ -24,27 +24,38 @@ const dummyServices: ServiceType[] = [
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
 interface Props {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
 }
 
 /**
- * Displays the modal where the user can select an environemt and service from
- * Altinn 2 to migrate to Altinn 3.
- * The user must select which environment to import from to be able to select the service.
- * The user must then selct a service before the title and id will be visible.
- * When the environment and service is selected, the button to start planning the
- * migration will be available.
+ * @component
+ *    Displays the modal where the user can select an environemt and service from
+ *    Altinn 2 to import to Altinn 3.
+ *    The user must select which environment to import from to be able to select the service.
+ *    The user must then selct a service before the title and id will be visible.
+ *    When the environment and service is selected, the button to start planning the
+ *    importing will be available.
  *
- * @param props.isOpen flag to decide if the modal is open or not
- * @param props.onClose function to be executed on close
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
+export const ImportResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
+  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
 
   /**
    * Reset fields on close
@@ -72,7 +83,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
    * @param val the title value typed
    */
   const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen) {
+    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
       setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
@@ -84,12 +95,17 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
    *
    * @param isOpened the value of the button when it is pressed
    */
-  const handleClickEditButton = (isOpened: boolean) => {
+  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
     setEditIdFieldOpen(isOpened);
 
-    // If we stop editing, set the ID to the title
-    if (!isOpened) {
-      if (title !== id) setId(title.replace(/\s/g, '-'));
+    if (isSave) {
+      setBothFieldsHaveSameValue(false);
+    } else {
+      if (!isOpened) {
+        setBothFieldsHaveSameValue(true);
+        // If we stop editing, set the ID to the title
+        if (title !== id) setId(title.replace(/\s/g, '-'));
+      }
     }
   };
 
@@ -112,7 +128,7 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
             options={dummyServices.map((s) => ({ value: s.name, label: s.name }))}
             onChange={handleSelectService}
             value={selectedService}
-            label='Velg servicen du vil migrere'
+            label='Velg servicen du vil importere'
           />
         </div>
       );
@@ -133,12 +149,15 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
           <ResourceNameAndId
             isEditOpen={editIdFieldOpen}
             title={title}
+            text='Ressursnavn er foreslått basert på servicen du har valgt, og språkstøtte kan legges til på neste side. Id er foreslått basert på ressursnavnet, og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.'
             id={id}
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}
-            handleClickEditButton={() => handleClickEditButton(!editIdFieldOpen)}
+            handleClickEditButton={(isSave: boolean) =>
+              handleClickEditButton(!editIdFieldOpen, isSave)
+            }
             resourceIdExists={false} // TODO
-            bothFieldsHaveSameValue={false} // TODO
+            bothFieldsHaveSameValue={bothFieldsHaveSameValue}
           />
         </>
       );
@@ -147,13 +166,13 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
   };
 
   // TODO when connected with API calls
-  const onPlanMigrate = () => {
-    console.log('Migrating... Coming soon');
+  const handleImportResource = () => {
+    console.log('Importing... Coming soon');
   };
 
   // TODO - translation
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Migrer en ressurs fra Altinn II'>
+    <Modal isOpen={isOpen} onClose={handleClose} title='Importer en ressurs fra Altinn 2'>
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
@@ -169,9 +188,9 @@ export const MigrateResourceModal = ({ isOpen, onClose }: Props) => {
           Avbryt
         </Button>
         {selectedEnv && selectedService && (
-          <div className={classes.migrateButton}>
-            <Button onClick={onPlanMigrate} color='primary'>
-              Planlegg migrering
+          <div className={classes.importButton}>
+            <Button onClick={handleImportResource} color='primary'>
+              Importer ressurs
             </Button>
           </div>
         )}

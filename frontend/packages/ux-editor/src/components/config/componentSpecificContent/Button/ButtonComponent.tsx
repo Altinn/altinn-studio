@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldSet } from '@digdir/design-system-react';
+import { LegacyFieldSet } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
 import { EditSettings, IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -11,7 +11,7 @@ export const ButtonComponent = ({
   handleComponentChange,
 }: IGenericEditComponent) => {
   return (
-    <FieldSet className={classes.root}>
+    <LegacyFieldSet className={classes.root}>
       {component.type === ComponentType.Button && (
         <EditTextResourceBinding
           component={component}
@@ -28,6 +28,6 @@ export const ButtonComponent = ({
           textResourceBindingKeys={['next', 'back']}
         />
       )}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };
