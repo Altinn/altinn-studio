@@ -8,7 +8,7 @@ import classes from './HeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { testids } from '../../../../../testing/testids';
+import * as testids from '../../../../../testing/testids';
 
 export type HeaderMenuProps = {
   org: string;

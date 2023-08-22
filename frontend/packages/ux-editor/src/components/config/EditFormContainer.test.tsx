@@ -26,7 +26,7 @@ describe('EditFormContainer', () => {
     await render();
 
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_group_change_id') + ' *')
+      screen.getByText(textMock('ux_editor.modal_properties_group_change_id'))
     ).toBeInTheDocument();
   });
 
@@ -34,7 +34,7 @@ describe('EditFormContainer', () => {
     await render();
 
     const containerIdInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_group_change_id') + ' *'
+      textMock('ux_editor.modal_properties_group_change_id')
     );
     await act(() => user.type(containerIdInput, 'test'));
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
@@ -44,7 +44,7 @@ describe('EditFormContainer', () => {
     await render();
 
     const containerIdInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_group_change_id') + ' *'
+      textMock('ux_editor.modal_properties_group_change_id')
     );
     await act(() => user.type(containerIdInput, 'test@'));
     expect(

@@ -3,10 +3,7 @@ import { AltinnHeaderMenuItem } from 'app-shared/components/altinnHeaderMenu/Alt
 import { RepositoryType } from 'app-shared/types/global';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
-import {
-  SupportedFeatureFlags,
-  shouldDisplayFeature,
-} from 'app-development/utils/featureToggleUtils';
+import { SupportedFeatureFlags, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;

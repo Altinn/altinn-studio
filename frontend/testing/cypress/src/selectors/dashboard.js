@@ -1,5 +1,5 @@
 import * as texts from '../../../../language/src/nb.json';
-import { testids } from '../../../testids';
+import * as testids from '../../../testids';
 
 const getAllAppsHeader = () => cy.findByRole('heading', { name: texts['dashboard.all_apps'] });
 const getUserAppsListHeader = () => cy.findByRole('heading', { name: texts['dashboard.my_apps'] });
@@ -7,6 +7,8 @@ const getFavouritesHeader = () => cy.findByRole('heading', { name: texts['dashbo
 const getSearchResultsHeader = () => cy.findByRole('heading', { name: texts['dashboard.search_result'] });
 const getOrgAppsHeader = (org) => cy.findByRole('heading', { name: texts['dashboard.org_apps'].replace('{{orgName}}', org) });
 const getUserAppsList = () => getUserAppsListHeader().next();
+const getSearchResults = () => getSearchResultsHeader().next();
+const getLinksCellForApp = (table, name) => table.findByRole('cell', { name }).siblings('div[data-field=\'links\']');
 
 export const dashboard = {
   getAllAppsHeader,
@@ -14,13 +16,14 @@ export const dashboard = {
   getCreateAppButton: () => cy.findByRole('button', { name: texts['dashboard.create_service_btn'] }),
   getFavourites: () => getFavouritesHeader().next(),
   getFavouritesHeader,
-  getLinksCellForApp: (name) => getUserAppsList().findByRole('cell', { name }).siblings('div[data-field=\'links\']'),
+  getLinksCellForUserApp: (name) => getLinksCellForApp(getUserAppsList(), name),
+  getLinksCellForSearchResultApp: (name) => getLinksCellForApp(getSearchResults(), name),
   getNewAppLink: () => cy.findByRole('link', { name: texts['dashboard.new_service'] }),
   getOrgAppsHeader,
   getOrgOption: (org) => cy.findByRole('listbox').findByRole('option', { name: org }),
   getSavedNameField: () => cy.findByRole('textbox', { name: texts['general.service_name'] }),
   getSearchReposField: () => cy.findByTestId(testids.searchReposField),
-  getSearchResults: () => getSearchResultsHeader().next(),
+  getSearchResults,
   getSearchResultsHeader,
   getStarAppButton: () => cy.findByRole('button', { name: texts['dashboard.star'] }),
   getUserAppsList,

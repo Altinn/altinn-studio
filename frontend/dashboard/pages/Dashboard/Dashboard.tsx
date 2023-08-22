@@ -19,7 +19,7 @@ import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { testids } from '../../../testing/testids';
+import * as testids from '../../../testing/testids';
 
 type DashboardProps = {
   user: User;
