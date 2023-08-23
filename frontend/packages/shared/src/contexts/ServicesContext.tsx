@@ -56,15 +56,14 @@ export const ServicesContextProvider = ({
   const { t } = useTranslation();
 
   const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        queryCache: new QueryCache({
-          onError: (error: AxiosError, query) => handleError(error, t, query.options?.meta),
-        }),
-        mutationCache: new MutationCache({
-          onError: (error: AxiosError, variables, context, mutation) => handleError(error, t, mutation.options?.meta),
-        }),
-      })
+    () => client || new QueryClient({
+      queryCache: new QueryCache({
+        onError: (error: AxiosError, query) => handleError(error, t, query.options?.meta),
+      }),
+      mutationCache: new MutationCache({
+        onError: (error: AxiosError, variables, context, mutation) => handleError(error, t, mutation.options?.meta),
+      }),
+    })
   );
 
   return (
@@ -80,7 +79,7 @@ export const ServicesContextProvider = ({
         theme='colored'
         transition={Slide}
       />
-      <QueryClientProvider client={client || queryClient}>
+      <QueryClientProvider client={queryClient}>
         <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
