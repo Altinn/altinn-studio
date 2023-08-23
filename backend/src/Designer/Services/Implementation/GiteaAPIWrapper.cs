@@ -554,11 +554,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<KeyValuePair<string, string>> formValues = new();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
-            formValues.Add(new KeyValuePair<string, string>("scope", "repo"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:org"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:public_key"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "user"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "delete_repo"));
+            // formValues.Add(new KeyValuePair<string, string>("scope", "repo"));
+            // formValues.Add(new KeyValuePair<string, string>("scope", "admin:org"));
+            // formValues.Add(new KeyValuePair<string, string>("scope", "admin:public_key"));
+            // formValues.Add(new KeyValuePair<string, string>("scope", "user"));
+            // formValues.Add(new KeyValuePair<string, string>("scope", "delete_repo"));
+            {
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:activitypub"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:admin"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:issue"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:misc"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:notification"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:organization"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:package"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:repository"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:user"));
+            }
             FormUrlEncodedContent content = new(formValues);
 
             using (HttpClient client = GetWebHtmlClient(false))
@@ -568,14 +579,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.SeeOther)
                 {
-                    Cookie cookie = StealMacaronCookie(response);
+                    Cookie cookie = StealFlashCookie(response);
 
                     using (HttpClient clientWithToken = GetWebHtmlClient(false, cookie))
                     {
                         // reading the API key value
                         HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
                         string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
-                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
+                        // string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
+                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-message flash-info\">\n\t\t<p>", "</p>");
                         List<string> keys = FindAllAppKeysId(htmlContent, keyName);
 
                         KeyValuePair<string, string> keyValuePair = new(keys.FirstOrDefault() ?? "1", token);
@@ -832,18 +844,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
         }
 
-        private Cookie StealMacaronCookie(HttpResponseMessage response)
+        private Cookie StealFlashCookie(HttpResponseMessage response)
         {
-            string macaronFlashKey = "macaron_flash";
-            string setCookieHeader = response.Headers.GetValues("Set-Cookie")
-                .Where(s => s.Contains(macaronFlashKey))
-                .First()
-                .Split(";")[0];
+            string flashCookieSuffix = "_flash";
+            string setCookieHeader = response.Headers
+                .GetValues("Set-Cookie")
+                .First(s => s.Contains(flashCookieSuffix))
+                .Split(";").First();
 
             var splitSetCookieHeader = setCookieHeader.Split("=");
             string macaronFlashValue = splitSetCookieHeader[1];
+            string cookieName = splitSetCookieHeader[0];
 
-            return new Cookie(macaronFlashKey, macaronFlashValue, "/", GetApiEndpointHost());
+            return new Cookie(cookieName, macaronFlashValue, "/", GetApiEndpointHost());
         }
     }
 }
