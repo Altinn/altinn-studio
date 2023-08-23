@@ -204,8 +204,13 @@ export const DynamicContent = ({
       ) : (
         <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
-                <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]}
-                             values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
+            <span>
+              <Trans
+                i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]}
+                values={{ componentName: component.id }}
+                components={{ bold: <strong/> }}
+              />
+            </span>
             {dynamic.complexExpression ? (
               <div className={classes.complexExpressionContainer}>
                   <textarea
