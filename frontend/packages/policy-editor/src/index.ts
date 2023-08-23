@@ -1,5 +1,5 @@
 export { PolicyEditor } from './PolicyEditor';
-export {
+export type {
   PolicyBackendType,
   PolicyActionType,
   PolicySubjectType,

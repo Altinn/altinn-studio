@@ -1,11 +1,9 @@
 import React from 'react';
 import classes from './PolicyEditor.module.css';
-import {
-  PolicyEditor as PolicyEditorImpl,
-  PolicyActionType,
-  PolicyBackendType,
-  PolicySubjectType,
-} from '@altinn/policy-editor';
+
+import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
+import type { PolicyActionType, PolicyBackendType, PolicySubjectType } from '@altinn/policy-editor';
+
 import { Heading, Spinner } from '@digdir/design-system-react';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useParams } from 'react-router-dom';
