@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PolicyEditor.module.css';
 
 import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
-import type { PolicyActionType, PolicyBackendType, PolicySubjectType } from '@altinn/policy-editor';
+import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 
 import { Heading, Spinner } from '@digdir/design-system-react';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
@@ -12,7 +12,7 @@ import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 /**
  * The different actions a policy can have. TODO - Find out if there should be more
  */
-const actionData: PolicyActionType[] = [
+const actionData: PolicyAction[] = [
   { actionId: 'read', actionTitle: 'Les', actionDescription: null },
   { actionId: 'write', actionTitle: 'Skriv', actionDescription: null },
   { actionId: 'delete', actionTitle: 'Slett', actionDescription: null },
@@ -25,7 +25,7 @@ const actionData: PolicyActionType[] = [
 /**
  * The different subjects a policy can have. TODO - Find out if there should be more
  */
-const dummysubjectData: PolicySubjectType[] = [
+const dummysubjectData: PolicySubject[] = [
   {
     subjectDescription: 'Daglig leder fra enhetsregisteret',
     subjectId: 'DAGL',
@@ -65,7 +65,7 @@ export const PolicyEditor = () => {
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (policy: PolicyBackendType) => {
+  const handleSavePolicy = (policy: Policy) => {
     updateAppPolicyMutation(policy, {
       onSuccess: () => {
         console.log('success');

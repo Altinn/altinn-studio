@@ -19,7 +19,7 @@ import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 import { ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
-import { PolicyActionType, PolicyBackendType, PolicySubjectType } from '@altinn/policy-editor';
+import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -55,12 +55,12 @@ export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl()
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
-export const getAppPolicy = (org: string, app: string) => get<PolicyBackendType>(appPolicyPath(org, app));
+export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
 
 // Resourceadm
-export const getPolicyActions = (org: string, repo: string) => get<PolicyActionType[]>(resourceActionsPath(org, repo));
-export const getPolicy = (org: string, repo: string, id: string) => get<PolicyBackendType>(resourcePolicyPath(org, repo, id));
-export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjectType[]>(resourceSubjectsPath(org, repo));
+export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
+export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
+export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
 export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id));

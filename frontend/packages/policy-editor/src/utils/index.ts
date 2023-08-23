@@ -1,16 +1,16 @@
-import {
-  PolicyActionType,
-  PolicyRuleBackendType,
-  PolicyRuleCardType,
-  PolicyRuleResourceType,
-  PolicySubjectType,
+import type {
+  PolicyAction,
+  PolicyRule,
+  PolicyRuleCard,
+  PolicyRuleResource,
+  PolicySubject,
   PolicyEditorUsageType,
 } from '../types';
 
 /**
  * Empty rule when new card added
  */
-export const emptyPolicyRule: PolicyRuleCardType = {
+export const emptyPolicyRule: PolicyRuleCard = {
   ruleId: '0',
   resources: [],
   actions: [],
@@ -28,7 +28,7 @@ export const emptyPolicyRule: PolicyRuleCardType = {
  * @returns a mapped string[] with subject titles
  */
 export const mapPolicySubjectToSubjectTitle = (
-  subjectOptions: PolicySubjectType[],
+  subjectOptions: PolicySubject[],
   policySubjects: string[]
 ): string[] => {
   const subjectIds = policySubjects.map((s) => {
@@ -50,7 +50,7 @@ export const mapPolicySubjectToSubjectTitle = (
  *
  * @returns a mapped resource object
  */
-export const mapResourceFromBackendToResourceType = (resource: string): PolicyRuleResourceType => {
+export const mapResourceFromBackendToResourceType = (resource: string): PolicyRuleResource => {
   const resourceArr = resource.split(':');
   const id: string = resourceArr.pop();
   const type: string = resourceArr.join(':');
@@ -62,7 +62,7 @@ export const mapResourceFromBackendToResourceType = (resource: string): PolicyRu
 };
 
 const mapPolicyActionsToActionTitle = (
-  actionOptions: PolicyActionType[],
+  actionOptions: PolicyAction[],
   actionIds: string[]
 ): string[] => {
   return actionIds.map((aId) => actionOptions.find((a) => aId === a.actionId).actionTitle);
@@ -77,11 +77,11 @@ const mapPolicyActionsToActionTitle = (
  *
  * @returns a list of mapped objects of the policy rule card type
  */
-export const mapPolicyRulesBackendObjectToPolicyRuleCardType = (
-  subjectOptions: PolicySubjectType[],
-  actionOptions: PolicyActionType[],
-  rules: PolicyRuleBackendType[]
-): PolicyRuleCardType[] => {
+export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
+  subjectOptions: PolicySubject[],
+  actionOptions: PolicyAction[],
+  rules: PolicyRule[]
+): PolicyRuleCard[] => {
   const newRules = rules.map((r) => {
     const idArr = r.ruleId.split(':');
     const id = idArr[idArr.length - 1];
@@ -112,10 +112,10 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCardType = (
  * @returns a string of the correct format to send
  */
 export const mapSubjectTitleToSubjectString = (
-  subjectOptions: PolicySubjectType[],
+  subjectOptions: PolicySubject[],
   subjectTitle: string
 ): string => {
-  const subject: PolicySubjectType = subjectOptions.find((s) => s.subjectTitle === subjectTitle);
+  const subject: PolicySubject = subjectOptions.find((s) => s.subjectTitle === subjectTitle);
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
@@ -128,7 +128,7 @@ export const mapSubjectTitleToSubjectString = (
  * @returns a string of the correct format to send
  */
 export const mapActionTitleToActionId = (
-  actionOptions: PolicyActionType[],
+  actionOptions: PolicyAction[],
   actionTitle: string
 ): string => {
   return actionOptions.find((a) => a.actionTitle === actionTitle).actionId;
@@ -147,11 +147,11 @@ export const mapActionTitleToActionId = (
  * @returns a mapped object ready to be sent to backend
  */
 export const mapPolicyRuleToPolicyRuleBackendObject = (
-  subjectOptions: PolicySubjectType[],
-  actionOptions: PolicyActionType[],
-  policyRule: PolicyRuleCardType,
+  subjectOptions: PolicySubject[],
+  actionOptions: PolicyAction[],
+  policyRule: PolicyRuleCard,
   ruleId: string
-): PolicyRuleBackendType => {
+): PolicyRule => {
   const resources: string[][] = policyRule.resources.map((resource) =>
     resource
       .filter((r) => r.id !== '' && r.type !== '')
@@ -188,7 +188,7 @@ export const createNewPolicyResource = (
   usageType: PolicyEditorUsageType,
   resourceType: string,
   resourceId: string
-): PolicyRuleResourceType[] => {
+): PolicyRuleResource[] => {
   if (usageType === 'app') {
     return [
       { type: `${resourceType}:org`, id: '[ORG]' },

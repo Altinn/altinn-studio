@@ -1,30 +1,30 @@
-export interface PolicyRuleCardType {
+export interface PolicyRuleCard {
   ruleId: string;
   description: string;
   subject: string[];
   actions: string[];
-  resources: PolicyRuleResourceType[][];
+  resources: PolicyRuleResource[][];
 }
 
-export interface PolicyRuleResourceType {
+export interface PolicyRuleResource {
   type: string;
   id: string;
 }
 
-export interface PolicySubjectType {
+export interface PolicySubject {
   subjectId: string;
   subjectSource: string;
   subjectTitle: string;
   subjectDescription: string;
 }
 
-export interface PolicyActionType {
+export interface PolicyAction {
   actionId: string;
   actionTitle: string;
   actionDescription: string | null;
 }
 
-export interface PolicyRuleBackendType {
+export interface PolicyRule {
   ruleId: string;
   description: string;
   subject: string[];
@@ -32,11 +32,11 @@ export interface PolicyRuleBackendType {
   resources: string[][];
 }
 
-export type RequiredAuthLevelType = '0' | '3' | '4';
+export type RequiredAuthLevel = '0' | '3' | '4';
 
-export interface PolicyBackendType {
-  rules: PolicyRuleBackendType[] | null;
-  requiredAuthenticationLevelEndUser: RequiredAuthLevelType;
+export interface Policy {
+  rules: PolicyRule[] | null;
+  requiredAuthenticationLevelEndUser: RequiredAuthLevel;
   requiredAuthenticationLevelOrg: string;
 }
 

@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { PolicySubjectType } from '@altinn/policy-editor';
+import type { PolicySubject } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
@@ -9,15 +9,15 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  * @param org the organisation of the user
  * @param repo the repo the user is in
  *
- * @returns UseQueryResult with a list of subjects of PolicySubjectType
+ * @returns UseQueryResult with a list of subjects of PolicySubject
  */
 export const useResourcePolicySubjectsQuery = (
   org: string,
   repo: string
-): UseQueryResult<PolicySubjectType[]> => {
+): UseQueryResult<PolicySubject[]> => {
   const { getPolicySubjects } = useServicesContext();
 
-  return useQuery<PolicySubjectType[]>([QueryKey.ResourcePolicySubjects, org, repo], () =>
+  return useQuery<PolicySubject[]>([QueryKey.ResourcePolicySubjects, org, repo], () =>
     getPolicySubjects(org, repo)
   );
 };

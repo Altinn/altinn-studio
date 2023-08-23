@@ -1,9 +1,9 @@
-import {
-  PolicyActionType,
-  PolicyBackendType,
-  PolicyRuleBackendType,
-  PolicyRuleResourceType,
-  PolicySubjectType,
+import type {
+  PolicyAction,
+  Policy,
+  PolicyRule,
+  PolicyRuleResource,
+  PolicySubject,
 } from '@altinn/policy-editor';
 
 // RESOURCE ID
@@ -17,11 +17,11 @@ export const resourceTypeMock2: string = 'urn:altinn:resource2';
 export const resourceTypeMock3: string = 'urn:altinn:resource3';
 
 // RESOURCES
-const resourceMock1: PolicyRuleResourceType = {
+const resourceMock1: PolicyRuleResource = {
   type: resourceTypeMock1,
   id: resourceIdMock1,
 };
-const resourceMock2: PolicyRuleResourceType = {
+const resourceMock2: PolicyRuleResource = {
   type: resourceTypeMock2,
   id: resourceIdMock2,
 };
@@ -31,7 +31,7 @@ export const subjectStringBackendMock1: string = 'urn:altinn:rolecode:dagl';
 export const subjectStringBackendMock3: string = 'urn:altinn:rolecode:dagl3';
 
 // RULES
-const ruleMock1: PolicyRuleBackendType = {
+const ruleMock1: PolicyRule = {
   ruleId: `${resourceTypeMock1}:${resourceIdMock1}:ruleid:1`,
   resources: [
     [`${resourceMock1.type}:${resourceMock1.id}`, `${resourceMock2.type}:${resourceMock2.id}`],
@@ -42,44 +42,44 @@ const ruleMock1: PolicyRuleBackendType = {
 };
 
 // POLICIES
-export const policyMock1: PolicyBackendType = {
+export const policyMock1: Policy = {
   rules: [ruleMock1],
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '4',
 };
 
-export const policyMock2: PolicyBackendType = {
+export const policyMock2: Policy = {
   rules: [],
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '4',
 };
 
 // ACTIONS
-const actionMock1: PolicyActionType = {
+const actionMock1: PolicyAction = {
   actionId: 'read',
   actionTitle: 'Les',
   actionDescription: null,
 };
 
-const actionMock2: PolicyActionType = {
+const actionMock2: PolicyAction = {
   actionId: 'write',
   actionTitle: 'Skriv',
   actionDescription: null,
 };
 
-const actionMock3: PolicyActionType = {
+const actionMock3: PolicyAction = {
   actionId: 'delete',
   actionTitle: 'Slett',
   actionDescription: null,
 };
 
-const actionMock4: PolicyActionType = {
+const actionMock4: PolicyAction = {
   actionId: 'confirm',
   actionTitle: 'Bekreft',
   actionDescription: null,
 };
 
-const actionMock5: PolicyActionType = {
+const actionMock5: PolicyAction = {
   actionId: 'sign',
   actionTitle: 'Sign',
   actionDescription: null,
@@ -88,84 +88,84 @@ const actionMock5: PolicyActionType = {
 export const actionsListMock = [actionMock1, actionMock2, actionMock3, actionMock4, actionMock5];
 
 // SUBJECTS
-export const subjectMock1: PolicySubjectType = {
+export const subjectMock1: PolicySubject = {
   subjectId: 'dagl',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock2: PolicySubjectType = {
+const subjectMock2: PolicySubject = {
   subjectId: 'dagl2',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 2',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock3: PolicySubjectType = {
+const subjectMock3: PolicySubject = {
   subjectId: 'dagl3',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 3',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock4: PolicySubjectType = {
+const subjectMock4: PolicySubject = {
   subjectId: 'dagl4',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 4',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock5: PolicySubjectType = {
+const subjectMock5: PolicySubject = {
   subjectId: 'dagl5',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 5',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock6: PolicySubjectType = {
+const subjectMock6: PolicySubject = {
   subjectId: 'dagl 6',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 6',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock7: PolicySubjectType = {
+const subjectMock7: PolicySubject = {
   subjectId: 'dagl7',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 7',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock8: PolicySubjectType = {
+const subjectMock8: PolicySubject = {
   subjectId: 'dagl8',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 8',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock9: PolicySubjectType = {
+const subjectMock9: PolicySubject = {
   subjectId: 'dagl9',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 9',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock10: PolicySubjectType = {
+const subjectMock10: PolicySubject = {
   subjectId: 'dagl10',
   subjectSource: 'altinn:role',
   subjectTitle: 'Daglig leder 10',
   subjectDescription: 'Daglig leder fra enhetsregisteret',
 };
 
-const subjectMock11: PolicySubjectType = {
+const subjectMock11: PolicySubject = {
   subjectId: 'ADMAI',
   subjectSource: 'altinn:rolecode',
   subjectTitle: 'ADMAI from backend',
   subjectDescription: 'ADMAI from backen',
 };
 
-export const subjectsListMock: PolicySubjectType[] = [
+export const subjectsListMock: PolicySubject[] = [
   subjectMock1,
   subjectMock2,
   subjectMock3,

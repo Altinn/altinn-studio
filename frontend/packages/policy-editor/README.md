@@ -13,18 +13,18 @@ component.
 ```tsx
 import {
   PolicyEditor,
-  PolicyActionType,
-  PolicyBackendType,
-  PolicySubjectType,
+  PolicyAction,
+  Policy,
+  PolicySubject,
 } from '@altinn/policy-editor';
 
-const exampleActions: PolicyActionType[] = [
+const exampleActions: PolicyAction[] = [
   { actionId: 'read', actionTitle: 'Les', actionDescription: null },
   { actionId: 'write', actionTitle: 'Skriv', actionDescription: null },
   { actionId: 'delete', actionTitle: 'Slett', actionDescription: null },
 ];
 
-const exampleSubjects: PolicySubjectType[] = [
+const exampleSubjects: PolicySubject[] = [
   {
     subjectDescription: 'Daglig leder fra enhetsregisteret',
     subjectId: 'DAGL',
@@ -39,7 +39,7 @@ const exampleSubjects: PolicySubjectType[] = [
   },
 ];
 
-const examplePolicyData: PolicyPolicyBackendType = {
+const examplePolicyData: Policy = {
     requiredAuthenticationLevelEndUser: '3',
     requiredAuthenticationLevelOrg: '3',
     rules: [
@@ -52,7 +52,7 @@ const examplePolicyData: PolicyPolicyBackendType = {
   };
 
 export const MyComponent = () => {
-  const handleSavePolicy = (policy: PolicyBackendType) => {}
+  const handleSavePolicy = (policy: Policy) => {}
 
   return (
     <PolicyEditor
@@ -73,19 +73,19 @@ This is all the possible props of the component.
 
 #### policy
 
-- Type: `PolicyBackendType`
+- Type: `Policy`
 - Description: The policy to be shown an modified. The object looks the same as it does
   in its usage in backend, and when it is received through an API.
 
 #### actions
 
-- Type: `PolicyActionType[]`
+- Type: `PolicyAction[]`
 - Description: A list of the possible actions that can be given to a specific rule inside
   a policy.
 
 #### Subjects
 
-- Type: `PolicySubjectType[]`
+- Type: `PolicySubject[]`
 - Description: A list of the possible subjects that can be given to a specific rule inside
   a policy.
 
@@ -98,7 +98,7 @@ This is all the possible props of the component.
 #### onSave
 
 - Type: `function`
-- Description: Function that receives a policy of the PolicyBackendType type as property,
+- Description: Function that receives a policy of the Policy type as property,
   and can be used to save the policy. The policy is saved when the user navigates away from
   a field in the editor.
 

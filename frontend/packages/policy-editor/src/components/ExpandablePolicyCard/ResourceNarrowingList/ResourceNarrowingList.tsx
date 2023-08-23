@@ -4,13 +4,13 @@ import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { PolicyRuleResourceType } from '../../../types';
+import type { PolicyRuleResource } from '../../../types';
 
 type ResourceNarrowingListProps = {
   /**
    * The list of policy resources to display
    */
-  resources: PolicyRuleResourceType[];
+  resources: PolicyRuleResource[];
   /**
    * Function to update the values when the text fields changes value
    * @param i the index position
@@ -56,7 +56,7 @@ type ResourceNarrowingListProps = {
  *    Displays the narrowing list of the resources. The component is expandable, and
  *    has a button to add elements to the list.
  *
- * @property {PolicyRuleResourceType[]}[resources] - The list of policy resources to display
+ * @property {PolicyRuleResource[]}[resources] - The list of policy resources to display
  * @property {function}[handleInputChange] - Function to update the values when the text fields changes value
  * @property {function}[handleRemoveResource] - Function that removes a resource from the list
  * @property {function}[handleClickAddResource] - Function that adds a resource to the list

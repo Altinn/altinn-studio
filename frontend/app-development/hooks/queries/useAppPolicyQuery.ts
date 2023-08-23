@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { PolicyBackendType } from '@altinn/policy-editor';
+import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
@@ -9,12 +9,12 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  * @param org the organisation of the user
  * @param app the app the user is in
  *
- * @returns UseQueryResult with an object of PolicyBackendType
+ * @returns UseQueryResult with an object of Policy
  */
-export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<PolicyBackendType> => {
+export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Policy> => {
   const { getAppPolicy } = useServicesContext();
 
-  return useQuery<PolicyBackendType>([QueryKey.AppPolicy, org, app], () => getAppPolicy(org, app), {
+  return useQuery<Policy>([QueryKey.AppPolicy, org, app], () => getAppPolicy(org, app), {
     select: (data) => ({
       rules: data.rules ?? [],
       requiredAuthenticationLevelEndUser: '3',

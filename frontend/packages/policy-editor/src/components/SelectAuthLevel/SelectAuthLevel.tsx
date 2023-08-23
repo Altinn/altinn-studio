@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from '@digdir/design-system-react';
-import { RequiredAuthLevelType } from '../../types';
+import type { RequiredAuthLevel } from '../../types';
 
 const authlevelOptions = [
   { value: '0', label: '0 - Selvidentifisert bruker Altinn(brukervavn/passord)' },
@@ -12,13 +12,13 @@ type SelectAuthLevelProps = {
   /**
    * The value selected
    */
-  value: RequiredAuthLevelType;
+  value: RequiredAuthLevel;
   /**
    * Function that sets the value selected
    * @param v the value
    * @returns void
    */
-  setValue: (v: RequiredAuthLevelType) => void;
+  setValue: (v: RequiredAuthLevel) => void;
   /**
    * Hidden form label for the input field
    */
@@ -34,7 +34,7 @@ type SelectAuthLevelProps = {
  * @component
  *    Select component for selecting the authentication level of the end user
  *
- * @property {RequiredAuthLevelType}[value] - The value selected
+ * @property {RequiredAuthLevel}[value] - The value selected
  * @property {function}[setValue] - Function that sets the value selected
  * @property {string}[label] - Hidden form label for the input field
  * @property {function}[onBlur] - Function to be executed on blur
@@ -43,7 +43,7 @@ export const SelectAuthLevel = ({ value, setValue, label, onBlur }: SelectAuthLe
   return (
     <Select
       options={authlevelOptions}
-      onChange={(v: RequiredAuthLevelType) => setValue(v)}
+      onChange={(v: RequiredAuthLevel) => setValue(v)}
       value={value}
       label={label}
       onBlur={onBlur}

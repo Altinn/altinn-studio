@@ -15,7 +15,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { NewResourceType, ResourceBackendType } from 'resourceadm/types/global';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
-import { PolicyBackendType } from '@altinn/policy-editor';
+import type { Policy } from '@altinn/policy-editor';
 
 const headers = {
   Accept: 'application/json',
@@ -53,9 +53,9 @@ export const updateFormLayoutName = (org: string, app: string, oldName: string, 
 export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayload) => put<void, UpdateTextIdPayload>(textResourceIdsPath(org, app), payload);
 export const updateTranslationByLangCode = (org: string, app: string, language, payload) => post(textResourcesPath(org, app, language), payload);
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
-export const updateAppPolicy = (org: string, app: string, payload: PolicyBackendType) => put(appPolicyPath(org, app), payload);
+export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
 
 // Resourceadm
-export const updatePolicy = (org: string, repo: string, id: string, payload: PolicyBackendType) => put(resourcePolicyPath(org, repo, id), payload);
+export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const createResource = (org: string, payload: NewResourceType) => post(resourceCreatePath(org), payload);
 export const updateResource = (org: string, repo: string, payload: ResourceBackendType) => put(resourceEditPath(org, repo), payload);

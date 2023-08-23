@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { PolicyBackendType } from '@altinn/policy-editor';
+import { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
@@ -14,7 +14,7 @@ export const useAppPolicyMutation = (org: string, app: string) => {
   const { updateAppPolicy } = useServicesContext();
 
   return useMutation({
-    mutationFn: (payload: PolicyBackendType) => updateAppPolicy(org, app, payload),
+    mutationFn: (payload: Policy) => updateAppPolicy(org, app, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppPolicy, org, app] });
     },

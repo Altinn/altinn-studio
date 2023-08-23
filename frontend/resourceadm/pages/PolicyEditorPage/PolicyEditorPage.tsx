@@ -1,7 +1,8 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor, PolicyBackendType } from '@altinn/policy-editor';
+import { PolicyEditor } from '@altinn/policy-editor';
+import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
@@ -56,7 +57,7 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (policy: PolicyBackendType) => {
+  const handleSavePolicy = (policy: Policy) => {
     updatePolicyMutation(policy, {
       // TODO - Display that it was saved
       onSuccess: () => {

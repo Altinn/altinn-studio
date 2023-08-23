@@ -6,11 +6,11 @@ import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import {
-  PolicyActionType,
-  PolicyRuleCardType,
-  PolicyRuleResourceType,
-  PolicySubjectType,
+import type {
+  PolicyAction,
+  PolicyRuleCard,
+  PolicyRuleResource,
+  PolicySubject,
   PolicyEditorUsageType,
 } from '../../types';
 import { createNewPolicyResource } from '../../utils';
@@ -19,23 +19,23 @@ type ExpandablePolicyCardProps = {
   /**
    * The rule to display in the card
    */
-  policyRule: PolicyRuleCardType;
+  policyRule: PolicyRuleCard;
   /**
    * The possible actions to select from
    */
-  actions: PolicyActionType[];
+  actions: PolicyAction[];
   /**
    * The possible subjects to select from
    */
-  subjects: PolicySubjectType[];
+  subjects: PolicySubject[];
   /**
    * The list of all the rules
    */
-  rules: PolicyRuleCardType[];
+  rules: PolicyRuleCard[];
   /**
    * useState function to update the list of rules
    */
-  setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>;
+  setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
   /**
    * The ID of the resource
    */
@@ -62,7 +62,7 @@ type ExpandablePolicyCardProps = {
    * Function to save the policy
    * @returns
    */
-  savePolicy: (rules: PolicyRuleCardType[]) => void;
+  savePolicy: (rules: PolicyRuleCard[]) => void;
   /**
    * The usage type of the policy editor
    */
@@ -74,11 +74,11 @@ type ExpandablePolicyCardProps = {
  *    Component that displays a card where a user can view and update a policy rule
  *    for a resource.
  *
- * @property {PolicyRuleCardType}[policyRule] - The rule to display in the card
- * @property {PolicyActionType[]}[actions] - The possible actions to select from
- * @property {PolicySubjectType[]}[subjects] - The possible subjects to select from
- * @property {PolicyRuleCardType[]}[rules] - The list of all the rules
- * @property {React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>}[setPolicyRules] - useState function to update the list of rules
+ * @property {PolicyRuleCard}[policyRule] - The rule to display in the card
+ * @property {PolicyAction[]}[actions] - The possible actions to select from
+ * @property {PolicySubject[]}[subjects] - The possible subjects to select from
+ * @property {PolicyRuleCard[]}[rules] - The list of all the rules
+ * @property {React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>}[setPolicyRules] - useState function to update the list of rules
  * @property {string}[resourceId] - The ID of the resource
  * @property {string}[resourceType] - The type of the resource
  * @property {function}[handleCloneRule] - Function to be executed when clicking clone rule
@@ -123,7 +123,7 @@ export const ExpandablePolicyCard = ({
     d: string,
     s: string[],
     a: string[],
-    r: PolicyRuleResourceType[][],
+    r: PolicyRuleResource[][],
     saveOnUpdate: boolean
   ) => {
     const updatedRules = [...rules];
@@ -201,7 +201,7 @@ export const ExpandablePolicyCard = ({
    * resource block is set to the resource's ID and type.
    */
   const handleClickAddResource = () => {
-    const newResource: PolicyRuleResourceType[] = createNewPolicyResource(
+    const newResource: PolicyRuleResource[] = createNewPolicyResource(
       usageType,
       resourceType,
       resourceId
@@ -247,7 +247,7 @@ export const ExpandablePolicyCard = ({
    * Handles the addition of more resources
    */
   const handleClickAddResourceNarrowing = (resourceIndex: number) => {
-    const newResource: PolicyRuleResourceType = {
+    const newResource: PolicyRuleResource = {
       type: '',
       id: '',
     };
@@ -409,10 +409,10 @@ export const ExpandablePolicyCard = ({
    * @param resourceIndex the index of the resource group to duplicate
    */
   const handleCloneResourceGroup = (resourceIndex: number) => {
-    const resourceGroupToDuplicate: PolicyRuleResourceType[] = policyRule.resources[resourceIndex];
+    const resourceGroupToDuplicate: PolicyRuleResource[] = policyRule.resources[resourceIndex];
 
     // Create a deep copy of the object so the objects don't share same object reference
-    const deepCopiedResourceGroupToDuplicate: PolicyRuleResourceType[] = JSON.parse(
+    const deepCopiedResourceGroupToDuplicate: PolicyRuleResource[] = JSON.parse(
       JSON.stringify(resourceGroupToDuplicate)
     );
 
