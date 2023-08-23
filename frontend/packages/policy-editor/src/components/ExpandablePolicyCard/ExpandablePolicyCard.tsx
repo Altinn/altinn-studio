@@ -13,6 +13,7 @@ import {
   PolicySubjectType,
   policyEditorUsageType,
 } from '../../types';
+import { createNewPolicyResource } from '../../utils';
 
 type ExpandablePolicyCardProps = {
   /**
@@ -200,18 +201,12 @@ export const ExpandablePolicyCard = ({
    * resource block is set to the resource's ID and type.
    */
   const handleClickAddResource = () => {
-    const newResource: PolicyRuleResourceType[] =
-      usageType === 'app'
-        ? [
-            { type: `${resourceType}:[org]`, id: '[ORG]' },
-            { type: `${resourceType}:[app]`, id: '[APP]' },
-          ]
-        : [
-            {
-              type: resourceType,
-              id: resourceId,
-            },
-          ];
+    const newResource: PolicyRuleResourceType[] = createNewPolicyResource(
+      usageType,
+      resourceType,
+      resourceId
+    );
+
     const updatedResources = [...policyRule.resources, newResource];
     updateRules(
       policyRule.description,
@@ -231,7 +226,7 @@ export const ExpandablePolicyCard = ({
   const displayResources = policyRule.resources.map((r, i) => {
     return (
       <ResourceNarrowingList
-        key={i}
+        key={policyRule.ruleId + '-' + i}
         resources={r}
         handleInputChange={(narrowResourceIndex, field, s) =>
           handleInputChange(narrowResourceIndex, field, s, i)

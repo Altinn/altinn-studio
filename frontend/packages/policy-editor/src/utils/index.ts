@@ -4,6 +4,7 @@ import {
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
+  policyEditorUsageType,
 } from '../types';
 
 /**
@@ -171,4 +172,31 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
     actions: actions,
     resources: resources,
   };
+};
+
+/**
+ * Creates a new policy resource list with the initial object based on the
+ * usage type.
+ *
+ * @param usageType the application using the policy editor
+ * @param resourceType the value for the first input field (type)
+ * @param resourceId the value for the second input field (id)
+ *
+ * @returns a list containing the new initial policy sub-resource objects
+ */
+export const createNewPolicyResource = (
+  usageType: policyEditorUsageType,
+  resourceType: string,
+  resourceId: string
+): PolicyRuleResourceType[] => {
+  if (usageType === 'app') {
+    return [
+      { type: `${resourceType}:org`, id: '[ORG]' },
+      { type: `${resourceType}:app`, id: '[APP]' },
+    ];
+  }
+  if (usageType === 'resource') {
+    return [{ type: resourceType, id: resourceId }];
+  }
+  return [];
 };

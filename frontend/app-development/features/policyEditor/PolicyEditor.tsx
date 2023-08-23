@@ -59,6 +59,7 @@ export const PolicyEditor = () => {
 
   // Get the data
   const { data: policyData, isLoading: policyLoading } = useAppPolicyQuery(org, app);
+  console.log(policyData);
 
   // Mutation function to update policy
   const { mutate: updateAppPolicyMutation } = useEditAppPolicyMutation(org, app);

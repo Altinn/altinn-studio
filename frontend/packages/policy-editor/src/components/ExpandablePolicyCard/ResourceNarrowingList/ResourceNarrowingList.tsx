@@ -63,7 +63,7 @@ type ResourceNarrowingListProps = {
  * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
  * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {boolean}[firstFieldEditable] - FFlag for if first field is editable
+ * @property {boolean}[firstFieldEditable] - Flag for if the first field is editable
  *
  * @returns {React.ReactNode} - The rendered component
  */

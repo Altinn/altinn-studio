@@ -14,6 +14,7 @@ import {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
+  createNewPolicyResource,
 } from './utils';
 import classes from './PolicyEditor.module.css';
 import { VerificationModal } from './components/VerificationModal';
@@ -145,20 +146,14 @@ export const PolicyEditor = ({
   const handleAddCardClick = () => {
     setShowErrorsOnAllRulesAboveNew(true);
 
-    const newResources: PolicyRuleResourceType[][] =
-      usageType === 'app'
-        ? [
-            [
-              { type: `${resourceType}:org`, id: '[ORG]' },
-              { type: `${resourceType}:app`, id: '[APP]' },
-            ],
-          ]
-        : [[{ type: resourceType, id: resourceId }]];
+    const newResource: PolicyRuleResourceType[][] = [
+      createNewPolicyResource(usageType, resourceType, resourceId),
+    ];
 
     const newRule: PolicyRuleCardType = {
       ...emptyPolicyRule,
       ruleId: getRuleId().toString(),
-      resources: newResources,
+      resources: newResource,
     };
 
     const updatedRules: PolicyRuleCardType[] = [...policyRules, ...[newRule]];
