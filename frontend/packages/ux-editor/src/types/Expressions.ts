@@ -59,6 +59,18 @@ export enum DataSource { // comments reflects available values to select if choo
   Null  = 'null', // no additional field
 }
 
+export const isDataSourceWithDropDown = (dataSource: DataSource) => {
+  switch (dataSource) {
+    case DataSource.Component:
+    case DataSource.DataModel:
+    case DataSource.InstanceContext:
+    case DataSource.ApplicationSettings:
+      return true;
+    default:
+      return false;
+  }
+};
+
 export const expressionFunctionTexts = (t: typeof i18next.t) => ({
   [ExpressionFunction.Equals]: t('right_menu.dynamics_function_equals'),
   [ExpressionFunction.NotEquals]: t('right_menu.dynamics_function_not_equals'),

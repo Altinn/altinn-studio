@@ -7,6 +7,7 @@ import {
   Operator
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
+import { deepCopy } from 'app-shared/pure';
 
 export const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {
   if (dynamic.complexExpression) {
@@ -94,3 +95,56 @@ function convertExpressionElement(internalExpEl: ExpressionElement, externalExpE
   }
   return internalExpEl;
 }
+
+export const addAction = (oldDynamic: Dynamic, action: string): Dynamic => {
+  if (action === 'default') {
+    return;
+  }
+  const newDynamic = deepCopy(oldDynamic)
+  newDynamic.property = action as ExpressionPropertyBase;
+  if (newDynamic.expressionElements.length === 0) {
+    const newExpressionElement: ExpressionElement = { id: uuidv4() };
+    newDynamic.expressionElements.push(newExpressionElement);
+  }
+  return newDynamic;
+};
+
+export const addExpression = (oldDynamic: Dynamic, operator: Operator): Dynamic => {
+  const newDynamic = deepCopy(oldDynamic);
+  const newExpressionElement: ExpressionElement = { id: uuidv4() };
+  newDynamic.expressionElements.push(newExpressionElement);
+  newDynamic.operator = operator;
+  return newDynamic;
+};
+
+export const updateOperator = (oldDynamic: Dynamic, operator: Operator): Dynamic => {
+  const newDynamic = deepCopy(oldDynamic);
+  newDynamic.operator = operator;
+  return newDynamic;
+};
+
+export const updateExpression = (oldDynamic: Dynamic, index: number, expressionElement: ExpressionElement) => {
+  const newDynamic = deepCopy(oldDynamic);
+  newDynamic.expressionElements[index] = { id: uuidv4(), ...expressionElement };
+  return newDynamic;
+};
+
+export const updateComplexExpressionAndSetToEmptyArrayIfNoContent = (oldDynamic: Dynamic, complexExpression: any): Dynamic => {
+  const newDynamic = deepCopy(oldDynamic);
+  // TODO: Try format expression for readability
+  try {
+    newDynamic.complexExpression = JSON.parse(complexExpression.replaceAll('\'', '\"'));
+  } catch (error) {
+    newDynamic.complexExpression = complexExpression.length > 0 ? complexExpression : '[]';
+  }
+  return newDynamic;
+};
+
+export const removeExpressionElementAndAddDefaultIfEmpty = (oldDynamic: Dynamic, expressionElement: ExpressionElement) => {
+  const newDynamic = deepCopy(oldDynamic);
+  const updatedExpressionElements = newDynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
+  // Add default if the last expression was deleted
+  const newExpressionElement: ExpressionElement = { id: uuidv4() };
+  newDynamic.expressionElements = newDynamic.expressionElements.length < 2 ? [newExpressionElement] : updatedExpressionElements;
+  return newDynamic;
+};

@@ -13,9 +13,8 @@ import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelector
 interface DataSourceValueProps {
   expressionElement: ExpressionElement;
   currentDataSource: DataSource;
-  specifyDataSourceValue: (dataSourceValue: string) => void;
+  specifyDataSourceValue: (dataSourceValue: string, isComparable: boolean) => void;
   isComparableValue: boolean;
-  onSetDuplicatedComponentIdsDiscovered: (value: boolean) => void;
 }
 
 export const DataSourceValue = ({
@@ -23,7 +22,6 @@ export const DataSourceValue = ({
                                   currentDataSource,
                                   specifyDataSourceValue,
                                   isComparableValue,
-                                  onSetDuplicatedComponentIdsDiscovered
                                 }: DataSourceValueProps) => {
   const { org, app } = useParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
@@ -42,35 +40,20 @@ export const DataSourceValue = ({
       }))
   };
 
-  const findDuplicatedIds = (arr) => {
-    const idOccurrences = arr.reduce((occurrences, compId) => {
-      occurrences[compId] = (occurrences[compId] || 0) + 1;
-      return occurrences;
-    }, {});
-
-    return Object.keys(idOccurrences).filter(id => idOccurrences[id] > 1);
-  };
-
-  const getUniqueComponentIds = (formLayouts: IFormLayouts) => {
+  const getComponentIds = (formLayouts: IFormLayouts) => {
     // TODO: Make sure all components from the layout set are included, also those inside groups. Issue #10855
     const components = Object.values(formLayouts).flatMap(layout => Object.values(layout.components));
-    const componentIds = Object.values(components).map((comp: FormComponent) => comp.id);
-    const duplicatedComponentIds = findDuplicatedIds(componentIds);
-    return [...new Set(componentIds)].map(compId => {
-      if (Object.values(duplicatedComponentIds).includes(compId)) {
-        // Mark duplicated ids with a star so app developer know that there are multiple components with the same id across layouts
-        onSetDuplicatedComponentIdsDiscovered(true); // TODO: Set state while not in render to avoid console error. Related issue: 10857
-        return { label: `${compId} *`, value: compId };
-      } else {
-        return { label: compId, value: compId };
-      }
-    })
+    // TODO: Make sure there are not duplicate component ids. Related issue: 10857
+    return Object.values(components).map((comp: FormComponent) => ({
+      value: comp.id,
+      label: comp.id,
+    }));
   };
 
   const getCorrespondingDataSourceValues = (dataSource: DataSource) => {
     switch (dataSource) {
       case DataSource.Component:
-        return getUniqueComponentIds(formLayoutsData as IFormLayouts);
+        return getComponentIds(formLayoutsData as IFormLayouts);
       case DataSource.DataModel:
         return getDataModelElementNames(dataModelElementsData as DatamodelFieldElement[]);
       case DataSource.InstanceContext:
@@ -89,7 +72,7 @@ export const DataSourceValue = ({
     case DataSource.InstanceContext:
     case DataSource.ApplicationSettings:
       return (<Select
-        onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue)}
+        onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue, isComparableValue)}
         options={[{ label: 'Velg...', value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
         value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'default'}
       />);
@@ -97,7 +80,7 @@ export const DataSourceValue = ({
     case DataSource.Number:
       return (<TextField
         formatting={currentDataSource === DataSource.Number ? { number: {} } : {}}
-        onChange={(e) => specifyDataSourceValue(e.target.value)}
+        onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
         value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || ''}
       />);
     case DataSource.Boolean:
@@ -106,7 +89,7 @@ export const DataSourceValue = ({
           { label: 'True', value: 'true' },
           { label: 'False', value: 'false' }
         ]}
-        onChange={(value) => specifyDataSourceValue(value)}
+        onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
         selectedValue={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'true'}
       />);
     case DataSource.Null:

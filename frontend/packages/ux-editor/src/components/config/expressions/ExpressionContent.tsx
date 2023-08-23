@@ -1,11 +1,13 @@
 import React from 'react';
-import { Alert, Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
   ExpressionElement,
-  expressionFunctionTexts, Operator
+  expressionFunctionTexts,
+  Operator,
+  isDataSourceWithDropDown,
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -33,7 +35,6 @@ export const ExpressionContent = ({
     onRemoveExpressionElement,
 }: IExpressionContentProps) => {
   const { t } = useTranslation();
-  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] = React.useState<boolean>(false);
 
   const showAddExpressionButton: boolean = !dynamicOperator;
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
@@ -43,57 +44,39 @@ export const ExpressionContent = ({
     handleUpdateExpressionElement();
   };
 
-  const addTriggerDataSource = (dataSource: string) => {
+  const addDataSource = (dataSource: string, isComparable: boolean ) => {
     if (dataSource === 'default') {
-      delete expressionElement.dataSource;
-      delete expressionElement.value;
-      handleUpdateExpressionElement();
-      return;
+      isComparable ? delete expressionElement.comparableDataSource : delete expressionElement.dataSource;
+      isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
     }
-    if (dataSource === DataSource.Null) {
-      delete expressionElement.value;
+    else {
+      if (isComparable ? expressionElement.comparableDataSource !== dataSource : expressionElement.dataSource !== dataSource) {
+        if (isDataSourceWithDropDown(dataSource as DataSource)) {
+          isComparable ? expressionElement.comparableValue = 'default' : expressionElement.value = 'default';
+        }
+        else {
+          isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
+        }
+      }
+      isComparable ? expressionElement.comparableDataSource = dataSource as DataSource : expressionElement.dataSource = dataSource as DataSource;
+      if (dataSource === DataSource.Null) {
+        isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
+      }
     }
-    expressionElement.dataSource = dataSource as DataSource;
     handleUpdateExpressionElement();
   };
 
-  const specifyTriggerDataSource = (dataSourceKind: string) => {
+  const addDataSourceValue = (dataSourceValue: string, isComparable: boolean) => {
     // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
-    if (dataSourceKind === 'default' || dataSourceKind === 'NotImplementedYet') {
-      delete expressionElement.value;
-      handleUpdateExpressionElement();
-      return;
+    if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
+      isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
+    } else {
+      isComparable ? expressionElement.comparableValue = dataSourceValue : expressionElement.value = dataSourceValue;
     }
-    expressionElement.value = dataSourceKind;
     handleUpdateExpressionElement();
   };
 
-  const addComparableTriggerDataSource = (compDataSource: string) => {
-    if (compDataSource === 'default') {
-      delete expressionElement.comparableDataSource;
-      delete expressionElement.comparableValue;
-      handleUpdateExpressionElement();
-      return;
-    }
-    if (compDataSource === DataSource.Null) {
-      delete expressionElement.comparableValue;
-    }
-    expressionElement.comparableDataSource = compDataSource as DataSource;
-    handleUpdateExpressionElement();
-  };
-
-  const specifyComparableTriggerDataSource = (compDataSourceKind: string) => {
-    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
-    if (compDataSourceKind === 'default' || compDataSourceKind === 'NotImplementedYet') {
-      delete expressionElement.comparableValue;
-      handleUpdateExpressionElement();
-      return;
-    }
-    expressionElement.comparableValue = compDataSourceKind;
-    handleUpdateExpressionElement();
-  };
-
-  const updateDynamicOperator = (operator: Operator) => {
+  const handleUpdateDynamicOperator = (operator: Operator) => {
     onUpdateDynamicOperator(operator);
   };
 
@@ -102,12 +85,6 @@ export const ExpressionContent = ({
   };
 
   const handleUpdateExpressionElement = () => {
-    if (
-      expressionElement.dataSource !== DataSource.Component &&
-      expressionElement.comparableDataSource !== DataSource.Component
-    ) {
-      setDuplicatedComponentIdsDiscovered(false);
-    }
     onUpdateExpressionElement(expressionElement);
   };
 
@@ -141,7 +118,7 @@ export const ExpressionContent = ({
             />
             <div className={classes.expressionDetails}>
               <Select
-                onChange={(dataSource: string) => addTriggerDataSource(dataSource)}
+                onChange={(dataSource: string) => addDataSource(dataSource, false)}
                 options={[{ label: 'Velg...', value: 'default' }].concat(
                   Object.values(DataSource).map((ds: string) => ({
                     label: expressionDataSourceTexts(t)[ds],
@@ -154,9 +131,8 @@ export const ExpressionContent = ({
                 <DataSourceValue
                   expressionElement={expressionElement}
                   currentDataSource={expressionElement.dataSource as DataSource}
-                  specifyDataSourceValue={specifyTriggerDataSource}
+                  specifyDataSourceValue={(dataSourceValue ) => addDataSourceValue(dataSourceValue, false)}
                   isComparableValue={false}
-                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
                 />
               )}
               <p className={classes.expressionFunction}>
@@ -164,7 +140,7 @@ export const ExpressionContent = ({
               </p>
               <Select
                 onChange={(compDataSource: string) =>
-                  addComparableTriggerDataSource(compDataSource)
+                  addDataSource(compDataSource, true)
                 }
                 options={[{ label: 'Velg...', value: 'default' }].concat(
                   Object.values(DataSource).map((cds: string) => ({
@@ -178,15 +154,9 @@ export const ExpressionContent = ({
                 <DataSourceValue
                   expressionElement={expressionElement}
                   currentDataSource={expressionElement.comparableDataSource as DataSource}
-                  specifyDataSourceValue={specifyComparableTriggerDataSource}
+                  specifyDataSourceValue={(dataSourceValue) => addDataSourceValue(dataSourceValue, true)}
                   isComparableValue={true}
-                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
                 />
-              )}
-              {duplicatedComponentIdsDiscovered && (
-                <Alert severity='warning'>
-                  {t('right_menu.dynamics_duplicated_component_ids_warning')}
-                </Alert>
               )}
             </div>
           </div>
@@ -212,7 +182,7 @@ export const ExpressionContent = ({
                     { label: 'Og', value: Operator.And },
                     { label: 'Eller', value: Operator.Or }
                   ]}
-                  onChange={(value) => updateDynamicOperator(value as Operator)}
+                  onChange={(value) => handleUpdateDynamicOperator(value as Operator)}
                   selectedValue={dynamicOperator || Operator.And}
                 />
               </div>

@@ -44,8 +44,9 @@
   font-weight: bold;
 }
 
-.complexExpression {
+.complexExpressionContainer textarea {
   height: 150px;
+  font-family: monospace;
 }
 
 .complexExpressionContainer {

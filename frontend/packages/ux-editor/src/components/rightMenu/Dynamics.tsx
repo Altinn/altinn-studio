@@ -20,6 +20,7 @@ import { FormComponent } from '../../types/FormComponent';
 import { useUpdateFormComponentMutation } from '../../hooks/mutations/useUpdateFormComponentMutation';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { deepCopy } from "app-shared/pure";
 
 type DynamicsProps = {
   onShowNewDynamics: (value: boolean) => void;
@@ -77,7 +78,8 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
   };
 
   const updateDynamic = (index: number, newDynamic: Dynamic) => {
-    const updatedDynamics = [...dynamics];
+    debugger;
+    const updatedDynamics = deepCopy(dynamics);
     updatedDynamics[index] = newDynamic;
     setDynamics(updatedDynamics);
   }
