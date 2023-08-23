@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 import '@testing-library/cypress/add-commands';
-import '@testing-library/cypress/add-commands';
 import * as texts from '../../../../language/src/nb.json';
 import { dashboard } from '../selectors/dashboard';
 import { designer } from '../selectors/designer';
