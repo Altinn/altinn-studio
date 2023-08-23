@@ -4,7 +4,7 @@ import {
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
-  policyEditorUsageType,
+  PolicyEditorUsageType,
 } from '../types';
 
 /**
@@ -185,7 +185,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
  * @returns a list containing the new initial policy sub-resource objects
  */
 export const createNewPolicyResource = (
-  usageType: policyEditorUsageType,
+  usageType: PolicyEditorUsageType,
   resourceType: string,
   resourceId: string
 ): PolicyRuleResourceType[] => {

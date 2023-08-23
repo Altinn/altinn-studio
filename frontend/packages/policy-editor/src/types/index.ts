@@ -40,4 +40,4 @@ export interface PolicyBackendType {
   requiredAuthenticationLevelOrg: string;
 }
 
-export type policyEditorUsageType = 'app' | 'resource';
+export type PolicyEditorUsageType = 'app' | 'resource';
