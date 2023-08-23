@@ -1,8 +1,7 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from '@altinn/policy-editor';
-import { PolicyBackendType } from '@altinn/policy-editor/types';
+import { PolicyEditor, PolicyBackendType } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
@@ -11,12 +10,12 @@ import {
 } from 'resourceadm/hooks/queries';
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
 
-interface Props {
+type PolicyEditorPageProps = {
   /**
    * Flag to decide if all errors should be shown or not
    */
   showAllErrors: boolean;
-}
+};
 
 /**
  * @component
@@ -26,7 +25,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
+export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): React.ReactNode => {
   // TODO - translation
 
   const { resourceId, selectedContext } = useParams();

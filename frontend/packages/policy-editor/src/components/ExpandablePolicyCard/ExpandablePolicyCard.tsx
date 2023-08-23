@@ -14,7 +14,7 @@ import {
   policyEditorUsageType,
 } from '../../types';
 
-interface Props {
+type ExpandablePolicyCardProps = {
   /**
    * The rule to display in the card
    */
@@ -66,7 +66,7 @@ interface Props {
    * The usage type of the policy editor
    */
   usageType: policyEditorUsageType;
-}
+};
 
 /**
  * @component
@@ -101,7 +101,7 @@ export const ExpandablePolicyCard = ({
   showErrors,
   savePolicy,
   usageType,
-}: Props): React.ReactNode => {
+}: ExpandablePolicyCardProps): React.ReactNode => {
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
   const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);

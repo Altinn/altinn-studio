@@ -4,7 +4,7 @@ import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
 import { LanguageStringType, SupportedLanguageKey } from 'resourceadm/types/global';
 
-interface Props {
+type RightTranslationBarProps = {
   /**
    * The title of the selected inputfield
    */
@@ -38,7 +38,7 @@ interface Props {
    * @returns
    */
   onBlur: () => void;
-}
+};
 
 /**
  * @component
@@ -61,7 +61,10 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputElement, Props>(
+export const RightTranslationBar = forwardRef<
+  HTMLTextAreaElement | HTMLInputElement,
+  RightTranslationBarProps
+>(
   (
     { title, usesTextArea = false, value, onChangeValue, showErrors, onLeaveLastField, onBlur },
     ref

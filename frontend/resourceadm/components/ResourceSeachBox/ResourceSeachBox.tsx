@@ -2,14 +2,14 @@ import React, { ChangeEvent } from 'react';
 import classes from './ResourceSeachBox.module.css';
 import { TextField } from '@digdir/design-system-react';
 
-interface Props {
+type SearchBoxProps = {
   /**
    * Function to handle the change of value
    * @param value the value typed
    * @returns void
    */
   onChange: (value: string) => void;
-}
+};
 
 /**
  * @component
@@ -19,7 +19,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const SearchBox = ({ onChange }: Props): React.ReactNode => {
+export const SearchBox = ({ onChange }: SearchBoxProps): React.ReactNode => {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };

@@ -7,12 +7,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { ResourceType } from 'resourceadm/types/global';
 
-interface Props {
+type ResourceTableDataRowProps = {
   /**
    * The resource to display in the row
    */
   resource: ResourceType;
-}
+};
 
 /**
  * @component
@@ -24,7 +24,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTableDataRow = ({ resource }: Props): React.ReactNode => {
+export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 

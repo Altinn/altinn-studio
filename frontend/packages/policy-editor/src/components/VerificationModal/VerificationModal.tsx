@@ -15,7 +15,7 @@ const modalStyles = {
   },
 };
 
-interface Props {
+type VerificationModalProps = {
   /**
    * Boolean for if the modal is open or not
    */
@@ -42,7 +42,7 @@ interface Props {
    * @returns void
    */
   onPerformAction: () => void;
-}
+};
 
 /**
  * @component
@@ -65,7 +65,7 @@ export const VerificationModal = ({
   closeButtonText,
   actionButtonText,
   onPerformAction,
-}: Props): React.ReactNode => {
+}: VerificationModalProps): React.ReactNode => {
   return (
     <Modal
       isOpen={isOpen}

@@ -18,7 +18,7 @@ const modalStyles = {
   },
 };
 
-interface Props {
+type ModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -36,7 +36,7 @@ interface Props {
    * React components inside the Modal
    */
   children: ReactNode;
-}
+};
 
 /**
  * @component
@@ -54,7 +54,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const Modal = ({ isOpen, title, onClose, children }: Props): React.ReactNode => {
+export const Modal = ({ isOpen, title, onClose, children }: ModalProps): React.ReactNode => {
   return (
     <ReactModal
       isOpen={isOpen}

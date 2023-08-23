@@ -38,7 +38,7 @@ const resourceTypeOptions = [
  */
 const emptyLangauges: LanguageStringType = { nb: '', nn: '', en: '' };
 
-interface Props {
+type AboutResourcePageProps = {
   /**
    * Flag to decide if all errors should be shown or not
    */
@@ -61,7 +61,7 @@ interface Props {
    * @returns void
    */
   onSaveResource: (r: ResourceBackendType) => void;
-}
+};
 
 /**
  * @component
@@ -81,7 +81,7 @@ export const AboutResourcePage = ({
   sectorsData,
   thematicData,
   onSaveResource,
-}: Props): React.ReactNode => {
+}: AboutResourcePageProps): React.ReactNode => {
   // TODO - translation
   const { resourceId } = useParams();
 

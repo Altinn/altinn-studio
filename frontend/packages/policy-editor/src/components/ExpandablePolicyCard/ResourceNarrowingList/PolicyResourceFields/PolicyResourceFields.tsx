@@ -4,7 +4,7 @@ import { Button, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
-interface Props {
+type PolicyResourceFieldsProps = {
   /**
    * Flag for if the fields are ediable or not
    */
@@ -39,7 +39,7 @@ interface Props {
    * @returns
    */
   onBlur: () => void;
-}
+};
 
 /**
  * @component
@@ -65,7 +65,7 @@ export const PolicyResourceFields = ({
   onChangeId,
   onChangeType,
   onBlur,
-}: Props): React.ReactNode => {
+}: PolicyResourceFieldsProps): React.ReactNode => {
   return (
     <div className={classes.wrapper}>
       <div className={classes.inputWrapper}>

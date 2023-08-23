@@ -11,7 +11,7 @@ import {
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import { Paragraph } from '@digdir/design-system-react';
 
-interface Props {
+type LeftNavigationBarProps = {
   /**
    * The currentPage displayed
    */
@@ -31,7 +31,7 @@ interface Props {
    * Flag for if the migrate tab should be shown
    */
   showMigrate?: boolean;
-}
+};
 
 /**
  * @component
@@ -57,7 +57,7 @@ export const LeftNavigationBar = ({
   navigateToPage,
   goBack,
   showMigrate = false,
-}: Props): React.ReactNode => {
+}: LeftNavigationBarProps): React.ReactNode => {
   const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
 
   const handleClick = (page: NavigationBarPageType) => {

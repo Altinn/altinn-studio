@@ -6,7 +6,7 @@ import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { PolicyRuleResourceType } from '../../../types';
 
-interface Props {
+type ResourceNarrowingListProps = {
   /**
    * The list of policy resources to display
    */
@@ -49,7 +49,7 @@ interface Props {
    * Flag for if first field is editable
    */
   firstFieldEditable?: boolean;
-}
+};
 
 /**
  * @component
@@ -76,7 +76,7 @@ export const ResourceNarrowingList = ({
   handleCloneElement,
   onBlur,
   firstFieldEditable = false,
-}: Props): React.ReactNode => {
+}: ResourceNarrowingListProps): React.ReactNode => {
   /**
    * Displays the list of resources
    */

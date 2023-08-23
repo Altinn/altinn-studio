@@ -8,7 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { NewResourceType } from 'resourceadm/types/global';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
-interface Props {
+type NewResourceModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -18,7 +18,7 @@ interface Props {
    * @returns void
    */
   onClose: () => void;
-}
+};
 
 /**
  * @component
@@ -29,7 +29,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const NewResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
+export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): React.ReactNode => {
   const navigate = useNavigate();
 
   const { selectedContext } = useParams();

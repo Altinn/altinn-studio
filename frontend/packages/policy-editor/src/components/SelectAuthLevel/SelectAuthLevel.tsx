@@ -8,7 +8,7 @@ const authlevelOptions = [
   { value: '4', label: '4 - BankID, Buypass' },
 ];
 
-interface Props {
+type SelectAuthLevelProps = {
   /**
    * The value selected
    */
@@ -28,7 +28,7 @@ interface Props {
    * @returns
    */
   onBlur: () => void;
-}
+};
 
 /**
  * @component
@@ -39,7 +39,7 @@ interface Props {
  * @property {string}[label] - Hidden form label for the input field
  * @property {function}[onBlur] - Function to be executed on blur
  */
-export const SelectAuthLevel = ({ value, setValue, label, onBlur }: Props) => {
+export const SelectAuthLevel = ({ value, setValue, label, onBlur }: SelectAuthLevelProps) => {
   return (
     <Select
       options={authlevelOptions}

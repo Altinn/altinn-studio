@@ -22,14 +22,14 @@ import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
-interface Props {
+type DeployResourcePageProps = {
   /**
    * Function that navigates to a page with errors
    * @param page the page to navigate to
    * @returns void
    */
   navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+};
 
 /**
  * @component
@@ -39,7 +39,9 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.ReactNode => {
+export const DeployResourcePage = ({
+  navigateToPageWithError,
+}: DeployResourcePageProps): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 

@@ -6,12 +6,12 @@ import { ResourceTableDataRow } from './ResourceTableDataRow';
 import { Button } from '@digdir/design-system-react';
 import { ResourceType } from 'resourceadm/types/global';
 
-interface Props {
+type ResourceTableProps = {
   /**
    * The list to display in the table
    */
   list: ResourceType[];
-}
+};
 
 /**
  * @component
@@ -21,7 +21,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTable = ({ list }: Props): React.ReactNode => {
+export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => {
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
 
   /**

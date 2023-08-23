@@ -3,7 +3,7 @@ import classes from './ResourceNameAndId.module.css';
 import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 
-interface Props {
+type ResourceNameAndIdProps = {
   /**
    * Flag to decide if the edit ID is open or not
    */
@@ -46,7 +46,7 @@ interface Props {
    * Flag for if ID and title has same display value
    */
   bothFieldsHaveSameValue: boolean;
-}
+};
 
 /**
  * @component
@@ -75,7 +75,7 @@ export const ResourceNameAndId = ({
   handleClickEditButton,
   resourceIdExists,
   bothFieldsHaveSameValue,
-}: Props): React.ReactNode => {
+}: ResourceNameAndIdProps): React.ReactNode => {
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
    *

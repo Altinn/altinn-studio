@@ -20,14 +20,14 @@ const envOptions = [
   { value: 'Produksjonsmiljø', label: 'Produksjonsmiljø' },
 ];
 
-interface Props {
+type MigrationPageProps = {
   /**
    * Function that navigates to a page with errors
    * @param page the page to navigate to
    * @returns void
    */
   navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+};
 
 /**
  * @component
@@ -37,7 +37,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const MigrationPage = ({ navigateToPageWithError }: Props): React.ReactNode => {
+export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 

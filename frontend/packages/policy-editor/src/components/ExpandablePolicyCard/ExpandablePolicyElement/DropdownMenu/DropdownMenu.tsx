@@ -3,7 +3,7 @@ import classes from './DropdownMenu.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@navikt/aksel-icons';
 
-interface Props {
+interface DropdownMenuProps {
   /**
    * Boolean for if the menu is open or not
    */
@@ -54,7 +54,9 @@ export const DropdownMenu = ({
   handleClone,
   handleDelete,
   isError = false,
-}: Props): React.ReactNode => {
+}: DropdownMenuProps): React.ReactNode => {
+  // TODO - Replace this with Popover from Design system - Issue: #10869
+
   const dropdownRef = useRef(null);
   const firstMenuItemRef = useRef<HTMLButtonElement>(null);
   const lastMenuItemRef = useRef<HTMLButtonElement>(null);

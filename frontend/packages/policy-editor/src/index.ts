@@ -1,2 +1,8 @@
 export { PolicyEditor } from './PolicyEditor';
-export { PolicyBackendType } from './types';
+export {
+  PolicyBackendType,
+  PolicyActionType,
+  PolicySubjectType,
+  PolicyRuleBackendType,
+  PolicyRuleResourceType,
+} from './types';

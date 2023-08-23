@@ -5,7 +5,7 @@ import { DeployErrorType, NavigationBarPageType } from 'resourceadm/types/global
 import { Alert, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
 
-interface Props {
+type ResourceDeployStatusProps = {
   /**
    * Title to display on the card
    */
@@ -28,7 +28,7 @@ interface Props {
    * The id of the resource
    */
   resourceId: string;
-}
+};
 
 /**
  * @component
@@ -48,7 +48,7 @@ export const ResourceDeployStatus = ({
   isSuccess = false,
   onNavigateToPageWithError,
   resourceId,
-}: Props): React.ReactNode => {
+}: ResourceDeployStatusProps): React.ReactNode => {
   /**
    * Display the different errors based on the type of the error
    */

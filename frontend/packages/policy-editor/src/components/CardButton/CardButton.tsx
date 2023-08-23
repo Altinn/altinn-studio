@@ -3,7 +3,7 @@ import classes from './CardButton.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Paragraph } from '@digdir/design-system-react';
 
-interface Props {
+type CardButtonProps = {
   /**
    * The text to display on the button
    */
@@ -13,7 +13,7 @@ interface Props {
    * @returns void
    */
   onClick: () => void;
-}
+};
 
 /**
  * @component
@@ -24,7 +24,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const CardButton = ({ buttonText, onClick }: Props) => {
+export const CardButton = ({ buttonText, onClick }: CardButtonProps): React.ReactNode => {
   // TODO - Translate
   return (
     <button className={classes.button} type='button' onClick={onClick}>

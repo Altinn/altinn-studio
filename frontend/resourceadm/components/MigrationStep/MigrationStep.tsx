@@ -4,7 +4,7 @@ import { Alert, Paragraph, Label } from '@digdir/design-system-react';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import { LinkButton } from '../LinkButton';
 
-interface Props {
+type MigrationStepProps = {
   /**
    * Title of the field
    */
@@ -25,7 +25,7 @@ interface Props {
    * Page to navigate to if there is an error
    */
   page: NavigationBarPageType;
-}
+};
 
 /**
  * @component
@@ -55,7 +55,7 @@ export const MigrationStep = ({
   isSuccess,
   onNavigateToPageWithError,
   page,
-}: Props): React.ReactNode => {
+}: MigrationStepProps): React.ReactNode => {
   const displayText = () => {
     if (!isSuccess) {
       const textArr = text.split('"');

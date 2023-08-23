@@ -22,7 +22,7 @@ import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
 import { deepCopy } from 'app-shared/pure';
 
-interface Props {
+type PolicyEditorProps = {
   /**
    * The policy to edit
    */
@@ -53,7 +53,7 @@ interface Props {
    * The usage type of the policy editor
    */
   usageType: policyEditorUsageType;
-}
+};
 /**
  * @component
  *    Displays the content where a user can add and edit a policy
@@ -76,7 +76,7 @@ export const PolicyEditor = ({
   onSave,
   showAllErrors,
   usageType,
-}: Props): React.ReactNode => {
+}: PolicyEditorProps): React.ReactNode => {
   // TODO - translation
 
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this

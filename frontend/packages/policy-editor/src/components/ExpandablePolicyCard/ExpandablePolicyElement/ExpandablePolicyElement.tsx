@@ -4,7 +4,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from './DropdownMenu';
 import { Label } from '@digdir/design-system-react';
 
-interface Props {
+type ExpandablePolicyElementProps = {
   /**
    * The title to display on the element.
    */
@@ -31,7 +31,7 @@ interface Props {
    * Optional flag for if the component has error
    */
   hasError?: boolean;
-}
+};
 
 /**
  * @component
@@ -65,7 +65,7 @@ export const ExpandablePolicyElement = ({
   handleRemoveElement,
   handleCloneElement,
   hasError = false,
-}: Props): React.ReactNode => {
+}: ExpandablePolicyElementProps): React.ReactNode => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
