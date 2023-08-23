@@ -109,7 +109,7 @@ export const appPreviewButtonActions = (
   app: string,
   instanceId: string
 ): AltinnButtonActionItem[] => {
-  const subUrl = `/ui-editor?layout=${window.localStorage.getItem(instanceId)}`;
+  const subUrl = `/ui-editor?layout=`;
   const action = [
     {
       title: 'top_menu.preview_back_to_editing',
@@ -117,7 +117,10 @@ export const appPreviewButtonActions = (
       menuKey: TopBarMenu.Preview,
       buttonVariant: ButtonVariant.Outline,
       headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => (window.location.href = editorPath(org, app) + subUrl),
+      handleClick: () =>
+        (window.location.href = `${editorPath(org, app)}${subUrl}${window.localStorage.getItem(
+          instanceId
+        )}`),
     },
   ];
   return action;
