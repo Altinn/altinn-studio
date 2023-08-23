@@ -27,6 +27,10 @@ export class Summary extends ContainerComponent<'Summary'> {
     return null;
   }
 
+  shouldRenderInAutomaticPDF() {
+    return false;
+  }
+
   getDisplayData(): string {
     return '';
   }

@@ -1,0 +1,32 @@
+.container {
+  border-radius: 3px;
+  border: 1px solid var(--fds-semantic-border-neutral-subtle);
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+}
+
+.header {
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+}
+
+.padding {
+  padding: var(--fds-spacing-5);
+}
+
+.paddingSmall {
+  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+}
+
+.container .header > h2,
+.container .header > h3,
+.container .header > h4,
+.container .header > h5,
+.container .header > h5 {
+  margin: 0;
+}
+
+@media print {
+  .container {
+    break-inside: avoid;
+  }
+}

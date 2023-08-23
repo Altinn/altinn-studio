@@ -59,6 +59,10 @@ export abstract class AnyComponent<Type extends ComponentTypes> {
     return false;
   }
 
+  shouldRenderInAutomaticPDF(node: LayoutNodeFromType<Type>): boolean {
+    return !node.item.renderAsSummary;
+  }
+
   /**
    * Return false to prevent this component from being rendered in a table
    */
@@ -174,6 +178,10 @@ abstract class _FormComponent<Type extends ComponentTypes> extends AnyComponent<
 
 export abstract class ActionComponent<Type extends ComponentTypes> extends AnyComponent<Type> {
   readonly type = ComponentType.Action;
+
+  shouldRenderInAutomaticPDF() {
+    return false;
+  }
 }
 
 export abstract class FormComponent<Type extends ComponentTypes>

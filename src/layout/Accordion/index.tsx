@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Accordion as AccordionComponent } from 'src/layout/Accordion/Accordion';
 import { AccordionHierarchyGenerator } from 'src/layout/Accordion/hierarchy';
+import { SummaryAccordionComponent } from 'src/layout/Accordion/SummaryAccordion';
 import { PresentationComponent } from 'src/layout/LayoutComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAccordion, ILayoutAccordion } from 'src/layout/Accordion/types';
@@ -13,6 +14,14 @@ export class Accordion extends PresentationComponent<'Accordion'> {
 
   render(props: PropsFromGenericComponent<'Accordion'>): React.JSX.Element | null {
     return <AccordionComponent {...props} />;
+  }
+
+  renderSummary(props): JSX.Element | null {
+    return <SummaryAccordionComponent {...props} />;
+  }
+
+  renderSummaryBoilerplate(): boolean {
+    return false;
   }
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'Accordion'> {
