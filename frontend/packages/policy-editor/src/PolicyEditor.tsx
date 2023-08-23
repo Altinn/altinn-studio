@@ -20,6 +20,7 @@ import { VerificationModal } from './components/VerificationModal';
 import { SelectAuthLevel } from './components/SelectAuthLevel';
 import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
+import { deepCopy } from 'app-shared/pure';
 
 interface Props {
   /**
@@ -117,13 +118,7 @@ export const PolicyEditor = ({
             setRuleIdToDelete(pr.ruleId);
           }}
           showErrors={
-            showAllErrors
-              ? true
-              : showErrorsOnAllRulesAboveNew
-              ? policyRules.length - 1 !== i
-                ? true
-                : false
-              : false
+            showAllErrors || (showErrorsOnAllRulesAboveNew && policyRules.length - 1 !== i)
           }
           savePolicy={(rules: PolicyRuleCardType[]) => handleSavePolicy(rules)}
           usageType={usageType}
@@ -184,9 +179,8 @@ export const PolicyEditor = ({
     };
 
     // Create a deep copy of the object so the objects don't share same object reference
-    const deepCopiedRuleToDuplicate: PolicyRuleCardType = JSON.parse(
-      JSON.stringify(ruleToDuplicate)
-    );
+    const deepCopiedRuleToDuplicate: PolicyRuleCardType = deepCopy(ruleToDuplicate);
+
     const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
     setPolicyRules(updatedRules);
     handleSavePolicy(updatedRules);

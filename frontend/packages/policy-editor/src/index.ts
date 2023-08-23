@@ -1,1 +1,2 @@
-export { PolicyEditor } from './PolicyEditor'
+export { PolicyEditor } from './PolicyEditor';
+export { PolicyBackendType } from './types';
