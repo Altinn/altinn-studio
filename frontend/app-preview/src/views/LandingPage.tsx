@@ -32,7 +32,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
-  const [selectedLayoutInEditor] = useLocalStorage<string>(instanceId);
   const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
     'layoutSet' + app
   );
@@ -73,7 +72,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             app={app}
             user={user}
             repository={repository}
-            buttonActions={appPreviewButtonActions(org, app, selectedLayoutInEditor)}
+            buttonActions={appPreviewButtonActions(org, app, instanceId)}
             variant={variant}
             subMenuContent={
               <AppPreviewSubMenu

@@ -104,8 +104,12 @@ export const SubPreviewMenuRightContent = () => {
   );
 };
 
-export const appPreviewButtonActions = (org: string, app: string, selectedLayoutInEditor: string): AltinnButtonActionItem[] => {
-  const subUrl = `/ui-editor?layout=${selectedLayoutInEditor}`;
+export const appPreviewButtonActions = (
+  org: string,
+  app: string,
+  instanceId: string
+): AltinnButtonActionItem[] => {
+  const subUrl = `/ui-editor?layout=${window.localStorage.getItem(instanceId)}`;
   const action = [
     {
       title: 'top_menu.preview_back_to_editing',
