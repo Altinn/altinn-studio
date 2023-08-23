@@ -34,6 +34,9 @@ describe('FormComponentConfig', () => {
         'autocomplete',
         'maxLength',
         'triggers',
+        'labelSettings',
+        'pageBreak',
+        'formatting',
       ].forEach(async (propertyKey) => {
         expect(
           await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`))
@@ -65,6 +68,27 @@ describe('FormComponentConfig', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('unsupportedProperty')).toBeInTheDocument();
   });
+
+  it('should show children property in list of unsupported properties if it is present', () => {
+    render({
+      props: {
+        hideUnsupported: false,
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            children: {
+              type: 'string'
+            }
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message'))
+    ).toBeInTheDocument();
+    expect(screen.getByText('children')).toBeInTheDocument();
+  })
 
   it('should not render list of unsupported properties if hideUnsupported is true', () => {
     render({
