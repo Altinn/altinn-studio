@@ -5,6 +5,7 @@ import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { Button } from '@digdir/design-system-react';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 export function LayoutSetsContainer() {
   const { org, app } = useParams();
@@ -16,7 +17,7 @@ export function LayoutSetsContainer() {
   const onLayoutSetClick = (set: string) => {
     dispatch(FormLayoutActions.updateSelectedLayoutSet(set));
     dispatch(FormLayoutActions.updateSelectedLayout(set)); // to edit configs for particular set
-    localStorage.setItem('layoutSet' + app, set);
+    typedLocalStorage.setItem<string>('layoutSet' + app, set);
     // add field in state saying if selectedEditorLevel is 'layout' or 'layoutset'
     // check above state in ux-editor and render layoutset-config if level === 'layoutset'
   };
