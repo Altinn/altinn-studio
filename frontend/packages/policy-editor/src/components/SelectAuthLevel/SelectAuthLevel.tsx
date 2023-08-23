@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from '@digdir/design-system-react';
-import { RequiredAuthLevelType } from '@altinn/policy-editor/src/types';
+import { RequiredAuthLevelType } from '@altinn/policy-editor/types';
 
 const authlevelOptions = [
   { value: '0', label: '0 - Selvidentifisert bruker Altinn(brukervavn/passord)' },

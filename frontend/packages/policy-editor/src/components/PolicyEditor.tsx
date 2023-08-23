@@ -9,12 +9,12 @@ import {
   PolicySubjectType,
   RequiredAuthLevelType,
   policyEditorUsageType,
-} from '@altinn/policy-editor/src/types';
+} from '@altinn/policy-editor/types';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
-} from '@altinn/policy-editor/src/utils';
+} from '@altinn/policy-editor/utils';
 import classes from './PolicyEditor.module.css';
 import { VerificationModal } from './VerificationModal';
 import { SelectAuthLevel } from './SelectAuthLevel';

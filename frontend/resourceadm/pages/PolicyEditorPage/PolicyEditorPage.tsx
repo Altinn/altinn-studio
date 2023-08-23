@@ -1,9 +1,9 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from '@altinn/policy-editor/src/components';
-import { PolicyBackendType } from '@altinn/policy-editor/src/types';
-import { mapPolicyResultToPolicyObject } from '@altinn/policy-editor/src/utils';
+import { PolicyEditor } from '@altinn/policy-editor/components';
+import { PolicyBackendType } from '@altinn/policy-editor/types';
+import { mapPolicyResultToPolicyObject } from '@altinn/policy-editor/utils';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,

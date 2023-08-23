@@ -12,7 +12,7 @@ import {
   PolicyRuleResourceType,
   PolicySubjectType,
   policyEditorUsageType,
-} from '@altinn/policy-editor/src/types';
+} from '@altinn/policy-editor/types';
 
 interface Props {
   /**

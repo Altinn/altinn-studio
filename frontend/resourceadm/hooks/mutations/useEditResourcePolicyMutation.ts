@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { PolicyBackendType } from '@altinn/policy-editor/src/types';
+import { PolicyBackendType } from '@altinn/policy-editor/types';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
