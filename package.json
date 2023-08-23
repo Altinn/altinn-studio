@@ -77,7 +77,7 @@
     "whatwg-fetch": "3.6.17"
   },
   "lint-staged": {
-    "*": "yarn prettier -w"
+    "*{js,jsx,tsx,ts,css,md}": "yarn prettier -w"
   },
   "packageManager": "yarn@3.6.1",
   "private": true,
@@ -94,9 +94,7 @@
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
-    "typecheck": "yarn workspaces foreach run typecheck",
-    "//": "prepare is needed for husky to work properly",
-    "prepare": "husky install"
+    "typecheck": "yarn workspaces foreach run typecheck"
   },
   "syncpack": {
     "semverRange": ""
