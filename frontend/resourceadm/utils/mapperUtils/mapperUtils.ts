@@ -1,4 +1,4 @@
-import { ResourceType } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'resourceadm/types/global';
 
 /**
  * Maps a string from the format sent from backend, e.g.,
@@ -21,7 +21,9 @@ const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
  *
  * @returns the sorted and mapped list
  */
-export const sortResourceListByDateAndMap = (resourceList: ResourceType[]): ResourceType[] => {
+export const sortResourceListByDateAndMap = (
+  resourceList: ResourceListItem[]
+): ResourceListItem[] => {
   const sorted = resourceList.sort((a, b) => {
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
   });

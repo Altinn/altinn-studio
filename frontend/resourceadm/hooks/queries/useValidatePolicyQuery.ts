@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ValidationType } from 'resourceadm/types/global';
+import type { Validation } from 'resourceadm/types/global';
 
 /**
  * Query to get the validation status of a policy.
@@ -10,16 +10,16 @@ import { ValidationType } from 'resourceadm/types/global';
  * @param repo the repo the user is in
  * @param id the id of the resource
  *
- * @returns UseQueryResult with an object of ValidationType
+ * @returns UseQueryResult with an object of Validation
  */
 export const useValidatePolicyQuery = (
   org: string,
   repo: string,
   id: string
-): UseQueryResult<ValidationType> => {
+): UseQueryResult<Validation> => {
   const { getValidatePolicy } = useServicesContext();
 
-  return useQuery<ValidationType>(
+  return useQuery<Validation>(
     [QueryKey.ValidatePolicy, org, repo, id],
     () => getValidatePolicy(org, repo, id),
     {

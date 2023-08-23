@@ -11,7 +11,7 @@ import type {
   PolicyRuleCard,
   PolicyRuleResource,
   PolicySubject,
-  PolicyEditorUsageType,
+  PolicyEditorUsage,
 } from '../../types';
 import { createNewPolicyResource } from '../../utils';
 
@@ -66,7 +66,7 @@ type ExpandablePolicyCardProps = {
   /**
    * The usage type of the policy editor
    */
-  usageType: PolicyEditorUsageType;
+  usageType: PolicyEditorUsage;
 };
 
 /**
@@ -85,7 +85,7 @@ type ExpandablePolicyCardProps = {
  * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
  * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
  * @property {function}[savePolicy] - Function to save the policy
- * @property {PolicyEditorUsageType}[usageType] - The usage type of the policy editor
+ * @property {PolicyEditorUsage}[usageType] - The usage type of the policy editor
  *
  * @returns {React.ReactNode} - The rendered component
  */

@@ -1,7 +1,7 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { useServicesContext } from "app-shared/contexts/ServicesContext";
-import { QueryKey } from "app-shared/types/QueryKey";
-import { ResourceSectorType } from "resourceadm/types/global";
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { ResourceSector } from 'resourceadm/types/global';
 
 /**
  * Query to get the list of sectors for the resource. It only returns the
@@ -9,16 +9,20 @@ import { ResourceSectorType } from "resourceadm/types/global";
  *
  * @param org the organisation of the user
  *
- * @returns UseQueryResult with a list of sectors of ResourceSectorType
+ * @returns UseQueryResult with a list of sectors of ResourceSector
  */
-export const useResourceSectorsQuery = (org: string): UseQueryResult<ResourceSectorType[]> => {
+export const useResourceSectorsQuery = (org: string): UseQueryResult<ResourceSector[]> => {
   const { getResourceSectors } = useServicesContext();
 
-  return useQuery<ResourceSectorType[]>(
+  return useQuery<ResourceSector[]>(
     [QueryKey.ResourceSectors, org],
-    () => getResourceSectors(org), { select: (data) => data.map(d => ({
-      code: d.code,
-      label: d.label
-    })) }
-  )
-}
+    () => getResourceSectors(org),
+    {
+      select: (data) =>
+        data.map((d) => ({
+          code: d.code,
+          label: d.label,
+        })),
+    }
+  );
+};

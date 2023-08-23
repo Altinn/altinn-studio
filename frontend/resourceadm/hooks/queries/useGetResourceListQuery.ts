@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ResourceType } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'resourceadm/types/global';
 import { sortResourceListByDateAndMap } from 'resourceadm/utils/mapperUtils';
 
 /**
@@ -10,12 +10,12 @@ import { sortResourceListByDateAndMap } from 'resourceadm/utils/mapperUtils';
  *
  * @param org the organisation of the user
  *
- * @returns UseQueryResult with a list of resources of ResourceType
+ * @returns UseQueryResult with a list of resources of Resource
  */
-export const useGetResourceListQuery = (org: string): UseQueryResult<ResourceType[]> => {
+export const useGetResourceListQuery = (org: string): UseQueryResult<ResourceListItem[]> => {
   const { getResourceList } = useServicesContext();
 
-  return useQuery<ResourceType[]>([QueryKey.ResourceList, org], () => getResourceList(org), {
+  return useQuery<ResourceListItem[]>([QueryKey.ResourceList, org], () => getResourceList(org), {
     select: (data) => data && sortResourceListByDateAndMap(data),
   });
 };

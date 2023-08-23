@@ -12,7 +12,7 @@ import {
   Link,
 } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
+import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
@@ -28,7 +28,7 @@ type DeployResourcePageProps = {
    * @param page the page to navigate to
    * @returns void
    */
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
+  navigateToPageWithError: (page: NavigationBarPage) => void;
 };
 
 /**
@@ -117,9 +117,9 @@ export const DeployResourcePage = ({
   /**
    * Returns the correct error type for the deploy page
    */
-  const getStatusError = (): DeployErrorType[] | string => {
+  const getStatusError = (): DeployError[] | string => {
     if (validateResourceData.status !== 200 || hasPolicyError !== 'none') {
-      const errorList: DeployErrorType[] = [];
+      const errorList: DeployError[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors

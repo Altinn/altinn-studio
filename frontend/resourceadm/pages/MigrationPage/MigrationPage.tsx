@@ -13,7 +13,7 @@ import {
   Label,
   Link,
 } from '@digdir/design-system-react';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 
 const envOptions = [
   { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
@@ -26,7 +26,7 @@ type MigrationPageProps = {
    * @param page the page to navigate to
    * @returns void
    */
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
+  navigateToPageWithError: (page: NavigationBarPage) => void;
 };
 
 /**

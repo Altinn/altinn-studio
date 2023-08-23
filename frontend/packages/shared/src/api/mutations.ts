@@ -13,7 +13,7 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { NewResourceType, ResourceBackendType } from 'resourceadm/types/global';
+import type { NewResource, ResourceBackend } from 'resourceadm/types/global';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
 
@@ -57,5 +57,5 @@ export const updateAppPolicy = (org: string, app: string, payload: Policy) => pu
 
 // Resourceadm
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
-export const createResource = (org: string, payload: NewResourceType) => post(resourceCreatePath(org), payload);
-export const updateResource = (org: string, repo: string, payload: ResourceBackendType) => put(resourceEditPath(org, repo), payload);
+export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
+export const updateResource = (org: string, repo: string, payload: ResourceBackend) => put(resourceEditPath(org, repo), payload);

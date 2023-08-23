@@ -112,6 +112,6 @@ This is all the possible props of the component.
 
 #### usageType
 
-- Type: `PolicyEditorUsageType`
+- Type: `PolicyEditorUsage`
 - Description: The type of parent app using the policy editor. Currently the two options
   are 'app' and 'resource'

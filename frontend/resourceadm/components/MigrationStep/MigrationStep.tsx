@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './MigrationStep.module.css';
 import { Alert, Paragraph, Label } from '@digdir/design-system-react';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import { NavigationBarPage } from 'resourceadm/types/global';
 import { LinkButton } from '../LinkButton';
 
 type MigrationStepProps = {
@@ -20,11 +20,11 @@ type MigrationStepProps = {
   /**
    * Function that navigates to the page with error
    */
-  onNavigateToPageWithError: (page: NavigationBarPageType) => void;
+  onNavigateToPageWithError: (page: NavigationBarPage) => void;
   /**
    * Page to navigate to if there is an error
    */
-  page: NavigationBarPageType;
+  page: NavigationBarPage;
 };
 
 /**
@@ -45,7 +45,7 @@ type MigrationStepProps = {
  * @property {string}[text] - Text to displa inside the Alert
  * @property {boolean}[isSuccess] - Flag for if the alert is green or not
  * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
- * @property {NavigationBarPageType}[page] - Page to navigate to if there is an error
+ * @property {NavigationBarPage}[page] - Page to navigate to if there is an error
  *
  * @returns {React.ReactNode} - The rendered Migration Step with text and alert
  */

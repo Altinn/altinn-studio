@@ -11,15 +11,15 @@ import {
 } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
-import {
+import type {
   SupportedLanguageKey,
-  ResourceBackendType,
-  ResourceTypeOptionType,
-  ResourceKeywordType,
-  ResourceSectorType,
-  ResourceThematicType,
-  LanguageStringType,
-  TranslationType,
+  ResourceBackend,
+  ResourceTypeOption,
+  ResourceKeyword,
+  ResourceSector,
+  ResourceThematic,
+  LanguageString,
+  Translation,
 } from 'resourceadm/types/global';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
@@ -36,7 +36,7 @@ const resourceTypeOptions = [
 /**
  * Initial value for languages with empty fields
  */
-const emptyLangauges: LanguageStringType = { nb: '', nn: '', en: '' };
+const emptyLangauges: LanguageString = { nb: '', nn: '', en: '' };
 
 type AboutResourcePageProps = {
   /**
@@ -46,21 +46,21 @@ type AboutResourcePageProps = {
   /**
    * The metadata for the resource
    */
-  resourceData: ResourceBackendType;
+  resourceData: ResourceBackend;
   /**
    * The list of possible sectors
    */
-  sectorsData: ResourceSectorType[];
+  sectorsData: ResourceSector[];
   /**
    * The list of possible thematic areas
    */
-  thematicData: ResourceThematicType[];
+  thematicData: ResourceThematic[];
   /**
    * Function to be handled when saving the resource
    * @param r the resource
    * @returns void
    */
-  onSaveResource: (r: ResourceBackendType) => void;
+  onSaveResource: (r: ResourceBackend) => void;
 };
 
 /**
@@ -68,9 +68,9 @@ type AboutResourcePageProps = {
  *    Page that displays information about a resource
  *
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
- * @property {ResourceBackendType}[resourceData] - The metadata for the resource
- * @property {ResourceSectorType[]}[sectorsData] - The list of possible sectors
- * @property {ResourceThematicType[]}[thematicData] - The list of possible thematic areas
+ * @property {ResourceBackend}[resourceData] - The metadata for the resource
+ * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
+ * @property {ResourceThematic[]}[thematicData] - The list of possible thematic areas
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  *
  * @returns {React.ReactNode} - The rendered component
@@ -91,17 +91,15 @@ export const AboutResourcePage = ({
    *
    * TODO - Find out how to handle it in the future
    */
-  const mapKeywordsArrayToString = (resourceKeywords: ResourceKeywordType[]): string => {
+  const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): string => {
     return resourceKeywords.map((k) => k.word).join(', ');
   };
-  const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeywordType[] => {
+  const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
     return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
   };
 
   // States to store the different input values
-  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(
-    resourceData.resourceType
-  );
+  const [resourceType, setResourceType] = useState<ResourceTypeOption>(resourceData.resourceType);
   const [title, setTitle] = useState<SupportedLanguageKey<string>>(
     resourceData.title ?? emptyLangauges
   );
@@ -124,7 +122,7 @@ export const AboutResourcePage = ({
   const [isPublicService, setIsPublicService] = useState(resourceData.isPublicService ?? false);
 
   // To handle which translation value is shown in the right menu
-  const [translationType, setTranslationType] = useState<TranslationType>('none');
+  const [translationType, setTranslationType] = useState<Translation>('none');
 
   // To handle the error state of the page
   const [hasResourceTypeError, setHasResourceTypeError] = useState(
@@ -169,7 +167,7 @@ export const AboutResourcePage = ({
       (s) => sectorsData.find((sd) => sd.label['nb'] === s).code
     );
 
-    const editedResourceObject: ResourceBackendType = {
+    const editedResourceObject: ResourceBackend = {
       ...resourceData,
       identifier: resourceId,
       resourceType,
@@ -233,7 +231,7 @@ export const AboutResourcePage = ({
    *
    * @param value the value typed in the input field
    */
-  const handleChangeTranslationValues = (value: LanguageStringType) => {
+  const handleChangeTranslationValues = (value: LanguageString) => {
     const error = value.nb === '' || value.nn === '' || value.en === '';
     if (translationType === 'title') {
       setHasTitleError(error);
@@ -338,7 +336,7 @@ export const AboutResourcePage = ({
    * @param val the value
    * @param type the type of the field
    */
-  const getMissingInputLanguage = (val: LanguageStringType, type: string) => {
+  const getMissingInputLanguage = (val: LanguageString, type: string) => {
     const valArr: ('nb' | 'nn' | 'en')[] = [];
 
     // Add the different languages

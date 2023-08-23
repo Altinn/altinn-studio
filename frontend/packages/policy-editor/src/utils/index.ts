@@ -4,7 +4,7 @@ import type {
   PolicyRuleCard,
   PolicyRuleResource,
   PolicySubject,
-  PolicyEditorUsageType,
+  PolicyEditorUsage,
 } from '../types';
 
 /**
@@ -50,7 +50,7 @@ export const mapPolicySubjectToSubjectTitle = (
  *
  * @returns a mapped resource object
  */
-export const mapResourceFromBackendToResourceType = (resource: string): PolicyRuleResource => {
+export const mapResourceFromBackendToResource = (resource: string): PolicyRuleResource => {
   const resourceArr = resource.split(':');
   const id: string = resourceArr.pop();
   const type: string = resourceArr.join(':');
@@ -87,7 +87,7 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
     const id = idArr[idArr.length - 1];
 
     const mappedResources = r.resources.map((resource) =>
-      resource.map((r) => mapResourceFromBackendToResourceType(r))
+      resource.map((resource) => mapResourceFromBackendToResource(resource))
     );
 
     const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions);
@@ -185,7 +185,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
  * @returns a list containing the new initial policy sub-resource objects
  */
 export const createNewPolicyResource = (
-  usageType: PolicyEditorUsageType,
+  usageType: PolicyEditorUsage,
   resourceType: string,
   resourceId: string
 ): PolicyRuleResource[] => {

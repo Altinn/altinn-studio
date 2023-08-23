@@ -5,7 +5,7 @@ import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { ResourceType } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'resourceadm/types/global';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
@@ -48,10 +48,10 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   /**
    * Filter the list based on what is typed in the search box
    */
-  const filteredTableData = (list: ResourceType[]) => {
+  const filteredTableData = (list: ResourceListItem[]) => {
     const searchValueLower = searchValue.toLocaleLowerCase();
 
-    return list.filter((resource: ResourceType) => {
+    return list.filter((resource: ResourceListItem) => {
       const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
       return titles.some((titleString) => titleString.includes(searchValueLower));
     });

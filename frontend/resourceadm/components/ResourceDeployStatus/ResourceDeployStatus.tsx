@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
-import { DeployErrorType, NavigationBarPageType } from 'resourceadm/types/global';
+import type { DeployError, NavigationBarPage } from 'resourceadm/types/global';
 import { Alert, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
 
@@ -13,7 +13,7 @@ type ResourceDeployStatusProps = {
   /**
    * Either list of error object with message and the page to navigate to, or a string message
    */
-  error: DeployErrorType[] | string;
+  error: DeployError[] | string;
   /**
    * Flag for if it is success or alert
    */
@@ -23,7 +23,7 @@ type ResourceDeployStatusProps = {
    * @param page the page to navigate to
    * @returns void
    */
-  onNavigateToPageWithError?: (page: NavigationBarPageType) => void;
+  onNavigateToPageWithError?: (page: NavigationBarPage) => void;
   /**
    * The id of the resource
    */
@@ -35,7 +35,7 @@ type ResourceDeployStatusProps = {
  *    Displays a red danger card or a green success card, as well as a message
  *
  * @property {string}[title] - Title to display on the card
- * @property {DeployErrorType[] | string}[error] - Either list of error object with message and the page to navigate to, or a string message
+ * @property {DeployError[] | string}[error] - Either list of error object with message and the page to navigate to, or a string message
  * @property {boolean}[isSuccess] - Flag for if it is success or alert
  * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
  * @property {string}[resourceId] - The id of the resource

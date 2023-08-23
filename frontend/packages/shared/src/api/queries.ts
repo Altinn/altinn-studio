@@ -18,7 +18,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
-import { ResourceBackendType, ResourceSectorType, ResourceThematicType, ResourceType, ResourceVersionStatusType, ValidationType } from 'resourceadm/types/global';
+import type { ResourceBackend, ResourceSector, ResourceThematic, ResourceListItem, ResourceVersionStatus, Validation } from 'resourceadm/types/global';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
@@ -61,11 +61,11 @@ export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyP
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
 export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
-export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatusType>(resourcePublishStatusPath(org, repo, id));
-export const getResourceList = (org: string) => get<ResourceType[]>(resourceListPath(org));
-export const getResource = (org: string, repo: string, id: string) => get<ResourceBackendType>(resourceSinglePath(org, repo, id));
-export const getValidatePolicy = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidatePolicyPath(org, repo, id));
-export const getValidateResource = (org: string, repo: string, id: string) => get<ValidationType>(resourceValidateResourcePath(org, repo, id));
-export const getResourceSectors = (org: string) => get<ResourceSectorType[]>(resourceSectorsPath(org));
-export const getResourceThematicLos = (org: string) => get<ResourceThematicType[]>(resourceThematicLosPath(org));
-export const getResourceThematicEurovoc = (org: string) => get<ResourceThematicType[]>(resourceThematicEurovocPath(org));
+export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
+export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
+export const getResource = (org: string, repo: string, id: string) => get<ResourceBackend>(resourceSinglePath(org, repo, id));
+export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
+export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
+export const getResourceSectors = (org: string) => get<ResourceSector[]>(resourceSectorsPath(org));
+export const getResourceThematicLos = (org: string) => get<ResourceThematic[]>(resourceThematicLosPath(org));
+export const getResourceThematicEurovoc = (org: string) => get<ResourceThematic[]>(resourceThematicEurovocPath(org));

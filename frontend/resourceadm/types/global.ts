@@ -1,6 +1,6 @@
-export type NavigationBarPageType = 'about' | 'policy' | 'deploy' | 'migration';
+export type NavigationBarPage = 'about' | 'policy' | 'deploy' | 'migration';
 
-export interface ResourceType {
+export interface ResourceListItem {
   title: SupportedLanguageKey<string>;
   createdBy: string;
   lastChanged: string;
@@ -8,25 +8,25 @@ export interface ResourceType {
   identifier: string;
 }
 
-export type ResourceTypeOptionType = 'Default' | 'Systemresource' | 'MaskinportenSchema';
+export type ResourceTypeOption = 'Default' | 'Systemresource' | 'MaskinportenSchema';
 
-export interface ResourceBackendType {
+export interface ResourceBackend {
   identifier: string;
-  resourceType?: ResourceTypeOptionType;
+  resourceType?: ResourceTypeOption;
   title: SupportedLanguageKey<string>;
   description?: SupportedLanguageKey<string>;
-  keywords?: ResourceKeywordType[]; // TODO - Does this need to be changed?
+  keywords?: ResourceKeyword[]; // TODO - Does this need to be changed?
   homepage?: string;
   isPublicService?: boolean;
   sector?: string[];
   thematicArea?: string;
   rightDescription?: SupportedLanguageKey<string>;
-  version?: VersionType;
-  resourceReferences?: ResourceReferenceType[];
+  version?: Version;
+  resourceReferences?: ResourceReference[];
   // TODO - Missing available languages, organisation types
 }
 
-export interface ResourceReferenceType {
+export interface ResourceReference {
   referenceSource?: 'Default' | 'Altinn1' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
   reference?: string;
   referenceType?:
@@ -38,7 +38,7 @@ export interface ResourceReferenceType {
     | 'ServiceEditionCode';
 }
 
-export interface ResourceKeywordType {
+export interface ResourceKeyword {
   language: 'nb' | 'nn' | 'en';
   word: string;
 }
@@ -49,47 +49,47 @@ export interface SupportedLanguageKey<T> {
   en?: T;
 }
 
-export interface VersionType {
+export interface Version {
   version: string;
   environment: string;
 }
 
-export interface ResourceVersionStatusType {
+export interface ResourceVersionStatus {
   policyVersion?: string;
   resourceVersion?: string;
-  publishedVersions: VersionType[];
+  publishedVersions: Version[];
 }
 
-export interface NewResourceType {
+export interface NewResource {
   identifier: string;
   title: SupportedLanguageKey<string>;
 }
 
-export interface ValidationType {
+export interface Validation {
   status: number;
   errors: any;
 }
 
 // TODO - Find out if the other fields are needed
-export interface ResourceSectorType {
+export interface ResourceSector {
   code: string;
   label: SupportedLanguageKey<string>;
 }
 
 // TODO - Find out if the other fields are needed
-export interface ResourceThematicType {
+export interface ResourceThematic {
   uri: string;
 }
 
-export interface LanguageStringType {
+export interface LanguageString {
   nb?: string;
   nn?: string;
   en?: string;
 }
 
-export interface DeployErrorType {
+export interface DeployError {
   message: string;
   pageWithError: 'about' | 'policy';
 }
 
-export type TranslationType = 'none' | 'title' | 'description' | 'rightDescription';
+export type Translation = 'none' | 'title' | 'description' | 'rightDescription';
