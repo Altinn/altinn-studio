@@ -4,14 +4,10 @@ import { PropertyItem } from './PropertyItem';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
-import {
-  addProperty,
-  deleteNode,
-  setType,
-} from '@altinn/schema-model';
+import { addProperty, deleteNode, setType } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
@@ -86,10 +82,10 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       {!readonly && (
         <div className={classes.addButtonCell}>
           <Button
-            color={ButtonColor.Secondary}
+            color='secondary'
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
-            variant={ButtonVariant.Outline}
+            variant='outline'
             size='small'
           >
             {t('schema_editor.add_property')}

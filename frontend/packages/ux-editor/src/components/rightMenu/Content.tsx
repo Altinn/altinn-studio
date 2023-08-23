@@ -13,19 +13,22 @@ export const Content = () => {
   const editId = useSelector(getCurrentEditId);
   const { t } = useTranslation();
 
-  if (editId) return (<TextResourceEdit/>);
+  if (editId) return <TextResourceEdit />;
   if (!formId || !form) return t('right_menu.content_empty');
 
   const isContainer = form.itemType === LayoutItemType.Container;
 
   return (
-  <>
-    {
-      isContainer ? (
-        <EditFormContainer editFormId={formId} container={form} handleContainerUpdate={async (updatedContainer) => {
-          handleUpdate(updatedContainer);
-          debounceSave();
-        }} />
+    <>
+      {isContainer ? (
+        <EditFormContainer
+          editFormId={formId}
+          container={form}
+          handleContainerUpdate={async (updatedContainer) => {
+            handleUpdate(updatedContainer);
+            debounceSave();
+          }}
+        />
       ) : (
         <EditFormComponent
           editFormId={formId}
@@ -35,7 +38,7 @@ export const Content = () => {
             debounceSave();
           }}
         />
-      )
-    }
-  </>
-)};
+      )}
+    </>
+  );
+};

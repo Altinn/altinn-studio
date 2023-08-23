@@ -245,11 +245,10 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.resourcetype", "resourceerror.missingresourcetype");
             }
 
-            // Below is comented out until solved if it is supposed to be there or not
-            /*if (resource.IsComplete == null || resource.IsComplete == false)
+            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.RightDescription))
             {
-                ModelState.AddModelError($"{resource.Identifier}.iscomplete", "resourceerror.missingiscomplete");
-            }*/
+                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
+            }
 
             if (strictMode && (resource.ThematicArea == null || string.IsNullOrEmpty(resource.ThematicArea)))
             {

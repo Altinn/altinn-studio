@@ -1,8 +1,9 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { dashboard } from '../../pageobjects/dashboard';
-import { designer } from '../../pageobjects/designer';
+import { header } from '../../selectors/header';
+import { datamodel } from '../../selectors/datamodel';
+import * as texts from '../../../../../language/src/nb.json';
 
 context('datamodel', () => {
   before(() => {
@@ -17,8 +18,7 @@ context('datamodel', () => {
     cy.searchAndOpenApp(`${Cypress.env('autoTestUser')}/datamodel-app`);
 
     // Navigate to datamodels page and close dialog
-    cy.findByRole('link', { name: designer.appMenu.datamoodelText }).click();
-    cy.findByText('Lukk').click();
+    header.getDatamodelLink().click();
   });
 
   after(() => {
@@ -26,21 +26,21 @@ context('datamodel', () => {
   });
 
   it('add a new data model', () => {
-    cy.findByText('Lag en ny datamodell').click();
+    datamodel.getCreateNewButton().click();
     cy.findByRole('textbox').type('datamodel');
-    cy.findByRole('button', { name: 'Opprett modell' }).click();
-    cy.findByText('property1').click();
+    cy.findByRole('button', { name: texts['schema_editor.create_model_confirm_button'] }).click();
+    datamodel.getProperty('property1').click();
   });
 
   it('edit a data model', () => {
-    cy.findByText('property1').click();
-    cy.findByRole('textbox', { name: 'Navn *' }).clear().type('myProperty');
+    datamodel.getProperty('property1').click();
+    datamodel.getNameField().clear().type('myProperty');
 
     // Hack to ensure focus. Find out why we need to click twice and fix!
-    cy.findByRole('combobox', { name: 'Type' }).click();
-    cy.findByRole('combobox', { name: 'Type' }).click();
+    datamodel.getTypeField().click();
+    datamodel.getTypeField().click();
 
-    cy.findByRole('option', { name: 'Heltall' }).click();
-    cy.findByRole('combobox', { name: 'Type' }).invoke('val').should('eq', 'Heltall');
+    cy.findByRole('option', { name: texts['schema_editor.integer'] }).click();
+    datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
   });
 });

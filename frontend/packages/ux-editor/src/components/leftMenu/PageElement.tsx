@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './PageElement.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
-import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
+import { Button, TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -156,7 +156,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           icon={<MenuElipsisVerticalIcon />}
           onClick={onPageSettingsClick}
           style={menuAnchorEl ? { visibility: 'visible' } : {}}
-          variant={ButtonVariant.Quiet}
+          variant='quiet'
           title={t('general.options')}
           size='small'
         />

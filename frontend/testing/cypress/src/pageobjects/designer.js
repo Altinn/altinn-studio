@@ -1,5 +1,5 @@
 //Selectors in designer
-import { cypressTestid } from '../../cypressTestid';
+import * as testids from '../../../testids';
 
 export const designer = {
   appMenu: {
@@ -63,7 +63,7 @@ export const designer = {
     uiEditor: "[data-testid='leftMenu_ui-editor']",
     accessControl: "a[data-testid='leftMenu_accesscontrol']",
   },
-  dragToArea: `[data-testid='${cypressTestid.droppableList}']`,
+  dragToArea: `[data-testid='${testids.droppableList}']`,
   draggable: "div[draggable='true']",
   formComponents: {
     shortAnswer: "i[class^='fa fa-short-answer']",

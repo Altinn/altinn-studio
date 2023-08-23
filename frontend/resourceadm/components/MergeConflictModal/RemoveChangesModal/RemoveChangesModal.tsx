@@ -6,20 +6,43 @@ import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
 interface Props {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
+  /**
+   * Function to be executed when the reset repo is clicked
+   * @returns void
+   */
   handleClickResetRepo: () => void;
+  /**
+   * The name of the repo
+   */
   repo: string;
 }
 
 /**
+ * @Component
+ *    Content to be displayed inside the modal where the user removes their changes in a merge conflict
  *
- * @param props.isOpen boolean for if the modal is open
- * @param props.onClose function to handle close
- * @param props.handleClickResetRepo function to be executed when the reset repo is clicked
- * @param props.repo the name of the repo
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ * @property {function}[handleClickResetRepo] - Function to be executed when the reset repo is clicked
+ * @property {string}[repo] - The name of the repo
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const RemoveChangesModal = ({ isOpen, onClose, handleClickResetRepo, repo }: Props) => {
+export const RemoveChangesModal = ({
+  isOpen,
+  onClose,
+  handleClickResetRepo,
+  repo,
+}: Props): React.ReactNode => {
   const { t } = useTranslation();
 
   const [deleteRepoName, setDeleteRepoName] = useState('');

@@ -1,6 +1,6 @@
 import type { ChangeEventHandler, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { Checkbox, Select } from '@digdir/design-system-react';
+import { LegacyCheckbox, Select } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';
@@ -85,7 +85,7 @@ export function PropertyItem({
         />
       </div>
       <span className={`${classes.requiredCheckCell} ${classes.gridItem}`}>
-        <Checkbox
+        <LegacyCheckbox
           checked={required ?? false}
           disabled={readOnly}
           hideLabel
@@ -103,7 +103,7 @@ export function PropertyItem({
           <IconButton
             ariaLabel={t('schema_editor.delete_field')}
             icon={IconImage.Wastebucket}
-            onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
+            onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
           />
         }
       >

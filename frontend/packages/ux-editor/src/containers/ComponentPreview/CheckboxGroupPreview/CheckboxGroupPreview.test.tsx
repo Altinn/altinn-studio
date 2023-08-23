@@ -64,18 +64,15 @@ const duplicateErrorText = 'Verdien må være unik.';
 const texts = {
   'general.add': addText,
   'general.cancel': cancelText,
-  "ux_editor.add_option": addOptionText,
-  "ux_editor.add_option_label": labelText,
-  "ux_editor.add_option_value": valueText,
-  "ux_editor.checkboxes_option_value_error_empty": emptyErrorText,
-  "ux_editor.checkboxes_option_value_error_duplicate": duplicateErrorText
+  'ux_editor.add_option': addOptionText,
+  'ux_editor.add_option_label': labelText,
+  'ux_editor.add_option_value': valueText,
+  'ux_editor.checkboxes_option_value_error_empty': emptyErrorText,
+  'ux_editor.checkboxes_option_value_error_duplicate': duplicateErrorText,
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('CheckboxGroupPreview', () => {
   afterEach(jest.resetAllMocks);
@@ -118,7 +115,7 @@ describe('CheckboxGroupPreview', () => {
           expect.objectContaining({
             label: expect.anything(),
             value: expect.anything(),
-          })
+          }),
         ]),
       })
     );
@@ -155,10 +152,14 @@ describe('CheckboxGroupPreview', () => {
 });
 
 const waitForData = async () => {
-  const { result } = renderHookWithMockStore({}, {
-    getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
-  })(() => useTextResourcesQuery(org, app)).renderHookResult;
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const { result } = renderHookWithMockStore(
+    {},
+    {
+      getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
+    }
+  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
@@ -166,12 +167,7 @@ const waitForData = async () => {
 const render = async (props: Partial<CheckboxGroupPreviewProps> = {}) => {
   await waitForData();
 
-  return renderWithMockStore()(
-    <CheckboxGroupPreview
-      {...defaultProps}
-      {...props}
-    />
-  );
+  return renderWithMockStore()(<CheckboxGroupPreview {...defaultProps} {...props} />);
 };
 
 const renderAndOpenAddSection = async (props?: Partial<CheckboxGroupPreviewProps>) => {
