@@ -8,10 +8,10 @@ interface Props {
 
 export const Notification = ({ numChanges }: Props) => {
   return (
-    <div className={classes.wrapper}>
-      <Paragraph size='xsmall' short className={classes.number}>
+    <span className={classes.wrapper} aria-hidden>
+      <Paragraph as='span' size='xsmall' short className={classes.number}>
         {numChanges}
       </Paragraph>
-    </div>
+    </span>
   );
 };

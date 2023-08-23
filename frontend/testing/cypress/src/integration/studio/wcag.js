@@ -1,15 +1,21 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { dashboard } from '../../pageobjects/dashboard';
-import { designer } from '../../pageobjects/designer';
+import { dashboard } from "../../selectors/dashboard";
+import { header } from "../../selectors/header";
 
 context('WCAG', () => {
+  before(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createapp(Cypress.env('autoTestUser'), 'designer');
+  });
+
   beforeEach(() => {
     cy.visit('/');
     cy.intercept('GET', 'designer/api/repos/search?**').as('fetchApps');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.get(dashboard.searchApp).should('be.visible');
+    dashboard.getSearchReposField().should('be.visible');
     cy.wait('@fetchApps')
       .its('response.statusCode')
       .should((statusCode) => {
@@ -22,7 +28,7 @@ context('WCAG', () => {
   });
 
   it('accessibility test for new app', () => {
-    cy.get(dashboard.newApp).should('be.visible').click();
+    dashboard.getNewAppLink().should('be.visible').click();
     cy.testWcag();
   });
 
@@ -31,21 +37,19 @@ context('WCAG', () => {
     cy.testWcag();
 
     // Forms editor
-    cy.findByRole('link', { name: designer.appMenu.editText }).click();
+    header.getCreateLink().click();
     cy.testWcag();
 
     // Text editor
-    cy.findByRole('link', { name: designer.appMenu.textEditorText }).click();
-    cy.findByText('Lukk').click();
+    header.getTextEditorLink().click();
     cy.testWcag();
 
     // Data model
-    cy.findByRole('link', { name: designer.appMenu.datamoodelText }).click();
-    cy.findByText('Lukk').click();
+    header.getDatamodelLink().click();
     cy.testWcag();
 
     // Deploy
-    cy.findByRole('button', { name: designer.appMenu.deployText }).click();
+    header.getDeployButton().click();
     cy.testWcag();
   });
 });

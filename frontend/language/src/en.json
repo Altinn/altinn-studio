@@ -88,7 +88,7 @@
   "app_release.release_version": "Version:",
   "dashboard.all_apps": "All applications",
   "dashboard.all_datamodels": "All data models",
-  "dashboard.app_already_exist": "An app with that name already exists.",
+  "dashboard.app_already_exists": "An app with that name already exists.",
   "dashboard.application": "Application",
   "dashboard.apps": "Applications",
   "dashboard.clear_search": "Clear searchfield",
