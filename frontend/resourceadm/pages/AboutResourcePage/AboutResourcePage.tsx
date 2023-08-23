@@ -11,16 +11,15 @@ import {
 } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
+import type { LanguageString, Translation } from 'resourceadm/types/global';
 import type {
+  ResourceThematic,
   SupportedLanguageKey,
-  ResourceBackend,
+  Resource,
   ResourceTypeOption,
   ResourceKeyword,
   ResourceSector,
-  ResourceThematic,
-  LanguageString,
-  Translation,
-} from 'resourceadm/types/global';
+} from 'app-shared/types/ResourceAdm';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 
@@ -46,7 +45,7 @@ type AboutResourcePageProps = {
   /**
    * The metadata for the resource
    */
-  resourceData: ResourceBackend;
+  resourceData: Resource;
   /**
    * The list of possible sectors
    */
@@ -60,7 +59,7 @@ type AboutResourcePageProps = {
    * @param r the resource
    * @returns void
    */
-  onSaveResource: (r: ResourceBackend) => void;
+  onSaveResource: (r: Resource) => void;
 };
 
 /**
@@ -68,7 +67,7 @@ type AboutResourcePageProps = {
  *    Page that displays information about a resource
  *
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
- * @property {ResourceBackend}[resourceData] - The metadata for the resource
+ * @property {Resource}[resourceData] - The metadata for the resource
  * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
  * @property {ResourceThematic[]}[thematicData] - The list of possible thematic areas
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
@@ -167,7 +166,7 @@ export const AboutResourcePage = ({
       (s) => sectorsData.find((sd) => sd.label['nb'] === s).code
     );
 
-    const editedResourceObject: ResourceBackend = {
+    const editedResourceObject: Resource = {
       ...resourceData,
       identifier: resourceId,
       resourceType,

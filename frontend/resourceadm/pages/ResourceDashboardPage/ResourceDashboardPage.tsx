@@ -5,7 +5,7 @@ import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import type { ResourceListItem } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';

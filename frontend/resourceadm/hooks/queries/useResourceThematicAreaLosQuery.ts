@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ResourceThematic } from 'resourceadm/types/global';
+import type { ResourceThematic } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get the list of thematic area eurovoc for the los. It only returns the

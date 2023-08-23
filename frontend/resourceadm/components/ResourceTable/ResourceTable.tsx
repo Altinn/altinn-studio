@@ -4,7 +4,7 @@ import classes from './ResourceTable.module.css';
 import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
 import { Button } from '@digdir/design-system-react';
-import type { ResourceListItem } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
 type ResourceTableProps = {
   /**

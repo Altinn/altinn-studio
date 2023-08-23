@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ResourceSector } from 'resourceadm/types/global';
+import type { ResourceSector } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get the list of sectors for the resource. It only returns the

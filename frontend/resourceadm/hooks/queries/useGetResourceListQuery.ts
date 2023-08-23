@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { ResourceListItem } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { sortResourceListByDateAndMap } from 'resourceadm/utils/mapperUtils';
 
 /**

@@ -80,7 +80,8 @@ export const PolicyEditor = ({
 }: PolicyEditorProps): React.ReactNode => {
   // TODO - translation
 
-  const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
+  // TODO - Find out how this should be set. Issue: #10880
+  const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
     mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? [])

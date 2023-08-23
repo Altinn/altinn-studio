@@ -2,7 +2,8 @@ import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
-import type { LanguageString, SupportedLanguageKey } from 'resourceadm/types/global';
+import type { LanguageString } from 'resourceadm/types/global';
+import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 
 type RightTranslationBarProps = {
   /**

@@ -18,8 +18,8 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
-import type { ResourceBackend, ResourceSector, ResourceThematic, ResourceListItem, ResourceVersionStatus, Validation } from 'resourceadm/types/global';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
+import type { Resource, ResourceListItem, ResourceSector, ResourceThematic, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -63,7 +63,7 @@ export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
-export const getResource = (org: string, repo: string, id: string) => get<ResourceBackend>(resourceSinglePath(org, repo, id));
+export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 export const getResourceSectors = (org: string) => get<ResourceSector[]>(resourceSectorsPath(org));

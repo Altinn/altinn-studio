@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ResourceBackend } from 'resourceadm/types/global';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 
 /**
  * Mutation to edit an existing resource.
@@ -15,7 +15,7 @@ export const useEditResourceMutation = (org: string, repo: string, id: string) =
   const { updateResource } = useServicesContext();
 
   return useMutation({
-    mutationFn: (payload: ResourceBackend) => updateResource(org, id, payload),
+    mutationFn: (payload: Resource) => updateResource(org, id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.SingleResource, org, repo, id] });

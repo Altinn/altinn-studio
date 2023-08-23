@@ -1,4 +1,4 @@
-import type { ResourceListItem } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
 /**
  * Maps a string from the format sent from backend, e.g.,

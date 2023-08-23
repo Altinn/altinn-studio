@@ -5,7 +5,7 @@ import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import type { ResourceListItem } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
 type ResourceTableDataRowProps = {
   /**

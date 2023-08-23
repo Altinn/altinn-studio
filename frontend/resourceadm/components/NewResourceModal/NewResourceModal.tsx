@@ -5,7 +5,7 @@ import { Modal } from '../Modal';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { NewResource } from 'resourceadm/types/global';
+import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 type NewResourceModalProps = {

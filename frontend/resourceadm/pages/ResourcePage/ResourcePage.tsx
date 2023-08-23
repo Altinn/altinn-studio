@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
-import type { NavigationBarPage, ResourceBackend } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -21,6 +21,7 @@ import { Spinner } from '@digdir/design-system-react';
 import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 
 /**
  * @component
@@ -201,7 +202,7 @@ export const ResourcePage = (): React.ReactNode => {
               resourceData={resourceData}
               sectorsData={sectorsData}
               thematicData={[...losData, ...eurData]}
-              onSaveResource={(r: ResourceBackend) => {
+              onSaveResource={(r: Resource) => {
                 editResource(r, {
                   // TODO - Display that it was saved
                   onSuccess: () => {

@@ -1,9 +1,7 @@
 import React from 'react';
 import classes from './PolicyEditor.module.css';
-
 import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-
 import { Heading, Spinner } from '@digdir/design-system-react';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useParams } from 'react-router-dom';
@@ -23,9 +21,10 @@ const actionData: PolicyAction[] = [
 ];
 
 /**
- * The different subjects a policy can have. TODO - Find out if there should be more
+ * The different subjects a policy can have. TODO - Find out if there should be more.
+ * Issue: #10882
  */
-const dummysubjectData: PolicySubject[] = [
+const subjectData: PolicySubject[] = [
   {
     subjectDescription: 'Daglig leder fra enhetsregisteret',
     subjectId: 'DAGL',
@@ -88,9 +87,11 @@ export const PolicyEditor = () => {
       <PolicyEditorImpl
         policy={policyData}
         actions={actionData}
-        subjects={dummysubjectData}
+        // TODO - Find out the list of subjects: Issue: #10882
+        subjects={subjectData}
         onSave={handleSavePolicy}
-        showAllErrors={false} // TODO - Find out how this should be handled for apps, then refactor
+        // TODO - Find out how errors should be handled for apps, then refactor. Issue: #10881
+        showAllErrors={false}
         usageType='app'
       />
     </div>
