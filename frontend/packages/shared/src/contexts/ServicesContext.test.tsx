@@ -23,9 +23,8 @@ describe('ServicesContext', () => {
 
   it('displays a default error message if a component throws an error while rendering', () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const data = null;
 
-    const ErrorComponent = () => <div>{data.length}</div>;
+    const ErrorComponent = () => { throw new Error('Intentional render error'); };
     render(<ErrorComponent />, { wrapper });
 
     expect(screen.getByText(/general.error_message/)).toBeInTheDocument();
