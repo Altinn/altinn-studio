@@ -11,7 +11,7 @@ import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('FormComponentConfig', () => {
-  it('should render expected components', async () => {
+  it('should render expected components', () => {
     render({});
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_component_change_id'))
@@ -42,7 +42,7 @@ describe('FormComponentConfig', () => {
     });
   });
 
-  it('should render list of unsupported properties', async () => {
+  it('should render list of unsupported properties', () => {
     render({
       props: {
         hideUnsupported: false,
@@ -66,7 +66,7 @@ describe('FormComponentConfig', () => {
     expect(screen.getByText('unsupportedProperty')).toBeInTheDocument();
   });
 
-  it('should not render list of unsupported properties if hideUnsupported is true', async () => {
+  it('should not render list of unsupported properties if hideUnsupported is true', () => {
     render({
       props: {
         hideUnsupported: true,
@@ -90,7 +90,7 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
-  it('should not render property if it is null', async () => {
+  it('should not render property if it is null', () => {
     render({
       props: {
         hideUnsupported: true,

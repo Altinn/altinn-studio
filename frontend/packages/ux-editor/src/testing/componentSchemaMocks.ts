@@ -1,4 +1,5 @@
 import AlertSchema from './schemas/json/component/Alert.schema.v1.json';
+// TODO: Add schemas for the commented out components (https://github.com/Altinn/altinn-studio/issues/10868):
 // import AccordionSchema from './schemas/json/component/Accordion.schema.v1.json';
 // import AccordionGroupSchema from './schemas/json/component/AccordionGroup.schema.v1.json';
 import ActionButtonSchema from './schemas/json/component/ActionButton.schema.v1.json';
