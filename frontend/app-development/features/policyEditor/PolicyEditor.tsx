@@ -9,7 +9,7 @@ import {
 import { Heading, Spinner } from '@digdir/design-system-react';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useParams } from 'react-router-dom';
-import { useEditAppPolicyMutation } from 'app-development/hooks/mutations';
+import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 
 /**
  * The different actions a policy can have. TODO - Find out if there should be more
@@ -62,13 +62,13 @@ export const PolicyEditor = () => {
   console.log(policyData);
 
   // Mutation function to update policy
-  const { mutate: updateAppPolicyMutation } = useEditAppPolicyMutation(org, app);
+  const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (p: PolicyBackendType) => {
-    updateAppPolicyMutation(p, {
+  const handleSavePolicy = (policy: PolicyBackendType) => {
+    updateAppPolicyMutation(policy, {
       onSuccess: () => {
         console.log('success');
       },

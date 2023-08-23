@@ -56,8 +56,8 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (p: PolicyBackendType) => {
-    updatePolicyMutation(p, {
+  const handleSavePolicy = (policy: PolicyBackendType) => {
+    updatePolicyMutation(policy, {
       // TODO - Display that it was saved
       onSuccess: () => {
         console.log('success');

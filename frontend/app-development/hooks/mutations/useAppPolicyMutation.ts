@@ -9,7 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  * @param org the organisation of the user
  * @param app the app the user is in
  */
-export const useEditAppPolicyMutation = (org: string, app: string) => {
+export const useAppPolicyMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
   const { updateAppPolicy } = useServicesContext();
 
