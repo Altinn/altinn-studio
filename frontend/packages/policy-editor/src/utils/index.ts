@@ -1,11 +1,10 @@
 import {
   PolicyActionType,
-  PolicyBackendType,
   PolicyRuleBackendType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
-} from '@altinn/policy-editor/types';
+} from '../types';
 
 /**
  * Empty rule when new card added
@@ -171,21 +170,5 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
     subject: subject,
     actions: actions,
     resources: resources,
-  };
-};
-
-/**
- * Maps from an uknown response object from backend to the correct policy type
- *
- * @param res the unknown response
- *
- * @returns a mapped policy backend type
- */
-export const mapPolicyResultToPolicyObject = (res: unknown): PolicyBackendType => {
-  const policyResult: PolicyBackendType = res as PolicyBackendType;
-  return {
-    rules: policyResult.rules ?? [],
-    requiredAuthenticationLevelEndUser: '3',
-    requiredAuthenticationLevelOrg: '3',
   };
 };

@@ -1,9 +1,8 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from '@altinn/policy-editor/components';
+import { PolicyEditor } from '@altinn/policy-editor';
 import { PolicyBackendType } from '@altinn/policy-editor/types';
-import { mapPolicyResultToPolicyObject } from '@altinn/policy-editor/utils';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
@@ -80,7 +79,7 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     }
     return (
       <PolicyEditor
-        policy={mapPolicyResultToPolicyObject(policyData)}
+        policy={policyData}
         actions={actionData}
         subjects={subjectData}
         resourceId={resourceId}

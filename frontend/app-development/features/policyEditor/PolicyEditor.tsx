@@ -1,19 +1,18 @@
 import React from 'react';
 import classes from './PolicyEditor.module.css';
-import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor/components';
+import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
 import {
   PolicyActionType,
   PolicyBackendType,
   PolicySubjectType,
 } from '@altinn/policy-editor/types';
-import { mapPolicyResultToPolicyObject } from '@altinn/policy-editor/utils';
 import { Heading, Spinner } from '@digdir/design-system-react';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useParams } from 'react-router-dom';
 import { useEditAppPolicyMutation } from 'app-development/hooks/mutations';
 
 /**
- * The different actioons a policy can have. TODO - Find out if there should be more
+ * The different actions a policy can have. TODO - Find out if there should be more
  */
 const actionData: PolicyActionType[] = [
   { actionId: 'read', actionTitle: 'Les', actionDescription: null },
@@ -77,7 +76,7 @@ export const PolicyEditor = () => {
 
   if (policyLoading) {
     return (
-      <div className={classes.spinnerrapper}>
+      <div className={classes.spinnerWrapper}>
         <Spinner size='2xLarge' variant='interaction' title='Laster inn policy' />
       </div>
     );
@@ -88,7 +87,7 @@ export const PolicyEditor = () => {
         Tilgangsregler
       </Heading>
       <PolicyEditorImpl
-        policy={mapPolicyResultToPolicyObject(policyData)}
+        policy={policyData}
         actions={actionData}
         subjects={dummysubjectData}
         onSave={handleSavePolicy}

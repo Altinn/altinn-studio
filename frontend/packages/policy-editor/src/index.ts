@@ -1,1 +1,1 @@
-export * from './utils';
+export { PolicyEditor } from './PolicyEditor'

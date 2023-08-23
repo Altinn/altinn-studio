@@ -26,7 +26,7 @@ interface Props {
    * Function to be executed when the element is duplicated
    * @returns void
    */
-  handleDuplicateElement: () => void;
+  handleCloneElement: () => void;
   /**
    * Optional flag for if the component has error
    */
@@ -42,7 +42,7 @@ interface Props {
  *    <ExpandablePolicyElement
  *      title='Some title'
  *      isCard
- *      handleDuplicateElement={handleDuplicateRule}
+ *      handleCloneElement={handleCloneRule}
  *      handleRemoveElement={handleDeleteRule}
  *      hasError={showErrors && getHasRuleError()}
  *    >
@@ -53,7 +53,7 @@ interface Props {
  * @property {ReactNode}[children] - The React childrens to display inside it.
  * @property {boolean}[isCard] - Optional flag for if the component is a card or an element
  * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
- * @property {function}[handleDuplicateElement] - Function to be executed when the element is duplicated
+ * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
  * @property {boolean}[hasError] - Optional flag for if the component has error
  *
  * @returns {React.ReactNode} - The rendered component
@@ -63,7 +63,7 @@ export const ExpandablePolicyElement = ({
   children,
   isCard = true,
   handleRemoveElement,
-  handleDuplicateElement,
+  handleCloneElement,
   hasError = false,
 }: Props): React.ReactNode => {
   const [isOpen, setIsOpen] = useState(true);
@@ -120,7 +120,7 @@ export const ExpandablePolicyElement = ({
           isOpen={isDropdownOpen}
           handleClickMoreIcon={handleClickMoreButton}
           handleCloseMenu={() => setIsDropdownOpen(false)}
-          handleDuplicate={handleDuplicateElement}
+          handleClone={handleCloneElement}
           handleDelete={() => {
             handleRemoveElement();
             setIsDropdownOpen(false);

@@ -4,7 +4,7 @@ import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { PolicyRuleResourceType } from '@altinn/policy-editor/types';
+import { PolicyRuleResourceType } from '../../../types';
 
 interface Props {
   /**
@@ -39,7 +39,7 @@ interface Props {
    * Function to be executed when the element is duplicated
    * @returns void
    */
-  handleDuplicateElement: () => void;
+  handleCloneElement: () => void;
   /**
    * Function to be executed on blur
    * @returns
@@ -61,7 +61,7 @@ interface Props {
  * @property {function}[handleRemoveResource] - Function that removes a resource from the list
  * @property {function}[handleClickAddResource] - Function that adds a resource to the list
  * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
- * @property {function}[handleDuplicateElement] - Function to be executed when the element is duplicated
+ * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[firstFieldEditable] - FFlag for if first field is editable
  *
@@ -73,7 +73,7 @@ export const ResourceNarrowingList = ({
   handleRemoveResource,
   handleClickAddResource,
   handleRemoveElement,
-  handleDuplicateElement,
+  handleCloneElement,
   onBlur,
   firstFieldEditable = false,
 }: Props): React.ReactNode => {
@@ -107,7 +107,7 @@ export const ResourceNarrowingList = ({
       <ExpandablePolicyElement
         title={getResourceName()}
         isCard={false}
-        handleDuplicateElement={handleDuplicateElement}
+        handleCloneElement={handleCloneElement}
         handleRemoveElement={handleRemoveElement}
       >
         {displayResources}

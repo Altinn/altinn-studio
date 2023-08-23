@@ -19,10 +19,10 @@ interface Props {
    */
   handleCloseMenu: () => void;
   /**
-   * Function to handle the click of the duplicate button
+   * Function to handle the click of the clone button
    * @returns void
    */
-  handleDuplicate: () => void;
+  handleClone: () => void;
   /**
    * Function to handle the click of the delete button
    * @returns void
@@ -36,12 +36,12 @@ interface Props {
 
 /**
  * @component
- *    Dropdown menu component that displays a duplicate and a delete button
+ *    Dropdown menu component that displays a clone and a delete button
  *
  * @property {boolean}[isOpen] - Boolean for if the menu is open or not
  * @property {function}[handleClickMoreIcon] - Function to be executed when the menu icon is clicked
  * @property {function}[handleCloseMenu] - Function to be executed when closing the menu
- * @property {function}[handleDuplicate] - Function to handle the click of the duplicate button
+ * @property {function}[handleClone] - Function to handle the click of the clone button
  * @property {function}[handleDelete] - Function to handle the click of the delete button
  * @property {boolean}[isError] - Optional flag for if there is an error or not
  *
@@ -51,7 +51,7 @@ export const DropdownMenu = ({
   isOpen,
   handleClickMoreIcon,
   handleCloseMenu,
-  handleDuplicate,
+  handleClone,
   handleDelete,
   isError = false,
 }: Props): React.ReactNode => {
@@ -143,7 +143,7 @@ export const DropdownMenu = ({
           <button
             className={classes.dropdownDuplicateButton}
             type='button'
-            onClick={handleDuplicate}
+            onClick={handleClone}
             ref={firstMenuItemRef}
           >
             <TabsIcon title='Dupliser' fontSize='1.3rem' />

@@ -12,7 +12,7 @@ import {
   PolicyRuleResourceType,
   PolicySubjectType,
   policyEditorUsageType,
-} from '@altinn/policy-editor/types';
+} from '../../types';
 
 interface Props {
   /**
@@ -47,7 +47,7 @@ interface Props {
    * Function to be executed when clicking duplicate rule
    * @returns void
    */
-  handleDuplicateRule: () => void;
+  handleCloneRule: () => void;
   /**
    * Function to be executed when clicking delete rule
    * @returns void
@@ -80,7 +80,7 @@ interface Props {
  * @property {React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>}[setPolicyRules] - useState function to update the list of rules
  * @property {string}[resourceId] - The ID of the resource
  * @property {string}[resourceType] - The type of the resource
- * @property {function}[handleDuplicateRule] - Function to be executed when clicking duplicate rule
+ * @property {function}[handleCloneRule] - Function to be executed when clicking clone rule
  * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
  * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
  * @property {function}[savePolicy] - Function to save the policy
@@ -96,7 +96,7 @@ export const ExpandablePolicyCard = ({
   setPolicyRules,
   resourceId,
   resourceType,
-  handleDuplicateRule,
+  handleCloneRule,
   handleDeleteRule,
   showErrors,
   savePolicy,
@@ -240,7 +240,7 @@ export const ExpandablePolicyCard = ({
           handleRemoveNarrowingResource(narrowResourceIndex, i)
         }
         handleClickAddResource={() => handleClickAddResourceNarrowing(i)}
-        handleDuplicateElement={() => handleDuplicateResourceGroup(i)}
+        handleCloneElement={() => handleCloneResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
         firstFieldEditable={usageType === 'app'}
@@ -413,7 +413,7 @@ export const ExpandablePolicyCard = ({
    *
    * @param resourceIndex the index of the resource group to duplicate
    */
-  const handleDuplicateResourceGroup = (resourceIndex: number) => {
+  const handleCloneResourceGroup = (resourceIndex: number) => {
     const resourceGroupToDuplicate: PolicyRuleResourceType[] = policyRule.resources[resourceIndex];
 
     // Create a deep copy of the object so the objects don't share same object reference
@@ -496,7 +496,7 @@ export const ExpandablePolicyCard = ({
       <ExpandablePolicyElement
         title={`Regel ${getPolicyRuleId()}`}
         isCard
-        handleDuplicateElement={handleDuplicateRule}
+        handleCloneElement={handleCloneRule}
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >

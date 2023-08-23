@@ -9,17 +9,17 @@ import {
   PolicySubjectType,
   RequiredAuthLevelType,
   policyEditorUsageType,
-} from '@altinn/policy-editor/types';
+} from './types';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
-} from '@altinn/policy-editor/utils';
+} from './utils';
 import classes from './PolicyEditor.module.css';
-import { VerificationModal } from './VerificationModal';
-import { SelectAuthLevel } from './SelectAuthLevel';
-import { ExpandablePolicyCard } from './ExpandablePolicyCard';
-import { CardButton } from './CardButton';
+import { VerificationModal } from './components/VerificationModal';
+import { SelectAuthLevel } from './components/SelectAuthLevel';
+import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
+import { CardButton } from './components/CardButton';
 
 interface Props {
   /**
@@ -81,14 +81,14 @@ export const PolicyEditor = ({
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCardType[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCardType(subjects, actions, policy.rules)
+    mapPolicyRulesBackendObjectToPolicyRuleCardType(subjects, actions, policy?.rules ?? [])
   );
   const [requiredAuthLevel, setRequiredAuthLevel] = useState<RequiredAuthLevelType>(
-    policy.requiredAuthenticationLevelEndUser
+    policy?.requiredAuthenticationLevelEndUser ?? '3'
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
-  const [lastRuleId, setLastRuleId] = useState(policy.rules.length + 1);
+  const [lastRuleId, setLastRuleId] = useState((policy?.rules.length ?? 0) + 1);
 
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 
@@ -102,7 +102,7 @@ export const PolicyEditor = ({
    */
   const displayRules = policyRules.map((pr, i) => {
     return (
-      <div className={classes.space} key={i}>
+      <div className={classes.space} key={pr.ruleId}>
         <ExpandablePolicyCard
           policyRule={pr}
           actions={actions}
@@ -111,7 +111,7 @@ export const PolicyEditor = ({
           setPolicyRules={setPolicyRules}
           resourceId={resourceId ?? ''}
           resourceType={resourceType}
-          handleDuplicateRule={() => handleDuplicateRule(i)}
+          handleCloneRule={() => handleCloneRule(i)}
           handleDeleteRule={() => {
             setVerificationModalOpen(true);
             setRuleIdToDelete(pr.ruleId);
@@ -177,7 +177,7 @@ export const PolicyEditor = ({
    *
    * @param index the index of the rule to duplicate
    */
-  const handleDuplicateRule = (index: number) => {
+  const handleCloneRule = (index: number) => {
     const ruleToDuplicate: PolicyRuleCardType = {
       ...policyRules[index],
       ruleId: getRuleId().toString(),
