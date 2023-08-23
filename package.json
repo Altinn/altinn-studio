@@ -94,7 +94,9 @@
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
-    "typecheck": "yarn workspaces foreach run typecheck"
+    "typecheck": "yarn workspaces foreach run typecheck",
+    "//": "prepare is needed for husky to work properly",
+    "prepare": "husky install"
   },
   "syncpack": {
     "semverRange": ""
