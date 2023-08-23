@@ -5,6 +5,7 @@ import { dashboard } from '../selectors/dashboard';
 import { designer } from '../selectors/designer';
 import { header } from '../selectors/header';
 import { login } from '../selectors/login';
+import {gitea} from "../selectors/gitea";
 
 /**
  * Login to studio with user name and password
@@ -13,11 +14,11 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
   cy.session([userName, userPwd], () => {
     cy.visit('/');
     login.getLoginButton().should('be.visible').click();
-    login.getLanguageMenu().should('be.visible').click();
-    login.getLanguageMenuItem('Norsk').should('be.visible').click();
-    login.getUsernameField().should('be.visible').type(userName);
-    login.getPasswordField().should('be.visible').type(userPwd, { log: false });
-    login.getLoginButton().should('be.visible').click();
+    gitea.getLanguageMenu().should('be.visible').click();
+    gitea.getLanguageMenuItem('Norsk').should('be.visible').click();
+    gitea.getUsernameField().should('be.visible').type(userName);
+    gitea.getPasswordField().should('be.visible').type(userPwd, { log: false });
+    gitea.getLoginButton().should('be.visible').click();
   });
 });
 

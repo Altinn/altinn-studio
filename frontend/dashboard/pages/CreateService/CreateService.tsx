@@ -110,7 +110,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           onError: (error: { response: { status: number } }) => {
             if (error.response.status === 409) {
               setPageState(PageState.Idle);
-              setRepoErrorMessage(t('dashboard.app_already_exist'));
+              setRepoErrorMessage(t('dashboard.app_already_exists'));
             } else {
               setPageState(PageState.Idle);
               setRepoErrorMessage(t('dashboard.error_when_creating_app'));

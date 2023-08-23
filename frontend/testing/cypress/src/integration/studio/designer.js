@@ -23,7 +23,7 @@ context('Designer', () => {
   it('is possible to edit information about the app', () => {
     const designerApp = Cypress.env('designerApp');
     cy.searchAndOpenApp(designerApp);
-    cy.findByRole('heading', { name: texts['administration.administration'] }).should('be.visible');
+    administration.getHeader().should('be.visible');
     cy.findByRole('button', { name: texts['general.edit'] }).click();
     administration.getAppNameField().clear().type('New app name');
     administration.getDescriptionField().clear().type('App description');
