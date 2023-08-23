@@ -1,4 +1,7 @@
 export enum ComponentType {
+  Alert = 'Alert',
+  Accordion = 'Accordion',
+  AccordionGroup = 'AccordionGroup',
   ActionButton = 'ActionButton',
   AddressComponent = 'AddressComponent',
   AttachmentList = 'AttachmentList',
