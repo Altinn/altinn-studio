@@ -53,7 +53,7 @@
     "jest-environment-jsdom": "29.6.2",
     "jest-fail-on-console": "3.1.1",
     "jest-junit": "16.0.0",
-    "lint-staged": "13.3.0",
+    "lint-staged": "14.0.0",
     "mini-css-extract-plugin": "2.7.6",
     "msw": "1.2.3",
     "prettier": "3.0.2",
