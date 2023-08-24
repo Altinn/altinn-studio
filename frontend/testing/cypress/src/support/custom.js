@@ -4,7 +4,8 @@ Cypress.Commands.add(
     prevSubject: true,
   },
   (subject) => {
-    const isVisible = (elem) => !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
+    const isVisible = (elem) =>
+      !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
     expect(isVisible(subject[0])).to.be.true;
-  },
+  }
 );

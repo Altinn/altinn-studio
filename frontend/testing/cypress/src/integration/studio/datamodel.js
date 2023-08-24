@@ -1,51 +1,48 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { header } from "../../selectors/header";
-import { datamodel } from "../../selectors/datamodel";
-import * as texts from "../../../../../language/src/nb.json";
+import { header } from '../../selectors/header';
+import { datamodel } from '../../selectors/datamodel';
+import * as texts from '../../../../../language/src/nb.json';
 
-context("datamodel", () => {
+context('datamodel', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env("autoTestUser"), Cypress.env("accessToken"));
-    cy.visit("/");
-    cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
-    cy.createapp(Cypress.env("autoTestUser"), "datamodel-app");
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createapp(Cypress.env('autoTestUser'), 'datamodel-app');
   });
 
   beforeEach(() => {
-    cy.visit("/dashboard");
-    cy.searchAndOpenApp(`${Cypress.env("autoTestUser")}/datamodel-app`);
+    cy.visit('/dashboard');
+    cy.searchAndOpenApp(`${Cypress.env('autoTestUser')}/datamodel-app`);
 
     // Navigate to datamodels page and close dialog
     header.getDatamodelLink().click();
   });
 
   after(() => {
-    cy.deleteallapps(Cypress.env("autoTestUser"), Cypress.env("accessToken"));
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it("add a new data model", () => {
+  it('add a new data model', () => {
     datamodel.getCreateNewButton().click();
-    cy.findByRole("textbox").type("datamodel");
-    cy.findByRole("button", {
-      name: texts["schema_editor.create_model_confirm_button"],
+    cy.findByRole('textbox').type('datamodel');
+    cy.findByRole('button', {
+      name: texts['schema_editor.create_model_confirm_button'],
     }).click();
-    datamodel.getProperty("property1").click();
+    datamodel.getProperty('property1').click();
   });
 
-  it("edit a data model", () => {
-    datamodel.getProperty("property1").click();
-    datamodel.getNameField().clear().type("myProperty");
+  it('edit a data model', () => {
+    datamodel.getProperty('property1').click();
+    datamodel.getNameField().clear().type('myProperty');
 
     // Hack to ensure focus. Find out why we need to click twice and fix!
     datamodel.getTypeField().click();
     datamodel.getTypeField().click();
 
-    cy.findByRole("option", { name: texts["schema_editor.integer"] }).click();
-    datamodel
-      .getTypeField()
-      .invoke("val")
-      .should("eq", texts["schema_editor.integer"]);
+    cy.findByRole('option', { name: texts['schema_editor.integer'] }).click();
+    datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
   });
 });

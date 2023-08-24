@@ -1,39 +1,39 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { dashboard } from "../../selectors/dashboard";
-import { header } from "../../selectors/header";
+import { dashboard } from '../../selectors/dashboard';
+import { header } from '../../selectors/header';
 
-context("WCAG", () => {
+context('WCAG', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env("autoTestUser"), Cypress.env("accessToken"));
-    cy.visit("/");
-    cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
-    cy.createapp(Cypress.env("autoTestUser"), "designer");
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createapp(Cypress.env('autoTestUser'), 'designer');
   });
 
   beforeEach(() => {
-    cy.visit("/");
-    cy.intercept("GET", "designer/api/repos/search?**").as("fetchApps");
-    dashboard.getSearchReposField().should("be.visible");
-    cy.wait("@fetchApps")
-      .its("response.statusCode")
+    cy.visit('/');
+    cy.intercept('GET', 'designer/api/repos/search?**').as('fetchApps');
+    dashboard.getSearchReposField().should('be.visible');
+    cy.wait('@fetchApps')
+      .its('response.statusCode')
       .should((statusCode) => {
         expect([200, 302]).to.contain(statusCode);
       });
   });
 
-  it("accessibility test for dashboard", () => {
+  it('accessibility test for dashboard', () => {
     cy.testWcag();
   });
 
-  it("accessibility test for new app", () => {
-    dashboard.getNewAppLink().should("be.visible").click();
+  it('accessibility test for new app', () => {
+    dashboard.getNewAppLink().should('be.visible').click();
     cy.testWcag();
   });
 
-  it("accessibility test for app designer", () => {
-    cy.searchAndOpenApp(Cypress.env("designerApp"));
+  it('accessibility test for app designer', () => {
+    cy.searchAndOpenApp(Cypress.env('designerApp'));
     cy.testWcag();
 
     // Forms editor

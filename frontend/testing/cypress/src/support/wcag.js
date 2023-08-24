@@ -8,6 +8,6 @@ Cypress.Commands.add('testWcag', () => {
       includedImpacts: ['critical', 'serious', 'moderate'],
     },
     null,
-    { skipFailures: true },
+    { skipFailures: true }
   );
 });
