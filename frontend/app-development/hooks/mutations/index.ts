@@ -10,4 +10,5 @@ export { useRepoPushMutation } from './useRepoPushMutation';
 export { useTextIdMutation } from './useTextIdMutation';
 export { useUpsertTextResourceMutation } from './useUpsertTextResourceMutation';
 export { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations/useUpsertTextResourcesMutation';
+export { useBpmnMutation } from './useBpmnMutation';
 export { useAppPolicyMutation } from './useAppPolicyMutation';
