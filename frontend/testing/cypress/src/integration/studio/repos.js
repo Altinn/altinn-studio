@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
+import { gitea } from "../../selectors/gitea";
 import { header } from '../../selectors/header';
 
 context('Repository', () => {
@@ -25,8 +26,8 @@ context('Repository', () => {
       .then((href) => {
         cy.visit(href);
       });
-    cy.get('.repo-header').should('be.visible');
-    cy.get('a[href="/repos/"]').should('be.visible').click();
-    cy.get('img[alt="Altinn logo"]').should('be.visible');
+    gitea.getRepositoryHeader().should('be.visible');
+    gitea.getDashboardLink().should('be.visible').click();
+    gitea.getAltinnLogo().should('be.visible');
   });
 });

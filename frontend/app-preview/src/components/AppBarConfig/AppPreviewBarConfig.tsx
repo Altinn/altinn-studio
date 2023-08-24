@@ -27,11 +27,6 @@ export enum TopBarAppPreviewMenu {
   Preview = 'general.preview',
 }
 
-const handleChangeViewSizeClick = (selectedViewSize: string, setViewSize: (value: any) => void) => {
-  localStorage.setItem('viewSize', selectedViewSize);
-  setViewSize(selectedViewSize);
-};
-
 export const menu: TopBarAppPreviewMenuItem[] = [
   {
     key: TopBarAppPreviewMenu.Preview,
@@ -80,7 +75,7 @@ export const SubPreviewMenuLeftContent = ({
               value: 'mobile',
             },
           ]}
-          onChange={(value) => handleChangeViewSizeClick(value, setViewSize)}
+          onChange={setViewSize}
           selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
         />
       </div>
@@ -120,9 +115,9 @@ export const SubPreviewMenuRightContent = () => {
 export const appPreviewButtonActions = (
   org: string,
   app: string,
-  selectedLayoutInEditor: string
+  instanceId: string
 ): AltinnButtonActionItem[] => {
-  const subUrl = `/ui-editor?layout=${selectedLayoutInEditor}`;
+  const subUrl = `/ui-editor?layout=`;
   const action: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview_back_to_editing',
@@ -130,7 +125,10 @@ export const appPreviewButtonActions = (
       menuKey: TopBarMenu.Preview,
       buttonVariant: 'outline',
       headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => (window.location.href = editorPath(org, app) + subUrl),
+      handleClick: () =>
+        (window.location.href = `${editorPath(org, app)}${subUrl}${window.localStorage.getItem(
+          instanceId
+        )}`),
     },
   ];
   return action;

@@ -40,7 +40,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           },
           onError: (error: { response: { status: number } }) => {
             error?.response?.status === 409
-              ? setErrorMessage(t('dashboard.app_already_exist'))
+              ? setErrorMessage(t('dashboard.app_already_exists'))
               : setErrorMessage(t('dashboard.unknown_error_copy'));
           },
         }

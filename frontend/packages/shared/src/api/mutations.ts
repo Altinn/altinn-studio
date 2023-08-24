@@ -1,5 +1,32 @@
 import { del, get, post, put } from 'app-shared/utils/networking';
-import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetsPath, layoutSetPath, layoutSettingsPath, releasesPath, repoCommitPath, repoCommitPushPath, repoPushPath, repoResetPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath, datamodelPath, resourcePolicyPath, resourceCreatePath, resourceEditPath, datamodelAddXsdFromRepoPath, createDatamodelPath, appPolicyPath } from 'app-shared/api/paths';
+import {
+  appMetadataAttachmentPath,
+  copyAppPath,
+  createRepoPath,
+  deploymentsPath,
+  formLayoutNamePath,
+  formLayoutPath,
+  layoutSetsPath,
+  layoutSetPath,
+  layoutSettingsPath,
+  releasesPath,
+  repoCommitPath,
+  repoCommitPushPath,
+  repoPushPath,
+  repoResetPath,
+  ruleConfigPath,
+  textResourceIdsPath,
+  textResourcesPath,
+  userLogoutPath,
+  userStarredRepoPath,
+  datamodelPath,
+  resourcePolicyPath,
+  resourceCreatePath,
+  resourceEditPath,
+  datamodelAddXsdFromRepoPath,
+  createDatamodelPath,
+  appPolicyPath,
+} from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
