@@ -1,44 +1,57 @@
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const path = require('path');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const path = require("path");
 
 module.exports = {
-  entry: path.resolve(__dirname, process.env.npm_package_name, 'index.tsx'),
+  entry: path.resolve(__dirname, process.env.npm_package_name, "index.tsx"),
   output: {
-    path: path.resolve(__dirname, 'dist', process.env.npm_package_name),
+    path: path.resolve(__dirname, "dist", process.env.npm_package_name),
     filename: `${process.env.npm_package_name}.js`,
   },
 
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss", ".svg"],
     alias: {
-      'app-shared': path.resolve(__dirname, 'packages/shared/src'),
-      '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
-      '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
-      '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
-      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
+      "app-shared": path.resolve(__dirname, "packages/shared/src"),
+      "@altinn/schema-editor": path.resolve(
+        __dirname,
+        "packages/schema-editor/src"
+      ),
+      "@altinn/schema-model": path.resolve(
+        __dirname,
+        "packages/schema-model/src"
+      ),
+      "@altinn/ux-editor": path.resolve(__dirname, "packages/ux-editor/src"),
+      "@altinn/process-editor": path.resolve(
+        __dirname,
+        "packages/process-editor/src"
+      ),
+      "@altinn/policy-editor": path.resolve(
+        __dirname,
+        "packages/policy-editor/src"
+      ),
     },
     fallback: {
-      'react/jsx-runtime': 'react/jsx-runtime.js',
-      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+      "react/jsx-runtime": "react/jsx-runtime.js",
+      "react/jsx-dev-runtime": "react/jsx-dev-runtime.js",
     },
   },
   module: {
     rules: [
       {
         test: /\.svg$/i,
-        enforce: 'pre',
+        enforce: "pre",
         issuer: /\.[jt]sx?$/,
-        use: ['@svgr/webpack'],
+        use: ["@svgr/webpack"],
       },
       {
         test: /\.module\.css$/,
         use: [
-          'style-loader',
+          "style-loader",
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
+                localIdentName: "[name]__[local]--[hash:base64:5]",
               },
             },
           },
@@ -51,7 +64,7 @@ module.exports = {
             loader: MiniCssExtractPlugin.loader,
           },
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               url: false,
             },
@@ -60,7 +73,7 @@ module.exports = {
       },
       {
         test: /\.png$/,
-        type: 'asset/resource',
+        type: "asset/resource",
       },
     ],
   },

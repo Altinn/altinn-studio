@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react';
-import classes from './AccessControlContainer.module.css';
-import type { RootState } from '../../../store';
-import { useAppSelector } from 'app-development/hooks';
-import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { AltinnColumnLayout } from "app-shared/components/AltinnColumnLayout";
+import { ApplicationMetadataActions } from "../../../sharedResources/applicationMetadata/applicationMetadataSlice";
+import { Checkbox } from "@digdir/design-system-react";
+import classes from "./AccessControlContainer.module.css";
+import type { RootState } from "../../../store";
+import { useAppSelector } from "app-development/hooks";
+import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
@@ -17,10 +17,10 @@ export interface IPartyTypesAllowed {
 }
 
 export enum PartyTypes {
-  bankruptcyEstate = 'bankruptcyEstate',
-  organisation = 'organisation',
-  person = 'person',
-  subUnit = 'subUnit',
+  bankruptcyEstate = "bankruptcyEstate",
+  organisation = "organisation",
+  person = "person",
+  subUnit = "subUnit",
 }
 
 export function AccessControlContainer() {
@@ -28,12 +28,13 @@ export function AccessControlContainer() {
   const { t } = useTranslation();
   const { org, app } = useParams();
 
-  const [partyTypesAllowed, setPartyTypesAllowed] = useState<IPartyTypesAllowed>({
-    bankruptcyEstate: false,
-    organisation: false,
-    person: false,
-    subUnit: false,
-  });
+  const [partyTypesAllowed, setPartyTypesAllowed] =
+    useState<IPartyTypesAllowed>({
+      bankruptcyEstate: false,
+      organisation: false,
+      person: false,
+      subUnit: false,
+    });
 
   const applicationMetadata = useAppSelector(
     (state: RootState) => state.applicationMetadataState.applicationMetadata
@@ -45,7 +46,8 @@ export function AccessControlContainer() {
     }
 
     const usePartyTypesAllowed: IPartyTypesAllowed = {
-      bankruptcyEstate: !!applicationMetadata.partyTypesAllowed?.bankruptcyEstate,
+      bankruptcyEstate:
+        !!applicationMetadata.partyTypesAllowed?.bankruptcyEstate,
       organisation: !!applicationMetadata.partyTypesAllowed?.organisation,
       person: !!applicationMetadata.partyTypesAllowed?.person,
       subUnit: !!applicationMetadata.partyTypesAllowed?.subUnit,
@@ -65,7 +67,9 @@ export function AccessControlContainer() {
     });
 
     setPartyTypesAllowed(newPartyTypesAllowed);
-    const newApplicationMetadata = JSON.parse(JSON.stringify(applicationMetadata || {}));
+    const newApplicationMetadata = JSON.parse(
+      JSON.stringify(applicationMetadata || {})
+    );
     newApplicationMetadata.partyTypesAllowed = newPartyTypesAllowed;
     dispatch(
       ApplicationMetadataActions.putApplicationMetadata({
@@ -79,16 +83,22 @@ export function AccessControlContainer() {
   const SideMenu = (): JSX.Element => {
     return (
       <>
-        <p className={classes.sidebarHeader}>{t('access_control.about_header')}</p>
+        <p className={classes.sidebarHeader}>
+          {t("access_control.about_header")}
+        </p>
         <div className={classes.sidebarSectionContainer}>
           <p className={classes.sidebarSectionHeader}>
-            {t('access_control.test_initiation_header')}
+            {t("access_control.test_initiation_header")}
           </p>
-          <p className={classes.infoText}>{t('access_control.test_initiation')}</p>
+          <p className={classes.infoText}>
+            {t("access_control.test_initiation")}
+          </p>
         </div>
         <div className={classes.sidebarSectionContainer}>
-          <p className={classes.sidebarSectionHeader}>{t('access_control.test_what_header')}</p>
-          <p className={classes.infoText}>{t('access_control.test_what')}</p>
+          <p className={classes.sidebarSectionHeader}>
+            {t("access_control.test_what_header")}
+          </p>
+          <p className={classes.infoText}>{t("access_control.test_what")}</p>
         </div>
       </>
     );
@@ -96,22 +106,32 @@ export function AccessControlContainer() {
 
   return (
     <div>
-      <AltinnColumnLayout header={t('access_control.header')} sideMenuChildren={<SideMenu />}>
-        <CheckboxGroup
-          data-testid='access-control-container'
-          description={t('access_control.party_type')}
-          items={partyTypeKeys.map((key: keyof IPartyTypesAllowed) => ({
-            checkboxId: undefined,
-            checked: !!partyTypesAllowed[key],
-            description: undefined,
-            disabled: false,
-            label: t(`access_control.${key}`) as string,
-            name: key,
-          }))}
-          legend={t('access_control.party_type_header')}
+      <AltinnColumnLayout
+        header={t("access_control.header")}
+        sideMenuChildren={<SideMenu />}
+      >
+        <Checkbox.Group
+          data-testid="access-control-container"
+          description={t("access_control.party_type")}
+          legend={t("access_control.party_type_header")}
           onChange={(values) => handlePartyTypesAllowedChange(values)}
-          variant={CheckboxGroupVariant.Horizontal}
-        />
+          value={partyTypeKeys.filter(
+            (key: keyof IPartyTypesAllowed) => partyTypesAllowed[key]
+          )}
+        >
+          {partyTypeKeys.map((key: keyof IPartyTypesAllowed) => (
+            <Checkbox
+              value={key}
+              name={key}
+              disabled={false}
+              checked={!!partyTypesAllowed[key]}
+              id={undefined}
+              key={key}
+            >
+              {t(`access_control.${key}`) as string}
+            </Checkbox>
+          ))}
+        </Checkbox.Group>
       </AltinnColumnLayout>
     </div>
   );

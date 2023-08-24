@@ -20,9 +20,26 @@
   padding-block: 20px;
   border: none;
   border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
-  background-color: transparent;
+  background-color: var(--fds-semantic-background-subtle);
   cursor: pointer;
-  composes: focusable from '../../utils/utility.module.css';
+}
+
+.newPage {
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-block: 20px;
+  border: none;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  background-color: var(--fds-semantic-background-subtle);
+  cursor: pointer;
+}
+
+.newPage:focus-within {
+  --fdsc-alert-box-shadow-left: 8px 0 0 0
+    var(--fds-semantic-border-action-primary-active) inset;
+  box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 
 .backButton {
@@ -47,25 +64,33 @@
   border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   background-color: var(--fds-semantic-background-default);
   z-index: 2;
+
+  --fds-inner-focus-border-color: var(--fds-semantic-border-focus-boxshadow);
+  --fds-outer-focus-border-color: var(--fds-semantic-border-focus-outline);
+  --fds-focus-border-width: 3px;
+
+  outline: var(--fds-focus-border-width) solid
+    var(--fds-outer-focus-border-color);
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset,
+    0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
 }
 
 .navigationElement:focus:not(:focus-visible) {
   outline: none;
   box-shadow: none;
+  background-color: var(--fds-semantic-background-subtle);
 }
 
 .selected {
-  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-default) inset;
+  --fdsc-alert-box-shadow-left: 8px 0 0 0
+    var(--fds-semantic-border-action-primary-default) inset;
   box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 
 .selected:focus:not(:focus-visible) {
-  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
-  box-shadow: var(--fdsc-alert-box-shadow-left);
-}
-
-.newPage {
-  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
+  --fdsc-alert-box-shadow-left: 8px 0 0 0
+    var(--fds-semantic-border-action-primary-active) inset;
   box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 

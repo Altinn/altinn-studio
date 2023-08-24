@@ -1,7 +1,7 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { UploadIcon } from '@navikt/aksel-icons';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@digdir/design-system-react";
+import { UploadIcon } from "@navikt/aksel-icons";
 
 export interface IFileSelectorProps {
   submitHandler: (file: FormData, fileName: string) => void;
@@ -9,7 +9,9 @@ export interface IFileSelectorProps {
   formFileName: string;
   accept?: string;
   disabled?: boolean;
-  submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
+  submitButtonRenderer?: (
+    fileInputClickHandler: (event: any) => void
+  ) => JSX.Element;
 }
 
 function FileSelector({
@@ -21,17 +23,19 @@ function FileSelector({
   submitButtonRenderer,
 }: IFileSelectorProps) {
   const { t } = useTranslation();
-  const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
+  const defaultSubmitButtonRenderer = (
+    fileInputClickHandler: (event: any) => void
+  ) => (
     <Button
-      id='file-upload-button'
-      data-testid='upload-button'
+      id="file-upload-button"
+      data-testid="upload-button"
       icon={<UploadIcon />}
       onClick={fileInputClickHandler}
       disabled={disabled}
-      variant={ButtonVariant.Quiet}
-      size='small'
+      variant="quiet"
+      size="small"
     >
-      {t('app_data_modelling.upload_xsd')}
+      {t("app_data_modelling.upload_xsd")}
     </Button>
   );
 
@@ -55,10 +59,10 @@ function FileSelector({
   return (
     <form onSubmit={handleSubmit}>
       <input
-        data-testid='FileSelector-input'
-        type='file'
-        id='file-upload-picker'
-        className='sr-only'
+        data-testid="FileSelector-input"
+        type="file"
+        id="file-upload-picker"
+        className="sr-only"
         accept={accept}
         ref={fileInput}
         name={formFileName}
@@ -66,7 +70,9 @@ function FileSelector({
         disabled={busy}
         tabIndex={-1}
       />
-      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
+      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() =>
+        fileInput?.current?.click()
+      )}
     </form>
   );
 }

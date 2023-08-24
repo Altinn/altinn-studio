@@ -1,32 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
-import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
-import { ResourceTable } from 'resourceadm/components/ResourceTable';
-import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { ResourceType } from 'resourceadm/types/global';
-import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
-import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModal';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import classes from "./ResourceDashboardPage.module.css";
+import {
+  Button,
+  Spinner,
+  Heading,
+  Paragraph,
+} from "@digdir/design-system-react";
+import { PlusCircleIcon, MigrationIcon } from "@navikt/aksel-icons";
+import { ResourceTable } from "resourceadm/components/ResourceTable";
+import { SearchBox } from "resourceadm/components/ResourceSeachBox";
+import type { ResourceListItem } from "app-shared/types/ResourceAdm";
+import { useGetResourceListQuery } from "resourceadm/hooks/queries";
+import { MergeConflictModal } from "resourceadm/components/MergeConflictModal";
+import { NewResourceModal } from "resourceadm/components/NewResourceModal";
+import { ImportResourceModal } from "resourceadm/components/ImportResourceModal";
+import { useRepoStatusQuery } from "app-shared/hooks/queries";
 
 /**
- * Displays the page for the resource dashboard
+ * @component
+ *    Displays the page for the resource dashboard
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceDashboardPage = () => {
+export const ResourceDashboardPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
-  const [migrateModalOpen, setMigrateModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
-  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus, refetch } = useRepoStatusQuery(
+    selectedContext,
+    repo
+  );
   const {
     data: resourceListData,
     isLoading: resourceListLoading,
@@ -45,12 +56,16 @@ export const ResourceDashboardPage = () => {
   /**
    * Filter the list based on what is typed in the search box
    */
-  const filteredTableData = (list: ResourceType[]) => {
+  const filteredTableData = (list: ResourceListItem[]) => {
     const searchValueLower = searchValue.toLocaleLowerCase();
 
-    return list.filter((resource: ResourceType) => {
-      const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
-      return titles.some((titleString) => titleString.includes(searchValueLower));
+    return list.filter((resource: ResourceListItem) => {
+      const titles = Object.values(resource.title).map((title) =>
+        title.toLocaleLowerCase()
+      );
+      return titles.some((titleString) =>
+        titleString.includes(searchValueLower)
+      );
     });
   };
 
@@ -61,21 +76,25 @@ export const ResourceDashboardPage = () => {
     if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
+          <Spinner
+            size="3xLarge"
+            variant="interaction"
+            title="Laster inn ressurser"
+          />
         </div>
       );
     } else {
       return (
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          <div style={{ width: '100%' }}>
-            <Heading size='xsmall' level={2}>
+          <div style={{ width: "100%" }}>
+            <Heading size="xsmall" level={2}>
               {`Alle ressurser (${resourceListData?.length ?? 0})`}
             </Heading>
           </div>
           <ResourceTable list={filteredTableData(resourceListData ?? [])} />
           {filteredTableData(resourceListData ?? []).length === 0 && (
-            <Paragraph size='small' className={classes.noResultText}>
+            <Paragraph size="small" className={classes.noResultText}>
               Det finnes ingen ressursen som har navnet du søkte etter.
             </Paragraph>
           )}
@@ -87,28 +106,28 @@ export const ResourceDashboardPage = () => {
   return (
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
-        <Heading size='large' level={1}>
+        <Heading size="large" level={1}>
           {`${selectedContext}'s ressurser`}
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button
-            variant='quiet'
-            color='secondary'
-            icon={<MigrationIcon title='Migrer ressurs' />}
-            iconPlacement='right'
-            onClick={() => setMigrateModalOpen(true)}
-            size='medium'
+            variant="quiet"
+            color="secondary"
+            icon={<MigrationIcon title="Importer ressurs" />}
+            iconPlacement="right"
+            onClick={() => setImportModalOpen(true)}
+            size="medium"
           >
-            <strong>Migrer ressurs</strong>
+            <strong>Importer ressurs</strong>
           </Button>
           <div className={classes.verticalDivider} />
           <Button
-            variant='quiet'
-            color='secondary'
-            icon={<PlusCircleIcon title='Opprett ny ressurs' />}
-            iconPlacement='right'
+            variant="quiet"
+            color="secondary"
+            icon={<PlusCircleIcon title="Opprett ny ressurs" />}
+            iconPlacement="right"
             onClick={() => setNewResourceModalOpen(true)}
-            size='medium'
+            size="medium"
           >
             <strong>Opprett ny ressurs</strong>
           </Button>
@@ -128,7 +147,10 @@ export const ResourceDashboardPage = () => {
         isOpen={newResourceModalOpen}
         onClose={() => setNewResourceModalOpen(false)}
       />
-      <MigrateResourceModal isOpen={migrateModalOpen} onClose={() => setMigrateModalOpen(false)} />
+      <ImportResourceModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+      />
     </div>
   );
 };

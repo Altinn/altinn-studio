@@ -1,41 +1,42 @@
-import { MouseEvent, useState } from 'react';
-import React from 'react';
-import { pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
-import { FieldType } from '@altinn/schema-model';
-import { EnumField } from './EnumField';
+import { MouseEvent, useState } from "react";
+import React from "react";
+import { pointerIsDefinition, UiSchemaNode } from "@altinn/schema-model";
+import { FieldType } from "@altinn/schema-model";
+import { EnumField } from "./EnumField";
 import {
   addEnumValue,
   deleteEnumValue,
   setRequired,
   setRestriction,
   setRestrictions,
-} from '@altinn/schema-model';
-import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
-import { NumberRestrictions } from './restrictions/NumberRestrictions';
-import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
-import { StringRestrictions } from './restrictions/StringRestrictions';
-import classes from './ItemRestrictions.module.css';
+} from "@altinn/schema-model";
+import { ArrayRestrictions } from "./restrictions/ArrayRestrictions";
+import { NumberRestrictions } from "./restrictions/NumberRestrictions";
+import { ObjectRestrictions } from "./restrictions/ObjectRestrictions";
+import { StringRestrictions } from "./restrictions/StringRestrictions";
+import classes from "./ItemRestrictions.module.css";
 import {
   Button,
-  ButtonColor,
-  ButtonSize,
-  ButtonVariant,
-  Checkbox,
-  FieldSet,
+  LegacyCheckbox,
+  LegacyFieldSet,
   ErrorMessage,
-} from '@digdir/design-system-react';
-import { Divider } from 'app-shared/primitives';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { useTranslation } from 'react-i18next';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+} from "@digdir/design-system-react";
+import { Divider } from "app-shared/primitives";
+import { PlusIcon } from "@navikt/aksel-icons";
+import { useTranslation } from "react-i18next";
+import { KeyValuePairs } from "app-shared/types/KeyValuePairs";
+import { useDatamodelMutation } from "@altinn/schema-editor/hooks/mutations";
+import { useDatamodelQuery } from "@altinn/schema-editor/hooks/queries";
 
 export interface RestrictionItemProps {
   restrictions: any;
   readonly: boolean;
   path: string;
-  onChangeRestrictionValue: (id: string, key: string, value?: string | boolean) => void;
+  onChangeRestrictionValue: (
+    id: string,
+    key: string,
+    value?: string | boolean
+  ) => void;
   onChangeRestrictions: (id: string, restrictions: KeyValuePairs) => void;
 }
 
@@ -65,10 +66,16 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     }
   };
 
-  const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
-    mutate(setRestriction(data, { path, key, value }));
+  const onChangeRestrictionValue = (
+    path: string,
+    key: string,
+    value?: string | boolean
+  ) => mutate(setRestriction(data, { path, key, value }));
 
-  const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
+  const onChangeRestrictions = (
+    path: string,
+    changedRestrictions: KeyValuePairs
+  ) =>
     mutate(setRestrictions(data, { path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
@@ -86,7 +93,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     mutate(deleteEnumValue(data, { path, value }));
 
   const dispatchAddEnum = () =>
-    mutate(addEnumValue(data, { path: pointer, value: 'value' }));
+    mutate(addEnumValue(data, { path: pointer, value: "value" }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -97,38 +104,46 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
     readonly: reference !== undefined,
-    path: pointer ?? '',
+    path: pointer ?? "",
     onChangeRestrictionValue,
     onChangeRestrictions,
   };
   return (
     <>
       {!pointerIsDefinition(pointer) && (
-        <Checkbox
+        <LegacyCheckbox
           checked={isRequired}
-          label={t('schema_editor.required')}
-          name='checkedRequired'
+          label={t("schema_editor.required")}
+          name="checkedRequired"
           onChange={handleRequiredChanged}
         />
       )}
       {reference === undefined &&
         {
-          [FieldType.Integer]: <NumberRestrictions {...restrictionProps} isInteger />,
-          [FieldType.Number]: <NumberRestrictions {...restrictionProps} isInteger={false} />,
+          [FieldType.Integer]: (
+            <NumberRestrictions {...restrictionProps} isInteger />
+          ),
+          [FieldType.Number]: (
+            <NumberRestrictions {...restrictionProps} isInteger={false} />
+          ),
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
         }[fieldType as string]}
       {isArray && <ArrayRestrictions {...restrictionProps} />}
-      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(fieldType as FieldType) && (
+      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(
+        fieldType as FieldType
+      ) && (
         <>
-          <Divider marginless/>
-          <FieldSet legend={t('schema_editor.enum_legend')}>
+          <Divider marginless />
+          <LegacyFieldSet legend={t("schema_editor.enum_legend")}>
             {!enums?.length && (
-              <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
+              <p className={classes.emptyEnumMessage}>
+                {t("schema_editor.enum_empty")}
+              </p>
             )}
             {enumError !== null && (
               <ErrorMessage>
-                <p>{t('schema_editor.enum_error_duplicate')}</p>
+                <p>{t("schema_editor.enum_error_duplicate")}</p>
               </ErrorMessage>
             )}
             {enums?.map((value: string, index) => (
@@ -145,19 +160,19 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
             ))}
             <div className={classes.addEnumButton}>
               <Button
-                aria-label={t('schema_editor.add_enum')}
-                color={ButtonColor.Secondary}
+                aria-label={t("schema_editor.add_enum")}
+                color="secondary"
                 fullWidth
                 icon={<PlusIcon />}
-                id='add-enum-button'
+                id="add-enum-button"
                 onClick={onAddEnumButtonClick}
-                size={ButtonSize.Small}
-                variant={ButtonVariant.Outline}
+                size="small"
+                variant="outline"
               >
-                {t('schema_editor.add_enum')}
+                {t("schema_editor.add_enum")}
               </Button>
             </div>
-          </FieldSet>
+          </LegacyFieldSet>
         </>
       )}
     </>

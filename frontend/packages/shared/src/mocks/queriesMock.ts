@@ -1,6 +1,6 @@
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import inputComponentSchema from '../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json';
-import commonDefsComponentSchema from '../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json';
+import { ServicesContextProps } from "app-shared/contexts/ServicesContext";
+import inputComponentSchema from "../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json";
+import commonDefsComponentSchema from "../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json";
 
 export const queriesMock: ServicesContextProps = {
   addAppAttachmentMetadata: jest.fn(),
@@ -24,7 +24,9 @@ export const queriesMock: ServicesContextProps = {
   getAppReleases: jest.fn(),
   getBranchStatus: jest.fn(),
   getComponentSchema: jest.fn().mockResolvedValue(inputComponentSchema),
-  getComponentsCommonDefsSchema: jest.fn().mockResolvedValue(commonDefsComponentSchema),
+  getComponentsCommonDefsSchema: jest
+    .fn()
+    .mockResolvedValue(commonDefsComponentSchema),
   getDatamodel: jest.fn(),
   getDatamodelMetadata: jest.fn(),
   getDatamodels: jest.fn(),
@@ -82,4 +84,6 @@ export const queriesMock: ServicesContextProps = {
   upsertTextResources: jest.fn(),
   getBpnmFile: jest.fn(),
   updateBpmnXml: jest.fn(),
+  getAppPolicy: jest.fn(),
+  updateAppPolicy: jest.fn(),
 };

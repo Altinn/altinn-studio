@@ -1,24 +1,24 @@
-import React, { useCallback, useState } from 'react';
-import { AltinnSpinner } from 'app-shared/components';
-import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
-import { RepoNameInput } from '../../components/RepoNameInput';
-import { validateRepoName } from '../../utils/repoUtils';
-import { applicationAboutPage } from '../../utils/urlUtils';
-import classes from './CreateService.module.css';
-import { Button, ButtonColor } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
-import i18next from 'i18next';
-import { Organization } from 'app-shared/types/Organization';
-import { User } from 'app-shared/types/User';
-import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
-import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useState } from "react";
+import { AltinnSpinner } from "app-shared/components";
+import { ServiceOwnerSelector } from "../../components/ServiceOwnerSelector";
+import { RepoNameInput } from "../../components/RepoNameInput";
+import { validateRepoName } from "../../utils/repoUtils";
+import { applicationAboutPage } from "../../utils/urlUtils";
+import classes from "./CreateService.module.css";
+import { Button } from "@digdir/design-system-react";
+import { useTranslation } from "react-i18next";
+import i18next from "i18next";
+import { Organization } from "app-shared/types/Organization";
+import { User } from "app-shared/types/User";
+import { useAddRepoMutation } from "dashboard/hooks/mutations/useAddRepoMutation";
+import { DatamodelFormat } from "app-shared/types/DatamodelFormat";
+import { SelectedContextType } from "app-shared/navigation/main-header/Header";
+import { useSelectedContext } from "dashboard/hooks/useSelectedContext";
+import { useNavigate } from "react-router-dom";
 
 enum PageState {
-  Idle = 'Idle',
-  Creating = 'Creating',
+  Idle = "Idle",
+  Creating = "Creating",
 }
 
 interface IValidateInputs {
@@ -38,19 +38,19 @@ const validateInputs = ({
 }: IValidateInputs) => {
   let isValid = true;
   if (!selectedOrgOrUser) {
-    setOrgErrorMessage(t('dashboard.field_cannot_be_empty'));
+    setOrgErrorMessage(t("dashboard.field_cannot_be_empty"));
     isValid = false;
   }
   if (!repoName) {
-    setRepoErrorMessage(t('dashboard.field_cannot_be_empty'));
+    setRepoErrorMessage(t("dashboard.field_cannot_be_empty"));
     isValid = false;
   }
   if (repoName && !validateRepoName(repoName)) {
-    setRepoErrorMessage(t('dashboard.service_name_has_illegal_characters'));
+    setRepoErrorMessage(t("dashboard.service_name_has_illegal_characters"));
     isValid = false;
   }
   if (repoName.length > 30) {
-    setRepoErrorMessage(t('dashboard.service_name_is_too_long'));
+    setRepoErrorMessage(t("dashboard.service_name_is_too_long"));
     isValid = false;
   }
   return isValid;
@@ -60,13 +60,18 @@ type CreateServiceProps = {
   user: User;
   organizations: Organization[];
 };
-export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
+export const CreateService = ({
+  user,
+  organizations,
+}: CreateServiceProps): JSX.Element => {
   const selectedFormat = DatamodelFormat.XSD;
   const selectedContext = useSelectedContext();
-  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(selectedContext === SelectedContextType.Self ? user.login : selectedContext);
+  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext
+  );
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
-  const [repoName, setRepoName] = useState('');
+  const [repoName, setRepoName] = useState("");
   const [pageState, setPageState] = useState(PageState.Idle);
   const { mutate: addRepo } = useAddRepoMutation();
   const { t } = useTranslation();
@@ -95,7 +100,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       setPageState(PageState.Creating);
 
       await addRepo(
-        { org: selectedOrgOrUser, repository: repoName, datamodellingPreference: selectedFormat },
+        {
+          org: selectedOrgOrUser,
+          repository: repoName,
+          datamodellingPreference: selectedFormat,
+        },
         {
           onSuccess: (repository) => {
             window.location.assign(
@@ -108,10 +117,10 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           onError: (error: { response: { status: number } }) => {
             if (error.response.status === 409) {
               setPageState(PageState.Idle);
-              setRepoErrorMessage(t('dashboard.app_already_exist'));
+              setRepoErrorMessage(t("dashboard.app_already_exists"));
             } else {
               setPageState(PageState.Idle);
-              setRepoErrorMessage(t('dashboard.error_when_creating_app'));
+              setRepoErrorMessage(t("dashboard.error_when_creating_app"));
             }
           },
         }
@@ -133,14 +142,14 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         errorMessage={repoErrorMessage}
       />
       {pageState === PageState.Creating ? (
-        <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
+        <AltinnSpinner spinnerText={t("dashboard.creating_your_service")} />
       ) : (
         <div className={classes.buttonContainer}>
-          <Button color={ButtonColor.Primary} onClick={handleCreateService} size='small'>
-            {t('dashboard.create_service_btn')}
+          <Button color="primary" onClick={handleCreateService} size="small">
+            {t("dashboard.create_service_btn")}
           </Button>
-          <Button color={ButtonColor.Inverted} onClick={() => navigate(-1)} size='small'>
-            {t('general.cancel')}
+          <Button color="inverted" onClick={() => navigate(-1)} size="small">
+            {t("general.cancel")}
           </Button>
         </div>
       )}

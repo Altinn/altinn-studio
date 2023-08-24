@@ -1,43 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import classes from './releaseContainer.module.css';
-import type { AppRelease } from 'app-shared/types/AppRelease';
-import type { KeyboardEvent, MouseEvent } from 'react';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
-import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
-import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
-import { ReleaseComponent } from '../components/appReleaseComponent';
-import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
-import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery } from '../../../hooks';
-import { useParams } from 'react-router-dom';
-import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
-import { Trans, useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { AltinnSpinner } from 'app-shared/components';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import React, { useEffect, useState } from "react";
+import classes from "./releaseContainer.module.css";
+import type { AppRelease } from "app-shared/types/AppRelease";
+import type { KeyboardEvent, MouseEvent } from "react";
+import { AltinnIconComponent } from "app-shared/components/AltinnIcon";
+import { BuildResult, BuildStatus } from "app-shared/types/Build";
+import { Button, Popover } from "@digdir/design-system-react";
+import { CreateReleaseComponent } from "../components/createAppReleaseComponent";
+import { ReleaseComponent } from "../components/appReleaseComponent";
+import { UploadIcon, CheckmarkIcon } from "@navikt/aksel-icons";
+import { gitCommitPath } from "app-shared/api/paths";
+import { useMediaQuery } from "../../../hooks";
+import { useParams } from "react-router-dom";
+import {
+  useBranchStatusQuery,
+  useAppReleasesQuery,
+} from "../../../hooks/queries";
+import { Trans, useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import { QueryKey } from "app-shared/types/QueryKey";
+import { AltinnSpinner } from "app-shared/components";
+import { useRepoStatusQuery } from "app-shared/hooks/queries";
 
 export function ReleaseContainer() {
-  const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
+  const hiddenMdDown = useMediaQuery("(max-width: 1025px)");
   const { org, app } = useParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
-  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatusQuery(org, app);
-  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
-    org,
-    app,
-    'master'
-  );
+  const { data: repoStatus, isLoading: repoStatusIsLoading } =
+    useRepoStatusQuery(org, app);
+  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } =
+    useBranchStatusQuery(org, app, "master");
 
-  const latestRelease: AppRelease = releases && releases[0] ? releases[0] : null;
+  const latestRelease: AppRelease =
+    releases && releases[0] ? releases[0] : null;
 
   const { t } = useTranslation();
 
   function handlePopoverKeyPress(event: KeyboardEvent) {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       setPopoverOpenClick(!popoverOpenClick);
     }
   }
@@ -45,7 +47,9 @@ export function ReleaseContainer() {
   const queryClient = useQueryClient();
   useEffect(() => {
     const interval = setInterval(async () => {
-      const index = releases.findIndex((release) => release.build.status !== BuildStatus.completed);
+      const index = releases.findIndex(
+        (release) => release.build.status !== BuildStatus.completed
+      );
       if (index > -1) {
         await queryClient.invalidateQueries([QueryKey.AppReleases, org, app]);
       }
@@ -53,18 +57,21 @@ export function ReleaseContainer() {
     return () => clearInterval(interval);
   }, [releases, queryClient, org, app]);
 
-  const handlePopoverOpenClicked = (_: MouseEvent) => setPopoverOpenClick(!popoverOpenClick);
+  const handlePopoverOpenClicked = (_: MouseEvent) =>
+    setPopoverOpenClick(!popoverOpenClick);
   const handlePopoverOpenHover = (_: MouseEvent) => setPopoverOpenHover(true);
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCreateRelease() {
     if (repoStatusIsLoading || masterBranchStatusIsLoading) {
       return (
-        <div style={{ padding: '2rem' }}>
+        <div style={{ padding: "2rem" }}>
           <div>
             <AltinnSpinner />
           </div>
-          <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
+          <div style={{ padding: "1.2rem" }}>
+            {t("app_create_release.check_status")}
+          </div>
         </div>
       );
     }
@@ -77,17 +84,17 @@ export function ReleaseContainer() {
           {hiddenMdDown ? null : (
             <AltinnIconComponent
               iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-              iconColor='#E23B53'
+              iconColor="#E23B53"
             />
           )}
           <div>
             <div className={classes.cannotCreateReleaseTitle}>
-              <Trans i18nKey={'app_create_release_errors.fetch_release_failed'}>
-                <a target='_blank' rel='noopener noreferrer' />
+              <Trans i18nKey={"app_create_release_errors.fetch_release_failed"}>
+                <a target="_blank" rel="noopener noreferrer" />
               </Trans>
             </div>
             <div className={classes.cannotCreateReleaseSubTitle}>
-              {t('app_create_release_errors.technical_error_code')}
+              {t("app_create_release_errors.technical_error_code")}
             </div>
           </div>
         </div>
@@ -101,8 +108,8 @@ export function ReleaseContainer() {
       latestRelease.build.result === BuildResult.succeeded
     ) {
       return (
-        <div style={{ padding: '2rem' }}>
-          {t('app_create_release.no_changes_on_current_release')}
+        <div style={{ padding: "2rem" }}>
+          {t("app_create_release.no_changes_on_current_release")}
         </div>
       );
     }
@@ -112,8 +119,8 @@ export function ReleaseContainer() {
       latestRelease.build.status !== BuildStatus.completed
     ) {
       return (
-        <div style={{ padding: '2rem' }}>
-          {t('app_create_release.still_building_release', {
+        <div style={{ padding: "2rem" }}>
+          {t("app_create_release.still_building_release", {
             version: latestRelease.targetCommitish,
           })}
         </div>
@@ -144,16 +151,19 @@ export function ReleaseContainer() {
       !repoStatus?.contentStatus.length ||
       !releases.length
     ) {
-      return 'Ok';
+      return "Ok";
     }
     if (!releases || !releases.length) {
       return null;
     }
-    if (!!latestRelease && latestRelease.targetCommitish === masterBranchStatus.commit.id) {
-      return t('app_create_release.local_changes_cant_build');
+    if (
+      !!latestRelease &&
+      latestRelease.targetCommitish === masterBranchStatus.commit.id
+    ) {
+      return t("app_create_release.local_changes_cant_build");
     }
     if (repoStatus.contentStatus) {
-      return t('app_create_release.local_changes_can_build');
+      return t("app_create_release.local_changes_can_build");
     }
     return null;
   }
@@ -170,13 +180,13 @@ export function ReleaseContainer() {
     ) {
       return (
         <>
-          {t('app_release.release_title')} &nbsp;
+          {t("app_release.release_title")} &nbsp;
           <a
             href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
-            target='_blank'
-            rel='noopener noreferrer'
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            {t('app_release.release_title_link')}
+            {t("app_release.release_title_link")}
           </a>
         </>
       );
@@ -184,14 +194,14 @@ export function ReleaseContainer() {
     if (latestRelease.targetCommitish === masterBranchStatus.commit.id) {
       return (
         <>
-          {t('general.version')}
+          {t("general.version")}
           &nbsp;
           {latestRelease.tagName}
           &nbsp;
-          {t('general.contains')}
+          {t("general.contains")}
           &nbsp;
           <a href={gitCommitPath(org, app, masterBranchStatus.commit.id)}>
-            {t('app_release.release_title_link')}
+            {t("app_release.release_title_link")}
           </a>
         </>
       );
@@ -202,10 +212,14 @@ export function ReleaseContainer() {
   return (
     <div className={classes.appReleaseWrapper}>
       <div className={classes.versionHeader}>
-        <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
+        <div className={classes.versionHeaderTitle}>
+          {t("app_release.release_tab_versions")}
+        </div>
       </div>
       <div className={classes.versionSubHeader}>
-        <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+        <div className={classes.appCreateReleaseTitle}>
+          {renderCreateReleaseTitle()}
+        </div>
         <Popover
           className={classes.popover}
           open={popoverOpenClick || popoverOpenHover}
@@ -218,16 +232,20 @@ export function ReleaseContainer() {
               tabIndex={0}
               onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
-              size={ButtonSize.Small}
-              variant={ButtonVariant.Quiet}
+              size="small"
+              variant="quiet"
             />
           }
         >
           {renderStatusMessage()}
         </Popover>
       </div>
-      <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
-      <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
+      <div className={classes.appReleaseCreateRelease}>
+        {renderCreateRelease()}
+      </div>
+      <div className={classes.appReleaseHistoryTitle}>
+        {t("app_release.earlier_releases")}
+      </div>
       <div className={classes.appReleaseHistory}>
         {!!releases.length &&
           releases.map((release: AppRelease, index: number) => (

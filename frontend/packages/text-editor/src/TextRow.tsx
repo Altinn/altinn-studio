@@ -1,23 +1,25 @@
-import React, { useState } from 'react';
-import classes from './TextRow.module.css';
-import type { UpsertTextResourceMutation } from './types';
-import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
+import React, { useState } from "react";
+import classes from "./TextRow.module.css";
+import type { UpsertTextResourceMutation } from "./types";
+import { TrashIcon, PencilIcon } from "@navikt/aksel-icons";
 import {
   Button,
-  ButtonSize,
-  ButtonVariant,
   ErrorMessage,
   TableCell,
   TableRow,
   TextField,
-} from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
-import { ButtonContainer } from 'app-shared/primitives';
-import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
-import { validateTextId } from './utils';
-import { TextEntry } from './TextEntry';
-import { Variables } from './Variables';
-import { AltinnConfirmDialog } from 'app-shared/components';
+} from "@digdir/design-system-react";
+import { useTranslation } from "react-i18next";
+import { ButtonContainer } from "app-shared/primitives";
+import {
+  TextResourceIdMutation,
+  TextResourceVariable,
+  TextTableRowEntry,
+} from "./types";
+import { validateTextId } from "./utils";
+import { TextEntry } from "./TextEntry";
+import { Variables } from "./Variables";
+import { AltinnConfirmDialog } from "app-shared/components";
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -45,15 +47,18 @@ export const TextRow = ({
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
   const [textVariables] = useState(variables);
-  const [keyError, setKeyError] = useState('');
+  const [keyError, setKeyError] = useState("");
   const { t } = useTranslation();
-  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
+    useState<boolean>();
 
-  const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleTextIdChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     const newTextId = event.currentTarget.value;
     if (newTextId !== textId) {
       if (idExists(newTextId)) {
-        setKeyError('Denne IDen finnes allerede');
+        setKeyError("Denne IDen finnes allerede");
       } else {
         setKeyError(validateTextId(newTextId));
       }
@@ -72,28 +77,30 @@ export const TextRow = ({
   };
 
   return (
-    <TableRow data-testid={'lang-row'}>
+    <TableRow data-testid={"lang-row"}>
       <TableCell>
         {showButton && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
-            confirmText={t('schema_editor.textRow-deletion-confirm')}
+            confirmText={t("schema_editor.textRow-deletion-confirm")}
             onConfirm={handleDeleteClick}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             trigger={
               <Button
                 className={classes.deleteButton}
                 icon={<TrashIcon title={`Slett ${textId}`} />}
-                variant={ButtonVariant.Quiet}
-                onClick={() => setIsConfirmDeleteDialogOpen(prevState => !prevState)}
-                aria-label={t('schema_editor.delete')}
-                size='small'
+                variant="quiet"
+                onClick={() =>
+                  setIsConfirmDeleteDialogOpen((prevState) => !prevState)
+                }
+                aria-label={t("schema_editor.delete")}
+                size="small"
               >
-                {t('schema_editor.delete')}
+                {t("schema_editor.delete")}
               </Button>
             }
           >
-            <p>{t('schema_editor.textRow-deletion-text')}</p>
+            <p>{t("schema_editor.textRow-deletion-text")}</p>
           </AltinnConfirmDialog>
         )}
       </TableCell>
@@ -102,12 +109,20 @@ export const TextRow = ({
         if (!translation) {
           translation = {
             lang,
-            translation: '',
+            translation: "",
           };
         }
         return (
-          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
-            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} className={classes.textEntryComponent}/>
+          <TableCell
+            key={translation.lang + "-" + textId}
+            className={classes.textAreaCell}
+          >
+            <TextEntry
+              {...translation}
+              upsertTextResource={upsertTextResource}
+              textId={textId}
+              className={classes.textEntryComponent}
+            />
           </TableCell>
         );
       })}
@@ -116,26 +131,28 @@ export const TextRow = ({
           {textIdEditOpen ? (
             <div>
               <TextField
-                aria-label={'tekst key edit'}
+                aria-label={"tekst key edit"}
                 isValid={!keyError}
                 value={textIdValue}
-                type='text'
+                type="text"
                 onBlur={handleTextIdBlur}
                 onChange={handleTextIdChange}
               />
-              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
+              {keyError ? (
+                <ErrorMessage role="alertdialog">{keyError}</ErrorMessage>
+              ) : null}
             </div>
           ) : (
-            <div role='text' aria-readonly className={classes.textId}>
+            <div role="text" aria-readonly className={classes.textId}>
               <span>{textIdValue}</span>
             </div>
           )}
           {showButton && (
             <Button
-              aria-label={'toggle-textkey-edit'}
+              aria-label={"toggle-textkey-edit"}
               icon={<PencilIcon className={classes.smallIcon} />}
-              variant={ButtonVariant.Quiet}
-              size={ButtonSize.Small}
+              variant="quiet"
+              size="small"
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}

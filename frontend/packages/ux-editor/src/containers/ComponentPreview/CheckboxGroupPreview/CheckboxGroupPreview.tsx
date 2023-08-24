@@ -1,17 +1,17 @@
-import React from 'react';
-import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup } from '@digdir/design-system-react';
-import classes from './CheckboxGroupPreview.module.css';
-import { TextResource } from '../../../components/TextResource';
-import { useText } from '../../../hooks';
+import React from "react";
+import { IGenericEditComponent } from "../../../components/config/componentConfig";
+import { LegacyCheckboxGroup } from "@digdir/design-system-react";
+import classes from "./CheckboxGroupPreview.module.css";
+import { TextResource } from "../../../components/TextResource";
+import { useText } from "../../../hooks";
 import {
   changeComponentOptionLabel,
   changeDescriptionBinding,
   changeTitleBinding,
-} from '../../../utils/component';
-import { AddOption } from '../../../components/AddOption';
-import { TranslationKey } from 'language/type';
-import type { FormCheckboxesComponent } from '../../../types/FormComponent';
+} from "../../../utils/component";
+import { AddOption } from "../../../components/AddOption";
+import { TranslationKey } from "language/type";
+import type { FormCheckboxesComponent } from "../../../types/FormComponent";
 
 export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
   component: FormCheckboxesComponent;
@@ -23,7 +23,8 @@ export const CheckboxGroupPreview = ({
   layoutName,
 }: CheckboxGroupPreviewProps) => {
   const t = useText();
-  const tCheckboxes = (key: string) => t(`ux_editor.checkboxes_${key}` as TranslationKey);
+  const tCheckboxes = (key: string) =>
+    t(`ux_editor.checkboxes_${key}` as TranslationKey);
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));
@@ -36,30 +37,30 @@ export const CheckboxGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <CheckboxGroup
+      <LegacyCheckboxGroup
         legend={
           <TextResource
             handleIdChange={changeLegend}
-            placeholder={tCheckboxes('legend_placeholder')}
+            placeholder={tCheckboxes("legend_placeholder")}
             previewMode
             textResourceId={component.textResourceBindings?.title}
             generateIdOptions={{
               componentId: component.id,
               layoutId: layoutName,
-              textResourceKey: 'title',
+              textResourceKey: "title",
             }}
           />
         }
         description={
           <TextResource
             handleIdChange={changeDescription}
-            placeholder={tCheckboxes('description_placeholder')}
+            placeholder={tCheckboxes("description_placeholder")}
             previewMode
             textResourceId={component.textResourceBindings?.description}
             generateIdOptions={{
               componentId: component.id,
               layoutId: layoutName,
-              textResourceKey: 'description',
+              textResourceKey: "description",
             }}
           />
         }
@@ -69,7 +70,7 @@ export const CheckboxGroupPreview = ({
             label: (
               <TextResource
                 handleIdChange={(id) => changeOptionLabel(value, id)}
-                placeholder={tCheckboxes('option_label_placeholder')}
+                placeholder={tCheckboxes("option_label_placeholder")}
                 previewMode
                 textResourceId={label}
               />
@@ -82,8 +83,8 @@ export const CheckboxGroupPreview = ({
         <AddOption<FormCheckboxesComponent>
           addButtonClass={classes.addCheckbox}
           component={component}
-          duplicateErrorText={tCheckboxes('option_value_error_duplicate')}
-          emptyErrorText={tCheckboxes('option_value_error_empty')}
+          duplicateErrorText={tCheckboxes("option_value_error_duplicate")}
+          emptyErrorText={tCheckboxes("option_value_error_empty")}
           handleComponentChange={handleComponentChange}
         />
       )}

@@ -1,0 +1,20 @@
+{
+  "name": "@altinn/policy-editor",
+  "description": "Package for the policy editor in Altinn Studio",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "index.ts",
+  "private": true,
+  "packageManager": "yarn@3.6.1",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "29.6.2"
+  },
+  "peerDependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "5.1.6"
+  }
+}

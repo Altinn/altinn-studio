@@ -1,8 +1,12 @@
-import React, { ReactNode, useCallback } from 'react';
-import { DropTargetMonitor, useDrop } from 'react-dnd';
-import { DraggableEditorItemType, DndItem, HandleDrop } from '../../types/dndTypes';
-import classes from './DroppableList.module.css';
-import { testids } from '../../../../../testing/testids';
+import React, { ReactNode, useCallback } from "react";
+import { DropTargetMonitor, useDrop } from "react-dnd";
+import {
+  DraggableEditorItemType,
+  DndItem,
+  HandleDrop,
+} from "../../types/dndTypes";
+import classes from "./DroppableList.module.css";
+import * as testids from "../../../../../testing/testids";
 
 export interface DroppableListProps {
   children: ReactNode;
@@ -22,10 +26,15 @@ export const DroppableList = ({
   handleDrop,
 }: DroppableListProps) => {
   const canDrop = useCallback(
-    (monitor: DropTargetMonitor) => monitor.isOver({ shallow: true }) && !disabledDrop,
-    [disabledDrop],
+    (monitor: DropTargetMonitor) =>
+      monitor.isOver({ shallow: true }) && !disabledDrop,
+    [disabledDrop]
   );
-  const [{ canBeDropped }, drop] = useDrop<DndItem, unknown, DroppableListCollectedProps>({
+  const [{ canBeDropped }, drop] = useDrop<
+    DndItem,
+    unknown,
+    DroppableListCollectedProps
+  >({
     accept: Object.values(DraggableEditorItemType),
     drop: (draggedItem, monitor) => {
       if (canDrop(monitor)) {
@@ -36,7 +45,9 @@ export const DroppableList = ({
       canBeDropped: canDrop(monitor),
     }),
   });
-  const backgroundColor = canBeDropped ? 'var(--list-empty-space-hover-color)' : 'transparent';
+  const backgroundColor = canBeDropped
+    ? "var(--list-empty-space-hover-color)"
+    : "transparent";
   return (
     <div
       className={classes.root}
@@ -47,4 +58,4 @@ export const DroppableList = ({
       {children}
     </div>
   );
-}
+};

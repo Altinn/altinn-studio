@@ -1,9 +1,9 @@
-import React from 'react';
-import classes from './GiteaHeader.module.css';
-import { VersionControlButtons } from './VersionControlButtons';
-import { ThreeDotsMenu } from './ThreeDotsMenu';
+import React from "react";
+import classes from "./GiteaHeader.module.css";
+import { VersionControlButtons } from "./VersionControlButtons";
+import { ThreeDotsMenu } from "./ThreeDotsMenu";
 
-interface Props {
+type GiteaHeaderProps = {
   /**
    * The name of the organisation
    */
@@ -24,7 +24,7 @@ interface Props {
    * Classname for some extra styling
    */
   className?: string;
-}
+};
 
 /**
  * @component
@@ -51,13 +51,17 @@ export const GiteaHeader = ({
   menuOnlyHasRepository = false,
   hasCloneModal = false,
   className,
-}: Props): React.ReactNode => {
+}: GiteaHeaderProps): React.ReactNode => {
   return (
     <div className={classes.wrapper}>
       <div className={`${classes.contentWrapper} ${className && className}`}>
-        <VersionControlButtons data-testid='version-control-header' org={org} app={app} />
+        <VersionControlButtons
+          data-testid="version-control-header"
+          org={org}
+          app={app}
+        />
         <ThreeDotsMenu
-          data-testid='three-dots-menu'
+          data-testid="three-dots-menu"
           onlyShowRepository={menuOnlyHasRepository}
           hasCloneModal={hasCloneModal}
         />

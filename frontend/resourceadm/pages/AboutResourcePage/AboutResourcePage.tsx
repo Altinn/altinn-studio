@@ -1,59 +1,78 @@
-import React, { useState } from 'react';
-import classes from './AboutResourcePage.module.css';
+import React, { useRef, useState } from "react";
+import classes from "./AboutResourcePage.module.css";
 import {
   Select,
   TextField,
   TextArea,
-  Button,
   ErrorMessage,
   Heading,
   Paragraph,
   Label,
-} from '@digdir/design-system-react';
-import { Switch } from 'resourceadm/components/Switch';
-import { useParams } from 'react-router-dom';
-import {
+} from "@digdir/design-system-react";
+import { Switch } from "resourceadm/components/Switch";
+import { useParams } from "react-router-dom";
+import type { LanguageString, Translation } from "resourceadm/types/global";
+import type {
+  ResourceThematic,
   SupportedLanguageKey,
-  ResourceBackendType,
-  ResourceTypeOptionType,
-  ResourceKeywordType,
-  ResourceSectorType,
-  ResourceThematicType,
-  LanguageStringType,
-} from 'resourceadm/types/global';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
+  Resource,
+  ResourceTypeOption,
+  ResourceKeyword,
+  ResourceSector,
+} from "app-shared/types/ResourceAdm";
+import { ScreenReaderSpan } from "resourceadm/components/ScreenReaderSpan";
+import { RightTranslationBar } from "resourceadm/components/RightTranslationBar";
 
 /**
  * The resource type options to be used in the select
  */
 const resourceTypeOptions = [
-  { value: 'Standard', label: 'Standard' },
-  { value: 'System ressurs', label: 'System ressurs' },
-  { value: 'Maskinporten skjema', label: 'Maskinporten skjema' },
+  { value: "Standard", label: "Standard" },
+  { value: "System ressurs", label: "System ressurs" },
+  { value: "Maskinporten skjema", label: "Maskinporten skjema" },
 ];
 
 /**
  * Initial value for languages with empty fields
  */
-const emptyLangauges: LanguageStringType = { nb: '', nn: '', en: '' };
+const emptyLangauges: LanguageString = { nb: "", nn: "", en: "" };
 
-interface Props {
+type AboutResourcePageProps = {
+  /**
+   * Flag to decide if all errors should be shown or not
+   */
   showAllErrors: boolean;
-  resourceData: ResourceBackendType;
-  sectorsData: ResourceSectorType[];
-  thematicData: ResourceThematicType[];
-  onSaveResource: (r: ResourceBackendType) => void;
-}
+  /**
+   * The metadata for the resource
+   */
+  resourceData: Resource;
+  /**
+   * The list of possible sectors
+   */
+  sectorsData: ResourceSector[];
+  /**
+   * The list of possible thematic areas
+   */
+  thematicData: ResourceThematic[];
+  /**
+   * Function to be handled when saving the resource
+   * @param r the resource
+   * @returns void
+   */
+  onSaveResource: (r: Resource) => void;
+};
 
 /**
- * Page that displays information about a resource
+ * @component
+ *    Page that displays information about a resource
  *
- * @param props.showAllErrors flag to decide if all errors should be shown or not
- * @param props.resourceData the metadata for the resource
- * @param props.sectorsData the list of possible sectors
- * @param props.thematicData the list of possible thematic areas
- * @param props.onSaveResource function to be handled when saving the resource
+ * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
+ * @property {Resource}[resourceData] - The metadata for the resource
+ * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
+ * @property {ResourceThematic[]}[thematicData] - The list of possible thematic areas
+ * @property {function}[onSaveResource] - Function to be handled when saving the resource
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const AboutResourcePage = ({
   showAllErrors,
@@ -61,7 +80,7 @@ export const AboutResourcePage = ({
   sectorsData,
   thematicData,
   onSaveResource,
-}: Props) => {
+}: AboutResourcePageProps): React.ReactNode => {
   // TODO - translation
   const { resourceId } = useParams();
 
@@ -71,15 +90,21 @@ export const AboutResourcePage = ({
    *
    * TODO - Find out how to handle it in the future
    */
-  const mapKeywordsArrayToString = (resourceKeywords: ResourceKeywordType[]): string => {
-    return resourceKeywords.map((k) => k.word).join(', ');
+  const mapKeywordsArrayToString = (
+    resourceKeywords: ResourceKeyword[]
+  ): string => {
+    return resourceKeywords.map((k) => k.word).join(", ");
   };
-  const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeywordType[] => {
-    return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
+  const mapKeywordStringToKeywordTypeArray = (
+    keywrodString: string
+  ): ResourceKeyword[] => {
+    return keywrodString
+      .split(", ")
+      .map((val) => ({ language: "nb", word: val.trim() }));
   };
 
   // States to store the different input values
-  const [resourceType, setResourceType] = useState<ResourceTypeOptionType>(
+  const [resourceType, setResourceType] = useState<ResourceTypeOption>(
     resourceData.resourceType
   );
   const [title, setTitle] = useState<SupportedLanguageKey<string>>(
@@ -88,44 +113,64 @@ export const AboutResourcePage = ({
   const [description, setDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.description ?? emptyLangauges
   );
-  const [homepage, setHomepage] = useState(resourceData.homepage ?? '');
+  const [homepage, setHomepage] = useState(resourceData.homepage ?? "");
   const [keywords, setKeywords] = useState(
-    resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''
+    resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ""
   );
   const [sector, setSector] = useState<string[]>(
     resourceData.sector
-      ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
+      ? resourceData.sector.map(
+          (s) => sectorsData.find((sd) => sd.code === s).label["nb"]
+        )
       : []
   );
-  const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
-  const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
-    resourceData.rightDescription ?? emptyLangauges
+  const [thematicArea, setThematicArea] = useState(
+    resourceData.thematicArea ?? ""
   );
-  const [isPublicService, setIsPublicService] = useState(resourceData.isPublicService ?? false);
+  const [rightDescription, setRightDescription] = useState<
+    SupportedLanguageKey<string>
+  >(resourceData.rightDescription ?? emptyLangauges);
+  const [isPublicService, setIsPublicService] = useState(
+    resourceData.isPublicService ?? false
+  );
 
   // To handle which translation value is shown in the right menu
-  const [translationType, setTranslationType] = useState<
-    'none' | 'title' | 'description' | 'rightDescription'
-  >('none');
+  const [translationType, setTranslationType] = useState<Translation>("none");
 
   // To handle the error state of the page
   const [hasResourceTypeError, setHasResourceTypeError] = useState(
-    resourceData.resourceType === undefined || resourceData.resourceType === null
+    resourceData.resourceType === undefined ||
+      resourceData.resourceType === null
   );
   const [hasTitleError, setHasTitleError] = useState(
     resourceData.title === undefined ||
       resourceData.title === null ||
-      resourceData.title.nb === '' ||
-      resourceData.title.nn === '' ||
-      resourceData.title.en === ''
+      resourceData.title.nb === "" ||
+      resourceData.title.nn === "" ||
+      resourceData.title.en === ""
   );
   const [hasDescriptionError, setHasDescriptionError] = useState(
     resourceData.description === undefined ||
       resourceData.description === null ||
-      resourceData.description.nb === '' ||
-      resourceData.description.nn === '' ||
-      resourceData.description.en === ''
+      resourceData.description.nb === "" ||
+      resourceData.description.nn === "" ||
+      resourceData.description.en === ""
   );
+  const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
+    resourceData.rightDescription === undefined ||
+      resourceData.rightDescription === null ||
+      resourceData.rightDescription.nb === "" ||
+      resourceData.rightDescription.nn === "" ||
+      resourceData.rightDescription.en === ""
+  );
+
+  // useRefs to handle tabbing between the input elements and the right translation bar
+  const rightTranslationBarRef = useRef(null);
+  const titleFieldRef = useRef(null);
+  const descriptionFieldRef = useRef(null);
+  const homePageRef = useRef(null);
+  const rightDescriptionRef = useRef(null);
+  const isPublicServiceRef = useRef(null);
 
   /**
    * Function that saves the resource to backend
@@ -133,10 +178,10 @@ export const AboutResourcePage = ({
   const handleSaveResource = () => {
     // Map sectoroption to with label to the sector code - TODO: Language
     const sectorToSave: string[] = sector.map(
-      (s) => sectorsData.find((sd) => sd.label['nb'] === s).code
+      (s) => sectorsData.find((sd) => sd.label["nb"] === s).code
     );
 
-    const editedResourceObject: ResourceBackendType = {
+    const editedResourceObject: Resource = {
       ...resourceData,
       identifier: resourceId,
       resourceType,
@@ -160,13 +205,17 @@ export const AboutResourcePage = ({
    * @param s the selected string
    */
   const onChangeResourceType = (s: string) => {
-    if (s === 'Standard') setResourceType('Default');
-    else if (s === 'System ressurs') setResourceType('Systemresource');
-    else if (s === 'Maskinporten skjema') setResourceType('MaskinportenSchema');
+    if (s === "Standard") setResourceType("Default");
+    else if (s === "System ressurs") setResourceType("Systemresource");
+    else if (s === "Maskinporten skjema") setResourceType("MaskinportenSchema");
     else setResourceType(undefined);
 
     setHasResourceTypeError(
-      !(s === 'Standard' || s === 'System ressurs' || s === 'Maskinporten skjema')
+      !(
+        s === "Standard" ||
+        s === "System ressurs" ||
+        s === "Maskinporten skjema"
+      )
     );
   };
 
@@ -176,9 +225,10 @@ export const AboutResourcePage = ({
    * @returns the string to display
    */
   const getResourceTypeAsDisplayableString = () => {
-    if (resourceType === 'Default') return 'Standard';
-    else if (resourceType === 'Systemresource') return 'System ressurs';
-    else if (resourceType === 'MaskinportenSchema') return 'Maskinporten skjema';
+    if (resourceType === "Default") return "Standard";
+    else if (resourceType === "Systemresource") return "System ressurs";
+    else if (resourceType === "MaskinportenSchema")
+      return "Maskinporten skjema";
     return undefined;
   };
 
@@ -190,7 +240,7 @@ export const AboutResourcePage = ({
   const displayWarningCard = (text: string) => {
     return (
       <div className={classes.warningCardWrapper}>
-        <ErrorMessage size='small'>{text}</ErrorMessage>
+        <ErrorMessage size="small">{text}</ErrorMessage>
       </div>
     );
   };
@@ -200,17 +250,61 @@ export const AboutResourcePage = ({
    *
    * @param value the value typed in the input field
    */
-  const handleChangeTranslationValues = (value: LanguageStringType) => {
-    if (translationType === 'title') {
-      setHasTitleError(value.nb === '' || value.nn === '' || value.en === '');
+  const handleChangeTranslationValues = (value: LanguageString) => {
+    const error = value.nb === "" || value.nn === "" || value.en === "";
+    if (translationType === "title") {
+      setHasTitleError(error);
       setTitle(value);
     }
-    if (translationType === 'description') {
-      setHasDescriptionError(value.nb === '' || value.nn === '' || value.en === '');
+    if (translationType === "description") {
+      setHasDescriptionError(error);
       setDescription(value);
     }
-    if (translationType === 'rightDescription') {
+    if (translationType === "rightDescription") {
+      setHasRightDescriptionError(error);
       setRightDescription(value);
+    }
+  };
+
+  /**
+   * Function that handles the tabbing into the right translation bar
+   */
+  const handleTabKeyIntoRightBar = (e: any) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      if (rightTranslationBarRef.current) {
+        rightTranslationBarRef.current.focus();
+      }
+    }
+  };
+
+  /**
+   * Function that handles the leaving of the right translation bar.
+   * It sets the ref to the next element on the page so that the
+   * navigation feels natural.
+   */
+  const handleLeaveLastFieldRightBar = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Tab") {
+      if (translationType === "title") {
+        if (descriptionFieldRef.current) {
+          e.preventDefault();
+          descriptionFieldRef.current.focus();
+        }
+      }
+      if (translationType === "description") {
+        if (homePageRef.current) {
+          e.preventDefault();
+          homePageRef.current.focus();
+        }
+      }
+      if (translationType === "rightDescription") {
+        if (isPublicServiceRef.current) {
+          e.preventDefault();
+          isPublicServiceRef.current.focus(null);
+        }
+      }
     }
   };
 
@@ -222,22 +316,25 @@ export const AboutResourcePage = ({
       <div className={classes.rightWrapper}>
         <RightTranslationBar
           title={
-            translationType === 'title'
-              ? 'Navn på tjenesten'
-              : translationType === 'description'
-              ? 'Beskrivelse'
-              : 'Delgasjonstekst'
+            translationType === "title"
+              ? "Navn på tjenesten"
+              : translationType === "description"
+              ? "Beskrivelse"
+              : "Delgasjonstekst"
           }
           value={
-            translationType === 'title'
+            translationType === "title"
               ? title
-              : translationType === 'description'
+              : translationType === "description"
               ? description
               : rightDescription
           }
           onChangeValue={handleChangeTranslationValues}
-          usesTextArea={translationType === 'description'}
+          usesTextArea={translationType === "description"}
           showErrors={showAllErrors}
+          ref={rightTranslationBarRef}
+          onLeaveLastField={handleLeaveLastFieldRightBar}
+          onBlur={handleSaveResource}
         />
       </div>
     );
@@ -246,46 +343,49 @@ export const AboutResourcePage = ({
   /**
    * Maps the language key to the text
    */
-  const getLanguage = (val: 'nb' | 'nn' | 'en') => {
-    if (val === 'nb') return 'Bokmål';
-    if (val === 'nn') return 'Nynorsk';
-    return 'Engelsk';
+  const getLanguage = (val: "nb" | "nn" | "en") => {
+    if (val === "nb") return "Bokmål";
+    if (val === "nn") return "Nynorsk";
+    return "Engelsk";
   };
 
   /**
    * Gets the correct text to display for input fields with missing value
    *
    * @param val the value
-   * @param isTitle if the field is title or description
+   * @param type the type of the field
    */
-  const getMissingInputLanguage = (val: LanguageStringType, isTitle: boolean) => {
-    const valArr: ('nb' | 'nn' | 'en')[] = [];
-    const type = isTitle ? 'tittel' : 'beskrivelse';
+  const getMissingInputLanguage = (val: LanguageString, type: string) => {
+    const valArr: ("nb" | "nn" | "en")[] = [];
 
     // Add the different languages
-    if (val.nb === '') {
-      valArr.push('nb');
+    if (val.nb === "") {
+      valArr.push("nb");
     }
-    if (val.nn === '') {
-      valArr.push('nn');
+    if (val.nn === "") {
+      valArr.push("nn");
     }
-    if (val.en === '') {
-      valArr.push('en');
+    if (val.en === "") {
+      valArr.push("en");
     }
 
     // Return different messages based on the length
     if (valArr.length === 1) {
-      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])}.`;
+      return `Du mangler oversettelse for ${type} på ${getLanguage(
+        valArr[0]
+      )}.`;
     }
     if (valArr.length === 2) {
-      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])} og
+      return `Du mangler oversettelse for ${type} på ${getLanguage(
+        valArr[0]
+      )} og
       ${getLanguage(valArr[1])}.`;
     }
     if (valArr.length === 3) {
       return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])},
       ${getLanguage(valArr[1])} og ${getLanguage(valArr[2])}.`;
     }
-    return '';
+    return "";
   };
 
   /**
@@ -294,179 +394,256 @@ export const AboutResourcePage = ({
   const displayContent = () => {
     return (
       <>
-        <Heading size='large' spacing level={1}>
+        <Heading size="large" spacing level={1}>
           Om ressursen
         </Heading>
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Ressurstype
         </Label>
-        <Paragraph short size='small'>
-          Velg et alternativ fra listen under
+        <Paragraph short size="small">
+          Velg en ressurstype fra listen under.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             options={resourceTypeOptions}
             onChange={onChangeResourceType}
             value={getResourceTypeAsDisplayableString()}
-            label='Ressurstype'
+            label="Ressurstype"
             hideLabel
-            onFocus={() => setTranslationType('none')}
+            onFocus={() => setTranslationType("none")}
             error={showAllErrors && hasResourceTypeError}
+            onBlur={handleSaveResource}
           />
           {showAllErrors &&
             hasResourceTypeError &&
-            displayWarningCard('Du mangler å legge til ressurstype.')}
+            displayWarningCard("Du mangler å legge til ressurstype.")}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Navn på tjenesten (Bokmål)
         </Label>
-        <Paragraph size='small'>
-          Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass
-          på at navnet er forståelig og gjenkjennbart. Om mulig, bruk nøkkelord som man kan søke
-          etter.
+        <Paragraph size="small">
+          Navnet vil synes for brukerne, og bør være beskrivende for hva
+          tjenesten handler om. Pass på at navnet er forståelig og
+          gjenkjennbart.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
-            value={title['nb']}
-            onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
-            onFocus={() => setTranslationType('title')}
-            aria-labelledby='resource-title'
-            isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
+            value={title["nb"]}
+            onChange={(e) =>
+              handleChangeTranslationValues({ ...title, nb: e.target.value })
+            }
+            onFocus={() => setTranslationType("title")}
+            aria-labelledby="resource-title"
+            isValid={!(showAllErrors && hasTitleError && title["nb"] === "")}
+            ref={titleFieldRef}
+            onKeyDown={handleTabKeyIntoRightBar}
+            onBlur={handleSaveResource}
           />
-          <ScreenReaderSpan id='resource-title' label='Navn på tjenesten' />
+          <ScreenReaderSpan
+            id="resource-title"
+            label="Navn på tjenesten - Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på at navnet er forståelig og gjenkjennbart."
+          />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguage(title, true))}
+            displayWarningCard(getMissingInputLanguage(title, "tittel"))}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Beskrivelse (Bokmål)
         </Label>
-        <Paragraph short size='small'>
-          Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
-          offentlige nettløsninger.
+        <Paragraph size="small">
+          Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder
+          på tvers av offentlige nettløsninger.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextArea
-            value={description['nb']}
-            resize='vertical'
+            value={description["nb"]}
+            resize="vertical"
             onChange={(e) => {
-              handleChangeTranslationValues({ ...description, nb: e.currentTarget.value });
+              handleChangeTranslationValues({
+                ...description,
+                nb: e.currentTarget.value,
+              });
             }}
-            onFocus={() => setTranslationType('description')}
+            onFocus={() => setTranslationType("description")}
             rows={5}
-            aria-labelledby='resource-description'
-            isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
+            aria-labelledby="resource-description"
+            isValid={
+              !(
+                showAllErrors &&
+                hasDescriptionError &&
+                description["nb"] === ""
+              )
+            }
+            ref={descriptionFieldRef}
+            onKeyDown={handleTabKeyIntoRightBar}
+            onBlur={handleSaveResource}
           />
-          <ScreenReaderSpan id='resource-description' label='Beskrivelse' />
+          <ScreenReaderSpan
+            id="resource-description"
+            label="Beskrivelse - Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av offentlige nettløsninger."
+          />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguage(description, false))}
+            displayWarningCard(
+              getMissingInputLanguage(description, "beskrivelse")
+            )}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Hjemmeside
         </Label>
-        <Paragraph short size='small'>
-          Link til nettsiden der tjenesten kan startes av brukeren.
+        <Paragraph short size="small">
+          Lenke til informasjon om hvor sluttbruker kan finne tjenesten og
+          informasjon om den.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={homepage}
             onChange={(e) => setHomepage(e.target.value)}
-            aria-labelledby='resource-homepage'
-            onFocus={() => setTranslationType('none')}
+            aria-labelledby="resource-homepage"
+            onFocus={() => setTranslationType("none")}
+            ref={homePageRef}
+            onBlur={handleSaveResource}
           />
-          <ScreenReaderSpan id='resource-homepage' label='Hjemmeside' />
+          <ScreenReaderSpan
+            id="resource-homepage"
+            label="Hjemmeside - Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den."
+          />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Nøkkelord
         </Label>
-        <Paragraph short size='small'>
-          {'Skriv nøkkelord for ressursen, separer hvert ord med et komma ","'}
+        <Paragraph size="small">
+          {
+            'Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
+          }
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
-            aria-labelledby='resource-keywords'
-            onFocus={() => setTranslationType('none')}
+            aria-labelledby="resource-keywords"
+            onFocus={() => setTranslationType("none")}
+            onBlur={handleSaveResource}
           />
-          <ScreenReaderSpan id='resource-keywords' label='Nøkkelord' />
+          <ScreenReaderSpan
+            id="resource-keywords"
+            label='Nøkkelord - Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
+          />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Hvilken sektor er tjenesten relatert til?
+        <Label size="medium" spacing>
+          Sektor
         </Label>
-        <Paragraph short size='small'>
-          En tjeneste kan relateres til flere industrier/sektorer
+        <Paragraph size="small">
+          Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan
+          relateres til flere industrier/sektorer.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             multiple
             // TODO - Language
-            options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
+            options={sectorsData.map((sd) => ({
+              value: sd.label["nb"],
+              label: sd.label["nb"],
+            }))}
             onChange={(e) => setSector(e)}
             value={sector}
-            label='Hvilken sektor er tjenesten relatert til?'
+            label="Sektor - Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere industrier/sektorer."
             hideLabel
-            onFocus={() => setTranslationType('none')}
+            onFocus={() => setTranslationType("none")}
+            onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Hvilket tematiske område dekker tjenesten?
+        <Label size="medium" spacing>
+          Tematisk område
         </Label>
-        <Paragraph short size='small'>
-          En tjeneste kan relateres til et tematisk område
+        <Paragraph size="small">
+          Velg hvilket tematisk område tjenesten dekker. En tjeneste kan
+          relateres til et tematisk område.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
-            options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
+            options={thematicData.map((td) => ({
+              value: td.uri,
+              label: td.uri,
+            }))}
             onChange={(e: string) => setThematicArea(e)}
             value={thematicArea}
-            label='Velg tematisk område'
+            label="Tematisk område - Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk område."
             hideLabel
-            onFocus={() => setTranslationType('none')}
+            onFocus={() => setTranslationType("none")}
+            onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Delegasjonstekst
         </Label>
+        <Paragraph size="small">
+          Delegeringsteksten forklarer sluttbruker hvilke rettigheter som
+          delegeres og hva mottaker av rettigheter kan utføre på vegne av den
+          som han har fått rettighet for.
+        </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
-            value={rightDescription['nb']}
-            onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
-            aria-labelledby='resource-delegationtext'
-            onFocus={() => setTranslationType('rightDescription')}
+            value={rightDescription["nb"]}
+            onChange={(e) =>
+              setRightDescription({ ...rightDescription, nb: e.target.value })
+            }
+            aria-labelledby="resource-delegationtext"
+            onFocus={() => setTranslationType("rightDescription")}
+            ref={rightDescriptionRef}
+            onKeyDown={handleTabKeyIntoRightBar}
+            onBlur={handleSaveResource}
+            isValid={
+              !(
+                showAllErrors &&
+                hasRightDescriptionError &&
+                rightDescription["nb"] === ""
+              )
+            }
           />
-          <ScreenReaderSpan id='resource-delegationtext' label='Delegasjonstekst' />
+          <ScreenReaderSpan
+            id="resource-delegationtext"
+            label="Delegasjonstekst - Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for"
+          />
+          {showAllErrors &&
+            hasRightDescriptionError &&
+            displayWarningCard(
+              getMissingInputLanguage(rightDescription, "delegasjonstekst")
+            )}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size="medium" spacing>
           Vis i offentlige kataloger
         </Label>
-        <Paragraph short size='small'>
-          Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på
-          norge.no og data.norge.no.
+        <Paragraph short size="small">
+          Etter publisering blir ressursen tilgjengelig i kataloger, blant annet
+          i altinn, på norge.no og data.norge.no.
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Switch
             isChecked={isPublicService}
             onToggle={(b: boolean) => setIsPublicService(b)}
-            onFocus={() => setTranslationType('none')}
+            onFocus={() => setTranslationType("none")}
+            ref={isPublicServiceRef}
+            onBlur={handleSaveResource}
           />
           <p
-            className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
-          >{`Ressursen ${isPublicService ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
-        </div>
-        <div className={classes.buttonWrapper}>
-          {/* TODO - Find out if this button should be here, and if a success message should be shown */}
-          <Button onClick={handleSaveResource}>Lagre ressurs</Button>
+            className={
+              isPublicService
+                ? classes.toggleTextActive
+                : classes.toggleTextInactive
+            }
+          >{`Ressursen ${
+            isPublicService ? "skal" : "skal ikke"
+          } vises i offentlige kataloger.`}</p>
         </div>
       </>
     );
@@ -475,7 +652,7 @@ export const AboutResourcePage = ({
   return (
     <div className={classes.wrapper}>
       <div className={classes.pageWrapper}>{displayContent()}</div>
-      {translationType !== 'none' && displayRightTranslationBar()}
+      {translationType !== "none" && displayRightTranslationBar()}
     </div>
   );
 };

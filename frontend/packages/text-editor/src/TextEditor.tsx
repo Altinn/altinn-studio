@@ -1,19 +1,20 @@
-import React, { useMemo } from 'react';
-import classes from './TextEditor.module.css';
+import React, { useMemo } from "react";
+import classes from "./TextEditor.module.css";
 import type {
   LangCode,
   TextResourceEntryDeletion,
   TextResourceIdMutation,
   UpsertTextResourceMutation,
-} from './types';
-import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { RightMenu } from './RightMenu';
-import { getRandNumber, mapResourceFilesToTableRows } from './utils';
-import { defaultLangCode } from './constants';
-import { TextList } from './TextList';
-import ISO6391 from 'iso-639-1';
-import { ITextResources } from 'app-shared/types/global';
+} from "./types";
+import { SearchField } from "@altinn/altinn-design-system";
+import { Button } from "@digdir/design-system-react";
+import { RightMenu } from "./RightMenu";
+import { getRandNumber, mapResourceFilesToTableRows } from "./utils";
+import { defaultLangCode } from "./constants";
+import { TextList } from "./TextList";
+import ISO6391 from "iso-639-1";
+import { ITextResources } from "app-shared/types/global";
+import { useTranslation } from "react-i18next";
 
 export interface TextEditorProps {
   addLanguage: (language: LangCode) => void;
@@ -40,6 +41,7 @@ export const TextEditor = ({
   updateTextId,
   upsertTextResource,
 }: TextEditorProps) => {
+  const { t } = useTranslation();
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
@@ -49,16 +51,16 @@ export const TextEditor = ({
   const handleAddNewEntryClick = () => {
     const textId = `id_${getRandNumber()}`;
     availableLangCodesFiltered.forEach((language) =>
-      upsertTextResource({ language, textId, translation: '' })
+      upsertTextResource({ language, textId, translation: "" })
     );
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
     try {
       updateTextId({ oldId: textId });
     } catch (e: unknown) {
-      console.error('Deleting text failed:\n', e);
+      console.error("Deleting text failed:\n", e);
     }
   };
 
@@ -66,7 +68,7 @@ export const TextEditor = ({
     try {
       updateTextId({ oldId, newId });
     } catch (e: unknown) {
-      console.error('Renaming text-id failed:\n', e);
+      console.error("Renaming text-id failed:\n", e);
     }
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
@@ -76,18 +78,18 @@ export const TextEditor = ({
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
           <Button
-            variant={ButtonVariant.Filled}
-            color={ButtonColor.Primary}
+            variant="filled"
+            color="primary"
             onClick={handleAddNewEntryClick}
-            data-testid='text-editor-btn-add'
-            size='small'
+            data-testid="text-editor-btn-add"
+            size="small"
           >
-            Ny tekst
+            {t("text_editor.new_text")}
           </Button>
           <div>
             <SearchField
-              id='text-editor-search'
-              label='Søk etter tekst eller id'
+              id="text-editor-search"
+              label="Søk etter tekst eller id"
               value={searchQuery}
               onChange={handleSearchChange}
             />

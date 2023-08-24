@@ -1,58 +1,59 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { designer } from '../../pageobjects/designer';
+import * as texts from "../../../../../language/src/nb.json";
+import { administration } from "../../selectors/administration";
+import { designer } from "../../selectors/designer";
+import { header } from "../../selectors/header";
 
-context('Designer', () => {
+context("Designer", () => {
   before(() => {
-    cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
-      if (response.status === 404) {
-        const [_, appName] = Cypress.env('designerApp').split('/');
-        cy.createapp(Cypress.env('autoTestUser'), appName);
-      }
-    });
-    cy.visit('/');
-    cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then((response) => {
-      if (response.status !== 200) {
-        const [_, appName] = Cypress.env('withoutDataModelApp').split('/');
-        cy.createapp(Cypress.env('autoTestUser'), appName);
-      }
-    });
+    cy.visit("/");
+    cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
+    cy.deleteallapps(Cypress.env("autoTestUser"), Cypress.env("accessToken"));
+    cy.createapp(Cypress.env("autoTestUser"), "designer");
+    cy.createapp(Cypress.env("autoTestUser"), "appwithout-dm");
     cy.clearCookies();
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
   });
   beforeEach(() => {
-    cy.visit('/dashboard');
+    cy.visit("/dashboard");
   });
 
-  it('is possible to edit information about the app', () => {
-    const designerApp = Cypress.env('designerApp');
+  it("is possible to edit information about the app", () => {
+    const designerApp = Cypress.env("designerApp");
     cy.searchAndOpenApp(designerApp);
-    cy.contains(designer.aboutApp.appHeader, 'Om appen').should('be.visible');
-    cy.contains("[data-testid='administrationInputAppName_ChangeButton']", 'Endre').click();
-    cy.get(designer.aboutApp.appName).clear().type('New app name');
-    cy.get(designer.aboutApp.appDescription).click().clear().type('App description');
-    cy.get(designer.aboutApp.appName).invoke('val').should('contain', 'New app name');
-    cy.get(designer.aboutApp.appDescription).invoke('val').should('contain', 'App description');
-    cy.visit(`/editor/${designerApp}/text-editor`);
-    cy.contains('textarea', 'New app name');
+    administration.getHeader().should("be.visible");
+    cy.findByRole("button", { name: texts["general.edit"] }).click();
+    administration.getAppNameField().clear().type("New app name");
+    administration.getDescriptionField().clear().type("App description");
+    administration
+      .getAppNameField()
+      .invoke("val")
+      .should("contain", "New app name");
+    administration
+      .getDescriptionField()
+      .invoke("val")
+      .should("contain", "App description");
   });
 
-  it('is possible to add and delete form components', () => {
-    cy.searchAndOpenApp(Cypress.env('designerApp'));
-    cy.findByRole('link', { name: designer.appMenu.editText }).click();
-    cy.get("button[aria-label='Legg til ny side']").click();
-    cy.findByText('Navigasjonsknapper').should('be.visible');
-    cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
-    cy.get(designer.dragToArea).trigger('drop');
+  it("is possible to add and delete form components", () => {
+    cy.searchAndOpenApp(Cypress.env("designerApp"));
+    header.getCreateLink().click();
+    designer.getAddPageButton().click();
+    designer.getAddPageButton().click();
+    cy.findByText(texts["ux_editor.component_navigation_buttons"]).should(
+      "be.visible"
+    );
+    designer
+      .getToolbarItemByText(texts["ux_editor.component_input"])
+      .trigger("dragstart");
+    designer.getDroppableList().trigger("drop");
     cy.wait(500);
-    cy.get(designer.dragToArea)
-      .find("[role='listitem']")
-      .then(($elements) => {
-        expect($elements.length).eq(2);
-      });
+    designer
+      .getDroppableList()
+      .findAllByRole("listitem")
+      .then(($elements) => expect($elements.length).eq(2));
     cy.deletecomponents();
   });
 

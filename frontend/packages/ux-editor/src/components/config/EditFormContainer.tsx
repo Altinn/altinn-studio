@@ -1,33 +1,38 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import '../../styles/index.css';
-import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
-import { getTextResource } from '../../utils/language';
-import { idExists } from '../../utils/formLayoutUtils';
-import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { Checkbox, CheckboxGroup, FieldSet, TextField } from '@digdir/design-system-react';
-import classes from './EditFormContainer.module.css';
-import { TextResource } from '../TextResource';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import { useText } from '../../hooks';
-import { useParams } from 'react-router-dom';
-import { useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
-import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { ITextResource } from 'app-shared/types/global';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import "../../styles/index.css";
+import { EditGroupDataModelBindings } from "./group/EditGroupDataModelBindings";
+import { getTextResource } from "../../utils/language";
+import { idExists } from "../../utils/formLayoutUtils";
+import { DatamodelFieldElement } from "app-shared/types/DatamodelFieldElement";
+import {
+  LegacyCheckbox,
+  LegacyCheckboxGroup,
+  LegacyFieldSet,
+  TextField,
+} from "@digdir/design-system-react";
+import classes from "./EditFormContainer.module.css";
+import { TextResource } from "../TextResource";
+import { useDatamodelMetadataQuery } from "../../hooks/queries/useDatamodelMetadataQuery";
+import { useText } from "../../hooks";
+import { useParams } from "react-router-dom";
+import { useSelectedFormLayout, useTextResourcesSelector } from "../../hooks";
+import { textResourcesByLanguageSelector } from "../../selectors/textResourceSelectors";
+import { DEFAULT_LANGUAGE } from "app-shared/constants";
+import { ITextResource } from "app-shared/types/global";
 import {
   selectedLayoutNameSelector,
   selectedLayoutSetSelector,
-} from '../../selectors/formLayoutSelectors';
-import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
-import { FormField } from '../FormField';
-import { FormContainer } from '../../types/FormContainer';
+} from "../../selectors/formLayoutSelectors";
+import { useFormLayoutsQuery } from "../../hooks/queries/useFormLayoutsQuery";
+import { FormField } from "../FormField";
+import { FormContainer } from "../../types/FormContainer";
 
 export interface IEditFormContainerProps {
   editFormId: string;
   container: FormContainer;
   handleContainerUpdate: (updatedContainer: FormContainer) => void;
-};
+}
 
 export const EditFormContainer = ({
   editFormId,
@@ -39,12 +44,16 @@ export const EditFormContainer = ({
   const { org, app } = useParams();
 
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
+  const { data: formLayouts } = useFormLayoutsQuery(
+    org,
+    app,
+    selectedLayoutSetName
+  );
   const { data: dataModel } = useDatamodelMetadataQuery(org, app);
   const { components, containers } = useSelectedFormLayout();
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
-    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
-  );
+  const textResources: ITextResource[] = useTextResourcesSelector<
+    ITextResource[]
+  >(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
@@ -100,17 +109,21 @@ export const EditFormContainer = ({
     }
     let errorMessage;
     if (updatedContainer.tableHeaders?.length === 0) {
-      errorMessage = t('ux_editor.modal_properties_group_table_headers_error');
+      errorMessage = t("ux_editor.modal_properties_group_table_headers_error");
     }
 
     handleContainerUpdate(updatedContainer);
     setTableHeadersError(errorMessage);
   };
 
-  const getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
-    const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
-      return e.dataBindingName === dataBindingName;
-    });
+  const getMaxOccursForGroupFromDataModel = (
+    dataBindingName: string
+  ): number => {
+    const element: DatamodelFieldElement = dataModel.find(
+      (e: DatamodelFieldElement) => {
+        return e.dataBindingName === dataBindingName;
+      }
+    );
     return element?.maxOccurs;
   };
 
@@ -133,39 +146,49 @@ export const EditFormContainer = ({
   };
 
   return (
-    <FieldSet className={classes.fieldset}>
+    <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={container.id}
-        label={t('ux_editor.modal_properties_group_change_id')}
+        label={t("ux_editor.modal_properties_group_change_id")}
         value={container.id}
-        propertyPath='definitions/component/properties/id'
+        propertyPath="definitions/component/properties/id"
         customValidationRules={(value: string) => {
-          if (value !== container.id && idExists(value, components, containers)) {
-            return 'unique';
+          if (
+            value !== container.id &&
+            idExists(value, components, containers)
+          ) {
+            return "unique";
           }
         }}
         customValidationMessages={(errorCode: string) => {
           if (errorCode === "unique") {
-            return t('ux_editor.modal_properties_group_id_not_unique_error')
+            return t("ux_editor.modal_properties_group_id_not_unique_error");
           }
           if (errorCode === "pattern") {
-            return t('ux_editor.modal_properties_group_id_not_valid');
+            return t("ux_editor.modal_properties_group_id_not_valid");
           }
         }}
         onChange={handleIdChange}
       >
-        {({ onChange }) => <TextField name={`group-id${container.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+        {({ onChange }) => (
+          <TextField
+            name={`group-id${container.id}`}
+            onChange={(e) => onChange(e.target.value, e)}
+          />
+        )}
       </FormField>
       <FormField
         id={container.id}
-        label={t('ux_editor.modal_properties_group_repeating')}
+        label={t("ux_editor.modal_properties_group_repeating")}
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
       >
-        {({ value, onChange }) => <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-        />}
+        {({ value, onChange }) => (
+          <LegacyCheckbox
+            checked={value}
+            onChange={(e) => onChange(e.target.checked, e)}
+          />
+        )}
       </FormField>
       {container.maxCount > 1 && (
         <>
@@ -175,23 +198,26 @@ export const EditFormContainer = ({
           />
           <FormField
             id={container.id}
-            label={t('ux_editor.modal_properties_group_max_occur')}
+            label={t("ux_editor.modal_properties_group_max_occur")}
             onChange={handleMaxOccurChange}
             value={container.maxCount}
             propertyPath={`${container.propertyPath}/properties/maxCount`}
           >
-            {({ onChange }) =>
-            <TextField
-              id='modal-properties-maximum-files'
-              disabled={!!container.dataModelBindings?.group}
-              formatting={{ number: {} }}
-              onChange={(e) => onChange(parseInt(e.target.value), e)}
-            />}
+            {({ onChange }) => (
+              <TextField
+                id="modal-properties-maximum-files"
+                disabled={!!container.dataModelBindings?.group}
+                formatting={{ number: {} }}
+                onChange={(e) => onChange(parseInt(e.target.value), e)}
+              />
+            )}
           </FormField>
           <TextResource
-            description={t('ux_editor.modal_properties_group_add_button_description')}
+            description={t(
+              "ux_editor.modal_properties_group_add_button_description"
+            )}
             handleIdChange={handleButtonTextChange}
-            label={t('ux_editor.modal_properties_group_add_button')}
+            label={t("ux_editor.modal_properties_group_add_button")}
             textResourceId={container.textResourceBindings?.add_button}
           />
           {items?.length > 0 && (
@@ -201,22 +227,29 @@ export const EditFormContainer = ({
               value={items}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
             >
-              {({ value }) => <CheckboxGroup
-                error={tableHeadersError}
-                items={items
-                  .filter((id) => !!components[id])
-                  .map((id) => ({
-                    label: getTextResource(components[id]?.textResourceBindings?.title, textResources) || id,
-                    name: id,
-                    checked:
-                      container.tableHeaders === undefined || container.tableHeaders.includes(id),
-                }))}
-                legend={t('ux_editor.modal_properties_group_table_headers')}
-              />}
+              {({ value }) => (
+                <LegacyCheckboxGroup
+                  error={tableHeadersError}
+                  items={items
+                    .filter((id) => !!components[id])
+                    .map((id) => ({
+                      label:
+                        getTextResource(
+                          components[id]?.textResourceBindings?.title,
+                          textResources
+                        ) || id,
+                      name: id,
+                      checked:
+                        container.tableHeaders === undefined ||
+                        container.tableHeaders.includes(id),
+                    }))}
+                  legend={t("ux_editor.modal_properties_group_table_headers")}
+                />
+              )}
             </FormField>
           )}
         </>
       )}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

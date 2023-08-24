@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Button,
-  ButtonColor,
-  ButtonVariant,
   ErrorMessage,
   TextField,
   Popover,
-} from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
-import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
+} from "@digdir/design-system-react";
+import { useTranslation } from "react-i18next";
+import { PlusIcon } from "@navikt/aksel-icons";
+import { useDatamodelsMetadataQuery } from "../../../../hooks/queries";
+import { extractModelNamesFromMetadataList } from "../../../../utils/metadataUtils";
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
   createNewOpen: boolean;
   createPathOption?: boolean;
   setCreateNewOpen: (open: boolean) => void;
-  handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
+  handleCreateSchema: (props: {
+    name: string;
+    relativePath: string | undefined;
+  }) => void;
 }
 
 export function CreateNewWrapper({
@@ -28,17 +29,18 @@ export function CreateNewWrapper({
   handleCreateSchema,
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
-  const [newModelName, setNewModelName] = useState('');
-  const [nameError, setNameError] = useState('');
+  const [newModelName, setNewModelName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
   const { data: metadata } = useDatamodelsMetadataQuery();
 
   const modelNames = extractModelNamesFromMetadataList(metadata);
 
-  const relativePath = createPathOption ? '' : undefined;
+  const relativePath = createPathOption ? "" : undefined;
 
-  const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
-  const validateName = () => setNameError(!nameIsValid() ? 'Invalid name' : '');
+  const nameIsValid = () =>
+    newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
+  const validateName = () => setNameError(!nameIsValid() ? "Invalid name" : "");
 
   const onInputBlur = () => {
     if (confirmedWithReturn) {
@@ -48,9 +50,9 @@ export function CreateNewWrapper({
     validateName();
   };
   const onNameChange = (e: any) => {
-    const name = e.target.value || '';
+    const name = e.target.value || "";
     if (nameError) {
-      setNameError('');
+      setNameError("");
     }
     setNewModelName(name);
   };
@@ -59,15 +61,17 @@ export function CreateNewWrapper({
       return;
     }
     if (modelNames.includes(newModelName)) {
-      setNameError(t('schema_editor.error_model_name_exists', { newModelName }));
+      setNameError(
+        t("schema_editor.error_model_name_exists", { newModelName })
+      );
       return;
     }
     handleCreateSchema({
       name: newModelName,
       relativePath,
     });
-    setNewModelName('');
-    setNameError('');
+    setNewModelName("");
+    setNameError("");
   };
   const handleReturnButtonConfirm = () => {
     validateName();
@@ -75,7 +79,7 @@ export function CreateNewWrapper({
     setConfirmedWithReturn(true);
   };
   const onKeyUp = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleReturnButtonConfirm();
     }
   };
@@ -86,21 +90,21 @@ export function CreateNewWrapper({
       onOpenChange={setCreateNewOpen}
       trigger={
         <Button
-          id='create-new-datamodel-button'
+          id="create-new-datamodel-button"
           disabled={disabled}
           icon={<PlusIcon />}
-          variant={ButtonVariant.Quiet}
+          variant="quiet"
           onClick={() => setCreateNewOpen(!createNewOpen)}
-          size='small'
+          size="small"
         >
-          {t('general.create_new')}
+          {t("general.create_new")}
         </Button>
       }
     >
-      <label>{t('schema_editor.create_model_description')}</label>
+      <label>{t("schema_editor.create_model_description")}</label>
       <TextField
-        id='newModelInput'
-        placeholder={t('schema_editor.name')}
+        id="newModelInput"
+        placeholder={t("schema_editor.name")}
         isValid={!nameError}
         onChange={onNameChange}
         onBlur={onInputBlur}
@@ -108,13 +112,13 @@ export function CreateNewWrapper({
       />
       {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       <Button
-        color={ButtonColor.Secondary}
+        color="secondary"
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
-        variant={ButtonVariant.Outline}
-        size='small'
+        variant="outline"
+        size="small"
       >
-        {t('schema_editor.create_model_confirm_button')}
+        {t("schema_editor.create_model_confirm_button")}
       </Button>
     </Popover>
   );

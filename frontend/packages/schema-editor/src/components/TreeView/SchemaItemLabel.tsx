@@ -1,8 +1,8 @@
-import type { SyntheticEvent } from 'react';
-import React, { useState } from 'react';
-import classNames from 'classnames';
-import classes from './SchemaItemLabel.module.css';
-import type { UiSchemaNode } from '@altinn/schema-model';
+import type { SyntheticEvent } from "react";
+import React, { useState } from "react";
+import classNames from "classnames";
+import classes from "./SchemaItemLabel.module.css";
+import type { UiSchemaNode } from "@altinn/schema-model";
 import {
   Capabilites,
   CombinationKind,
@@ -15,22 +15,25 @@ import {
   getNameFromPointer,
   pointerIsDefinition,
   promoteProperty,
-} from '@altinn/schema-model';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
-import { useDispatch } from 'react-redux';
+} from "@altinn/schema-model";
+import { AltinnMenu, AltinnMenuItem } from "app-shared/components";
+import { Button } from "@digdir/design-system-react";
+import {
+  MenuElipsisVerticalIcon,
+  ExclamationmarkTriangleIcon,
+} from "@navikt/aksel-icons";
+import { useDispatch } from "react-redux";
 import {
   navigateToType,
   setSelectedAndFocusedNode,
   setSelectedNode,
-} from '../../features/editor/schemaEditorSlice';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useTranslation } from 'react-i18next';
-import { AltinnConfirmDialog } from 'app-shared/components';
-import { deleteNode } from '@altinn/schema-model';
-import { removeSelection } from '../../features/editor/schemaEditorSlice';
+} from "../../features/editor/schemaEditorSlice";
+import { useDatamodelQuery } from "@altinn/schema-editor/hooks/queries";
+import { useDatamodelMutation } from "@altinn/schema-editor/hooks/mutations";
+import { useTranslation } from "react-i18next";
+import { AltinnConfirmDialog } from "app-shared/components";
+import { deleteNode } from "@altinn/schema-model";
+import { removeSelection } from "../../features/editor/schemaEditorSlice";
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -40,12 +43,12 @@ export interface SchemaItemLabelProps {
   translate: (key: string) => string;
 }
 export enum SchemaItemLabelTestIds {
-  contextMenuAddReference = 'context-menu-add-reference',
-  contextMenuDelete = 'context-menu-delete',
-  contextMenuConvertToField = 'context-menu-convert-to-field',
-  contextMenuConvertToReference = 'context-menu-convert-to-reference',
-  contextMenuAddField = 'context-menu-add-field',
-  contextMenuAddCombination = 'context-menu-add-combination',
+  contextMenuAddReference = "context-menu-add-reference",
+  contextMenuDelete = "context-menu-delete",
+  contextMenuConvertToField = "context-menu-convert-to-field",
+  contextMenuConvertToReference = "context-menu-convert-to-reference",
+  contextMenuAddField = "context-menu-add-field",
+  contextMenuAddCombination = "context-menu-add-combination",
 }
 export const SchemaItemLabel = ({
   hasReferredNodes,
@@ -59,7 +62,8 @@ export const SchemaItemLabel = ({
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
-  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
+    useState<boolean>();
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -94,24 +98,26 @@ export const SchemaItemLabel = ({
         [ObjectKind.Combination]: CombinationKind.AllOf,
         [ObjectKind.Reference]: undefined,
       }[objectKind],
-      reference: objectKind === ObjectKind.Reference ? '' : undefined,
+      reference: objectKind === ObjectKind.Reference ? "" : undefined,
     };
     const { pointer } = selectedNode;
     selectedNode.objectKind === ObjectKind.Combination
       ? mutate(
-        addCombinationItem(data, {
-          pointer,
-          props,
-          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer))
-        })
-      )
+          addCombinationItem(data, {
+            pointer,
+            props,
+            callback: (newPointer: string) =>
+              dispatch(setSelectedNode(newPointer)),
+          })
+        )
       : mutate(
-        addProperty(data, {
-          pointer,
-          props,
-          callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer))
-        })
-      );
+          addProperty(data, {
+            pointer,
+            props,
+            callback: (newPointer: string) =>
+              dispatch(setSelectedAndFocusedNode(newPointer)),
+          })
+        );
   });
 
   const handleDeleteClick = () => {
@@ -134,19 +140,19 @@ export const SchemaItemLabel = ({
       <div className={classes.label} title={selectedNode.pointer}>
         <span className={classes.iconContainer}>
           <i className={`fa ${icon}`} />
-        </span>{' '}
+        </span>{" "}
         <span>{getNameFromPointer(selectedNode)}</span>
-        {selectedNode.isRequired && <span> *</span>}
+        {selectedNode.isRequired && <span aria-hidden> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (
           <span
             className={classes.referenceLabel}
             onClick={handleGoToType}
             onKeyUp={handleGoToType}
-            role={'link'}
+            role={"link"}
             tabIndex={-1}
           >
-            {refNode.pointer.replace(`#/${Keyword.Definitions}/`, '')}
+            {refNode.pointer.replace(`#/${Keyword.Definitions}/`, "")}
           </span>
         )}
         {selectedNode.objectKind === ObjectKind.Reference && !refNode && (
@@ -157,18 +163,18 @@ export const SchemaItemLabel = ({
         )}
       </div>
       <Button
-        data-testid='open-context-menu-button'
+        data-testid="open-context-menu-button"
         className={classes.contextButton}
-        aria-controls='simple-menu'
-        aria-haspopup='true'
-        title={translate('open_action_menu')}
+        aria-controls="simple-menu"
+        aria-haspopup="true"
+        title={translate("open_action_menu")}
         onClick={handleToggleContextMenuClick}
         icon={<MenuElipsisVerticalIcon />}
-        variant={ButtonVariant.Quiet}
-        size={ButtonSize.Small}
+        variant="quiet"
+        size="small"
       />
       <AltinnMenu
-        id='root-properties-context-menu'
+        id="root-properties-context-menu"
         anchorEl={contextAnchor}
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
@@ -176,59 +182,59 @@ export const SchemaItemLabel = ({
         {capabilties.includes(Capabilites.CanHaveReferenceAdded) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddReference}
-            id='add-reference-to-node-button'
-            data-testid={''}
-            key='add_reference'
+            id="add-reference-to-node-button"
+            data-testid={""}
+            key="add_reference"
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
-            text={translate('add_reference')}
-            iconClass='fa fa-datamodel-ref'
+            text={translate("add_reference")}
+            iconClass="fa fa-datamodel-ref"
           />
         )}
         {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddField}
-            id='add-field-to-node-button'
-            key='add_field'
+            id="add-field-to-node-button"
+            key="add_field"
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
-            text={translate('add_field')}
-            iconClass='fa fa-datamodel-properties'
+            text={translate("add_field")}
+            iconClass="fa fa-datamodel-properties"
           />
         )}
         {capabilties.includes(Capabilites.CanHaveCombinationAdded) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddCombination}
-            id='add-combination-to-node-button'
-            key='add_combination'
+            id="add-combination-to-node-button"
+            key="add_combination"
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
-            text={translate('add_combination')}
-            iconClass='fa fa-group'
+            text={translate("add_combination")}
+            iconClass="fa fa-group"
           />
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToReference) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuConvertToReference}
-            id='convert-node-to-reference-button'
-            key='convert-node-to-reference'
+            id="convert-node-to-reference-button"
+            key="convert-node-to-reference"
             onClick={handleConvertToReference}
-            text={translate('promote')}
-            iconClass='fa fa-arrowup'
+            text={translate("promote")}
+            iconClass="fa fa-arrowup"
           />
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToField) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuConvertToField}
-            id='convert-node-to-field-buttonn'
-            key='convert-node-to-field'
+            id="convert-node-to-field-buttonn"
+            key="convert-node-to-field"
             onClick={handleConvertToField}
-            text={translate('convert_to_field')}
-            iconClass='fa fa-arrowdown'
+            text={translate("convert_to_field")}
+            iconClass="fa fa-arrowdown"
             disabled={true}
           />
         )}
         {capabilties.includes(Capabilites.CanBeDeleted) && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
-            confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+            confirmText={t("schema_editor.datamodel_field_deletion_confirm")}
             onConfirm={() => {
               handleDeleteClick();
               setContextAnchor(null);
@@ -240,21 +246,25 @@ export const SchemaItemLabel = ({
             trigger={
               <AltinnMenuItem
                 testId={SchemaItemLabelTestIds.contextMenuDelete}
-                id='delete-node-button'
-                key='delete'
+                id="delete-node-button"
+                key="delete"
                 className={classes.contextMenuLastItem}
                 onClick={(event) => {
                   event.stopPropagation();
-                  setIsConfirmDeleteDialogOpen(prevState => !prevState);
+                  setIsConfirmDeleteDialogOpen((prevState) => !prevState);
                 }}
-                text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
-                iconClass='fa fa-trash'
+                text={
+                  hasReferredNodes
+                    ? translate("in_use_error")
+                    : translate("delete")
+                }
+                iconClass="fa fa-trash"
                 disabled={hasReferredNodes}
               />
             }
           >
-            <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
-            <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+            <p>{t("schema_editor.datamodel_field_deletion_text")}</p>
+            <p>{t("schema_editor.datamodel_field_deletion_info")}</p>
           </AltinnConfirmDialog>
         )}
       </AltinnMenu>
