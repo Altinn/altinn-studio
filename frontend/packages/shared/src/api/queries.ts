@@ -1,4 +1,4 @@
-import { get } from 'app-shared/utils/networking';
+import { get, put } from 'app-shared/utils/networking';
 import {
   appPolicyPath,
   branchStatusPath,
@@ -15,6 +15,7 @@ import {
   layoutSettingsPath,
   optionListIdsPath,
   orgsListPath,
+  processEditorPath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
@@ -108,3 +109,12 @@ export const getValidateResource = (org: string, repo: string, id: string) => ge
 export const getResourceSectors = (org: string) => get<ResourceSector[]>(resourceSectorsPath(org));
 export const getResourceThematicLos = (org: string) => get<ResourceThematic[]>(resourceThematicLosPath(org));
 export const getResourceThematicEurovoc = (org: string) => get<ResourceThematic[]>(resourceThematicEurovocPath(org));
+
+// ProcessEditor
+export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));
+export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
+  put(processEditorPath(org, app), bpmnXml, {
+    headers: {
+      'Content-Type': 'application/xml',
+    },
+  });
