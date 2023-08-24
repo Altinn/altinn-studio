@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, FieldSet } from '@digdir/design-system-react';
+import { LegacyCheckbox, LegacyFieldSet } from '@digdir/design-system-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -9,10 +9,7 @@ import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
-export const AddressComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const AddressComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
 
   const handleToggleAddressSimple = (isChecked: boolean) => {
@@ -23,7 +20,7 @@ export const AddressComponent = ({
   };
 
   return (
-    <FieldSet className={classes.root} data-testid='address-component-container'>
+    <LegacyFieldSet className={classes.root} data-testid='address-component-container'>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_configure_address_component_simplified')}
@@ -32,7 +29,7 @@ export const AddressComponent = ({
         propertyPath={`${component.propertyPath}/properties/simplified`}
       >
         {({ value, onChange }) => (
-          <Checkbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
         )}
       </FormField>
       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
@@ -54,6 +51,6 @@ export const AddressComponent = ({
           />
         );
       })}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

@@ -23,6 +23,17 @@ context('Dashboard', () => {
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
 
+  it('does not have broken links', () => {
+    cy.findAllByRole('link').each(link => {
+      if (link.prop('href'))
+        cy.request({
+          url: link.prop('href'),
+          failOnStatusCode: true
+        })
+      cy.log( link.prop('href'));
+    });
+  });
+
   it('is possible to view apps, add and remove favourites', () => {
     const createdBy = Cypress.env('autoTestUser');
     cy.intercept('PUT', '**/designer/api/user/starred/**').as('addFavourite');

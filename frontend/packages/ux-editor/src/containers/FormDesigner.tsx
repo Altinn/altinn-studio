@@ -20,6 +20,7 @@ import { PageSpinner } from 'app-shared/components';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -72,7 +73,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
     } else if (searchParams.has('layout')) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
       // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-      if (instanceId) localStorage.setItem(instanceId, selectedLayout);
+      if (instanceId) typedLocalStorage.setItem(instanceId, selectedLayout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);

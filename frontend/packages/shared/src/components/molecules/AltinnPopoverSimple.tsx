@@ -3,7 +3,7 @@ import classes from './AltinnPopoverSimple.module.css';
 import type { PopoverOrigin } from '@mui/material';
 import { ButtonContainer } from 'app-shared/primitives';
 import { Popover } from '@mui/material';
-import { Button, ButtonColor } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 
 export interface IAltinnPopoverProps {
   anchorEl: any;
@@ -61,14 +61,19 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
         <div>{props.children}</div>
         <ButtonContainer>
           {props.btnConfirmText && (
-            <Button id={props.btnPrimaryId} color={ButtonColor.Primary} onClick={btnClickedHandler} size='small'>
+            <Button
+              id={props.btnPrimaryId}
+              color='primary'
+              onClick={btnClickedHandler}
+              size='small'
+            >
               {props.btnConfirmText}
             </Button>
           )}
           {props.btnCancelText && (
             <Button
               id={props.btnSecondaryId}
-              color={ButtonColor.Inverted}
+              color='inverted'
               onClick={handleButtonClose}
               size='small'
             >

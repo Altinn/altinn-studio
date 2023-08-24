@@ -1,7 +1,7 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { useServicesContext } from "app-shared/contexts/ServicesContext";
-import { QueryKey } from "app-shared/types/QueryKey";
-import { ResourceThematicType } from "resourceadm/types/global";
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { ResourceThematic } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get the list of thematic area eurovoc for the los. It only returns the
@@ -9,15 +9,21 @@ import { ResourceThematicType } from "resourceadm/types/global";
  *
  * @param org the organisation of the user
  *
- * @returns UseQueryResult with a list of thematic areas of ResourceThematicType
+ * @returns UseQueryResult with a list of thematic areas of ResourceThematic
  */
-export const useResourceThematicAreaLosQuery = (org: string): UseQueryResult<ResourceThematicType[]> => {
+export const useResourceThematicAreaLosQuery = (
+  org: string
+): UseQueryResult<ResourceThematic[]> => {
   const { getResourceThematicLos } = useServicesContext();
 
-  return useQuery<ResourceThematicType[]>(
+  return useQuery<ResourceThematic[]>(
     [QueryKey.ResourceThematicLos, org],
-    () => getResourceThematicLos(org), { select: (data) => data.map(d => ({
-      uri: d.uri
-    })) }
-  )
-}
+    () => getResourceThematicLos(org),
+    {
+      select: (data) =>
+        data.map((d) => ({
+          uri: d.uri,
+        })),
+    }
+  );
+};

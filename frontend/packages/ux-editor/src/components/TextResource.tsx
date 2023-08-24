@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  Select,
-  SingleSelectOption,
-} from '@digdir/design-system-react';
+import { Button, Select, SingleSelectOption } from '@digdir/design-system-react';
 import { PlusIcon, XMarkIcon, PencilIcon, MagnifyingGlassIcon } from '@navikt/aksel-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCurrentEditId, } from '../features/appData/textResources/textResourcesSlice';
+import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import {
   allTextResourceIdsWithTextSelector,
@@ -62,7 +56,9 @@ export const TextResource = ({
   const textResource: ITextResource = useTextResourcesSelector<ITextResource>(
     textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId)
   );
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
+    allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE)
+  );
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
 
@@ -91,7 +87,6 @@ export const TextResource = ({
     { label: t('ux_editor.search_text_resources_none'), value: '' }
   );
 
-
   const renderTextResource = () => (
     <span
       className={cn(
@@ -117,11 +112,11 @@ export const TextResource = ({
           <Button
             aria-label={t('ux_editor.search_text_resources_close')}
             className={classes.button}
-            color={ButtonColor.Secondary}
+            color='secondary'
             icon={<XMarkIcon />}
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
-            variant={ButtonVariant.Quiet}
+            variant='quiet'
             size='small'
           />
         </span>
@@ -138,36 +133,36 @@ export const TextResource = ({
               <Button
                 aria-label={t('general.edit')}
                 className={classes.button}
-                color={ButtonColor.Secondary}
+                color='secondary'
                 disabled={isEditing}
                 icon={<PencilIcon />}
                 onClick={handleEditButtonClick}
                 title={t('general.edit')}
-                variant={ButtonVariant.Quiet}
+                variant='quiet'
                 size='small'
               />
             ) : (
               <Button
                 aria-label={t('general.add')}
                 className={classes.button}
-                color={ButtonColor.Secondary}
+                color='secondary'
                 disabled={isEditing}
                 icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
                 title={t('general.add')}
-                variant={ButtonVariant.Quiet}
+                variant='quiet'
                 size='small'
               />
             )}
             <Button
               aria-label={t('general.search')}
               className={classes.button}
-              color={ButtonColor.Secondary}
+              color='secondary'
               disabled={isSearchMode}
               icon={<MagnifyingGlassIcon />}
               onClick={() => setIsSearchMode(true)}
               title={t('general.search')}
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               size='small'
             />
           </span>
@@ -176,7 +171,9 @@ export const TextResource = ({
     </span>
   );
 
-  return previewMode ? renderTextResource() : (
+  return previewMode ? (
+    renderTextResource()
+  ) : (
     <FormField
       id={textResourceId}
       value={{ [textResourceId]: textResource?.value }}

@@ -31,6 +31,7 @@ export enum QueryKey {
   Widgets = 'Widgets',
   OptionListIds = 'OptionListIds',
   FetchBpmn = 'FetchBpmn',
+  AppPolicy = 'AppPolicy',
 
   // Resourceadm
   ResourcePolicy = 'ResourcePolicy',

@@ -1,6 +1,30 @@
 import i18next from 'i18next';
 
+export interface Dynamic {
+  id?: string;
+  editMode: boolean;
+  operator?: Operator;
+  property?: ExpressionPropertyBase | ExpressionPropertyForGroup;
+  expressionElements?: ExpressionElement[];
+  complexExpression?: any;
+}
+
+export interface ExpressionElement {
+  id: string;
+  function?: ExpressionFunction;
+  dataSource?: string;
+  value?: string;
+  comparableDataSource?: string;
+  comparableValue?: string;
+}
+
+export enum Operator {
+  And = 'and',
+  Or = 'or'
+}
+
 // Could we instead collect all properties from the specific component that has the type boolean?
+// What about strings that can be set with e.g. if/else and concat
 export enum ExpressionPropertyBase {
   Hidden = 'hidden',
   ReadOnly = 'readOnly',
@@ -34,6 +58,18 @@ export enum DataSource { // comments reflects available values to select if choo
   Boolean = 'boolean', // togglebuttons?
   Null  = 'null', // no additional field
 }
+
+export const isDataSourceWithDropDown = (dataSource: DataSource) => {
+  switch (dataSource) {
+    case DataSource.Component:
+    case DataSource.DataModel:
+    case DataSource.InstanceContext:
+    case DataSource.ApplicationSettings:
+      return true;
+    default:
+      return false;
+  }
+};
 
 export const expressionFunctionTexts = (t: typeof i18next.t) => ({
   [ExpressionFunction.Equals]: t('right_menu.dynamics_function_equals'),

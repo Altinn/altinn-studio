@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
-import { Button, ButtonColor, ButtonVariant, TextArea } from '@digdir/design-system-react';
+import { Button, TextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
 import { AltinnSpinner } from 'app-shared/components';
 
@@ -17,6 +17,8 @@ export interface ISyncModalProps {
   handleClose: any;
   btnMethod?: any;
 }
+
+const headerId = 'sync-modal-header';
 
 export const SyncModal = ({
   anchorEl,
@@ -57,7 +59,14 @@ export const SyncModal = ({
       anchorReference='anchorEl'
     >
       <SimpleContainer className={classes.popover}>
-        {header && <h3 className={classNames(classes.header)}>{header}</h3>}
+        {header && (
+          <h3
+            className={classNames(classes.header)}
+            id={headerId}
+          >
+            {header}
+          </h3>
+        )}
         {!isLoading && !shouldShowDoneIcon && (
           <div className={classNames(classes.subHeader)}>
             {descriptionText.map((text: any, index: any) => {
@@ -76,12 +85,18 @@ export const SyncModal = ({
           </div>
         )}
         {shouldShowCommitBox && (
-          <TextArea id='test' value={commitMessage} rows={4} onChange={handleChange} />
+          <TextArea
+            aria-labelledby={headerId}
+            id='test'
+            value={commitMessage}
+            rows={4}
+            onChange={handleChange}
+          />
         )}
         {btnText && (
           <Button
-            variant={ButtonVariant.Filled}
-            color={ButtonColor.Primary}
+            variant='filled'
+            color='primary'
             className={classes.button}
             onClick={btnClickedHandler}
             id='share_changes_modal_button'

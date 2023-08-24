@@ -82,4 +82,6 @@ export const queriesMock: ServicesContextProps = {
   upsertTextResources: jest.fn(),
   getBpnmFile: jest.fn(),
   updateBpmnXml: jest.fn(),
+  getAppPolicy: jest.fn(),
+  updateAppPolicy: jest.fn(),
 };

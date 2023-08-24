@@ -4,7 +4,7 @@ import { PageSpinner } from 'app-shared/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
@@ -19,7 +19,7 @@ import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { testids } from '../../../testing/testids';
+import * as testids from '../../../testing/testids';
 
 type DashboardProps = {
   user: User;
@@ -71,8 +71,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}
                   icon={<XMarkIcon />}
-                  variant={ButtonVariant.Quiet}
-                  size={ButtonSize.Small}
+                  variant='quiet'
+                  size='small'
                 />
               )}
             </div>

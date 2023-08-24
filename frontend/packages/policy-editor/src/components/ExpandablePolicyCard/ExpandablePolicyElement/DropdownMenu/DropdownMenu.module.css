@@ -1,0 +1,57 @@
+.dropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.errorButton:hover {
+  border: 1px solid var(--fds-semantic-border-danger-hover);
+}
+
+.dropdownMenu {
+  position: absolute;
+  z-index: 4;
+  top: 100%;
+  right: 0;
+  width: 150px;
+  background-color: var(--fds-semantic-surface-neutral-default);
+  border-radius: 5px;
+  filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.25));
+}
+
+.dropdownDuplicateButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.dropdownDeleteButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  border-top: 1px solid var(--fds-semantic-border-neutral-default);
+  color: var(--fds-semantic-text-danger-default);
+}
+
+.dropdownDuplicateButton:hover,
+.dropdownDeleteButton:hover {
+  background-color: #e9eaec;
+}
+
+.dropdownDuplicateButton:focus,
+.dropdownDeleteButton:focus {
+  background-color: #d9d9d9;
+}
+
+.dropdownItemText {
+  font-size: 14px;
+  margin-left: 10px;
+  color: inherit;
+}

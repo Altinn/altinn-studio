@@ -2,13 +2,13 @@ import React from 'react';
 import classes from './AltinnPopper.module.css';
 import { Popper } from '@mui/material';
 
-export interface Props {
+export type AltinnPopperProps = {
   styleObj?: object;
   message?: string;
   anchorEl: any;
-}
+};
 
-export const AltinnPopper = ({ anchorEl, styleObj, message }: Props) => (
+export const AltinnPopper = ({ anchorEl, styleObj, message }: AltinnPopperProps) => (
   <Popper
     open={Boolean(anchorEl)}
     anchorEl={anchorEl}

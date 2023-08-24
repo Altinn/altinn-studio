@@ -12,27 +12,13 @@ import { EditStringValue } from './editModal/EditStringValue';
 import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
 import { getComponentPropertyLabel } from '../../utils/language';
+import { getUnsupportedPropertyTypes } from '../../utils/component';
 
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormComponent;
   handleComponentUpdate: (component: FormComponent) => void;
 }
-
-const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string', 'object'];
-const supportedPropertyRefs = [
-  'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
-];
-
-export const isPropertyTypeSupported = (property: any) => {
-  if (property.$ref) {
-    return supportedPropertyRefs.includes(property.$ref);
-  }
-  if (property?.type === 'array' && property?.items?.type === 'string') {
-    return true;
-  }
-  return supportedPropertyTypes.includes(property.type);
-};
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
   schema: any;
@@ -61,12 +47,12 @@ export const FormComponentConfig = ({
     optionsId,
     hasCustomFileEndings,
     validFileEndings,
+    children,
     ...rest
   } = schema.properties;
 
-  const unsupportedPropertyKeys: string[] = Object.keys(rest).filter((propertyKey) => {
-    return !isPropertyTypeSupported(rest[propertyKey]);
-  });
+  // children property is not supported in component config - it should be part of container config.
+  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(rest, children ? ['children'] : undefined);
   return (
     <>
       {id && (
@@ -168,6 +154,7 @@ export const FormComponentConfig = ({
         />
       )}
       {Object.keys(rest).map((propertyKey) => {
+        if (!rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'boolean' ||
           rest[propertyKey].$ref?.endsWith('layout/expression.schema.v1.json#/definitions/boolean')

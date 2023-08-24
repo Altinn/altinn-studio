@@ -58,6 +58,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@altinn/policy-editor@workspace:frontend/packages/policy-editor":
+  version: 0.0.0-use.local
+  resolution: "@altinn/policy-editor@workspace:frontend/packages/policy-editor"
+  dependencies:
+    jest: 29.6.2
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
+    typescript: 5.1.6
+  languageName: unknown
+  linkType: soft
+
 "@altinn/process-editor@workspace:frontend/packages/process-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:frontend/packages/process-editor"
@@ -75,7 +87,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:frontend/packages/schema-editor"
   dependencies:
-    "@mui/lab": 5.0.0-alpha.139
+    "@mui/lab": 5.0.0-alpha.140
     jest: 29.6.2
     jsonpointer: 5.0.1
   peerDependencies:
@@ -1686,27 +1698,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.22.0":
-  version: 0.22.0
-  resolution: "@digdir/design-system-react@npm:0.22.0"
+"@digdir/design-system-react@npm:0.23.0":
+  version: 0.23.0
+  resolution: "@digdir/design-system-react@npm:0.23.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.2.0
+    "@digdir/design-system-tokens": ^0.3.0
     "@floating-ui/react": 0.24.1
     "@navikt/aksel-icons": ^3.2.4
-    "@navikt/ds-icons": ^2.3.0
     react-number-format: 5.2.2
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 775fcc91a25bb0f9ae447706c853f7f494c067a7b738bf2420d47e0c0955492d663bdf1cdfc23c7530664b5179067bc57748b2dc9b755f515ab17107633c33d7
+  checksum: c6c9d6fd15995f32f98a2c79f9b42694a32fa761e276bf1c68cdf859011edb464c30059a1fba3400fbe1bdaa0e4ce1f156910af63b0d32c40b7bc4bc4dcb6a7e
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.2.0, @digdir/design-system-tokens@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@digdir/design-system-tokens@npm:0.2.0"
-  checksum: 33e4ad9fc47a41ff60d30e98e06c71d80766fd412984c4a6f3c01e7c0afaee706ff83a514d0b5b0fd8dbdd16bbb3d88a940324b3e10c9a2fcb89ee9f89d928e5
+"@digdir/design-system-tokens@npm:0.3.0, @digdir/design-system-tokens@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@digdir/design-system-tokens@npm:0.3.0"
+  checksum: 77a409f4cc43a8d57c783d94111b492a289fc05c8540becc1f11b238883592fbd480ce9652405d7b458d69ad61edd7ededa7a376b8fd306e4ff869e43b858a1c
   languageName: node
   linkType: hard
 
@@ -2602,29 +2613,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/base@npm:5.0.0-beta.10":
-  version: 5.0.0-beta.10
-  resolution: "@mui/base@npm:5.0.0-beta.10"
-  dependencies:
-    "@babel/runtime": ^7.22.6
-    "@emotion/is-prop-valid": ^1.2.1
-    "@mui/types": ^7.2.4
-    "@mui/utils": ^5.14.4
-    "@popperjs/core": ^2.11.8
-    clsx: ^2.0.0
-    prop-types: ^15.8.1
-    react-is: ^18.2.0
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 4190213fea4715fb3928828339389aeb69620d3f992d42c79422ddaa76540890d3df3468658e4aa071712ec6efc0bba286ef6c7820daeaad6f1d22fedd692afd
-  languageName: node
-  linkType: hard
-
 "@mui/base@npm:5.0.0-beta.11":
   version: 5.0.0-beta.11
   resolution: "@mui/base@npm:5.0.0-beta.11"
@@ -2655,15 +2643,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/lab@npm:5.0.0-alpha.139":
-  version: 5.0.0-alpha.139
-  resolution: "@mui/lab@npm:5.0.0-alpha.139"
+"@mui/lab@npm:5.0.0-alpha.140":
+  version: 5.0.0-alpha.140
+  resolution: "@mui/lab@npm:5.0.0-alpha.140"
   dependencies:
     "@babel/runtime": ^7.22.6
-    "@mui/base": 5.0.0-beta.10
-    "@mui/system": ^5.14.4
+    "@mui/base": 5.0.0-beta.11
+    "@mui/system": ^5.14.5
     "@mui/types": ^7.2.4
-    "@mui/utils": ^5.14.4
+    "@mui/utils": ^5.14.5
     clsx: ^2.0.0
     prop-types: ^15.8.1
     react-is: ^18.2.0
@@ -2681,7 +2669,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: 99974aaef49abc942a14558df50bdc7fbd1d9d2613d039017b605f6e4188e1a78e639a687d0d6531ce21af9350f2250a5e8906055dead262d1f6dd55fbef92ae
+  checksum: 8eb8115b8def96b2a7da16dc4e5e80edd24ca9c0d62c450692668ac6eecd838fc7dd71e0b1a9b20575396f8c311518e6cc851f6c28b1690dff7fbb8e39a5dd63
   languageName: node
   linkType: hard
 
@@ -2715,23 +2703,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: a3889143be3a5eff0bb7cfce66f677eb6a441f17a958abb2ace09f20cbfd4edb6ade3d63aa616eca0c774abc7167c63b57a05bb172355f3b6f7ac90ce31f55d2
-  languageName: node
-  linkType: hard
-
-"@mui/private-theming@npm:^5.14.4":
-  version: 5.14.4
-  resolution: "@mui/private-theming@npm:5.14.4"
-  dependencies:
-    "@babel/runtime": ^7.22.6
-    "@mui/utils": ^5.14.4
-    prop-types: ^15.8.1
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 822487a6bd2cc06397b4158dd79283fa6829410d3abd16aa7c12d8569512bfa5f2b6db707b2b2e2f4fa59fc62286057b8184428c7e1cf8147eb1649c426b164c
   languageName: node
   linkType: hard
 
@@ -2770,34 +2741,6 @@ __metadata:
     "@emotion/styled":
       optional: true
   checksum: e99f49755406b55a1595bf5d2727f0c0e3fd9f914dce1ea3b6cac826efe05038f8e4bde52580bd6a5a4c62ad59e5582bdde6c17abc10d80e61a64da168803391
-  languageName: node
-  linkType: hard
-
-"@mui/system@npm:^5.14.4":
-  version: 5.14.4
-  resolution: "@mui/system@npm:5.14.4"
-  dependencies:
-    "@babel/runtime": ^7.22.6
-    "@mui/private-theming": ^5.14.4
-    "@mui/styled-engine": ^5.13.2
-    "@mui/types": ^7.2.4
-    "@mui/utils": ^5.14.4
-    clsx: ^2.0.0
-    csstype: ^3.1.2
-    prop-types: ^15.8.1
-  peerDependencies:
-    "@emotion/react": ^11.5.0
-    "@emotion/styled": ^11.3.0
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@emotion/react":
-      optional: true
-    "@emotion/styled":
-      optional: true
-    "@types/react":
-      optional: true
-  checksum: 1f0df9872456f3876d6963bb661212e5030ca7218f4687b649d1a969f9c27f707c1cc4687d375257c75cbabd39cd402c5a16d4739b37e94f89f0a5eb9827edd1
   languageName: node
   linkType: hard
 
@@ -2856,21 +2799,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.14.4":
-  version: 5.14.4
-  resolution: "@mui/utils@npm:5.14.4"
-  dependencies:
-    "@babel/runtime": ^7.22.6
-    "@types/prop-types": ^15.7.5
-    "@types/react-is": ^18.2.1
-    prop-types: ^15.8.1
-    react-is: ^18.2.0
-  peerDependencies:
-    react: ^17.0.0 || ^18.0.0
-  checksum: b0084c55dc15c304e93832a23c567e41f2b152242dee3dc2578ce4b3d5177d604994abe1fd39b38a23d049592126a71ecf5ac9fe9f141155aeb4cce06241df92
-  languageName: node
-  linkType: hard
-
 "@mui/utils@npm:^5.14.5":
   version: 5.14.5
   resolution: "@mui/utils@npm:5.14.5"
@@ -2904,10 +2832,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:3.4.2":
-  version: 3.4.2
-  resolution: "@navikt/aksel-icons@npm:3.4.2"
-  checksum: d58da59cb6b31bfe54a1f83c17481c2d629ef62f11956ec9adc6615c2a5f1cf2efe0370ff2b8de70a5c9492e5bdb23594b89a38d269f090a512b7a1abe9b2960
+"@navikt/aksel-icons@npm:5.0.2":
+  version: 5.0.2
+  resolution: "@navikt/aksel-icons@npm:5.0.2"
+  checksum: 84323298becdd18d15e355fb481c5026b573693343ed2f1bcead4237c69243552b316cff95d221e8897d85b9e7c3e7abc94de5df1e19cce6704f3e8ba499abe4
   languageName: node
   linkType: hard
 
@@ -5133,12 +5061,12 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.0
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.22.0
-    "@digdir/design-system-tokens": 0.2.0
+    "@digdir/design-system-react": 0.23.0
+    "@digdir/design-system-tokens": 0.3.0
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.10
-    "@navikt/aksel-icons": 3.4.2
+    "@navikt/aksel-icons": 5.0.2
     "@redux-saga/is": 1.1.3
     "@redux-saga/symbols": 1.1.3
     "@svgr/webpack": 8.1.0
@@ -5179,7 +5107,7 @@ __metadata:
     jest-environment-jsdom: 29.6.2
     jest-fail-on-console: 3.1.1
     jest-junit: 16.0.0
-    lint-staged: 13.3.0
+    lint-staged: 14.0.0
     mini-css-extract-plugin: 2.7.6
     msw: 1.2.3
     prettier: 2.8.8
@@ -11159,9 +11087,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:13.3.0":
-  version: 13.3.0
-  resolution: "lint-staged@npm:13.3.0"
+"lint-staged@npm:14.0.0":
+  version: 14.0.0
+  resolution: "lint-staged@npm:14.0.0"
   dependencies:
     chalk: 5.3.0
     commander: 11.0.0
@@ -11175,7 +11103,7 @@ __metadata:
     yaml: 2.3.1
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: f7c146cc2849c9ce4f1d2808d990fcbdef5e0bb79e6e79cc895f53c91f5ac4dcefdb8c3465156b38a015dcb051f2795c6bda4f20a1e2f2fa654c7ba521b2d2e0
+  checksum: 7269cd21c15a7b5734a28775f879a91f6b59291bec9a897a1f2faae1cd8316dd50e19fd13207fb6798c705eb5371a25caee0e2dfd5932fbcd38ea5f8155f918c
   languageName: node
   linkType: hard
 
