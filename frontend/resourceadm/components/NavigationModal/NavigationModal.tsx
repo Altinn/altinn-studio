@@ -3,7 +3,7 @@ import classes from './NavigationModal.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 
-interface Props {
+type NavigationModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -22,7 +22,7 @@ interface Props {
    * The title in the modal
    */
   title: string;
-}
+};
 
 /**
  * @component
@@ -35,7 +35,12 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const NavigationModal = ({ isOpen, onClose, onNavigate, title }: Props): React.ReactNode => {
+export const NavigationModal = ({
+  isOpen,
+  onClose,
+  onNavigate,
+  title,
+}: NavigationModalProps): React.ReactNode => {
   // TODO - translation
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>

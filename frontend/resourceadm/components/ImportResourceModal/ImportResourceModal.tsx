@@ -23,7 +23,7 @@ const dummyServices: ServiceType[] = [
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
-interface Props {
+type ImportResourceModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -33,7 +33,7 @@ interface Props {
    * @returns void
    */
   onClose: () => void;
-}
+};
 
 /**
  * @component
@@ -49,7 +49,10 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ImportResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
+export const ImportResourceModal = ({
+  isOpen,
+  onClose,
+}: ImportResourceModalProps): React.ReactNode => {
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');

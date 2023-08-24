@@ -3,7 +3,7 @@ import classes from './ResourceDeployEnvCard.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
 
-interface Props {
+type ResourceDeployEnvCardProps = {
   /**
    * Flag for if deploy is possible or not
    */
@@ -20,7 +20,7 @@ interface Props {
    * The new version the resource will deploy to
    */
   newEnvVersion?: string;
-}
+};
 
 /**
  * @component
@@ -39,7 +39,7 @@ export const ResourceDeployEnvCard = ({
   envName,
   currentEnvVersion,
   newEnvVersion,
-}: Props): React.ReactNode => {
+}: ResourceDeployEnvCardProps): React.ReactNode => {
   // TODO - Translation
 
   const handleOnClick = () => {

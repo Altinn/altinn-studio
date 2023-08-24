@@ -12,7 +12,7 @@ import {
   Link,
 } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
+import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
@@ -22,14 +22,14 @@ import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
-interface Props {
+type DeployResourcePageProps = {
   /**
    * Function that navigates to a page with errors
    * @param page the page to navigate to
    * @returns void
    */
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+  navigateToPageWithError: (page: NavigationBarPage) => void;
+};
 
 /**
  * @component
@@ -39,7 +39,9 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.ReactNode => {
+export const DeployResourcePage = ({
+  navigateToPageWithError,
+}: DeployResourcePageProps): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -115,9 +117,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props): React.Re
   /**
    * Returns the correct error type for the deploy page
    */
-  const getStatusError = (): DeployErrorType[] | string => {
+  const getStatusError = (): DeployError[] | string => {
     if (validateResourceData.status !== 200 || hasPolicyError !== 'none') {
-      const errorList: DeployErrorType[] = [];
+      const errorList: DeployError[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors

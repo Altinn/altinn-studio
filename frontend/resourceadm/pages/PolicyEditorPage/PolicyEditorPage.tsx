@@ -1,9 +1,8 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
-import { PolicyBackendType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
-import { mapPolicyResultToPolicyObject } from 'resourceadm/utils/mapperUtils';
+import { PolicyEditor } from '@altinn/policy-editor';
+import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import {
   useResourcePolicyQuery,
@@ -12,12 +11,12 @@ import {
 } from 'resourceadm/hooks/queries';
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
 
-interface Props {
+type PolicyEditorPageProps = {
   /**
    * Flag to decide if all errors should be shown or not
    */
   showAllErrors: boolean;
-}
+};
 
 /**
  * @component
@@ -27,11 +26,10 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
+export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): React.ReactNode => {
   // TODO - translation
 
   const { resourceId, selectedContext } = useParams();
-  const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
   const repo = `${selectedContext}-resources`;
 
   // Get the data
@@ -59,9 +57,8 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (p: PolicyBackendType) => {
-    updatePolicyMutation(p, {
-      // TODO - Display that it was saved
+  const handleSavePolicy = (policy: Policy) => {
+    updatePolicyMutation(policy, {
       onSuccess: () => {
         console.log('success');
       },
@@ -81,13 +78,13 @@ export const PolicyEditorPage = ({ showAllErrors }: Props): React.ReactNode => {
     }
     return (
       <PolicyEditor
-        policy={mapPolicyResultToPolicyObject(policyData)}
+        policy={policyData}
         actions={actionData}
         subjects={subjectData}
-        resourceType={resourceType}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
+        usageType='resource'
       />
     );
   };

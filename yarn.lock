@@ -58,6 +58,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@altinn/policy-editor@workspace:frontend/packages/policy-editor":
+  version: 0.0.0-use.local
+  resolution: "@altinn/policy-editor@workspace:frontend/packages/policy-editor"
+  dependencies:
+    jest: 29.6.2
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
+    typescript: 5.1.6
+  languageName: unknown
+  linkType: soft
+
 "@altinn/process-editor@workspace:frontend/packages/process-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:frontend/packages/process-editor"

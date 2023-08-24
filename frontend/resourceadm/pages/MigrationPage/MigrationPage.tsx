@@ -13,21 +13,21 @@ import {
   Label,
   Link,
 } from '@digdir/design-system-react';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 
 const envOptions = [
   { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
   { value: 'Produksjonsmiljø', label: 'Produksjonsmiljø' },
 ];
 
-interface Props {
+type MigrationPageProps = {
   /**
    * Function that navigates to a page with errors
    * @param page the page to navigate to
    * @returns void
    */
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+  navigateToPageWithError: (page: NavigationBarPage) => void;
+};
 
 /**
  * @component
@@ -37,7 +37,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const MigrationPage = ({ navigateToPageWithError }: Props): React.ReactNode => {
+export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
