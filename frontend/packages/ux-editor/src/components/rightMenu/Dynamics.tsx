@@ -11,7 +11,12 @@ import {
   ExpressionPropertyForGroup,
   Dynamic,
 } from '../../types/Expressions';
-import { convertDynamicToExternalFormat, convertExternalDynamicToInternal } from '../../utils/dynamicsUtils';
+import {
+  complexExpressionIsSet,
+  convertDynamicToExternalFormat,
+  convertExternalDynamicToInternal,
+  tryParseString
+} from '../../utils/dynamicsUtils';
 import { LayoutItemType } from '../../types/global';
 import classes from './RightMenu.module.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -59,7 +64,11 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
 
   const addDynamic = async () => {
     // TODO: Consider have a state for dynamicIdInEditMode instead of iterating over all every time to adapt the editMode prop
-    const nonEditableDynamics: Dynamic[] = await Promise.all([...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || prevDynamic.complexExpression)].map(async prevDynamic => {
+    const nonEditableDynamics: Dynamic[] = await Promise.all([...dynamics.filter(prevDynamic => (prevDynamic.expressionElements && prevDynamic.expressionElements.length > 0) || complexExpressionIsSet(prevDynamic.complexExpression))].map(async prevDynamic => {
+      if (complexExpressionIsSet(prevDynamic.complexExpression)) {
+        const newDynamic = tryParseString(prevDynamic, prevDynamic.complexExpression);
+        prevDynamic = { ...newDynamic };
+      }
       if (prevDynamic.property && prevDynamic.editMode) {
         // TODO: What if dynamic is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
         form[prevDynamic.property] = convertDynamicToExternalFormat(prevDynamic);
@@ -78,7 +87,6 @@ export const Dynamics = ({ onShowNewDynamics, showNewDynamics }: DynamicsProps) 
   };
 
   const updateDynamic = (index: number, newDynamic: Dynamic) => {
-    debugger;
     const updatedDynamics = deepCopy(dynamics);
     updatedDynamics[index] = newDynamic;
     setDynamics(updatedDynamics);

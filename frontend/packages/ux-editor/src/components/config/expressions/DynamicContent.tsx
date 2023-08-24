@@ -16,8 +16,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import classes from './DynamicContent.module.css';
 import {
   addAction,
-  addExpression, removeExpressionElementAndAddDefaultIfEmpty,
-  updateComplexExpressionAndSetToEmptyArrayIfNoContent,
+  addExpression, complexExpressionIsSet, removeExpressionElementAndAddDefaultIfEmpty,
+  updateComplexExpression,
   updateExpression,
   updateOperator
 } from '../../../utils/dynamicsUtils';
@@ -99,8 +99,8 @@ export const DynamicContent = ({
     onUpdateDynamic(newDynamic);
   };
 
-  const updateComplexExpression = (newComplexExpression: any) => {
-    const newDynamic: Dynamic = updateComplexExpressionAndSetToEmptyArrayIfNoContent(dynamic, newComplexExpression);
+  const updateDynamicComplexExpression = (newComplexExpression: any) => {
+    const newDynamic: Dynamic = updateComplexExpression(dynamic, newComplexExpression);
     onUpdateDynamic(newDynamic);
   };
 
@@ -116,7 +116,7 @@ export const DynamicContent = ({
         return expression;
       }
       // Attempt to format the JSON input
-      return JSON.stringify(expression).split(',').join(',\n').replaceAll('\"', '\'');
+      return JSON.stringify(expression);
     } catch (error) {
       return expression.toString();
     }
@@ -154,11 +154,11 @@ export const DynamicContent = ({
             })))}
             value={dynamic.property || 'default'}
           />
-          {dynamic.complexExpression ? (
+          {complexExpressionIsSet(dynamic.complexExpression) ? (
             <div className={classes.complexExpressionContainer}>
               <TextArea
                 value={tryFormatExpression(dynamic.complexExpression)}
-                onChange={event => updateComplexExpression(event.target.value)}
+                onChange={event => updateDynamicComplexExpression(event.target.value)}
               />
               <Alert>
                 {t('right_menu.dynamics_complex_dynamic_message')}
@@ -190,7 +190,7 @@ export const DynamicContent = ({
                 components={{ bold: <strong/> }}
               />
             </span>
-            {dynamic.complexExpression ? (
+            {complexExpressionIsSet(dynamic.complexExpression) ? (
               <div className={classes.complexExpressionContainer}>
                   <TextArea
                     className={classes.complexExpression}

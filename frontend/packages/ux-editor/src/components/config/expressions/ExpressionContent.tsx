@@ -7,13 +7,13 @@ import {
   ExpressionElement,
   expressionFunctionTexts,
   Operator,
-  isDataSourceWithDropDown,
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { DataSourceValue } from './DataSourceValue';
+import { addDataSource, addDataSourceValue } from "../../../utils/dynamicsUtils";
 
 interface IExpressionContentProps {
   expressionAction: boolean;
@@ -44,35 +44,15 @@ export const ExpressionContent = ({
     handleUpdateExpressionElement();
   };
 
-  const addDataSource = (dataSource: string, isComparable: boolean ) => {
-    if (dataSource === 'default') {
-      isComparable ? delete expressionElement.comparableDataSource : delete expressionElement.dataSource;
-      isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
-    }
-    else {
-      if (isComparable ? expressionElement.comparableDataSource !== dataSource : expressionElement.dataSource !== dataSource) {
-        if (isDataSourceWithDropDown(dataSource as DataSource)) {
-          isComparable ? expressionElement.comparableValue = 'default' : expressionElement.value = 'default';
-        }
-        else {
-          isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
-        }
-      }
-      isComparable ? expressionElement.comparableDataSource = dataSource as DataSource : expressionElement.dataSource = dataSource as DataSource;
-      if (dataSource === DataSource.Null) {
-        isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
-      }
-    }
+  const addDataSourceToDynamic = (dataSource: string, isComparable: boolean ) => {
+    const newExpressionElement = addDataSource(expressionElement, dataSource, isComparable);
+    expressionElement = { ...newExpressionElement };
     handleUpdateExpressionElement();
   };
 
-  const addDataSourceValue = (dataSourceValue: string, isComparable: boolean) => {
-    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
-    if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
-      isComparable ? delete expressionElement.comparableValue : delete expressionElement.value;
-    } else {
-      isComparable ? expressionElement.comparableValue = dataSourceValue : expressionElement.value = dataSourceValue;
-    }
+  const addDataSourceValueToDynamic = (dataSourceValue: string, isComparable: boolean) => {
+    const newExpressionElement = addDataSourceValue(expressionElement, dataSourceValue, isComparable);
+    expressionElement = { ...newExpressionElement };
     handleUpdateExpressionElement();
   };
 
@@ -118,7 +98,7 @@ export const ExpressionContent = ({
             />
             <div className={classes.expressionDetails}>
               <Select
-                onChange={(dataSource: string) => addDataSource(dataSource, false)}
+                onChange={(dataSource: string) => addDataSourceToDynamic(dataSource, false)}
                 options={[{ label: 'Velg...', value: 'default' }].concat(
                   Object.values(DataSource).map((ds: string) => ({
                     label: expressionDataSourceTexts(t)[ds],
@@ -131,7 +111,7 @@ export const ExpressionContent = ({
                 <DataSourceValue
                   expressionElement={expressionElement}
                   currentDataSource={expressionElement.dataSource as DataSource}
-                  specifyDataSourceValue={(dataSourceValue ) => addDataSourceValue(dataSourceValue, false)}
+                  specifyDataSourceValue={(dataSourceValue ) => addDataSourceValueToDynamic(dataSourceValue, false)}
                   isComparableValue={false}
                 />
               )}
@@ -140,7 +120,7 @@ export const ExpressionContent = ({
               </p>
               <Select
                 onChange={(compDataSource: string) =>
-                  addDataSource(compDataSource, true)
+                  addDataSourceToDynamic(compDataSource, true)
                 }
                 options={[{ label: 'Velg...', value: 'default' }].concat(
                   Object.values(DataSource).map((cds: string) => ({
@@ -154,7 +134,7 @@ export const ExpressionContent = ({
                 <DataSourceValue
                   expressionElement={expressionElement}
                   currentDataSource={expressionElement.comparableDataSource as DataSource}
-                  specifyDataSourceValue={(dataSourceValue) => addDataSourceValue(dataSourceValue, true)}
+                  specifyDataSourceValue={(dataSourceValue) => addDataSourceValueToDynamic(dataSourceValue, true)}
                   isComparableValue={true}
                 />
               )}

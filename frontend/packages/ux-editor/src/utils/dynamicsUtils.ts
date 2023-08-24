@@ -3,14 +3,14 @@ import {
   Dynamic, ExpressionElement,
   ExpressionFunction,
   ExpressionPropertyBase,
-  ExpressionPropertyForGroup,
+  ExpressionPropertyForGroup, isDataSourceWithDropDown,
   Operator
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
 import { deepCopy } from 'app-shared/pure';
 
 export const convertDynamicToExternalFormat = (dynamic: Dynamic): any => {
-  if (dynamic.complexExpression) {
+  if (complexExpressionIsSet(dynamic.complexExpression)) {
     return dynamic.complexExpression;
   }
   const expressions: any[] = [];
@@ -83,7 +83,7 @@ export const convertExternalDynamicToInternal = (booleanValue: string, dynamic: 
     );
     return convertedDynamic;
   }
-}
+};
 
 function convertExpressionElement(internalExpEl: ExpressionElement, externalExpEl: any, isComparable: boolean): ExpressionElement {
   if (Array.isArray(externalExpEl)) {
@@ -129,22 +129,67 @@ export const updateExpression = (oldDynamic: Dynamic, index: number, expressionE
   return newDynamic;
 };
 
-export const updateComplexExpressionAndSetToEmptyArrayIfNoContent = (oldDynamic: Dynamic, complexExpression: any): Dynamic => {
+export const updateComplexExpression = (oldDynamic: Dynamic, complexExpression: any): Dynamic => {
   const newDynamic = deepCopy(oldDynamic);
-  // TODO: Try format expression for readability
-  try {
-    newDynamic.complexExpression = JSON.parse(complexExpression.replaceAll('\'', '\"'));
-  } catch (error) {
-    newDynamic.complexExpression = complexExpression.length > 0 ? complexExpression : '[]';
-  }
+  newDynamic.complexExpression = complexExpression;
   return newDynamic;
 };
 
 export const removeExpressionElementAndAddDefaultIfEmpty = (oldDynamic: Dynamic, expressionElement: ExpressionElement) => {
   const newDynamic = deepCopy(oldDynamic);
-  const updatedExpressionElements = newDynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
+  const updatedExpressionElements = newDynamic.expressionElements.filter((expEl: ExpressionElement) => expEl.id !== expressionElement.id);
   // Add default if the last expression was deleted
   const newExpressionElement: ExpressionElement = { id: uuidv4() };
   newDynamic.expressionElements = newDynamic.expressionElements.length < 2 ? [newExpressionElement] : updatedExpressionElements;
   return newDynamic;
+};
+
+export const addDataSource = (expEl: ExpressionElement, dataSource: string, isComparable: boolean ) => {
+  const newExpEl = deepCopy(expEl);
+  if (dataSource === 'default') {
+    isComparable ? delete newExpEl.comparableDataSource : delete newExpEl.dataSource;
+    isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+  }
+  else {
+    if (isComparable ? newExpEl.comparableDataSource !== dataSource : newExpEl.dataSource !== dataSource) {
+      if (isDataSourceWithDropDown(dataSource as DataSource)) {
+        isComparable ? newExpEl.comparableValue = 'default' : newExpEl.value = 'default';
+      }
+      else {
+        isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+      }
+    }
+    isComparable ? newExpEl.comparableDataSource = dataSource as DataSource : newExpEl.dataSource = dataSource as DataSource;
+    if (dataSource === DataSource.Null) {
+      isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+    }
+  }
+  return newExpEl;
+};
+
+export const addDataSourceValue = (expEl: ExpressionElement, dataSourceValue: string, isComparable: boolean) => {
+  const newExpEl = deepCopy(expEl);
+  // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
+  if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
+    isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+  } else {
+    isComparable ? newExpEl.comparableValue = dataSourceValue : newExpEl.value = dataSourceValue;
+  }
+  return newExpEl;
+};
+
+export const tryParseString = (oldDynamic: Dynamic, complexExpression: string) => {
+  // TODO: Try format expression for better readability
+  const newDynamic = deepCopy(oldDynamic);
+  try {
+    newDynamic.complexExpression = JSON.parse(complexExpression);
+  } catch (error) {
+    newDynamic.complexExpression = complexExpression;
+  }
+  return newDynamic;
+};
+
+export const complexExpressionIsSet = (complexExpression: string) => {
+  // ComplexExpression can be empty string
+  return complexExpression !== undefined && complexExpression !== null;
 };

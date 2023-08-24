@@ -35,7 +35,6 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
         rest.type = rest.component;
         delete rest.component;
       }
-
       rest.itemType = 'COMPONENT';
       rest.propertyPath = formItemConfigs[rest.type].defaultProperties.propertyPath;
       convertedLayout.components[id] = {
