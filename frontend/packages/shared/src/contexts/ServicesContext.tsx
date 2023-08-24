@@ -24,7 +24,7 @@ import 'app-shared/styles/toast.css';
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
   children?: ReactNode;
-  client?: QueryClient;
+  client?: QueryClient; // TODO : should probably be removed to force the use of QueryCache and MutationCache
   clientConfig?: QueryClientConfig;
 };
 
