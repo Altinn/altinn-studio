@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import classes from './Switch.module.css';
 
-interface Props {
+type SwitchProps = {
   /**
    * Function to be executed when toggle
    * @param isChecked value of the new toggle state
@@ -22,7 +22,7 @@ interface Props {
    * @returns void
    */
   onBlur: () => void;
-}
+};
 
 /**
  * @component
@@ -35,7 +35,8 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const Switch = forwardRef<HTMLInputElement, Props>(
+// TODO - replace with Design system chip. Issue: #10892
+export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
   ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
     const handleToggle = () => {
       const newCheckedState = !isChecked;

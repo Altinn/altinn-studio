@@ -5,10 +5,10 @@ import { Modal } from '../Modal';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { useNavigate, useParams } from 'react-router-dom';
-import { NewResourceType } from 'resourceadm/types/global';
+import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
-interface Props {
+type NewResourceModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -18,7 +18,7 @@ interface Props {
    * @returns void
    */
   onClose: () => void;
-}
+};
 
 /**
  * @component
@@ -29,7 +29,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const NewResourceModal = ({ isOpen, onClose }: Props): React.ReactNode => {
+export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): React.ReactNode => {
   const navigate = useNavigate();
 
   const { selectedContext } = useParams();
@@ -48,7 +48,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props): React.ReactNode =>
    * Creates a new resource in backend, and navigates if success
    */
   const handleCreateNewResource = () => {
-    const idAndTitle: NewResourceType = {
+    const idAndTitle: NewResource = {
       identifier: id,
       title: {
         nb: title,

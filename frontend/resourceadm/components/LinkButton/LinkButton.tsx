@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './LinkButton.module.css';
 import { Link } from '@digdir/design-system-react';
 
-interface Props {
+type LinkButtonProps = {
   /**
    * Function to handle the click of the link
    * @returns void
@@ -12,7 +12,7 @@ interface Props {
    * Children of the component
    */
   children: React.ReactNode;
-}
+};
 
 /**
  * @component
@@ -28,7 +28,7 @@ interface Props {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const LinkButton = ({ onClick, children }: Props): React.ReactNode => {
+export const LinkButton = ({ onClick, children }: LinkButtonProps): React.ReactNode => {
   return (
     <Link as='button' onClick={onClick} className={classes.linkButton}>
       {children}

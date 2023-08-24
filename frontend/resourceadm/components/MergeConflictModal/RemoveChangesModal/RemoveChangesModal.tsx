@@ -5,7 +5,7 @@ import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 
-interface Props {
+type RemoveChangesModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -24,7 +24,7 @@ interface Props {
    * The name of the repo
    */
   repo: string;
-}
+};
 
 /**
  * @Component
@@ -42,7 +42,7 @@ export const RemoveChangesModal = ({
   onClose,
   handleClickResetRepo,
   repo,
-}: Props): React.ReactNode => {
+}: RemoveChangesModalProps): React.ReactNode => {
   const { t } = useTranslation();
 
   const [deleteRepoName, setDeleteRepoName] = useState('');

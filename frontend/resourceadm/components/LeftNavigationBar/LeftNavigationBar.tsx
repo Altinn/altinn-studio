@@ -8,20 +8,20 @@ import {
   ArrowLeftIcon,
   MigrationIcon,
 } from '@navikt/aksel-icons';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 import { Paragraph } from '@digdir/design-system-react';
 
-interface Props {
+type LeftNavigationBarProps = {
   /**
    * The currentPage displayed
    */
-  currentPage: NavigationBarPageType;
+  currentPage: NavigationBarPage;
   /**
    * Function that navigates to another page in the navbar
    * @param page the page to navigate to
    * @returns void
    */
-  navigateToPage: (page: NavigationBarPageType) => void;
+  navigateToPage: (page: NavigationBarPage) => void;
   /**
    * Function to go back to dashboard
    * @returns void
@@ -31,7 +31,7 @@ interface Props {
    * Flag for if the migrate tab should be shown
    */
   showMigrate?: boolean;
-}
+};
 
 /**
  * @component
@@ -45,7 +45,7 @@ interface Props {
  *        goBack={goBack}
  *    />
  *
- * @property {NavigationBarPageType}[currentPage] - The currentPage displayed
+ * @property {NavigationBarPage}[currentPage] - The currentPage displayed
  * @property {function}[navigateToPage] - Function that navigates to another page in the navbar
  * @property {function}[goBack] - Function to go back to dashboard
  * @property {boolean}[showMigrate] - Flag for if the migrate tab should be shown
@@ -57,10 +57,10 @@ export const LeftNavigationBar = ({
   navigateToPage,
   goBack,
   showMigrate = false,
-}: Props): React.ReactNode => {
-  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
+}: LeftNavigationBarProps): React.ReactNode => {
+  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPage>(null);
 
-  const handleClick = (page: NavigationBarPageType) => {
+  const handleClick = (page: NavigationBarPage) => {
     if (page !== currentPage) {
       setNewPageClicked(page);
       navigateToPage(page);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
-import { NavigationBarPageType, ResourceBackendType } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -21,6 +21,7 @@ import { Spinner } from '@digdir/design-system-react';
 import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 
 /**
  * @component
@@ -34,11 +35,9 @@ export const ResourcePage = (): React.ReactNode => {
   const { pageType, resourceId, selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
-  const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
-    pageType as NavigationBarPageType
-  );
+  const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
   // Stores the temporary next page
-  const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
+  const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -91,13 +90,13 @@ export const ResourcePage = (): React.ReactNode => {
    * Check if the pageType parameter has changed and update the currentPage
    */
   useEffect(() => {
-    setCurrentPage(pageType as NavigationBarPageType);
+    setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
 
   /**
    * Navigates to the selected page
    */
-  const navigateToPage = async (page: NavigationBarPageType) => {
+  const navigateToPage = async (page: NavigationBarPage) => {
     if (currentPage !== page) {
       await refetchResource();
 
@@ -139,7 +138,7 @@ export const ResourcePage = (): React.ReactNode => {
    *
    * @param newPage the page to navigate to
    */
-  const handleNavigation = (newPage: NavigationBarPageType) => {
+  const handleNavigation = (newPage: NavigationBarPage) => {
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
@@ -160,7 +159,7 @@ export const ResourcePage = (): React.ReactNode => {
    *
    * @param page the page to navigate to
    */
-  const navigateToPageWithError = async (page: NavigationBarPageType) => {
+  const navigateToPageWithError = async (page: NavigationBarPage) => {
     if (page === 'about') {
       await refetchResource();
       await refetchValidateResource();
@@ -203,9 +202,8 @@ export const ResourcePage = (): React.ReactNode => {
               resourceData={resourceData}
               sectorsData={sectorsData}
               thematicData={[...losData, ...eurData]}
-              onSaveResource={(r: ResourceBackendType) => {
+              onSaveResource={(r: Resource) => {
                 editResource(r, {
-                  // TODO - Display that it was saved
                   onSuccess: () => {
                     console.log('success');
                   },

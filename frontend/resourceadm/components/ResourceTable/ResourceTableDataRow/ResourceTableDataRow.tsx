@@ -5,14 +5,14 @@ import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { ResourceType } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
-interface Props {
+type ResourceTableDataRowProps = {
   /**
    * The resource to display in the row
    */
-  resource: ResourceType;
-}
+  resource: ResourceListItem;
+};
 
 /**
  * @component
@@ -20,11 +20,11 @@ interface Props {
  *    name, created by, the date changed, if it has policy or not, as well as
  *    two buttons, one for editing a resource, and one for doing more actions
  *
- * @property {ResourceType}[resource] - The resource to display in the row
+ * @property {Resource}[resource] - The resource to display in the row
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTableDataRow = ({ resource }: Props): React.ReactNode => {
+export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 

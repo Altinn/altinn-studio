@@ -7,7 +7,7 @@ import { RemoveChangesModal } from './RemoveChangesModal';
 import { get } from 'app-shared/utils/networking';
 import { Modal } from '../Modal';
 
-interface Props {
+type MergeConflictModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -25,7 +25,7 @@ interface Props {
    * The name of the repo
    */
   repo: string;
-}
+};
 
 /**
  * @component
@@ -43,7 +43,7 @@ export const MergeConflictModal = ({
   handleSolveMerge,
   org,
   repo,
-}: Props): React.ReactNode => {
+}: MergeConflictModalProps): React.ReactNode => {
   const { t } = useTranslation();
 
   const [resetModalOpen, setResetModalOpen] = useState(false);
@@ -56,7 +56,6 @@ export const MergeConflictModal = ({
     handleSolveMerge();
   };
 
-  // TODO - more translation
   return (
     <Modal isOpen={isOpen} title={t('merge_conflict.headline')}>
       <Paragraph size='small'>{t('merge_conflict.body1')}</Paragraph>

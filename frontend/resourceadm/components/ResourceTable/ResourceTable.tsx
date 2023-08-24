@@ -4,30 +4,30 @@ import classes from './ResourceTable.module.css';
 import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
 import { Button } from '@digdir/design-system-react';
-import { ResourceType } from 'resourceadm/types/global';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
-interface Props {
+type ResourceTableProps = {
   /**
    * The list to display in the table
    */
-  list: ResourceType[];
-}
+  list: ResourceListItem[];
+};
 
 /**
  * @component
  *    Table to display a list of all resources available
  *
- * @property {ResourceType[]}[list] - The list to display in the table
+ * @property {ResourceListItem[]}[list] - The list to display in the table
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTable = ({ list }: Props): React.ReactNode => {
+export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => {
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
 
   /**
    * Displays a row for each resource in the list
    */
-  const displayRows = list.map((resource: ResourceType, key: number) => {
+  const displayRows = list.map((resource: ResourceListItem, key: number) => {
     return <ResourceTableDataRow key={key} resource={resource} />;
   });
 
