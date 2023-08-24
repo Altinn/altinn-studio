@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { RadioGroup } from '@digdir/design-system-react';
+import { LegacyRadioGroup } from '@digdir/design-system-react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import classes from './RadioGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
@@ -38,7 +38,7 @@ export const RadioGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <RadioGroup
+      <LegacyRadioGroup
         legend={
           <TextResource
             handleIdChange={changeLegend}

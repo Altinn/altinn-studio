@@ -1,6 +1,6 @@
 import classes from './Variables.module.css';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import React, { useState } from 'react';
 import type { TextResourceVariable } from './types';
@@ -23,13 +23,7 @@ export const Variables = ({ variables }: VariablesProps) => {
           <PopoverPanel
             title={'Kun for visning'}
             variant={PanelVariant.Info}
-            trigger={
-              <Button
-                icon={<InformationSquareFillIcon />}
-                variant={ButtonVariant.Quiet}
-                size={ButtonSize.Small}
-              />
-            }
+            trigger={<Button icon={<InformationSquareFillIcon />} variant='quiet' size='small' />}
             open={infoboxOpen}
             onOpenChange={setInfoboxOpen}
           >

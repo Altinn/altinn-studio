@@ -154,7 +154,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_roadmap_label',
     description: 'dashboard.resource_roadmap_description',
-    url: 'https://docs.altinn.studio/community/roadmap/studio/',
+    url: 'https://docs.altinn.studio/nb/community/roadmap/',
     icon: (
       <svg
         width='60'

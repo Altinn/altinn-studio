@@ -1,5 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
+import { Dynamic } from './Expressions';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
@@ -18,14 +19,21 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleDeleteElement?: () => void;
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
-  disabled?: boolean; // Add expression type?
-  required?: boolean; // Add expression type?
-  hidden?: boolean; // Add expression type?
-  readOnly?: boolean; // Add expression type?
+  disabled?: boolean; // Add dynamic type?
+  // TODO: Figure out if it is necessary to have the Dynamic type here since the type is not actually added to the field?
+  required?: boolean | Dynamic;
+  hidden?: boolean | Dynamic;
+  readOnly?: boolean | Dynamic;
   [id: string]: any;
   propertyPath?: string;
 }
 
+export interface FormAlertComponent extends FormComponentBase<ComponentType.Alert> {
+  severity: 'success' | 'info' | 'warning' | 'danger';
+}
+
+export type FormAccordionComponent = FormComponentBase<ComponentType.Accordion>;
+export type FormAccordionGroupComponent = FormComponentBase<ComponentType.AccordionGroup>;
 interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
   options?: IOption[];
   preselectedOptionIndex?: number;
@@ -136,6 +144,9 @@ export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
 }
 
 export type FormComponent<T extends ComponentType = ComponentType> = {
+  [ComponentType.Alert]: FormAlertComponent;
+  [ComponentType.Accordion]: FormAccordionComponent;
+  [ComponentType.AccordionGroup]: FormAccordionGroupComponent;
   [ComponentType.ActionButton]: FormComponentBase<ComponentType.ActionButton>;
   [ComponentType.AddressComponent]: FormAddressComponent;
   [ComponentType.AttachmentList]: FormAttachmentListComponent;

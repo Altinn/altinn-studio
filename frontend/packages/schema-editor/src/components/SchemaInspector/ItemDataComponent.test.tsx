@@ -60,7 +60,7 @@ describe('ItemDataComponent', () => {
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
-    await screen.findByLabelText(`${textMock('schema_editor.name')} *`);
+    await screen.findByLabelText(textMock('schema_editor.name'));
     expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull()
   });
 
@@ -147,7 +147,7 @@ describe('ItemDataComponent', () => {
 
   test('should handleChangeNodeName prevent showing an error message when there is no changing in text', async () => {
     renderItemDataComponent();
-    const inputField = screen.getByLabelText(`${textMock('schema_editor.name')} *`);
+    const inputField = screen.getByLabelText(textMock('schema_editor.name'));
     await act(() => user.type(inputField, 'test'));
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();

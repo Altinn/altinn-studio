@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from '@digdir/design-system-react';
-import { FieldSet, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, TextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
@@ -65,7 +65,7 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <FieldSet className={classes.root}>
+    <LegacyFieldSet className={classes.root}>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_properties_image_src_value_label')}
@@ -73,7 +73,13 @@ export const ImageComponent = ({
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
-        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value?.nb || ''} />}
+        {({ value, onChange }) => (
+          <TextField
+            name={`image_nb_src-input-${component.id}`}
+            onChange={(e) => onChange({ nb: e.target.value }, e)}
+            value={value?.nb || ''}
+          />
+        )}
       </FormField>
       <TextResource
         handleIdChange={handleAltTextChange}
@@ -94,7 +100,12 @@ export const ImageComponent = ({
           value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
-          {({ onChange }) => <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+          {({ onChange }) => (
+            <TextField
+              name={`image_width-input-${component.id}`}
+              onChange={(e) => onChange(e.target.value, e)}
+            />
+          )}
         </FormField>
         <FormField
           id={component.id}
@@ -104,13 +115,15 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
         >
-          {() => <Select
-            // name={placementSelectId}
-            options={alignOptions}
-            // isClearable={true}
-            // placeholder=''
-            inputId={placementSelectId}
-          />}
+          {() => (
+            <Select
+              // name={placementSelectId}
+              options={alignOptions}
+              // isClearable={true}
+              // placeholder=''
+              inputId={placementSelectId}
+            />
+          )}
         </FormField>
       </div>
       <div>
@@ -124,6 +137,6 @@ export const ImageComponent = ({
           </a>
         </p>
       </div>
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { PolicyBackendType } from 'resourceadm/types/global';
 
 /**
  * Mutation to edit an existing policy in a resource.
@@ -15,7 +15,7 @@ export const useEditResourcePolicyMutation = (org: string, repo: string, id: str
   const { updatePolicy } = useServicesContext();
 
   return useMutation({
-    mutationFn: (payload: PolicyBackendType) => updatePolicy(org, repo, id, payload),
+    mutationFn: (payload: Policy) => updatePolicy(org, repo, id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourcePolicy, org, repo, id] });

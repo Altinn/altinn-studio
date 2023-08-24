@@ -12,7 +12,13 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 
-export const PageLayout = () => {
+/**
+ * @component
+ *    The layout of each page, including the header and the Gitea header
+ *
+ * @returns {React.ReactNode} - The rendered component
+ */
+export const PageLayout = (): React.ReactNode => {
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 

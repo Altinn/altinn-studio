@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox } from '@digdir/design-system-react';
+import { LegacyCheckbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
@@ -27,7 +27,7 @@ export const EditBooleanValue = ({
 
   const isValueExpression = (value: any) => {
     return Array.isArray(value);
-  }
+  };
 
   return (
     <FormField
@@ -37,17 +37,22 @@ export const EditBooleanValue = ({
       onChange={handleChange}
       propertyPath={component.propertyPath}
       componentType={component.type}
-      helpText={isValueExpression(component[propertyKey]) ? t('ux_editor.component_properties.config_is_expression_message') : helpText}
+      helpText={
+        isValueExpression(component[propertyKey])
+          ? t('ux_editor.component_properties.config_is_expression_message')
+          : helpText
+      }
     >
       {({ value, onChange }) => {
         return (
-            <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-          checkboxId={`${propertyKey}-checkbox-${component.id}`}
-          disabled={isValueExpression(value)}
-        />
-      )}}
+          <LegacyCheckbox
+            checked={value}
+            onChange={(e) => onChange(e.target.checked, e)}
+            checkboxId={`${propertyKey}-checkbox-${component.id}`}
+            disabled={isValueExpression(value)}
+          />
+        );
+      }}
     </FormField>
   );
 };

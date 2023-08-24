@@ -120,9 +120,7 @@ describe('Administration', () => {
     const editButton = screen.getByRole('button', { name: textMock('general.edit') });
     await act(() => user.click(editButton));
 
-    const inputElement = screen
-      .getByTestId('service-administration-container')
-      .querySelector('#administrationInputAppName_textField'); // eslint-disable-line testing-library/no-node-access
+    const inputElement = screen.getByRole('textbox', { name: textMock('general.service_name') });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
 
     fireEvent.change(inputElement, mockEvent);
@@ -153,9 +151,7 @@ describe('Administration', () => {
     const mockEvent = { target: { value: 'New description' } };
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-    const inputElement = screen
-      .getByTestId('service-administration-container')
-      .querySelector('#administrationInputDescription_textField'); // eslint-disable-line testing-library/no-node-access
+    const inputElement = screen.getByRole('textbox', { name: textMock('administration.service_comment') });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
 
     fireEvent.change(inputElement, mockEvent);
@@ -186,9 +182,7 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New id' } };
 
-    const inputElement = screen
-      .getByTestId('service-administration-container')
-      .querySelector('#administrationInputAppId_textField'); // eslint-disable-line testing-library/no-node-access
+    const inputElement = screen.getByRole('textbox', { name: textMock('administration.service_id') });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
     fireEvent.change(inputElement, mockEvent);

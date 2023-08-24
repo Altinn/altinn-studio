@@ -3,22 +3,44 @@ import classes from './NavigationModal.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 
-interface Props {
+type NavigationModalProps = {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
+  /**
+   * Function to be executed when navigating
+   * @returns void
+   */
   onNavigate: () => void;
+  /**
+   * The title in the modal
+   */
   title: string;
-}
+};
 
 /**
- * Displays the modal telling the user that there is a merge conflict
+ * @component
+ *    Displays the modal telling the user that there is a merge conflict
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.onClose function to close the modal
- * @param props.onNavigate function that handles the navigation when ok is clicked
- * @param props.title the title of the modal
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ * @property {function}[onNavigate] - Function to be executed when navigating
+ * @property {string}[title] - The title in the modal
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const NavigationModal = ({ isOpen, onClose, onNavigate, title }: Props) => {
+export const NavigationModal = ({
+  isOpen,
+  onClose,
+  onNavigate,
+  title,
+}: NavigationModalProps): React.ReactNode => {
   // TODO - translation
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>

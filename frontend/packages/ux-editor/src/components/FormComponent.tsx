@@ -3,7 +3,7 @@ import '../styles/index.css';
 import classes from './FormComponent.module.css';
 import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { ComponentPreview } from '../containers/ComponentPreview';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
@@ -13,7 +13,10 @@ import { ITextResource } from 'app-shared/types/global';
 import { MonitorIcon, TrashIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import {
+  selectedLayoutNameSelector,
+  selectedLayoutSetSelector,
+} from '../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
 import { useTextResourcesSelector } from '../hooks';
@@ -46,12 +49,18 @@ export const FormComponent = memo(function FormComponent({
   const { t } = useTranslation();
   const { org, app } = useParams();
 
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
+    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
+  );
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
-  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
+  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
+    org,
+    app,
+    selectedLayoutSetName
+  );
 
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
 
@@ -71,27 +80,28 @@ export const FormComponent = memo(function FormComponent({
 
   const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    setIsPreviewMode(previous => !previous);
+    setIsPreviewMode((previous) => !previous);
   };
 
-  const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
+  const textResource = !isPreviewMode
+    ? getTextResource(component.textResourceBindings?.title, textResources)
+    : null;
 
   return (
     <div
-    className={cn(
-      classes.wrapper,
-      isEditMode && classes.editMode,
-      isPreviewMode && classes.previewMode
-    )}
-    role='listitem'
-    onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
-      event.stopPropagation();
-      if (isEditMode) return;
-      await handleSave();
-      handleEdit(component);
-    }}
-  >
-    
+      className={cn(
+        classes.wrapper,
+        isEditMode && classes.editMode,
+        isPreviewMode && classes.previewMode
+      )}
+      role='listitem'
+      onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
+        if (isEditMode) return;
+        await handleSave();
+        handleEdit(component);
+      }}
+    >
       <div className={classes.formComponentWithHandle}>
         <div ref={dragHandleRef} className={classes.dragHandle}>
           <DragHandle />
@@ -126,33 +136,31 @@ export const FormComponent = memo(function FormComponent({
           trigger={
             <Button
               data-testid='component-delete-button'
-              color={ButtonColor.Secondary}
+              color='secondary'
               icon={<TrashIcon />}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
-                setIsConfirmDeleteDialogOpen(prevState => !prevState);
+                setIsConfirmDeleteDialogOpen((prevState) => !prevState);
               }}
               tabIndex={0}
               title={t('general.delete')}
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               size='small'
             />
           }
         >
           <p>{t('ux_editor.component_deletion_text')}</p>
         </AltinnConfirmDialog>
-        {
-          isPreviewable && (
-            <Button
-            color={ButtonColor.Secondary}
+        {isPreviewable && (
+          <Button
+            color='secondary'
             icon={<MonitorIcon title={t('general.preview')} />}
             onClick={handlePreview}
             title='Forhåndsvisning (under utvikling)'
-            variant={ButtonVariant.Quiet}
+            variant='quiet'
             size='small'
-            />
-          )
-        }
+          />
+        )}
       </div>
     </div>
   );

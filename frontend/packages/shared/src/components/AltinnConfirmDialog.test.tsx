@@ -73,7 +73,7 @@ const render = async (props: Partial<AltinnConfirmDialogProps> = {}) => {
     cancelText: cancelTextMock,
     onClose: onCloseMock,
     open: true,
-    ...props
+    ...props,
   };
 
   return rtlRender(

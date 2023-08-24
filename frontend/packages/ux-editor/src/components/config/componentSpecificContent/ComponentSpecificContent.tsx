@@ -16,9 +16,6 @@ export function ComponentSpecificContent({
   switch (component.type) {
     case ComponentType.NavigationButtons:
     case ComponentType.Button:
-    case ComponentType.ActionButton:
-    case ComponentType.PrintButton:
-    case ComponentType.InstantiationButton:
       return (
         <ButtonComponent
           component={component}

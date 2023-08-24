@@ -5,21 +5,31 @@ import { Modal } from '../Modal';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { useNavigate, useParams } from 'react-router-dom';
-import { NewResourceType } from 'resourceadm/types/global';
+import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
-interface Props {
+type NewResourceModalProps = {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
-}
+};
 
 /**
- * Displays the modal telling the user that there is a merge conflict
+ * @component
+ *    Displays the modal telling the user that there is a merge conflict
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.onClose function to close the modal
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const NewResourceModal = ({ isOpen, onClose }: Props) => {
+export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): React.ReactNode => {
   const navigate = useNavigate();
 
   const { selectedContext } = useParams();
@@ -38,7 +48,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
    * Creates a new resource in backend, and navigates if success
    */
   const handleCreateNewResource = () => {
-    const idAndTitle: NewResourceType = {
+    const idAndTitle: NewResource = {
       identifier: id,
       title: {
         nb: title,
@@ -117,6 +127,7 @@ export const NewResourceModal = ({ isOpen, onClose }: Props) => {
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
+        text='Velg navn og id for ressursen. Språkstøtte på navn kan legges til på neste side. Id er foreslått basert på navnet du skriver og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.'
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}

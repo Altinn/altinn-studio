@@ -11,24 +11,33 @@ import {
   Paragraph,
   Spinner,
   Label,
+  Link,
 } from '@digdir/design-system-react';
-import { Link } from 'resourceadm/components/Link';
-import { ExternalLinkIcon } from '@navikt/aksel-icons';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 
 const envOptions = [
   { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
   { value: 'Produksjonsmiljø', label: 'Produksjonsmiljø' },
 ];
 
-interface Props {
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+type MigrationPageProps = {
+  /**
+   * Function that navigates to a page with errors
+   * @param page the page to navigate to
+   * @returns void
+   */
+  navigateToPageWithError: (page: NavigationBarPage) => void;
+};
 
 /**
- * Page that shows the information about migrating from Altinn 2 to Altinn 3
+ * @component
+ *    Page that shows the information about migrating from Altinn 2 to Altinn 3
+ *
+ * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const MigrationPage = ({ navigateToPageWithError }: Props) => {
+export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -65,20 +74,21 @@ export const MigrationPage = ({ navigateToPageWithError }: Props) => {
     return (
       <>
         <Heading size='large' spacing level={1}>
-          Migrering av Altinn II tjeneste
+          Migrering av Altinn 2 tjeneste
         </Heading>
         <div className={classes.contentWrapper}>
           <div className={classes.introWrapper}>
             <Paragraph size='small'>
               Denne ressursen er basert på en Altinn 2 lenketjeneste. På denne siden får du oversikt
               over status på migrering av denne lenketjenesten fra Altinn 2.{' '}
-              <Link
-                text='Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.'
-                href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
-                icon={<ExternalLinkIcon title='Altinn integrasjon dokumentasjon' />}
-                openInNewWindow
-              />
             </Paragraph>
+            <Link
+              href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
+              rel='noopener noreferrer'
+              target='_blank'
+            >
+              Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.
+            </Link>
           </div>
           <MigrationStep
             title='Steg 1 - Om Ressursen'
@@ -139,7 +149,7 @@ export const MigrationPage = ({ navigateToPageWithError }: Props) => {
               </Label>
               <Paragraph size='small'>
                 Velg dato og tid der tjenesten skal flytte delegeringene, og fullføre migreringen
-                fra Altinn II til Altinn III. Vi anbefaler at dette gjøres på et tidspunkt der
+                fra Altinn 2 til Altinn 3. Vi anbefaler at dette gjøres på et tidspunkt der
                 tjenesten har lite eller ingen trafikk. For eksempel midt på natten.
               </Paragraph>
               <div className={classes.datePickers}>
