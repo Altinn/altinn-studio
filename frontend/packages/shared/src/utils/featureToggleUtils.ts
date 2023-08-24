@@ -47,3 +47,25 @@ const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): b
   const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
   return featureFlagsFromStorage.includes(featureFlag);
 };
+
+/**
+ * @param featureFlag The feature flag to add to local storage
+ * @description This function will add the feature flag to local storage
+ * @example addFeatureToLocalStorage('myFeatureName')
+ */
+export const addFeatureToLocalStorage = (featureFlag: SupportedFeatureFlags) => {
+  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
+  featureFlagsFromStorage.push(featureFlag);
+  typedLocalStorage.setItem(featureFlagKey, featureFlagsFromStorage);
+};
+
+/**
+ * @param featureFlag The feature flag to remove from local storage
+ * @description This function will remove the feature flag from local storage
+ * @example removeFeatureFromLocalStorage('myFeatureName')
+ */
+export const removeFeatureFromLocalStorage = (featureFlag: SupportedFeatureFlags) => {
+  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
+  const filteredFeatureFlags = featureFlagsFromStorage.filter((feature) => feature !== featureFlag);
+  typedLocalStorage.setItem(featureFlagKey, filteredFeatureFlags);
+};

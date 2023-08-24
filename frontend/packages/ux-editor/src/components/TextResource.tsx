@@ -19,9 +19,8 @@ import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
 import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
-import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface TextResourceProps {
   description?: string;
@@ -64,13 +63,8 @@ export const TextResource = ({
   );
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
   const { t } = useTranslation();
-  const { org, app } = useParams();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>(false);
-  const [showBetaComponentEditView] = useLocalStorage(
-    `${org}:${app}:componentConfigBeta`,
-    false,
-  );
 
   const editId = useSelector(getCurrentEditId);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -190,7 +184,7 @@ export const TextResource = ({
               aria-label={t('general.delete')}
               className={classes.button}
               color='secondary'
-              disabled={!handleRemoveTextResource || !(!!textResourceId || showBetaComponentEditView)}
+              disabled={!handleRemoveTextResource || !(!!textResourceId || shouldDisplayFeature('componentConfigBeta'))}
               icon={<TrashIcon />}
               onClick={() => setIsConfirmDeleteDialogOpen(true)}
               title={t('general.delete')}
