@@ -6,7 +6,6 @@ import DataModellingContainer from "../features/dataModelling/containers/DataMod
 import { TopBarMenu } from "../layout/AppBar/appBarConfig";
 import { DeployPage } from "../features/appPublish/pages/deployPage";
 import { ProcessEditor } from "app-development/features/processEditor";
-import { ProcessEditor } from "app-development/features/appProcess/AppProcess";
 import { PolicyEditor } from "app-development/features/policyEditor/PolicyEditor";
 
 interface IRouteProps {
