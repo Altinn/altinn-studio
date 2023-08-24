@@ -44,13 +44,6 @@ export const EditTextResourceBindings = ({
     setKeysSet(keysSet.filter((k) => k !== key));
   }
 
-  const getOptions = () => {
-    return textResourceBindingKeys.filter((key) => !keysSet.includes(key)).map((key) => ({
-      label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
-      value: key,
-    }));
-  }
-
   return (
     <div className={classes.container}>
       {keysSet.map((key: string) => (
