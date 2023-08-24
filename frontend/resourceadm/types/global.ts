@@ -1,6 +1,6 @@
 export type NavigationBarPage = 'about' | 'policy' | 'deploy' | 'migration';
 
-export interface LanguageString {
+export interface SupportedLanguageKeyString {
   nb?: string;
   nn?: string;
   en?: string;

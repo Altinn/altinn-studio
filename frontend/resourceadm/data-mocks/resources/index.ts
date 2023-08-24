@@ -33,3 +33,4 @@ export const resourceThematicAreaMockOptions = [
   { value: 'Thematic Area 7', label: 'Thematic Area 7' },
   { value: 'Thematic Area 8', label: 'Thematic Area 8' },
 ]
+

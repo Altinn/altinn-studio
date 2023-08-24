@@ -1,0 +1,1 @@
+export { filterTableData } from './resourceListUtils'

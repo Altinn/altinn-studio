@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
-import type { LanguageString } from 'resourceadm/types/global';
+import type { SupportedLanguageKeyString } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 
 type RightTranslationBarProps = {
@@ -22,7 +22,7 @@ type RightTranslationBarProps = {
    * Function that updates the value when changes are made in the input field.
    * @param value The language object
    */
-  onChangeValue: (value: LanguageString) => void;
+  onChangeValue: (value: SupportedLanguageKeyString) => void;
   /**
    * Flag to handle when to show the errors
    */
@@ -71,7 +71,7 @@ export const RightTranslationBar = forwardRef<
     ref
   ): React.ReactNode => {
     const handleChange = (lang: 'nn' | 'en', val: string) => {
-      const obj: LanguageString = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
+      const obj: SupportedLanguageKeyString = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
       onChangeValue(obj);
     };
 
