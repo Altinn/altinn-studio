@@ -22,7 +22,9 @@ import {
   datamodelPath,
   resourcePolicyPath,
   resourceCreatePath,
-  resourceEditPath, datamodelAddXsdFromRepoPath, createDatamodelPath
+  resourceEditPath,
+  datamodelAddXsdFromRepoPath,
+  createDatamodelPath,
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
