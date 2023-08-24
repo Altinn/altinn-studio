@@ -8,7 +8,7 @@ type PolicyResourceFieldsProps = {
   /**
    * Flag for if the fields are ediable or not
    */
-  isEditable: boolean;
+  canEditTypeAndId: boolean;
   /**
    * Function to be executed when the remove button is clicked
    * @returns void
@@ -47,7 +47,7 @@ type PolicyResourceFieldsProps = {
  *    to remove the component from the list it belongs to. It is used to display
  *    resources for a policy rules in the policy editor.
  *
- * @property {boolean}[isEditable] - Flag for if the fields are ediable or not
+ * @property {boolean}[canEditTypeAndId] - Flag for if the fields are ediable or not
  * @property {function}[onRemove] - Function to be executed when the remove button is clicked
  * @property {string}[valueId] - The value of the id field
  * @property {function}[onChangeId] - Function to be executed when the id value changes
@@ -58,7 +58,7 @@ type PolicyResourceFieldsProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const PolicyResourceFields = ({
-  isEditable,
+  canEditTypeAndId,
   onRemove,
   valueId,
   valueType,
@@ -73,9 +73,9 @@ export const PolicyResourceFields = ({
           <TextField
             placeholder='Type'
             value={valueType}
-            label={!isEditable && 'Type'}
+            label={!canEditTypeAndId && 'Type'}
             onChange={(e) => onChangeType(e.target.value)}
-            readOnly={!isEditable}
+            readOnly={!canEditTypeAndId}
             aria-labelledby='resourceType'
             onBlur={onBlur}
           />
@@ -85,9 +85,9 @@ export const PolicyResourceFields = ({
           <TextField
             placeholder='Id'
             value={valueId}
-            label={!isEditable && 'Id'}
+            label={!canEditTypeAndId && 'Id'}
             onChange={(e) => onChangeId(e.target.value)}
-            readOnly={!isEditable}
+            readOnly={!canEditTypeAndId}
             aria-labelledby='resourceId'
             onBlur={onBlur}
           />
@@ -95,14 +95,14 @@ export const PolicyResourceFields = ({
         </div>
       </div>
       <div className={classes.buttonWrapper}>
-        {isEditable && (
+        {canEditTypeAndId && (
           <Button
             variant='quiet'
             icon={<MultiplyIcon title='Fjern ressursen' />}
-            aria-disabled={!isEditable}
+            aria-disabled={!canEditTypeAndId}
             onClick={onRemove}
             color='danger'
-            hidden={!isEditable}
+            hidden={!canEditTypeAndId}
           />
         )}
       </div>

@@ -4,7 +4,7 @@ import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import type { PolicyRuleResource } from '../../../types';
+import type { PolicyEditorUsage, PolicyRuleResource } from '../../../types';
 
 type ResourceNarrowingListProps = {
   /**
@@ -46,9 +46,9 @@ type ResourceNarrowingListProps = {
    */
   onBlur: () => void;
   /**
-   * Flag for if first field is editable
+   * The usage type of the policy editor
    */
-  firstFieldEditable?: boolean;
+  usageType: PolicyEditorUsage;
 };
 
 /**
@@ -63,7 +63,7 @@ type ResourceNarrowingListProps = {
  * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
  * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {boolean}[firstFieldEditable] - Flag for if the first field is editable
+ * @property {PolicyEditorUsage}[usageType] - The usage type of the policy editor
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -75,7 +75,7 @@ export const ResourceNarrowingList = ({
   handleRemoveElement,
   handleCloneElement,
   onBlur,
-  firstFieldEditable = false,
+  usageType,
 }: ResourceNarrowingListProps): React.ReactNode => {
   /**
    * Displays the list of resources
@@ -84,7 +84,7 @@ export const ResourceNarrowingList = ({
     return (
       <PolicyResourceFields
         key={i}
-        isEditable={firstFieldEditable || i > 0}
+        canEditTypeAndId={usageType === 'app' || i > 0}
         onRemove={() => handleRemoveResource(i)}
         valueId={r.id}
         valueType={r.type}

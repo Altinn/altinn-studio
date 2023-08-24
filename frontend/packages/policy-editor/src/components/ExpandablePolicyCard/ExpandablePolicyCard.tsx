@@ -238,7 +238,7 @@ export const ExpandablePolicyCard = ({
         handleCloneElement={() => handleCloneResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
-        firstFieldEditable={usageType === 'app'}
+        usageType={usageType}
       />
     );
   });
