@@ -4,6 +4,7 @@ import {
   MutationMeta,
   QueryCache,
   QueryClient,
+  QueryClientConfig,
   QueryClientProvider,
   QueryMeta,
 } from '@tanstack/react-query';
@@ -24,6 +25,7 @@ export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
   children?: ReactNode;
   client?: QueryClient;
+  clientConfig?: QueryClientConfig;
 };
 
 const ServicesContext = createContext<ServicesContextProps>(null);
@@ -51,12 +53,14 @@ const handleError = (
 export const ServicesContextProvider = ({
   children,
   client,
+  clientConfig,
   ...queries
 }: ServicesContextProviderProps) => {
   const { t } = useTranslation();
 
   const [queryClient] = useState(
     () => client || new QueryClient({
+      ...clientConfig,
       queryCache: new QueryCache({
         onError: (error: AxiosError, query) => handleError(error, t, query.options?.meta),
       }),
