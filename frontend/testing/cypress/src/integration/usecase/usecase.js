@@ -2,8 +2,13 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { designer } from '../../pageobjects/designer';
+import * as texts from "@altinn-studio/language/src/nb.json";
+import { administration } from "../../selectors/administration";
+import { deploy } from "../../selectors/deploy";
+import { designer } from "../../selectors/designer";
 import { header } from '../../selectors/header';
+import { preview } from "../../selectors/preview";
+import { textEditor } from "../../selectors/textEditor";
 
 context(
   'Bruksmønster',
@@ -26,31 +31,28 @@ context(
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       cy.visit('/');
       cy.searchAndOpenApp(Cypress.env('deployApp'));
-      cy.get(designer.layOutContainer).should('be.visible');
+      administration.getHeader().should('be.visible');
     });
 
     it('Navigation', () => {
       // About app page
-      cy.get(designer.aboutApp.repoName)
+      administration
+        .getAppNameField()
         .invoke('val')
         .should('contain', Cypress.env('deployApp').split('/')[1]);
 
       // Forms editor
-      cy.findByRole('link', { name: designer.appMenu.editText }).click();
-      cy.get(designer.formComponents.shortAnswer)
-        .parentsUntil(designer.draggable)
-        .should('be.visible');
+      header.getCreateLink().click();
+      designer.getToolbarItemByText(texts['ux_editor.component_input']).should('be.visible');
 
       // Text editor
-      cy.findByRole('link', { name: designer.appMenu.textEditorText }).should('be.visible').click();
-      cy.get(designer.texts.new).should('be.visible');
+      header.getTextEditorLink().should('be.visible').click();
+      textEditor.getNewTextButton().should('be.visible');
 
       // Preview
-      cy.findByRole('button', { name: designer.appMenu.previewText }).should('be.visible').click();
+      header.getPreviewButton().should('be.visible').click();
       cy.visit('/preview/' + Cypress.env('deployApp'));
-      cy.findByRole('button', { name: designer.preview.backToEditorText })
-        .should('be.visible')
-        .click();
+      preview.getBackToEditorButton().should('be.visible').click();
 
       // Repos
       header.getProfileIcon().should('be.visible').click();
@@ -76,10 +78,10 @@ context(
 
     it('App builds and deploys', () => {
       cy.intercept('**/deployments*').as('deploys');
-      cy.get(designer.appMenu.deploy).should('be.visible').click();
+      header.getDeployButton().should('be.visible').click();
       cy.wait('@deploys').its('response.statusCode').should('eq', 200);
       const checkDeployOf = Cypress.env('environment') === 'prod' ? 'prod' : 'at22';
-      cy.get(designer.deployHistory[checkDeployOf]).then((table) => {
+      deploy.getDeployHistoryTable(checkDeployOf).then((table) => {
         cy.get(table).isVisible();
         cy.get(table).find('tbody > tr').should('have.length.gte', 1);
       });

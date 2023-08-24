@@ -823,6 +823,7 @@
   "sync_header.validation_completed": "Endringene er validert og kan deles med andre",
   "testing.testing_in_testenv_body": "Her kan du teste appen din fra A til Å i et produksjonslikt testmiljø.",
   "testing.testing_in_testenv_title": "Test i testmiljø",
+  "text_editor.new_text": "Ny tekst",
   "top_menu.about": "Oversikt",
   "top_menu.create": "Lage",
   "top_menu.datamodel": "Datamodell",

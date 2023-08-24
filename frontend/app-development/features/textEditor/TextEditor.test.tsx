@@ -63,7 +63,7 @@ describe('TextEditor', () => {
 
     await render({ upsertTextResources });
 
-    const addButton = screen.getByRole('button', { name: 'Ny tekst' });
+    const addButton = screen.getByRole('button', { name: textMock('text_editor.new_text') });
     await act(() => user.click(addButton));
 
     expect(upsertTextResources).toBeCalledTimes(2);
