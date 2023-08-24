@@ -1,9 +1,12 @@
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from "app-shared/utils/webStorage";
 
-const featureFlagKey = 'featureFlags';
+const featureFlagKey = "featureFlags";
 
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
-export type SupportedFeatureFlags = 'processEditor' | 'policyEditor';
+export type SupportedFeatureFlags =
+  | "processEditor"
+  | "expressions"
+  | "policyEditor";
 
 /*
  * Please add all the features that you want to be toggle on by default here.
@@ -18,7 +21,9 @@ const defaultActiveFeatures: SupportedFeatureFlags[] = [];
  * @description This function will check if the feature should be displayed or not. The feature can be toggled on by the url query, by local storage or set as default active feature.
  * @example shouldDisplayFeature('myFeatureName')
  */
-export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolean => {
+export const shouldDisplayFeature = (
+  featureFlag: SupportedFeatureFlags,
+): boolean => {
   return (
     isDefaultActivatedFeature(featureFlag) ||
     isFeatureActivatedByUrl(featureFlag) ||
@@ -27,23 +32,30 @@ export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolea
 };
 
 // Check if the feature is one of the default active features
-const isDefaultActivatedFeature = (featureFlag: SupportedFeatureFlags): boolean => {
+const isDefaultActivatedFeature = (
+  featureFlag: SupportedFeatureFlags,
+): boolean => {
   return defaultActiveFeatures.includes(featureFlag);
 };
 
 // Check if feature includes in the url query, (url)?featureFlags=[featureName]
-const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean => {
+const isFeatureActivatedByUrl = (
+  featureFlag: SupportedFeatureFlags,
+): boolean => {
   const urlParams = new URLSearchParams(window.location.search);
   const featureParam = urlParams.get(featureFlagKey);
   if (featureParam) {
-    const features = featureParam.split(',');
+    const features = featureParam.split(",");
     return features.includes(featureFlag);
   }
   return false;
 };
 
 // Check if feature includes in local storage, featureFlags: ["featureName"]
-const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): boolean => {
-  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
+const isFeatureActivatedByLocalStorage = (
+  featureFlag: SupportedFeatureFlags,
+): boolean => {
+  const featureFlagsFromStorage =
+    typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
   return featureFlagsFromStorage.includes(featureFlag);
 };

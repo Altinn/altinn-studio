@@ -6,7 +6,9 @@
   --drag-handle-inner-width: 25px;
   --margin-horizontal: 50px;
   --margin-left-with-handle: calc(var(--margin-horizontal) - var(--drag-handle-width));
-  --margin-right-with-buttons: calc(var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance));
+  --margin-right-with-buttons: calc(
+    var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance)
+  );
   --margin-top: 50px;
 
   flex-grow: 1;
@@ -26,6 +28,8 @@
   min-width: 240px;
   overflow-x: hidden;
   padding: 0;
+  overflow-y: auto;
+  max-height: calc(100vh - var(--header-height));
 }
 
 .leftContent {
@@ -69,7 +73,7 @@
 }
 
 .logicEditor {
-  background-color: #022F5180;
+  background-color: #022f5180;
   display: grid; /* Make content fill up all available space */
   height: 100vh;
   left: 0;
