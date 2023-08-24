@@ -2,7 +2,7 @@ import React from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Checkbox, FieldSet, Heading } from '@digdir/design-system-react';
+import { LegacyCheckbox, LegacyFieldSet, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -63,10 +63,11 @@ export const EditFormComponent = ({
   };
 
   return (
-    <FieldSet className={classes.root}>
-      <Checkbox
+    <LegacyFieldSet className={classes.root}>
+      <LegacyCheckbox
         onChange={toggleShowBetaFunc}
-        checked={showBetaView} label={t('ux_editor.edit_component.show_beta_func')}
+        checked={showBetaView}
+        label={t('ux_editor.edit_component.show_beta_func')}
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
       />
       <Heading level={2} size='xsmall'>
@@ -92,6 +93,6 @@ export const EditFormComponent = ({
           />
         </>
       )}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

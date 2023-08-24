@@ -1,12 +1,6 @@
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
-import {
-  FieldSet,
-  Button,
-  ButtonVariant,
-  ButtonColor,
-  TextField,
-} from '@digdir/design-system-react';
+import { LegacyFieldSet, Button, TextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
@@ -35,7 +29,7 @@ export const MapComponent = ({
   };
 
   return (
-    <FieldSet contentClassName={classes.fieldSetContent}>
+    <LegacyFieldSet className={classes.fieldSetContent}>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
         <div className={classes.formGroup}>
@@ -75,30 +69,30 @@ export const MapComponent = ({
           </FormField>
         </div>
       </div>
-        <div>
-          <FormField
-            id={component.id}
-            label={t('ux_editor.adjust_zoom')}
-            value={component.zoom}
-            onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
-            propertyPath={`${component.propertyPath}/properties/zoom`}
-            customValidationMessages={(errorCode: string) => {
-              if (errorCode === 'type') return t('validation_errors.numbers_only');
-            }}
-          >
-            {({ onChange }) => (
-              <TextField
-                formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
-              />
-            )}
-          </FormField>
-        </div>
+      <div>
+        <FormField
+          id={component.id}
+          label={t('ux_editor.adjust_zoom')}
+          value={component.zoom}
+          onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
+          propertyPath={`${component.propertyPath}/properties/zoom`}
+          customValidationMessages={(errorCode: string) => {
+            if (errorCode === 'type') return t('validation_errors.numbers_only');
+          }}
+        >
+          {({ onChange }) => (
+            <TextField
+              formatting={{ number: {} }}
+              onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+            />
+          )}
+        </FormField>
+      </div>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
         <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
       </div>
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };
 
@@ -161,16 +155,16 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       {component.layers?.map(
         (layer, index): JSX.Element => (
           // Find a way to avoid using index as key
-          <FieldSet key={index} className={classes.fieldSet}>
+          <LegacyFieldSet key={index} className={classes.fieldSet}>
             <div className={classes.layerHeaderContainer}>
               <p className={classes.numericLayerText}>
                 {t('ux_editor.map_layer')} {index + 1}
               </p>
               <Button
-                color={ButtonColor.Danger}
+                color='danger'
                 icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
-                variant={ButtonVariant.Quiet}
+                variant='quiet'
                 size='small'
               />
             </div>
@@ -217,12 +211,12 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 )}
               </FormField>
             </div>
-          </FieldSet>
+          </LegacyFieldSet>
         )
       )}
       <Button
         icon={<PlusIcon title={t('general.add')} />}
-        variant={ButtonVariant.Outline}
+        variant='outline'
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}
         fullWidth

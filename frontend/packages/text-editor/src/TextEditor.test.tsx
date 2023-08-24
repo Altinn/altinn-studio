@@ -45,7 +45,7 @@ describe('TextEditor', () => {
       upsertTextResource,
     });
     const addBtn = screen.getByRole('button', {
-      name: /ny tekst/i,
+      name: textMock('text_editor.new_text'),
     });
 
     await act(() => user.click(addBtn));

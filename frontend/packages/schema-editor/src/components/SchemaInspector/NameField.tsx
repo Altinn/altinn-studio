@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
 import type { TextFieldProps } from '@digdir/design-system-react';
-import { TextField } from '@digdir/design-system-react';
+import { AltinnTextField } from 'app-shared/components/AltinnTextField';
 import {
   getNameFromPointer,
   hasNodePointer,
@@ -63,13 +63,13 @@ export function NameField({
         }
       }}
     >
-      {({ errorCode, onChange }) => <TextField
-          id={id}
-          onChange={(e) => onChange(e.target.value, e)}
-          onBlur={(e) => onNameBlur(e.target.value, errorCode)}
-          {...props}
-        />
-      }
+      {({ errorCode, onChange, customRequired }) => <AltinnTextField
+        id={id}
+        onChange={(e) => onChange(e.target.value, e)}
+        onBlur={(e) => onNameBlur(e.target.value, errorCode)}
+        withAsterisk={customRequired}
+        {...props}
+      />}
     </FormField>
   );
 }

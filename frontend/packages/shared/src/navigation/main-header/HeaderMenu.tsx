@@ -8,6 +8,7 @@ import classes from './HeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import * as testids from '../../../../../testing/testids';
 
 export type HeaderMenuProps = {
   org: string;
@@ -74,7 +75,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
           </Typography>
         </Grid>
         <Grid item>
-          <IconButton id='profile-icon-button' className={classes.iconButton} onClick={openMenu}>
+          <IconButton className={classes.iconButton} onClick={openMenu}>
             <Avatar
               src={user.avatar_url}
               className={classes.avatar}
@@ -94,7 +95,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         {selectableOrgs?.map((selectableOrg) => {
           return (
             <MenuItem
-              id={`menu-org-${selectableOrg.username}`}
+              data-testid={testids.orgMenuItem(selectableOrg.username)}
               selected={selectedContext === selectableOrg.username}
               key={selectableOrg.id}
               onClick={() => handleSetSelectedContext(selectableOrg.username)}
@@ -104,7 +105,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
           );
         })}
         <MenuItem
-          id='menu-self'
+          data-testid={testids.userMenuItem}
           selected={selectedContext === SelectedContextType.Self}
           onClick={() => handleSetSelectedContext('')}
         >

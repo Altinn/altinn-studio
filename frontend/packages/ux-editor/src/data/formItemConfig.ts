@@ -11,6 +11,35 @@ export type FormItemConfig<T extends ComponentType = ComponentType> = {
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
+  [ComponentType.Alert]: {
+    name: ComponentType.Alert,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Alert,
+      severity: 'info',
+      propertyPath: 'definitions/alertComponent',
+    },
+    icon: 'fa fa-circle-exclamation',
+  },
+  [ComponentType.Accordion]: {
+    name: ComponentType.Accordion,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Accordion,
+      propertyPath: 'definitions/accordionComponent',
+    },
+  },
+  [ComponentType.AccordionGroup]: {
+    name: ComponentType.AccordionGroup,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.AccordionGroup,
+      propertyPath: 'definitions/accordionGroupComponent',
+    },
+  },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
     defaultProperties: {
@@ -155,6 +184,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Grid,
       propertyPath: 'definitions/gridComponent',
+      rows: [],
     },
     icon: 'fa fa-group',
   },
@@ -387,6 +417,10 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Grid],
   formItemConfigs[ComponentType.NavigationBar],
   formItemConfigs[ComponentType.Map],
+  formItemConfigs[ComponentType.ButtonGroup],
+  formItemConfigs[ComponentType.Accordion],
+  formItemConfigs[ComponentType.AccordionGroup],
+  formItemConfigs[ComponentType.List],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -400,7 +434,11 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
-  formItemConfigs[ComponentType.Button], //There is custom code that allows for switching between button types once it is added to the form
+  formItemConfigs[ComponentType.Button],
+  formItemConfigs[ComponentType.NavigationButtons],
+  formItemConfigs[ComponentType.PrintButton],
+  formItemConfigs[ComponentType.InstantiationButton],
+  formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
@@ -412,6 +450,7 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
+  formItemConfigs[ComponentType.Alert],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [

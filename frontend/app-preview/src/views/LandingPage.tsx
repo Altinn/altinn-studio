@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -21,15 +21,7 @@ export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
 }
 
-export type ViewSize = 'desktop' | 'mobile';
-
-const getLocalSelectedViewSize = (): ViewSize => {
-  const localViewSize = localStorage.getItem('viewSize');
-  if (localViewSize === 'mobile') {
-    return 'mobile';
-  }
-  return 'desktop';
-};
+export type PreviewAsViewSize = 'desktop' | 'mobile';
 
 export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useParams();
@@ -38,20 +30,19 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  useLocalStorage(instanceId);
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
-  const selectedLayoutInEditor = localStorage.getItem(instanceId);
-  const selectedLayoutSetInEditor = localStorage.getItem('layoutSet' + app);
-  const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
-  const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
-    localSelectedViewSize ?? 'desktop'
+  const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
+    'layoutSet' + app
   );
+
+  const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>('viewSize', 'desktop');
+
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (layoutSet: string) => {
-    localStorage.setItem('layoutSet' + app, layoutSet);
+    setSelectedLayoutSetInEditor(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
@@ -81,15 +72,16 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             app={app}
             user={user}
             repository={repository}
-            buttonActions={appPreviewButtonActions(org, app, selectedLayoutInEditor)}
+            buttonActions={appPreviewButtonActions(org, app, instanceId)}
             variant={variant}
             subMenuContent={
-            <AppPreviewSubMenu
-              setViewSize={setViewSize}
-              viewSize={viewSize}
-              selectedLayoutSet={selectedLayoutSetInEditor}
-              handleChangeLayoutSet={handleChangeLayoutSet}
-            />}
+              <AppPreviewSubMenu
+                setViewSize={setPreviewViewSize}
+                viewSize={previewViewSize}
+                selectedLayoutSet={selectedLayoutSetInEditor}
+                handleChangeLayoutSet={handleChangeLayoutSet}
+              />
+            }
           />
         </div>
         <div className={classes.iframeMobileViewContainer}>
@@ -101,9 +93,9 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
               app,
               selectedLayoutSetInEditor,
             })}`}
-            className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
+            className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           ></iframe>
-          {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
+          {previewViewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
         </div>
       </>
     </PreviewContext>

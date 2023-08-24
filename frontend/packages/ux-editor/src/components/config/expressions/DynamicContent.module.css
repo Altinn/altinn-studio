@@ -43,3 +43,25 @@
 .bold {
   font-weight: bold;
 }
+
+.complexExpressionContainer textarea {
+  height: 150px;
+  font-family: monospace;
+}
+
+.complexExpressionContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 30px 0 30px 0;
+}
+
+.checkMark {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--fds-semantic-surface-success-default);
+}
+

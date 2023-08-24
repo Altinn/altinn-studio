@@ -3,8 +3,8 @@ import {
   PolicyRuleBackendType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
-  PolicySubjectType
-} from "resourceadm/types/global";
+  PolicySubjectType,
+} from 'resourceadm/types/global';
 
 /**
  * Empty rule when new card added
@@ -49,9 +49,7 @@ export const mapPolicySubjectToSubjectTitle = (
  *
  * @returns a mapped resource object
  */
-export const mapResourceFromBackendToResourceType = (
-  resource: string
-): PolicyRuleResourceType => {
+export const mapResourceFromBackendToResourceType = (resource: string): PolicyRuleResourceType => {
   const resourceArr = resource.split(':');
   const id: string = resourceArr.pop();
   const type: string = resourceArr.join(':');
@@ -66,11 +64,8 @@ const mapPolicyActionsToActionTitle = (
   actionOptions: PolicyActionType[],
   actionIds: string[]
 ): string[] => {
-
-  return actionIds.map(aId => actionOptions.find(a => aId === a.actionId).actionTitle)
-
-  // return []
-}
+  return actionIds.map((aId) => actionOptions.find((a) => aId === a.actionId).actionTitle);
+};
 
 /**
  * Maps the policy rules object from backend to an object of the type used to
@@ -91,10 +86,10 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCardType = (
     const id = idArr[idArr.length - 1];
 
     const mappedResources = r.resources.map((resource) =>
-      resource.map(r => mapResourceFromBackendToResourceType(r))
+      resource.map((r) => mapResourceFromBackendToResourceType(r))
     );
 
-    const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions)
+    const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions);
 
     return {
       ruleId: id,
@@ -135,8 +130,8 @@ export const mapActionTitleToActionId = (
   actionOptions: PolicyActionType[],
   actionTitle: string
 ): string => {
-  return actionOptions.find(a => a.actionTitle === actionTitle).actionId
-}
+  return actionOptions.find((a) => a.actionTitle === actionTitle).actionId;
+};
 
 /**
  * Maps a policy rule object used on the policy cards to a policy rule object
@@ -157,9 +152,18 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   resourceType: string,
   resourceId: string
 ): PolicyRuleBackendType => {
-  const resources: string[][] = policyRule.resources.map((resource) => resource.map(r => `${r.type}:${r.id}`));
-  const subject: string[] = policyRule.subject.map((s) => mapSubjectTitleToSubjectString(subjectOptions, s));
-  const actions: string[] = policyRule.actions.map((a) => mapActionTitleToActionId(actionOptions, a))
+  const resources: string[][] = policyRule.resources.map((resource) =>
+    resource
+      .filter((r) => r.id !== '' && r.type !== '')
+      .map((r) => (r.type.startsWith('urn:') ? `${r.type}:${r.id}` : `urn:${r.type}:${r.id}`))
+  );
+
+  const subject: string[] = policyRule.subject.map((s) =>
+    mapSubjectTitleToSubjectString(subjectOptions, s)
+  );
+  const actions: string[] = policyRule.actions.map((a) =>
+    mapActionTitleToActionId(actionOptions, a)
+  );
 
   return {
     ruleId: `${resourceType}:${resourceId}:ruleid:${policyRule.ruleId}`,

@@ -4,22 +4,48 @@ import { Button, Paragraph } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@navikt/aksel-icons';
 
 interface Props {
+  /**
+   * Boolean for if the menu is open or not
+   */
   isOpen: boolean;
+  /**
+   * Function to be executed when the menu icon is clicked
+   * @returns void
+   */
   handleClickMoreIcon: () => void;
+  /**
+   * Function to be executed when closing the menu
+   * @returns void
+   */
   handleCloseMenu: () => void;
+  /**
+   * Function to handle the click of the duplicate button
+   * @returns void
+   */
   handleDuplicate: () => void;
+  /**
+   * Function to handle the click of the delete button
+   * @returns void
+   */
   handleDelete: () => void;
+  /**
+   * Optional flag for if there is an error or not
+   */
   isError?: boolean;
 }
 
 /**
- * Dropdown menu component that displays a duplicate and a delete button
+ * @component
+ *    Dropdown menu component that displays a duplicate and a delete button
  *
- * @param props.isOpen boolean for if the menu is open or not
- * @param props.handleClickMoreIcon function to be executed when the menu icon is clicked
- * @param props.handleCloseMenu function to be executed when closing the menu
- * @param props.handleDuplicate function to handle the click of the duplicate button
- * @param props.handleDelete function to handle the click of the delete button
+ * @property {boolean}[isOpen] - Boolean for if the menu is open or not
+ * @property {function}[handleClickMoreIcon] - Function to be executed when the menu icon is clicked
+ * @property {function}[handleCloseMenu] - Function to be executed when closing the menu
+ * @property {function}[handleDuplicate] - Function to handle the click of the duplicate button
+ * @property {function}[handleDelete] - Function to handle the click of the delete button
+ * @property {boolean}[isError] - Optional flag for if there is an error or not
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const DropdownMenu = ({
   isOpen,
@@ -28,7 +54,7 @@ export const DropdownMenu = ({
   handleDuplicate,
   handleDelete,
   isError = false,
-}: Props) => {
+}: Props): React.ReactNode => {
   const dropdownRef = useRef(null);
   const firstMenuItemRef = useRef<HTMLButtonElement>(null);
   const lastMenuItemRef = useRef<HTMLButtonElement>(null);
@@ -110,7 +136,7 @@ export const DropdownMenu = ({
         onKeyDown={(e) => {}}
         variant='quiet'
         color={isError ? 'danger' : 'secondary'}
-        className={classes.button}
+        className={isError && classes.errorButton}
       />
       {isOpen && (
         <div className={classes.dropdownMenu}>

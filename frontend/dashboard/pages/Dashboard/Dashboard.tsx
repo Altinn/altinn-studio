@@ -4,7 +4,7 @@ import { PageSpinner } from 'app-shared/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
@@ -19,6 +19,7 @@ import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import * as testids from '../../../testing/testids';
 
 type DashboardProps = {
   user: User;
@@ -53,9 +54,10 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
         <div className={classes.createServiceContainer}>
           <div className={classes.topBar}>
             <div className={classes.searchFieldContainer}>
-              <div>
+              <div data-testid={testids.searchReposField}>
                 <SearchField
-                  id='search-repos'
+                  // Todo: Replace this with a component from the common design system when it is ready.
+                  // Until then we must use the test id here because this component is not correctly labeled.
                   label={t('dashboard.search')}
                   value={searchText}
                   onChange={handleChangeSearch}
@@ -69,8 +71,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}
                   icon={<XMarkIcon />}
-                  variant={ButtonVariant.Quiet}
-                  size={ButtonSize.Small}
+                  variant='quiet'
+                  size='small'
                 />
               )}
             </div>
@@ -79,7 +81,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}
-              data-testid={'dashboard.new_app'}
             >
               <span>{t('dashboard.new_service')}</span>
               <i

@@ -1,11 +1,11 @@
 /// <reference types="cypress" />
 import '@testing-library/cypress/add-commands';
-import { login } from '../pageobjects/loginandreg';
-import { dashboard } from '../pageobjects/dashboard';
-import { designer } from '../pageobjects/designer';
-import { header } from '../pageobjects/header';
-
-import '@testing-library/cypress/add-commands';
+import * as texts from '../../../../language/src/nb.json';
+import { dashboard } from '../selectors/dashboard';
+import { designer } from '../selectors/designer';
+import { header } from '../selectors/header';
+import { login } from '../selectors/login';
+import {gitea} from "../selectors/gitea";
 
 /**
  * Login to studio with user name and password
@@ -13,10 +13,12 @@ import '@testing-library/cypress/add-commands';
 Cypress.Commands.add('studiologin', (userName, userPwd) => {
   cy.session([userName, userPwd], () => {
     cy.visit('/');
-    cy.get(login.loginButton).should('be.visible').click();
-    cy.get(login.userName).should('be.visible').type(userName);
-    cy.get(login.userPwd).should('be.visible').type(userPwd, { log: false });
-    cy.get(login.submit).should('be.visible').click();
+    login.getLoginButton().should('be.visible').click();
+    gitea.getLanguageMenu().should('be.visible').click();
+    gitea.getLanguageMenuItem('Norsk').should('be.visible').click();
+    gitea.getUsernameField().should('be.visible').type(userName);
+    gitea.getPasswordField().should('be.visible').type(userPwd, { log: false });
+    gitea.getLoginButton().should('be.visible').click();
   });
 });
 
@@ -26,11 +28,16 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
  */
 Cypress.Commands.add('switchSelectedContext', (context) => {
   cy.intercept('GET', '**/repos/search**').as('fetchApps');
-  cy.get(header.profileIcon).should('be.visible').click();
-  if (['self', 'all'].includes(context)) {
-    cy.get(header.menu[context]).should('be.visible').click();
-  } else {
-    cy.get(header.menu.org(context)).should('be.visible').click();
+  header.getAvatar().should('be.visible').click();
+  switch (context) {
+    case 'self':
+      header.getMenuItemUser().should('be.visible').click();
+      break;
+    case 'all':
+      header.getMenuItemAll().should('be.visible').click();
+      break;
+    default:
+      header.getMenuItemOrg(context).should('be.visible').click();
   }
 });
 
@@ -39,12 +46,12 @@ Cypress.Commands.add('switchSelectedContext', (context) => {
  */
 Cypress.Commands.add('createapp', (orgName, appName) => {
   cy.visit('/dashboard');
-  cy.get(dashboard.newApp).should('be.visible').click();
-  cy.get(dashboard.appOwners).should('be.visible').click();
-  cy.contains(dashboard.appOwnersList, orgName).click();
-  cy.get(dashboard.appName).should('be.visible').type(appName);
+  dashboard.getNewAppLink().should('be.visible').click();
+  dashboard.getAppOwnerField().should('be.visible').click();
+  dashboard.getOrgOption(orgName).click();
+  dashboard.getSavedNameField().should('be.visible').type(appName);
   cy.intercept('POST', '**/designer/api/repos/**').as('postCreateApp');
-  cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
+  dashboard.getCreateAppButton().should('be.visible').click();
   cy.wait('@postCreateApp', { timeout: 30000 }).its('response.statusCode').should('eq', 201);
 });
 
@@ -52,58 +59,20 @@ Cypress.Commands.add('createapp', (orgName, appName) => {
  * Delete all the added components in ux-editor
  */
 Cypress.Commands.add('deletecomponents', () => {
-  cy.get(designer.dragToArea)
-    .find("[role='listitem']")
+  designer
+    .getDroppableList()
+    .findAllByRole('listitem')
     .then(($elements) => {
-      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
+      if ($elements.length > 0 && $elements.text().indexOf(texts['ux_editor.container_empty']) === -1) {
         cy.get($elements).each(($element) => {
           cy.wrap($element).trigger('mouseover');
+          cy.wrap($element).findByTitle(texts['general.delete']).click({ force: true });
+          cy.wrap($element)
+            .findByRole('button', { name: texts['ux_editor.component_deletion_confirm'] })
+            .click();
         });
-        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
       }
     });
-});
-
-/**
- * Delete all the added components with specified test in ux-editor
- */
-Cypress.Commands.add('deletecomponentsWithText', (text) => {
-  cy.get(designer.dragToArea)
-    .find("[role='listitem']")
-    .then(($elements) => {
-      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
-        cy.get($elements).each(($element) => {
-          if ($element.get(text)) {
-            cy.wrap($element).trigger('mouseover');
-          }
-        });
-        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
-      }
-    });
-});
-
-/**
- * Delete local changes of an app for a logged in user
- */
-Cypress.Commands.add('deleteLocalChanges', (appId) => {
-  cy.getCookie('AltinnStudioDesigner').should('exist');
-  cy.visit(`editor/${appId}#/`);
-  cy.get(designer.aboutApp.repoName).should('be.visible');
-  cy.get(designer.sideMenu)
-    .find(designer.deleteChanges.reset)
-    .should(($button) => {
-      expect(Cypress.dom.isDetached($button), 'button should not be detached').to.eq(false);
-    })
-    .should('be.visible')
-    .click();
-  cy.get(designer.deleteChanges.name)
-    .should('be.visible')
-    .type(`${appId.split('/')[1]}`)
-    .blur();
-  cy.intercept('GET', '**/reset').as('resetRepo');
-  cy.get(designer.deleteChanges.confirm).should('be.visible').click();
-  cy.wait('@resetRepo');
-  cy.get(designer.deleteChanges.name).should('not.exist');
 });
 
 /**
@@ -112,10 +81,10 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
 Cypress.Commands.add('searchAndOpenApp', (appId) => {
   const [_, appName] = appId.split('/');
   cy.visit('/dashboard');
-  cy.get(dashboard.searchApp).type(appName);
-  cy.contains(dashboard.apps.name, appName)
-    .siblings(dashboard.apps.links)
-    .find(dashboard.apps.edit)
+  dashboard.getSearchReposField().type(appName);
+  dashboard
+    .getLinksCellForSearchResultApp(appName)
+    .findByRole('menuitem', { name: texts['dashboard.edit_app'] })
     .click();
 });
 

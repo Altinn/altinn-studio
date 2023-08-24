@@ -38,13 +38,7 @@ import {
   userStarredListPath,
   widgetSettingsPath,
 } from './paths';
-import {
-  AppDeploymentsResponse,
-  AppReleasesResponse,
-  DatamodelMetadataResponse,
-  SearchRepoFilterParams,
-  SearchRepositoryResponse,
-} from 'app-shared/types/api';
+import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';

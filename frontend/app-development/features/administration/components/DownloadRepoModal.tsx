@@ -1,6 +1,6 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import classes from './RepoModal.module.css';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { Trans, useTranslation } from 'react-i18next';
@@ -47,12 +47,7 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
             </a>
           </p>
           <div className={classes.buttonContainer}>
-            <Button
-              color={ButtonColor.Secondary}
-              onClick={props.onClose}
-              variant={ButtonVariant.Outline}
-              size='small'
-            >
+            <Button color='secondary' onClick={props.onClose} variant='outline' size='small'>
               {t('general.cancel')}
             </Button>
           </div>

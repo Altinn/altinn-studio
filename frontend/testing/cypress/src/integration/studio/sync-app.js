@@ -2,12 +2,15 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { designer } from '../../pageobjects/designer';
+import { administration } from "../../selectors/administration";
+import { header } from "../../selectors/header";
 
 context('Sync app and deploy', () => {
   before(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createapp(Cypress.env('autoTestUser'), 'designer');
   });
 
   beforeEach(() => {
@@ -22,18 +25,18 @@ context('Sync app and deploy', () => {
     cy.visit('/dashboard');
   });
 
-  it('is possible sync changes', () => {
+  it('is possible to sync changes', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
     // Make some changes
     cy.findByRole('button', { name: 'Endre' }).click();
-    cy.get(designer.aboutApp.appName).should('be.enabled').clear().type(Date.now());
-    cy.get(designer.aboutApp.appDescription).click();
+    administration.getAppNameField().should('be.enabled').clear().type(Date.now());
+    administration.getDescriptionField().click();
     // Sync app changes
-    cy.get('#share_changes_button').click();
-    cy.get(designer.syncApp.commitMessage).should('be.visible').clear().type('automation');
-    cy.get(designer.syncApp.pushButton).should('be.visible').click();
+    header.getShareChangesButton().click();
+    header.getDescribeChangesField().should('be.visible').clear().type('automation');
+    header.getValidateChangesButton().should('be.visible').click();
     cy.wait('@commitAndPushChanges').its('response.statusCode').should('eq', 200);
     cy.wait('@pullChanges').its('response.statusCode').should('eq', 200);
-    cy.get(designer.syncApp.pushSuccess).isVisible();
+    header.getSharedChangesSuccessMessage().isVisible();
   });
 });

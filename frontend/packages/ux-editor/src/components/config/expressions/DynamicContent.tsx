@@ -1,44 +1,69 @@
 import React, { useEffect, useRef } from 'react';
 import {
+  Dynamic, expressionDataSourceTexts,
+  ExpressionElement,
   expressionFunctionTexts,
   expressionInPreviewPropertyTexts,
-  ExpressionPropertyBase,
-  expressionPropertyTexts
+  expressionPropertyTexts,
+  Operator,
 } from '../../../types/Expressions';
-import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
-import { XMarkIcon, PencilIcon, ArrowRightIcon } from '@navikt/aksel-icons';
-import { ExpressionContent, ExpressionElement } from './ExpressionContent';
-import { Dynamic } from '../../rightMenu/Dynamics';
+import { Alert, Button, Select, TextArea } from '@digdir/design-system-react';
+import { ArrowRightIcon, CheckmarkIcon, PencilIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { ExpressionContent } from './ExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
-import { v4 as uuidv4 } from 'uuid';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './DynamicContent.module.css';
+import {
+  addAction,
+  addExpression, complexExpressionIsSet, removeExpressionElementAndAddDefaultIfEmpty,
+  updateComplexExpression,
+  updateExpression,
+  updateOperator
+} from '../../../utils/dynamicsUtils';
 
 interface ExpressionProps {
   component: FormComponent | FormContainer;
   dynamic: Dynamic;
-  onGetProperties: (dynamic: Dynamic) => {availableProperties: string[], expressionProperties: string[]}; // actions?
+  onGetProperties: (dynamic: Dynamic) => { availableProperties: string[], expressionProperties: string[] };
   showRemoveDynamicButton: boolean;
   onAddDynamic: () => void;
+  successfullyAddedDynamicId: string;
+  onUpdateDynamic: (newDynamic: Dynamic) => void;
   onRemoveDynamic: (dynamic: Dynamic) => void;
   onEditDynamic: (dynamic: Dynamic) => void;
 }
 
-export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynamic, showRemoveDynamicButton, onRemoveDynamic, onEditDynamic }: ExpressionProps) => {
-  const [selectedAction, setSelectedAction] = React.useState<string>(dynamic.property || 'default');
-  const [expressionElements, setExpressionElements] = React.useState<ExpressionElement[]>([...dynamic.expressionElements]); // default state should be already existing expressions
-  const { t } = useTranslation();
+export const DynamicContent = ({
+  component,
+  dynamic,
+  onGetProperties,
+  showRemoveDynamicButton,
+  onAddDynamic,
+  successfullyAddedDynamicId,
+  onUpdateDynamic,
+  onRemoveDynamic,
+  onEditDynamic,
+}: ExpressionProps) => {
   const dynamicInEditStateRef = useRef(null);
   const dynamicInPreviewStateRef = useRef(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // TODO: Consider the user friendliness of this functionality? Issue: #10858
       // Need to check for dropdown explicit because it is rendered in a portal outside the component
-      const isDropDown = event.target.tagName === 'BUTTON' && event.target.getAttribute('role') === 'option';
+      const isDropDown =
+        event.target.tagName === 'BUTTON' && event.target.getAttribute('role') === 'option';
       // Check for buttons since clicks outside the dynamic on other buttons should not trigger add dynamic
-      const isButton = event.target.tagName === 'BUTTON' || event.target.tagName === 'path' || event.target.tagName === 'svg';
-      const clickTargetIsNotInDynamic = (dynamicInEditStateRef.current && !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) && !isDropDown);
+      const isButton =
+        event.target.tagName === 'BUTTON' ||
+        event.target.tagName === 'path' ||
+        event.target.tagName === 'svg';
+      const clickTargetIsNotInDynamic =
+        dynamicInEditStateRef.current &&
+        !(dynamicInEditStateRef.current as HTMLElement).contains(event.target) &&
+        !isDropDown;
       if (clickTargetIsNotInDynamic && !isButton && dynamic.editMode) {
         // Click occurred outside the dynamic in edit mode
         onAddDynamic();
@@ -47,49 +72,53 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
-    }
+    };
   }, [dynamic.editMode, onAddDynamic]);
 
-  const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(selectedAction);
+  const successfullyAddedMark = dynamic.id === successfullyAddedDynamicId;
+  const allowToSpecifyExpression = Object.values(onGetProperties(dynamic).expressionProperties).includes(dynamic.property);
   const propertiesList = onGetProperties(dynamic).availableProperties;
 
   const addActionToDynamic = (action: string) => {
-    if (action === 'default') {
-      return;
-    }
-    setSelectedAction(action);
-    dynamic.property = action as ExpressionPropertyBase;
-    if (dynamic.expressionElements.length > 0) {
-      return;
-    }
-    const newExpressionElement: ExpressionElement = { id: uuidv4() };
-    dynamic.expressionElements.push(newExpressionElement);
-    setExpressionElements(dynamic.expressionElements);
+    const newDynamic: Dynamic = addAction(dynamic, action);
+    onUpdateDynamic(newDynamic);
   };
 
-  const addExpressionElement = () => {
-    const newExpressionElement: ExpressionElement = { id: uuidv4() };
-    const updatedExpressionElements = [...dynamic.expressionElements, newExpressionElement];
-    dynamic.expressionElements.push(newExpressionElement);
-    setExpressionElements(updatedExpressionElements);
+  const addExpressionElement = (dynamicOperator: Operator) => {
+    const newDynamic: Dynamic = addExpression(dynamic, dynamicOperator);
+    onUpdateDynamic(newDynamic);
   };
 
-  const updateExpressionElement = () => {
-    const updatedExpressionElements = [...dynamic.expressionElements];
-    setExpressionElements(updatedExpressionElements);
+  const updateDynamicOperator = (dynamicOperator: Operator) => {
+    const newDynamic: Dynamic = updateOperator(dynamic, dynamicOperator);
+    onUpdateDynamic(newDynamic);
+  };
+
+  const updateExpressionElement = (index: number, expressionElement: ExpressionElement) => {
+    const newDynamic: Dynamic = updateExpression(dynamic, index, expressionElement);
+    onUpdateDynamic(newDynamic);
+  };
+
+  const updateDynamicComplexExpression = (newComplexExpression: any) => {
+    const newDynamic: Dynamic = updateComplexExpression(dynamic, newComplexExpression);
+    onUpdateDynamic(newDynamic);
   };
 
   const removeExpressionElement = (expressionElement: ExpressionElement) => {
-    if (dynamic.expressionElements.length < 2){
-      const newExpressionElement: ExpressionElement = { id: uuidv4() };
-      dynamic.expressionElements = [newExpressionElement];
-      setExpressionElements([newExpressionElement]);
-    }
-    else {
-      const updatedExpressionElements = dynamic.expressionElements.filter((expEl: ExpressionElement) => expEl !== expressionElement);
-      const lastExpressionElement = updatedExpressionElements[updatedExpressionElements.length - 1];
-      dynamic.expressionElements = [...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement,  expressionOperatorForNextExpression: undefined }];
-      setExpressionElements([...updatedExpressionElements.filter(expEl => expEl !== lastExpressionElement), { ...lastExpressionElement,  expressionOperatorForNextExpression: undefined }]);
+    const newDynamic: Dynamic = removeExpressionElementAndAddDefaultIfEmpty(dynamic, expressionElement);
+    onUpdateDynamic(newDynamic);
+  };
+
+  const tryFormatExpression = (expression: any): string => {
+    try {
+      // Implies during editing and when the expression has not been able to be parsed to JSON due to syntax
+      if (typeof expression === 'string') {
+        return expression;
+      }
+      // Attempt to format the JSON input
+      return JSON.stringify(expression);
+    } catch (error) {
+      return expression.toString();
     }
   };
 
@@ -97,19 +126,25 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
   return (
     <>
       {dynamic.editMode ? (
-        <div className={showRemoveDynamicButton ? classes.dynamicInEdit : null} ref={dynamicInEditStateRef}>
-          {showRemoveDynamicButton &&
+        <div
+          className={showRemoveDynamicButton ? classes.dynamicInEdit : null}
+          ref={dynamicInEditStateRef}
+        >
+          {showRemoveDynamicButton && (
             <Button
               className={classes.removeDynamicButton}
-              color={ButtonColor.Danger}
-              icon={<XMarkIcon/>}
-              onClick={() => onRemoveDynamic(dynamic)} // delete dynamic - should also set expression element state back to default
-              variant={ButtonVariant.Quiet}
+              color='danger'
+              icon={<XMarkIcon />}
+              onClick={() => onRemoveDynamic(dynamic)}
+              variant='quiet'
               size='small'
             />
-          }
+          )}
           <p>
-            <Trans i18nKey={'right_menu.dynamics_action_on_component'} values={{ componentName: component.id }} components={{ bold: <strong/> }}/>
+            <Trans
+              i18nKey={'right_menu.dynamics_action_on_component'}
+              values={{ componentName: component.id }}
+              components={{ bold: <strong/> }}/>
           </p>
           <Select
             onChange={(action) => addActionToDynamic(action)}
@@ -119,48 +154,89 @@ export const DynamicContent = ({ component, dynamic, onGetProperties, onAddDynam
             })))}
             value={dynamic.property || 'default'}
           />
-          {expressionElements.map((expEl: ExpressionElement) => (
-            <div key={expEl.id}>
-              <ExpressionContent // context?
-                expressionAction={allowToSpecifyExpression}
-                expressionElement={expEl}
-                onAddExpressionElement={addExpressionElement}
-                onUpdateExpressionElement={updateExpressionElement}
-                onRemoveExpressionElement={() => removeExpressionElement(expEl)}
+          {complexExpressionIsSet(dynamic.complexExpression) ? (
+            <div className={classes.complexExpressionContainer}>
+              <TextArea
+                value={tryFormatExpression(dynamic.complexExpression)}
+                onChange={event => updateDynamicComplexExpression(event.target.value)}
               />
+              <Alert>
+                {t('right_menu.dynamics_complex_dynamic_message')}
+              </Alert>
             </div>
-          ))}
-        </div>) : (
+          ) : (
+            dynamic.expressionElements.map((expEl: ExpressionElement, index: number) => (
+              <div key={expEl.id}>
+                <ExpressionContent
+                  expressionAction={allowToSpecifyExpression}
+                  expressionElement={expEl}
+                  dynamicOperator={index == dynamic.expressionElements.length - 1 ? undefined : dynamic.operator}
+                  onAddExpressionElement={(dynamicOp: Operator) => addExpressionElement(dynamicOp)}
+                  onUpdateExpressionElement={(expressionElement: ExpressionElement) => updateExpressionElement(index, expressionElement)}
+                  onUpdateDynamicOperator={(dynamicOp: Operator) => updateDynamicOperator(dynamicOp)}
+                  onRemoveExpressionElement={() => removeExpressionElement(expEl)}
+                />
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
         <div className={classes.dynamicInPreview} ref={dynamicInPreviewStateRef}>
           <div className={classes.dynamicDetails}>
-            <span><Trans i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]} values={{ componentName: component.id }} components={{ bold: <strong/> }}/></span>
-              {expressionElements.map((expEl: ExpressionElement) => (
+            <span>
+              <Trans
+                i18nKey={expressionInPreviewPropertyTexts(t)[dynamic.property]}
+                values={{ componentName: component.id }}
+                components={{ bold: <strong/> }}
+              />
+            </span>
+            {complexExpressionIsSet(dynamic.complexExpression) ? (
+              <div className={classes.complexExpressionContainer}>
+                  <TextArea
+                    className={classes.complexExpression}
+                    value={tryFormatExpression(dynamic.complexExpression)}
+                    disabled={true}
+                  />
+                <Alert>
+                  {t('right_menu.dynamics_complex_dynamic_message')}
+                </Alert>
+              </div>
+            ) : (
+              dynamic.expressionElements.map((expEl: ExpressionElement, index: number) => (
                 <div key={expEl.id}>
-                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.dataSource} {' '} <span>{expEl.value}</span></p>
+                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.dataSource]} {' '}
+                    <span>{expEl.value}</span></p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[expEl.function]}</p>
-                  <p> <ArrowRightIcon fontSize='1.5rem'/>{expEl.comparableDataSource} {' '} <span>{expEl.comparableValue}</span></p>
-                  <p className={classes.bold}>{expEl.expressionOperatorForNextExpression}</p>
-                </div> // add a green checkmark
-              ))}
+                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[expEl.comparableDataSource]} {' '}
+                    <span>{expEl.comparableValue}</span></p>
+                  {index !== dynamic.expressionElements.length - 1 && (
+                    <p className={classes.bold}>{dynamic.operator === Operator.And ? 'Og' : 'Eller'}</p>)}
+                </div>
+              ))
+            )}
+            {successfullyAddedMark && (
+              <div className={classes.checkMark}>
+                <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.dynamics_successfully_added_text')}
+              </div>
+            )}
           </div>
           <div>
             <Button
-              color={ButtonColor.Danger}
+              color='danger'
               icon={<XMarkIcon />}
               onClick={() => onRemoveDynamic(dynamic)}
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               size='small'
             />
             <Button
               icon={<PencilIcon />}
               onClick={() => onEditDynamic(dynamic)}
-              variant={ButtonVariant.Quiet}
+              variant='quiet'
               size='small'
             />
           </div>
         </div>
-      )
-      }
+      )}
     </>
   );
-}
+};

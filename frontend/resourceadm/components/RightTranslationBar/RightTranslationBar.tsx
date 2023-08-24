@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
@@ -26,6 +26,18 @@ interface Props {
    * Flag to handle when to show the errors
    */
   showErrors: boolean;
+  /**
+   * Function to be executed when leaving the last field in the translation bar
+   *
+   * @param e the keyboard event
+   * @returns void
+   */
+  onLeaveLastField: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  /**
+   * Function to be executed on blur
+   * @returns
+   */
+  onBlur: () => void;
 }
 
 /**
@@ -35,6 +47,8 @@ interface Props {
  *      title='Navn på tjenesten'
  *      value={title}
  *      onChange={(value: LanguageStringType) => setTitle(value)}
+ *      showErrors
+ *      showAlert
  *    />
  *
  * @property {string}[title] - The title of the selected inputfield
@@ -42,62 +56,81 @@ interface Props {
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
  * @property {(value: LanguageStringType) => void}[onChangeValue] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
+ * @property {function}[onLeaveLastField] - Function to be executed when leaving the last field in the translation bar
+ * @property {function}[onBlur] - Function to be executed on blur
  *
- * @returns
+ * @returns {React.ReactNode} - The rendered component
  */
-export const RightTranslationBar = ({
-  title,
-  usesTextArea = false,
-  value,
-  onChangeValue,
-  showErrors,
-}: Props) => {
-  const handleChange = (lang: 'nn' | 'en', val: string) => {
-    const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
-    onChangeValue(obj);
-  };
-  const displayNField = (lang: 'nn' | 'en') => {
-    const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
+export const RightTranslationBar = forwardRef<HTMLTextAreaElement | HTMLInputElement, Props>(
+  (
+    { title, usesTextArea = false, value, onChangeValue, showErrors, onLeaveLastField, onBlur },
+    ref
+  ): React.ReactNode => {
+    const handleChange = (lang: 'nn' | 'en', val: string) => {
+      const obj: LanguageStringType = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
+      onChangeValue(obj);
+    };
 
-    if (usesTextArea) {
+    const handleTabOutOfTranslationBar = (
+      e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        onLeaveLastField(e);
+      }
+    };
+
+    const displayNField = (lang: 'nn' | 'en', isLast: boolean) => {
+      const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
+
+      if (usesTextArea) {
+        return (
+          <TextArea
+            value={value[lang]}
+            resize='vertical'
+            onChange={(e) => handleChange(lang, e.currentTarget.value)}
+            rows={5}
+            label={label}
+            isValid={!(showErrors && value[lang] === '')}
+            ref={!isLast ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
+            onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
+            onBlur={onBlur}
+          />
+        );
+      }
       return (
-        <TextArea
+        <TextField
           value={value[lang]}
-          resize='vertical'
-          onChange={(e) => handleChange(lang, e.currentTarget.value)}
-          rows={5}
+          onChange={(e) => handleChange(lang, e.target.value)}
           label={label}
           isValid={!(showErrors && value[lang] === '')}
+          ref={!isLast ? (ref as React.Ref<HTMLInputElement>) : undefined}
+          onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
+          onBlur={onBlur}
         />
       );
-    }
-    return (
-      <TextField
-        value={value[lang]}
-        onChange={(e) => handleChange(lang, e.target.value)}
-        label={label}
-        isValid={!(showErrors && value[lang] === '')}
-      />
-    );
-  };
+    };
 
-  return (
-    <div className={classes.wrapper}>
-      <div className={classes.topWrapper}>
-        <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
-        <Heading size='xsmall' level={2} className={classes.topText}>
-          Oversettelse
-        </Heading>
+    return (
+      <div className={classes.wrapper}>
+        <div className={classes.topWrapper}>
+          <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
+          <Heading size='xsmall' level={2} className={classes.topText}>
+            Oversettelse
+          </Heading>
+        </div>
+        <div className={classes.bodyWrapper}>
+          <Alert severity='info'>
+            <Paragraph size='small'>
+              For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+            </Paragraph>
+          </Alert>
+          <div className={classes.inputWrapper}>{displayNField('nn', false)}</div>
+          <div className={classes.inputWrapper}>{displayNField('en', true)}</div>
+        </div>
       </div>
-      <div className={classes.bodyWrapper}>
-        <Alert severity='info' className={classes.alert}>
-          <Paragraph size='small'>
-            For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
-          </Paragraph>
-        </Alert>
-        <div className={classes.inputWrapper}>{displayNField('nn')}</div>
-        <div className={classes.inputWrapper}>{displayNField('en')}</div>
-      </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+RightTranslationBar.displayName = 'RightTranslationBar';

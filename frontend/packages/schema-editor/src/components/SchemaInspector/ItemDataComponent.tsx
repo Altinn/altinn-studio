@@ -9,8 +9,8 @@ import {
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import {
-  Checkbox,
-  FieldSet,
+  LegacyCheckbox,
+  LegacyFieldSet,
   Select,
   TextArea,
   TextField,
@@ -165,7 +165,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
-        <Checkbox
+        <LegacyCheckbox
           checked={isArray}
           label={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
@@ -183,7 +183,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind === ObjectKind.Combination && (
-        <Checkbox
+        <LegacyCheckbox
           checkboxId='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
           label={t('schema_editor.nullable')}
@@ -194,12 +194,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (
         <>
-          <Divider marginless/>
-          <CustomProperties path={pointer}/>
+          <Divider marginless />
+          <CustomProperties path={pointer} />
         </>
       )}
-      <Divider marginless/>
-      <FieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
+      <Divider marginless />
+      <LegacyFieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <TextField
             id={titleId}
@@ -223,7 +223,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             value={itemDescription}
           />
         </div>
-      </FieldSet>
+      </LegacyFieldSet>
     </div>
   );
 }
