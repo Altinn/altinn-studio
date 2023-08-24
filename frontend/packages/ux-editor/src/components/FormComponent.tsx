@@ -78,14 +78,17 @@ export const FormComponent = memo(function FormComponent({
 
   return (
     <div
-    className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode )}
+    className={cn(
+      classes.wrapper,
+      isEditMode && classes.editMode,
+      isPreviewMode && classes.previewMode
+    )}
     role='listitem'
-    onClick={
-      (event: React.MouseEvent<HTMLDivElement>) => {
+    onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
       if (isEditMode) return;
-        handleSave();
-        handleEdit(component);
+      await handleSave();
+      handleEdit(component);
     }}
   >
     
