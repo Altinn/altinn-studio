@@ -1,4 +1,4 @@
 module.exports = {
-  ...require('../../../../../prettier.config.js'),
+  ...require('../../../../../prettierrc'),
   printWidth: 300,
 };
