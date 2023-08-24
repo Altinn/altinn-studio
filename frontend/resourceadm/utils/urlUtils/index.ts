@@ -1,6 +1,1 @@
-export {
-  applicationAboutPage,
-  getRepoEditUrl,
-  getResourcePageURL,
-  getResourceDashboardURL
-} from './urlUtils';
+export { getResourcePageURL, getResourceDashboardURL } from "./urlUtils";

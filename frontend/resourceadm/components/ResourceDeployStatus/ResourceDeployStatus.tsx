@@ -1,26 +1,49 @@
-import React from 'react';
-import classes from './ResourceDeployStatus.module.css';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
-import { DeployErrorType, NavigationBarPageType } from 'resourceadm/types/global';
-import { LinkButton } from '../LinkButton';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import React from "react";
+import classes from "./ResourceDeployStatus.module.css";
+import { ArrowRightIcon } from "@navikt/aksel-icons";
+import {
+  DeployErrorType,
+  NavigationBarPageType,
+} from "resourceadm/types/global";
+import { Alert, Paragraph } from "@digdir/design-system-react";
+import { LinkButton } from "../LinkButton";
 
 interface Props {
+  /**
+   * Title to display on the card
+   */
   title: string;
+  /**
+   * Either list of error object with message and the page to navigate to, or a string message
+   */
   error: DeployErrorType[] | string;
+  /**
+   * Flag for if it is success or alert
+   */
   isSuccess?: boolean;
+  /**
+   * Function that navigates to the page with error
+   * @param page the page to navigate to
+   * @returns void
+   */
   onNavigateToPageWithError?: (page: NavigationBarPageType) => void;
+  /**
+   * The id of the resource
+   */
   resourceId: string;
 }
 
 /**
- * Displays a red danger card or a green success card, as well as a message
+ * @component
+ *    Displays a red danger card or a green success card, as well as a message
  *
- * @param props.title title to display on the card
- * @param props.error either list of error object with message and the page to navigate to, or a string message
- * @param props.isSuccess flag for if it is success or alert
- * @param props.onNavigateToPageWithError function that navigates to the page with error
- * @param props.resourceId the id of the resource
+ * @property {string}[title] - Title to display on the card
+ * @property {DeployErrorType[] | string}[error] - Either list of error object with message and the page to navigate to, or a string message
+ * @property {boolean}[isSuccess] - Flag for if it is success or alert
+ * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
+ * @property {string}[resourceId] - The id of the resource
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDeployStatus = ({
   title,
@@ -28,16 +51,16 @@ export const ResourceDeployStatus = ({
   isSuccess = false,
   onNavigateToPageWithError,
   resourceId,
-}: Props) => {
+}: Props): React.ReactNode => {
   /**
    * Display the different errors based on the type of the error
    */
   const displayErrors = () => {
-    if (typeof error === 'string') {
+    if (typeof error === "string") {
       return (
         <div className={classes.cardElement}>
-          <ArrowRightIcon title={error} fontSize='1.5rem' />
-          <Paragraph size='small' className={classes.text}>
+          <ArrowRightIcon title={error} fontSize="1.5rem" />
+          <Paragraph size="small" className={classes.text}>
             {error}
           </Paragraph>
         </div>
@@ -48,13 +71,14 @@ export const ResourceDeployStatus = ({
 
       return (
         <div className={classes.cardElement} key={index + resourceId}>
-          <ArrowRightIcon title={e.message} fontSize='1.5rem' />
-          <Paragraph size='small' className={classes.text}>
+          <ArrowRightIcon title={e.message} fontSize="1.5rem" />
+          <Paragraph size="small" className={classes.text}>
             {textArr[0] + ' "'}
             <LinkButton
-              text={textArr[1]}
               onClick={() => onNavigateToPageWithError(e.pageWithError)}
-            />
+            >
+              {textArr[1]}
+            </LinkButton>
             {'"'}
           </Paragraph>
         </div>
@@ -75,7 +99,7 @@ export const ResourceDeployStatus = ({
   };
 
   return (
-    <Alert className={classes.alert} severity={isSuccess ? 'success' : 'danger'}>
+    <Alert severity={isSuccess ? "success" : "danger"}>
       {displayContent()}
     </Alert>
   );

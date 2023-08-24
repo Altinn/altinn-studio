@@ -1,45 +1,92 @@
-import React, { useState } from 'react';
-import { Button, TextArea, Label, ErrorMessage, Select } from '@digdir/design-system-react';
-import { PlusIcon } from '@navikt/aksel-icons';
-import classes from './ExpandablePolicyCard.module.css';
+import React, { useState } from "react";
+import {
+  Button,
+  TextArea,
+  Label,
+  ErrorMessage,
+  Select,
+} from "@digdir/design-system-react";
+import { PlusIcon } from "@navikt/aksel-icons";
+import classes from "./ExpandablePolicyCard.module.css";
 import {
   PolicyActionType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
-} from 'resourceadm/types/global';
-import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
-import { ResourceNarrowingList } from './ResourceNarrowingList';
-import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+} from "resourceadm/types/global";
+import { ActionAndSubjectListItem } from "./ActionAndSubjectListItem";
+import { ResourceNarrowingList } from "./ResourceNarrowingList";
+import { ExpandablePolicyElement } from "./ExpandablePolicyElement";
+import { ScreenReaderSpan } from "resourceadm/components/ScreenReaderSpan";
 
 interface Props {
+  /**
+   * The rule to display in the card
+   */
   policyRule: PolicyRuleCardType;
+  /**
+   * The possible actions to select from
+   */
   actions: PolicyActionType[];
+  /**
+   * The possible subjects to select from
+   */
   subjects: PolicySubjectType[];
+  /**
+   * The list of all the rules
+   */
   rules: PolicyRuleCardType[];
+  /**
+   * useState function to update the list of rules
+   */
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>;
+  /**
+   * The ID of the resource
+   */
   resourceId: string;
+  /**
+   * The type of the resource
+   */
   resourceType: string;
+  /**
+   * Function to be executed when clicking duplicate rule
+   * @returns void
+   */
   handleDuplicateRule: () => void;
+  /**
+   * Function to be executed when clicking delete rule
+   * @returns void
+   */
   handleDeleteRule: () => void;
+  /**
+   * Flag to decide if errors should be shown or not
+   */
   showErrors: boolean;
+  /**
+   * Function to save the policy
+   * @returns
+   */
+  savePolicy: (rules: PolicyRuleCardType[]) => void;
 }
 
 /**
- * Component that displays a card where a user can view and update a policy rule
- * for a resource.
+ * @component
+ *    Component that displays a card where a user can view and update a policy rule
+ *    for a resource.
  *
- * @param props.policyRule the rule to display in the card
- * @param props.actions the possible actions to select from
- * @param props.subjects the possible subjects to select from
- * @param props.rules the list of all the rules
- * @param props.setPolicyRules useState function to update the list of rules
- * @param props.resourceId the ID of the resource
- * @param props.resourceType the type of the resource
- * @param props.handleDuplicateRule function to be executed when clicking duplicate rule
- * @param props.handleDeleteRule function to be executed when clicking delete rule
- * @param props.showErrors flag to decide if errors should be shown or not
+ * @property {PolicyRuleCardType}[policyRule] - The rule to display in the card
+ * @property {PolicyActionType[]}[actions] - The possible actions to select from
+ * @property {PolicySubjectType[]}[subjects] - The possible subjects to select from
+ * @property {PolicyRuleCardType[]}[rules] - The list of all the rules
+ * @property {React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>}[setPolicyRules] - useState function to update the list of rules
+ * @property {string}[resourceId] - The ID of the resource
+ * @property {string}[resourceType] - The type of the resource
+ * @property {function}[handleDuplicateRule] - Function to be executed when clicking duplicate rule
+ * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
+ * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
+ * @property {function}[onBlur] - Function to save the policy
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const ExpandablePolicyCard = ({
   policyRule,
@@ -52,10 +99,17 @@ export const ExpandablePolicyCard = ({
   handleDuplicateRule,
   handleDeleteRule,
   showErrors,
-}: Props) => {
-  const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
-  const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
-  const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);
+  savePolicy,
+}: Props): React.ReactNode => {
+  const [hasResourceError, setHasResourceError] = useState(
+    policyRule.resources.length === 0,
+  );
+  const [hasRightsError, setHasRightsErrors] = useState(
+    policyRule.actions.length === 0,
+  );
+  const [hasSubjectsError, setHasSubjectsError] = useState(
+    policyRule.subject.length === 0,
+  );
 
   /**
    * Function to update the fields inside the rule object in the rule array.
@@ -67,10 +121,19 @@ export const ExpandablePolicyCard = ({
    * @param s the selected subjectTitle array
    * @param a the selected actions array
    * @param r the selected resources array
+   * @param saveOnUpdate flag to decide if the policy should be saved on update
    */
-  const updateRules = (d: string, s: string[], a: string[], r: PolicyRuleResourceType[][]) => {
+  const updateRules = (
+    d: string,
+    s: string[],
+    a: string[],
+    r: PolicyRuleResourceType[][],
+    saveOnUpdate: boolean,
+  ) => {
     const updatedRules = [...rules];
-    const ruleIndex = rules.findIndex((rule) => rule.ruleId === policyRule.ruleId);
+    const ruleIndex = rules.findIndex(
+      (rule) => rule.ruleId === policyRule.ruleId,
+    );
 
     updatedRules[ruleIndex] = {
       ...updatedRules[ruleIndex],
@@ -81,6 +144,7 @@ export const ExpandablePolicyCard = ({
     };
 
     setPolicyRules(updatedRules);
+    saveOnUpdate && savePolicy(updatedRules);
   };
 
   /**
@@ -116,20 +180,26 @@ export const ExpandablePolicyCard = ({
    * @param index the index of the element in the resource block
    * @param field the type of textfield to update
    * @param value the value types in the textfield
-   * @param resourceIndex the index of the resource block
+   * @param ruleIndex the index of the rule
    */
   const handleInputChange = (
     index: number,
-    field: 'id' | 'type',
+    field: "id" | "type",
     value: string,
-    resourceIndex: number
+    ruleIndex: number,
   ) => {
     const updatedResources = [...policyRule.resources];
-    updatedResources[resourceIndex][index] = {
-      ...updatedResources[resourceIndex][index],
+    updatedResources[ruleIndex][index] = {
+      ...updatedResources[ruleIndex][index],
       [field]: value,
     };
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      false,
+    );
   };
 
   /**
@@ -144,7 +214,13 @@ export const ExpandablePolicyCard = ({
       },
     ];
     const updatedResources = [...policyRule.resources, newResource];
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true,
+    );
 
     setHasResourceError(false);
   };
@@ -167,6 +243,7 @@ export const ExpandablePolicyCard = ({
         handleClickAddResource={() => handleClickAddResourceNarrowing(i)}
         handleDuplicateElement={() => handleDuplicateResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
+        onBlur={() => savePolicy(rules)}
       />
     );
   });
@@ -176,29 +253,47 @@ export const ExpandablePolicyCard = ({
    */
   const handleClickAddResourceNarrowing = (resourceIndex: number) => {
     const newResource: PolicyRuleResourceType = {
-      type: '',
-      id: '',
+      type: "",
+      id: "",
     };
     const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex].push(newResource);
 
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true,
+    );
   };
 
   /**
    * Handles the removal of the narrowed resources
    */
-  const handleRemoveNarrowingResource = (index: number, resourceIndex: number) => {
+  const handleRemoveNarrowingResource = (index: number, ruleIndex: number) => {
     const updatedResources = [...policyRule.resources];
-    updatedResources[resourceIndex].splice(index, 1);
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updatedResources[ruleIndex].splice(index, 1);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true,
+    );
   };
 
   /**
    * Displays the actions
    */
   const displayActions = policyRule.actions.map((a, i) => {
-    return <ActionAndSubjectListItem key={i} title={a} onRemove={() => handleRemoveAction(i, a)} />;
+    return (
+      <ActionAndSubjectListItem
+        key={i}
+        title={a}
+        onRemove={() => handleRemoveAction(i, a)}
+      />
+    );
   });
 
   /**
@@ -210,9 +305,18 @@ export const ExpandablePolicyCard = ({
     updatedActions.splice(index, 1);
 
     // Add to options list
-    setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
+    setActionOptions([
+      ...actionOptions,
+      { value: actionTitle, label: actionTitle },
+    ]);
 
-    updateRules(policyRule.description, policyRule.subject, updatedActions, policyRule.resources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      updatedActions,
+      policyRule.resources,
+      true,
+    );
 
     setHasRightsErrors(updatedActions.length === 0);
   };
@@ -222,7 +326,11 @@ export const ExpandablePolicyCard = ({
    */
   const displaySubjects = policyRule.subject.map((s, i) => {
     return (
-      <ActionAndSubjectListItem key={i} title={s} onRemove={() => handleRemoveSubject(i, s)} />
+      <ActionAndSubjectListItem
+        key={i}
+        title={s}
+        onRemove={() => handleRemoveSubject(i, s)}
+      />
     );
   });
 
@@ -235,9 +343,18 @@ export const ExpandablePolicyCard = ({
     updatedSubjects.splice(index, 1);
 
     // Add to options list
-    setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
+    setSubjectOptions([
+      ...subjectOptions,
+      { value: subjectTitle, label: subjectTitle },
+    ]);
 
-    updateRules(policyRule.description, updatedSubjects, policyRule.actions, policyRule.resources);
+    updateRules(
+      policyRule.description,
+      updatedSubjects,
+      policyRule.actions,
+      policyRule.resources,
+      true,
+    );
 
     setHasSubjectsError(updatedSubjects.length === 0);
   };
@@ -264,7 +381,8 @@ export const ExpandablePolicyCard = ({
       policyRule.description,
       updatedSubjectTitles,
       policyRule.actions,
-      policyRule.resources
+      policyRule.resources,
+      true,
     );
 
     setHasSubjectsError(false);
@@ -292,17 +410,24 @@ export const ExpandablePolicyCard = ({
       policyRule.description,
       policyRule.subject,
       updatedActionTitles,
-      policyRule.resources
+      policyRule.resources,
+      true,
     );
 
-    setHasSubjectsError(false);
+    setHasRightsErrors(false);
   };
 
   /**
    * Updates the description of the rule
    */
   const handleChangeDescription = (description: string) => {
-    updateRules(description, policyRule.subject, policyRule.actions, policyRule.resources);
+    updateRules(
+      description,
+      policyRule.subject,
+      policyRule.actions,
+      policyRule.resources,
+      false,
+    );
   };
 
   /**
@@ -311,15 +436,24 @@ export const ExpandablePolicyCard = ({
    * @param resourceIndex the index of the resource group to duplicate
    */
   const handleDuplicateResourceGroup = (resourceIndex: number) => {
-    const resourceGroupToDuplicate: PolicyRuleResourceType[] = policyRule.resources[resourceIndex];
+    const resourceGroupToDuplicate: PolicyRuleResourceType[] =
+      policyRule.resources[resourceIndex];
 
     // Create a deep copy of the object so the objects don't share same object reference
-    const deepCopiedResourceGroupToDuplicate: PolicyRuleResourceType[] = JSON.parse(
-      JSON.stringify(resourceGroupToDuplicate)
-    );
+    const deepCopiedResourceGroupToDuplicate: PolicyRuleResourceType[] =
+      JSON.parse(JSON.stringify(resourceGroupToDuplicate));
 
-    const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    const updatedResources = [
+      ...policyRule.resources,
+      deepCopiedResourceGroupToDuplicate,
+    ];
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true,
+    );
   };
 
   /**
@@ -330,7 +464,13 @@ export const ExpandablePolicyCard = ({
   const handleDeleteResourceGroup = (resourceIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources.splice(resourceIndex, 1);
-    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      policyRule.actions,
+      updatedResources,
+      true,
+    );
 
     setHasResourceError(updatedResources.length === 0);
   };
@@ -343,7 +483,7 @@ export const ExpandablePolicyCard = ({
   const displayWarningCard = (text: string) => {
     return (
       <div className={classes.warningCardWrapper}>
-        <ErrorMessage size='small'>{text}</ErrorMessage>
+        <ErrorMessage size="small">{text}</ErrorMessage>
       </div>
     );
   };
@@ -360,9 +500,9 @@ export const ExpandablePolicyCard = ({
    */
   const getRuleErrorText = (): string => {
     const arr: string[] = [];
-    if (hasResourceError) arr.push('sub-ressurs');
-    if (hasRightsError) arr.push('rettigheter');
-    if (hasSubjectsError) arr.push('roller');
+    if (hasResourceError) arr.push("sub-ressurs");
+    if (hasRightsError) arr.push("rettigheter");
+    if (hasSubjectsError) arr.push("roller");
 
     if (arr.length === 1) {
       return `Regel ${policyRule.ruleId} mangler ${arr[0]}`;
@@ -373,7 +513,7 @@ export const ExpandablePolicyCard = ({
     if (arr.length === 3) {
       return `Regel ${policyRule.ruleId} mangler ${arr[0]}, ${arr[1]} og ${arr[2]}`;
     }
-    return '';
+    return "";
   };
 
   return (
@@ -385,65 +525,90 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label className={classes.label} size='medium'>
+        <Label className={classes.label} size="medium">
           Hvilken sub-ressurser skal regelen gjelde for?
         </Label>
         {displayResources}
         <div className={classes.addResourceButton}>
           <Button
-            type='button'
+            type="button"
             onClick={handleClickAddResource}
-            color='secondary'
+            color="secondary"
             fullWidth
-            icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+            icon={
+              <PlusIcon
+                title="Legg til en innsnevring av sub-ressursen"
+                fontSize="1.5rem"
+              />
+            }
           >
             Legg til en sub-ressurs
           </Button>
         </div>
         {showErrors &&
           hasResourceError &&
-          displayWarningCard('Du må legge til minimum en sub-ressurs.')}
-        <Label className={classes.label} size='medium'>
+          displayWarningCard("Du må legge til minimum en sub-ressurs.")}
+        <Label className={classes.label} size="medium">
           Hvilke rettigheter skal gis?
         </Label>
         <div className={classes.dropdownWrapper}>
           <Select
             options={actionOptions}
-            onChange={(value: string) => value !== null && handleClickActionInList(value)}
+            onChange={(value: string) =>
+              value !== null && handleClickActionInList(value)
+            }
             disabled={actionOptions.length === 0}
-            label={actionOptions.length === 0 ? 'Alle rettigheter er valgt' : 'Legg til rettighet'}
+            label={
+              actionOptions.length === 0
+                ? "Alle rettigheter er valgt"
+                : "Legg til rettighet"
+            }
             error={showErrors && hasRightsError}
           />
         </div>
         <div className={classes.chipWrapper}>{displayActions}</div>
-        {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
-        <Label className={classes.label} size='medium'>
+        {showErrors &&
+          hasRightsError &&
+          displayWarningCard("Du må velge minimum en rettighet.")}
+        <Label className={classes.label} size="medium">
           Hvem skal ha disse rettighetene?
         </Label>
         <div className={classes.dropdownWrapper}>
           <Select
             options={subjectOptions}
-            onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
+            onChange={(value: string) =>
+              value !== null && handleClickSubjectInList(value)
+            }
             disabled={subjectOptions.length === 0}
-            label={subjectOptions.length === 0 ? 'Alle roller er valgt' : 'Legg til rolle'}
+            label={
+              subjectOptions.length === 0
+                ? "Alle roller er valgt"
+                : "Legg til rolle"
+            }
             error={showErrors && hasSubjectsError}
           />
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
-        {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
-        <Label className={classes.label} size='medium'>
+        {showErrors &&
+          hasSubjectsError &&
+          displayWarningCard("Du må velge minimum en rolle.")}
+        <Label className={classes.label} size="medium">
           Legg til en beskrivelse av regelen
         </Label>
         <div className={classes.textAreaWrapper}>
           <TextArea
-            resize='vertical'
-            placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
+            resize="vertical"
+            placeholder="Beskrivelse beskrevet her i tekst av tjenesteeier"
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
-            aria-labelledby='ruleDescription'
+            aria-labelledby="ruleDescription"
+            onBlur={() => savePolicy(rules)}
           />
-          <ScreenReaderSpan id='ruleDescription' label='Beskrivelse av regelen' />
+          <ScreenReaderSpan
+            id="ruleDescription"
+            label="Beskrivelse av regelen"
+          />
         </div>
       </ExpandablePolicyElement>
       {showErrors && displayWarningCard(getRuleErrorText())}

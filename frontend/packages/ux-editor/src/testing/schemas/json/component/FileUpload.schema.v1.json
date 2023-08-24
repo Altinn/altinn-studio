@@ -15,7 +15,22 @@
       "const": "FileUpload"
     },
     "dataModelBindings": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings"
+      "title": "Data model bindings",
+      "description": "Data model bindings for component",
+      "type": "object",
+      "properties": {
+        "simpleBinding": {
+          "type": "string",
+          "title": "Simple binding",
+          "description": "Data model binding for file uploader with a single file"
+        },
+        "list": {
+          "type": "string",
+          "title": "List",
+          "description": "Data model binding for file uploader with multiple files"
+        }
+      },
+      "additionalProperties": false
     },
     "textResourceBindings": {
       "type": "object",

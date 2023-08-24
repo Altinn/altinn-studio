@@ -1,14 +1,19 @@
-import React from 'react';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
-import type { RestrictionItemProps } from '../ItemRestrictions';
-import { ArrayRestrictions } from './ArrayRestrictions';
-import { ArrRestrictionKey } from '@altinn/schema-model';
-import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import React from "react";
+import {
+  render as rtlRender,
+  screen,
+  waitFor,
+  act,
+} from "@testing-library/react";
+import type { RestrictionItemProps } from "../ItemRestrictions";
+import { ArrayRestrictions } from "./ArrayRestrictions";
+import { ArrRestrictionKey } from "@altinn/schema-model";
+import userEvent from "@testing-library/user-event";
+import { textMock } from "../../../../../../testing/mocks/i18nMock";
 
 // Test data:
 const onChangeRestrictionValueMock = jest.fn();
-const pathMock = '#/properties/xxsfds';
+const pathMock = "#/properties/xxsfds";
 
 const render = (props: Partial<RestrictionItemProps> = {}) => {
   const allProps: RestrictionItemProps = {
@@ -22,58 +27,80 @@ const render = (props: Partial<RestrictionItemProps> = {}) => {
   return rtlRender(<ArrayRestrictions {...allProps} />);
 };
 
-
-describe('ArrayRestrictions', () => {
+describe("ArrayRestrictions", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test('ArrayRestrictions should render correctly', async () => {
+  test("ArrayRestrictions should render correctly", async () => {
     render();
     Object.values(ArrRestrictionKey).forEach((key) => {
-      expect(screen.getByLabelText(textMock('schema_editor.' + key))).toBeDefined();
+      expect(
+        screen.getByLabelText(textMock("schema_editor." + key)),
+      ).toBeDefined();
     });
   });
 
-  it('should render minItems as a number field', async () => {
+  it("should render minItems as a number field", async () => {
+    const user = userEvent.setup();
     const props = {
       restrictions: {
-        minItems: '1',
+        minItems: "1",
       },
     };
     render(props);
-    const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.minItems));
-    userEvent.type(minItems, 'test 2');
+    const minItems = screen.getByLabelText(
+      textMock("schema_editor." + ArrRestrictionKey.minItems),
+    );
+    await act(() => user.type(minItems, "test 2"));
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.minItems, '12')
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+        pathMock,
+        ArrRestrictionKey.minItems,
+        "12",
+      ),
     );
   });
 
-  it('should render maxItems as a number field', async () => {
+  it("should render maxItems as a number field", async () => {
+    const user = userEvent.setup();
     const props = {
       restrictions: {
-        maxItems: '1',
+        maxItems: "1",
       },
     };
     render(props);
-    const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.maxItems));
-    userEvent.type(maxItems, 'test 2');
+    const maxItems = screen.getByLabelText(
+      textMock("schema_editor." + ArrRestrictionKey.maxItems),
+    );
+    await act(() => user.type(maxItems, "test 2"));
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.maxItems, '12')
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+        pathMock,
+        ArrRestrictionKey.maxItems,
+        "12",
+      ),
     );
   });
 
-  it('should render uniqueItems as a checkbox', async () => {
+  it("should render uniqueItems as a checkbox", async () => {
+    const user = userEvent.setup();
     const props = {
       restrictions: {
         uniqueItems: false,
       },
     };
     render(props);
-    const uniqueItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.uniqueItems));
-    userEvent.click(uniqueItems);
+    const uniqueItems = screen.getByLabelText(
+      textMock("schema_editor." + ArrRestrictionKey.uniqueItems),
+    );
+    await act(() => user.click(uniqueItems));
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.uniqueItems, true)
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+        pathMock,
+        ArrRestrictionKey.uniqueItems,
+        true,
+      ),
     );
   });
 });

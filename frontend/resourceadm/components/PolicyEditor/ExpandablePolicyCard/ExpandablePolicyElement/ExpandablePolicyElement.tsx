@@ -1,27 +1,62 @@
-import React, { ReactNode, useState } from 'react';
-import classes from './ExpandablePolicyElement.module.css';
-import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
-import { DropdownMenu } from './DropdownMenu';
-import { Label } from '@digdir/design-system-react';
+import React, { ReactNode, useState } from "react";
+import classes from "./ExpandablePolicyElement.module.css";
+import { ChevronDownIcon, ChevronUpIcon } from "@navikt/aksel-icons";
+import { DropdownMenu } from "./DropdownMenu";
+import { Label } from "@digdir/design-system-react";
 
 interface Props {
+  /**
+   * The title to display on the element.
+   */
   title: string;
+  /**
+   * The React childrens to display inside it.
+   */
   children: ReactNode;
+  /**
+   * Optional flag for if the component is a card or an element
+   */
   isCard?: boolean;
+  /**
+   * Function to be executed when the element is to be removed
+   * @returns void
+   */
   handleRemoveElement: () => void;
+  /**
+   * Function to be executed when the element is duplicated
+   * @returns void
+   */
   handleDuplicateElement: () => void;
+  /**
+   * Optional flag for if the component has error
+   */
   hasError?: boolean;
 }
 
 /**
- * Displays a wrapper component that can be expanded and collapsed. The wrapper
- * component is wrapped around the content that can be collapsed.
+ * @component
+ *    Displays a wrapper component that can be expanded and collapsed. The wrapper
+ *    component is wrapped around the content that can be collapsed.
  *
- * @param props.title the title to display on the element.
- * @param props.children the React childrens to display inside it.
- * @param props.isCard optional for if the component is a card or an element
- * @param props.handleRemoveElement function to be executed when the element is to be removed
- * @param props.handleDuplicateElement function to be executed when the element is duplicated
+ * @example
+ *    <ExpandablePolicyElement
+ *      title='Some title'
+ *      isCard
+ *      handleDuplicateElement={handleDuplicateRule}
+ *      handleRemoveElement={handleDeleteRule}
+ *      hasError={showErrors && getHasRuleError()}
+ *    >
+ *      <div>...</div>
+ *    </ExpandablePolicyElement>
+ *
+ * @property {string}[title] - The title to display on the element.
+ * @property {ReactNode}[children] - The React childrens to display inside it.
+ * @property {boolean}[isCard] - Optional flag for if the component is a card or an element
+ * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
+ * @property {function}[handleDuplicateElement] - Function to be executed when the element is duplicated
+ * @property {boolean}[hasError] - Optional flag for if the component has error
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const ExpandablePolicyElement = ({
   title: cardTitle,
@@ -30,7 +65,7 @@ export const ExpandablePolicyElement = ({
   handleRemoveElement,
   handleDuplicateElement,
   hasError = false,
-}: Props) => {
+}: Props): React.ReactNode => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -43,7 +78,9 @@ export const ExpandablePolicyElement = ({
 
   const getTopWrapperErrorClassName = () => {
     if (isCard && hasError) {
-      return `${classes.topWrapperError} ${isOpen && classes.topWrapperErrorOpen}`;
+      return `${classes.topWrapperError} ${
+        isOpen && classes.topWrapperErrorOpen
+      }`;
     }
   };
 
@@ -67,18 +104,20 @@ export const ExpandablePolicyElement = ({
         ${getTopWrapperErrorClassName()}`}
       >
         <button
-          className={isCard ? classes.cardExpandButton : classes.elementExpandButton}
+          className={
+            isCard ? classes.cardExpandButton : classes.elementExpandButton
+          }
           onClick={() => setIsOpen((prev) => !prev)}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
           onFocus={() => setIsButtonFocused(true)}
           onBlur={() => setIsButtonFocused(false)}
         >
-          <Label size='small'>{cardTitle}</Label>
+          <Label size="small">{cardTitle}</Label>
           {isOpen ? (
-            <ChevronUpIcon title='Close the card' fontSize='1.8rem' />
+            <ChevronUpIcon title="Close the card" fontSize="1.8rem" />
           ) : (
-            <ChevronDownIcon title='Open the card' fontSize='1.8rem' />
+            <ChevronDownIcon title="Open the card" fontSize="1.8rem" />
           )}
         </button>
         <DropdownMenu
@@ -94,7 +133,11 @@ export const ExpandablePolicyElement = ({
         />
       </div>
       {isOpen && (
-        <div className={isCard ? classes.cardBottomWrapper : classes.elementBottomWrapper}>
+        <div
+          className={
+            isCard ? classes.cardBottomWrapper : classes.elementBottomWrapper
+          }
+        >
           {children}
         </div>
       )}

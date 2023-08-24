@@ -1,8 +1,8 @@
-import React from 'react';
-import classes from './MigrationStep.module.css';
-import { Alert, Paragraph, Label } from '@digdir/design-system-react';
-import { NavigationBarPageType } from 'resourceadm/types/global';
-import { LinkButton } from '../LinkButton';
+import React from "react";
+import classes from "./MigrationStep.module.css";
+import { Alert, Paragraph, Label } from "@digdir/design-system-react";
+import { NavigationBarPageType } from "resourceadm/types/global";
+import { LinkButton } from "../LinkButton";
 
 interface Props {
   /**
@@ -29,6 +29,9 @@ interface Props {
 
 /**
  * @component
+ *    Displays the different steps on the migration page together with an alert
+ *    indicating if the step is success or warning.
+ *
  * @example
  *    <MigrationStep
  *        title='Some title'
@@ -36,7 +39,7 @@ interface Props {
  *        isSuccess={isSuccess}
  *        onNavigateToPageWithError={navigateToPageWithError}
  *        page='about'
- *      />
+ *     />
  *
  * @property {string}[title] - Title of the field
  * @property {string}[text] - Text to displa inside the Alert
@@ -58,22 +61,28 @@ export const MigrationStep = ({
       const textArr = text.split('"');
 
       return (
-        <Paragraph size='small' className={classes.text}>
+        <Paragraph size="small" className={classes.text}>
           {textArr[0] + ' "'}
-          <LinkButton text={textArr[1]} onClick={() => onNavigateToPageWithError(page)} />
+          <LinkButton onClick={() => onNavigateToPageWithError(page)}>
+            {textArr[1]}
+          </LinkButton>
           {'" ' + textArr[2]}
         </Paragraph>
       );
     }
-    return <Paragraph size='small'>{text}</Paragraph>;
+    return <Paragraph size="small">{text}</Paragraph>;
   };
 
   return (
     <div className={classes.wrapper}>
-      <Label size='medium' spacing>
+      <Label size="medium" spacing>
         {title}
       </Label>
-      <Alert severity={isSuccess ? 'success' : 'danger'} iconTitle={text} className={classes.alert}>
+      <Alert
+        severity={isSuccess ? "success" : "danger"}
+        iconTitle={text}
+        className={classes.alert}
+      >
         {displayText()}
       </Alert>
     </div>

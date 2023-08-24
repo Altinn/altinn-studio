@@ -1,12 +1,12 @@
-import React from 'react';
-import { ImageComponent } from './Image';
-import { PanelComponent } from './Panel';
-import { ButtonComponent } from './Button';
-import { AddressComponent } from './Address';
-import { FileUploadComponent } from './FileUpload';
-import type { IGenericEditComponent } from '../componentConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { MapComponent } from './Map';
+import React from "react";
+import { ImageComponent } from "./Image";
+import { PanelComponent } from "./Panel";
+import { ButtonComponent } from "./Button";
+import { AddressComponent } from "./Address";
+import { FileUploadComponent } from "./FileUpload";
+import type { IGenericEditComponent } from "../componentConfig";
+import { ComponentType } from "app-shared/types/ComponentType";
+import { MapComponent } from "./Map";
 
 export function ComponentSpecificContent({
   component,
@@ -16,9 +16,6 @@ export function ComponentSpecificContent({
   switch (component.type) {
     case ComponentType.NavigationButtons:
     case ComponentType.Button:
-    case ComponentType.ActionButton:
-    case ComponentType.PrintButton:
-    case ComponentType.InstantiationButton:
       return (
         <ButtonComponent
           component={component}

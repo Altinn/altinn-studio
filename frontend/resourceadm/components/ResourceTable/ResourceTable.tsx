@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
-import cn from 'classnames';
-import classes from './ResourceTable.module.css';
-import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
-import { ResourceTableDataRow } from './ResourceTableDataRow';
-import { Button } from '@digdir/design-system-react';
-import { ResourceType } from 'resourceadm/types/global';
+import React, { useState } from "react";
+import cn from "classnames";
+import classes from "./ResourceTable.module.css";
+import { CaretDownFillIcon, CaretUpFillIcon } from "@navikt/aksel-icons";
+import { ResourceTableDataRow } from "./ResourceTableDataRow";
+import { Button } from "@digdir/design-system-react";
+import { ResourceType } from "resourceadm/types/global";
 
 interface Props {
+  /**
+   * The list to display in the table
+   */
   list: ResourceType[];
 }
 
 /**
- * Table to display a list of all resources available
+ * @component
+ *    Table to display a list of all resources available
  *
- * @param props.list the list to display in the table
+ * @property {ResourceType[]}[list] - The list to display in the table
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTable = ({ list }: Props) => {
+export const ResourceTable = ({ list }: Props): React.ReactNode => {
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
 
   /**
@@ -35,29 +41,40 @@ export const ResourceTable = ({ list }: Props) => {
     <table className={classes.table}>
       <tbody>
         <tr>
-          <th className={cn(classes.tableHeaderXLarge, classes.tableHeader)}>Ressurser</th>
-          <th className={cn(classes.tableHeaderLarge, classes.tableHeader)}>Opprettet av</th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeaderLastChanged)}>
+          <th className={cn(classes.tableHeaderXLarge, classes.tableHeader)}>
+            Ressurser
+          </th>
+          <th className={cn(classes.tableHeaderLarge, classes.tableHeader)}>
+            Opprettet av
+          </th>
+          <th
+            className={cn(
+              classes.tableHeaderMedium,
+              classes.tableHeaderLastChanged,
+            )}
+          >
             <Button
-              variant='quiet'
+              variant="quiet"
               icon={
                 isSortedByNewest ? (
-                  <CaretDownFillIcon title='Vis eldst først' />
+                  <CaretDownFillIcon title="Vis eldst først" />
                 ) : (
-                  <CaretUpFillIcon title='Vis nyest først' />
+                  <CaretUpFillIcon title="Vis nyest først" />
                 )
               }
               onClick={handleSortTable}
-              iconPlacement='right'
-              color='secondary'
+              iconPlacement="right"
+              color="secondary"
             >
               Sist endret
             </Button>
           </th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>Tilgangsregler</th>
+          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>
+            Tilgangsregler
+          </th>
           <th
             className={cn(classes.tableHeaderSmall, classes.tableHeader)}
-            aria-label='Rediger ressurs kolonne'
+            aria-label="Rediger ressurs kolonne"
           />
         </tr>
         {displayRows}

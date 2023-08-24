@@ -1,10 +1,10 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
+import { ComponentType } from "app-shared/types/ComponentType";
+import { IDataModelBindings, ITextResourceBindings, IOption } from "./global";
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
   component?: string;
-  itemType: 'COMPONENT';
+  itemType: "COMPONENT";
   type: T;
   name?: string;
   size?: string;
@@ -26,23 +26,35 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   propertyPath?: string;
 }
 
-interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
+export interface FormAlertComponent
+  extends FormComponentBase<ComponentType.Alert> {
+  severity: "success" | "info" | "warning" | "danger";
+}
+
+export type FormAccordionComponent = FormComponentBase<ComponentType.Accordion>;
+export type FormAccordionGroupComponent =
+  FormComponentBase<ComponentType.AccordionGroup>;
+interface FormOptionsComponentBase<T extends ComponentType>
+  extends FormComponentBase<T> {
   options?: IOption[];
   preselectedOptionIndex?: number;
   optionsId?: string;
 }
 
-export interface FormHeaderComponent extends FormComponentBase<ComponentType.Header> {
+export interface FormHeaderComponent
+  extends FormComponentBase<ComponentType.Header> {
   size: string; // Todo: We need to distinguish between size and level
 }
 
 export type FormParagraphComponent = FormComponentBase<ComponentType.Paragraph>;
 
-export interface FormInputComponent extends FormComponentBase<ComponentType.Input> {
+export interface FormInputComponent
+  extends FormComponentBase<ComponentType.Input> {
   disabled?: boolean;
 }
 
-export interface FormImageComponent extends FormComponentBase<ComponentType.Image> {
+export interface FormImageComponent
+  extends FormComponentBase<ComponentType.Image> {
   image?: {
     src?: {
       [lang: string]: string;
@@ -52,19 +64,24 @@ export interface FormImageComponent extends FormComponentBase<ComponentType.Imag
   };
 }
 
-export interface FormDatepickerComponent extends FormComponentBase<ComponentType.Datepicker> {
+export interface FormDatepickerComponent
+  extends FormComponentBase<ComponentType.Datepicker> {
   timeStamp: boolean;
 }
 
-export interface FormDropdownComponent extends FormComponentBase<ComponentType.Dropdown> {
+export interface FormDropdownComponent
+  extends FormComponentBase<ComponentType.Dropdown> {
   optionsId: string;
 }
 
-export type FormCheckboxesComponent = FormOptionsComponentBase<ComponentType.Checkboxes>;
-export type FormRadioButtonsComponent = FormOptionsComponentBase<ComponentType.RadioButtons>;
+export type FormCheckboxesComponent =
+  FormOptionsComponentBase<ComponentType.Checkboxes>;
+export type FormRadioButtonsComponent =
+  FormOptionsComponentBase<ComponentType.RadioButtons>;
 export type FormTextareaComponent = FormComponentBase<ComponentType.TextArea>;
 
-export interface FormFileUploaderComponent extends FormComponentBase<ComponentType.FileUpload> {
+export interface FormFileUploaderComponent
+  extends FormComponentBase<ComponentType.FileUpload> {
   description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
@@ -86,7 +103,9 @@ export interface FormFileUploaderWithTagComponent
 }
 
 export interface FormButtonComponent
-  extends FormComponentBase<ComponentType.Button | ComponentType.NavigationButtons> {
+  extends FormComponentBase<
+    ComponentType.Button | ComponentType.NavigationButtons
+  > {
   onClickAction: () => void;
 }
 
@@ -95,27 +114,32 @@ export interface FormNavigationButtonsComponent extends FormButtonComponent {
   showPrev?: boolean;
 }
 
-export interface FormAddressComponent extends FormComponentBase<ComponentType.AddressComponent> {
+export interface FormAddressComponent
+  extends FormComponentBase<ComponentType.AddressComponent> {
   simplified: boolean;
 }
 
 export type FormGroupComponent = FormComponentBase<ComponentType.Group>;
-export type FormNavigationBarComponent = FormComponentBase<ComponentType.NavigationBar>;
-export type FormAttachmentListComponent = FormComponentBase<ComponentType.AttachmentList>;
+export type FormNavigationBarComponent =
+  FormComponentBase<ComponentType.NavigationBar>;
+export type FormAttachmentListComponent =
+  FormComponentBase<ComponentType.AttachmentList>;
 
-export interface FormThirdPartyComponent extends FormComponentBase<ComponentType.Custom> {
+export interface FormThirdPartyComponent
+  extends FormComponentBase<ComponentType.Custom> {
   tagName: string;
   framework: string;
   [id: string]: any;
 }
 
 export enum FormPanelVariant {
-  Info = 'info',
-  Warning = 'warning',
-  Success = 'success',
+  Info = "info",
+  Warning = "warning",
+  Success = "success",
 }
 
-export interface FormPanelComponent extends FormComponentBase<ComponentType.Panel> {
+export interface FormPanelComponent
+  extends FormComponentBase<ComponentType.Panel> {
   variant: FormPanelVariant;
   showIcon: boolean;
 }
@@ -136,6 +160,9 @@ export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
 }
 
 export type FormComponent<T extends ComponentType = ComponentType> = {
+  [ComponentType.Alert]: FormAlertComponent;
+  [ComponentType.Accordion]: FormAccordionComponent;
+  [ComponentType.AccordionGroup]: FormAccordionGroupComponent;
   [ComponentType.ActionButton]: FormComponentBase<ComponentType.ActionButton>;
   [ComponentType.AddressComponent]: FormAddressComponent;
   [ComponentType.AttachmentList]: FormAttachmentListComponent;

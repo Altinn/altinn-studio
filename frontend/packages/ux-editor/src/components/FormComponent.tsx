@@ -1,26 +1,33 @@
-import React, { memo, useState } from 'react';
-import '../styles/index.css';
-import classes from './FormComponent.module.css';
-import cn from 'classnames';
-import type { FormComponent as IFormComponent } from '../types/FormComponent';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { ComponentPreview } from '../containers/ComponentPreview';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { ConnectDragSource } from 'react-dnd';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { DragHandle } from './dragAndDrop/DragHandle';
-import { ITextResource } from 'app-shared/types/global';
-import { MonitorIcon, TrashIcon } from '@navikt/aksel-icons';
-import { formItemConfigs } from '../data/formItemConfig';
-import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
-import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
-import { useTextResourcesSelector } from '../hooks';
-import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { AltinnConfirmDialog } from 'app-shared/components';
+import React, { memo, useState } from "react";
+import "../styles/index.css";
+import classes from "./FormComponent.module.css";
+import cn from "classnames";
+import type { FormComponent as IFormComponent } from "../types/FormComponent";
+import { Button } from "@digdir/design-system-react";
+import { ComponentPreview } from "../containers/ComponentPreview";
+import { ComponentType } from "app-shared/types/ComponentType";
+import { ConnectDragSource } from "react-dnd";
+import { DEFAULT_LANGUAGE } from "app-shared/constants";
+import { DragHandle } from "./dragAndDrop/DragHandle";
+import { ITextResource } from "app-shared/types/global";
+import { MonitorIcon, TrashIcon } from "@navikt/aksel-icons";
+import { formItemConfigs } from "../data/formItemConfig";
+import {
+  getComponentTitleByComponentType,
+  getTextResource,
+  truncate,
+} from "../utils/language";
+import {
+  selectedLayoutNameSelector,
+  selectedLayoutSetSelector,
+} from "../selectors/formLayoutSelectors";
+import { textResourcesByLanguageSelector } from "../selectors/textResourceSelectors";
+import { useDeleteFormComponentMutation } from "../hooks/mutations/useDeleteFormComponentMutation";
+import { useTextResourcesSelector } from "../hooks";
+import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { AltinnConfirmDialog } from "app-shared/components";
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -46,12 +53,19 @@ export const FormComponent = memo(function FormComponent({
   const { t } = useTranslation();
   const { org, app } = useParams();
 
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<
+    ITextResource[]
+  >(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
+    useState<boolean>();
 
-  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
+  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
+    org,
+    app,
+    selectedLayoutSetName,
+  );
 
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
 
@@ -62,7 +76,9 @@ export const FormComponent = memo(function FormComponent({
     ComponentType.NavigationButtons,
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
-  const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
+  const isPreviewable = previewableComponents.includes(
+    component?.type as ComponentType,
+  );
 
   const handleDelete = (): void => {
     deleteFormComponent(id);
@@ -71,15 +87,21 @@ export const FormComponent = memo(function FormComponent({
 
   const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    setIsPreviewMode(previous => !previous);
+    setIsPreviewMode((previous) => !previous);
   };
 
-  const textResource = !isPreviewMode ? getTextResource(component.textResourceBindings?.title, textResources) : null;
+  const textResource = !isPreviewMode
+    ? getTextResource(component.textResourceBindings?.title, textResources)
+    : null;
 
   return (
     <div
-      className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
-      role='listitem'
+      className={cn(
+        classes.wrapper,
+        isEditMode && classes.editMode,
+        isPreviewMode && classes.previewMode,
+      )}
+      role="listitem"
       onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
         if (isEditMode) return;
@@ -103,11 +125,15 @@ export const FormComponent = memo(function FormComponent({
             />
           ) : (
             <div className={classes.formComponentTitle}>
-              <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
+              <i
+                className={
+                  formItemConfigs?.[component.type]?.icon || "fa fa-help-circle"
+                }
+              />
               {textResource
                 ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||
-                  t('ux_editor.component_unknown')}
+                  t("ux_editor.component_unknown")}
             </div>
           )}
         </div>
@@ -115,39 +141,37 @@ export const FormComponent = memo(function FormComponent({
       <div className={classes.buttons}>
         <AltinnConfirmDialog
           open={isConfirmDeleteDialogOpen}
-          confirmText={t('ux_editor.component_deletion_confirm')}
+          confirmText={t("ux_editor.component_deletion_confirm")}
           onConfirm={handleDelete}
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
           trigger={
             <Button
-              data-testid='component-delete-button'
-              color={ButtonColor.Secondary}
+              data-testid="component-delete-button"
+              color="secondary"
               icon={<TrashIcon />}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
-                setIsConfirmDeleteDialogOpen(prevState => !prevState);
+                setIsConfirmDeleteDialogOpen((prevState) => !prevState);
               }}
               tabIndex={0}
-              title={t('general.delete')}
-              variant={ButtonVariant.Quiet}
-              size='small'
+              title={t("general.delete")}
+              variant="quiet"
+              size="small"
             />
           }
         >
-          <p>{t('ux_editor.component_deletion_text')}</p>
+          <p>{t("ux_editor.component_deletion_text")}</p>
         </AltinnConfirmDialog>
-        {
-          isPreviewable && (
-            <Button
-            color={ButtonColor.Secondary}
-            icon={<MonitorIcon title={t('general.preview')} />}
+        {isPreviewable && (
+          <Button
+            color="secondary"
+            icon={<MonitorIcon title={t("general.preview")} />}
             onClick={handlePreview}
-            title='Forhåndsvisning (under utvikling)'
-            variant={ButtonVariant.Quiet}
-            size='small'
-            />
-          )
-        }
+            title="Forhåndsvisning (under utvikling)"
+            variant="quiet"
+            size="small"
+          />
+        )}
       </div>
     </div>
   );

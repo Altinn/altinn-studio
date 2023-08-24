@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
-import { NavigationBarPageType, ResourceBackendType } from 'resourceadm/types/global';
-import classes from './ResourcePage.module.css';
-import { PolicyEditorPage } from '../PolicyEditorPage';
-import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { DeployResourcePage } from '../DeployResourcePage';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { LeftNavigationBar } from "resourceadm/components/LeftNavigationBar";
+import {
+  NavigationBarPageType,
+  ResourceBackendType,
+} from "resourceadm/types/global";
+import classes from "./ResourcePage.module.css";
+import { PolicyEditorPage } from "../PolicyEditorPage";
+import {
+  getResourceDashboardURL,
+  getResourcePageURL,
+} from "resourceadm/utils/urlUtils";
+import { DeployResourcePage } from "../DeployResourcePage";
 import {
   useResourceSectorsQuery,
   useResourceThematicAreaEurovocQuery,
@@ -13,30 +19,32 @@ import {
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
-import { AboutResourcePage } from '../AboutResourcePage';
-import { NavigationModal } from 'resourceadm/components/NavigationModal';
-import { Spinner } from '@digdir/design-system-react';
-import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
-import { MigrationPage } from '../MigrationPage';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+} from "resourceadm/hooks/queries";
+import { MergeConflictModal } from "resourceadm/components/MergeConflictModal";
+import { AboutResourcePage } from "../AboutResourcePage";
+import { NavigationModal } from "resourceadm/components/NavigationModal";
+import { Spinner } from "@digdir/design-system-react";
+import { useEditResourceMutation } from "resourceadm/hooks/mutations";
+import { MigrationPage } from "../MigrationPage";
+import { useRepoStatusQuery } from "app-shared/hooks/queries";
 
 /**
- * Displays the 3 pages to manage resources and a left navigation bar.
+ * @component
+ *    Displays the 4 pages to manage resources and a left navigation bar.
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourcePage = () => {
+export const ResourcePage = (): React.ReactNode => {
   const navigate = useNavigate();
 
   const { pageType, resourceId, selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
-    pageType as NavigationBarPageType
+    pageType as NavigationBarPageType,
   );
   // Stores the temporary next page
-  const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
-  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
+  const [nextPage, setNextPage] = useState<NavigationBarPageType>("about");
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -47,33 +55,42 @@ export const ResourcePage = () => {
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
   // Get the metadata for Gitea
-  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus, refetch } = useRepoStatusQuery(
+    selectedContext,
+    repo,
+  );
 
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
 
   // Get metadata for resource
   const { refetch: refetchValidateResource } = useValidateResourceQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
   const {
     data: resourceData,
     refetch: refetchResource,
     isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
-  const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
-  const { data: losData, isLoading: losLoading } = useResourceThematicAreaLosQuery(selectedContext);
+  const { data: sectorsData, isLoading: sectorsLoading } =
+    useResourceSectorsQuery(selectedContext);
+  const { data: losData, isLoading: losLoading } =
+    useResourceThematicAreaLosQuery(selectedContext);
   const { data: eurData, isLoading: eurLoading } =
     useResourceThematicAreaEurovocQuery(selectedContext);
 
   // Mutation function for editing a resource
-  const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
+  const { mutate: editResource } = useEditResourceMutation(
+    selectedContext,
+    repo,
+    resourceId,
+  );
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -97,12 +114,10 @@ export const ResourcePage = () => {
    */
   const navigateToPage = async (page: NavigationBarPageType) => {
     if (currentPage !== page) {
-      setNewPageClicked(page);
-
       await refetchResource();
 
       // Validate Resource and display errors + modal
-      if (currentPage === 'about') {
+      if (currentPage === "about") {
         const data = await refetchValidateResource();
         const validationStatus = data?.data?.status ?? null;
 
@@ -116,7 +131,7 @@ export const ResourcePage = () => {
         }
       }
       // Validate Ppolicy and display errors + modal
-      else if (currentPage === 'policy') {
+      else if (currentPage === "policy") {
         const data = await refetchValidatePolicy();
         const validationStatus = data?.data?.status ?? null;
 
@@ -140,7 +155,6 @@ export const ResourcePage = () => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPageType) => {
-    setNewPageClicked(null);
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
@@ -162,12 +176,12 @@ export const ResourcePage = () => {
    * @param page the page to navigate to
    */
   const navigateToPageWithError = async (page: NavigationBarPageType) => {
-    if (page === 'about') {
+    if (page === "about") {
       await refetchResource();
       await refetchValidateResource();
       setShowResourceErrors(true);
     }
-    if (page === 'policy') setShowPolicyErrors(true);
+    if (page === "policy") setShowPolicyErrors(true);
     handleNavigation(page);
   };
 
@@ -190,14 +204,17 @@ export const ResourcePage = () => {
           navigateToPage={navigateToPage}
           goBack={goBack}
           showMigrate={getShowMigrate()}
-          newPageClicked={newPageClicked}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' &&
+        {currentPage === "about" &&
           (resourceLoading || sectorsLoading || losLoading || eurLoading ? (
             <div className={classes.spinnerWrapper}>
-              <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurs' />
+              <Spinner
+                size="3xLarge"
+                variant="interaction"
+                title="Laster inn ressurs"
+              />
             </div>
           ) : (
             <AboutResourcePage
@@ -209,19 +226,25 @@ export const ResourcePage = () => {
                 editResource(r, {
                   // TODO - Display that it was saved
                   onSuccess: () => {
-                    console.log('success');
+                    console.log("success");
                   },
                 });
               }}
             />
           ))}
-        {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
-        {currentPage === 'deploy' && (
-          <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
+        {currentPage === "policy" && (
+          <PolicyEditorPage showAllErrors={showPolicyErrors} />
         )}
-        {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
-          <MigrationPage navigateToPageWithError={navigateToPageWithError} />
+        {currentPage === "deploy" && (
+          <DeployResourcePage
+            navigateToPageWithError={navigateToPageWithError}
+          />
         )}
+        {currentPage === "migration" &&
+          resourceData &&
+          resourceData.resourceReferences && (
+            <MigrationPage navigateToPageWithError={navigateToPageWithError} />
+          )}
       </div>
       {hasMergeConflict && (
         <MergeConflictModal
@@ -236,10 +259,9 @@ export const ResourcePage = () => {
           isOpen={policyErrorModalOpen}
           onClose={() => {
             setPolicyErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i tilgangsregler'
+          title="Manglende informasjon i tilgangsregler"
         />
       )}
       {resourceErrorModalOpen && (
@@ -247,10 +269,9 @@ export const ResourcePage = () => {
           isOpen={resourceErrorModalOpen}
           onClose={() => {
             setResourceErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i ressurs'
+          title="Manglende informasjon i ressurs"
         />
       )}
     </div>

@@ -1,42 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import classes from './SchemaEditor.module.css';
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import classes from "./SchemaEditor.module.css";
 import {
   setSchemaName,
   setSelectedId,
   setUiSchema,
-} from '../features/editor/schemaEditorSlice';
-import { useTranslation } from 'react-i18next';
-import { TypesInspector } from '@altinn/schema-editor/components/TypesInspector';
-import classNames from 'classnames';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { XMarkIcon } from '@navikt/aksel-icons';
-import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
-import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+} from "../features/editor/schemaEditorSlice";
+import { useTranslation } from "react-i18next";
+import { TypesInspector } from "@altinn/schema-editor/components/TypesInspector";
+import classNames from "classnames";
+import { Button } from "@digdir/design-system-react";
+import { XMarkIcon } from "@navikt/aksel-icons";
+import {
+  ModelsPanel,
+  TypesPanel,
+} from "@altinn/schema-editor/components/layout";
+import { SchemaInspector } from "@altinn/schema-editor/components/SchemaInspector";
+import { useDatamodelQuery } from "@altinn/schema-editor/hooks/queries";
 import {
   UiSchemaNode,
   UiSchemaNodes,
   getNameFromPointer,
   isEmpty,
   pointerIsDefinition,
-} from '@altinn/schema-model';
-import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
+} from "@altinn/schema-model";
+import { useSchemaAndReduxSelector } from "@altinn/schema-editor/hooks/useSchemaAndReduxSelector";
 import {
   selectedDefinitionParentSelector,
   selectedItemSelector,
-  selectedPropertyParentSelector
-} from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import { rootChildrenSelector, rootNodesSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
+  selectedPropertyParentSelector,
+} from "@altinn/schema-editor/selectors/schemaAndReduxSelectors";
+import {
+  rootChildrenSelector,
+  rootNodesSelector,
+} from "@altinn/schema-editor/selectors/schemaSelectors";
 
 export enum SchemaEditorTestIds {
-  menuAddReference = 'action-menu-add-reference',
-  menuAddField = 'action-menu-add-field',
-  menuAddCombination = 'action-menu-add-combination',
-  menuAddString = 'action-menu-add-string',
-  menuAddInteger = 'action-menu-add-integer',
-  menuAddNumber = 'action-menu-add-number',
-  menuAddBoolean = 'action-menu-add-boolean',
+  menuAddReference = "action-menu-add-reference",
+  menuAddField = "action-menu-add-field",
+  menuAddCombination = "action-menu-add-combination",
+  menuAddString = "action-menu-add-string",
+  menuAddInteger = "action-menu-add-integer",
+  menuAddNumber = "action-menu-add-number",
+  menuAddBoolean = "action-menu-add-boolean",
 }
 
 export interface SchemaEditorProps {
@@ -64,19 +70,23 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const rootChildren = rootChildrenSelector(data);
   const properties: UiSchemaNodes = [];
   const definitions: UiSchemaNodes = [];
-  rootChildren?.forEach(
-    (childPointer) => pointerIsDefinition(childPointer)
+  rootChildren?.forEach((childPointer) =>
+    pointerIsDefinition(childPointer)
       ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer))
+      : properties.push(rootNodeMap.get(childPointer)),
   );
 
-  const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
+  const selectedPropertyParent = useSchemaAndReduxSelector(
+    selectedPropertyParentSelector,
+  );
   const selectedItem = useSchemaAndReduxSelector(selectedItemSelector);
 
   useEffect(() => {
     if (selectedType) {
       const isExistingNode = !!rootNodeMap.get(selectedType.pointer);
-      setSelectedType(isExistingNode ? rootNodeMap.get(selectedType.pointer) : null);
+      setSelectedType(
+        isExistingNode ? rootNodeMap.get(selectedType.pointer) : null,
+      );
     }
   }, [rootNodeMap, selectedType]);
 
@@ -87,15 +97,29 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   }, [selectedItem]);
 
   useEffect(() => {
-    if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
-      setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
+    if (
+      selectedPropertyParent &&
+      !expandedPropNodes.includes(selectedPropertyParent.pointer)
+    ) {
+      setExpandedPropNodes((prevState) => [
+        ...prevState,
+        selectedPropertyParent.pointer,
+      ]);
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSchemaAndReduxSelector(selectedDefinitionParentSelector);
+  const selectedDefinitionParent = useSchemaAndReduxSelector(
+    selectedDefinitionParentSelector,
+  );
   useEffect(() => {
-    if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
-      setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
+    if (
+      selectedDefinitionParent &&
+      !expandedDefNodes.includes(selectedDefinitionParent.pointer)
+    ) {
+      setExpandedDefNodes((prevState) => [
+        ...prevState,
+        selectedDefinitionParent.pointer,
+      ]);
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
@@ -108,7 +132,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
 
   const handleResetSelectedType = () => {
     setSelectedType(null);
-    dispatch(setSelectedId({ pointer: '' }));
+    dispatch(setSelectedId({ pointer: "" }));
   };
 
   return (
@@ -117,30 +141,29 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
         <TypesInspector
           schemaItems={definitions}
           handleSelectType={handleSelectType}
-          key={selectedType?.pointer || ''}
+          key={selectedType?.pointer || ""}
           selectedNodePointer={selectedType?.pointer}
         />
       </aside>
       {selectedType ? (
         <div
-          data-testid='types-editor'
-          id='types-editor'
+          data-testid="types-editor"
+          id="types-editor"
           className={classNames(classes.editor, classes.editorTypes)}
         >
           <div className={classes.typeInfo}>
             <span>
-              {t(
-                'schema_editor.types_editing',
-                { type: getNameFromPointer({ pointer: selectedType.pointer }) }
-              )}
+              {t("schema_editor.types_editing", {
+                type: getNameFromPointer({ pointer: selectedType.pointer }),
+              })}
             </span>
             <Button
               onClick={handleResetSelectedType}
               icon={<XMarkIcon />}
-              variant={ButtonVariant.Quiet}
-              color={ButtonColor.Inverted}
-              aria-label={t('schema_editor.close_type')}
-              size='small'
+              variant="quiet"
+              color="inverted"
+              aria-label={t("schema_editor.close_type")}
+              size="small"
             />
           </div>
           <TypesPanel
@@ -154,7 +177,11 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
           />
         </div>
       ) : (
-        <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
+        <div
+          data-testid="schema-editor"
+          id="schema-editor"
+          className={classes.editor}
+        >
           <ModelsPanel
             setExpandedPropNodes={setExpandedPropNodes}
             expandedPropNodes={expandedPropNodes}
@@ -163,7 +190,10 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
         </div>
       )}
       <aside className={classes.inspector}>
-        <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
+        <SchemaInspector
+          selectedItem={selectedItem}
+          key={selectedItem?.pointer || ""}
+        />
       </aside>
     </>
   );

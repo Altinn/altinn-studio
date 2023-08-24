@@ -1,18 +1,24 @@
-import React, { useEffect, useMemo } from 'react';
-import classes from './PageLayout.module.css';
-import { Outlet, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo } from "react";
+import classes from "./PageLayout.module.css";
+import { Outlet, useNavigate } from "react-router-dom";
 
-import { HeaderContext } from 'app-shared/navigation/main-header/Header';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import AppHeader from 'app-shared/navigation/main-header/Header';
+import { HeaderContext } from "app-shared/navigation/main-header/Header";
+import type { IHeaderContext } from "app-shared/navigation/main-header/Header";
+import AppHeader from "app-shared/navigation/main-header/Header";
 
-import { userHasAccessToSelectedContext } from '../../utils/userUtils';
-import { useOrganizationsQuery } from '../../hooks/queries';
-import { useUserQuery } from 'app-shared/hooks/queries';
-import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { GiteaHeader } from 'app-shared/components/GiteaHeader';
+import { userHasAccessToSelectedContext } from "../../utils/userUtils";
+import { useOrganizationsQuery } from "../../hooks/queries";
+import { useUserQuery } from "app-shared/hooks/queries";
+import { useSelectedContext } from "../../hooks/useSelectedContext";
+import { GiteaHeader } from "app-shared/components/GiteaHeader";
 
-export const PageLayout = () => {
+/**
+ * @component
+ *    The layout of each page, including the header and the Gitea header
+ *
+ * @returns {React.ReactNode} - The rendered component
+ */
+export const PageLayout = (): React.ReactNode => {
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
@@ -26,7 +32,7 @@ export const PageLayout = () => {
       organizations &&
       !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
     ) {
-      navigate('/');
+      navigate("/");
     }
   }, [organizations, selectedContext, user.login, navigate]);
 
@@ -35,7 +41,7 @@ export const PageLayout = () => {
       selectableOrgs: organizations,
       user,
     }),
-    [organizations, user]
+    [organizations, user],
   );
 
   return (

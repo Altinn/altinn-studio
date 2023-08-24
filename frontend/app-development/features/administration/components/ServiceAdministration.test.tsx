@@ -1,43 +1,43 @@
-import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react';
-import { Administration } from './Administration';
-import type { ICommit } from '../../../types/global';
-import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
-import { renderWithProviders } from '../../../test/testUtils';
-import { ServiceAdministration } from './ServiceAdministration';
-import { serviceConfigPath } from 'app-shared/api/paths';
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../testing/mocks/i18nMock';
-import type { Repository } from 'app-shared/types/Repository';
+import React from "react";
+import { act, fireEvent, waitFor } from "@testing-library/react";
+import { Administration } from "./Administration";
+import type { ICommit } from "../../../types/global";
+import { APP_DEVELOPMENT_BASENAME } from "app-shared/constants";
+import type { IHandleServiceInformationState } from "../handleServiceInformationSlice";
+import { renderWithProviders } from "../../../test/testUtils";
+import { ServiceAdministration } from "./ServiceAdministration";
+import { serviceConfigPath } from "app-shared/api/paths";
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { textMock } from "../../../../testing/mocks/i18nMock";
+import type { Repository } from "app-shared/types/Repository";
 
 const user = userEvent.setup();
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+jest.mock("react-router-dom", () => jest.requireActual("react-router-dom"));
 
-describe('Administration', () => {
+describe("Administration", () => {
   const mockService: Repository = {
-    clone_url: '',
-    created_at: '',
-    default_branch: '',
-    description: '',
+    clone_url: "",
+    created_at: "",
+    default_branch: "",
+    description: "",
     empty: false,
     fork: false,
     forks_count: 0,
-    full_name: '',
-    html_url: '',
+    full_name: "",
+    html_url: "",
     id: 123,
     is_cloned_to_local: true,
     mirror: false,
-    name: 'CoolService',
+    name: "CoolService",
     open_issues_count: 0,
     owner: {
-      avatar_url: '',
-      email: '',
-      full_name: 'Mons Monsen',
+      avatar_url: "",
+      email: "",
+      full_name: "Mons Monsen",
       id: 234,
-      login: 'Mons',
+      login: "Mons",
       UserType: 2,
     },
     permissions: {
@@ -48,31 +48,31 @@ describe('Administration', () => {
     private: false,
     repositoryCreatedStatus: 0,
     size: 0,
-    ssh_url: '',
+    ssh_url: "",
     stars_count: 1337,
-    updated_at: '',
+    updated_at: "",
     watchers_count: 0,
-    website: '',
+    website: "",
   };
-  const mockServiceName = 'AppName';
+  const mockServiceName = "AppName";
   const mockInitialCommit: ICommit = {
-    message: '',
+    message: "",
     author: {
-      email: '',
-      name: 'Per',
-      when: '',
+      email: "",
+      name: "Per",
+      when: "",
     },
     comitter: {
-      email: '',
-      name: 'Per',
-      when: '',
+      email: "",
+      name: "Per",
+      when: "",
     },
-    sha: '',
-    messageShort: '',
-    encoding: '',
+    sha: "",
+    messageShort: "",
+    encoding: "",
   };
-  const mockServiceDescription = 'AppDescription';
-  const mockServiceId = 'AppId';
+  const mockServiceDescription = "AppDescription";
+  const mockServiceId = "AppId";
   const mockServiceInformation: IHandleServiceInformationState = {
     initialCommit: mockInitialCommit,
     repositoryInfo: mockService,
@@ -91,7 +91,7 @@ describe('Administration', () => {
     error: null,
   };
 
-  it('should render the spinner when loading', () => {
+  it("should render the spinner when loading", () => {
     renderWithProviders(<ServiceAdministration repository={mockService} />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
@@ -100,111 +100,124 @@ describe('Administration', () => {
           serviceNameObj: {
             ...mockServiceInformation.serviceNameObj,
             name: null,
-          }
-        }
+          },
+        },
       },
     });
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock("general.loading"))).toBeInTheDocument();
   });
 
-  it('should handle sucessfully updating app name', async () => {
-    const utils = renderWithProviders(<ServiceAdministration repository={mockService} />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-      preloadedState: {
-        serviceInformation: mockServiceInformation,
+  it("should handle sucessfully updating app name", async () => {
+    const utils = renderWithProviders(
+      <ServiceAdministration repository={mockService} />,
+      {
+        startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+        preloadedState: {
+          serviceInformation: mockServiceInformation,
+        },
       },
-    });
-    const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
-    const mockEvent = { target: { value: 'New name' } };
+    );
+    const dispatchSpy = jest.spyOn(utils.store, "dispatch");
+    const mockEvent = { target: { value: "New name" } };
 
-    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.getByRole("button", {
+      name: textMock("general.edit"),
+    });
     await act(() => user.click(editButton));
 
-    const inputElement = screen
-      .getByTestId('service-administration-container')
-      .querySelector('#administrationInputAppName_textField'); // eslint-disable-line testing-library/no-node-access
+    const inputElement = screen.getByRole("textbox", {
+      name: textMock("general.service_name"),
+    });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
 
-    await fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
+    fireEvent.change(inputElement, mockEvent);
+    expect((inputElement as HTMLInputElement).value).toEqual(
+      mockEvent.target.value,
+    );
 
     fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceConfigPath('my-org', 'my-app'),
+          url: serviceConfigPath("my-org", "my-app"),
           newServiceName: mockEvent.target.value,
           newServiceId: mockServiceId,
           newServiceDescription: mockServiceDescription,
         },
-        type: 'handleServiceInformation/saveServiceConfig',
+        type: "handleServiceInformation/saveServiceConfig",
       });
     });
   });
 
-  it('should handle successfully updating app description', async () => {
+  it("should handle successfully updating app description", async () => {
     const utils = renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
     });
-    const mockEvent = { target: { value: 'New description' } };
-    const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
+    const mockEvent = { target: { value: "New description" } };
+    const dispatchSpy = jest.spyOn(utils.store, "dispatch");
 
-    const inputElement = screen
-      .getByTestId('service-administration-container')
-      .querySelector('#administrationInputDescription_textField'); // eslint-disable-line testing-library/no-node-access
-    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
+    const inputElement = screen.getByRole("textbox", {
+      name: textMock("administration.service_comment"),
+    });
+    expect((inputElement as HTMLInputElement).value).toEqual(
+      mockServiceDescription,
+    );
 
-    await fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
+    fireEvent.change(inputElement, mockEvent);
+    expect((inputElement as HTMLInputElement).value).toEqual(
+      mockEvent.target.value,
+    );
 
-    await fireEvent.blur(inputElement);
+    fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceConfigPath('my-org', 'my-app'),
+          url: serviceConfigPath("my-org", "my-app"),
           newServiceName: mockServiceName,
           newServiceId: mockServiceId,
           newServiceDescription: mockEvent.target.value,
         },
-        type: 'handleServiceInformation/saveServiceConfig',
+        type: "handleServiceInformation/saveServiceConfig",
       });
     });
   });
 
-  it('should handle sucessfully updating app id', async () => {
+  it("should handle sucessfully updating app id", async () => {
     const utils = renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
     });
-    const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
-    const mockEvent = { target: { value: 'New id' } };
+    const dispatchSpy = jest.spyOn(utils.store, "dispatch");
+    const mockEvent = { target: { value: "New id" } };
 
-    const inputElement = screen
-      .getByTestId('service-administration-container')
-      .querySelector('#administrationInputAppId_textField'); // eslint-disable-line testing-library/no-node-access
+    const inputElement = screen.getByRole("textbox", {
+      name: textMock("administration.service_id"),
+    });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
-    await fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
+    fireEvent.change(inputElement, mockEvent);
+    expect((inputElement as HTMLInputElement).value).toEqual(
+      mockEvent.target.value,
+    );
 
-    await fireEvent.blur(inputElement);
+    fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceConfigPath('my-org', 'my-app'),
+          url: serviceConfigPath("my-org", "my-app"),
           newServiceName: mockServiceName,
           newServiceId: mockEvent.target.value,
           newServiceDescription: mockServiceDescription,
         },
-        type: 'handleServiceInformation/saveServiceConfig',
+        type: "handleServiceInformation/saveServiceConfig",
       });
     });
   });

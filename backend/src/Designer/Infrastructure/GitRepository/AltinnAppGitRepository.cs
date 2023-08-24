@@ -9,7 +9,9 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using JetBrains.Annotations;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -33,6 +35,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
+        private const string PROCESS_DEFINITION_FOLDER_PATH = "App/config/process/";
 
         private const string SERVICE_CONFIG_FILENAME = "config.json";
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
@@ -40,6 +43,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
         private const string RULE_HANDLER_FILENAME = "RuleHandler.js";
         private const string RULE_CONFIGURATION_FILENAME = "RuleConfiguration.json";
+        private const string PROCESS_DEFINITION_FILENAME = "process.bpmn";
+
+        private static string ProcessDefinitionFilePath => Path.Combine(PROCESS_DEFINITION_FOLDER_PATH, PROCESS_DEFINITION_FILENAME);
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
@@ -710,6 +716,41 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Saves bpmn file to disk.
+        /// </summary>
+        /// <param name="file">Content of bpmn file.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">Throws argument exception if size of syntax validation of the file fails.</exception>
+        public async Task<string> SaveProcessDefinitionFile(string file)
+        {
+            Guard.AssertNotNullOrEmpty(file, nameof(file));
+            if (file.Length > 100_000)
+            {
+                throw new ArgumentException("Bpmn file is too large");
+            }
+
+            Guard.AssertValidXmlContent(file);
+
+            await WriteTextByRelativePathAsync(ProcessDefinitionFilePath, file, true);
+            return file;
+        }
+
+        /// <summary>
+        /// Gets the Bpmn file from App/config/process/process.bpmn location
+        /// </summary>
+        /// <returns>Content of Bpmn file</returns>
+        /// <exception cref="NotFoundHttpRequestException">If file doesn't exists.</exception>
+        public async Task<string> GetProcessDefinitionFile()
+        {
+            if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
+            {
+                throw new NotFoundHttpRequestException("Bpmn file not found.");
+            }
+
+            return await ReadTextByRelativePathAsync(ProcessDefinitionFilePath);
+        }
+
+        /// <summary>
         /// Gets the relative path to a model.
         /// </summary>
         /// <param name="modelName">The name of the model without extensions.</param>
@@ -778,6 +819,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Path.Combine(LAYOUTS_FOLDER_NAME, RULE_CONFIGURATION_FILENAME) :
                 Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, RULE_CONFIGURATION_FILENAME);
         }
+
+
 
         /// <summary>
         /// String writer that ensures UTF8 is used.

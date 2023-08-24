@@ -1,20 +1,24 @@
-import React, { useReducer } from 'react';
-import type { RestrictionItemProps } from '../ItemRestrictions';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { IntRestrictionKey } from '@altinn/schema-model';
-import { Divider } from 'app-shared/primitives';
-import { useTranslation } from 'react-i18next';
-import { Label } from 'app-shared/components/Label';
-import classes from './StringRestrictions.module.css';
-import { Checkbox, ErrorMessage, TextField } from '@digdir/design-system-react';
+import React, { useReducer } from "react";
+import type { RestrictionItemProps } from "../ItemRestrictions";
+import type { KeyValuePairs } from "app-shared/types/KeyValuePairs";
+import { IntRestrictionKey } from "@altinn/schema-model";
+import { Divider } from "app-shared/primitives";
+import { useTranslation } from "react-i18next";
+import { Label } from "app-shared/components/Label";
+import classes from "./StringRestrictions.module.css";
+import {
+  LegacyCheckbox,
+  ErrorMessage,
+  TextField,
+} from "@digdir/design-system-react";
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerActionType,
   NumberRestrictionsReducerState,
-} from './NumberRestrictionsReducer';
-import { NumberRestrictionsError } from '@altinn/schema-editor/types';
-import { valueExists } from '@altinn/schema-editor/utils/value';
+} from "./NumberRestrictionsReducer";
+import { NumberRestrictionsError } from "@altinn/schema-editor/types";
+import { valueExists } from "@altinn/schema-editor/utils/value";
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
@@ -29,41 +33,55 @@ export function NumberRestrictions({
   const { t } = useTranslation();
   const initialState: NumberRestrictionsReducerState = {
     isInteger,
-    isMinInclusive: restrictions[IntRestrictionKey.exclusiveMinimum] === undefined,
-    isMaxInclusive: restrictions[IntRestrictionKey.exclusiveMaximum] === undefined,
+    isMinInclusive:
+      restrictions[IntRestrictionKey.exclusiveMinimum] === undefined,
+    isMaxInclusive:
+      restrictions[IntRestrictionKey.exclusiveMaximum] === undefined,
     min:
-      restrictions[IntRestrictionKey.exclusiveMinimum] ?? restrictions[IntRestrictionKey.minimum],
+      restrictions[IntRestrictionKey.exclusiveMinimum] ??
+      restrictions[IntRestrictionKey.minimum],
     max:
-      restrictions[IntRestrictionKey.exclusiveMaximum] ?? restrictions[IntRestrictionKey.maximum],
+      restrictions[IntRestrictionKey.exclusiveMaximum] ??
+      restrictions[IntRestrictionKey.maximum],
     restrictions: Object.fromEntries(
-      Object.values(IntRestrictionKey).map((key) => [key, restrictions[key]])
+      Object.values(IntRestrictionKey).map((key) => [key, restrictions[key]]),
     ),
     numberRestrictionsError: NumberRestrictionsError.NoError,
   };
-  const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
+  const [formatState, dispatch] = useReducer(
+    numberRestrictionsReducer,
+    initialState,
+  );
 
   const changeCallback = (changedRestrictions: KeyValuePairs) => {
     onChangeRestrictions(path, changedRestrictions);
   };
-  const dispatchAction = (type: NumberRestrictionsReducerActionType, value: any) =>
-    dispatch({ type, value, changeCallback } as NumberRestrictionsReducerAction);
+  const dispatchAction = (
+    type: NumberRestrictionsReducerActionType,
+    value: any,
+  ) =>
+    dispatch({
+      type,
+      value,
+      changeCallback,
+    } as NumberRestrictionsReducerAction);
   const minLabel = `schema_editor.minimum_${
-    formatState.isMinInclusive ? 'inclusive' : 'exclusive'
+    formatState.isMinInclusive ? "inclusive" : "exclusive"
   }`;
   const maxLabel = `schema_editor.maximum_${
-    formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
+    formatState.isMaxInclusive ? "inclusive" : "exclusive"
   }`;
 
   const minMaxErrorMessage = {
-    [NumberRestrictionsError.NoError]: '',
+    [NumberRestrictionsError.NoError]: "",
     [NumberRestrictionsError.MinMustBeLessThanOrEqualToMax]: t(
-      'schema_editor.numberRestrictionsError_MinMustBeLessThanOrEqualToMax'
+      "schema_editor.numberRestrictionsError_MinMustBeLessThanOrEqualToMax",
     ),
     [NumberRestrictionsError.IntervalMustBeLargeEnough]: t(
-      'schema_editor.numberRestrictionsError_IntervalMustBeLargeEnough'
+      "schema_editor.numberRestrictionsError_IntervalMustBeLargeEnough",
     ),
     [NumberRestrictionsError.MinMustBeLessThanMax]: t(
-      'schema_editor.numberRestrictionsError_MinMustBeLessThanMax'
+      "schema_editor.numberRestrictionsError_MinMustBeLessThanMax",
     ),
   }[formatState.numberRestrictionsError];
 
@@ -71,14 +89,14 @@ export function NumberRestrictions({
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMin,
-      valueExists(newValue) ? parseInt(newValue) : undefined
+      valueExists(newValue) ? parseInt(newValue) : undefined,
     );
   };
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMax,
-      valueExists(newValue) ? parseInt(newValue) : undefined
+      valueExists(newValue) ? parseInt(newValue) : undefined,
     );
   };
 
@@ -86,64 +104,93 @@ export function NumberRestrictions({
     <>
       <Divider marginless />
       <div>
-        <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
+        <Label htmlFor="schema_editor.minimum_">{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
             <TextField
-              id='schema_editor.minimum_'
+              id="schema_editor.minimum_"
               onChange={onChangeMinNumber}
-              value={formatState.min === undefined ? '' : formatState.min.toString()}
-              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
+              value={
+                formatState.min === undefined ? "" : formatState.min.toString()
+              }
+              formatting={{
+                number: isInteger
+                  ? { decimalScale: 0 }
+                  : { decimalSeparator: "," },
+              }}
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <Checkbox
-            aria-checked='true'
+          <LegacyCheckbox
+            aria-checked="true"
             checked={formatState.isMinInclusive}
-            label={t('schema_editor.format_date_inclusive')}
+            label={t("schema_editor.format_date_inclusive")}
             onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
+              dispatchAction(
+                NumberRestrictionsReducerActionType.setMinIncl,
+                e.target.checked,
+              )
             }
           />
         </div>
       </div>
       <div>
-        <Label htmlFor='schema_editor.maximum_'>{t(maxLabel)}</Label>
+        <Label htmlFor="schema_editor.maximum_">{t(maxLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
             <TextField
-              id='schema_editor.maximum_'
+              id="schema_editor.maximum_"
               onChange={onChangeMaxNumber}
-              value={formatState.max === undefined ? '' : formatState.max.toString()}
-              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
+              value={
+                formatState.max === undefined ? "" : formatState.max.toString()
+              }
+              formatting={{
+                number: isInteger
+                  ? { decimalScale: 0 }
+                  : { decimalSeparator: "," },
+              }}
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <Checkbox
-            checkboxId='include-minimum-value-checkbox'
-            aria-checked='true'
+          <LegacyCheckbox
+            checkboxId="include-minimum-value-checkbox"
+            aria-checked="true"
             checked={formatState.isMaxInclusive}
-            label={t('schema_editor.format_date_inclusive')}
+            label={t("schema_editor.format_date_inclusive")}
             onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)
+              dispatchAction(
+                NumberRestrictionsReducerActionType.setMaxIncl,
+                e.target.checked,
+              )
             }
           />
         </div>
       </div>
       <div>
-        <Label htmlFor='schema_editor.multipleOf'>{t('schema_editor.multipleOf')}</Label>
+        <Label htmlFor="schema_editor.multipleOf">
+          {t("schema_editor.multipleOf")}
+        </Label>
         <div className={classes.formatFieldsRowContent}>
           <TextField
-            id='schema_editor.multipleOf'
-            formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
+            id="schema_editor.multipleOf"
+            formatting={{
+              number: isInteger
+                ? { decimalScale: 0 }
+                : { decimalSeparator: "," },
+            }}
             onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setRestriction, e.target.value)
+              dispatchAction(
+                NumberRestrictionsReducerActionType.setRestriction,
+                e.target.value,
+              )
             }
-            value={formatState.restrictions[IntRestrictionKey.multipleOf.toString()]}
+            value={
+              formatState.restrictions[IntRestrictionKey.multipleOf.toString()]
+            }
           />
         </div>
       </div>

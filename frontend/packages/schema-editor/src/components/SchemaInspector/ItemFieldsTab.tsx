@@ -1,22 +1,18 @@
-import type { BaseSyntheticEvent } from 'react';
-import React, { useEffect } from 'react';
-import { PropertyItem } from './PropertyItem';
-import { removeSelection } from '../../features/editor/schemaEditorSlice';
-import { useDispatch } from 'react-redux';
-import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
-import {
-  addProperty,
-  deleteNode,
-  setType,
-} from '@altinn/schema-model';
-import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { useTranslation } from 'react-i18next';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
+import type { BaseSyntheticEvent } from "react";
+import React, { useEffect } from "react";
+import { PropertyItem } from "./PropertyItem";
+import { removeSelection } from "../../features/editor/schemaEditorSlice";
+import { useDispatch } from "react-redux";
+import type { UiSchemaNode, FieldType } from "@altinn/schema-model";
+import { addProperty, deleteNode, setType } from "@altinn/schema-model";
+import classes from "./ItemFieldsTab.module.css";
+import { usePrevious } from "app-shared/hooks/usePrevious";
+import { Button } from "@digdir/design-system-react";
+import { PlusIcon } from "@navikt/aksel-icons";
+import { useTranslation } from "react-i18next";
+import { useDatamodelMutation } from "@altinn/schema-editor/hooks/mutations";
+import { useDatamodelQuery } from "@altinn/schema-editor/hooks/queries";
+import { getFieldNodesSelector } from "@altinn/schema-editor/selectors/schemaSelectors";
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
@@ -37,13 +33,16 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     // If the number of fields has increased, a new field has been added and should get focus
     if (numberOfChildNodes > prevNumberOfChildNodes) {
       const newNodeId = fieldNodes[fieldNodes.length - 1].domId;
-      const newNodeInput = document.getElementById(newNodeId) as HTMLInputElement;
+      const newNodeInput = document.getElementById(
+        newNodeId,
+      ) as HTMLInputElement;
       newNodeInput?.focus();
       newNodeInput?.select();
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes, fieldNodes]);
 
-  const onChangeType = (path: string, type: FieldType) => mutate(setType(data, { path, type }));
+  const onChangeType = (path: string, type: FieldType) =>
+    mutate(setType(data, { path, type }));
 
   const onDeleteObjectClick = (path: string) => {
     mutate(deleteNode(data, path));
@@ -64,10 +63,10 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     <div className={classes.root}>
       {fieldNodes.length > 0 && (
         <>
-          <div>{t('schema_editor.field_name')}</div>
-          <div>{t('schema_editor.type')}</div>
-          <div>{t('schema_editor.required')}</div>
-          <div>{t('schema_editor.delete')}</div>
+          <div>{t("schema_editor.field_name")}</div>
+          <div>{t("schema_editor.type")}</div>
+          <div>{t("schema_editor.required")}</div>
+          <div>{t("schema_editor.delete")}</div>
         </>
       )}
       {fieldNodes.map((fieldNode) => (
@@ -86,13 +85,13 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       {!readonly && (
         <div className={classes.addButtonCell}>
           <Button
-            color={ButtonColor.Secondary}
+            color="secondary"
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
-            variant={ButtonVariant.Outline}
-            size='small'
+            variant="outline"
+            size="small"
           >
-            {t('schema_editor.add_property')}
+            {t("schema_editor.add_property")}
           </Button>
         </div>
       )}

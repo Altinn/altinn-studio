@@ -1,10 +1,10 @@
-import React from 'react';
-import { Checkbox, Select } from '@digdir/design-system-react';
-import type { IGenericEditComponent } from '../../componentConfig';
-import { useText } from '../../../../hooks';
-import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
-import { FormPanelVariant } from '../../../../types/FormComponent';
-import { FormField } from '../../../FormField';
+import React from "react";
+import { LegacyCheckbox, Select } from "@digdir/design-system-react";
+import type { IGenericEditComponent } from "../../componentConfig";
+import { useText } from "../../../../hooks";
+import { EditTextResourceBinding } from "../../editModal/EditTextResourceBinding";
+import { FormPanelVariant } from "../../../../types/FormComponent";
+import { FormField } from "../../../FormField";
 
 export const PanelComponent = ({
   component,
@@ -21,38 +21,43 @@ export const PanelComponent = ({
   };
 
   return (
-    <div data-testid='panel-component-container'>
+    <div data-testid="panel-component-container">
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}
-        textKey='body'
-        labelKey='ux_editor.modal_text_resource_body'
-        placeholderKey='ux_editor.modal_text_resource_body_add'
+        textKey="body"
+        labelKey="ux_editor.modal_text_resource_body"
+        placeholderKey="ux_editor.modal_text_resource_body_add"
       />
       <FormField
         id={component.id}
-        label={t('ux_editor.show_icon')}
+        label={t("ux_editor.show_icon")}
         value={component?.showIcon}
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
       >
         {({ value, onChange }) => (
-          <Checkbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <LegacyCheckbox
+            checked={value}
+            onChange={(e) => onChange(e.target.checked, e)}
+          />
         )}
       </FormField>
       <FormField
         id={component.id}
-        label={t('ux_editor.choose_variant')}
-        value={component.variant || 'info'}
+        label={t("ux_editor.choose_variant")}
+        value={component.variant || "info"}
         onChange={handleVariantClick}
         propertyPath={`${component.propertyPath}/properties/variant`}
       >
         {() => (
           <Select
-            options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
-              label: t(`ux_editor.${value}`),
-              value,
-            }))}
+            options={Object.values(FormPanelVariant).map(
+              (value: FormPanelVariant) => ({
+                label: t(`ux_editor.${value}`),
+                value,
+              }),
+            )}
           />
         )}
       </FormField>

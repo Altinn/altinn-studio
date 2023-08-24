@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { NameError } from '../../types';
-import type { TextFieldProps } from '@digdir/design-system-react';
-import { TextField } from '@digdir/design-system-react';
+import React, { useEffect, useState } from "react";
+import { NameError } from "../../types";
+import type { TextFieldProps } from "@digdir/design-system-react";
+import { AltinnTextField } from "app-shared/components/AltinnTextField";
 import {
   getNameFromPointer,
   hasNodePointer,
   replaceLastPointerSegment,
-} from '@altinn/schema-model';
-import { isValidName } from '../../utils/ui-schema-utils';
-import { useTranslation } from 'react-i18next';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { FormField } from 'app-shared/components/FormField';
+} from "@altinn/schema-model";
+import { isValidName } from "../../utils/ui-schema-utils";
+import { useTranslation } from "react-i18next";
+import { useDatamodelQuery } from "@altinn/schema-editor/hooks/queries";
+import { FormField } from "app-shared/components/FormField";
 
 export type NameFieldProps = TextFieldProps & {
   id: string;
@@ -34,16 +34,22 @@ export function NameField({
     setNodeName(getNameFromPointer({ pointer }));
   }, [pointer]);
 
-  const validateName = (nodeNameToValidate: string) : NameError => {
+  const validateName = (nodeNameToValidate: string): NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
-    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate))) return NameError.AlreadyInUse;
+    if (
+      hasNodePointer(
+        data,
+        replaceLastPointerSegment(pointer, nodeNameToValidate),
+      )
+    )
+      return NameError.AlreadyInUse;
   };
 
   const onNameBlur = (newNodeName: string, errorCode: string) => {
     if (errorCode || newNodeName === nodeName) return;
-    handleSave(newNodeName, errorCode)
-  }
+    handleSave(newNodeName, errorCode);
+  };
 
   return (
     <FormField
@@ -55,21 +61,23 @@ export function NameField({
       customValidationMessages={(errorCode: NameError) => {
         switch (errorCode) {
           case NameError.InvalidCharacter:
-            return t('schema_editor.nameError_invalidCharacter');
+            return t("schema_editor.nameError_invalidCharacter");
           case NameError.AlreadyInUse:
-            return t('schema_editor.nameError_alreadyInUse');
+            return t("schema_editor.nameError_alreadyInUse");
           default:
-            return '';
+            return "";
         }
       }}
     >
-      {({ errorCode, onChange }) => <TextField
+      {({ errorCode, onChange, customRequired }) => (
+        <AltinnTextField
           id={id}
           onChange={(e) => onChange(e.target.value, e)}
           onBlur={(e) => onNameBlur(e.target.value, errorCode)}
+          withAsterisk={customRequired}
           {...props}
         />
-      }
+      )}
     </FormField>
   );
 }

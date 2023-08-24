@@ -1,20 +1,30 @@
-import React, { useState } from 'react';
-import { Select, TextField } from '@digdir/design-system-react';
-import { IGenericEditComponent } from '../componentConfig';
-import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
-import { useParams } from 'react-router-dom';
-import { useTranslation, Trans } from 'react-i18next';
-import { AltinnSpinner } from 'app-shared/components';
-import { ErrorMessage, Button, ButtonVariant } from '@digdir/design-system-react';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { FormField } from '../../FormField';
+import React, { useState } from "react";
+import { Select, TextField } from "@digdir/design-system-react";
+import { IGenericEditComponent } from "../componentConfig";
+import { useOptionListIdsQuery } from "../../../hooks/queries/useOptionListIdsQuery";
+import { useParams } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
+import { AltinnSpinner } from "app-shared/components";
+import { ErrorMessage, Button } from "@digdir/design-system-react";
+import { altinnDocsUrl } from "app-shared/ext-urls";
+import { FormField } from "../../FormField";
 
-export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
+export function EditCodeList({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent) {
   const { t } = useTranslation();
   const { org, app } = useParams();
 
-  const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
-  const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
+  const {
+    data: optionListIds,
+    isLoading,
+    isError,
+    error,
+  } = useOptionListIdsQuery(org, app);
+  const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(
+    optionListIds?.length === 0,
+  );
   const handleOptionsIdChange = (optionsId: string) => {
     handleComponentChange({
       ...component,
@@ -28,38 +38,44 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         <AltinnSpinner />
       ) : isError ? (
         <ErrorMessage>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
+          {error instanceof Error
+            ? error.message
+            : t("ux_editor.modal_properties_error_message")}
         </ErrorMessage>
       ) : optionListIds?.length === 0 ? (
-        <ErrorMessage>{t('ux_editor.modal_properties_no_options_found_message')}</ErrorMessage>
+        <ErrorMessage>
+          {t("ux_editor.modal_properties_no_options_found_message")}
+        </ErrorMessage>
       ) : (
         <>
           <p>
             <Button
-              variant={ButtonVariant.Quiet}
+              variant="quiet"
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
-              size='small'
+              size="small"
             >
-              {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
+              {optionListIds?.length > 0 && useCustomCodeList && (
+                <>Bytt til statisk kodeliste</>
+              )}
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
             </Button>
           </p>
           {!useCustomCodeList && (
             <FormField
               id={component.id}
-              label={t('ux_editor.modal_properties_code_list_id')}
+              label={t("ux_editor.modal_properties_code_list_id")}
               onChange={handleOptionsIdChange}
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
             >
-              {
-                () => <Select
+              {() => (
+                <Select
                   options={optionListIds.map((option) => ({
                     label: option,
                     value: option,
                   }))}
                 />
-              }
+              )}
             </FormField>
           )}
         </>
@@ -68,8 +84,8 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         <>
           {useCustomCodeList && (
             <TextField
-              displayType='input'
-              label={t('ux_editor.modal_properties_custom_code_list_id')}
+              displayType="input"
+              label={t("ux_editor.modal_properties_custom_code_list_id")}
               onChange={(event) => handleOptionsIdChange(event.target.value)}
               value={component.optionsId}
             />
@@ -77,11 +93,11 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         </>
       }
       <p style={{ marginBottom: 0 }}>
-        <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
+        <Trans i18nKey={"ux_editor.modal_properties_code_list_read_more"}>
           <a
-            href={altinnDocsUrl('app/development/data/options/')}
-            target='_newTab'
-            rel='noopener noreferrer'
+            href={altinnDocsUrl("app/development/data/options/")}
+            target="_newTab"
+            rel="noopener noreferrer"
           />
         </Trans>
       </p>

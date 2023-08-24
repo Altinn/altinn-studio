@@ -1,11 +1,11 @@
-import React from 'react';
-import { Select } from '@digdir/design-system-react';
-import { FieldSet, TextField } from '@digdir/design-system-react';
-import classes from './ImageComponent.module.css';
-import { TextResource } from '../../../TextResource';
-import { useText } from '../../../../hooks';
-import type { IGenericEditComponent } from '../../componentConfig';
-import { FormField } from '../../../FormField';
+import React from "react";
+import { Select } from "@digdir/design-system-react";
+import { LegacyFieldSet, TextField } from "@digdir/design-system-react";
+import classes from "./ImageComponent.module.css";
+import { TextResource } from "../../../TextResource";
+import { useText } from "../../../../hooks";
+import type { IGenericEditComponent } from "../../componentConfig";
+import { FormField } from "../../../FormField";
 
 export const ImageComponent = ({
   component,
@@ -15,20 +15,22 @@ export const ImageComponent = ({
   const t = useText();
   const alignOptions = [
     {
-      value: 'flex-start',
-      label: t('ux_editor.modal_properties_image_placement_left'),
+      value: "flex-start",
+      label: t("ux_editor.modal_properties_image_placement_left"),
     },
     {
-      value: 'center',
-      label: t('ux_editor.modal_properties_image_placement_center'),
+      value: "center",
+      label: t("ux_editor.modal_properties_image_placement_center"),
     },
     {
-      value: 'flex-end',
-      label: t('ux_editor.modal_properties_image_placement_right'),
+      value: "flex-end",
+      label: t("ux_editor.modal_properties_image_placement_right"),
     },
   ];
 
-  const selectedPlacement = alignOptions.filter((x) => x.value === component.image?.align);
+  const selectedPlacement = alignOptions.filter(
+    (x) => x.value === component.image?.align,
+  );
   const nbSrc = component.image?.src?.nb;
 
   const handlePlacementChange = (align: string) => {
@@ -65,65 +67,78 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <FieldSet className={classes.root}>
+    <LegacyFieldSet className={classes.root}>
       <FormField
         id={component.id}
-        label={t('ux_editor.modal_properties_image_src_value_label')}
+        label={t("ux_editor.modal_properties_image_src_value_label")}
         onChange={handleSourceChange}
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
-        {({ value, onChange }) => <TextField name={`image_nb_src-input-${component.id}`} onChange={(e) => onChange({ nb: e.target.value }, e)} value={value?.nb || ''} />}
+        {({ value, onChange }) => (
+          <TextField
+            name={`image_nb_src-input-${component.id}`}
+            onChange={(e) => onChange({ nb: e.target.value }, e)}
+            value={value?.nb || ""}
+          />
+        )}
       </FormField>
       <TextResource
         handleIdChange={handleAltTextChange}
-        label={t('ux_editor.modal_properties_image_alt_text_label')}
+        label={t("ux_editor.modal_properties_image_alt_text_label")}
         textResourceId={component.textResourceBindings?.altTextImg}
         generateIdOptions={{
           componentId: component.id,
           layoutId: layoutName,
-          textResourceKey: 'altTextImg',
+          textResourceKey: "altTextImg",
         }}
       />
       <div className={classes.widthAndPlacement}>
         <FormField
           id={component.id}
           className={classes.widthContainer}
-          label={t('ux_editor.modal_properties_image_width_label')}
+          label={t("ux_editor.modal_properties_image_width_label")}
           onChange={handleWidthChange}
-          value={component.image?.width || ''}
+          value={component.image?.width || ""}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
-          {({ onChange }) => <TextField name={`image_width-input-${component.id}`} onChange={(e) => onChange(e.target.value, e)} />}
+          {({ onChange }) => (
+            <TextField
+              name={`image_width-input-${component.id}`}
+              onChange={(e) => onChange(e.target.value, e)}
+            />
+          )}
         </FormField>
         <FormField
           id={component.id}
           className={classes.placementContainer}
-          label={t('ux_editor.modal_properties_image_placement_label')}
+          label={t("ux_editor.modal_properties_image_placement_label")}
           onChange={handlePlacementChange}
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
         >
-          {() => <Select
-            // name={placementSelectId}
-            options={alignOptions}
-            // isClearable={true}
-            // placeholder=''
-            inputId={placementSelectId}
-          />}
+          {() => (
+            <Select
+              // name={placementSelectId}
+              options={alignOptions}
+              // isClearable={true}
+              // placeholder=''
+              inputId={placementSelectId}
+            />
+          )}
         </FormField>
       </div>
       <div>
         <p>
           <a
-            target='_blank'
-            rel='noopener noreferrer'
-            href='https://docs.altinn.studio/nb/app/development/ux/components/images/'
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://docs.altinn.studio/nb/app/development/ux/components/images/"
           >
-            {t('ux_editor.modal_properties_image_read_more')}
+            {t("ux_editor.modal_properties_image_read_more")}
           </a>
         </p>
       </div>
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };

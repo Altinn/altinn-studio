@@ -1,10 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ErrorMessage, HelpText } from '@digdir/design-system-react';
-import classes from './FormField.module.css';
-import { useText } from '../../../../ux-editor/src/hooks';
-import { validateProperty, isPropertyRequired } from '../../../../ux-editor/src/utils/formValidationUtils';
-import { TranslationKey } from 'language/type';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import React, { useCallback, useEffect, useState } from "react";
+import { ErrorMessage, HelpText } from "@digdir/design-system-react";
+import classes from "./FormField.module.css";
+import { useText } from "../../../../ux-editor/src/hooks";
+import {
+  validateProperty,
+  isPropertyRequired,
+} from "../../../../ux-editor/src/utils/formValidationUtils";
+import { TranslationKey } from "language/type";
+import { JsonSchema } from "app-shared/types/JsonSchema";
 
 export type FormFieldChildProps<TT> = {
   errorCode: string;
@@ -22,7 +25,11 @@ export interface FormFieldProps<T, TT> {
   value: T;
   helpText?: string;
   children: (props: FormFieldChildProps<TT>) => React.ReactNode;
-  onChange?: (value: TT, event: React.ChangeEvent<HTMLInputElement>, errorCode: string) => void;
+  onChange?: (
+    value: TT,
+    event: React.ChangeEvent<HTMLInputElement>,
+    errorCode: string,
+  ) => void;
   propertyPath?: string;
   componentType?: string;
   customRequired?: boolean;
@@ -46,13 +53,17 @@ export const FormField = <T extends unknown, TT extends unknown>({
 }: FormFieldProps<T, TT>): JSX.Element => {
   const t = useText();
 
-  const [propertyId, setPropertyId] = useState(schema && propertyPath ? `${schema.$id}#/${propertyPath}`: null);
-  const [isRequired, setIsRequired] = useState(customRequired || isPropertyRequired(schema, propertyPath));
+  const [propertyId, setPropertyId] = useState(
+    schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null,
+  );
+  const [isRequired, setIsRequired] = useState(
+    customRequired || isPropertyRequired(schema, propertyPath),
+  );
 
   const validate = useCallback(
     (newValue: T | TT) => {
-      if (newValue === undefined || newValue === null || newValue === '') {
-        return isRequired ? 'required' : null;
+      if (newValue === undefined || newValue === null || newValue === "") {
+        return isRequired ? "required" : null;
       }
 
       if (customValidationRules) {
@@ -64,7 +75,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
 
       return null;
     },
-    [customValidationRules, isRequired, propertyId]
+    [customValidationRules, isRequired, propertyId],
   );
 
   const [tmpValue, setTmpValue] = useState<T | TT>(value);
@@ -81,14 +92,18 @@ export const FormField = <T extends unknown, TT extends unknown>({
   }, [value, id, schema, validate]);
 
   useEffect(() => {
-    if (schema) setPropertyId(propertyPath ? `${schema.$id}#/${propertyPath}`: null);
+    if (schema)
+      setPropertyId(propertyPath ? `${schema.$id}#/${propertyPath}` : null);
   }, [schema, propertyPath]);
 
   useEffect(() => {
     setIsRequired(customRequired || isPropertyRequired(schema, propertyPath));
   }, [customRequired, schema, propertyPath]);
 
-  const handleOnChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleOnChange = (
+    newValue: TT,
+    event?: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     const errCode = validate(newValue);
     setErrorCode(errCode);
     setTmpValue(newValue);
@@ -96,17 +111,14 @@ export const FormField = <T extends unknown, TT extends unknown>({
   };
 
   const renderChildren = (childList: React.ReactNode) => {
-    let fieldLabel: string;
-    if (label) fieldLabel = `${label}${isRequired ? ' *' : ''}`;
-
     return React.Children.map(childList, (child) => {
       if (React.isValidElement(child)) {
         const props =
-          typeof child.type !== 'string'
+          typeof child.type !== "string"
             ? {
                 value: tmpValue,
                 required: isRequired,
-                label: fieldLabel,
+                label,
                 onChange: handleOnChange,
                 isValid: !errorCode,
                 ...child.props,
@@ -114,8 +126,8 @@ export const FormField = <T extends unknown, TT extends unknown>({
             : {};
 
         if (errorCode) {
-          props['aria-errormessage'] = errorMessageId;
-          props['aria-invalid'] = true;
+          props["aria-errormessage"] = errorMessageId;
+          props["aria-invalid"] = true;
         }
 
         return React.cloneElement(child, props);
@@ -133,7 +145,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
     const str = t(key);
     if (str !== key) return str;
 
-    return t('validation_errors.pattern');
+    return t("validation_errors.pattern");
   };
 
   return (
@@ -147,7 +159,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
               label,
               onChange: handleOnChange,
               customRequired: isRequired,
-            })
+            }),
           )}
         </div>
         <div className={classes.helpTextContainer}>
@@ -159,7 +171,11 @@ export const FormField = <T extends unknown, TT extends unknown>({
         </div>
       </div>
       {errorCode && (
-        <ErrorMessage id={errorMessageId} className={classes.errorMessageText} size='small'>
+        <ErrorMessage
+          id={errorMessageId}
+          className={classes.errorMessageText}
+          size="small"
+        >
           {showErrorMessages()}
         </ErrorMessage>
       )}

@@ -1,21 +1,29 @@
-import classes from './TopToolbar.module.css';
-import { Button, ButtonVariant, ErrorMessage, Popover, Spinner } from '@digdir/design-system-react';
-import cn from 'classnames';
-import { CogIcon } from '@navikt/aksel-icons';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-import React, { useEffect, useState } from 'react';
-import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { useTranslation } from 'react-i18next';
-import { useSchemaQuery } from '../../../../hooks/queries';
-import { useGenerateModelsMutation } from '../../../../hooks/mutations';
+import classes from "./TopToolbar.module.css";
+import {
+  Button,
+  ErrorMessage,
+  Popover,
+  Spinner,
+} from "@digdir/design-system-react";
+import cn from "classnames";
+import { CogIcon } from "@navikt/aksel-icons";
+import { Panel, PanelVariant } from "@altinn/altinn-design-system";
+import React, { useEffect, useState } from "react";
+import { usePrevious } from "app-shared/hooks/usePrevious";
+import { useTranslation } from "react-i18next";
+import { useSchemaQuery } from "../../../../hooks/queries";
+import { useGenerateModelsMutation } from "../../../../hooks/mutations";
 
 export interface GenerateModelsButtonProps {
   modelPath: string;
 }
 
-export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) => {
+export const GenerateModelsButton = ({
+  modelPath,
+}: GenerateModelsButtonProps) => {
   const { data } = useSchemaQuery(modelPath);
-  const { mutate, isLoading, error, isSuccess } = useGenerateModelsMutation(modelPath);
+  const { mutate, isLoading, error, isSuccess } =
+    useGenerateModelsMutation(modelPath);
   const { t } = useTranslation();
   const [showGenerationState, setShowGenerationState] = useState(false);
 
@@ -41,38 +49,38 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
   return (
     <>
       {isLoading ? (
-        <Spinner title={t('general.saving')} />
+        <Spinner title={t("general.saving")} />
       ) : (
         <Popover
           className={cn(classes.statusPopover, isSuccess && classes.success)}
           open={showGenerationState}
           trigger={
             <Button
-              id='save-model-button'
-              data-testid='save-model-button'
+              id="save-model-button"
+              data-testid="save-model-button"
               onClick={handleGenerateButtonClick}
               icon={<CogIcon />}
-              variant={ButtonVariant.Quiet}
-              size='small'
+              variant="quiet"
+              size="small"
             >
-              {t('schema_editor.generate_model_files')}
+              {t("schema_editor.generate_model_files")}
             </Button>
           }
         >
           {error?.message ? (
             <>
-              <ErrorMessage role='alertdialog'>{error.message}</ErrorMessage>
+              <ErrorMessage role="alertdialog">{error.message}</ErrorMessage>
               <Button
                 onClick={() => setShowGenerationState(false)}
-                variant={ButtonVariant.Outline}
-                size='small'
+                variant="outline"
+                size="small"
               >
-                {t('general.close')}
+                {t("general.close")}
               </Button>
             </>
           ) : (
             <Panel variant={PanelVariant.Success} forceMobileLayout={true}>
-              {t('general.saved')}
+              {t("general.saved")}
             </Panel>
           )}
         </Popover>

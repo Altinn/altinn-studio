@@ -1,42 +1,91 @@
-import React from 'react';
-import classes from './ResourceNameAndId.module.css';
-import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import React from "react";
+import classes from "./ResourceNameAndId.module.css";
+import {
+  Button,
+  TextField,
+  ErrorMessage,
+  Paragraph,
+  Label,
+} from "@digdir/design-system-react";
+import {
+  MultiplyIcon,
+  PencilWritingIcon,
+  CheckmarkIcon,
+} from "@navikt/aksel-icons";
 
 interface Props {
+  /**
+   * Flag to decide if the edit ID is open or not
+   */
   isEditOpen: boolean;
+  /**
+   * The value of the title
+   */
   title: string;
+  /**
+   * The text to display above the fields
+   */
+  text: string;
+  /**
+   * The value of the id
+   */
   id: string;
+  /**
+   * Function to handle the editing of the title
+   * @param s the text written
+   * @returns void
+   */
   handleEditTitle: (s: string) => void;
+  /**
+   * Function to handle the editing of the id
+   * @param s the text written
+   * @returns void
+   */
   handleIdInput: (s: string) => void;
+  /**
+   * Function to be executed when edit button is clicked
+   * @param isSave flag for if it is to save or cancel
+   * @returns void
+   */
   handleClickEditButton: (isSave: boolean) => void;
+  /**
+   * Flag for id the ID already exists
+   */
   resourceIdExists: boolean;
+  /**
+   * Flag for if ID and title has same display value
+   */
   bothFieldsHaveSameValue: boolean;
 }
 
 /**
- * Displays the title and Id of a new resource that is either being
- * created new, or migrated from Altinn 2.
+ * @component
+ *    Displays the title and Id of a new resource that is either being
+ *    created new, or migrated from Altinn 2.
  *
- * @param props.isEditOpen flag to decide if the edit ID is open or not
- * @param props.title the value of the title
- * @param props.id the value of the id
- * @param props.handleEditTitle function to handle the editing of the title
- * @param props.handleEditId function to handle the editing of the id
- * @param props.handleClickEditButton function to be executed when edit button is clicked
- * @param props.resourceIdExists flag for id the ID already exists
- * @param props.bothFieldsHaveSameValue flag for if ID and title has same display value
+ * @property {boolean}[isEditOpen] - Flag to decide if the edit ID is open or not
+ * @property {string}[title] - The value of the title
+ * @property {string}[text] - The text to display above the fields
+ * @property {string}[id] - The value of the id
+ * @property {function}[handleEditTitle] - Function to handle the editing of the title
+ * @property {function}[handleEditId] - Function to handle the editing of the id
+ * @property {function}[handleClickEditButton] - Function to be executed when edit button is clicked
+ * @property {boolean}[resourceIdExists] - Flag for id the ID already exists
+ * @property {boolean}[bothFieldsHaveSameValue] - Flag for if ID and title has same display value
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceNameAndId = ({
   isEditOpen,
   title,
+  text,
   id,
   handleEditTitle,
   handleIdInput,
   handleClickEditButton,
   resourceIdExists,
   bothFieldsHaveSameValue,
-}: Props) => {
+}: Props): React.ReactNode => {
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
    *
@@ -45,7 +94,7 @@ export const ResourceNameAndId = ({
    * @returns the string formatted
    */
   const formatString = (s: string): string => {
-    return s.replace(/[\s.]+/g, '-');
+    return s.replace(/[\s.]+/g, "-");
   };
 
   /**
@@ -66,18 +115,18 @@ export const ResourceNameAndId = ({
 
   return (
     <>
-      <Paragraph size='medium'>Velg navn og id for ressursen.</Paragraph>
-      <Label className={classes.label} size='small'>
+      <Paragraph size="small">{text}</Paragraph>
+      <Label className={classes.label} size="small">
         Ressursnavn (Bokmål)
       </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label='Ressursnavn (Bokmål)'
+          aria-label="Ressursnavn (Bokmål)"
         />
       </div>
-      <Label className={classes.label} size='small'>
+      <Label className={classes.label} size="small">
         Ressurs id
       </Label>
       <div className={classes.editFieldWrapper}>
@@ -87,7 +136,7 @@ export const ResourceNameAndId = ({
               <TextField
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
-                aria-label='Ressurs id'
+                aria-label="Ressurs id"
                 isValid={!resourceIdExists}
               />
             </div>
@@ -95,15 +144,15 @@ export const ResourceNameAndId = ({
               <div className={classes.stopEditingButton}>
                 <Button
                   onClick={() => handleClickEditButton(false)}
-                  variant='quiet'
-                  color='danger'
-                  icon={<MultiplyIcon title='Slett ny ressurs id' />}
+                  variant="quiet"
+                  color="danger"
+                  icon={<MultiplyIcon title="Slett ny ressurs id" />}
                 />
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
-                variant='quiet'
-                icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
+                variant="quiet"
+                icon={<CheckmarkIcon title="Bruk ny ressurs id" />}
               />
             </div>
           </>
@@ -112,17 +161,17 @@ export const ResourceNameAndId = ({
             <div className={classes.idBox}>
               <p className={classes.idText}>id</p>
             </div>
-            <Paragraph size='small'>
+            <Paragraph size="small">
               {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
               altinn.svv.<strong>{getIdToDisplay()}</strong>
             </Paragraph>
             <div className={classes.editButtonWrapper}>
               <Button
                 onClick={() => handleClickEditButton(false)}
-                iconPlacement='right'
-                icon={<PencilWritingIcon title='Endre ressurs id' />}
-                variant='quiet'
-                color='primary'
+                iconPlacement="right"
+                icon={<PencilWritingIcon title="Endre ressurs id" />}
+                variant="quiet"
+                color="primary"
               >
                 Rediger
               </Button>
@@ -132,7 +181,9 @@ export const ResourceNameAndId = ({
       </div>
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <ErrorMessage size='small'>Ressurs med valgt id eksisterer allerede.</ErrorMessage>
+          <ErrorMessage size="small">
+            Ressurs med valgt id eksisterer allerede.
+          </ErrorMessage>
         )}
       </div>
     </>

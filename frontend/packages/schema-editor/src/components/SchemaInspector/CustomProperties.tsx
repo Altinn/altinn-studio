@@ -1,20 +1,26 @@
-import React from 'react';
-import { Button, Checkbox, FieldSet, HelpText, TextField } from '@digdir/design-system-react';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import React from "react";
+import {
+  Button,
+  LegacyCheckbox,
+  LegacyFieldSet,
+  HelpText,
+  TextField,
+} from "@digdir/design-system-react";
+import { KeyValuePairs } from "app-shared/types/KeyValuePairs";
 import {
   CustomPropertyType,
   deleteProperty,
   propertyType,
   setCustomProperties,
-  setProperty
-} from '@altinn/schema-model';
-import { TrashIcon } from '@navikt/aksel-icons';
-import { useTranslation } from 'react-i18next';
-import classes from './CustomProperties.module.css';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
-import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
+  setProperty,
+} from "@altinn/schema-model";
+import { TrashIcon } from "@navikt/aksel-icons";
+import { useTranslation } from "react-i18next";
+import classes from "./CustomProperties.module.css";
+import { useDatamodelQuery } from "@altinn/schema-editor/hooks/queries";
+import { useDatamodelMutation } from "@altinn/schema-editor/hooks/mutations";
+import { useSchemaAndReduxSelector } from "@altinn/schema-editor/hooks/useSchemaAndReduxSelector";
+import { selectedItemSelector } from "@altinn/schema-editor/selectors/schemaAndReduxSelectors";
 
 export interface CustomPropertiesProps {
   path: string;
@@ -72,17 +78,19 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
     }
   }
 
-  function renderKey(key: string)  {
-    return propertyType(custom, key) === CustomPropertyType.Unsupported
-      ? key
-      : <label htmlFor={inputId(key)}>{key}</label>;
+  function renderKey(key: string) {
+    return propertyType(custom, key) === CustomPropertyType.Unsupported ? (
+      key
+    ) : (
+      <label htmlFor={inputId(key)}>{key}</label>
+    );
   }
 
   return (
-    <FieldSet
-      contentClassName={classes.root}
-      helpText={t('schema_editor.custom_props_help')}
-      legend={t('schema_editor.custom_props')}
+    <LegacyFieldSet
+      className={classes.root}
+      description={t("schema_editor.custom_props_help")}
+      legend={t("schema_editor.custom_props")}
     >
       {Object.keys(custom).map((key) => (
         <div key={key} className={classes.listItem}>
@@ -92,14 +100,14 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
           </span>
           <Button
             className={classes.deleteButton}
-            icon={<TrashIcon/>}
+            icon={<TrashIcon />}
             onClick={() => deleteCustomProperty(key)}
-            title={t('general.delete')}
-            size='small'
+            title={t("general.delete")}
+            size="small"
           />
         </div>
       ))}
-    </FieldSet>
+    </LegacyFieldSet>
   );
 };
 
@@ -110,27 +118,39 @@ export interface InputProps<T> {
 }
 
 export const StringInput = ({ id, value, onChange }: InputProps<string>) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-  return <TextField id={id} value={value} onChange={handleChange}/>;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange(e.target.value);
+  return <TextField id={id} value={value} onChange={handleChange} />;
 };
 
 export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.target.value));
-  return <TextField id={id} formatting={{ number: {} }} value={value.toString()} onChange={handleChange} />;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange(Number(e.target.value));
+  return (
+    <TextField
+      id={id}
+      formatting={{ number: {} }}
+      value={value.toString()}
+      onChange={handleChange}
+    />
+  );
 };
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked);
-  return <Checkbox checkboxId={id} onChange={handleChange} checked={value} />;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange(e.target.checked);
+  return (
+    <LegacyCheckbox checkboxId={id} onChange={handleChange} checked={value} />
+  );
 };
 
 export const UnsupportedInput = () => {
   const { t } = useTranslation();
   return (
     <span className={classes.unknownFormatValue}>
-      {t('schema_editor.custom_props_unknown_format')}
-      <HelpText title={t('general.help')}>
-        {t('schema_editor.custom_props_unknown_format_help')}
+      {t("schema_editor.custom_props_unknown_format")}
+      <HelpText title={t("general.help")}>
+        {t("schema_editor.custom_props_unknown_format_help")}
       </HelpText>
     </span>
   );

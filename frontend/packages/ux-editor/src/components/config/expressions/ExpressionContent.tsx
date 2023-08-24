@@ -1,16 +1,21 @@
-import React from 'react';
-import { Alert, Button, ButtonColor, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import React from "react";
+import {
+  Alert,
+  Button,
+  Select,
+  ToggleButtonGroup,
+} from "@digdir/design-system-react";
 import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
-  expressionFunctionTexts
-} from '../../../types/Expressions';
-import { XMarkIcon } from '@navikt/aksel-icons';
-import cn from 'classnames';
-import classes from './ExpressionContent.module.css';
-import { useTranslation } from 'react-i18next';
-import { DataSourceValue } from './DataSourceValue';
+  expressionFunctionTexts,
+} from "../../../types/Expressions";
+import { XMarkIcon } from "@navikt/aksel-icons";
+import cn from "classnames";
+import classes from "./ExpressionContent.module.css";
+import { useTranslation } from "react-i18next";
+import { DataSourceValue } from "./DataSourceValue";
 
 interface IExpressionContentProps {
   expressionAction: boolean;
@@ -22,7 +27,7 @@ interface IExpressionContentProps {
 
 export interface ExpressionElement {
   id: string;
-  expressionOperatorForNextExpression?: 'og' | 'eller';
+  expressionOperatorForNextExpression?: "og" | "eller";
   function?: ExpressionFunction;
   dataSource?: DataSource;
   value?: string;
@@ -32,41 +37,52 @@ export interface ExpressionElement {
 
 // change name to CreateExpressionElement?
 export const ExpressionContent = ({
-                                    expressionAction,
-                                    expressionElement,
-                                    onAddExpressionElement,
-                                    onUpdateExpressionElement,
-                                    onRemoveExpressionElement
-                                  }: IExpressionContentProps) => {
+  expressionAction,
+  expressionElement,
+  onAddExpressionElement,
+  onUpdateExpressionElement,
+  onRemoveExpressionElement,
+}: IExpressionContentProps) => {
   const { t } = useTranslation();
-  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
-  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] = React.useState<boolean>(false);
+  const [showAddExpressionButton, setShowAddExpressionButton] =
+    React.useState<boolean>(true);
+  const [
+    duplicatedComponentIdsDiscovered,
+    setDuplicatedComponentIdsDiscovered,
+  ] = React.useState<boolean>(false);
 
-  const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
+  const allowToSpecifyExpression =
+    expressionAction &&
+    Object.values(ExpressionFunction).includes(
+      expressionElement.function as ExpressionFunction,
+    );
 
   const addFunctionToExpressionElement = (func: string) => {
     expressionElement.function = func as ExpressionFunction;
     handleUpdateExpressionElement();
-  }
+  };
 
   const addTriggerDataSource = (dataSource: string) => {
-    if (dataSource === 'default') {
-      delete expressionElement.dataSource
-      delete expressionElement.value
+    if (dataSource === "default") {
+      delete expressionElement.dataSource;
+      delete expressionElement.value;
       handleUpdateExpressionElement();
       return;
     }
     if (dataSource === DataSource.Null) {
       delete expressionElement.value;
     }
-    expressionElement.dataSource = dataSource as DataSource
+    expressionElement.dataSource = dataSource as DataSource;
     handleUpdateExpressionElement();
   };
 
   const specifyTriggerDataSource = (dataSourceKind: string) => {
     // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
-    if (dataSourceKind === 'default' || dataSourceKind === 'NotImplementedYet') {
-      delete expressionElement.value
+    if (
+      dataSourceKind === "default" ||
+      dataSourceKind === "NotImplementedYet"
+    ) {
+      delete expressionElement.value;
       handleUpdateExpressionElement();
       return;
     }
@@ -75,23 +91,26 @@ export const ExpressionContent = ({
   };
 
   const addComparableTriggerDataSource = (compDataSource: string) => {
-    if (compDataSource === 'default') {
-      delete expressionElement.comparableDataSource
-      delete expressionElement.comparableValue
+    if (compDataSource === "default") {
+      delete expressionElement.comparableDataSource;
+      delete expressionElement.comparableValue;
       handleUpdateExpressionElement();
       return;
     }
     if (compDataSource === DataSource.Null) {
       delete expressionElement.comparableValue;
     }
-    expressionElement.comparableDataSource = compDataSource as DataSource
+    expressionElement.comparableDataSource = compDataSource as DataSource;
     handleUpdateExpressionElement();
   };
 
   const specifyComparableTriggerDataSource = (compDataSourceKind: string) => {
     // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
-    if (compDataSourceKind === 'default' || compDataSourceKind === 'NotImplementedYet') {
-      delete expressionElement.comparableValue
+    if (
+      compDataSourceKind === "default" ||
+      compDataSourceKind === "NotImplementedYet"
+    ) {
+      delete expressionElement.comparableValue;
       handleUpdateExpressionElement();
       return;
     }
@@ -99,19 +118,22 @@ export const ExpressionContent = ({
     handleUpdateExpressionElement();
   };
 
-  const addExpressionOperatorForPrevExpression = (operator: 'og' | 'eller') => {
+  const addExpressionOperatorForPrevExpression = (operator: "og" | "eller") => {
     expressionElement.expressionOperatorForNextExpression = operator;
     handleUpdateExpressionElement();
   };
 
   const handleAddExpressionElement = () => {
     setShowAddExpressionButton(!showAddExpressionButton);
-    expressionElement.expressionOperatorForNextExpression = 'og';
+    expressionElement.expressionOperatorForNextExpression = "og";
     onAddExpressionElement();
-  }
+  };
 
   const handleUpdateExpressionElement = () => {
-    if (expressionElement.dataSource !== DataSource.Component && expressionElement.comparableDataSource !== DataSource.Component) {
+    if (
+      expressionElement.dataSource !== DataSource.Component &&
+      expressionElement.comparableDataSource !== DataSource.Component
+    ) {
       setDuplicatedComponentIdsDiscovered(false);
     }
     onUpdateExpressionElement();
@@ -119,92 +141,127 @@ export const ExpressionContent = ({
 
   const handleRemoveExpressionElement = () => {
     onRemoveExpressionElement(expressionElement);
-  }
+  };
 
   return (
     <div>
-      <p>{t('right_menu.dynamics_function_on_action')}</p>
+      <p>{t("right_menu.dynamics_function_on_action")}</p>
       <Select
         onChange={(func: string) => addFunctionToExpressionElement(func)}
-        options={[{ label: 'Velg oppsett...', value: 'default' }].concat(Object.values(ExpressionFunction).map((func: string) => ({ label: expressionFunctionTexts(t)[func], value: func })))}
-        value={expressionElement.function || 'default'}
+        options={[{ label: "Velg oppsett...", value: "default" }].concat(
+          Object.values(ExpressionFunction).map((func: string) => ({
+            label: expressionFunctionTexts(t)[func],
+            value: func,
+          })),
+        )}
+        value={expressionElement.function || "default"}
       />
-      {allowToSpecifyExpression &&
+      {allowToSpecifyExpression && (
         <>
           <div className={classes.expression}>
             <Button
               className={classes.expressionDeleteButton}
-              color={ButtonColor.Danger}
-              icon={<XMarkIcon/>}
+              color="danger"
+              icon={<XMarkIcon />}
               onClick={handleRemoveExpressionElement}
-              variant={ButtonVariant.Quiet}
-              size='small'
+              variant="quiet"
+              size="small"
             />
             <div className={classes.expressionDetails}>
               <Select
-                onChange={(dataSource: string) => addTriggerDataSource(dataSource)}
-                options={[{ label: 'Velg...', value: 'default' }].concat(Object.values(DataSource).map((ds: string) => ({ label: expressionDataSourceTexts(t)[ds], value: ds })))}
-                value={expressionElement.dataSource || 'default'}
+                onChange={(dataSource: string) =>
+                  addTriggerDataSource(dataSource)
+                }
+                options={[{ label: "Velg...", value: "default" }].concat(
+                  Object.values(DataSource).map((ds: string) => ({
+                    label: expressionDataSourceTexts(t)[ds],
+                    value: ds,
+                  })),
+                )}
+                value={expressionElement.dataSource || "default"}
               />
-              {expressionElement.dataSource &&
+              {expressionElement.dataSource && (
                 <DataSourceValue
                   expressionElement={expressionElement}
                   currentDataSource={expressionElement.dataSource}
                   specifyDataSourceValue={specifyTriggerDataSource}
                   isComparableValue={false}
-                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
-                />}
-              <p className={classes.expressionFunction}>{expressionFunctionTexts(t)[expressionElement.function]}</p>
+                  onSetDuplicatedComponentIdsDiscovered={
+                    setDuplicatedComponentIdsDiscovered
+                  }
+                />
+              )}
+              <p className={classes.expressionFunction}>
+                {expressionFunctionTexts(t)[expressionElement.function]}
+              </p>
               <Select
-                onChange={(compDataSource: string) => addComparableTriggerDataSource(compDataSource)}
-                options={[{ label: 'Velg...', value: 'default' }].concat(Object.values(DataSource).map((cds: string) => ({ label: expressionDataSourceTexts(t)[cds], value: cds })))}
-                value={expressionElement.comparableDataSource || 'default'}
+                onChange={(compDataSource: string) =>
+                  addComparableTriggerDataSource(compDataSource)
+                }
+                options={[{ label: "Velg...", value: "default" }].concat(
+                  Object.values(DataSource).map((cds: string) => ({
+                    label: expressionDataSourceTexts(t)[cds],
+                    value: cds,
+                  })),
+                )}
+                value={expressionElement.comparableDataSource || "default"}
               />
-              {expressionElement.comparableDataSource &&
+              {expressionElement.comparableDataSource && (
                 <DataSourceValue
                   expressionElement={expressionElement}
                   currentDataSource={expressionElement.comparableDataSource}
                   specifyDataSourceValue={specifyComparableTriggerDataSource}
                   isComparableValue={true}
-                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
-                />}
-              {duplicatedComponentIdsDiscovered &&
-                <Alert severity='warning'>
-                  {t('right_menu.dynamics_duplicated_component_ids_warning')}
-                </Alert>}
+                  onSetDuplicatedComponentIdsDiscovered={
+                    setDuplicatedComponentIdsDiscovered
+                  }
+                />
+              )}
+              {duplicatedComponentIdsDiscovered && (
+                <Alert severity="warning">
+                  {t("right_menu.dynamics_duplicated_component_ids_warning")}
+                </Alert>
+              )}
             </div>
           </div>
           <div className={classes.addExpression}>
-            {!expressionElement.expressionOperatorForNextExpression || showAddExpressionButton ? (
-                <Button
-                  variant='quiet'
-                  onClick={handleAddExpressionElement}
-                  size='small'
-                >
-                  <i
-                    className={cn('fa', classes.plusIcon, {
-                      'fa-circle-plus': showAddExpressionButton,
-                      'fa-circle-plus-outline': !showAddExpressionButton,
-                    })}
-                  />
-                  {t('right_menu.dynamics_add_expression')}
-                </Button>)
-              : (
-                <div className={classes.andOrToggleButtons}>
+            {!expressionElement.expressionOperatorForNextExpression ||
+            showAddExpressionButton ? (
+              <Button
+                variant="quiet"
+                onClick={handleAddExpressionElement}
+                size="small"
+              >
+                <i
+                  className={cn("fa", classes.plusIcon, {
+                    "fa-circle-plus": showAddExpressionButton,
+                    "fa-circle-plus-outline": !showAddExpressionButton,
+                  })}
+                />
+                {t("right_menu.dynamics_add_expression")}
+              </Button>
+            ) : (
+              <div className={classes.andOrToggleButtons}>
                 <ToggleButtonGroup
                   items={[
-                    { label: 'Og', value: 'og' },
-                    { label: 'Eller', value: 'eller' }
+                    { label: "Og", value: "og" },
+                    { label: "Eller", value: "eller" },
                   ]}
-                  onChange={(value) => addExpressionOperatorForPrevExpression(value as 'og' | 'eller')}
-                  selectedValue={expressionElement.expressionOperatorForNextExpression || 'og'}
+                  onChange={(value) =>
+                    addExpressionOperatorForPrevExpression(
+                      value as "og" | "eller",
+                    )
+                  }
+                  selectedValue={
+                    expressionElement.expressionOperatorForNextExpression ||
+                    "og"
+                  }
                 />
-                </div>
-              )
-            }
+              </div>
+            )}
           </div>
         </>
-      }
+      )}
     </div>
-  )
-}
+  );
+};

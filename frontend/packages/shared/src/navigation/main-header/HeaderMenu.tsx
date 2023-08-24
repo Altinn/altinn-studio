@@ -1,13 +1,29 @@
-import React, { useContext, useState } from 'react';
-import { Avatar, Divider, Grid, IconButton, MenuItem, Typography } from '@mui/material';
-import { AltinnMenu } from '../../components';
-import { post } from '../../utils/networking';
-import { getOrgNameByUsername, HeaderContext, SelectedContextType } from './Header';
-import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api/paths';
-import classes from './HeaderMenu.module.css';
-import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import React, { useContext, useState } from "react";
+import {
+  Avatar,
+  Divider,
+  Grid,
+  IconButton,
+  MenuItem,
+  Typography,
+} from "@mui/material";
+import { AltinnMenu } from "../../components";
+import { post } from "../../utils/networking";
+import {
+  getOrgNameByUsername,
+  HeaderContext,
+  SelectedContextType,
+} from "./Header";
+import {
+  repositoryBasePath,
+  repositoryOwnerPath,
+  repositoryPath,
+} from "../../api/paths";
+import classes from "./HeaderMenu.module.css";
+import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useSelectedContext } from "dashboard/hooks/useSelectedContext";
+import * as testids from "../../../../../testing/testids";
 
 export type HeaderMenuProps = {
   org: string;
@@ -43,7 +59,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
   };
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate('/' + context + location.search);
+    navigate("/" + context + location.search);
     setMenuAnchorEl(null);
   };
 
@@ -60,41 +76,45 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
 
   return (
     <>
-      <Grid container spacing={2} alignItems='center'>
+      <Grid container spacing={2} alignItems="center">
         <Grid item>
           <Typography className={classes.typography}>
-            {user.full_name || user.login}{' '}
+            {user.full_name || user.login}{" "}
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
                 <>
-                  <br /> {t('shared.header_for')}{' '}
+                  <br /> {t("shared.header_for")}{" "}
                   {getOrgNameByUsername(selectedContext, selectableOrgs)}
                 </>
               )}
           </Typography>
         </Grid>
         <Grid item>
-          <IconButton id='profile-icon-button' className={classes.iconButton} onClick={openMenu}>
+          <IconButton className={classes.iconButton} onClick={openMenu}>
             <Avatar
               src={user.avatar_url}
               className={classes.avatar}
-              alt={t('shared.header_button_alt')}
+              alt={t("shared.header_button_alt")}
             />
           </IconButton>
         </Grid>
       </Grid>
-      <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={closeMenu}>
+      <AltinnMenu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={closeMenu}
+      >
         <MenuItem
-          id='menu-all'
+          id="menu-all"
           selected={selectedContext === SelectedContextType.All}
           onClick={() => handleSetSelectedContext(SelectedContextType.All)}
         >
-          {t('shared.header_all')}
+          {t("shared.header_all")}
         </MenuItem>
         {selectableOrgs?.map((selectableOrg) => {
           return (
             <MenuItem
-              id={`menu-org-${selectableOrg.username}`}
+              data-testid={testids.orgMenuItem(selectableOrg.username)}
               selected={selectedContext === selectableOrg.username}
               key={selectableOrg.id}
               onClick={() => handleSetSelectedContext(selectableOrg.username)}
@@ -104,21 +124,21 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
           );
         })}
         <MenuItem
-          id='menu-self'
+          data-testid={testids.userMenuItem}
           selected={selectedContext === SelectedContextType.Self}
-          onClick={() => handleSetSelectedContext('')}
+          onClick={() => handleSetSelectedContext("")}
         >
           {user.full_name || user.login}
         </MenuItem>
         <Divider />
-        <MenuItem key='placeholder' style={{ display: 'none' }} />
-        <MenuItem id='menu-gitea'>
-          <a href={getRepoPath()} target='_blank' rel='noopener noreferrer'>
-            {t('shared.header_go_to_gitea')}
+        <MenuItem key="placeholder" style={{ display: "none" }} />
+        <MenuItem id="menu-gitea">
+          <a href={getRepoPath()} target="_blank" rel="noopener noreferrer">
+            {t("shared.header_go_to_gitea")}
           </a>
         </MenuItem>
-        <MenuItem id='menu-logout' onClick={handleLogout}>
-          {t('shared.header_logout')}
+        <MenuItem id="menu-logout" onClick={handleLogout}>
+          {t("shared.header_logout")}
         </MenuItem>
       </AltinnMenu>
     </>
