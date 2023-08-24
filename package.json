@@ -6,7 +6,7 @@
     "@digdir/design-system-react": "0.23.0",
     "@digdir/design-system-tokens": "0.3.0",
     "@microsoft/signalr": "7.0.10",
-    "@navikt/aksel-icons": "3.4.2",
+    "@navikt/aksel-icons": "5.0.2",
     "@tanstack/react-query": "4.32.6",
     "@tanstack/react-query-devtools": "4.32.6",
     "ajv": "8.12.0",
