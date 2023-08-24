@@ -52,5 +52,11 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonIgnore]
         [Newtonsoft.Json.JsonIgnore]
         public AppIdentifier AppIdentifier { get; private set; }
+
+        /// <summary>
+        /// A flag to specify that the form should use a custom logo
+        /// </summary>
+        [JsonProperty(PropertyName = "useCustomLogo")]
+        public bool UseCustomLogo { get; set; }
     }
 }
