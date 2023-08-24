@@ -3406,10 +3406,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:^4.0.0":
-  version: 4.12.1
-  resolution: "@navikt/aksel-icons@npm:4.12.1"
-  checksum: 7c4d671c1cda7fed95f3d740a60cbc1c9885518c04073b2636430322da18b4b4e4dbb48af9be87bb707880c3df5745d890e692fadaf435a2aaf9a628ed9b5c89
+"@navikt/aksel-icons@npm:^5.0.0":
+  version: 5.0.3
+  resolution: "@navikt/aksel-icons@npm:5.0.3"
+  checksum: 855a025365fc2d2caf7f90acc29158b5b2e0ac58f6574af9ff0078568020766a1affa8317a4c1a092c2651e5757450d3880aa8639d4b041cc20017af39a8bd41
   languageName: node
   linkType: hard
 
@@ -5695,7 +5695,7 @@ __metadata:
     "@material-ui/core": 4.12.4
     "@material-ui/icons": 4.11.3
     "@material-ui/pickers": 3.3.10
-    "@navikt/aksel-icons": ^4.0.0
+    "@navikt/aksel-icons": ^5.0.0
     "@percy/cli": ^1.26.0
     "@percy/cypress": ^3.1.2
     "@pmmmwh/react-refresh-webpack-plugin": 0.5.10
