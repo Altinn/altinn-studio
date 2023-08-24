@@ -15,6 +15,7 @@ export const header = {
   getMenuItemOrg: (org) => cy.findByTestId(testids.orgMenuItem(org)),
   getMenuItemUser: () => cy.findByTestId(testids.userMenuItem),
   getOpenRepoLink: () => cy.findByRole('link', { name: texts['dashboard.open_repository'] }),
+  getPreviewButton: () => cy.findByRole('button', { name: texts['top_menu.preview'] }),
   getProfileIcon: () => cy.findByAltText(texts['general.profile_icon']),
   getShareChangesButton: () => cy.findByRole('button', { name: texts['sync_header.changes_to_share'] }),
   getSharedChangesSuccessMessage: () => cy.findByText(texts['sync_header.sharing_changes_completed']),
