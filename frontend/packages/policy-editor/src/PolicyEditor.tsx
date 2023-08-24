@@ -209,7 +209,7 @@ export const PolicyEditor = ({
         subjects,
         actions,
         pr,
-        `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}` // TODO - find out if ID should be hardcoded
+        `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}` // TODO - find out if ID should be hardcoded. Issue: #10893
       )
     );
 

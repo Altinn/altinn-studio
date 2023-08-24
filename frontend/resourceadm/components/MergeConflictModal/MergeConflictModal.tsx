@@ -56,7 +56,6 @@ export const MergeConflictModal = ({
     handleSolveMerge();
   };
 
-  // TODO - more translation
   return (
     <Modal isOpen={isOpen} title={t('merge_conflict.headline')}>
       <Paragraph size='small'>{t('merge_conflict.body1')}</Paragraph>

@@ -8,7 +8,8 @@ import { useParams } from 'react-router-dom';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 
 /**
- * The different actions a policy can have. TODO - Find out if there should be more
+ * The different actions a policy can have. TODO - Find out if there should be more.
+ * Issue: #10882
  */
 const actionData: PolicyAction[] = [
   { actionId: 'read', actionTitle: 'Les', actionDescription: null },

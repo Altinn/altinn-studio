@@ -141,8 +141,7 @@ export const mapActionTitleToActionId = (
  * @param subjectOptions the possible subjects to select from
  * @param actionOptions the possible actions to select from
  * @param policyRule the policy rule to map
- * @param resourceType the type of the parent resource
- * @param resourceId the id of the parent resource
+ * @param ruleId the id of the rule
  *
  * @returns a mapped object ready to be sent to backend
  */

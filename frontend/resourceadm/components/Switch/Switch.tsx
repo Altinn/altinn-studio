@@ -35,6 +35,7 @@ type SwitchProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
+// TODO - replace with Design system chip. Issue: #10892
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
   ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
     const handleToggle = () => {

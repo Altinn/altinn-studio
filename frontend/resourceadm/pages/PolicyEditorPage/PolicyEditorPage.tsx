@@ -59,7 +59,6 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
    */
   const handleSavePolicy = (policy: Policy) => {
     updatePolicyMutation(policy, {
-      // TODO - Display that it was saved
       onSuccess: () => {
         console.log('success');
       },

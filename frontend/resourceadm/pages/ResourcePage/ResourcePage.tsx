@@ -204,7 +204,6 @@ export const ResourcePage = (): React.ReactNode => {
               thematicData={[...losData, ...eurData]}
               onSaveResource={(r: Resource) => {
                 editResource(r, {
-                  // TODO - Display that it was saved
                   onSuccess: () => {
                     console.log('success');
                   },
