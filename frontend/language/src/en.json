@@ -555,6 +555,7 @@
   "right_menu.content": "Content",
   "right_menu.content_empty": "No component selected...",
   "right_menu.dynamics": "Dynamics",
+  "right_menu.dynamics_complex_dynamic_message": "This expression is too complex to be edited in Studio, but manual editing is possible.",
   "right_menu.dynamics_description": "Edit dynamics that can be used in the rules for calculations and show/hide fields.",
   "right_menu.dynamics_edit": "Edit dynamics",
   "right_menu.dynamics_edit_comment": "This link opens in Gitea",

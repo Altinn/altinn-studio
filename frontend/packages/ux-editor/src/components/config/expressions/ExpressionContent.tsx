@@ -1,126 +1,71 @@
 import React from 'react';
-import { Alert, Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
+  ExpressionElement,
   expressionFunctionTexts,
+  Operator,
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import classes from './ExpressionContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { DataSourceValue } from './DataSourceValue';
+import { addDataSource, addDataSourceValue } from "../../../utils/dynamicsUtils";
 
 interface IExpressionContentProps {
   expressionAction: boolean;
   expressionElement: ExpressionElement;
-  onAddExpressionElement: () => void;
-  onUpdateExpressionElement: () => void;
+  dynamicOperator?: Operator;
+  onAddExpressionElement: (expOp: string) => void;
+  onUpdateExpressionElement: (expressionElement: ExpressionElement) => void;
+  onUpdateDynamicOperator: (dynamicOp: Operator) => void;
   onRemoveExpressionElement: (expressionElement: ExpressionElement) => void;
 }
 
-export interface ExpressionElement {
-  id: string;
-  expressionOperatorForNextExpression?: 'og' | 'eller';
-  function?: ExpressionFunction;
-  dataSource?: DataSource;
-  value?: string;
-  comparableDataSource?: DataSource;
-  comparableValue?: string;
-}
-
-// change name to CreateExpressionElement?
 export const ExpressionContent = ({
-  expressionAction,
-  expressionElement,
-  onAddExpressionElement,
-  onUpdateExpressionElement,
-  onRemoveExpressionElement,
+    expressionAction,
+    expressionElement,
+    dynamicOperator,
+    onAddExpressionElement,
+    onUpdateExpressionElement,
+    onUpdateDynamicOperator,
+    onRemoveExpressionElement,
 }: IExpressionContentProps) => {
   const { t } = useTranslation();
-  const [showAddExpressionButton, setShowAddExpressionButton] = React.useState<boolean>(true);
-  const [duplicatedComponentIdsDiscovered, setDuplicatedComponentIdsDiscovered] =
-    React.useState<boolean>(false);
 
-  const allowToSpecifyExpression =
-    expressionAction &&
-    Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
+  const showAddExpressionButton: boolean = !dynamicOperator;
+  const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(expressionElement.function as ExpressionFunction);
 
   const addFunctionToExpressionElement = (func: string) => {
     expressionElement.function = func as ExpressionFunction;
     handleUpdateExpressionElement();
   };
 
-  const addTriggerDataSource = (dataSource: string) => {
-    if (dataSource === 'default') {
-      delete expressionElement.dataSource;
-      delete expressionElement.value;
-      handleUpdateExpressionElement();
-      return;
-    }
-    if (dataSource === DataSource.Null) {
-      delete expressionElement.value;
-    }
-    expressionElement.dataSource = dataSource as DataSource;
+  const addDataSourceToDynamic = (dataSource: string, isComparable: boolean ) => {
+    const newExpressionElement = addDataSource(expressionElement, dataSource, isComparable);
+    expressionElement = { ...newExpressionElement };
     handleUpdateExpressionElement();
   };
 
-  const specifyTriggerDataSource = (dataSourceKind: string) => {
-    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
-    if (dataSourceKind === 'default' || dataSourceKind === 'NotImplementedYet') {
-      delete expressionElement.value;
-      handleUpdateExpressionElement();
-      return;
-    }
-    expressionElement.value = dataSourceKind;
+  const addDataSourceValueToDynamic = (dataSourceValue: string, isComparable: boolean) => {
+    const newExpressionElement = addDataSourceValue(expressionElement, dataSourceValue, isComparable);
+    expressionElement = { ...newExpressionElement };
     handleUpdateExpressionElement();
   };
 
-  const addComparableTriggerDataSource = (compDataSource: string) => {
-    if (compDataSource === 'default') {
-      delete expressionElement.comparableDataSource;
-      delete expressionElement.comparableValue;
-      handleUpdateExpressionElement();
-      return;
-    }
-    if (compDataSource === DataSource.Null) {
-      delete expressionElement.comparableValue;
-    }
-    expressionElement.comparableDataSource = compDataSource as DataSource;
-    handleUpdateExpressionElement();
+  const handleUpdateDynamicOperator = (operator: Operator) => {
+    onUpdateDynamicOperator(operator);
   };
 
-  const specifyComparableTriggerDataSource = (compDataSourceKind: string) => {
-    // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved
-    if (compDataSourceKind === 'default' || compDataSourceKind === 'NotImplementedYet') {
-      delete expressionElement.comparableValue;
-      handleUpdateExpressionElement();
-      return;
-    }
-    expressionElement.comparableValue = compDataSourceKind;
-    handleUpdateExpressionElement();
-  };
-
-  const addExpressionOperatorForPrevExpression = (operator: 'og' | 'eller') => {
-    expressionElement.expressionOperatorForNextExpression = operator;
-    handleUpdateExpressionElement();
-  };
-
-  const handleAddExpressionElement = () => {
-    setShowAddExpressionButton(!showAddExpressionButton);
-    expressionElement.expressionOperatorForNextExpression = 'og';
-    onAddExpressionElement();
+  const handleAddExpressionElement = (expressionOperator: Operator) => {
+    onAddExpressionElement(expressionOperator);
   };
 
   const handleUpdateExpressionElement = () => {
-    if (
-      expressionElement.dataSource !== DataSource.Component &&
-      expressionElement.comparableDataSource !== DataSource.Component
-    ) {
-      setDuplicatedComponentIdsDiscovered(false);
-    }
-    onUpdateExpressionElement();
+    onUpdateExpressionElement(expressionElement);
   };
 
   const handleRemoveExpressionElement = () => {
@@ -130,7 +75,7 @@ export const ExpressionContent = ({
   return (
     <div>
       <p>{t('right_menu.dynamics_function_on_action')}</p>
-      <Select
+      <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         onChange={(func: string) => addFunctionToExpressionElement(func)}
         options={[{ label: 'Velg oppsett...', value: 'default' }].concat(
           Object.values(ExpressionFunction).map((func: string) => ({
@@ -153,7 +98,7 @@ export const ExpressionContent = ({
             />
             <div className={classes.expressionDetails}>
               <Select
-                onChange={(dataSource: string) => addTriggerDataSource(dataSource)}
+                onChange={(dataSource: string) => addDataSourceToDynamic(dataSource, false)}
                 options={[{ label: 'Velg...', value: 'default' }].concat(
                   Object.values(DataSource).map((ds: string) => ({
                     label: expressionDataSourceTexts(t)[ds],
@@ -165,10 +110,9 @@ export const ExpressionContent = ({
               {expressionElement.dataSource && (
                 <DataSourceValue
                   expressionElement={expressionElement}
-                  currentDataSource={expressionElement.dataSource}
-                  specifyDataSourceValue={specifyTriggerDataSource}
+                  currentDataSource={expressionElement.dataSource as DataSource}
+                  specifyDataSourceValue={(dataSourceValue ) => addDataSourceValueToDynamic(dataSourceValue, false)}
                   isComparableValue={false}
-                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
                 />
               )}
               <p className={classes.expressionFunction}>
@@ -176,7 +120,7 @@ export const ExpressionContent = ({
               </p>
               <Select
                 onChange={(compDataSource: string) =>
-                  addComparableTriggerDataSource(compDataSource)
+                  addDataSourceToDynamic(compDataSource, true)
                 }
                 options={[{ label: 'Velg...', value: 'default' }].concat(
                   Object.values(DataSource).map((cds: string) => ({
@@ -189,41 +133,37 @@ export const ExpressionContent = ({
               {expressionElement.comparableDataSource && (
                 <DataSourceValue
                   expressionElement={expressionElement}
-                  currentDataSource={expressionElement.comparableDataSource}
-                  specifyDataSourceValue={specifyComparableTriggerDataSource}
+                  currentDataSource={expressionElement.comparableDataSource as DataSource}
+                  specifyDataSourceValue={(dataSourceValue) => addDataSourceValueToDynamic(dataSourceValue, true)}
                   isComparableValue={true}
-                  onSetDuplicatedComponentIdsDiscovered={setDuplicatedComponentIdsDiscovered}
                 />
-              )}
-              {duplicatedComponentIdsDiscovered && (
-                <Alert severity='warning'>
-                  {t('right_menu.dynamics_duplicated_component_ids_warning')}
-                </Alert>
               )}
             </div>
           </div>
           <div className={classes.addExpression}>
-            {!expressionElement.expressionOperatorForNextExpression || showAddExpressionButton ? (
-              <Button variant='quiet' onClick={handleAddExpressionElement} size='small'>
-                <i
-                  className={cn('fa', classes.plusIcon, {
-                    'fa-circle-plus': showAddExpressionButton,
-                    'fa-circle-plus-outline': !showAddExpressionButton,
-                  })}
-                />
-                {t('right_menu.dynamics_add_expression')}
-              </Button>
-            ) : (
-              <div className={classes.andOrToggleButtons}>
+            {showAddExpressionButton ? (
+                <Button
+                  variant='quiet'
+                  size='small'
+                  onClick={() => handleAddExpressionElement(dynamicOperator || Operator.And)}
+                >
+                  <i
+                    className={cn('fa', classes.plusIcon, {
+                      'fa-circle-plus': showAddExpressionButton,
+                      'fa-circle-plus-outline': !showAddExpressionButton,
+                    })}
+                  />
+                  {t('right_menu.dynamics_add_expression')}
+                </Button>
+              ) : (
+                <div className={classes.andOrToggleButtons}>
                 <ToggleButtonGroup
                   items={[
-                    { label: 'Og', value: 'og' },
-                    { label: 'Eller', value: 'eller' },
+                    { label: 'Og', value: Operator.And },
+                    { label: 'Eller', value: Operator.Or }
                   ]}
-                  onChange={(value) =>
-                    addExpressionOperatorForPrevExpression(value as 'og' | 'eller')
-                  }
-                  selectedValue={expressionElement.expressionOperatorForNextExpression || 'og'}
+                  onChange={(value) => handleUpdateDynamicOperator(value as Operator)}
+                  selectedValue={dynamicOperator || Operator.And}
                 />
               </div>
             )}
