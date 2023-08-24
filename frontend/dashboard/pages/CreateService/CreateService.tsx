@@ -15,6 +15,7 @@ import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { useNavigate } from 'react-router-dom';
+import { AxiosError } from 'axios';
 
 enum PageState {
   Idle = 'Idle',
@@ -70,7 +71,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutate: addRepo } = useAddRepoMutation();
+  const { mutate: addRepo } = useAddRepoMutation({ hideDefaultError: (error: AxiosError) => error?.response?.status === 409 });
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -109,12 +110,10 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           },
           onError: (error: { response: { status: number } }) => {
             if (error.response.status === 409) {
-              setPageState(PageState.Idle);
               setRepoErrorMessage(t('dashboard.app_already_exists'));
-            } else {
-              setPageState(PageState.Idle);
-              setRepoErrorMessage(t('dashboard.error_when_creating_app'));
             }
+
+            setPageState(PageState.Idle);
           },
         }
       );
