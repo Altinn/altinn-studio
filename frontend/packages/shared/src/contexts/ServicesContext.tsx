@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 import {
   MutationCache,
   MutationMeta,
@@ -58,7 +58,7 @@ export const ServicesContextProvider = ({
 }: ServicesContextProviderProps) => {
   const { t } = useTranslation();
 
-  const queryClient = useMemo(
+  const [queryClient] = useState(
     () => client || new QueryClient({
       ...clientConfig,
       queryCache: new QueryCache({
@@ -68,7 +68,7 @@ export const ServicesContextProvider = ({
         onError: (error: AxiosError, variables, context, mutation) => handleError(error, t, mutation.options?.meta),
       }),
     })
-  , [client, clientConfig, t]);
+  );
 
   return (
     <ErrorBoundary
