@@ -89,7 +89,7 @@ describe('EditFormComponent', () => {
     });
 
     const labels = {
-      'ux_editor.modal_properties_component_change_id *': 'textbox',
+      'ux_editor.modal_properties_component_change_id': 'textbox',
       'ux_editor.modal_properties_data_model_helper': 'combobox',
       'ux_editor.modal_configure_read_only': 'checkbox',
     };
@@ -108,7 +108,7 @@ describe('EditFormComponent', () => {
       },
     });
 
-    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id *'));
+    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id'));
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' }))
     );
@@ -122,7 +122,7 @@ describe('EditFormComponent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id *',
+      'ux_editor.modal_properties_component_change_id',
       'ux_editor.modal_properties_file_upload_simple',
       'ux_editor.modal_properties_file_upload_list',
       'ux_editor.modal_properties_valid_file_endings_all',

@@ -126,7 +126,7 @@ describe('CreateService', () => {
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
 
-    const emptyFieldErrors = await screen.findAllByText(textMock('dashboard.app_already_exist'));
+    const emptyFieldErrors = await screen.findAllByText(textMock('dashboard.app_already_exists'));
     expect(emptyFieldErrors.length).toBe(1);
   });
 

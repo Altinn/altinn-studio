@@ -40,6 +40,7 @@ const config = {
     '^@altinn/schema-model/(.*)': path.join(__dirname, 'packages/schema-model/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
+    '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
   },
   testRegex: '(\\.(test|spec))\\.(ts|tsx)$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],

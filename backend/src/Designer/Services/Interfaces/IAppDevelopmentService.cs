@@ -141,5 +141,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutSetName">The name of the layout set.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task SaveRuleConfig(string org, string app, string developer, JsonNode ruleConfig, [CanBeNull] string layoutSetName);
+
+        /// <summary>
+        /// Get's process definition for an app.
+        /// </summary>
+        /// <param name="altinnAppContext">Context of an app.</param>
+        /// <returns>Bpmn file.</returns>
+        public Task<string> GetProcessDefinition(AltinnAppContext altinnAppContext);
+
+        /// <summary>
+        /// Saves the process definition for an app.
+        /// </summary>
+        /// <param name="altinnAppContext">Context of an app.</param>
+        /// <param name="bpmnXml">Content of process definition file to save.</param>
+        /// <returns>Saved file.</returns>
+        public Task<string> SaveProcessDefinition(AltinnAppContext altinnAppContext, string bpmnXml);
     }
 }

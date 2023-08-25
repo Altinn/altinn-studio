@@ -1,4 +1,1 @@
-export {
-  mapPolicyResultToPolicyObject,
-  sortResourceListByDateAndMap
-} from './mapperUtils'
+export { sortResourceListByDateAndMap } from './mapperUtils';

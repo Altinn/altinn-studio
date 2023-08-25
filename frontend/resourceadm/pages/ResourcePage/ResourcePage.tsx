@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
-import { NavigationBarPageType, ResourceBackendType } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -21,22 +21,23 @@ import { Spinner } from '@digdir/design-system-react';
 import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 
 /**
- * Displays the 3 pages to manage resources and a left navigation bar.
+ * @component
+ *    Displays the 4 pages to manage resources and a left navigation bar.
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourcePage = () => {
+export const ResourcePage = (): React.ReactNode => {
   const navigate = useNavigate();
 
   const { pageType, resourceId, selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
-  const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
-    pageType as NavigationBarPageType
-  );
+  const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
   // Stores the temporary next page
-  const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
-  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
+  const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -89,16 +90,14 @@ export const ResourcePage = () => {
    * Check if the pageType parameter has changed and update the currentPage
    */
   useEffect(() => {
-    setCurrentPage(pageType as NavigationBarPageType);
+    setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
 
   /**
    * Navigates to the selected page
    */
-  const navigateToPage = async (page: NavigationBarPageType) => {
+  const navigateToPage = async (page: NavigationBarPage) => {
     if (currentPage !== page) {
-      setNewPageClicked(page);
-
       await refetchResource();
 
       // Validate Resource and display errors + modal
@@ -139,8 +138,7 @@ export const ResourcePage = () => {
    *
    * @param newPage the page to navigate to
    */
-  const handleNavigation = (newPage: NavigationBarPageType) => {
-    setNewPageClicked(null);
+  const handleNavigation = (newPage: NavigationBarPage) => {
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
@@ -161,7 +159,7 @@ export const ResourcePage = () => {
    *
    * @param page the page to navigate to
    */
-  const navigateToPageWithError = async (page: NavigationBarPageType) => {
+  const navigateToPageWithError = async (page: NavigationBarPage) => {
     if (page === 'about') {
       await refetchResource();
       await refetchValidateResource();
@@ -190,7 +188,6 @@ export const ResourcePage = () => {
           navigateToPage={navigateToPage}
           goBack={goBack}
           showMigrate={getShowMigrate()}
-          newPageClicked={newPageClicked}
         />
       </div>
       <div className={classes.resourcePageWrapper}>
@@ -205,9 +202,8 @@ export const ResourcePage = () => {
               resourceData={resourceData}
               sectorsData={sectorsData}
               thematicData={[...losData, ...eurData]}
-              onSaveResource={(r: ResourceBackendType) => {
+              onSaveResource={(r: Resource) => {
                 editResource(r, {
-                  // TODO - Display that it was saved
                   onSuccess: () => {
                     console.log('success');
                   },
@@ -236,7 +232,6 @@ export const ResourcePage = () => {
           isOpen={policyErrorModalOpen}
           onClose={() => {
             setPolicyErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i tilgangsregler'
@@ -247,7 +242,6 @@ export const ResourcePage = () => {
           isOpen={resourceErrorModalOpen}
           onClose={() => {
             setResourceErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
           title='Manglende informasjon i ressurs'

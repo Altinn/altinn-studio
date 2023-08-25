@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -111,6 +113,18 @@ namespace Altinn.Studio.Designer.Helpers
             if (string.IsNullOrEmpty(repoName) || !Regex.IsMatch(repoName, @"^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$"))
             {
                 throw new ArgumentException($"The repository name {repoName} is invalid.");
+            }
+        }
+
+        public static void AssertValidXmlContent(string xmlContent)
+        {
+            try
+            {
+                _ = XDocument.Parse(xmlContent);
+            }
+            catch (XmlException)
+            {
+                throw new ArgumentException("Invalid xml content.");
             }
         }
     }

@@ -9,3 +9,4 @@ export { useOrgListQuery } from './useOrgListQuery';
 export { useSchemaQuery } from './useSchemaQuery';
 export { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 export { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
+export { useAppPolicyQuery } from './useAppPolicyQuery';

@@ -2,13 +2,13 @@ import React from 'react';
 import classes from './errorMessage.module.css';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 
-interface Props {
+type ErrorMessageProps = {
   title: string;
   message: string;
   children?: React.ReactNode;
-}
+};
 
-export const ErrorMessage = ({ title, message, children }: Props): JSX.Element => {
+export const ErrorMessage = ({ title, message, children }: ErrorMessageProps): JSX.Element => {
   return (
     <div className={classes.errorMessage}>
       <Heading size='medium' level={1}>

@@ -2,9 +2,17 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { TextField, Button, Spinner, Heading, Label } from '@digdir/design-system-react';
+import {
+  TextField,
+  Button,
+  Spinner,
+  Heading,
+  Label,
+  Paragraph,
+  Link,
+} from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
+import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
@@ -14,16 +22,26 @@ import { UploadIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
-interface Props {
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+type DeployResourcePageProps = {
+  /**
+   * Function that navigates to a page with errors
+   * @param page the page to navigate to
+   * @returns void
+   */
+  navigateToPageWithError: (page: NavigationBarPage) => void;
+};
 
 /**
- * Displays the deploy page for resources
+ * @component
+ *    Displays the deploy page for resources
  *
- * @param props.isLocalRepoInSync boolean for if the local repo is in sync or not
+ * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
+export const DeployResourcePage = ({
+  navigateToPageWithError,
+}: DeployResourcePageProps): React.ReactNode => {
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -99,9 +117,9 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
   /**
    * Returns the correct error type for the deploy page
    */
-  const getStatusError = (): DeployErrorType[] | string => {
+  const getStatusError = (): DeployError[] | string => {
     if (validateResourceData.status !== 200 || hasPolicyError !== 'none') {
-      const errorList: DeployErrorType[] = [];
+      const errorList: DeployError[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors
@@ -122,10 +140,10 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
         });
       }
       return errorList;
-    } else if (!isLocalRepoInSync) {
-      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
     } else if (versionData.resourceVersion === null) {
       return 'Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.';
+    } else if (!isLocalRepoInSync) {
+      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
     }
     return [];
   };
@@ -169,6 +187,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       validateResourceData.status === 200 &&
       !policyError &&
       isLocalRepoInSync &&
+      versionData.resourceVersion !== null &&
       envVersion !== versionData.resourceVersion
     ) {
       return true;
@@ -178,6 +197,7 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
       validateResourceData.status === 200 &&
       !policyError &&
       isLocalRepoInSync &&
+      versionData.resourceVersion !== null &&
       envVersion !== versionData.resourceVersion
     ) {
       return true;
@@ -210,10 +230,23 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
           </Heading>
           <div className={classes.contentWrapper}>
             {displayStatusCard()}
+            <Paragraph size='small' className={classes.informationText}>
+              Ved å publisere ressurser blir informasjonen tilgjengelig på{' '}
+              <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
+                Altinn.no
+              </Link>{' '}
+              og andre nettsteder som lister ressurser i Altinn. Sluttbrukere kan da starte delegere
+              rettigheter til ressursen. Man bør verifisere i testmiljø først at tekster og metadata
+              blir presentert som tenkt før man publiserer til produksjon.
+            </Paragraph>
             <div className={classes.newVersionWrapper}>
               <Label size='medium' spacing>
                 Nytt versjonsnummer
               </Label>
+              <Paragraph size='small' className={classes.newVersionParagraph}>
+                En ressurs trenger å ha et versjonsnummer før den blir publisert. Ved endringer må
+                versjonsnummer oppdateres før ny publisering.
+              </Paragraph>
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
                   <TextField

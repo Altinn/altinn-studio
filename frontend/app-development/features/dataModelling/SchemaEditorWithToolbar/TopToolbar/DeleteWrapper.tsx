@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { useDeleteDatamodelMutation } from '../../../../hooks/mutations';
 import { MetadataOption } from '../../../../types/MetadataOption';
@@ -37,9 +37,9 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
           id='delete-model-button'
           disabled={!schemaName}
           onClick={onDeleteClick}
-          color={ButtonColor.Danger}
+          color='danger'
           icon={<TrashIcon />}
-          variant={ButtonVariant.Quiet}
+          variant='quiet'
           size='small'
         >
           {t('schema_editor.delete_data_model')}

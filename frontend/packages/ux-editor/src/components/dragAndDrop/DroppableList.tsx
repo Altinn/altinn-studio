@@ -2,7 +2,7 @@ import React, { ReactNode, useCallback } from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import { DraggableEditorItemType, DndItem, HandleDrop } from '../../types/dndTypes';
 import classes from './DroppableList.module.css';
-import { testids } from '../../../../../testing/testids';
+import * as testids from '../../../../../testing/testids';
 
 export interface DroppableListProps {
   children: ReactNode;

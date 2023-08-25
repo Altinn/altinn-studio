@@ -9,12 +9,15 @@ import { Popover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
 
-interface Props {
+type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
   hasCloneModal?: boolean;
-}
+};
 
-export const ThreeDotsMenu = ({ onlyShowRepository = false, hasCloneModal = false }: Props) => {
+export const ThreeDotsMenu = ({
+  onlyShowRepository = false,
+  hasCloneModal = false,
+}: ThreeDotsMenuProps) => {
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
   const { org, app } = useParams();
   const { t } = useTranslation();

@@ -1,21 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
 import type { PopoverProps } from '@digdir/design-system-react';
-import { Button, ButtonColor, ButtonVariant, Popover, PopoverVariant } from '@digdir/design-system-react';
+import { Button, Popover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
-  confirmColor?: ButtonColor;
+  confirmColor?: 'inverted' | 'danger' | 'primary' | 'secondary' | 'success';
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  onClose:(event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
+  onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
 } & Partial<Pick<PopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
 
 export function AltinnConfirmDialog({
   confirmText,
-  confirmColor = ButtonColor.Danger,
+  confirmColor = 'danger',
   cancelText,
   onConfirm,
   onClose,
@@ -41,14 +41,12 @@ export function AltinnConfirmDialog({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  },[onClose, open]);
+  }, [onClose, open]);
 
   return (
-    <div
-      ref={dialogRef}
-    >
+    <div ref={dialogRef}>
       <Popover
-        variant={PopoverVariant.Warning}
+        variant='warning'
         className={cn(className, classes.popover)}
         trigger={trigger}
         placement={placement}
@@ -58,7 +56,7 @@ export function AltinnConfirmDialog({
         <div className={classes.buttonContainer}>
           <Button
             color={confirmColor}
-            variant={ButtonVariant.Filled}
+            variant='filled'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onConfirm(event);
@@ -70,8 +68,8 @@ export function AltinnConfirmDialog({
             {confirmText || t('general.yes')}
           </Button>
           <Button
-            color={ButtonColor.Secondary}
-            variant={ButtonVariant.Quiet}
+            color='secondary'
+            variant='quiet'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onClose(event);
