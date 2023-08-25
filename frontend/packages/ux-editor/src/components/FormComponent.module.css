@@ -4,7 +4,6 @@
   margin-left: var(--margin-left-with-handle);
   margin-right: var(--margin-right-with-buttons);
   min-height: 80px;
-  cursor: pointer;
 }
 
 .formComponentWithHandle {
@@ -64,6 +63,7 @@
   color: #022F51;
   flex: 1;
   padding: 1rem;
+  cursor: pointer;
 }
 
 .editMode .formComponent,

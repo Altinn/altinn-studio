@@ -107,6 +107,40 @@ describe('FormContext', () => {
     );
   });
 
+  it('should render id and itemType when calling handleEdit with truthy updatedForm', async () => {
+    const user = userEvent.setup();
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const { store } = render(() => {
+      const { formId, form, handleEdit } = React.useContext(FormContext);
+      return (
+        <>
+          <button data-testid='button' onClick={() => handleEdit(mockForm)} />
+          <div data-testid='formId'>{formId}</div>
+          <div data-testid='form.id'>{form?.id}</div>
+          <div data-testid='form.itemType'>{form?.itemType}</div>
+        </>
+      );
+    });
+
+    const button = screen.getByTestId('button');
+    await act(() => user.click(button));
+    const state = store.getState() as IAppState;
+
+    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
+    expect(screen.getByTestId('formId')).toBeInTheDocument();
+    expect(screen.getByTestId('form.id')).toBeInTheDocument();
+    expect(screen.getByTestId('form.itemType')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('formId')).toHaveTextContent(mockForm.id);  
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('form.id')).toHaveTextContent(mockForm.id); 
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('form.itemType')).toHaveTextContent(mockForm.itemType); 
+    });
+  });
+  
   it('should discard the form when calling handleDiscard', async () => {
     const user = userEvent.setup();
     const { store } = render(() => {
