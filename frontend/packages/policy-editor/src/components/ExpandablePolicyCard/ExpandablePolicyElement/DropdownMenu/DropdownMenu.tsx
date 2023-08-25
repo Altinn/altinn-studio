@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import classes from './DropdownMenu.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@navikt/aksel-icons';
+import { useTranslation } from 'react-i18next';
 
 interface DropdownMenuProps {
   /**
@@ -56,6 +57,8 @@ export const DropdownMenu = ({
   isError = false,
 }: DropdownMenuProps): React.ReactNode => {
   // TODO - Replace this with Popover from Design system - Issue: #10869
+
+  const { t } = useTranslation();
 
   const dropdownRef = useRef(null);
   const firstMenuItemRef = useRef<HTMLButtonElement>(null);
@@ -149,9 +152,9 @@ export const DropdownMenu = ({
             onClick={handleClone}
             ref={firstMenuItemRef}
           >
-            <TabsIcon title='Dupliser' fontSize='1.3rem' />
+            <TabsIcon title={t('policy_editor.expandable_card_dropdown_copy')} fontSize='1.3rem' />
             <Paragraph short size='xsmall' className={classes.dropdownItemText}>
-              Lag kopi
+              {t('policy_editor.expandable_card_dropdown_copy')}
             </Paragraph>
           </button>
           <button
@@ -160,9 +163,9 @@ export const DropdownMenu = ({
             onClick={handleDelete}
             ref={lastMenuItemRef}
           >
-            <TrashIcon title='Slett' fontSize='1.3rem' />
+            <TrashIcon title={t('general.delete')} fontSize='1.3rem' />
             <Paragraph short size='xsmall' className={classes.dropdownItemText}>
-              Slett
+              {t('general.delete')}
             </Paragraph>
           </button>
         </div>

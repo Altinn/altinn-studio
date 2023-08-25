@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './CardButton.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Paragraph } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 type CardButtonProps = {
   /**
@@ -25,11 +26,12 @@ type CardButtonProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const CardButton = ({ buttonText, onClick }: CardButtonProps): React.ReactNode => {
-  // TODO - Translate
+  const { t } = useTranslation();
+
   return (
     <button className={classes.button} type='button' onClick={onClick}>
       <Paragraph size='small'>{buttonText}</Paragraph>
-      <PlusIcon title='Add rule' fontSize='1.4rem' />
+      <PlusIcon title={t('policy_editor.card_button_icon')} fontSize='1.4rem' />
     </button>
   );
 };

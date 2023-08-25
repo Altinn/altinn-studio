@@ -3,6 +3,7 @@ import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from './DropdownMenu';
 import { Label } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 type ExpandablePolicyElementProps = {
   /**
@@ -66,6 +67,8 @@ export const ExpandablePolicyElement = ({
   handleCloneElement,
   hasError = false,
 }: ExpandablePolicyElementProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [isOpen, setIsOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -111,9 +114,9 @@ export const ExpandablePolicyElement = ({
         >
           <Label size='small'>{cardTitle}</Label>
           {isOpen ? (
-            <ChevronUpIcon title='Close the card' fontSize='1.8rem' />
+            <ChevronUpIcon title={t('"policy_editor.expandable_card_close_icon"')} fontSize='1.8rem' />
           ) : (
-            <ChevronDownIcon title='Open the card' fontSize='1.8rem' />
+            <ChevronDownIcon title={t('"policy_editor.expandable_card_open_icon"')} fontSize='1.8rem' />
           )}
         </button>
         <DropdownMenu
