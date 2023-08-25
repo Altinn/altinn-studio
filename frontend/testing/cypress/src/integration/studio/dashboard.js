@@ -34,27 +34,33 @@ context('Dashboard', () => {
     });
   });
 
-  it('is possible to view apps, add and remove favourites', () => {
+  it('is possible to view apps, and add and remove favourites', () => {
     const createdBy = Cypress.env('autoTestUser');
+
+    // View apps and add favourite
     cy.intercept('PUT', '**/designer/api/user/starred/**').as('addFavourite');
     dashboard.getUserAppsList().then((apps) => {
-      cy.get(apps).should('have.length.gte', 1);
-      cy.get(apps).findAllByLabelText(texts['dashboard.star']).click({ multiple: true });
-      cy.wait('@addFavourite').its('response.statusCode').should('eq', 204);
-      cy.get(apps)
-        .first()
-        .then((app) => {
-          common.getCellByColumnHeader(apps, app, texts['dashboard.name']).invoke('text').should('not.be.empty');
-          common.getCellByColumnHeader(apps, app, texts['dashboard.created_by']).should('have.text', createdBy);
-          common.getCellByColumnHeader(apps, app, texts['dashboard.last_modified']).invoke('text').should('not.be.empty');
+      const rows = cy.get(apps).findAllByRole('row');
+      rows.should('have.length.gt', 1);
+      rows
+        .eq(1) // Pick the first row after the header row
+        .then((row) => {
+          cy.get(row).findByLabelText(texts['dashboard.star']).click();
+          common.getCellByColumnHeader(apps, row, texts['dashboard.name']).invoke('text').should('not.be.empty');
+          common.getCellByColumnHeader(apps, row, texts['dashboard.created_by']).should('have.text', createdBy);
+          common.getCellByColumnHeader(apps, row, texts['dashboard.last_modified']).invoke('text').should('not.be.empty');
         });
     });
+    cy.wait('@addFavourite').its('response.statusCode').should('eq', 204);
+
+    // Remove app from favourites
     cy.intercept('DELETE', '**/designer/api/user/starred/**').as('removeFavourite');
     dashboard.getFavourites().then((favourites) => {
-      cy.get(favourites).should('have.length.gte', 1);
-      cy.get(favourites).first().findByLabelText(texts['dashboard.unstar']).click();
-      cy.wait('@removeFavourite').its('response.statusCode').should('eq', 204);
+      const rows = cy.get(favourites).findAllByRole('row');
+      rows.should('have.lengthOf', 2); // Header row + 1 favourite
+      cy.get(favourites).findByLabelText(texts['dashboard.unstar']).click();
     });
+    cy.wait('@removeFavourite').its('response.statusCode').should('eq', 204);
   });
 
   it('is possible to change context and view all apps', () => {
