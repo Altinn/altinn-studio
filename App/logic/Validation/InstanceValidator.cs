@@ -64,6 +64,14 @@ namespace Altinn.App.logic.Validation
                 {
                     validationResults.AddModelError("GridData.TotalProsent", "Må summeres opp til 100%");
                 }
+
+                if (model?.GridData?.Kredittkort?.Prosent == 44)
+                {
+                    validationResults.AddModelError(
+                        "neverValidatedInput",
+                        "Valideringsmelding på felt som aldri vises (ikke skriv 44% på kredittkort!)"
+                    );
+                }
             }
 
             if (data.GetType() == typeof(NestedGroup))
