@@ -3,6 +3,8 @@
 
 import * as texts from "@altinn-studio/language/src/nb.json";
 
+// First Cypress tests of sub-repo Resourceadm: this is a work in progress
+
 context("Resourceadm", () => {
   before(() => {
     cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
