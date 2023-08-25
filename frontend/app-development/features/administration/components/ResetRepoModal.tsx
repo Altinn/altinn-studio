@@ -6,6 +6,7 @@ import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import * as testids from '../../../../testing/testids';
+import { toast } from 'react-toastify';
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -32,7 +33,12 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const repoResetMutation = useResetRepositoryMutation(props.org, props.repositoryName);
   const onResetWrapper = () => {
     setCanDelete(false);
-    repoResetMutation.mutate();
+    repoResetMutation.mutate(null, {
+      onSuccess: () => {
+        onCloseWrapper();
+        toast.success(t('administration.reset_repo_completed'));
+      }
+    });
   };
 
   const handleOnKeypressEnter = (event: any) => {
@@ -64,40 +70,22 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
-          {!repoResetMutation.isSuccess && (
-            <>
-              <div>
-                {t('administration.reset_repo_confirm_info', {
-                  repositoryName: props.repositoryName,
-                })}
-              </div>
-              <label htmlFor='delete-repo-name'>
-                <div>{t('administration.reset_repo_confirm_repo_name')}</div>
-              </label>
-              <TextField
-                id='delete-repo-name'
-                onChange={onDeleteRepoNameChange}
-                autoFocus
-                onKeyUp={handleOnKeypressEnter}
-              />
-            </>
-          )}
-          {repoResetMutation.isSuccess && (
-            <>
-              <div>
-                {t('administration.reset_repo_completed', {
-                  repositoryName: props.repositoryName,
-                })}
-              </div>
-              <div className={classes.buttonContainer}>
-                <Button color='secondary' onClick={onCloseWrapper} variant='outline' size='small'>
-                  {t('general.close')}
-                </Button>
-              </div>
-            </>
-          )}
+          <div>
+            {t('administration.reset_repo_confirm_info', {
+              repositoryName: props.repositoryName,
+            })}
+          </div>
+          <label htmlFor='delete-repo-name'>
+            <div>{t('administration.reset_repo_confirm_repo_name')}</div>
+          </label>
+          <TextField
+            id='delete-repo-name'
+            onChange={onDeleteRepoNameChange}
+            autoFocus
+            onKeyUp={handleOnKeypressEnter}
+          />
           {repoResetMutation.isLoading && <AltinnSpinner />}
-          {!repoResetMutation.isLoading && !repoResetMutation.isSuccess && (
+          {!repoResetMutation.isLoading && (
             <div className={classes.buttonContainer}>
               <Button
                 color='danger'
