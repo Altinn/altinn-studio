@@ -1,6 +1,8 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
+import * as texts from "@altinn-studio/language/src/nb.json";
+
 context("Resourceadm", () => {
   before(() => {
     cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
@@ -21,7 +23,9 @@ context("Resourceadm", () => {
     // both a valid, single organization and a complimentary org-resources repo, as in
     // /ttd/ttd-resources/
     cy.url().should("include", "/resourceadm/all");
-    cy.findAllByRole("link").contains("Gå tilbake til dashboard").click();
+    cy.findByRole("link", {
+      name: texts["resource.back_to_dashboard"],
+    }).click();
     cy.url().should("include", "/dashboard");
   });
 
@@ -29,7 +33,9 @@ context("Resourceadm", () => {
     cy.switchSelectedContext("self"); // triggers Error page as Resourceadm requires
     // both a valid, single organization and a complimentary org-resources repo, as in
     // /ttd/ttd-resources/
-    cy.findAllByRole("link").contains("Gå tilbake til dashboard").click();
+    cy.findByRole("link", {
+      name: texts["resource.back_to_dashboard"],
+    }).click();
     cy.url().should("include", "/dashboard");
   });
 
