@@ -114,9 +114,9 @@ export const ExpandablePolicyElement = ({
         >
           <Label size='small'>{cardTitle}</Label>
           {isOpen ? (
-            <ChevronUpIcon title={t('"policy_editor.expandable_card_close_icon"')} fontSize='1.8rem' />
+            <ChevronUpIcon title={t('policy_editor.expandable_card_close_icon')} fontSize='1.8rem' />
           ) : (
-            <ChevronDownIcon title={t('"policy_editor.expandable_card_open_icon"')} fontSize='1.8rem' />
+            <ChevronDownIcon title={t('policy_editor.expandable_card_open_icon')} fontSize='1.8rem' />
           )}
         </button>
         <DropdownMenu
