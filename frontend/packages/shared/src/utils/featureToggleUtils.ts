@@ -8,9 +8,10 @@ const persistFeatureKey = "persistFeatureFlag";
 
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
 export type SupportedFeatureFlags =
-  | "processEditor"
+  | "componentConfigBeta"
   | "expressions"
-  | "policyEditor";
+  | "policyEditor"
+  | "processEditor";
 
 /*
  * Please add all the features that you want to be toggle on by default here.
@@ -71,6 +72,28 @@ const isFeatureActivatedByLocalStorage = (
   const featureFlagsFromStorage =
     typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
   return featureFlagsFromStorage.includes(featureFlag);
+};
+
+/**
+ * @param featureFlag The feature flag to add to local storage
+ * @description This function will add the feature flag to local storage
+ * @example addFeatureToLocalStorage('myFeatureName')
+ */
+export const addFeatureFlagToLocalStorage = (featureFlag: SupportedFeatureFlags): void => {
+  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
+  featureFlagsFromStorage.push(featureFlag);
+  typedLocalStorage.setItem(featureFlagKey, featureFlagsFromStorage);
+};
+
+/**
+ * @param featureFlag The feature flag to remove from local storage
+ * @description This function will remove the feature flag from local storage
+ * @example removeFeatureFromLocalStorage('myFeatureName')
+ */
+export const removeFeatureFlagFromLocalStorage = (featureFlag: SupportedFeatureFlags): void => {
+  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
+  const filteredFeatureFlags = featureFlagsFromStorage.filter((feature) => feature !== featureFlag);
+  typedLocalStorage.setItem(featureFlagKey, filteredFeatureFlags);
 };
 
 // Check if feature includes in session storage, featureFlags: ["featureName"]

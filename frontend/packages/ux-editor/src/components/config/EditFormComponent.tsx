@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
@@ -14,6 +14,7 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useSelector } from 'react-redux';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
+import { addFeatureFlagToLocalStorage, removeFeatureFlagFromLocalStorage, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -28,7 +29,8 @@ export const EditFormComponent = ({
 }: IEditFormComponentProps) => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const { t } = useTranslation();
-  const [showBetaFunc, setShowBetaFunc] = useState(false);
+  const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(shouldDisplayFeature('componentConfigBeta'));
+
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
 
@@ -50,23 +52,29 @@ export const EditFormComponent = ({
     return componentSpecificEditConfig[component.type];
   };
 
-  const toggleShowBetaFunc = () => {
-    setShowBetaFunc(!showBetaFunc);
+  const toggleShowBetaFunc = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowComponentConfigBeta(event.target.checked);
+    // Ensure choice of feature toggling is persisted in local storage
+    if(event.target.checked){
+      addFeatureFlagToLocalStorage('componentConfigBeta');
+    } else {
+      removeFeatureFlagFromLocalStorage('componentConfigBeta');
+    }
   };
 
   return (
     <LegacyFieldSet className={classes.root}>
       <LegacyCheckbox
         onChange={toggleShowBetaFunc}
-        checked={showBetaFunc}
+        checked={showComponentConfigBeta}
         label={t('ux_editor.edit_component.show_beta_func')}
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
       />
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showBetaFunc && isLoading && <AltinnSpinner spinnerText={t('general.loading')} />}
-      {showBetaFunc && (
+      {showComponentConfigBeta && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
+      {showComponentConfigBeta && !isLoading && (
         <FormComponentConfig
           schema={isLoading ? {} : schema}
           component={component}
@@ -74,7 +82,7 @@ export const EditFormComponent = ({
           handleComponentUpdate={handleComponentUpdate}
         />
       )}
-      {!showBetaFunc && (
+      {!showComponentConfigBeta && (
         <>
           <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
           {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}

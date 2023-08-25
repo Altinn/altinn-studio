@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
-import { Accordion } from '@digdir/design-system-react';
-import { useText } from '../../../hooks';
 import classes from './EditTextResourceBindings.module.css';
+import { TranslationKey } from 'language/type';
+import { useTranslation } from 'react-i18next';
+import { Select } from '@digdir/design-system-react';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
@@ -16,33 +17,52 @@ export const EditTextResourceBindings = ({
   handleComponentChange,
   textResourceBindingKeys,
 }: EditTextResourceBindingsProps) => {
-  const t = useText();
-  const [open, setOpen] = React.useState(true);
+  const { t } = useTranslation();
 
-  const toggleAccordion = () => {
-    setOpen(!open);
+  const [keysSet, setKeysSet] = React.useState(
+    Object.keys(component.textResourceBindings || {}),
+  );
+
+  const keysToAdd = useMemo(() => textResourceBindingKeys.filter((key) => !keysSet.includes(key)), [keysSet, textResourceBindingKeys]);
+
+  const handleAddKey = (key: string) => {
+    setKeysSet([...keysSet, key]);
+    handleComponentChange({
+      ...component,
+      textResourceBindings: {
+        ...component.textResourceBindings,
+        [key]: '',
+      },
+    });
   };
 
-  return (
-    <Accordion>
-      <Accordion.Item defaultOpen={open}>
-        <Accordion.Header onHeaderClick={toggleAccordion}>{t('general.text')}</Accordion.Header>
-        <Accordion.Content >
-        <div className={classes.container}>
-        {textResourceBindingKeys.map((key: TextResourceBindingKey) => (
+  const handleRemoveKey = (key: string) => {
+    setKeysSet((prevKeysSet) => prevKeysSet.filter((k) => k !== key));
+  }
 
-          <EditTextResourceBinding
-            key={key}
-            component={component}
-            handleComponentChange={handleComponentChange}
-            textKey={key}
-            labelKey={`ux_editor.modal_properties_textResourceBindings_${key}`}
-            placeholderKey={`ux_editor.modal_properties_textResourceBindings_${key}_add`}
-          />
+  return (
+    <div className={classes.container}>
+      {keysSet.map((key: string) => (
+        <EditTextResourceBinding
+          key={key}
+          component={component}
+          handleComponentChange={handleComponentChange}
+          removeTextResourceBinding={() => handleRemoveKey(key)}
+          textKey={key}
+          labelKey={`ux_editor.modal_properties_textResourceBindings_${key}` as TranslationKey}
+          placeholderKey={`ux_editor.modal_properties_textResourceBindings_${key}_add` as TranslationKey}
+        />
       ))}
-      </div>
-        </Accordion.Content>
-      </Accordion.Item>
-    </Accordion>
+      {keysToAdd.length > 0 && <div className={classes.addContainer}>
+        <Select
+          options={keysToAdd.map((key) => ({
+            label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
+            value: key,
+          }))}
+          onChange={(value) => handleAddKey(value)}
+          label={t('ux_editor.text_resource_bindings.add_label')}
+        />
+      </div>}
+    </div>
   );
 };
