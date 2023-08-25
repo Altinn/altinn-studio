@@ -19,7 +19,7 @@ export const ErrorBoundaryFallback = ({ error }: ErrorBoundaryFallbackProps) => 
     <Center className={classes.container}>
       <Alert severity='danger' className={classes.alert}>
         <Paragraph><Trans i18nKey={'general.error_message'} components={{ a: <Link>Slack</Link> }}/></Paragraph>
-        {_useIsProdHack && <ErrorMessage>{error.message}</ErrorMessage>}
+        {!_useIsProdHack && <ErrorMessage>{error.message}</ErrorMessage>}
         <Center>
           <Button onClick={resetBoundary} size='small'>{t('general.try_again')}</Button>
         </Center>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import {
   MutationCache,
   MutationMeta,
@@ -24,7 +24,7 @@ import 'app-shared/styles/toast.css';
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
   children?: ReactNode;
-  client?: QueryClient; // TODO : should probably be removed to force the use of QueryCache and MutationCache
+  client?: QueryClient; // TODO : #10913 should probably be removed to force the use of QueryCache and MutationCache
   clientConfig?: QueryClientConfig;
 };
 
@@ -58,7 +58,7 @@ export const ServicesContextProvider = ({
 }: ServicesContextProviderProps) => {
   const { t } = useTranslation();
 
-  const [queryClient] = useState(
+  const queryClient = useMemo(
     () => client || new QueryClient({
       ...clientConfig,
       queryCache: new QueryCache({
@@ -68,7 +68,7 @@ export const ServicesContextProvider = ({
         onError: (error: AxiosError, variables, context, mutation) => handleError(error, t, mutation.options?.meta),
       }),
     })
-  );
+  , [client, clientConfig, t]);
 
   return (
     <ErrorBoundary

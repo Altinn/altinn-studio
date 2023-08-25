@@ -3,6 +3,7 @@ import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import { ServicesContextProvider } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const wrapper = ({ children }) => (
   <ServicesContextProvider {...queriesMock}>
@@ -17,7 +18,7 @@ describe('ServicesContext', () => {
 
     await waitFor(() => result.current.isError);
 
-    expect(await screen.findByText(/general.error_message/)).toBeInTheDocument();
+    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
   });
 
@@ -27,8 +28,8 @@ describe('ServicesContext', () => {
     const ErrorComponent = () => { throw new Error('Intentional render error'); };
     render(<ErrorComponent />, { wrapper });
 
-    expect(screen.getByText(/general.error_message/)).toBeInTheDocument();
-    expect(screen.getByText(/general.try_again/)).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
   });
 });
