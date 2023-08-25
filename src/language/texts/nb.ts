@@ -155,6 +155,7 @@ export function nb(): FixedLanguageList {
       validate_changes: 'Validér endringer',
       value: 'Verdi',
       version: 'Versjon',
+      wait_for_attachments: 'Vent litt, vi prosesserer vedlegg',
     },
     group: {
       row_error: 'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',

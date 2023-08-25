@@ -8,6 +8,7 @@ export interface BaseButtonProps {
   onClick: (...args) => void;
   busyWithId?: string | null;
   disabled?: boolean;
+  message?: string;
 }
 
 export interface ButtonProps extends BaseButtonProps {
@@ -31,6 +32,7 @@ export const WrappedButton = ({
   children,
   busyWithId,
   disabled,
+  message,
 }: Props) => {
   const somethingIsLoading = !!busyWithId;
   const thisIsLoading = busyWithId === id;
@@ -40,18 +42,21 @@ export const WrappedButton = ({
     }
   };
   return (
-    <ButtonLoader isLoading={thisIsLoading}>
-      <Button
-        data-is-loading={thisIsLoading ? 'true' : 'false'}
-        size='small'
-        variant={variant}
-        color={color}
-        onClick={handleClick}
-        id={id}
-        disabled={disabled || thisIsLoading}
-      >
-        {children}
-      </Button>
-    </ButtonLoader>
+    <>
+      <ButtonLoader isLoading={thisIsLoading}>
+        <Button
+          data-is-loading={thisIsLoading ? 'true' : 'false'}
+          size='small'
+          variant={variant}
+          color={color}
+          onClick={handleClick}
+          id={id}
+          disabled={disabled || thisIsLoading}
+        >
+          {children}
+        </Button>
+      </ButtonLoader>
+      {message && <span style={{ position: 'absolute' }}>{message}</span>}
+    </>
   );
 };

@@ -153,6 +153,7 @@ export function en() {
       validate_changes: 'Validate changes',
       value: 'Value',
       version: 'Version',
+      wait_for_attachments: 'Hold on, we are processing attachments',
     },
     group: {
       row_error: 'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
