@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
@@ -23,11 +23,7 @@ export const EditTextResourceBindings = ({
     Object.keys(component.textResourceBindings || {}),
   );
 
-  const [keysToAdd, setKeysToAdd] = React.useState<string[]>(textResourceBindingKeys.filter((key) => !keysSet.includes(key)));
-
-  useEffect(() => {
-    setKeysToAdd(textResourceBindingKeys.filter((key) => !keysSet.includes(key)));
-  }, [keysSet, setKeysToAdd, textResourceBindingKeys]);
+  const keysToAdd = useMemo(() => textResourceBindingKeys.filter((key) => !keysSet.includes(key)), [keysSet, textResourceBindingKeys]);
 
   const handleAddKey = (key: string) => {
     setKeysSet([...keysSet, key]);
@@ -41,7 +37,7 @@ export const EditTextResourceBindings = ({
   };
 
   const handleRemoveKey = (key: string) => {
-    setKeysSet(keysSet.filter((k) => k !== key));
+    setKeysSet((prevKeysSet) => prevKeysSet.filter((k) => k !== key));
   }
 
   return (

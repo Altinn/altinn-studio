@@ -1166,7 +1166,7 @@
   "ux_editor.text_resource_bindings.add_label": "Velg teksttype å legge til",
   "ux_editor.text_resource_bindings.delete_confirm": "Ja, fjern teksten",
   "ux_editor.text_resource_bindings.delete_confirm_question": "Er du sikker på at du vil fjerne denne teksten fra komponenten?",
-  "ux_editor.text_resource_bindings.delete_info": "Merk at selve tekstressursen ikke slettes, kun knytningen til denne komponenten.",
+  "ux_editor.text_resource_bindings.delete_info": "Merk at selve tekstressursen ikke slettes, kun knytningen fra denne komponenten.",
   "ux_editor.toolbar_add_container": "Legg til container",
   "ux_editor.toolbar_component_search": "Finn komponent...",
   "ux_editor.toolbar_file_upload": "Filopplaster",

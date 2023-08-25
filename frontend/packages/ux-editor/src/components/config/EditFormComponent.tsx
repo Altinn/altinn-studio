@@ -74,7 +74,7 @@ export const EditFormComponent = ({
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
       {showComponentConfigBeta && isLoading && <AltinnSpinner spinnerText={ t('general.loading') } />}
-      {showComponentConfigBeta && (
+      {showComponentConfigBeta && !isLoading && (
         <FormComponentConfig
           schema={isLoading ? {} : schema}
           component={component}

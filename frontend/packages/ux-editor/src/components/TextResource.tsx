@@ -82,7 +82,6 @@ export const TextResource = ({
   };
 
   const handleDeleteButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
     handleRemoveTextResource();
   };
 
