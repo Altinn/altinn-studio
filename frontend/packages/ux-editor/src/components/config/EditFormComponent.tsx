@@ -14,7 +14,7 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useSelector } from 'react-redux';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { addFeatureToLocalStorage, removeFeatureFromLocalStorage, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { addFeatureFlagToLocalStorage, removeFeatureFlagFromLocalStorage, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -56,9 +56,9 @@ export const EditFormComponent = ({
     setShowComponentConfigBeta(event.target.checked);
     // Ensure choice of feature toggling is persisted in local storage
     if(event.target.checked){
-      addFeatureToLocalStorage('componentConfigBeta');
+      addFeatureFlagToLocalStorage('componentConfigBeta');
     } else {
-      removeFeatureFromLocalStorage('componentConfigBeta');
+      removeFeatureFlagFromLocalStorage('componentConfigBeta');
     }
   };
 

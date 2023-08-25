@@ -1,5 +1,5 @@
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { addFeatureToLocalStorage, removeFeatureFromLocalStorage, shouldDisplayFeature } from './featureToggleUtils';
+import { addFeatureFlagToLocalStorage, removeFeatureFlagFromLocalStorage, shouldDisplayFeature } from './featureToggleUtils';
 
 describe('featureToggle localStorage', () => {
   it('should return true if feature is enabled in the localStorage', () => {
@@ -49,12 +49,12 @@ describe('addFeatureToLocalStorage', () => {
     typedLocalStorage.removeItem('featureFlags');
   });
   it('should add feature to local storage', () => {
-    addFeatureToLocalStorage('processEditor');
+    addFeatureFlagToLocalStorage('processEditor');
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toEqual(['processEditor']);
   });
   it('should append provided feature to existing features in local storage', () => {
     typedLocalStorage.setItem<string[]>('featureFlags', ['demo']);
-    addFeatureToLocalStorage('processEditor');
+    addFeatureFlagToLocalStorage('processEditor');
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toEqual(['demo', 'processEditor']);
   });
 });
@@ -65,12 +65,12 @@ describe('removeFeatureFromLocalStorage', () => {
   });
   it('should remove feature from local storage', () => {
     typedLocalStorage.setItem<string[]>('featureFlags', ['processEditor']);
-    removeFeatureFromLocalStorage('processEditor');
+    removeFeatureFlagFromLocalStorage('processEditor');
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toEqual([]);
   });
   it('should only remove specified feature from local storage', () => {
     typedLocalStorage.setItem<string[]>('featureFlags', ['processEditor', 'demo']);
-    removeFeatureFromLocalStorage('processEditor');
+    removeFeatureFlagFromLocalStorage('processEditor');
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toEqual(['demo']);
   });
 });
