@@ -17,7 +17,7 @@ const render = () => {
     selectedLayout: 'test-layout',
     selectedLayoutSet: 'test-layout-set',
   };
-  return renderWithMockStore({ errors: { errorList: [] } }, queries)(
+  return renderWithMockStore({}, queries)(
     <FormDesigner {...props} />
   );
 };

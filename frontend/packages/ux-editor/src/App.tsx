@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { useParams } from 'react-router-dom';
@@ -82,13 +81,10 @@ export function App() {
 
   if (componentIsReady) {
     return (
-      <>
-        <ErrorMessageComponent />
-        <FormDesigner
-          selectedLayout={selectedLayout}
-          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
-        />
-      </>
+      <FormDesigner
+        selectedLayout={selectedLayout}
+        selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
+      />
     );
   }
   return <PageSpinner />;
