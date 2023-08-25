@@ -36,7 +36,7 @@ context('Designer', () => {
     header.getCreateLink().click();
     designer.getAddPageButton().click();
     designer.getAddPageButton().click();
-    cy.findByText(texts['ux_editor.component_navigation_buttons']).should('be.visible');
+    designer.getDroppableList().findByText(texts['ux_editor.component_navigation_buttons']).should('be.visible');
     designer.getToolbarItemByText(texts['ux_editor.component_input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
