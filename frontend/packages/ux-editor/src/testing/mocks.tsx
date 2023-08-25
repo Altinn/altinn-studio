@@ -46,7 +46,6 @@ export const formDesignerMock: IFormDesignerState = {
 
 export const appStateMock: IAppState = {
   appData: appDataMock,
-  errors: null,
   formDesigner: formDesignerMock,
 };
 

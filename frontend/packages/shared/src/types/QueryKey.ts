@@ -30,6 +30,7 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   OptionListIds = 'OptionListIds',
+  FetchBpmn = 'FetchBpmn',
   AppPolicy = 'AppPolicy',
 
   // Resourceadm
