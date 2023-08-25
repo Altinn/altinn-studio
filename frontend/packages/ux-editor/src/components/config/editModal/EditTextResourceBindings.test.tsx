@@ -3,7 +3,7 @@ import {
   EditTextResourceBindings,
   EditTextResourceBindingsProps,
 } from './EditTextResourceBindings';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
@@ -12,6 +12,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
+import userEvent from '@testing-library/user-event';
 
 // Test data:
 const org = 'org';
@@ -57,6 +58,21 @@ describe('EditTextResourceBindings component', () => {
     await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
     const selectTextResourcesCombobox = screen.getByRole('combobox', { name: textMock('ux_editor.text_resource_bindings.add_label') });
     expect(selectTextResourcesCombobox).toBeInTheDocument();
+  });
+
+  test('that the combobox for selecting text resource binding keys only contains keys that are not already added', async () => {
+    const textResourceBindingKeys = ['title', 'description', 'help'];
+    await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
+    const selectTextResourcesCombobox = screen.getByRole('combobox', { name: textMock('ux_editor.text_resource_bindings.add_label') });
+
+    await act(() => userEvent.click(selectTextResourcesCombobox)); // eslint-disable-line testing-library/no-unnecessary-act
+    let options = screen.getAllByRole('option');
+    expect(options.length).toBe(3);
+
+    await act(() => userEvent.click(options[0])); // eslint-disable-line testing-library/no-unnecessary-act
+    await act(() => userEvent.click(selectTextResourcesCombobox)); // eslint-disable-line testing-library/no-unnecessary-act
+    options = screen.getAllByRole('option');
+    expect(options.length).toBe(2);
   });
 
   test('that it does not render the combobox for selecting text resource binding keys when all available keys are added', async () => {
