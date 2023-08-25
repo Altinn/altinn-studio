@@ -45,6 +45,9 @@ describe('featureToggle url', () => {
 });
 
 describe('addFeatureToLocalStorage', () => {
+  beforeEach(() => {
+    typedLocalStorage.removeItem('featureFlags');
+  });
   it('should add feature to local storage', () => {
     addFeatureToLocalStorage('processEditor');
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toEqual(['processEditor']);
@@ -57,6 +60,9 @@ describe('addFeatureToLocalStorage', () => {
 });
 
 describe('removeFeatureFromLocalStorage', () => {
+  beforeEach(() => {
+    typedLocalStorage.removeItem('featureFlags');
+  });
   it('should remove feature from local storage', () => {
     typedLocalStorage.setItem<string[]>('featureFlags', ['processEditor']);
     removeFeatureFromLocalStorage('processEditor');

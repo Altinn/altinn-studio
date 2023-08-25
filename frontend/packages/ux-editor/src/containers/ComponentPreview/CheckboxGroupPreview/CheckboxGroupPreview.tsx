@@ -1,6 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { LegacyCheckboxGroup, Checkbox } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
