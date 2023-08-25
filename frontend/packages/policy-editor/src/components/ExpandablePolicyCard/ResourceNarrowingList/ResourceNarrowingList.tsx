@@ -116,6 +116,7 @@ export const ResourceNarrowingList = ({
             type='button'
             onClick={handleClickAddResource}
             color='secondary'
+            size='small'
             dashedBorder
             variant='outline'
             icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}

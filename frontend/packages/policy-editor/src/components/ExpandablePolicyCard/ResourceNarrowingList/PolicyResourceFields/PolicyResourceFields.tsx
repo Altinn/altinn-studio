@@ -103,6 +103,7 @@ export const PolicyResourceFields = ({
             onClick={onRemove}
             color='danger'
             hidden={!canEditTypeAndId}
+            size='small'
           />
         )}
       </div>

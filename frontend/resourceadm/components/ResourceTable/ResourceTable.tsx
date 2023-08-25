@@ -56,6 +56,7 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
               onClick={handleSortTable}
               iconPlacement='right'
               color='secondary'
+              size='small'
             >
               Sist endret
             </Button>

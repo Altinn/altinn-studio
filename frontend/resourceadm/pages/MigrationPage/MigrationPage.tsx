@@ -181,6 +181,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
                     setNumDelegationsA3(1000);
                   }}
                   className={classes.button}
+                  size='small'
                 >
                   Hent antall delegeringer
                 </Button>
@@ -220,6 +221,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
                       : undefined
                   }
                   className={classes.button}
+                  size='small'
                 >
                   Migrer delegeringer
                 </Button>
@@ -227,6 +229,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
                   aria-disabled // Remember to do same check for aria-disabled as fot button below
                   onClick={() => {}}
                   className={classes.button}
+                  size='small'
                 >
                   Skru av tjenesten i Altinn 2
                 </Button>

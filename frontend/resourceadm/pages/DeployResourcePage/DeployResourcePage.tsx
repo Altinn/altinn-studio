@@ -265,6 +265,7 @@ export const DeployResourcePage = ({
                     alert('todo - Save new version number');
                   }}
                   iconPlacement='left'
+                  size='small'
                   icon={<UploadIcon title='Lagre versjonsnummer' />}
                 >
                   Last opp dine endringer

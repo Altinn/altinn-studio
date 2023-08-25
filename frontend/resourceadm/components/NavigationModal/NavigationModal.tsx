@@ -50,11 +50,11 @@ export const NavigationModal = ({
       </Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
-          <Button onClick={onClose} color='primary' variant='quiet'>
+          <Button onClick={onClose} color='primary' variant='quiet' size='small'>
             Bli på siden
           </Button>
         </div>
-        <Button onClick={onNavigate} color='primary'>
+        <Button onClick={onNavigate} color='primary' size='small'>
           Gå videre
         </Button>
       </div>

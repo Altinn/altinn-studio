@@ -504,6 +504,7 @@ export const ExpandablePolicyCard = ({
             type='button'
             onClick={handleClickAddResource}
             color='secondary'
+            size='small'
             fullWidth
             icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
           >

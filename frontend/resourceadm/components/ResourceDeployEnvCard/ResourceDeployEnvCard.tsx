@@ -70,6 +70,7 @@ export const ResourceDeployEnvCard = ({
         <Button
           aria-disabled={!isDeployPossible}
           onClick={isDeployPossible ? handleOnClick : undefined}
+          size='small'
         >
           Publiser til {envName}
         </Button>
