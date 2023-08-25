@@ -1,17 +1,10 @@
-import {
-  languageStringMock,
-  missingInputLanguageStringTestMock,
-  nbLanguageMock,
-  resourcePageTextfieldInputMock1,
-  resourcePageTextfieldInputMock2,
-  resourcePageTextfieldInputMock3,
-  resourceTypeOptionDefaultMock,
-  resourceTypeOptionIncorrectMock
-} from "resourceadm/data-mocks/resourceMocks";
 import { convertResourceTypeToDisplayString, getMissingInputLanguageString, getResourcePageTextfieldError, mapLanguageKeyToLanguageText } from "./resourceUtils";
+import type { SupportedLanguage } from "resourceadm/types/global";
+import type { ResourceTypeOption, SupportedLanguageKey } from "app-shared/types/ResourceAdm";
 
 describe('getResourcePageTextfieldError', () => {
   it('returns false when the field have valid data', () => {
+    const resourcePageTextfieldInputMock1: SupportedLanguageKey<string> = { nb: 'Valid', nn: 'Valid', en: 'Valid' };
     const hasError: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock1);
     expect(hasError).toBeFalsy();
   });
@@ -29,8 +22,8 @@ describe('getResourcePageTextfieldError', () => {
   });
 
   it('returns true when the field is undefined or null', () => {
-    const hasErrorUndef: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock2);
-    const hasErrorNull: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock3);
+    const hasErrorUndef: boolean = getResourcePageTextfieldError(undefined);
+    const hasErrorNull: boolean = getResourcePageTextfieldError(null);
     expect(hasErrorUndef).toBeTruthy();
     expect(hasErrorNull).toBeTruthy();
   });
@@ -38,11 +31,13 @@ describe('getResourcePageTextfieldError', () => {
 
 describe('convertResourceTypeToDisplayString', () => {
   it ('converts the type to the correct display string', () => {
+    const resourceTypeOptionDefaultMock: ResourceTypeOption = 'Default';
     const result = convertResourceTypeToDisplayString(resourceTypeOptionDefaultMock);
     expect(result).toEqual('Standard');
   })
 
   it('to return undefined for incorrect type', () => {
+    const resourceTypeOptionIncorrectMock: any = 'Incorrect';
     const result = convertResourceTypeToDisplayString(resourceTypeOptionIncorrectMock);
     expect(result).toBeUndefined();
   })
@@ -50,13 +45,20 @@ describe('convertResourceTypeToDisplayString', () => {
 
 describe('mapLanguageKeyToLanguageText', () => {
   it ('to return Bokmål for nb', () => {
-    const result = mapLanguageKeyToLanguageText(nbLanguageMock);
+    const result = mapLanguageKeyToLanguageText('nb');
     expect(result).toEqual('Bokmål');
   })
 })
 
 describe('getMissingInputLanguageString', () => {
   it ('to map a language with 2 non-empty fields to correct string', () => {
+    const languageStringMock: SupportedLanguage = {
+      nb: 'Test tekst',
+      nn: '',
+      en: ''
+    }
+    const missingInputLanguageStringTestMock: string = 'Du mangler oversettelse for test på Nynorsk og Engelsk.'
+
     const result = getMissingInputLanguageString(languageStringMock, 'test');
     expect(result).toEqual(missingInputLanguageStringTestMock)
   })
