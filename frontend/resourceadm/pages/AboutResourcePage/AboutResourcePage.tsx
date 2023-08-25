@@ -11,7 +11,7 @@ import {
 } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
-import type { SupportedLanguageKeyString, Translation } from 'resourceadm/types/global';
+import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
   ResourceThematic,
   SupportedLanguageKey,
@@ -40,7 +40,7 @@ const resourceTypeOptions = [
 /**
  * Initial value for languages with empty fields
  */
-const emptyLangauges: SupportedLanguageKeyString = { nb: '', nn: '', en: '' };
+const emptyLangauges: SupportedLanguage = { nb: '', nn: '', en: '' };
 
 type AboutResourcePageProps = {
   /**
@@ -180,17 +180,17 @@ export const AboutResourcePage = ({
    * Handles the change in the dropdown of resource type. Based on the string
    * selected it updates the resource type with the correct key.
    *
-   * @param s the selected string
+   * @param type the selected string
    */
-  const handleChangeResourceType = (s: string) => {
-    if (s === 'Standard') setResourceType('Default');
-    else if (s === 'System ressurs') setResourceType('Systemresource');
-    else if (s === 'Maskinporten skjema') setResourceType('MaskinportenSchema');
-    else setResourceType(undefined);
-
-    setHasResourceTypeError(
-      !(s === 'Standard' || s === 'System ressurs' || s === 'Maskinporten skjema')
-    );
+  const handleChangeResourceType = (type: string) => {
+    // TODO - When implementing translations I think we should create an enum/map that makes the keys static regardless of the language itself.
+    const resourceTypeMap = {
+      "Standard": "Default",
+      "System ressurs": "Systemresource",
+      "Maskinporten skjema": "MaskinportenSchema",
+    };
+    setResourceType(resourceTypeMap[type]);
+    setHasResourceTypeError(!Object.values(resourceTypeMap).includes(type));
   };
 
   /**
@@ -211,7 +211,7 @@ export const AboutResourcePage = ({
    *
    * @param value the value typed in the input field
    */
-  const handleChangeTranslationValues = (value: SupportedLanguageKeyString) => {
+  const handleChangeTranslationValues = (value: SupportedLanguage) => {
     const error = value.nb === '' || value.nn === '' || value.en === '';
     if (translationType === 'title') {
       setHasTitleError(error);
@@ -290,7 +290,7 @@ export const AboutResourcePage = ({
               ? description
               : rightDescription
           }
-          onChangeValue={handleChangeTranslationValues}
+          onLanguageChange={handleChangeTranslationValues}
           usesTextArea={translationType === 'description'}
           showErrors={showAllErrors}
           ref={rightTranslationBarRef}

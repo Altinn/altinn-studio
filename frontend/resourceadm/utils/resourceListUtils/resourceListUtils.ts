@@ -8,6 +8,6 @@ export const filterTableData = (searchValue: string, list: ResourceListItem[]): 
 
   return list.filter((resource: ResourceListItem) => {
     const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
-    return titles.some((titleString) => titleString.includes(searchValueLower));
+    return titles.some((titleLower) => titleLower.includes(searchValueLower));
   });
 };

@@ -45,6 +45,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     }
   }, [repoStatus]);
 
+  const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
+
   /**
    * Display different content based on the loading state
    */
@@ -64,8 +66,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
               {`Alle ressurser (${resourceListData?.length ?? 0})`}
             </Heading>
           </div>
-          <ResourceTable list={filterTableData(searchValue, resourceListData ?? [])} />
-          {filterTableData(searchValue, resourceListData ?? []).length === 0 && (
+          <ResourceTable list={filteredResourceList} />
+          {filteredResourceList.length === 0 && (
             <Paragraph size='small' className={classes.noResultText}>
               Det finnes ingen ressursen som har navnet du søkte etter.
             </Paragraph>

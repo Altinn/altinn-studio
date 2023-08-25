@@ -5,9 +5,6 @@ import {
   resourcePageTextfieldInputMock1,
   resourcePageTextfieldInputMock2,
   resourcePageTextfieldInputMock3,
-  resourcePageTextfieldInputMock4,
-  resourcePageTextfieldInputMock5,
-  resourcePageTextfieldInputMock6,
   resourceTypeOptionDefaultMock,
   resourceTypeOptionIncorrectMock
 } from "resourceadm/data-mocks/resourceMocks";
@@ -20,17 +17,20 @@ describe('getResourcePageTextfieldError', () => {
   });
 
   it('returns true when the a language field is empty', () => {
-    const hasErrorMissingNB: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock2);
-    const hasErrorMissingNN: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock3);
-    const hasErrorMissingEN: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock4);
+    const defaultMock = { nb: '', nn: '', en: '' }
+
+    const hasErrorMissingNB: boolean = getResourcePageTextfieldError({ ...defaultMock, nb: 'Valid' });
+    const hasErrorMissingNN: boolean = getResourcePageTextfieldError({ ...defaultMock, nn: 'Valid' });
+    const hasErrorMissingEN: boolean = getResourcePageTextfieldError({ ...defaultMock, en: 'Valid' });
+
     expect(hasErrorMissingNB).toBeTruthy();
     expect(hasErrorMissingNN).toBeTruthy();
     expect(hasErrorMissingEN).toBeTruthy();
   });
 
   it('returns true when the field is undefined or null', () => {
-    const hasErrorUndef: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock5);
-    const hasErrorNull: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock6);
+    const hasErrorUndef: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock2);
+    const hasErrorNull: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock3);
     expect(hasErrorUndef).toBeTruthy();
     expect(hasErrorNull).toBeTruthy();
   });

@@ -1,5 +1,6 @@
 import type { SupportedLanguageKey, ResourceTypeOption } from "app-shared/types/ResourceAdm";
-import { SupportedLanguageKeyString } from "resourceadm/types/global";
+import { SupportedLanguage } from "resourceadm/types/global";
+// TODO - Trranslation
 
 /**
  * Returns true if the text is either null, undefined, or at least one of the
@@ -46,7 +47,7 @@ export const mapLanguageKeyToLanguageText = (val: 'nb' | 'nn' | 'en') => {
  * @param usageString the type of the field
  */
 export const getMissingInputLanguageString = (
-  language: SupportedLanguageKeyString,
+  language: SupportedLanguage,
   usageString: string
 ): string => {
   const valArr: ('nb' | 'nn' | 'en')[] = [];
