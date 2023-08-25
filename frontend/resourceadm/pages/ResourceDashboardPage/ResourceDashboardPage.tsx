@@ -5,12 +5,12 @@ import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 
 /**
  * @component
@@ -45,17 +45,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     }
   }, [repoStatus]);
 
-  /**
-   * Filter the list based on what is typed in the search box
-   */
-  const filteredTableData = (list: ResourceListItem[]) => {
-    const searchValueLower = searchValue.toLocaleLowerCase();
-
-    return list.filter((resource: ResourceListItem) => {
-      const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
-      return titles.some((titleString) => titleString.includes(searchValueLower));
-    });
-  };
+  const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
   /**
    * Display different content based on the loading state
@@ -76,8 +66,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
               {`Alle ressurser (${resourceListData?.length ?? 0})`}
             </Heading>
           </div>
-          <ResourceTable list={filteredTableData(resourceListData ?? [])} />
-          {filteredTableData(resourceListData ?? []).length === 0 && (
+          <ResourceTable list={filteredResourceList} />
+          {filteredResourceList.length === 0 && (
             <Paragraph size='small' className={classes.noResultText}>
               Det finnes ingen ressursen som har navnet du søkte etter.
             </Paragraph>

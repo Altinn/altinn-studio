@@ -11,7 +11,7 @@ import {
 } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
-import type { LanguageString, Translation } from 'resourceadm/types/global';
+import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
   ResourceThematic,
   SupportedLanguageKey,
@@ -22,6 +22,11 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
+import {
+  convertResourceTypeToDisplayString,
+  getMissingInputLanguageString,
+  getResourcePageTextfieldError
+} from 'resourceadm/utils/resourceUtils';
 
 /**
  * The resource type options to be used in the select
@@ -35,7 +40,7 @@ const resourceTypeOptions = [
 /**
  * Initial value for languages with empty fields
  */
-const emptyLangauges: LanguageString = { nb: '', nn: '', en: '' };
+const emptyLangauges: SupportedLanguage = { nb: '', nn: '', en: '' };
 
 type AboutResourcePageProps = {
   /**
@@ -128,25 +133,13 @@ export const AboutResourcePage = ({
     resourceData.resourceType === undefined || resourceData.resourceType === null
   );
   const [hasTitleError, setHasTitleError] = useState(
-    resourceData.title === undefined ||
-      resourceData.title === null ||
-      resourceData.title.nb === '' ||
-      resourceData.title.nn === '' ||
-      resourceData.title.en === ''
+    getResourcePageTextfieldError(resourceData.title)
   );
   const [hasDescriptionError, setHasDescriptionError] = useState(
-    resourceData.description === undefined ||
-      resourceData.description === null ||
-      resourceData.description.nb === '' ||
-      resourceData.description.nn === '' ||
-      resourceData.description.en === ''
+    getResourcePageTextfieldError(resourceData.description)
   );
   const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
-    resourceData.rightDescription === undefined ||
-      resourceData.rightDescription === null ||
-      resourceData.rightDescription.nb === '' ||
-      resourceData.rightDescription.nn === '' ||
-      resourceData.rightDescription.en === ''
+    getResourcePageTextfieldError(resourceData.rightDescription)
   );
 
   // useRefs to handle tabbing between the input elements and the right translation bar
@@ -187,29 +180,17 @@ export const AboutResourcePage = ({
    * Handles the change in the dropdown of resource type. Based on the string
    * selected it updates the resource type with the correct key.
    *
-   * @param s the selected string
+   * @param type the selected string
    */
-  const onChangeResourceType = (s: string) => {
-    if (s === 'Standard') setResourceType('Default');
-    else if (s === 'System ressurs') setResourceType('Systemresource');
-    else if (s === 'Maskinporten skjema') setResourceType('MaskinportenSchema');
-    else setResourceType(undefined);
-
-    setHasResourceTypeError(
-      !(s === 'Standard' || s === 'System ressurs' || s === 'Maskinporten skjema')
-    );
-  };
-
-  /**
-   * Converts the resource type key to the correct displayable string
-   *
-   * @returns the string to display
-   */
-  const getResourceTypeAsDisplayableString = () => {
-    if (resourceType === 'Default') return 'Standard';
-    else if (resourceType === 'Systemresource') return 'System ressurs';
-    else if (resourceType === 'MaskinportenSchema') return 'Maskinporten skjema';
-    return undefined;
+  const handleChangeResourceType = (type: string) => {
+    // TODO - When implementing translations I think we should create an enum/map that makes the keys static regardless of the language itself.
+    const resourceTypeMap = {
+      "Standard": "Default",
+      "System ressurs": "Systemresource",
+      "Maskinporten skjema": "MaskinportenSchema",
+    };
+    setResourceType(resourceTypeMap[type]);
+    setHasResourceTypeError(!Object.values(resourceTypeMap).includes(type));
   };
 
   /**
@@ -230,7 +211,7 @@ export const AboutResourcePage = ({
    *
    * @param value the value typed in the input field
    */
-  const handleChangeTranslationValues = (value: LanguageString) => {
+  const handleChangeTranslationValues = (value: SupportedLanguage) => {
     const error = value.nb === '' || value.nn === '' || value.en === '';
     if (translationType === 'title') {
       setHasTitleError(error);
@@ -309,7 +290,7 @@ export const AboutResourcePage = ({
               ? description
               : rightDescription
           }
-          onChangeValue={handleChangeTranslationValues}
+          onLanguageChange={handleChangeTranslationValues}
           usesTextArea={translationType === 'description'}
           showErrors={showAllErrors}
           ref={rightTranslationBarRef}
@@ -318,50 +299,6 @@ export const AboutResourcePage = ({
         />
       </div>
     );
-  };
-
-  /**
-   * Maps the language key to the text
-   */
-  const getLanguage = (val: 'nb' | 'nn' | 'en') => {
-    if (val === 'nb') return 'Bokmål';
-    if (val === 'nn') return 'Nynorsk';
-    return 'Engelsk';
-  };
-
-  /**
-   * Gets the correct text to display for input fields with missing value
-   *
-   * @param val the value
-   * @param type the type of the field
-   */
-  const getMissingInputLanguage = (val: LanguageString, type: string) => {
-    const valArr: ('nb' | 'nn' | 'en')[] = [];
-
-    // Add the different languages
-    if (val.nb === '') {
-      valArr.push('nb');
-    }
-    if (val.nn === '') {
-      valArr.push('nn');
-    }
-    if (val.en === '') {
-      valArr.push('en');
-    }
-
-    // Return different messages based on the length
-    if (valArr.length === 1) {
-      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])}.`;
-    }
-    if (valArr.length === 2) {
-      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])} og
-      ${getLanguage(valArr[1])}.`;
-    }
-    if (valArr.length === 3) {
-      return `Du mangler oversettelse for ${type} på ${getLanguage(valArr[0])},
-      ${getLanguage(valArr[1])} og ${getLanguage(valArr[2])}.`;
-    }
-    return '';
   };
 
   /**
@@ -382,8 +319,8 @@ export const AboutResourcePage = ({
         <div className={classes.inputWrapper}>
           <Select
             options={resourceTypeOptions}
-            onChange={onChangeResourceType}
-            value={getResourceTypeAsDisplayableString()}
+            onChange={handleChangeResourceType}
+            value={convertResourceTypeToDisplayString(resourceType)}
             label='Ressurstype'
             hideLabel
             onFocus={() => setTranslationType('none')}
@@ -419,7 +356,7 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguage(title, 'tittel'))}
+            displayWarningCard(getMissingInputLanguageString(title, 'tittel'))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
@@ -450,7 +387,7 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguage(description, 'beskrivelse'))}
+            displayWarningCard(getMissingInputLanguageString(description, 'beskrivelse'))}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
@@ -561,7 +498,7 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasRightDescriptionError &&
-            displayWarningCard(getMissingInputLanguage(rightDescription, 'delegasjonstekst'))}
+            displayWarningCard(getMissingInputLanguageString(rightDescription, 'delegasjonstekst'))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>

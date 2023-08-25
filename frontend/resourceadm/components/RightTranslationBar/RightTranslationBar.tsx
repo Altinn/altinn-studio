@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
-import type { LanguageString } from 'resourceadm/types/global';
+import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 
 type RightTranslationBarProps = {
@@ -22,7 +22,7 @@ type RightTranslationBarProps = {
    * Function that updates the value when changes are made in the input field.
    * @param value The language object
    */
-  onChangeValue: (value: LanguageString) => void;
+  onLanguageChange: (value: SupportedLanguage) => void;
   /**
    * Flag to handle when to show the errors
    */
@@ -55,7 +55,7 @@ type RightTranslationBarProps = {
  * @property {string}[title] - The title of the selected inputfield
  * @property {boolean}[usesTextArea] - Optional Boolean flag to decide if a text area should be used instead of a text field
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
- * @property {(value: LanguageString) => void}[onChangeValue] - Function that updates the value when changes are made in the input field.
+ * @property {(value: LanguageString) => void}[onLanguageChange] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
  * @property {function}[onLeaveLastField] - Function to be executed when leaving the last field in the translation bar
  * @property {function}[onBlur] - Function to be executed on blur
@@ -67,12 +67,11 @@ export const RightTranslationBar = forwardRef<
   RightTranslationBarProps
 >(
   (
-    { title, usesTextArea = false, value, onChangeValue, showErrors, onLeaveLastField, onBlur },
+    { title, usesTextArea = false, value, onLanguageChange, showErrors, onLeaveLastField, onBlur },
     ref
   ): React.ReactNode => {
     const handleChange = (lang: 'nn' | 'en', val: string) => {
-      const obj: LanguageString = lang === 'nn' ? { ...value, nn: val } : { ...value, en: val };
-      onChangeValue(obj);
+      onLanguageChange({ ...value, [lang]: val });
     };
 
     const handleTabOutOfTranslationBar = (
