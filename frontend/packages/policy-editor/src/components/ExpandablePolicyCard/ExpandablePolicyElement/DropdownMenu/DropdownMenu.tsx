@@ -139,6 +139,7 @@ export const DropdownMenu = ({
         variant='quiet'
         color={isError ? 'danger' : 'secondary'}
         className={isError && classes.errorButton}
+        size='small'
       />
       {isOpen && (
         <div className={classes.dropdownMenu}>

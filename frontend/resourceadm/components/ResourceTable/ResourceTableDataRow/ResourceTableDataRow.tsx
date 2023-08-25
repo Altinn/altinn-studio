@@ -53,6 +53,7 @@ export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): R
       <td className={cn(classes.tableDataSmall, classes.tableData)}>
         <Button
           variant='quiet'
+          size='small'
           color='secondary'
           icon={<PencilWritingIcon title='Rediger ressurs' />}
           iconPlacement='right'

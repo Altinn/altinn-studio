@@ -74,7 +74,7 @@ export const MergeConflictModal = ({
             </Link>
           </div>
         </div>
-        <Button onClick={() => setResetModalOpen(true)}>
+        <Button onClick={() => setResetModalOpen(true)} size='small'>
           {t('merge_conflict.remove_my_changes')}
         </Button>
         <RemoveChangesModal

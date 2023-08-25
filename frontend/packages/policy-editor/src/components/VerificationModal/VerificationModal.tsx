@@ -81,11 +81,11 @@ export const VerificationModal = ({
       <Paragraph size='small'>{text}</Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButtonWrapper}>
-          <Button onClick={onClose} variant='quiet'>
+          <Button onClick={onClose} variant='quiet' size='small'>
             {closeButtonText}
           </Button>
         </div>
-        <Button onClick={onPerformAction} color='primary'>
+        <Button onClick={onPerformAction} color='primary' size='small'>
           {actionButtonText}
         </Button>
       </div>

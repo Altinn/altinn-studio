@@ -137,12 +137,14 @@ export const ResourceNameAndId = ({
                   variant='quiet'
                   color='danger'
                   icon={<MultiplyIcon title='Slett ny ressurs id' />}
+                  size='small'
                 />
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
                 variant='quiet'
                 icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
+                size='small'
               />
             </div>
           </>
@@ -162,6 +164,7 @@ export const ResourceNameAndId = ({
                 icon={<PencilWritingIcon title='Endre ressurs id' />}
                 variant='quiet'
                 color='primary'
+                size='small'
               >
                 Rediger
               </Button>
