@@ -145,6 +145,24 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newLastName).should('be.focused');
   });
 
+  it('Process should not continue if any validation fails, even if unmappable', () => {
+    cy.goto('changename');
+    cy.fillOut('changename');
+
+    cy.get(appFrontend.grid.bolig.percent).numberFormatClear();
+    cy.get(appFrontend.grid.studie.percent).numberFormatClear();
+    cy.get(appFrontend.grid.kredittkort.percent).numberFormatClear();
+    cy.get(appFrontend.grid.kredittkort.percent).type('44');
+    cy.get(appFrontend.grid.studie.percent).type('56');
+
+    // When filling out the credit card field with 44%, there is a special validation that triggers and is added to
+    // a field on a hidden page. Even though this should not happen, we should still not be able to continue, as
+    // submitting the form now when there is a validation error should not be possible - and attempting it will cause
+    // the dreaded 'unknown error' message to appear.
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'Valideringsmelding på felt som aldri vises');
+  });
+
   it('Validation on uploaded attachment type', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });

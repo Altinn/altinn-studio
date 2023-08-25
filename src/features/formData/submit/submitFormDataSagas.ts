@@ -71,6 +71,7 @@ function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages) {
     serverValidations ?? [],
     resolvedNodes,
     staticUseLanguageFromState(state),
+    false,
   );
   const validationResult = createValidationResult(validationObjects);
   yield put(ValidationActions.updateValidations({ validationResult, merge: false }));
