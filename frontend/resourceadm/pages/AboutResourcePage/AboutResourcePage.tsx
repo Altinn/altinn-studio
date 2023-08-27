@@ -190,7 +190,7 @@ export const AboutResourcePage = ({
       "Maskinporten skjema": "MaskinportenSchema",
     };
     setResourceType(resourceTypeMap[type]);
-    setHasResourceTypeError(!Object.values(resourceTypeMap).includes(type));
+    setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
   };
 
   /**

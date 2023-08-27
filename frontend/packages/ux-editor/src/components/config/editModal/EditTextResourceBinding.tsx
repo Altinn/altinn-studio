@@ -2,26 +2,28 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import type { IGenericEditComponent } from '../componentConfig';
 import { TextResource } from '../../TextResource';
-import { useText } from '../../../hooks';
 import { TranslationKey } from 'language/type';
 import { IAppState } from '../../../types/global';
+import { useTranslation } from 'react-i18next';
 
 export interface EditTextResourceBindingProps extends IGenericEditComponent {
   textKey: string;
   labelKey: TranslationKey;
   descriptionKey?: TranslationKey;
   placeholderKey?: TranslationKey;
+  removeTextResourceBinding?: () => void;
 }
 
 export const EditTextResourceBinding = ({
   component,
   handleComponentChange,
+  removeTextResourceBinding,
   textKey,
   labelKey,
   descriptionKey,
   placeholderKey,
 }: EditTextResourceBindingProps) => {
-  const t = useText();
+  const { t } = useTranslation();
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner?.layout?.selectedLayout
   );
@@ -34,9 +36,17 @@ export const EditTextResourceBinding = ({
         [textKey]: value,
       },
     });
+
+  const handleRemoveTextResourceBinding = () => {
+    const componentCopy = { ...component };
+    delete componentCopy.textResourceBindings?.[textKey];
+    handleComponentChange(componentCopy);
+    removeTextResourceBinding?.();
+  }
   return (
     <TextResource
       handleIdChange={handleTextResourceChange}
+      handleRemoveTextResource={handleRemoveTextResourceBinding}
       label={t(labelKey)}
       description={t(descriptionKey)}
       placeholder={t(placeholderKey)}

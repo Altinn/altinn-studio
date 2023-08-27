@@ -88,9 +88,11 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   }, [handleComponentSave, handleContainerSave]);
 
   const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {
-    dispatch(setCurrentEditId(undefined));
-    setFormId(updatedForm?.id);
-    setForm(updatedForm);
+    if (updatedForm) {
+      dispatch(setCurrentEditId(undefined));
+      setFormId(updatedForm?.id);
+      setForm(updatedForm);
+    }  
   }, [dispatch]);
 
   const handleDiscard = useCallback((): void => {
