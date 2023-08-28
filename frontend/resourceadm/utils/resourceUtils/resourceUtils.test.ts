@@ -1,6 +1,6 @@
-import { convertResourceTypeToDisplayString, getMissingInputLanguageString, getResourcePageTextfieldError, mapLanguageKeyToLanguageText } from "./resourceUtils";
+import { getMissingInputLanguageString, getResourcePageTextfieldError, mapLanguageKeyToLanguageText } from "./resourceUtils";
 import type { SupportedLanguage } from "resourceadm/types/global";
-import type { ResourceTypeOption, SupportedLanguageKey } from "app-shared/types/ResourceAdm";
+import type { SupportedLanguageKey } from "app-shared/types/ResourceAdm";
 
 describe('getResourcePageTextfieldError', () => {
   it('returns false when the field have valid data', () => {
@@ -28,20 +28,6 @@ describe('getResourcePageTextfieldError', () => {
     expect(hasErrorNull).toBeTruthy();
   });
 });
-
-describe('convertResourceTypeToDisplayString', () => {
-  it ('converts the type to the correct display string', () => {
-    const resourceTypeOptionDefaultMock: ResourceTypeOption = 'Default';
-    const result = convertResourceTypeToDisplayString(resourceTypeOptionDefaultMock);
-    expect(result).toEqual('Standard');
-  })
-
-  it('to return undefined for incorrect type', () => {
-    const resourceTypeOptionIncorrectMock: any = 'Incorrect';
-    const result = convertResourceTypeToDisplayString(resourceTypeOptionIncorrectMock);
-    expect(result).toBeUndefined();
-  })
-})
 
 describe('mapLanguageKeyToLanguageText', () => {
   it ('to return Bokmål for nb', () => {
