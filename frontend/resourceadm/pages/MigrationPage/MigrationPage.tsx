@@ -67,7 +67,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
     if (validatePolicyLoading || validateResourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner size='3xLarge' variant='interaction' title='Laster inn migreringsstatus' />
         </div>
       );
     }

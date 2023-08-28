@@ -1133,7 +1133,15 @@
   "resourceadm.dahboard_resource_name_and_id_edit_id_icon": "Edit resource id",
   "resourceadm.dahboard_resource_name_and_id_error": "It already exists a resource with the selected id.",
   "resourceadm.policy_editor_title": "Policy rules",
-  "resourceadm.policy_editor_spinner": "Loading policy rules"
+  "resourceadm.policy_editor_spinner": "Loading policy rules",
+
+  "resourceadm.resource_navigation_modal_title_policy": "Missing information in the policy rules",
+  "resourceadm.resource_navigation_modal_title_resource": "Missing information in the resource",
+  "resourceadm.resource_navigation_modal_text": "Some fields on the page have missing information or errors in completion. You can change or fix the information at any time before the resource is published.",
+  "resourceadm.resource_navigation_modal_button_stay": "Stay on the page",
+  "resourceadm.resource_navigation_modal_button_move_on": "Go to next page",
+
+  "resourceadm.about_resource_spinner": "Loading resource"
 
 
 

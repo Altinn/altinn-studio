@@ -1291,5 +1291,14 @@
   "resourceadm.dahboard_resource_name_and_id_edit_id_icon": "Endre ressurs id",
   "resourceadm.dahboard_resource_name_and_id_error": "Ressurs med valgt id eksisterer allerede.",
   "resourceadm.policy_editor_title": "Tilgangsregler",
-  "resourceadm.policy_editor_spinner": "Laster inn tilgangsregler"
+  "resourceadm.policy_editor_spinner": "Laster inn tilgangsregler",
+
+  "resourceadm.resource_navigation_modal_title_policy": "Manglende informasjon i tilgangsregler",
+  "resourceadm.resource_navigation_modal_title_resource": "Manglende informasjon i ressurs",
+  "resourceadm.resource_navigation_modal_text": "Noen felt på siden har manglende informasjon eller feil i utfylling. Du kan endre eller fikse informasjonen når som helst før ressursen publiseres.",
+  "resourceadm.resource_navigation_modal_button_stay": "Bli på siden",
+  "resourceadm.resource_navigation_modal_button_move_on": "Gå videre",
+
+  "resourceadm.about_resource_spinner": "Laster inn ressurs"
+
 }
