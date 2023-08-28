@@ -25,8 +25,10 @@ export const Content = () => {
           editFormId={formId}
           container={form}
           handleContainerUpdate={async (updatedContainer) => {
-            handleUpdate(updatedContainer);
-            debounceSave();
+            handleUpdate((updatedContainer));
+            // Workaround to make sure the container is updated before the form is saved
+            // TODO: https://github.com/Altinn/altinn-studio/issues/10923
+            setTimeout(() => debounceSave());
           }}
         />
       ) : (
@@ -35,7 +37,9 @@ export const Content = () => {
           component={form}
           handleComponentUpdate={async (updatedComponent) => {
             handleUpdate(updatedComponent);
-            debounceSave();
+            // Workaround to make sure the component is updated before the form is saved
+            // TODO: https://github.com/Altinn/altinn-studio/issues/10923
+            setTimeout(() => debounceSave());
           }}
         />
       )}
