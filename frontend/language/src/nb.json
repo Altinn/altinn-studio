@@ -1259,7 +1259,6 @@
   "policy_editor.verification_modal_text": "Er du sikker på at du vil slette denne regelen?",
   "policy_editor.verification_modal_action_button": "Ja, slett regel",
   "policy_editor.verification_modal_close_button": "Nei, gå tilbake",
-
   "resourceadm.dashboard_spinner": "Laster inn ressurser",
   "resourceadm.dashboard_num_resources": "Alle ressurser",
   "resourceadm.dashboard_empty_list": "Det finnes ingen ressursen som har navnet du søkte etter.",

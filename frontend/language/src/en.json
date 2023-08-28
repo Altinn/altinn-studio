@@ -1101,7 +1101,6 @@
   "policy_editor.verification_modal_text": "Are you sure want to delete this rule?",
   "policy_editor.verification_modal_action_button": "Yes, delete rule",
   "policy_editor.verification_modal_close_button": "No, go back",
-
   "resourceadm.dashboard_spinner": "Loading resources",
   "resourceadm.dashboard_num_resources": "All resources",
   "resourceadm.dashboard_empty_list": "There are no resources with the name you searched for.",
