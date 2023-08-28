@@ -5,10 +5,10 @@ import { Typography } from '@material-ui/core';
 
 import { RadioButton } from 'src/components/form/RadioButton';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { LayoutStyle } from 'src/layout/common.generated';
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
-import { LayoutStyle } from 'src/types';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';

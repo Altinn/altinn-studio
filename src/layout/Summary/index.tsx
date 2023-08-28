@@ -1,13 +1,10 @@
 import React from 'react';
 
-import { ContainerComponent } from 'src/layout/LayoutComponent';
+import { SummaryDef } from 'src/layout/Summary/config.def.generated';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ILayoutCompSummary } from 'src/layout/Summary/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Summary extends ContainerComponent<'Summary'> {
+export class Summary extends SummaryDef {
   directRender(): boolean {
     return true;
   }
@@ -34,21 +31,4 @@ export class Summary extends ContainerComponent<'Summary'> {
   getDisplayData(): string {
     return '';
   }
-
-  canRenderInTable(): boolean {
-    return false;
-  }
 }
-
-export const Config = {
-  def: new Summary(),
-  rendersWithLabel: false as const,
-};
-
-export type TypeConfig = {
-  layout: ILayoutCompSummary;
-  nodeItem: ExprResolved<ILayoutCompSummary>;
-  nodeObj: LayoutNode;
-  validTextResourceBindings: undefined;
-  validDataModelBindings: undefined;
-};

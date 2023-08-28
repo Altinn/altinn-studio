@@ -9,10 +9,10 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import type { IAttachment } from 'src/features/attachments';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IFileTableButtonsProps {
-  node: LayoutNodeFromType<'FileUpload' | 'FileUploadWithTag'>;
+  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
   attachment: IAttachment;
   index: number;
   mobileView: boolean;

@@ -13,7 +13,6 @@ import { getFieldName } from 'src/utils/formComponentUtils';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation/validation';
-import type { ITextResourceBindings } from 'src/layout/layout';
 
 export function Form() {
   const nodes = useExprContext();
@@ -34,12 +33,10 @@ export function Form() {
     if (validations && pageKey && validations[pageKey]) {
       const requiredValidationTextResources: string[] = [];
       page.flat(true).forEach((node) => {
-        const textResourceBindings = node.item.textResourceBindings as ITextResourceBindings;
-        const fieldName = getFieldName(textResourceBindings, langTools);
-        if (node.item.required && textResourceBindings?.requiredValidation) {
-          requiredValidationTextResources.push(
-            langTools.langAsString(textResourceBindings?.requiredValidation, [fieldName]),
-          );
+        const trb = node.item.textResourceBindings;
+        const fieldName = getFieldName(trb, langTools);
+        if ('required' in node.item && node.item.required && trb && 'requiredValidation' in trb) {
+          requiredValidationTextResources.push(langTools.langAsString(trb.requiredValidation, [fieldName]));
         }
       });
 

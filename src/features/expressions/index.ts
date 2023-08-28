@@ -12,7 +12,7 @@ import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
 import { implementsDisplayData } from 'src/layout';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
@@ -24,9 +24,10 @@ import type {
   ExprValToActual,
   FuncDef,
 } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { IDataModelBindings, ILayoutComponent } from 'src/layout/layout';
+import type { CompGroupExternal } from 'src/layout/Group/config.generated';
+import type { CompExternal } from 'src/layout/layout';
 import type { IAuthContext, IInstanceContext } from 'src/types/shared';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface EvalExprOptions {
   config?: ExprConfig;
@@ -477,14 +478,16 @@ export const ExprFunctions = {
       const node = this.failWithoutNode();
       const closestComponent = node.closest((c) => c.id === id || c.baseComponentId === id);
       const component = closestComponent ?? (node instanceof LayoutPage ? node.findById(id) : node.top.findById(id));
-      const dataModelBindings = (component?.item.dataModelBindings as IDataModelBindings) || undefined;
-      const binding = dataModelBindings?.simpleBinding;
-      if (component && binding) {
+      const dataModelBindings =
+        component && 'dataModelBindings' in component.item ? component.item.dataModelBindings : undefined;
+      const simpleBinding =
+        dataModelBindings && 'simpleBinding' in dataModelBindings ? dataModelBindings.simpleBinding : undefined;
+      if (component && simpleBinding) {
         if (component.isHidden()) {
           return null;
         }
 
-        return (this.dataSources.formData && this.dataSources.formData[binding]) || null;
+        return (this.dataSources.formData && this.dataSources.formData[simpleBinding]) || null;
       }
 
       // Expressions can technically be used without having all the layouts available, which might lead to unexpected
@@ -507,7 +510,7 @@ export const ExprFunctions = {
       }
 
       const maybeNode = this.failWithoutNode();
-      if (maybeNode instanceof LayoutNode) {
+      if (maybeNode instanceof BaseLayoutNode) {
         const newPath = maybeNode?.transposeDataModel(path);
         return (newPath && this.dataSources.formData[newPath]) || null;
       }
@@ -777,7 +780,7 @@ window.evalExpression = () => {
   );
 };
 
-export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {
+export const ExprConfigForComponent: ExprObjConfig<CompExternal> = {
   readOnly: {
     returnType: ExprVal.Boolean,
     defaultValue: false,
@@ -819,7 +822,7 @@ export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {
   },
 };
 
-export const ExprConfigForGroup: ExprObjConfig<ILayoutGroup> = {
+export const ExprConfigForGroup: ExprObjConfig<CompGroupExternal> = {
   ...ExprConfigForComponent,
   hiddenRow: {
     returnType: ExprVal.Boolean,

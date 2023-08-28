@@ -10,7 +10,7 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { ActionButtonStyle } from 'src/layout/ActionButton/types';
+import type { ActionButtonStyle } from 'src/layout/ActionButton/config.generated';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 
 export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {

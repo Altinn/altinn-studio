@@ -8,8 +8,9 @@ import {
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/formData';
 import type { IOptionResources } from 'src/hooks/useGetOptions';
+import type { IMapping, IOption, IOptionSource } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
-import type { IMapping, IOption, IOptions, IOptionsMetaData, IOptionSource, IRepeatingGroups } from 'src/types';
+import type { IOptions, IOptionsMetaData, IRepeatingGroups } from 'src/types';
 import type { IDataSources } from 'src/types/shared';
 
 export function getOptionLookupKey({ id, mapping, fixedQueryParameters }: IOptionsMetaData) {

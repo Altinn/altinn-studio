@@ -1,7 +1,7 @@
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import type { IAttachment, IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function extractListFromBinding(formData: IFormData, listBinding: string): string[] {
   return Object.keys(formData)
@@ -38,18 +38,21 @@ export function attachmentsFromComponentId(componentId: string, attachments: IAt
 
   return [];
 }
-export function useUploaderSummaryData(node: LayoutNodeFromType<'FileUpload' | 'FileUploadWithTag'>): IAttachment[] {
+export function useUploaderSummaryData(node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>): IAttachment[] {
   const formData = useAppSelector((state) => state.formData.formData);
   const attachments = useAppSelector((state) => state.attachments.attachments);
   return getUploaderSummaryData(node, formData, attachments);
 }
 
 export function getUploaderSummaryData(
-  node: LayoutNodeFromType<'FileUpload' | 'FileUploadWithTag'>,
+  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>,
   formData: IFormData,
   attachments: IAttachments,
 ): IAttachment[] {
-  const listBinding = node.item.dataModelBindings?.list;
+  const listBinding =
+    node.item.dataModelBindings && 'list' in node.item.dataModelBindings
+      ? node.item.dataModelBindings?.list
+      : undefined;
   if (listBinding) {
     const values = extractListFromBinding(formData, listBinding);
     return attachmentsFromUuids(node.item.id, values, attachments).sort(sortAttachmentsByName);

@@ -56,7 +56,7 @@ export function checkIfRuleShouldRun(
               return;
             }
             let ruleDataBindingKey: string | undefined = undefined;
-            if (layoutElement.dataModelBindings) {
+            if ('dataModelBindings' in layoutElement && layoutElement.dataModelBindings) {
               ruleDataBindingKey = Object.keys(layoutElement.dataModelBindings).find(
                 (dataBindingKey) =>
                   layoutElement.dataModelBindings &&

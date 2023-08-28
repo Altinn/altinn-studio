@@ -11,10 +11,11 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { useExprContext } from 'src/utils/layout/ExprContext';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation/validation';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { FlatError } from 'src/utils/validation/validation';
 
 export interface IErrorReportProps {
@@ -62,11 +63,11 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
 
     const allParents = componentNode?.parents() || [];
     for (const [i, parentNode] of allParents.entries()) {
-      if (!(parentNode instanceof LayoutNode && parentNode.isRepGroup())) {
+      if (!(parentNode instanceof LayoutNodeForGroup && parentNode.isRepGroup())) {
         continue;
       }
       const editMode = parentNode.item.edit?.mode;
-      if (editMode === 'likert' || editMode === 'onlyTable') {
+      if (editMode === 'onlyTable') {
         // No need to set editIndex for likert or repeating groups only rendering in table.
         // These have no edit container.
         continue;

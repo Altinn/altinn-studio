@@ -1,6 +1,10 @@
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
-import type { ChildFactory, HierarchyGenerator, UnprocessedItem } from 'src/utils/layout/HierarchyGenerator';
+import type {
+  ChildFactory,
+  HierarchyContext,
+  HierarchyGenerator,
+  UnprocessedItem,
+} from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class ButtonGroupHierarchyGenerator extends ComponentHierarchyGenerator<'ButtonGroup'> {
@@ -18,7 +22,7 @@ export class ButtonGroupHierarchyGenerator extends ComponentHierarchyGenerator<'
     return def?.canRenderInButtonGroup() === true;
   }
 
-  stage1(generator, item): void {
+  stage1(generator: HierarchyGenerator, item: UnprocessedItem<'ButtonGroup'>): void {
     for (const childId of item.children) {
       if (childId) {
         if (!this.canRenderInButtonGroup(generator, childId)) {
@@ -33,10 +37,10 @@ export class ButtonGroupHierarchyGenerator extends ComponentHierarchyGenerator<'
     }
   }
 
-  stage2(ctx): ChildFactory<'ButtonGroup'> {
+  stage2(ctx: HierarchyContext): ChildFactory<'ButtonGroup'> {
     return (props) => {
       const prototype = ctx.generator.prototype(ctx.id) as UnprocessedItem<'ButtonGroup'>;
-      delete (props.item as any)['children'];
+      delete props.item['children'];
       const me = ctx.generator.makeNode(props);
 
       const childNodes: LayoutNode[] = [];
@@ -59,7 +63,7 @@ export class ButtonGroupHierarchyGenerator extends ComponentHierarchyGenerator<'
     };
   }
 
-  childrenFromNode(node: LayoutNodeFromType<'ButtonGroup'>): LayoutNode[] {
+  childrenFromNode(node: LayoutNode<'ButtonGroup'>): LayoutNode[] {
     return node.item.childComponents;
   }
 }

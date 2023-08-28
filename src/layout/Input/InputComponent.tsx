@@ -10,7 +10,7 @@ import { useRerender } from 'src/hooks/useReload';
 import { canBeParsedToDecimal } from 'src/utils/formattingUtils';
 import { createCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IInputFormatting } from 'src/layout/layout';
+import type { IInputFormatting } from 'src/layout/Input/config.generated';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 

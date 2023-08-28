@@ -8,6 +8,7 @@ import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
 import type { IAttachment } from 'src/features/attachments';
+import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const testId = 'mockId';
@@ -316,6 +317,7 @@ const renderWithTag = ({ component, genericProps, attachments = getAttachments()
     renderer: (props) => <FileUploadComponent {...props} />,
     component: {
       id: testId,
+      type: 'FileUploadWithTag',
       displayMode: 'list',
       maxFileSizeInMB: 2,
       maxNumberOfAttachments: 7,
@@ -324,12 +326,9 @@ const renderWithTag = ({ component, genericProps, attachments = getAttachments()
       optionsId: 'test-options-id',
       textResourceBindings: {
         tagTitle: 'attachment-tag-title',
-        'attachment-tag-label-0': 'attachment-tag-value-0',
-        'attachment-tag-label-1': 'attachment-tag-value-1',
-        'attachment-tag-label-2': 'attachment-tag-value-2',
       },
       ...component,
-    },
+    } as CompFileUploadWithTagExternal,
     genericProps: {
       isValid: true,
       ...genericProps,

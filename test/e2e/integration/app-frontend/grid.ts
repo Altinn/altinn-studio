@@ -2,6 +2,8 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
+import type { GridCellLabelFrom } from 'src/layout/common.generated';
+
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
@@ -127,15 +129,17 @@ describe('Grid component', () => {
   it("should allow adding help text to Grid's text cells or referencing a component", () => {
     cy.interceptLayout('changename', (component) => {
       if (component.type === 'Grid') {
-        if (component.rows[1].cells[0]) {
-          component.rows[1].cells[0].help = 'Help text';
+        const cell1 = component.rows[1].cells[0];
+        if (cell1 && 'text' in cell1) {
+          cell1.help = 'Help text';
         }
-        if (component.rows[2].cells[0]) {
-          delete component.rows[2].cells[0].text;
-          component.rows[2].cells[0].labelFrom = 'fordeling-studie';
+        const cell2 = component.rows[2].cells[0];
+        if (cell2 && 'text' in cell2) {
+          delete (cell2 as any).text;
+          (cell2 as unknown as GridCellLabelFrom).labelFrom = 'fordeling-studie';
         }
       }
-      if (component.type === 'Input' && component.id === 'fordeling-studie') {
+      if (component.type === 'Input' && component.id === 'fordeling-studie' && component.textResourceBindings) {
         component.textResourceBindings.description = 'Dette er en beskrivende tekst';
         component.textResourceBindings.help = 'Dette er en hjelpetekst';
       }

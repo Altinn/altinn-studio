@@ -3,30 +3,23 @@ import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/f
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
 import { getLayoutComponentObject } from 'src/layout';
+import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { Layouts } from 'src/features/expressions/shared';
-import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
+import type { ILayout } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
-
-function isRepeatingGroup(
-  component?: ExprUnresolved<ILayoutComponentOrGroup> | ExprResolved<ILayoutComponentOrGroup>,
-): component is ExprUnresolved<ILayoutGroup> | ExprResolved<ILayoutGroup> {
-  return !!(component && component.type === 'Group' && component.maxCount && component.maxCount > 1);
-}
 
 function generateRepeatingGroups(layout: ILayout) {
   const repeatingGroups: IRepeatingGroups = {};
   for (const component of layout) {
-    if (isRepeatingGroup(component)) {
+    if (component.type === 'Group' && groupIsRepeatingExt(component)) {
       repeatingGroups[component.id] = {
         index: 1,
         editIndex: -1,
       };
       for (const child of component.children) {
         const childElm = layout.find((c) => c.id === child);
-        if (isRepeatingGroup(childElm)) {
+        if (childElm?.type === 'Group' && groupIsRepeatingExt(childElm)) {
           repeatingGroups[`${childElm.id}-0`] = {
             index: 1,
             editIndex: -1,

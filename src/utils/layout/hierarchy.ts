@@ -7,9 +7,8 @@ import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
-import type { ILayouts } from 'src/layout/layout';
+import type { CompInternal, HierarchyDataSources, ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups, IRuntimeState, ITextResource } from 'src/types';
-import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 /**
@@ -53,9 +52,9 @@ function resolvedNodesInLayouts(
         dataSources,
         config,
         resolvingPerRow: false,
-      }) as unknown as AnyItem;
+      }) as unknown as CompInternal;
 
-      if (node.isRepGroup()) {
+      if (node.isType('Group') && node.isRepGroup()) {
         for (const row of node.item.rows) {
           if (!row) {
             continue;

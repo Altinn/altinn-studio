@@ -2,29 +2,25 @@ import React from 'react';
 
 import moment from 'moment';
 
+import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
-import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
-import type { ExprResolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
-import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
-import type { IDataModelBindingsSimple } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
 import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class Datepicker extends FormComponent<'Datepicker'> implements ComponentValidation {
+export class Datepicker extends DatepickerDef implements ComponentValidation {
   render(props: PropsFromGenericComponent<'Datepicker'>): JSX.Element | null {
     return <DatepickerComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNodeFromType<'Datepicker'>, { formData, langTools }): string {
+  getDisplayData(node: LayoutNode<'Datepicker'>, { formData, langTools }): string {
     const { selectedLanguage } = langTools;
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
@@ -46,7 +42,7 @@ export class Datepicker extends FormComponent<'Datepicker'> implements Component
   }
 
   runComponentValidation(
-    node: LayoutNodeFromType<'Datepicker'>,
+    node: LayoutNode<'Datepicker'>,
     { formData, langTools }: IValidationContext,
     overrideFormData?: IFormData,
   ): IValidationObject[] {
@@ -82,10 +78,7 @@ export class Datepicker extends FormComponent<'Datepicker'> implements Component
   }
 
   // Since the format is validated in component validations, it needs to be ignored in schema validation
-  runSchemaValidation(
-    node: LayoutNodeFromType<'Datepicker'>,
-    schemaErrors: ISchemaValidationError[],
-  ): IValidationObject[] {
+  runSchemaValidation(node: LayoutNode<'Datepicker'>, schemaErrors: ISchemaValidationError[]): IValidationObject[] {
     const bindingField = node.item.dataModelBindings?.simpleBinding;
     if (!bindingField) {
       return [];
@@ -102,16 +95,3 @@ export class Datepicker extends FormComponent<'Datepicker'> implements Component
     return validationObjects;
   }
 }
-
-export const Config = {
-  def: new Datepicker(),
-  rendersWithLabel: true as const,
-};
-
-export type TypeConfig = {
-  layout: ILayoutCompDatepicker;
-  nodeItem: ExprResolved<ILayoutCompDatepicker>;
-  nodeObj: LayoutNode;
-  validTextResourceBindings: undefined;
-  validDataModelBindings: IDataModelBindingsSimple;
-};

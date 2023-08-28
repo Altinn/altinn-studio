@@ -11,13 +11,14 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
 import classes from 'src/layout/Panel/Panel.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { CompGroupNonRepeatingPanelInternal } from 'src/layout/Group/config.generated';
+import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 
-interface PanelGroupConatinerProps {
-  node: LayoutNodeFromType<'Group'>;
+interface PanelGroupContainerProps {
+  node: LayoutNodeForGroup<CompGroupNonRepeatingPanelInternal>;
 }
 
-export const PanelGroupContainer = ({ node }: PanelGroupConatinerProps) => {
+export const PanelGroupContainer = ({ node }: PanelGroupContainerProps) => {
   const { lang } = useLanguage();
   const title = lang(node.item.textResourceBindings?.title);
   const body = lang(node.item.textResourceBindings?.body);

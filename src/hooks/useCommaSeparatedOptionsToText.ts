@@ -1,8 +1,7 @@
 import { useLanguage } from 'src/hooks/useLanguage';
 import { useOptionList } from 'src/hooks/useOptionList';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { ISelectionComponent } from 'src/layout/layout';
-import type { IOption } from 'src/types';
+import type { IOption, ISelectionComponent } from 'src/layout/common.generated';
 
 /**
  * Utility function meant to convert multiple values for a multi-selection component to an object used in Summary

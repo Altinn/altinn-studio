@@ -15,7 +15,9 @@ export function useBindingSchema<T extends IDataModelBindings | undefined>(bindi
 
   if (resolvedBindings && currentSchema) {
     const out = {} as AsSchema<T>;
-    for (const [key, value] of Object.entries(resolvedBindings)) {
+    for (const [key, _value] of Object.entries(resolvedBindings)) {
+      const value = _value as string;
+
       // Converts dot-notation to JsonPointer (including support for repeating groups)
       const schemaPath = `/${value.replace(/\./g, '/')}`.replace(/\[(\d+)]\//g, (...a) => `/${a[1]}/`);
 

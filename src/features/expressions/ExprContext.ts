@@ -9,7 +9,7 @@ import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IOptions, IUiConfig } from 'src/types';
 import type { IApplicationSettings, IAuthContext, IInstanceContext } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 export interface ContextDataSources {
@@ -74,7 +74,7 @@ export class ExprContext {
   /**
    * Utility function used to get the LayoutNode for this context, or fail if the node was not found
    */
-  public failWithoutNode(): LayoutNode | LayoutPage {
+  public failWithoutNode(): LayoutNode | BaseLayoutNode | LayoutPage {
     if (this.node instanceof NodeNotFoundWithoutContext) {
       throw new NodeNotFound(this, this.node);
     }

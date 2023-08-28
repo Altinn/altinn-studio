@@ -10,12 +10,12 @@ import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { HComponent } from 'src/utils/layout/hierarchy.types';
+import type { CompInternal } from 'src/layout/layout';
 
 export type IButtonReceivedProps = PropsFromGenericComponent<'Button'>;
 export type IButtonProvidedProps =
-  | (PropsFromGenericComponent<'Button'> & HComponent<'Button'>)
-  | (PropsFromGenericComponent<'InstantiationButton'> & HComponent<'InstantiationButton'>);
+  | (PropsFromGenericComponent<'Button'> & CompInternal<'Button'>)
+  | (PropsFromGenericComponent<'InstantiationButton'> & CompInternal<'InstantiationButton'>);
 
 export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
   const { id, mode } = node.item;

@@ -32,9 +32,6 @@
   - [ ] No functionality has been changed/added, so no documentation is needed
   - [ ] I will do that later/have created an issue
   <!--- insert link to issue here -->
-- Changes/additions to component properties
-  - [ ] Changes are reflected in both `src/layout/layout.d.ts` and `layout.schema.v1.json`, and these are all backwards-compatible
-  - [ ] No changes made
 - Support in Altinn Studio
   - [ ] Issue(s) created for support in Studio
   <!--- insert link to issue(s) here -->

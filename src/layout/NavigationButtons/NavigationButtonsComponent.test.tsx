@@ -5,24 +5,19 @@ import { screen } from '@testing-library/react';
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { ExprResolved } from 'src/features/expressions/types';
-import type { ILayoutCompNavButtons } from 'src/layout/NavigationButtons/types';
+import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 describe('NavigationButton', () => {
-  const navButton1: ExprResolved<ILayoutCompNavButtons> = {
+  const navButton1: CompNavigationButtonsExternal = {
     id: 'nav-button1',
     type: 'NavigationButtons',
     textResourceBindings: {},
-    readOnly: false,
-    required: false,
   };
-  const navButton2: ExprResolved<ILayoutCompNavButtons> = {
+  const navButton2: CompNavigationButtonsExternal = {
     id: 'nav-button2',
     type: 'NavigationButtons',
     textResourceBindings: {},
-    readOnly: false,
-    required: false,
   };
   const mockLayout = getFormLayoutStateMock({
     layouts: {

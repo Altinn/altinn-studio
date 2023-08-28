@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useLanguage } from 'src/hooks/useLanguage';
-import type { ILabelSettings } from 'src/types';
+import type { ILabelSettings } from 'src/layout/common.generated';
 
 interface IOptionalIndicatorProps {
   required?: boolean;

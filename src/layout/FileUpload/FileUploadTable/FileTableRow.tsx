@@ -9,13 +9,13 @@ import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTabl
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { IAttachment } from 'src/features/attachments';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 class IFileUploadTableRowProps {
   attachment: IAttachment;
   mobileView: boolean;
   index: number;
-  node: LayoutNodeFromType<'FileUpload' | 'FileUploadWithTag'>;
+  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
   tagLabel: string | undefined;
   editIndex: number;
   setEditIndex: (index: number) => void;

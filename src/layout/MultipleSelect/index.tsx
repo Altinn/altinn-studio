@@ -5,25 +5,21 @@ import { getCommaSeparatedOptionsToText } from 'src/hooks/useCommaSeparatedOptio
 import { type IUseLanguage, useLanguage } from 'src/hooks/useLanguage';
 import { getOptionList } from 'src/hooks/useOptionList';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
-import { FormComponent } from 'src/layout/LayoutComponent';
+import { MultipleSelectDef } from 'src/layout/MultipleSelect/config.def.generated';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
-import type { ExprResolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindingsSimple, TextBindingsForFormComponents } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { ILayoutCompMultipleSelect } from 'src/layout/MultipleSelect/types';
 import type { IOptions, IRepeatingGroups } from 'src/types';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class MultipleSelect extends FormComponent<'MultipleSelect'> {
+export class MultipleSelect extends MultipleSelectDef {
   render(props: PropsFromGenericComponent<'MultipleSelect'>): JSX.Element | null {
     return <MultipleSelectComponent {...props} />;
   }
 
   private getSummaryData(
-    node: LayoutNodeFromType<'MultipleSelect'>,
+    node: LayoutNode<'MultipleSelect'>,
     formData: IFormData,
     langTools: IUseLanguage,
     repeatingGroups: IRepeatingGroups | null,
@@ -38,7 +34,7 @@ export class MultipleSelect extends FormComponent<'MultipleSelect'> {
     return getCommaSeparatedOptionsToText(value, optionList, langTools);
   }
 
-  getDisplayData(node: LayoutNodeFromType<'MultipleSelect'>, { formData, langTools, uiConfig, options }): string {
+  getDisplayData(node: LayoutNode<'MultipleSelect'>, { formData, langTools, uiConfig, options }): string {
     return Object.values(this.getSummaryData(node, formData, langTools, uiConfig.repeatingGroups, options)).join(', ');
   }
 
@@ -51,16 +47,3 @@ export class MultipleSelect extends FormComponent<'MultipleSelect'> {
     return <MultipleChoiceSummary formData={summaryData} />;
   }
 }
-
-export const Config = {
-  def: new MultipleSelect(),
-  rendersWithLabel: true as const,
-};
-
-export type TypeConfig = {
-  layout: ILayoutCompMultipleSelect;
-  nodeItem: ExprResolved<ILayoutCompMultipleSelect>;
-  nodeObj: LayoutNode;
-  validTextResourceBindings: TextBindingsForFormComponents;
-  validDataModelBindings: IDataModelBindingsSimple;
-};

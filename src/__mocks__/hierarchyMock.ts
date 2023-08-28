@@ -1,6 +1,6 @@
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
-import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
+import type { HierarchyDataSources } from 'src/layout/layout';
 
 export function getHierarchyDataSourcesMock(): HierarchyDataSources {
   return {

@@ -8,8 +8,8 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { Form } from 'src/components/form/Form';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayout, ILayoutComponent, ILayoutEntry } from 'src/layout/layout';
+import type { CompExternal, ILayout } from 'src/layout/layout';
+import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 import type { RootState } from 'src/redux/store';
 
 describe('Form', () => {
@@ -139,7 +139,7 @@ describe('Form', () => {
       {
         id: 'navBar',
         type: 'NavigationBar',
-      } as ExprUnresolved<ILayoutComponent>,
+      } as CompExternal,
     ];
     renderForm(layoutWithNavBar);
     expect(screen.getByRole('navigation')).toBeInTheDocument();
@@ -205,14 +205,14 @@ describe('Form', () => {
   });
 
   it('should render a summary component', () => {
-    const summaryComponent: ILayoutEntry[] = [
+    const summaryComponent = [
       ...mockComponents,
       {
         id: 'the-summary',
         type: 'Summary',
         pageRef: 'FormLayout',
         componentRef: 'field1',
-      } as unknown as ILayoutEntry,
+      } as CompSummaryExternal,
     ];
     renderForm(summaryComponent as ILayout);
     expect(screen.getByTestId('summary-the-summary')).toBeInTheDocument();

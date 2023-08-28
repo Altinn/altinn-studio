@@ -3,25 +3,17 @@ import React from 'react';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { getUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
-import { FormComponent } from 'src/layout/LayoutComponent';
+import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.generated';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { attachmentIsMissingTag, attachmentsValid } from 'src/utils/validation/validation';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
-import type { ExprResolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
-import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
-import type {
-  IDataModelBindingsList,
-  IDataModelBindingsSimple,
-  TextBindingsForFormComponents,
-} from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implements ComponentValidation {
+export class FileUploadWithTag extends FileUploadWithTagDef implements ComponentValidation {
   render(props: PropsFromGenericComponent<'FileUploadWithTag'>): JSX.Element | null {
     return <FileUploadComponent {...props} />;
   }
@@ -30,7 +22,7 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implem
     return false;
   }
 
-  getDisplayData(node: LayoutNodeFromType<'FileUploadWithTag'>, { formData, attachments }): string {
+  getDisplayData(node: LayoutNode<'FileUploadWithTag'>, { formData, attachments }): string {
     return getUploaderSummaryData(node, formData, attachments)
       .map((a) => a.name)
       .join(', ');
@@ -40,17 +32,13 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implem
     return <AttachmentSummaryComponent targetNode={targetNode} />;
   }
 
-  canRenderInTable(): boolean {
-    return false;
-  }
-
   // This component does not have empty field validation, so has to override its inherited method
   runEmptyFieldValidation(): IValidationObject[] {
     return [];
   }
 
   runComponentValidation(
-    node: LayoutNodeFromType<'FileUploadWithTag'>,
+    node: LayoutNode<'FileUploadWithTag'>,
     { attachments, langTools }: IValidationContext,
     _overrideFormData?: IFormData,
   ): IValidationObject[] {
@@ -79,16 +67,3 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> implem
     return validations;
   }
 }
-
-export const Config = {
-  def: new FileUploadWithTag(),
-  rendersWithLabel: true as const,
-};
-
-export type TypeConfig = {
-  layout: ILayoutCompFileUploadWithTag;
-  nodeItem: ExprResolved<ILayoutCompFileUploadWithTag>;
-  nodeObj: LayoutNode;
-  validTextResourceBindings: TextBindingsForFormComponents | 'tagTitle';
-  validDataModelBindings: IDataModelBindingsSimple | IDataModelBindingsList;
-};

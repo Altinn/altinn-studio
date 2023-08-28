@@ -5,14 +5,12 @@ import cn from 'classnames';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import classes from 'src/layout/Summary/SummaryContent.module.css';
-import type { ITextResourceBindings } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export interface SummaryContentProps {
   onChangeClick: () => void;
   changeText: string | null;
-  summaryNode: LayoutNodeFromType<'Summary'>;
+  summaryNode: LayoutNode<'Summary'>;
   targetNode: LayoutNode;
   overrides: ISummaryComponent['overrides'];
   RenderSummary: React.ElementType;
@@ -28,17 +26,19 @@ export function SummaryContent({
 }: SummaryContentProps) {
   const { lang, langAsString } = useLanguage();
   const display = overrides?.display || summaryNode.item.display;
-  const readOnlyComponent = targetNode.item.readOnly === true;
+  const readOnlyComponent = 'readOnly' in targetNode.item && targetNode.item.readOnly === true;
   const hasValidationMessages = targetNode.hasValidationMessages();
   const shouldShowChangeButton = !readOnlyComponent && !display?.hideChangeButton;
   const displaySummaryBoilerPlate =
     'renderSummaryBoilerplate' in targetNode.def && targetNode.def.renderSummaryBoilerplate();
 
-  const textBindings = targetNode.item.textResourceBindings as ITextResourceBindings;
-  const title = lang(textBindings?.summaryTitle ?? textBindings?.title);
-  const ariaLabel = langAsString(
-    textBindings?.summaryAccessibleTitle ?? textBindings?.summaryTitle ?? textBindings?.title,
-  );
+  const textBindings = 'textResourceBindings' in targetNode.item ? targetNode.item.textResourceBindings : undefined;
+  const summaryAccessibleTitleTrb =
+    textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
+  const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
+  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+  const title = lang(summaryTitleTrb ?? titleTrb);
+  const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
 
   return (
     <div className={classes.container}>

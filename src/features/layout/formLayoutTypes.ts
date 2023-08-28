@@ -1,14 +1,12 @@
-import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
+import type { IOption, Triggers } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';
 import type {
   IFileUploadersWithTag,
-  IHiddenLayoutsExpressions,
+  IHiddenLayoutsExternal,
   ILayoutSets,
   ILayoutSettings,
   INavigationConfig,
-  IOption,
-  Triggers,
   TriggersPageValidation,
 } from 'src/types';
 
@@ -20,7 +18,7 @@ export interface IFormLayoutActionRejected {
 export interface IFetchLayoutFulfilled {
   layouts: ILayouts;
   navigationConfig?: INavigationConfig;
-  hiddenLayoutsExpressions: ExprUnresolved<IHiddenLayoutsExpressions>;
+  hiddenLayoutsExpressions: IHiddenLayoutsExternal;
 }
 
 export interface IFetchLayoutSetsFulfilled {

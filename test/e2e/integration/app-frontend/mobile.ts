@@ -3,6 +3,7 @@ import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 import { breakpoints } from 'src/hooks/useIsMobile';
+import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -56,16 +57,16 @@ function testGroup(mode: Mode) {
   // Mobile tables always have two columns
   ensureTableHasNumColumns(appFrontend.group.mainGroup, 2);
   let editWas: any = {};
-  cy.changeLayout((component) => {
-    if (component.id === 'mainGroup' && component.type === 'Group' && component.edit) {
-      editWas = { ...component.edit };
-      component.edit.editButton = false;
-      component.edit.deleteButton = false;
+  cy.changeLayout((c) => {
+    if (c.id === 'mainGroup' && c.type === 'Group' && groupIsRepeatingExt(c) && c.edit) {
+      editWas = { ...c.edit };
+      c.edit.editButton = false;
+      c.edit.deleteButton = false;
     }
   });
   ensureTableHasNumColumns(appFrontend.group.mainGroup, 2);
   cy.changeLayout((component) => {
-    if (component.id === 'mainGroup' && component.type === 'Group' && component.edit) {
+    if (component.id === 'mainGroup' && component.type === 'Group' && 'edit' in component && component.edit) {
       component.edit = { ...editWas };
     }
   });

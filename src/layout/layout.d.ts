@@ -1,82 +1,23 @@
-import type { TextField } from '@digdir/design-system-react';
-import type { GridSize } from '@material-ui/core';
-import type { UnionToIntersection } from 'utility-types';
+import type { $Keys, PickByValue } from 'utility-types';
 
-import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
-import type { ILayoutCompCheckboxes } from 'src/layout/Checkboxes/types';
-import type { ComponentConfigs, ComponentTypeConfigs } from 'src/layout/components';
-import type { ILayoutCompDropdown } from 'src/layout/Dropdown/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutCompLikert } from 'src/layout/Likert/types';
-import type { ILayoutCompRadioButtons } from 'src/layout/RadioButtons/types';
-import type { ILabelSettings, IMapping, IOption, IOptionSource, Triggers } from 'src/types';
-import type { UnifyDMB, UnifyTRB } from 'src/utils/layout/hierarchy.types';
+import type { IDevToolsState } from 'src/features/devtools/data/types';
+import type { ContextDataSources } from 'src/features/expressions/ExprContext';
+import type { CompCategory } from 'src/layout/common';
+import type { ComponentConfigs, ComponentTypeConfigs } from 'src/layout/components.generated';
+import type { CompGroupExternal } from 'src/layout/Group/config.generated';
+import type { CompClassMapTypes } from 'src/layout/index';
+import type {
+  ActionComponent,
+  ContainerComponent,
+  FormComponent,
+  PresentationComponent,
+} from 'src/layout/LayoutComponent';
+import type { IValidations } from 'src/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 export interface ILayouts {
   [id: string]: ILayout | undefined;
-}
-
-export interface ILayoutEntry<T extends ComponentTypes = ComponentTypes> {
-  id: string;
-  type: T;
-}
-
-export interface ILayoutCompBase<Type extends ComponentTypes> extends ILayoutEntry<Type> {
-  dataModelBindings?: IDataModelBindings<Type>;
-  maxLength?: number;
-  readOnly?: ExprVal.Boolean;
-  renderAsSummary?: ExprVal.Boolean;
-  required?: ExprVal.Boolean;
-  hidden?: ExprVal.Boolean;
-  textResourceBindings?: UnionToIntersection<TRBAsMap<Type, ExprVal.String>>;
-  grid?: IGrid;
-  triggers?: Triggers[];
-  labelSettings?: ILabelSettings;
-  pageBreak?: IPageBreak;
-}
-
-interface ILayoutCompWillBeSavedWhileTyping {
-  saveWhileTyping?: boolean | number;
-}
-
-interface ISelectionComponent {
-  options?: IOption[];
-  optionsId?: string;
-  mapping?: IMapping;
-  queryParameters?: Record<string, string>;
-  secure?: boolean;
-  source?: IOptionSource;
-  preselectedOptionIndex?: number;
-}
-
-export type NumberFormatProps = Exclude<Parameters<typeof TextField>[0]['formatting'], undefined>['number'];
-
-/**
- * Number formatting options. Will be reduced to react-number-format options:
- * @see useMapToReactNumberConfig
- */
-export interface IInputFormatting {
-  // Newer Intl.NumberFormat options
-  currency?: string;
-  unit?: string;
-  position?: 'prefix' | 'suffix';
-
-  // Older options based on react-number-format
-  number?: NumberFormatProps;
-  align?: 'right' | 'center' | 'left';
-}
-
-export interface ITableColumnFormatting<T extends ITableColumnProperties = ITableColumnProperties> {
-  [key: string]: T;
-}
-
-export interface ITableColumnProperties {
-  width?: string;
-  alignText?: 'left' | 'center' | 'right';
-  textOverflow?: {
-    lineWrap?: boolean;
-    maxHeight?: number;
-  };
 }
 
 /**
@@ -85,109 +26,100 @@ export interface ITableColumnProperties {
  * type (ex. ILayoutCompTextArea), or ILayoutComponent<'TextArea'>.
  */
 
-export type ComponentTypes = keyof typeof ComponentConfigs & keyof ComponentTypeConfigs;
-type AllComponents = ComponentTypeConfigs[ComponentTypes]['layout'];
+export type CompTypes = keyof typeof ComponentConfigs & keyof ComponentTypeConfigs;
+type AllComponents = ComponentTypeConfigs[CompTypes]['layout'];
 
-export type ComponentExceptGroup = Exclude<ComponentTypes, 'Group'>;
-export type ComponentInGroup = ILayoutComponent | ILayoutGroup;
+export type CompExceptGroup = Exclude<CompTypes, 'Group'>;
 
 /**
  * This type can be used to reference the layout declaration for a component. You can either use it to specify
  * any valid component:
  *
- *  const myComponent:ILayoutComponent = ...
+ *  const myComponent:CompExternal = ...
  *
  * Or a component of a specific known type (gives you more valid options):
  *
- *  const myImageComponent:ILayoutComponent<'Image'> = ...
+ *  const myImageComponent:CompExternal<'Image'> = ...
  *
- * @deprecated
- * @see AnyItem
+ * @see CompInternal
  * @see LayoutNode
  */
-export type ILayoutComponent<Type extends ComponentExceptGroup = ComponentExceptGroup> = UnifyDMB<
-  UnifyTRB<Extract<AllComponents, { type: Type }>>
->;
+export type CompExternal<Type extends CompExceptGroup = CompExceptGroup> = Extract<AllComponents, { type: Type }>;
 
 /**
  * Alternative version of the one above
  */
-export type ILayoutComponentExact<Type extends ComponentTypes> = UnifyDMB<
-  UnifyTRB<ComponentTypeConfigs[Type]['layout']>
->;
+export type CompExternalExact<Type extends CompTypes> = ComponentTypeConfigs[Type]['layout'];
 
-export type ILayoutComponentOrGroup = ILayoutGroup | ILayoutComponent;
+export type CompOrGroupExternal = CompGroupExternal | CompExternal;
 
-export type ComponentRendersLabel<T extends ComponentTypes> = (typeof ComponentConfigs)[T]['rendersWithLabel'];
-
-export interface IDataModelBindingsSimple {
-  simpleBinding?: string;
-}
-
-/**
- * A middle ground between group and simple bindings, a list binding can be used to
- * store a list of primitive values, like string[].
- */
-export interface IDataModelBindingsList {
-  list?: string;
-}
-
-type InnerDMB<T extends ComponentTypes> = ComponentTypeConfigs[T]['validDataModelBindings'];
+export type CompRendersLabel<T extends CompTypes> = (typeof ComponentConfigs)[T]['rendersWithLabel'];
 
 /**
  * This is the type you should use when referencing a specific component type, and will give
  * you the correct data model bindings for that component.
  */
-export type IDataModelBindings<T extends ComponentTypes = ComponentTypes> =
-  | UnionToIntersection<Exclude<InnerDMB<T>, undefined>>
-  | undefined;
+export type IDataModelBindings<T extends CompTypes = CompTypes> =
+  ComponentTypeConfigs[T]['nodeItem']['dataModelBindings'];
 
-type InnerTRB<T extends ComponentTypes> = ComponentRendersLabel<T> extends true
-  ? ComponentTypeConfigs[T]['validTextResourceBindings'] | TextBindingsForLabel
-  : ComponentTypeConfigs[T]['validTextResourceBindings'];
+export type ITextResourceBindings<T extends CompTypes = CompTypes> =
+  ComponentTypeConfigs[T]['nodeItem']['textResourceBindings'];
 
-type TRBAsUnion<T extends ComponentTypes> = Exclude<InnerTRB<T>, undefined> extends never
-  ? undefined
-  : Exclude<InnerTRB<T>, undefined>;
+export type ILayout = CompOrGroupExternal[];
 
-type TRBAsMap<T extends ComponentTypes, V> = {
-  [Binding in TRBAsUnion<T>]?: V;
-};
-
-export type ITextResourceBindings<T extends ComponentTypes = ComponentTypes> =
-  | UnionToIntersection<TRBAsMap<T, string>>
-  | undefined;
-
-export type TextBindingsForSummarizableComponents = 'summaryTitle' | 'summaryDescription' | 'summaryAccessibleTitle';
-export type TextBindingsForFormComponents =
-  | TextBindingsForSummarizableComponents
-  | 'tableTitle'
-  | 'shortName'
-  | 'requiredValidation';
-export type TextBindingsForLabel = 'title' | 'description' | 'help';
-
-export type ILayout = ExprUnresolved<ILayoutComponentOrGroup>[];
-
-export type ISelectionComponentProps =
-  | ILayoutCompRadioButtons
-  | ILayoutCompCheckboxes
-  | ILayoutCompLikert
-  | ILayoutCompDropdown;
-
-export interface IGrid extends IGridStyling {
-  labelGrid?: IGridStyling;
-  innerGrid?: IGridStyling;
+/**
+ * These keys are not defined anywhere in the actual form layout files, but are added by the hierarchy.
+ */
+interface HierarchyExtensions {
+  // These will be set if the component is inside a repeating group
+  baseComponentId?: string;
+  baseDataModelBindings?: IDataModelBindings;
+  multiPageIndex?: number;
 }
 
-export interface IGridStyling {
-  xs?: GridSize;
-  sm?: GridSize;
-  md?: GridSize;
-  lg?: GridSize;
-  xl?: GridSize;
+/**
+ * Any item inside a hierarchy. Note that a LayoutNode _contains_ an item. The LayoutNode itself is an instance of the
+ * LayoutNode class, while _an item_ is the object inside it that is somewhat similar to layout objects.
+ */
+type NodeItem<T extends CompTypes> = ComponentTypeConfigs[T]['nodeItem'];
+
+export type CompInternal<T extends CompTypes = CompTypes> = NodeItem<T> & HierarchyExtensions;
+
+/**
+ * Any parent object of a LayoutNode (with for example repeating groups, the parent can be the group node, but above
+ * that there will be a LayoutPage).
+ */
+export type ParentNode = LayoutNode | LayoutPage;
+
+export type TypeFromConfig<T extends CompInternal | CompExternal> = T extends { type: infer Type }
+  ? Type extends CompTypes
+    ? Type
+    : CompTypes
+  : CompTypes;
+
+export interface HierarchyDataSources extends ContextDataSources {
+  validations: IValidations;
+  devTools: IDevToolsState;
 }
 
-export interface IPageBreak {
-  breakBefore?: ExprVal.String; // 'auto' | 'always' | 'avoid'
-  breakAfter?: ExprVal.String; // 'auto' | 'always' | 'avoid'
-}
+export type LayoutNodeFromObj<T> = T extends { type: infer Type }
+  ? Type extends CompTypes
+    ? LayoutNode<Type>
+    : LayoutNode
+  : LayoutNode;
+
+export type TypesFromCategory<Type extends CompCategory> = $Keys<PickByValue<CompClassMapTypes, Type>>;
+
+export type DefFromCategory<C extends CompCategory> = C extends 'presentation'
+  ? PresentationComponent<any>
+  : C extends 'form'
+  ? FormComponent<any>
+  : C extends 'action'
+  ? ActionComponent<any>
+  : C extends 'container'
+  ? ContainerComponent<any>
+  : never;
+
+export type LayoutNodeFromCategory<Type> = Type extends CompCategory
+  ? LayoutNode<TypesFromCategory<Type>> & DefFromCategory<Type>
+  : LayoutNode;

@@ -76,14 +76,15 @@ export function* uploadAttachmentSaga({
       }),
     );
 
-    if (dataModelBindings && (dataModelBindings.simpleBinding || dataModelBindings.list)) {
+    if (dataModelBindings && ('simpleBinding' in dataModelBindings || 'list' in dataModelBindings)) {
       yield put(
         FormDataActions.update({
           componentId,
           data: response.data.id,
-          field: dataModelBindings.simpleBinding
-            ? `${dataModelBindings.simpleBinding}`
-            : `${dataModelBindings.list}[${index}]`,
+          field:
+            'simpleBinding' in dataModelBindings
+              ? `${dataModelBindings.simpleBinding}`
+              : `${dataModelBindings.list}[${index}]`,
         }),
       );
     }

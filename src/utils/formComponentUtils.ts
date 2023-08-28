@@ -3,15 +3,14 @@ import type React from 'react';
 import printStyles from 'src/styles/print.module.css';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import type { IAttachment } from 'src/features/attachments';
-import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type {
   IGridStyling,
+  IPageBreakInternal,
   ITableColumnFormatting,
   ITableColumnProperties,
-  ITextResourceBindings,
-} from 'src/layout/layout';
-import type { IPageBreak } from 'src/layout/layout.d';
+} from 'src/layout/common.generated';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IComponentValidations } from 'src/utils/validation/types';
 
@@ -121,11 +120,11 @@ export function getFieldName(
     return smartLowerCaseFirst(langAsString(`form_filler.${fieldKey}`));
   }
 
-  if (textResourceBindings?.shortName) {
+  if (textResourceBindings && 'shortName' in textResourceBindings && textResourceBindings.shortName) {
     return langAsString(textResourceBindings.shortName);
   }
 
-  if (textResourceBindings?.title) {
+  if (textResourceBindings && 'title' in textResourceBindings && textResourceBindings.title) {
     return smartLowerCaseFirst(langAsString(textResourceBindings.title));
   }
 
@@ -206,7 +205,7 @@ export const gridBreakpoints = (grid?: IGridStyling) => {
   };
 };
 
-export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined) => {
+export const pageBreakStyles = (pageBreak: IPageBreakInternal | undefined) => {
   if (!pageBreak) {
     return {};
   }

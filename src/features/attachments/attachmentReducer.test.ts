@@ -29,7 +29,7 @@ describe('attachmentReducer', () => {
         } as IAttachment,
         attachmentType: 'someType',
         componentId: 'someComponentId',
-        dataModelBindings: {},
+        dataModelBindings: undefined,
       }),
     );
     expect(newState.attachments.someComponentId[0].deleting).toBeTruthy();

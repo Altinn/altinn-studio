@@ -5,7 +5,8 @@ import {
   replaceIndexIndicatorsWithIndexes,
 } from 'src/utils/databindings';
 import type { IDataListsMetaData } from 'src/features/dataLists';
-import type { IMapping, IRepeatingGroups } from 'src/types';
+import type { IMapping } from 'src/layout/common.generated';
+import type { IRepeatingGroups } from 'src/types';
 
 interface IGetDataListLookupKeysParam extends IDataListsMetaData {
   repeatingGroups: IRepeatingGroups | null;

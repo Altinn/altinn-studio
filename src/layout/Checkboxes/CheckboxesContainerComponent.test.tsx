@@ -4,8 +4,8 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
+import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/testUtils';
-import { LayoutStyle } from 'src/types';
 import type { IOptionsState } from 'src/features/options';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 

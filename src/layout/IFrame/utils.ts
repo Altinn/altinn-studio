@@ -1,18 +1,18 @@
-import type { ISandboxProperties, SupportedSandboxProperties } from 'src/layout/IFrame/types';
+import type { ISandboxProperties } from 'src/layout/IFrame/config.generated';
 
-const defaultSandboxPropeties = ['allow-same-origin'];
+const defaultSandboxProperties = ['allow-same-origin'];
 
-const sandboxPropertyMap: { [K in SupportedSandboxProperties]: string } = {
+const sandboxPropertyMap: { [K in keyof ISandboxProperties]: string } = {
   allowPopups: 'allow-popups',
   allowPopupsToEscapeSandbox: 'allow-popups-to-escape-sandbox',
 };
 
 export const getSandboxProperties = (sandbox: ISandboxProperties | undefined): string => {
   if (!sandbox) {
-    return defaultSandboxPropeties.join(' ');
+    return defaultSandboxProperties.join(' ');
   }
 
-  return defaultSandboxPropeties
+  return defaultSandboxProperties
     .concat(
       Object.entries(sandbox)
         .filter(([, value]) => value)

@@ -5,9 +5,9 @@ import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import classes from 'src/components/form/Legend.module.css';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { LayoutStyle } from 'src/types';
+import { LayoutStyle } from 'src/layout/common.generated';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
-import type { ILabelSettings } from 'src/types';
+import type { ILabelSettings } from 'src/layout/common.generated';
 
 export interface IFormLegendProps {
   labelText: React.ReactNode;

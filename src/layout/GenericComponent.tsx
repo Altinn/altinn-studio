@@ -12,22 +12,22 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { Triggers } from 'src/layout/common.generated';
 import { FormComponentContext, shouldComponentRenderLabel } from 'src/layout/index';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { makeGetFocus } from 'src/selectors/getLayoutData';
-import { Triggers } from 'src/types';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ISingleFieldValidation } from 'src/features/formData/formDataTypes';
+import type { IGridStyling } from 'src/layout/common.generated';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
-import type { ComponentTypes, IDataModelBindings, IGridStyling, ITextResourceBindings } from 'src/layout/layout';
+import type { CompInternal, CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
-import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export interface IGenericComponentProps<Type extends ComponentTypes> {
-  node: LayoutNode | LayoutNodeFromType<Type>;
-  overrideItemProps?: Partial<Omit<AnyItem<Type>, 'id'>>;
+export interface IGenericComponentProps<Type extends CompTypes> {
+  node: LayoutNode<Type>;
+  overrideItemProps?: Partial<Omit<CompInternal<Type>, 'id'>>;
   overrideDisplay?: {
     directRender?: true;
     renderLabel?: false;
@@ -82,15 +82,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
+export function GenericComponent<Type extends CompTypes = CompTypes>({
   node,
   overrideItemProps,
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   let item = node.item;
   const id = item.id;
-  const textBindings = node.item.textResourceBindings as ITextResourceBindings;
-  const dataModelBindings = node.item.dataModelBindings as IDataModelBindings;
+  const textBindings = ('textResourceBindings' in node.item ? node.item.textResourceBindings : undefined) as
+    | ITextResourceBindings
+    | undefined;
+  const dataModelBindings = 'dataModelBindings' in node.item ? node.item.dataModelBindings : undefined;
+  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+  const descriptionTrb = textBindings && 'description' in textBindings ? textBindings.description : undefined;
+  const helpTrb = textBindings && 'help' in textBindings ? textBindings.help : undefined;
 
   if (overrideItemProps) {
     item = {
@@ -118,7 +123,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   );
 
   const filterValidationErrors = () => {
-    const maxLength = node.item?.maxLength;
+    const maxLength = 'maxLength' in node.item && node.item.maxLength;
 
     if (!maxLength) {
       return componentValidations?.simpleBinding;
@@ -170,7 +175,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
       return;
     }
 
-    if (item.readOnly) {
+    if ('readOnly' in item && item.readOnly) {
       return;
     }
 
@@ -180,8 +185,9 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     }
 
     const dataModelBinding = dataModelBindings[key];
+    const triggers = 'triggers' in item ? item.triggers : undefined;
     const singleFieldValidation: ISingleFieldValidation | undefined =
-      item.triggers && item.triggers.includes(Triggers.Validation)
+      triggers && triggers.includes(Triggers.Validation)
         ? {
             layoutId: currentView,
             dataModelBinding,
@@ -210,25 +216,25 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     return (
       <Label
         key={`label-${id}`}
-        labelText={lang(textBindings?.title)}
-        helpText={lang(textBindings?.help)}
+        labelText={lang(titleTrb)}
+        helpText={lang(helpTrb)}
         id={id}
-        readOnly={item.readOnly}
-        required={item.required}
-        labelSettings={item.labelSettings}
+        readOnly={'readOnly' in item ? item.readOnly : false}
+        required={'required' in item ? item.required : false}
+        labelSettings={'labelSettings' in item ? item.labelSettings : undefined}
       />
     );
   };
 
   const RenderDescription = () => {
-    if (!textBindings?.description) {
+    if (!descriptionTrb) {
       return null;
     }
 
     return (
       <Description
         key={`description-${id}`}
-        description={lang(textBindings?.description)}
+        description={lang(descriptionTrb)}
         id={id}
       />
     );
@@ -242,12 +248,12 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     return (
       <Legend
         key={`legend-${id}`}
-        labelText={lang(textBindings?.title)}
-        descriptionText={lang(textBindings?.description)}
-        helpText={lang(textBindings?.help)}
+        labelText={lang(titleTrb)}
+        descriptionText={lang(descriptionTrb)}
+        helpText={lang(helpTrb)}
         id={id}
-        required={item.required}
-        labelSettings={item.labelSettings}
+        required={'required' in item ? item.required : false}
+        labelSettings={'labelSettings' in item ? item.labelSettings : undefined}
         layout={('layout' in item && item.layout) || undefined}
       />
     );
@@ -265,14 +271,14 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
 
   const componentProps: PropsFromGenericComponent<Type> = {
     ...fixedComponentProps,
-    node: node as unknown as LayoutNodeFromType<Type>,
+    node: node as unknown as LayoutNode<Type>,
     overrideItemProps,
     overrideDisplay,
   };
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();
 
-  if (node.item.renderAsSummary) {
+  if ('renderAsSummary' in node.item && node.item.renderAsSummary) {
     const RenderSummary = 'renderSummary' in node.def ? node.def.renderSummary.bind(node.def) : null;
 
     if (!RenderSummary) {
@@ -281,7 +287,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
 
     return (
       <SummaryComponent
-        summaryNode={node as LayoutNodeFromType<'Summary'>}
+        summaryNode={node as LayoutNode<'Summary'>}
         overrides={{ display: { hideChangeButton: true } }}
       />
     );

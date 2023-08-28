@@ -333,5 +333,3 @@ export type HTMLAutoCompleteValues =
   | 'impp'
   | 'url'
   | 'photo';
-
-export type HeadingLevel = 2 | 3 | 4 | 5 | 6;

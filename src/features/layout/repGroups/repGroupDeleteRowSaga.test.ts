@@ -40,7 +40,7 @@ describe('repGroupDeleteRowSaga', function () {
         dataModelBinding: 'Group',
       },
     };
-    const dataModelBinding: IDataModelBindings = {
+    const dataModelBinding: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'> = {
       simpleBinding: 'Group.attachmentRef',
     };
     state.formLayout.layouts?.FormLayout?.push({
@@ -100,7 +100,7 @@ describe('repGroupDeleteRowSaga', function () {
           attachment,
           attachmentType: 'uploader',
           componentId: 'uploader-0',
-          dataModelBindings: {},
+          dataModelBindings: undefined,
         }),
       )
       .put(

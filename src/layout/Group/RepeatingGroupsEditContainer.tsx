@@ -9,12 +9,11 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
-import type { ExprResolved } from 'src/features/expressions/types';
-import type { HRepGroup, HRepGroupRow, IGroupEditProperties } from 'src/layout/Group/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompGroupRepeatingInternal, IGroupEditPropertiesInternal } from 'src/layout/Group/config.generated';
+import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 
 export interface IRepeatingGroupsEditContainer {
-  node: LayoutNode<HRepGroup, 'Group'>;
+  node: LayoutNodeForGroup<CompGroupRepeatingInternal>;
   className?: string;
   deleting?: boolean;
   editIndex: number;
@@ -69,8 +68,8 @@ function RepeatingGroupsEditContainerInternal({
   group,
   row,
 }: IRepeatingGroupsEditContainer & {
-  group: HRepGroup;
-  row: HRepGroupRow;
+  group: CompGroupRepeatingInternal;
+  row: CompGroupRepeatingInternal['rows'][number];
 }): JSX.Element | null {
   const id = node.item.id;
   const textsForRow = row.groupExpressions?.textResourceBindings;
@@ -79,7 +78,7 @@ function RepeatingGroupsEditContainerInternal({
   const edit = {
     ...editForGroup,
     ...editForRow,
-  } as ExprResolved<IGroupEditProperties>;
+  } as IGroupEditPropertiesInternal;
   const rowItems = row.items;
   const { refSetter } = useRepeatingGroupsFocusContext();
   const texts = {

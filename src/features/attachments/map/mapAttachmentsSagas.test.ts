@@ -14,9 +14,11 @@ import {
 } from 'src/features/attachments/map/mapAttachmentsSagas';
 import { selectFormLayouts } from 'src/features/layout/update/updateFormLayoutSagas';
 import type { IAttachment, IAttachments } from 'src/features/attachments';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { CompFileUploadExternal } from 'src/layout/FileUpload/config.generated';
+import type { CompGroupRepeatingExternal } from 'src/layout/Group/config.generated';
+
+type MakeOptional = 'displayMode' | 'maxFileSizeInMB' | 'minNumberOfAttachments' | 'maxNumberOfAttachments';
+type BasicComp = Omit<CompFileUploadExternal, MakeOptional> & Partial<Pick<CompFileUploadExternal, MakeOptional>>;
 
 describe('mapAttachments', () => {
   const defaultAttachmentProps = {
@@ -54,20 +56,12 @@ describe('mapAttachments', () => {
 
   it('should map attachments to repeating group rows', () => {
     const state = getInitialStateMock();
-    const basicUploader: ExprUnresolved<
-      Omit<
-        ILayoutCompFileUpload,
-        'displayMode' | 'maxFileSizeInMB' | 'minNumberOfAttachments' | 'maxNumberOfAttachments'
-      >
-    > = {
+    const basicUploader: BasicComp = {
       id: 'upload-outside-group',
       type: 'FileUpload',
-      dataModelBindings: {},
       textResourceBindings: {},
     };
-    const basicUploaderWithBindings: ExprUnresolved<
-      Omit<ILayoutCompFileUpload, 'displayMode' | 'maxFileSizeInMB' | 'minNumberOfAttachments'>
-    > = {
+    const basicUploaderWithBindings: BasicComp = {
       id: 'upload-outside-group-with-bindings',
       type: 'FileUpload',
       dataModelBindings: {
@@ -76,12 +70,7 @@ describe('mapAttachments', () => {
       textResourceBindings: {},
       maxNumberOfAttachments: 5,
     };
-    const uploaderInRepeatingGroup: ExprUnresolved<
-      Omit<
-        ILayoutCompFileUpload,
-        'displayMode' | 'maxFileSizeInMB' | 'minNumberOfAttachments' | 'maxNumberOfAttachments'
-      >
-    > = {
+    const uploaderInRepeatingGroup: BasicComp = {
       id: 'upload-in-repeating-group',
       type: 'FileUpload',
       dataModelBindings: {
@@ -89,9 +78,7 @@ describe('mapAttachments', () => {
       },
       textResourceBindings: {},
     };
-    const multiUploaderInRepeatingGroup: ExprUnresolved<
-      Omit<ILayoutCompFileUpload, 'displayMode' | 'maxFileSizeInMB' | 'minNumberOfAttachments'>
-    > = {
+    const multiUploaderInRepeatingGroup: BasicComp = {
       id: 'multi-upload-in-repeating-group',
       type: 'FileUpload',
       dataModelBindings: {
@@ -100,7 +87,7 @@ describe('mapAttachments', () => {
       textResourceBindings: {},
       maxNumberOfAttachments: 5,
     };
-    const repeatingGroup: ExprUnresolved<ILayoutGroup> = {
+    const repeatingGroup: CompGroupRepeatingExternal = {
       id: 'repeating-group',
       type: 'Group',
       dataModelBindings: {
@@ -113,11 +100,11 @@ describe('mapAttachments', () => {
 
     state.formLayout.layouts = {
       FormLayout: [
-        basicUploader as ExprUnresolved<ILayoutCompFileUpload>,
-        basicUploaderWithBindings as ExprUnresolved<ILayoutCompFileUpload>,
+        basicUploader as CompFileUploadExternal,
+        basicUploaderWithBindings as CompFileUploadExternal,
         repeatingGroup,
-        uploaderInRepeatingGroup as ExprUnresolved<ILayoutCompFileUpload>,
-        multiUploaderInRepeatingGroup as ExprUnresolved<ILayoutCompFileUpload>,
+        uploaderInRepeatingGroup as CompFileUploadExternal,
+        multiUploaderInRepeatingGroup as CompFileUploadExternal,
       ],
     };
 

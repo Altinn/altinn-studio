@@ -6,12 +6,12 @@ import type { SagaIterator } from 'redux-saga';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ValidationActions } from 'src/features/validation/validationSlice';
-import { Triggers } from 'src/types';
+import { Triggers } from 'src/layout/common.generated';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
-import type { ExprConfig, ExprUnresolved } from 'src/features/expressions/types';
+import type { ExprConfig } from 'src/features/expressions/types';
 import type { IUpdateHiddenComponents } from 'src/features/layout/formLayoutTypes';
-import type { IHiddenLayoutsExpressions, IRuntimeState } from 'src/types';
+import type { IHiddenLayoutsExternal, IRuntimeState } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { IValidations } from 'src/utils/validation/types';
 
@@ -38,7 +38,9 @@ export function* removeHiddenValidationsSaga({
       const node = layoutObj?.findById(componentId) || resolvedNodes.findById(componentId);
       if (
         node &&
+        'dataModelBindings' in node.item &&
         node.item.dataModelBindings &&
+        'triggers' in node.item &&
         node.item.triggers &&
         node.item.triggers.includes(Triggers.Validation)
       ) {
@@ -47,7 +49,7 @@ export function* removeHiddenValidationsSaga({
             ValidationActions.runSingleFieldValidation({
               componentId,
               layoutId,
-              dataModelBinding,
+              dataModelBinding: dataModelBinding as string,
             }),
           );
         }
@@ -77,7 +79,7 @@ export function runExpressionRules(layouts: LayoutPages, future: Set<string>) {
 
 export function runExpressionsForLayouts(
   nodes: LayoutPages,
-  hiddenLayoutsExpr: ExprUnresolved<IHiddenLayoutsExpressions>,
+  hiddenLayoutsExpr: IHiddenLayoutsExternal,
   dataSources: ContextDataSources,
 ): Set<string> {
   const config: ExprConfig<ExprVal.Boolean> = {

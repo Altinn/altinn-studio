@@ -1,21 +1,18 @@
 import React from 'react';
 
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
-import { FormComponent } from 'src/layout/LayoutComponent';
+import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindingsForAddress, ILayoutCompAddress } from 'src/layout/Address/types';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Address extends FormComponent<'AddressComponent'> {
+export class Address extends AddressDef {
   render(props: PropsFromGenericComponent<'AddressComponent'>): JSX.Element | null {
     return <AddressComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNodeFromType<'AddressComponent'>): string {
+  getDisplayData(node: LayoutNode<'AddressComponent'>): string {
     const data = node.getFormData();
     return Object.values(data).join(' ');
   }
@@ -24,21 +21,4 @@ export class Address extends FormComponent<'AddressComponent'> {
     const data = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={data} />;
   }
-
-  canRenderInTable(): boolean {
-    return false;
-  }
 }
-
-export const Config = {
-  def: new Address(),
-  rendersWithLabel: false as const,
-};
-
-export type TypeConfig = {
-  layout: ILayoutCompAddress;
-  nodeItem: ExprResolved<ILayoutCompAddress>;
-  nodeObj: LayoutNode;
-  validTextResourceBindings: undefined;
-  validDataModelBindings: IDataModelBindingsForAddress;
-};

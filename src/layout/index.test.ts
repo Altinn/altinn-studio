@@ -1,7 +1,7 @@
 import { implementsDisplayData } from '.';
 
 import { getSharedTests } from 'src/features/expressions/shared';
-import { ComponentConfigs } from 'src/layout/components';
+import { ComponentConfigs } from 'src/layout/components.generated';
 
 describe('Layout', () => {
   describe('Every component implementing DisplayData should have at least one shared test of displayValue expression', () => {

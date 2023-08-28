@@ -2,9 +2,8 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
-import { Triggers } from 'src/types';
+import { Triggers } from 'src/layout/common.generated';
 import { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
-import type { ILayoutCompInput } from 'src/layout/Input/types';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 const appFrontend = new AppFrontend();
@@ -280,7 +279,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
 
     // Setting single field validation to trigger on the 'sendersName' component
-    cy.changeLayout((component: ILayoutCompInput) => {
+    cy.changeLayout((component) => {
       if (component.id === 'sendersName' && component.type === 'Input') {
         // Make sure changing this field triggers single field validation
         component.triggers = [Triggers.Validation];
@@ -319,7 +318,10 @@ describe('Validation', () => {
 
   it('Clicking the error report should focus the correct field', () => {
     cy.interceptLayout('group', (component) => {
-      if (component.id === 'comments' || component.id === 'newValue' || component.id === 'currentValue') {
+      if (
+        (component.id === 'comments' || component.id === 'newValue' || component.id === 'currentValue') &&
+        (component.type === 'Input' || component.type === 'TextArea')
+      ) {
         component.required = true;
       }
     });
@@ -391,7 +393,12 @@ describe('Validation', () => {
     cy.get(appFrontend.prevButton).click();
 
     cy.changeLayout((component) => {
-      if (component.type === 'Group' && component.id === 'mainGroup' && component.tableColumns) {
+      if (
+        component.type === 'Group' &&
+        component.id === 'mainGroup' &&
+        'tableColumns' in component &&
+        component.tableColumns
+      ) {
         // As the component is hidden in edit mode, and not shown in the table for editing, it should not be
         // showing any validation messages.
         component.tableColumns.currentValue.showInExpandedEdit = false;
@@ -422,7 +429,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (component.type === 'Group' && component.id === 'mainGroup' && component.edit) {
+      if (component.type === 'Group' && component.id === 'mainGroup' && 'edit' in component && component.edit) {
         // In the 'onlyTable' mode, there is no option to edit a row, so we should not open the row in edit mode
         // to focus a component either.
         component.edit.mode = 'onlyTable';
@@ -438,7 +445,12 @@ describe('Validation', () => {
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (component.type === 'Group' && component.id === 'mainGroup' && component.tableColumns) {
+      if (
+        component.type === 'Group' &&
+        component.id === 'mainGroup' &&
+        'tableColumns' in component &&
+        component.tableColumns
+      ) {
         component.tableColumns.currentValue.editInTable = undefined;
         component.tableColumns.newValue.editInTable = true;
       }
@@ -474,7 +486,12 @@ describe('Validation', () => {
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (component.type === 'Group' && component.id === 'mainGroup' && component.tableColumns) {
+      if (
+        component.type === 'Group' &&
+        component.id === 'mainGroup' &&
+        'tableColumns' in component &&
+        component.tableColumns
+      ) {
         // Components that are not editable in the table, when using the 'onlyTable' mode, are implicitly hidden
         component.tableColumns.currentValue.editInTable = false;
       }
@@ -492,7 +509,14 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(2).newValue).should('be.focused');
 
     cy.changeLayout((component) => {
-      if (component.type === 'Group' && component.id === 'mainGroup' && component.edit && component.tableColumns) {
+      if (
+        component.type === 'Group' &&
+        component.id === 'mainGroup' &&
+        'edit' in component &&
+        component.edit &&
+        'tableColumns' in component &&
+        component.tableColumns
+      ) {
         // In regular mode, if the edit button is hidden, we should not open the row in edit mode to focus a component
         // because this isn't a mode the user would be able to reach either.
         component.edit.mode = 'showTable';

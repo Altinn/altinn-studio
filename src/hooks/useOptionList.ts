@@ -1,8 +1,8 @@
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
 import type { IFormData } from 'src/features/formData';
-import type { ISelectionComponent } from 'src/layout/layout';
-import type { IOption, IOptions, IRepeatingGroups, ITextResource } from 'src/types';
+import type { IOption, ISelectionComponent } from 'src/layout/common.generated';
+import type { IOptions, IRepeatingGroups, ITextResource } from 'src/types';
 
 export function useOptionList(component: ISelectionComponent): IOption[] {
   const textResources = useAppSelector((state) => state.textResources.resources);

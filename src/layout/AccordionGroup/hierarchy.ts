@@ -1,10 +1,14 @@
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
-import type { ChildFactory, HierarchyContext, HierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type {
+  ChildFactory,
+  HierarchyContext,
+  HierarchyGenerator,
+  UnprocessedItem,
+} from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class AccordionGroupHierarchyGenerator extends ComponentHierarchyGenerator<'AccordionGroup'> {
-  stage1(generator, item): void {
+  stage1(generator: HierarchyGenerator, item: UnprocessedItem<'AccordionGroup'>): void {
     for (const childId of item.children) {
       if (!this.canRenderInAccordionGroup(generator, childId)) {
         continue;
@@ -17,7 +21,7 @@ export class AccordionGroupHierarchyGenerator extends ComponentHierarchyGenerato
     return this.processAccordionContent(ctx);
   }
 
-  childrenFromNode(node: LayoutNodeFromType<'AccordionGroup'>): LayoutNode[] {
+  childrenFromNode(node: LayoutNode<'AccordionGroup'>): LayoutNode[] {
     return node.item.childComponents;
   }
 
@@ -26,7 +30,7 @@ export class AccordionGroupHierarchyGenerator extends ComponentHierarchyGenerato
    */
   private processAccordionContent(ctx: HierarchyContext): ChildFactory<'AccordionGroup'> {
     return (props) => {
-      const prototype = ctx.generator.prototype(ctx.id);
+      const prototype = ctx.generator.prototype(ctx.id) as UnprocessedItem<'AccordionGroup'>;
 
       delete (props.item as any)['children'];
       const me = ctx.generator.makeNode(props);

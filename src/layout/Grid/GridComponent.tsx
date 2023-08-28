@@ -16,12 +16,13 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import css from 'src/layout/Grid/Grid.module.css';
 import { isGridRowHidden, nodesFromGrid } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { GridComponent, GridRow } from 'src/layout/Grid/types';
-import type { ITableColumnFormatting, ITableColumnProperties, ITextResourceBindings } from 'src/layout/layout';
+import type { GridRowInternal, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
+import type { ITextResourceBindings } from 'src/layout/layout';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { node } = props;
@@ -29,7 +30,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
-  const isNested = node.parent instanceof LayoutNode;
+  const isNested = node.parent instanceof BaseLayoutNode;
 
   if (isMobile) {
     return <MobileGrid {...props} />;
@@ -56,7 +57,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
 }
 
 interface GridRowProps {
-  row: GridRow<GridComponent>;
+  row: GridRowInternal;
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   node: LayoutNode;
@@ -115,7 +116,7 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: 
             );
           }
         }
-        const componentNode = cell && 'node' in cell && cell?.node;
+        const componentNode = cell && 'node' in cell ? cell.node : undefined;
         const componentId = componentNode && componentNode.item.id;
         return (
           <CellWithComponent
@@ -130,7 +131,7 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: 
   );
 }
 
-type InternalRowProps = PropsWithChildren<Pick<GridRow, 'header' | 'readOnly'>>;
+type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;
 
 function InternalRow({ header, readOnly, children }: InternalRowProps) {
   const className = readOnly ? css.rowReadOnly : undefined;
@@ -218,8 +219,15 @@ function CellWithText({ children, className, columnStyleOptions, help }: CellWit
 
 function CellWithLabel({ className, columnStyleOptions, referenceComponent }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const { title, help, description } = (referenceComponent?.item.textResourceBindings as ITextResourceBindings) || {};
-  const { required } = referenceComponent?.item || {};
+  const refItem = referenceComponent?.item;
+  const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
+    | ITextResourceBindings
+    | undefined;
+  const title = trb && 'title' in trb ? trb.title : undefined;
+  const help = trb && 'help' in trb ? trb.help : undefined;
+  const description = trb && 'description' in trb ? trb.description : undefined;
+  const required =
+    (referenceComponent && 'required' in referenceComponent.item && referenceComponent.item.required) ?? false;
   const componentId = referenceComponent?.item.id ?? referenceComponent?.item.baseComponentId;
 
   return (

@@ -186,6 +186,12 @@
       }
     },
     {
+      "files": ["src/codegen/**/*.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
       "files": ["*.test.ts", "*.test.tsx"],
       "extends": ["plugin:testing-library/react"],
       "rules": {

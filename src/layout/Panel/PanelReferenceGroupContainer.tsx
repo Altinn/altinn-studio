@@ -14,10 +14,11 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { CompGroupNonRepeatingPanelInternal } from 'src/layout/Group/config.generated';
+import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 
 export interface IPanelGroupContainerProps {
-  node: LayoutNodeFromType<'Group'>;
+  node: LayoutNodeForGroup<CompGroupNonRepeatingPanelInternal>;
 }
 
 export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps) {

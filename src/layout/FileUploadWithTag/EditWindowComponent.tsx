@@ -17,7 +17,8 @@ import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css
 import { renderValidationMessages } from 'src/utils/render';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IOption, IRuntimeState } from 'src/types';
+import type { IOption } from 'src/layout/common.generated';
+import type { IRuntimeState } from 'src/types';
 
 export interface EditWindowProps {
   node: PropsFromGenericComponent<'FileUploadWithTag'>['node'];

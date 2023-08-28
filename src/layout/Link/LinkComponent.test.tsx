@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 
 import { LinkComponent } from 'src/layout/Link/LinkComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { LinkStyle } from 'src/layout/Link/types';
+import type { LinkStyle } from 'src/layout/Link/config.generated';
 
 describe('LinkComponent', () => {
   it('should render link when style is link', () => {

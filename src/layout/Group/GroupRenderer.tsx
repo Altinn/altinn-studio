@@ -4,6 +4,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { GroupContainer } from 'src/layout/Group/GroupContainer';
 import { RepeatingGroupsFocusProvider } from 'src/layout/Group/RepeatingGroupsFocusContext';
+import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import { PanelReferenceGroupContainer } from 'src/layout/Panel/PanelReferenceGroupContainer';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -11,6 +12,10 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type GroupRendererProps = PropsFromGenericComponent<'Group'>;
 
 export function GroupRenderer({ node }: GroupRendererProps) {
+  if (node.isRepGroupLikert()) {
+    return <RepeatingGroupsLikertContainer node={node} />;
+  }
+
   const isRepeatingGroup = node.isRepGroup();
   if (isRepeatingGroup) {
     return (
@@ -24,7 +29,7 @@ export function GroupRenderer({ node }: GroupRendererProps) {
   }
 
   // panel with groupReference
-  if (node.item.panel?.groupReference) {
+  if (node.isNonRepPanelGroup() && node.item.panel.groupReference) {
     return (
       <PanelReferenceGroupContainer
         key={node.item.id}
@@ -34,7 +39,7 @@ export function GroupRenderer({ node }: GroupRendererProps) {
   }
 
   // regular panel group
-  if (node.item.panel) {
+  if (node.isNonRepPanelGroup()) {
     return (
       <PanelGroupContainer
         key={node.item.id}

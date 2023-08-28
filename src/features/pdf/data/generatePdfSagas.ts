@@ -19,10 +19,10 @@ import { httpGet } from 'src/utils/network/networking';
 import { pdfPreviewMode, shouldGeneratePdf } from 'src/utils/pdf';
 import { getPdfFormatUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IPdfFormat, IPdfMethod } from 'src/features/pdf/data/types';
-import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
+import type { CompInstanceInformationExternal } from 'src/layout/InstanceInformation/config.generated';
 import type { ILayout, ILayouts } from 'src/layout/layout';
+import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 import type { ILayoutSets, IRuntimeState, IUiConfig } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -38,7 +38,7 @@ const pdfMethodSelector = (state: IRuntimeState) => state.pdf.method;
 function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, resolvedNodes: LayoutPages): ILayout {
   const automaticPdfLayout: ILayout = [];
 
-  const instanceInformation: ExprUnresolved<ILayoutCompInstanceInformation> = {
+  const instanceInformation: CompInstanceInformationExternal = {
     id: '__pdf__instance-information',
     type: 'InstanceInformation',
     elements: {
@@ -74,8 +74,8 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, res
           componentRef: node.item.id,
           pageRef: pageName,
           excludedChildren: pdfFormat?.excludedComponents,
-          largeGroup: node.isNonRepGroup(),
-        };
+          largeGroup: node.isType('Group') && (node.isNonRepGroup() || node.isNonRepPanelGroup()),
+        } as CompSummaryExternal;
       }
       return null;
     })

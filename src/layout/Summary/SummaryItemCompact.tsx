@@ -2,7 +2,6 @@ import React from 'react';
 
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
-import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ICompactSummaryItem {
@@ -12,8 +11,11 @@ export interface ICompactSummaryItem {
 
 export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
   const { lang } = useLanguage();
-  const textBindings = targetNode.item.textResourceBindings as ITextResourceBindings;
-  const title = lang(textBindings?.summaryTitle ?? textBindings?.title);
+  const textBindings = 'textResourceBindings' in targetNode.item ? targetNode.item.textResourceBindings : undefined;
+  const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
+  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+  const title = lang(summaryTitleTrb ?? titleTrb);
+
   return (
     <div data-testid={'summary-item-compact'}>
       {title && (

@@ -6,10 +6,10 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { FormComponentContext } from 'src/layout';
 import { assertUnreachable } from 'src/types';
-import type { ILayoutCompPanel } from 'src/layout/Panel/types';
+import type { IPanelBase } from 'src/layout/common.generated';
 
 interface IGetVariantProps {
-  variant: ILayoutCompPanel['variant'];
+  variant: IPanelBase['variant'];
 }
 
 const defaultObj: IGetVariantProps = {
@@ -35,7 +35,7 @@ export const getVariant = ({ variant }: IGetVariantProps = defaultObj) => {
 export interface IPanelProps {
   title: React.ReactNode;
   children?: React.ReactNode;
-  variant?: ILayoutCompPanel['variant'];
+  variant?: IPanelBase['variant'];
   showIcon?: boolean;
   showPointer?: boolean;
 }

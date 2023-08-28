@@ -13,13 +13,12 @@ import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import type { IGrid } from 'src/layout/layout';
-import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { IGrid } from 'src/layout/common.generated';
+import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ISummaryComponent {
-  summaryNode: LayoutNodeFromType<'Summary'>;
+  summaryNode: LayoutNode<'Summary'>;
   overrides?: {
     targetNode?: LayoutNode;
     grid?: IGrid;

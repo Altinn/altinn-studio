@@ -2,7 +2,8 @@ import React from 'react';
 
 import classes from 'src/components/form/SelectOptionItem.module.css';
 import { useLanguage } from 'src/hooks/useLanguage';
-import type { IOption } from 'src/types';
+import type { IOption } from 'src/layout/common.generated';
+
 type ISelectOptionItemProps = {
   option: IOption;
   listHasDescription: boolean;

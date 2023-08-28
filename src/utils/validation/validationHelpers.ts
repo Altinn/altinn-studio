@@ -1,5 +1,5 @@
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
-import { Triggers } from 'src/types';
+import { Triggers } from 'src/layout/common.generated';
 import type { IRuntimeState, TriggersPageValidation } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {

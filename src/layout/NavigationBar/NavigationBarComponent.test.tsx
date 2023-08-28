@@ -44,11 +44,6 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
             {
               id: 'nav1',
               type: 'NavigationBar',
-              textResourceBindings: {
-                next: 'Kort svar',
-                back: 'back',
-              },
-              dataModelBindings: {},
             },
             {
               id: 'd966374c-5e22-4b87-9581-0d3d1ccd40ed',
@@ -67,11 +62,6 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
             {
               id: 'nav2',
               type: 'NavigationBar',
-              textResourceBindings: {
-                next: 'Kort svar',
-                back: 'back',
-              },
-              dataModelBindings: {},
             },
             {
               id: '0be94b72-f885-48e6-bd43-e64839a62708',
@@ -90,11 +80,6 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
             {
               id: 'nav3',
               type: 'NavigationBar',
-              textResourceBindings: {
-                next: 'Kort svar',
-                back: 'back',
-              },
-              dataModelBindings: {},
             },
             {
               id: '0bb8b04f-1d57-4c55-94a8-b53290c692d7',

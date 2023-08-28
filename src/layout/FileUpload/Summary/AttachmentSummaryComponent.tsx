@@ -5,10 +5,10 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { getOptionLookupKey } from 'src/utils/options';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IAttachmentSummaryComponent {
-  targetNode: LayoutNodeFromType<'FileUpload'> | LayoutNodeFromType<'FileUploadWithTag'>;
+  targetNode: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
 }
 
 export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryComponent) {

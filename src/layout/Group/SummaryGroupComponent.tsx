@@ -4,20 +4,25 @@ import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { CompCategory } from 'src/layout/common';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
-import { ComponentType } from 'src/layout/LayoutComponent';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import type {
+  CompGroupNonRepeatingInternal,
+  CompGroupNonRepeatingPanelInternal,
+} from 'src/layout/Group/config.generated';
+import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ISummaryGroupComponent {
   changeText: string | null;
   onChangeClick: () => void;
-  summaryNode: LayoutNodeFromType<'Summary'>;
-  targetNode: LayoutNodeFromType<'Group'>;
+  summaryNode: LayoutNode<'Summary'>;
+  targetNode: LayoutNode<'Group'>;
   overrides?: ISummaryComponent['overrides'];
 }
 
@@ -38,11 +43,13 @@ export function SummaryGroupComponent({
 
   const groupHasErrors = targetNode.hasDeepValidationMessages();
 
-  const textBindings = targetNode.item.textResourceBindings;
-  const title = lang(textBindings?.summaryTitle ?? textBindings?.title);
-  const ariaLabel = langAsString(
-    textBindings?.summaryAccessibleTitle ?? textBindings?.summaryTitle ?? textBindings?.title,
-  );
+  const textBindings = targetNode.item.textResourceBindings as ITextResourceBindings;
+  const summaryAccessibleTitleTrb =
+    textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
+  const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
+  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+  const title = lang(summaryTitleTrb ?? titleTrb);
+  const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
 
   const rowIndexes: (number | undefined)[] = [];
   if (targetNode.isRepGroup()) {
@@ -68,7 +75,9 @@ export function SummaryGroupComponent({
             <DisplayGroupContainer
               key={`summary-${targetNode.item.id}-${idx}`}
               id={`summary-${targetNode.item.id}-${idx}`}
-              groupNode={targetNode}
+              groupNode={
+                targetNode as LayoutNodeForGroup<CompGroupNonRepeatingInternal | CompGroupNonRepeatingPanelInternal>
+              }
               onlyRowIndex={idx}
               renderLayoutNode={(n) => {
                 if (inExcludedChildren(n) || n.isHidden()) {
@@ -125,7 +134,7 @@ export function SummaryGroupComponent({
                 .children(undefined, idx)
                 .filter((n) => !inExcludedChildren(n))
                 .map((child) => {
-                  if (child.isHidden() || !child.isComponentType(ComponentType.Form)) {
+                  if (child.isHidden() || !child.isCategory(CompCategory.Form)) {
                     return;
                   }
                   const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def);

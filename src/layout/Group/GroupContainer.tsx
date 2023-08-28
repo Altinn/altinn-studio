@@ -11,20 +11,21 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { Triggers } from 'src/layout/common.generated';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
-import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
-import { Triggers } from 'src/types';
 import { getRepeatingGroupFilteredIndices } from 'src/utils/formLayout';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { HRepGroup } from 'src/layout/Group/types';
+import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
+import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
+
 export interface IGroupProps {
-  node: LayoutNode<HRepGroup, 'Group'>;
+  node: LayoutNodeForGroup<CompGroupRepeatingInternal>;
 }
 
-const getValidationMethod = (node: LayoutNode) => {
+const getValidationMethod = (node: LayoutNodeForGroup<CompGroupRepeatingInternal>) => {
   // Validation for whole group takes precedent over single-row validation if both are present.
   const triggers = node.item.triggers;
   if (triggers && triggers.includes(Triggers.Validation)) {
@@ -161,11 +162,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
     return null;
   }
 
-  const isNested = node.parent instanceof LayoutNode;
-
-  if (edit?.mode === 'likert') {
-    return <RepeatingGroupsLikertContainer node={node} />;
-  }
+  const isNested = node.parent instanceof BaseLayoutNode;
 
   const displayBtn =
     edit?.addButton !== false &&

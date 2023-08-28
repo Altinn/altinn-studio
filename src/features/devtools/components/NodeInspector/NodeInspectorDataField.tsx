@@ -9,7 +9,8 @@ import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface NodeInspectorDataFieldParams {
   path: string[];
@@ -156,7 +157,7 @@ export function NodeInspectorDataField({ path, property, value: inputValue }: No
     canBeExpression(value, true);
 
   let exprText = 'Ble evaluert til:';
-  if (isExpression && node?.isRepGroup()) {
+  if (isExpression && node?.isType('Group') && node.isRepGroup()) {
     const firstRow = node.item.rows[0];
     if (firstRow && firstRow.groupExpressions) {
       const realValue = dot.pick(path.join('.'), firstRow.groupExpressions);
@@ -212,7 +213,7 @@ export function NodeInspectorDataField({ path, property, value: inputValue }: No
     );
   }
 
-  if (typeof value === 'object' && value instanceof LayoutNode) {
+  if (typeof value === 'object' && value instanceof BaseLayoutNode) {
     return (
       <OtherNode
         property={property}

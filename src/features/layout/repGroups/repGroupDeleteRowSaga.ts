@@ -13,6 +13,7 @@ import {
 } from 'src/features/layout/update/updateFormLayoutSagas';
 import { OptionsActions } from 'src/features/options/optionsSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import { shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
 import { findChildAttachments, removeGroupData } from 'src/utils/databindings';
 import { findChildren, removeRepeatingGroupFromUIConfig, splitDashedKey } from 'src/utils/formLayout';
@@ -26,7 +27,7 @@ import type {
 } from 'src/features/attachments/delete/deleteAttachmentActions';
 import type { IFormDataState } from 'src/features/formData';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
-import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { IOptions, IRepeatingGroups } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
@@ -58,14 +59,14 @@ export function* repGroupDeleteRowSaga({
       },
     };
 
-    const groupContainer = currentLayout.find((element) => element.id === groupId) as ILayoutGroup | undefined;
+    const groupContainer = currentLayout.find((element) => element.id === groupId) as CompGroupExternal | undefined;
     const children = groupContainer?.children || [];
     const childGroups = currentLayout.filter((element) => {
       if (element.type !== 'Group') {
         return false;
       }
 
-      if (groupContainer?.edit?.multiPage) {
+      if (groupContainer && groupIsRepeatingExt(groupContainer) && groupContainer?.edit?.multiPage) {
         return children.find((c) => c.split(':')[1] === element.id);
       }
 
@@ -102,7 +103,7 @@ export function* repGroupDeleteRowSaga({
           // Deleting attachment, but deliberately avoiding passing the dataModelBindings to avoid removing the formData
           // references. We're doing that ourselves here later, and having other sagas compete for it will cause race
           // conditions and lots of useless requests.
-          dataModelBindings: {},
+          dataModelBindings: undefined,
         }),
       );
 

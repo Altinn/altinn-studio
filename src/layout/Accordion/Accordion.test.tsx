@@ -4,7 +4,6 @@ import { screen } from '@testing-library/react';
 
 import { Accordion } from 'src/layout/Accordion/Accordion';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { ILayoutAccordion } from 'src/layout/Accordion/types';
 
 describe('Accordion', () => {
   it('should display text from textResourceBindings', async () => {
@@ -20,7 +19,7 @@ describe('Accordion', () => {
   });
 });
 
-const render = ({ title }: Partial<ILayoutAccordion> & { title?: string } = {}) =>
+const render = ({ title }: { title?: string } = {}) =>
   renderGenericComponentTest<'Accordion'>({
     type: 'Accordion',
     renderer: (props) => <Accordion {...props} />,

@@ -17,15 +17,9 @@ import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/formData';
 import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { ILayouts, ISelectionComponentProps } from 'src/layout/layout';
-import type {
-  IFetchSpecificOptionSaga,
-  IOption,
-  IOptions,
-  IOptionsMetaData,
-  IRepeatingGroups,
-  IRuntimeState,
-} from 'src/types';
+import type { IOption, ISelectionComponent } from 'src/layout/common.generated';
+import type { ILayouts } from 'src/layout/layout';
+import type { IFetchSpecificOptionSaga, IOptions, IOptionsMetaData, IRepeatingGroups, IRuntimeState } from 'src/types';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts | null => state.formLayout?.layouts;
 export const formDataSelector = (state: IRuntimeState) => state.formData.formData;
@@ -59,7 +53,7 @@ export function* fetchOptionsSaga(): SagaIterator {
   const optionsWithIndexIndicators: IOptionsMetaData[] = [];
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
-      const { optionsId, mapping, queryParameters, secure } = element as ISelectionComponentProps;
+      const { optionsId, mapping, queryParameters, secure } = element as ISelectionComponent;
 
       // if we have index indicators we get up the lookup keys for existing indexes
       const { keys, keyWithIndexIndicator } =

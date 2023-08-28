@@ -1,6 +1,5 @@
-import { LayoutStyle } from 'src/types';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
+import { LayoutStyle } from 'src/layout/common.generated';
+import type { CompOrGroupExternal, ILayouts } from 'src/layout/layout';
 import type { ILayoutSet, ILayoutSets } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
@@ -10,15 +9,12 @@ import type { IInstance } from 'src/types/shared';
  * @see useResolvedNode
  * @see ResolvedNodesSelector
  */
-export function getLayoutComponentById(
-  id: string,
-  layouts: ILayouts | null,
-): ExprUnresolved<ILayoutComponentOrGroup> | undefined {
+export function getLayoutComponentById(id: string, layouts: ILayouts | null): CompOrGroupExternal | undefined {
   if (!layouts) {
     return undefined;
   }
 
-  let component: ExprUnresolved<ILayoutComponentOrGroup> | undefined;
+  let component: CompOrGroupExternal | undefined;
   Object.keys(layouts).forEach((layoutId) => {
     if (!component) {
       component = layouts[layoutId]?.find((element) => {

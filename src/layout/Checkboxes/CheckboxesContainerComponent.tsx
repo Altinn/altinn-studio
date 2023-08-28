@@ -13,7 +13,7 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IOption } from 'src/types';
+import type { IOption } from 'src/layout/common.generated';
 
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 

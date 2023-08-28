@@ -4,9 +4,9 @@ import { screen } from '@testing-library/react';
 
 import { PrintButtonComponent } from 'src/layout/PrintButton/PrintButtonComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { ILayoutComponent } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 
-const render = (component: Partial<ILayoutComponent<'PrintButton'>> = {}) => {
+const render = (component: Partial<CompExternal<'PrintButton'>> = {}) => {
   renderGenericComponentTest({
     type: 'PrintButton',
     renderer: (props) => <PrintButtonComponent {...props} />,

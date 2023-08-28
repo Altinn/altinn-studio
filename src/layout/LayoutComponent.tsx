@@ -2,6 +2,7 @@ import React from 'react';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { CompCategory } from 'src/layout/common';
 import {
   type DisplayData,
   type DisplayDataProps,
@@ -13,32 +14,20 @@ import {
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { getFieldName } from 'src/utils/formComponentUtils';
 import { SimpleComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
-import type { ComponentTypeConfigs } from 'src/layout/components';
-import type { ComponentTypes, ITextResourceBindings } from 'src/layout/layout';
+import type { CompInternal, CompTypes, HierarchyDataSources, ITextResourceBindings } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { AnyItem, HierarchyDataSources, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
 import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-/**
- * This enum is used to distinguish purely presentational components
- * from interactive form components that can have formData etc.
- */
-export enum ComponentType {
-  Presentation = 'presentation',
-  Form = 'form',
-  Action = 'action',
-  Container = 'container',
-}
-
 const defaultGenerator = new SimpleComponentHierarchyGenerator();
 
-export abstract class AnyComponent<Type extends ComponentTypes> {
+export abstract class AnyComponent<Type extends CompTypes> {
   /**
    * Given properties from GenericComponent, render this layout component
    */
@@ -47,7 +36,7 @@ export abstract class AnyComponent<Type extends ComponentTypes> {
   /**
    * Given a node, a list of the node's data, for display in the devtools node inspector
    */
-  renderDevToolsInspector(node: LayoutNodeFromType<Type>): JSX.Element | null {
+  renderDevToolsInspector(node: LayoutNode<Type>): JSX.Element | null {
     return <DefaultNodeInspector node={node} />;
   }
 
@@ -59,37 +48,35 @@ export abstract class AnyComponent<Type extends ComponentTypes> {
     return false;
   }
 
-  shouldRenderInAutomaticPDF(node: LayoutNodeFromType<Type>): boolean {
+  shouldRenderInAutomaticPDF(node: LayoutNode<Type>): boolean {
+    if (!('renderAsSummary' in node.item)) {
+      return true;
+    }
+
     return !node.item.renderAsSummary;
   }
 
   /**
    * Return false to prevent this component from being rendered in a table
+   * Should be configured as a capability in the component configuration (config.ts)
    */
-  canRenderInTable(): boolean {
-    return true;
-  }
+  abstract canRenderInTable(): boolean;
 
   /**
    * Return true to allow this component to be rendered in a ButtonGroup
+   * Should be configured as a capability in the component configuration (config.ts)
    */
-  canRenderInButtonGroup(): boolean {
-    return false;
-  }
+  abstract canRenderInButtonGroup(): boolean;
 
   /**
    * Return true to allow this component to be rendered in an Accordion
    */
-  canRenderInAccordion(): boolean {
-    return false;
-  }
+  abstract canRenderInAccordion(): boolean;
 
   /**
    * Return true to allow this component to be rendered in an AccordionGroup
    */
-  canRenderInAccordionGroup(): boolean {
-    return false;
-  }
+  abstract canRenderInAccordionGroup(): boolean;
 
   /**
    * Should GenericComponent render validation messages for simpleBinding outside of this component?
@@ -110,29 +97,29 @@ export abstract class AnyComponent<Type extends ComponentTypes> {
   }
 
   makeNode(
-    item: AnyItem<Type>,
+    item: CompInternal<Type>,
     parent: LayoutNode | LayoutPage,
     top: LayoutPage,
     dataSources: HierarchyDataSources,
     rowIndex?: number,
-  ): ComponentTypeConfigs[Type]['nodeObj'] {
-    return new LayoutNode(item, parent, top, dataSources, rowIndex);
+  ): LayoutNode<Type> {
+    return new BaseLayoutNode(item, parent, top, dataSources, rowIndex) as LayoutNode<Type>;
   }
 }
 
-export abstract class PresentationComponent<Type extends ComponentTypes> extends AnyComponent<Type> {
-  readonly type = ComponentType.Presentation;
+export abstract class PresentationComponent<Type extends CompTypes> extends AnyComponent<Type> {
+  readonly type = CompCategory.Presentation;
 }
 
-export interface SummaryRendererProps<Type extends ComponentTypes> {
-  summaryNode: LayoutNodeFromType<'Summary'>;
-  targetNode: LayoutNodeFromType<Type>;
+export interface SummaryRendererProps<Type extends CompTypes> {
+  summaryNode: LayoutNode<'Summary'>;
+  targetNode: LayoutNode<Type>;
   onChangeClick: () => void;
   changeText: string | null;
   overrides?: ISummaryComponent['overrides'];
 }
 
-abstract class _FormComponent<Type extends ComponentTypes> extends AnyComponent<Type> implements DisplayData<Type> {
+abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type> implements DisplayData<Type> {
   /**
    * Given a node (with group-index-aware data model bindings), this method should return a proper 'value' for the
    * current component/node. This value will be used to display form data in a repeating group table, and when rendering
@@ -140,9 +127,9 @@ abstract class _FormComponent<Type extends ComponentTypes> extends AnyComponent<
    * @see renderSummary
    * @see renderCompactSummary
    */
-  abstract getDisplayData(node: LayoutNodeFromType<Type>, displayDataProps: DisplayDataProps): string;
+  abstract getDisplayData(node: LayoutNode<Type>, displayDataProps: DisplayDataProps): string;
 
-  useDisplayData(node: LayoutNodeFromType<Type>): string {
+  useDisplayData(node: LayoutNode<Type>): string {
     const displayDataProps = useAppSelector(getDisplayDataPropsFromState);
     return this.getDisplayData(node, displayDataProps);
   }
@@ -176,26 +163,26 @@ abstract class _FormComponent<Type extends ComponentTypes> extends AnyComponent<
   }
 }
 
-export abstract class ActionComponent<Type extends ComponentTypes> extends AnyComponent<Type> {
-  readonly type = ComponentType.Action;
+export abstract class ActionComponent<Type extends CompTypes> extends AnyComponent<Type> {
+  readonly type = CompCategory.Action;
 
   shouldRenderInAutomaticPDF() {
     return false;
   }
 }
 
-export abstract class FormComponent<Type extends ComponentTypes>
+export abstract class FormComponent<Type extends CompTypes>
   extends _FormComponent<Type>
   implements EmptyFieldValidation, SchemaValidation
 {
-  readonly type = ComponentType.Form;
+  readonly type = CompCategory.Form;
 
   runEmptyFieldValidation(
-    node: LayoutNodeFromType<Type>,
+    node: LayoutNode<Type>,
     { formData, langTools }: IValidationContext,
     overrideFormData?: IFormData,
   ): IValidationObject[] {
-    if (!node.item.required) {
+    if (!('required' in node.item) || !node.item.required) {
       return [];
     }
     const { langAsString } = langTools;
@@ -203,16 +190,18 @@ export abstract class FormComponent<Type extends ComponentTypes>
     const formDataToValidate = { ...formData, ...overrideFormData };
     const validationObjects: IValidationObject[] = [];
 
-    const bindings = Object.entries(node.item.dataModelBindings ?? {});
-    for (const [bindingKey, field] of bindings) {
+    const bindings = Object.entries(node.item.dataModelBindings || {});
+    for (const [bindingKey, _field] of bindings) {
+      const field = _field as string;
       const data = formDataToValidate[field];
-      const textResourceBindings = node.item.textResourceBindings as ITextResourceBindings;
+      const trb: ITextResourceBindings = 'textResourceBindings' in node.item ? node.item.textResourceBindings : {};
 
       if (!data?.length) {
-        const fieldName = getFieldName(textResourceBindings, langTools, bindingKey);
-        const errorMessage = textResourceBindings?.requiredValidation
-          ? langAsString(textResourceBindings?.requiredValidation, [fieldName])
-          : langAsString('form_filler.error_required', [fieldName]);
+        const fieldName = getFieldName(trb, langTools, bindingKey);
+        const errorMessage =
+          trb && 'requiredValidation' in trb && trb.requiredValidation
+            ? langAsString(trb?.requiredValidation, [fieldName])
+            : langAsString('form_filler.error_required', [fieldName]);
 
         validationObjects.push(buildValidationObject(node, 'errors', errorMessage, bindingKey));
       }
@@ -220,10 +209,10 @@ export abstract class FormComponent<Type extends ComponentTypes>
     return validationObjects;
   }
 
-  runSchemaValidation(node: LayoutNodeFromType<Type>, schemaErrors: ISchemaValidationError[]): IValidationObject[] {
+  runSchemaValidation(node: LayoutNode<Type>, schemaErrors: ISchemaValidationError[]): IValidationObject[] {
     const validationObjects: IValidationObject[] = [];
     for (const error of schemaErrors) {
-      if (node.item.dataModelBindings) {
+      if ('dataModelBindings' in node.item && node.item.dataModelBindings) {
         const bindings = Object.entries(node.item.dataModelBindings);
         for (const [bindingKey, bindingField] of bindings) {
           if (bindingField === error.bindingField) {
@@ -238,11 +227,11 @@ export abstract class FormComponent<Type extends ComponentTypes>
   }
 }
 
-export abstract class ContainerComponent<Type extends ComponentTypes> extends _FormComponent<Type> {
-  readonly type = ComponentType.Container;
+export abstract class ContainerComponent<Type extends CompTypes> extends _FormComponent<Type> {
+  readonly type = CompCategory.Container;
 }
 
-export type LayoutComponent<Type extends ComponentTypes = ComponentTypes> =
+export type LayoutComponent<Type extends CompTypes = CompTypes> =
   | PresentationComponent<Type>
   | FormComponent<Type>
   | ActionComponent<Type>

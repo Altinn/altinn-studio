@@ -5,7 +5,7 @@ import type { SagaIterator } from 'redux-saga';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { IUpdateFileUploaderWithTagChosenOptions } from 'src/features/layout/formLayoutTypes';
-import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
+import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IRuntimeState } from 'src/types';
 
 export function* updateFileUploaderWithTagChosenOptionsSaga({
@@ -18,7 +18,7 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({
     const component =
       state.formLayout.layouts &&
       (state.formLayout.layouts[currentView]?.find((component) => component.id === baseComponentId) as
-        | ILayoutCompFileUploadWithTag
+        | CompFileUploadWithTagExternal
         | undefined);
     const lookupKey =
       component &&

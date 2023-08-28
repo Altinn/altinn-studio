@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import type { IMapping, IOptionSource } from 'src/types';
+import type { IMapping, IOptionSource } from 'src/layout/common.generated';
 
 interface IUseGetDataListParams {
   id?: string;

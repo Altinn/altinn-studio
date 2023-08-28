@@ -1,4 +1,4 @@
-import { LayoutStyle } from 'src/types';
+import { LayoutStyle } from 'src/layout/common.generated';
 import { matchLayoutComponent, shouldUseRowLayout } from 'src/utils/layout';
 
 describe('shouldUseRowLayout', () => {

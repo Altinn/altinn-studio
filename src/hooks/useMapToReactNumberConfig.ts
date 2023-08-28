@@ -1,7 +1,7 @@
 import { useLanguage } from 'src/hooks/useLanguage';
 import { formatNumber } from 'src/utils/formattingUtils';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { IInputFormatting } from 'src/layout/layout';
+import type { IInputFormatting } from 'src/layout/Input/config.generated';
 import type { CurrencyFormattingOptions, UnitFormattingOptions } from 'src/utils/formattingUtils';
 
 export const useMapToReactNumberConfig = (formatting: IInputFormatting | undefined, value = ''): IInputFormatting => {

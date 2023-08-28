@@ -11,7 +11,6 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
     type: 'Map',
     renderer: (props) => <MapComponent {...props} />,
     component: {
-      dataModelBindings: {},
       readOnly: false,
       required: false,
       textResourceBindings: {},

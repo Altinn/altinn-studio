@@ -33,7 +33,7 @@ export function* deleteAttachmentSaga({
 
     const response: AxiosResponse = yield call(httpDelete, dataElementUrl(attachment.id));
     if (response.status === 200) {
-      if (dataModelBindings && (dataModelBindings.simpleBinding || dataModelBindings.list)) {
+      if (dataModelBindings && ('simpleBinding' in dataModelBindings || 'list' in dataModelBindings)) {
         yield put(
           FormDataActions.deleteAttachmentReference({
             attachmentId: attachment.id,

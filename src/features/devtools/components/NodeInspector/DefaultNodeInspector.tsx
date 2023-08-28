@@ -45,7 +45,7 @@ export function DefaultNodeInspector({ node, ignoredProperties }: DefaultNodeIns
           );
         }
 
-        if (node.isRepGroup() && key === 'rows') {
+        if (node.isType('Group') && node.isRepGroup() && key === 'rows') {
           // Don't show rows for repeating groups, as they are extracted and shown in the inspector sidebar
           return null;
         }

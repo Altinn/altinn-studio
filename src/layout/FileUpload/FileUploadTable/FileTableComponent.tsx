@@ -10,7 +10,8 @@ import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComp
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IOption, IRuntimeState } from 'src/types';
+import type { IOption } from 'src/layout/common.generated';
+import type { IRuntimeState } from 'src/types';
 
 export interface FileTableProps {
   node: PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>['node'];

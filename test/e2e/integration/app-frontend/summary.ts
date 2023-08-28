@@ -2,7 +2,7 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
-import { Triggers } from 'src/types';
+import { Triggers } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -484,52 +484,53 @@ describe('Summary', () => {
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
   });
 
-  //The test below validates that the summary component displays the appropriate summaryTitle and summaryAccessibleTitle values,
-  //based on the provided test data, for different types of components in the "changename" layout.
-  const testTitleData = [
-    {
-      summaryTitle: 'Summary Title',
-      summaryAccessibleTitle: 'Summary Accessible Title',
-    },
-    {
-      summaryAccessibleTitle: 'Summary Accessible Title',
-    },
-    {
-      summaryTitle: 'Summary Title',
-    },
-    undefined,
-  ];
+  it('should display summaryTitle and/or summaryAccessibleTitle in summary if defined', () => {
+    //The test below validates that the summary component displays the appropriate summaryTitle and summaryAccessibleTitle values,
+    //based on the provided test data, for different types of components in the "changename" layout.
+    const testTitleData = [
+      {
+        summaryTitle: 'Summary Title',
+        summaryAccessibleTitle: 'Summary Accessible Title',
+      },
+      {
+        summaryAccessibleTitle: 'Summary Accessible Title',
+      },
+      {
+        summaryTitle: 'Summary Title',
+      },
+      undefined,
+    ];
 
-  testTitleData.forEach((title) => {
-    it(`should display summaryTitle (${!!title?.summaryTitle}) and/or summaryAccessibleTitle (${!!title?.summaryAccessibleTitle}) in summary if defined`, () => {
-      const components = [
-        {
-          id: 'dateOfEffect',
-          type: 'Datepicker',
-          summaryComponent: '[data-testid=summary-summary-4]',
-          defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
-        },
-        {
-          id: 'reference-group',
-          type: 'Group',
-          summaryComponent: '[data-testid=summary-group-component]',
-          defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
-        },
-      ];
+    const components = [
+      {
+        id: 'dateOfEffect',
+        type: 'Datepicker' as const,
+        summaryComponent: '[data-testid=summary-summary-4]',
+        defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
+      },
+      {
+        id: 'reference-group',
+        type: 'Group' as const,
+        summaryComponent: '[data-testid=summary-group-component]',
+        defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
+      },
+    ];
 
-      cy.interceptLayout('changename', (component) => {
-        const matchingComponent = components.find((c) => c.type === component.type && c.id === component.id);
-        if (matchingComponent) {
-          component.textResourceBindings = {
-            title: matchingComponent.defaultTitle,
-            summaryTitle: title?.summaryTitle,
-            summaryAccessibleTitle: title?.summaryAccessibleTitle,
-          };
+    cy.goto('changename');
+    cy.gotoNavPage('summary');
+
+    for (const title of testTitleData) {
+      cy.changeLayout((component) => {
+        for (const c of components) {
+          if (c.id === component.id && c.type === component.type) {
+            component.textResourceBindings = {
+              title: c.defaultTitle,
+              summaryTitle: title?.summaryTitle,
+              summaryAccessibleTitle: title?.summaryAccessibleTitle,
+            };
+          }
         }
       });
-
-      cy.goto('changename');
-      cy.gotoNavPage('summary');
 
       components.forEach(({ summaryComponent, defaultTitle }) => {
         cy.get(summaryComponent).should('contain.text', title?.summaryTitle ?? defaultTitle);
@@ -541,7 +542,7 @@ describe('Summary', () => {
             `Endre: ${title?.summaryAccessibleTitle ?? title?.summaryTitle ?? defaultTitle}`,
           );
       });
-    });
+    }
   });
 });
 
@@ -584,7 +585,7 @@ function injectExtraPageAndSetTriggers(trigger?: Triggers | undefined) {
           showBackButton: true,
           textResourceBindings: {
             next: texts.next,
-            prev: texts.prev,
+            back: texts.prev,
           },
           triggers: trigger ? [trigger] : [],
         },

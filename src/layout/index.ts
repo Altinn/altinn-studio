@@ -1,25 +1,25 @@
 import { createContext } from 'react';
 
 import { type IUseLanguage, staticUseLanguageFromState } from 'src/hooks/useLanguage';
-import { ComponentConfigs } from 'src/layout/components';
+import { ComponentConfigs } from 'src/layout/components.generated';
 import type { IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
+import type { IGrid } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
-import type { ComponentRendersLabel, ComponentTypes, IGrid } from 'src/layout/layout';
+import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
 import type { IOptions, IRuntimeState, IUiConfig } from 'src/types';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
-import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
 import type { IComponentValidations, IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export type ComponentClassMap = {
+export type CompClassMap = {
   [K in keyof typeof ComponentConfigs]: (typeof ComponentConfigs)[K]['def'];
 };
 
-export type ComponentClassMapTypes = {
-  [K in keyof ComponentClassMap]: ComponentClassMap[K]['type'];
+export type CompClassMapTypes = {
+  [K in keyof CompClassMap]: CompClassMap[K]['type'];
 };
 
 // noinspection JSUnusedLocalSymbols
@@ -30,7 +30,7 @@ export type ComponentClassMapTypes = {
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const _componentsTypeCheck: {
-  [Type in ComponentTypes]: { def: LayoutComponent<Type> };
+  [Type in CompTypes]: { def: LayoutComponent<Type> };
 } = {
   ...ComponentConfigs,
 };
@@ -51,9 +51,9 @@ export interface IComponentProps {
   componentValidations?: IComponentValidations;
 }
 
-export interface PropsFromGenericComponent<T extends ComponentTypes = ComponentTypes> extends IComponentProps {
-  node: LayoutNodeFromType<T>;
-  overrideItemProps?: Partial<Omit<AnyItem<T>, 'id'>>;
+export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
+  node: LayoutNode<T>;
+  overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
 }
 
@@ -69,20 +69,20 @@ export const FormComponentContext = createContext<IFormComponentContext>({
   baseComponentId: undefined,
 });
 
-export function getLayoutComponentObject<T extends keyof ComponentClassMap>(type: T): ComponentClassMap[T] {
+export function getLayoutComponentObject<T extends keyof CompClassMap>(type: T): CompClassMap[T] {
   if (type && type in ComponentConfigs) {
     return ComponentConfigs[type as keyof typeof ComponentConfigs].def as any;
   }
   return undefined as any;
 }
 
-export function shouldComponentRenderLabel<T extends ComponentTypes>(type: T): ComponentRendersLabel<T> {
+export function shouldComponentRenderLabel<T extends CompTypes>(type: T): CompRendersLabel<T> {
   return ComponentConfigs[type].rendersWithLabel;
 }
 
 export type DefGetter = typeof getLayoutComponentObject;
 
-export function implementsAnyValidation<Type extends ComponentTypes>(component: AnyComponent<Type>): boolean {
+export function implementsAnyValidation<Type extends CompTypes>(component: AnyComponent<Type>): boolean {
   return (
     'runEmptyFieldValidation' in component ||
     'runComponentValidation' in component ||
@@ -98,7 +98,7 @@ export interface EmptyFieldValidation {
   ) => IValidationObject[];
 }
 
-export function implementsEmptyFieldValidation<Type extends ComponentTypes>(
+export function implementsEmptyFieldValidation<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & EmptyFieldValidation {
   return 'runEmptyFieldValidation' in component;
@@ -112,7 +112,7 @@ export interface ComponentValidation {
   ) => IValidationObject[];
 }
 
-export function implementsComponentValidation<Type extends ComponentTypes>(
+export function implementsComponentValidation<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & ComponentValidation {
   return 'runComponentValidation' in component;
@@ -122,7 +122,7 @@ export interface SchemaValidation {
   runSchemaValidation: (node: LayoutNode, schemaValidations: ISchemaValidationError[]) => IValidationObject[];
 }
 
-export function implementsSchemaValidation<Type extends ComponentTypes>(
+export function implementsSchemaValidation<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & SchemaValidation {
   return 'runSchemaValidation' in component;
@@ -136,7 +136,7 @@ export interface GroupValidation {
   ) => IValidationObject[];
 }
 
-export function implementsGroupValidation<Type extends ComponentTypes>(
+export function implementsGroupValidation<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & GroupValidation {
   return 'runGroupValidations' in component;
@@ -150,12 +150,12 @@ export interface DisplayDataProps {
   langTools: IUseLanguage;
 }
 
-export interface DisplayData<Type extends ComponentTypes> {
-  getDisplayData(node: LayoutNodeFromType<Type>, displayDataProps: DisplayDataProps): string;
-  useDisplayData(node: LayoutNodeFromType<Type>): string;
+export interface DisplayData<Type extends CompTypes> {
+  getDisplayData(node: LayoutNode<Type>, displayDataProps: DisplayDataProps): string;
+  useDisplayData(node: LayoutNode<Type>): string;
 }
 
-export function implementsDisplayData<Type extends ComponentTypes>(
+export function implementsDisplayData<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & DisplayData<Type> {
   return 'getDisplayData' in component && 'useDisplayData' in component;

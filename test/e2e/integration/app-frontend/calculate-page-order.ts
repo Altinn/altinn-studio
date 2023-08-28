@@ -1,8 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import { Triggers } from 'src/types';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutCompInput } from 'src/layout/Input/types';
+import { Triggers } from 'src/layout/common.generated';
+import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
 
@@ -26,7 +25,7 @@ describe('Calculate Page Order', () => {
             title: 'Yet another required field',
           },
           required: true,
-        } as ExprUnresolved<ILayoutCompInput>);
+        } as CompInputExternal);
 
         layoutSet.prefill.data.hidden = [
           'or',

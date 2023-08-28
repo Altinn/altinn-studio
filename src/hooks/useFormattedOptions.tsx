@@ -4,7 +4,7 @@ import type { MultiSelectOption, SingleSelectOption } from '@digdir/design-syste
 
 import { SelectOptionItem } from 'src/components/form/SelectOptionItem';
 import { useLanguage } from 'src/hooks/useLanguage';
-import type { IOption } from 'src/types';
+import type { IOption } from 'src/layout/common.generated';
 
 export function useFormattedOptions(options: IOption[] | undefined, includeDeleteLabel?: false): SingleSelectOption[];
 export function useFormattedOptions(options: IOption[] | undefined, includeDeleteLabel: true): MultiSelectOption[];

@@ -3,7 +3,7 @@ import React from 'react';
 import { Alert as AlertDesignSystem } from '@digdir/design-system-react';
 
 import styles from 'src/layout/Alert/Alert.module.css';
-import type { AlertSeverity } from 'src/layout/Alert/types';
+import type { AlertSeverity } from 'src/layout/Alert/config.generated';
 
 function calculateAriaLive(severity: AlertSeverity): 'polite' | 'assertive' {
   if (severity === 'warning' || severity === 'danger') {

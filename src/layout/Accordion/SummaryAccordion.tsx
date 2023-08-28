@@ -6,13 +6,13 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface ISummaryAccordionComponentProps {
   changeText: string | null;
   onChangeClick: () => void;
-  summaryNode: LayoutNodeFromType<'Summary'>;
-  targetNode: LayoutNodeFromType<'Accordion'>;
+  summaryNode: LayoutNode<'Summary'>;
+  targetNode: LayoutNode<'Accordion'>;
   overrides?: ISummaryComponent['overrides'];
 }
 

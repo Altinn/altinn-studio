@@ -7,7 +7,7 @@ import type { PropsFromGenericComponent } from '..';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
-import type { LinkStyle } from 'src/layout/Link/types';
+import type { LinkStyle } from 'src/layout/Link/config.generated';
 
 export const buttonStyles: {
   [style in Exclude<LinkStyle, 'link'>]: { color: ButtonColor; variant: ButtonVariant };

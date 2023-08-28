@@ -7,7 +7,7 @@ import classes from 'src/components/form/Label.module.css';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
-import type { ILabelSettings } from 'src/types';
+import type { ILabelSettings } from 'src/layout/common.generated';
 
 export interface IFormLabelProps {
   labelText: React.ReactNode;

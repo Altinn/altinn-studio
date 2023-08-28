@@ -9,8 +9,9 @@ import {
   removeGroupData,
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/formData';
+import type { IMapping } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
-import type { IMapping, IRepeatingGroups } from 'src/types';
+import type { IRepeatingGroups } from 'src/types';
 
 describe('utils/databindings.ts', () => {
   let testObj: any;

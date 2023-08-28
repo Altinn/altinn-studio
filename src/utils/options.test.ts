@@ -5,8 +5,9 @@ import {
   setupSourceOptions,
 } from 'src/utils/options';
 import type { IFormData } from 'src/features/formData';
+import type { IMapping, IOptionSource } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
-import type { IMapping, IOptions, IOptionSource, IRepeatingGroups } from 'src/types';
+import type { IOptions, IRepeatingGroups } from 'src/types';
 import type { IDataSources, ITextResource } from 'src/types/shared';
 
 describe('utils > options', () => {

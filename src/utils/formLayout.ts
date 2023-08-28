@@ -1,15 +1,10 @@
+import { groupIsRepeatingExt, groupIsRepeatingLikertExt } from 'src/layout/Group/tools';
 import type { IAttachmentState } from 'src/features/attachments';
-import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
-import type { IGroupEditProperties, IGroupFilter, ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent } from 'src/layout/layout';
-import type {
-  IFileUploadersWithTag,
-  ILayoutNavigation,
-  ILayoutSets,
-  IOptionsChosen,
-  IRepeatingGroups,
-} from 'src/types';
+import type { ILayoutNavigation } from 'src/layout/common.generated';
+import type { CompGroupExternal, IGroupEditPropertiesInternal, IGroupFilter } from 'src/layout/Group/config.generated';
+import type { CompExternal, ILayout } from 'src/layout/layout';
+import type { IFileUploadersWithTag, ILayoutSets, IOptionsChosen, IRepeatingGroups } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -89,14 +84,14 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const groups = formLayout.filter((layoutElement) => layoutElement.type === 'Group');
 
   const childGroups: string[] = [];
-  groups.forEach((group: ExprUnresolved<ILayoutGroup>) => {
+  groups.forEach((group: CompGroupExternal) => {
     group.children?.forEach((childId: string) => {
       formLayout
         .filter((element) => {
           if (element.type !== 'Group') {
             return false;
           }
-          if (group.edit?.multiPage) {
+          if (groupIsRepeatingExt(group) && group.edit?.multiPage) {
             return childId.split(':')[1] === element.id;
           }
           return element.id === childId;
@@ -108,8 +103,8 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   // filter away groups that should be rendered as child groups
   const filteredGroups = groups.filter((group) => childGroups.indexOf(group.id) === -1);
 
-  filteredGroups.forEach((groupElement: ExprUnresolved<ILayoutGroup>) => {
-    if (groupElement.maxCount && groupElement.maxCount > 1) {
+  filteredGroups.forEach((groupElement: CompGroupExternal) => {
+    if (groupIsRepeatingExt(groupElement) || groupIsRepeatingLikertExt(groupElement)) {
       const groupFormData = Object.keys(formData)
         .filter((key) => groupElement.dataModelBindings?.group && key.startsWith(groupElement.dataModelBindings.group))
         .sort();
@@ -125,27 +120,32 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
           };
           const groupElementChildGroups: string[] = [];
           groupElement.children?.forEach((id) => {
-            if (groupElement.edit?.multiPage && childGroups.includes(id.split(':')[1])) {
+            if (
+              groupIsRepeatingExt(groupElement) &&
+              groupElement.edit?.multiPage &&
+              childGroups.includes(id.split(':')[1])
+            ) {
               groupElementChildGroups.push(id.split(':')[1]);
             } else if (childGroups.includes(id)) {
               groupElementChildGroups.push(id);
             }
           });
           groupElementChildGroups.forEach((childGroupId: string) => {
-            const childGroup = groups.find((element) => element.id === childGroupId);
+            const childGroup = groups.find((element) => element.id === childGroupId) as CompGroupExternal;
             [...Array(index + 1)].forEach((_x: any, childGroupIndex: number) => {
               const groupId = `${childGroup?.id}-${childGroupIndex}`;
               repeatingGroups[groupId] = {
                 index: getIndexForNestedRepeatingGroup(
                   formData,
-                  childGroup?.dataModelBindings?.group,
+                  childGroup && 'dataModelBindings' in childGroup ? childGroup?.dataModelBindings?.group : undefined,
                   groupElement?.dataModelBindings?.group,
                   childGroupIndex,
                 ),
                 baseGroupId: childGroup?.id,
                 editIndex: -1,
                 multiPageIndex: -1,
-                dataModelBinding: childGroup?.dataModelBindings?.group,
+                dataModelBinding:
+                  childGroup && 'dataModelBindings' in childGroup ? childGroup?.dataModelBindings?.group : undefined,
               };
             });
           });
@@ -263,7 +263,7 @@ export function removeRepeatingGroupFromUIConfig(
 
 export const getRepeatingGroupStartStopIndex = (
   repeatingGroupIndex: number,
-  edit: Pick<IGroupEditProperties, 'filter'> | undefined,
+  edit: Pick<IGroupEditPropertiesInternal, 'filter'> | undefined,
 ) => {
   if (typeof repeatingGroupIndex === 'undefined') {
     return { startIndex: 0, stopIndex: -1 };
@@ -281,7 +281,7 @@ export const getRepeatingGroupStartStopIndex = (
  * dynamic behaviour dictates it).
  */
 export function hasRequiredFields(page: LayoutPage): boolean {
-  return !!page.flat(true).find((n) => n.item.required === true);
+  return !!page.flat(true).find((n) => 'required' in n.item && n.item.required === true);
 }
 
 /**
@@ -299,11 +299,11 @@ export function hasRequiredFields(page: LayoutPage): boolean {
 export function findChildren(
   layout: ILayout,
   options?: {
-    matching?: (component: ExprUnresolved<ILayoutComponent>) => boolean;
+    matching?: (component: CompExternal) => boolean;
     rootGroupId?: string;
   },
-): ExprUnresolved<ILayoutComponent>[] {
-  const out: ExprUnresolved<ILayoutComponent>[] = [];
+): CompExternal[] {
+  const out: CompExternal[] = [];
   const root: string = options?.rootGroupId || '';
   const toConsider = new Set<string>();
   const otherGroupComponents: { [groupId: string]: Set<string> } = {};
@@ -312,7 +312,7 @@ export function findChildren(
     for (const item of layout) {
       if (item.type === 'Group' && item.children) {
         for (const childId of item.children) {
-          const cleanId = item.edit?.multiPage ? childId.split(':')[1] : childId;
+          const cleanId = groupIsRepeatingExt(item) && item.edit?.multiPage ? childId.split(':')[1] : childId;
           if (item.id === root) {
             toConsider.add(cleanId);
           } else {
@@ -357,7 +357,7 @@ export function findChildren(
 export function topLevelComponents(layout: ILayout) {
   const inGroup = new Set<string>();
   layout.forEach((component) => {
-    if (component.type === 'Group') {
+    if (component.type === 'Group' && groupIsRepeatingExt(component)) {
       const childList = component.edit?.multiPage
         ? component.children.map((childId) => childId.split(':')[1] || childId)
         : component.children;

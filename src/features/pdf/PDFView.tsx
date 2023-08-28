@@ -6,12 +6,11 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
 import classes from 'src/features/pdf/PDFView.module.css';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
-import { ComponentType } from 'src/layout/LayoutComponent';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { useExprContext } from 'src/utils/layout/ExprContext';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface PDFViewProps {
@@ -20,17 +19,17 @@ interface PDFViewProps {
 }
 
 const PDFComponent = ({ node }: { node: LayoutNode }) => {
-  if (node.isType('Summary') || node.item.renderAsSummary) {
+  if (node.isType('Summary') || ('renderAsSummary' in node.item && node.item.renderAsSummary)) {
     return (
       <SummaryComponent
-        summaryNode={node as LayoutNodeFromType<'Summary'>}
+        summaryNode={node as LayoutNode<'Summary'>}
         overrides={{
           grid: { xs: 12 },
           display: { hideChangeButton: true, hideValidationMessages: true },
         }}
       />
     );
-  } else if (node.isNonRepGroup()) {
+  } else if (node.isType('Group') && node.isNonRepGroup()) {
     return (
       <DisplayGroupContainer
         groupNode={node}
@@ -42,7 +41,7 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
         )}
       />
     );
-  } else if (node.isComponentType(ComponentType.Presentation)) {
+  } else if (node.isCategory(CompCategory.Presentation)) {
     return (
       <GenericComponent
         node={node}

@@ -28,6 +28,11 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Str
   ? string | number | boolean | null
   : unknown;
 
+/**
+ * This type replaces ExprVal with the actual value type, or expression that returns that type.
+ */
+export type ExprValToActualOrExpr<T extends ExprVal> = ExprValToActual<T> | Expression<FunctionsReturning<T>>;
+
 type ArgsToActualOrNull<T extends readonly ExprVal[]> = {
   [Index in keyof T]: ExprValToActual<T[Index]> | null;
 };
@@ -91,6 +96,7 @@ export type Expression<F extends ExprFunction = ExprFunction> = MaybeRecursive<F
  * This type removes all expressions from the input type (replacing them with the type
  * the expression is expected to return)
  *
+ * @deprecated Use internal types for components instead
  * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
  * @see https://stackoverflow.com/a/54487392
  */
@@ -100,25 +106,6 @@ export type ExprResolved<T> = T extends ExprVal
   ? T extends object
     ? {
         [P in keyof T]: ExprResolved<T[P]>;
-      }
-    : T
-  : T;
-
-/**
- * This type replaces all potential expressions in the input type with an actual value OR expression returning that
- * value. An ExprUnresolved layout item is the type of a layout component when we get it from the layout API.
- *
- * @deprecated Try not to use types with unresolved expressions. Prefer to get your layout definitions from:
- * @see useExprContext
- * @see useResolvedNode
- * @see ResolvedNodesSelector
- */
-export type ExprUnresolved<T> = T extends ExprVal
-  ? ExprValToActual<T> | Expression<FunctionsReturning<T>>
-  : T extends any
-  ? T extends object
-    ? {
-        [P in keyof T]: ExprUnresolved<T[P]>;
       }
     : T
   : T;

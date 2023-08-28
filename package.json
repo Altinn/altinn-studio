@@ -7,7 +7,7 @@
   "exports": "./src/index.tsx",
   "scripts": {
     "postinstall": "husky install",
-    "gen": "node src/layout/components.gen.mjs",
+    "gen": "node -r ts-node/register/transpile-only -r tsconfig-paths/register src/codegen/run.ts",
     "start": "yarn gen && cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
     "start:silent": "yarn gen && cross-env NOTIFY_ON_ERRORS=false yarn start",
     "build": "yarn gen && cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",

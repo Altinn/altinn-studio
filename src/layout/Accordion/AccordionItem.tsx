@@ -4,7 +4,7 @@ import { Accordion as DesignSystemAccordion } from '@digdir/design-system-react'
 import cn from 'classnames';
 
 import classes from 'src/layout/Accordion/Accordion.module.css';
-import type { HeadingLevel } from 'src/types/shared';
+import type { HeadingLevel } from 'src/layout/common.generated';
 
 interface AccordionBaseComponentProps {
   title: string;

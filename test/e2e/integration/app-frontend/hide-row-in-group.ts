@@ -1,5 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import { groupIsRepeatingExt } from 'src/layout/Group/tools';
+
 const appFrontend = new AppFrontend();
 
 it('should be possible to hide rows when "Endre fra" is greater or equals to [...]', () => {
@@ -116,10 +118,10 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
 
   cy.navPage('repeating (store endringer)').click();
   verifyNumCells();
-  cy.interceptLayout('group', (component) => {
-    if (component.id === 'mainGroup2' && component.type === 'Group') {
-      component.tableColumns = undefined;
-      component.tableHeaders = undefined;
+  cy.interceptLayout('group', (c) => {
+    if (c.id === 'mainGroup2' && c.type === 'Group' && groupIsRepeatingExt(c)) {
+      c.tableColumns = undefined;
+      c.tableHeaders = undefined;
     }
   });
   cy.reload();
@@ -129,9 +131,9 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
 it('"save and next"-button should open row 3 when row 2 is hidden', () => {
   cy.goto('group');
   cy.get(appFrontend.nextButton).click();
-  cy.changeLayout((component) => {
-    if (component.type === 'Group' && component.id === 'mainGroup' && component.edit) {
-      component.edit.saveAndNextButton = true;
+  cy.changeLayout((c) => {
+    if (c.type === 'Group' && c.id === 'mainGroup' && groupIsRepeatingExt(c) && c.edit) {
+      c.edit.saveAndNextButton = true;
     }
   });
   cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();

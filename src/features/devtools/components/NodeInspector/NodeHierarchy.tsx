@@ -7,7 +7,7 @@ import cn from 'classnames';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
 import { nodesFromGridRow } from 'src/layout/Grid/tools';
-import type { GridComponent, GridRow } from 'src/layout/Grid/types';
+import type { GridRowsInternal } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Common {
@@ -24,7 +24,7 @@ interface INodeHierarchyProps extends Common {
 }
 
 interface IGridRowsRenderer extends Common {
-  rows: GridRow<GridComponent>[];
+  rows: GridRowsInternal;
   text: string;
 }
 
@@ -56,7 +56,7 @@ const GridRows = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
 export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyItemProps) => {
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(node.item.id, false);
   const hasChildren = node.children().length > 0;
-  const isRepGroup = node.isRepGroup();
+  const isRepGroup = node.isType('Group') && node.isRepGroup();
 
   return (
     <>

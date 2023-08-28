@@ -4,8 +4,7 @@ import ReactDOMServer from 'react-dom/server';
 import { useLanguage } from 'src/hooks/useLanguage';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ITextResourceBindings } from 'src/layout/layout';
-import type { AnyItem } from 'src/utils/layout/hierarchy.types';
+import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;
@@ -15,7 +14,7 @@ export type IPassedOnProps = Omit<
   PropsFromGenericComponent<'Custom'>,
   'formData' | 'node' | 'componentValidations' | 'handleDataChange'
 > &
-  Omit<AnyItem<'Custom'>, 'tagName'> & {
+  Omit<CompInternal<'Custom'>, 'tagName'> & {
     [key: string]: string | number | boolean | object | null | undefined;
     text: string | undefined;
     getTextResourceAsString: (textResource: string | undefined) => string;

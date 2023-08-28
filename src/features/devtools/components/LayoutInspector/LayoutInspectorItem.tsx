@@ -6,11 +6,10 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutComponentOrGroup } from 'src/layout/layout';
+import type { CompOrGroupExternal } from 'src/layout/layout';
 
 interface ILayoutInspectorItemProps {
-  component: ExprUnresolved<ILayoutComponentOrGroup>;
+  component: CompOrGroupExternal;
   selected: boolean;
   onClick: () => void;
 }

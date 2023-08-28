@@ -105,7 +105,9 @@ export function mapValidationIssues(
 
   const allNodes = resolvedNodes
     .allNodes()
-    .filter((node) => !node.isHidden({ respectTracks }) && !node.item.renderAsSummary);
+    .filter(
+      (node) => !node.isHidden({ respectTracks }) && !('renderAsSummary' in node.item && node.item.renderAsSummary),
+    );
 
   const validationOutputs: IValidationObject[] = [];
   for (const issue of issues) {
@@ -128,7 +130,7 @@ export function mapValidationIssues(
         continue;
       }
 
-      if (node.item.dataModelBindings) {
+      if ('dataModelBindings' in node.item && node.item.dataModelBindings) {
         const bindings = Object.entries(node.item.dataModelBindings);
         for (const [bindingKey, bindingField] of bindings) {
           if (bindingField === field) {

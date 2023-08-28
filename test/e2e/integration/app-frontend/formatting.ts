@@ -1,6 +1,6 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import type { IInputFormatting } from 'src/layout/layout';
+import type { IInputFormatting } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
 

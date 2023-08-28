@@ -4,28 +4,30 @@ import { getLayoutComponentObject } from 'src/layout';
 import { getRepeatingGroups } from 'src/utils/formLayout';
 import { _private, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import { generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutCompHeader } from 'src/layout/Header/types';
-import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { IDataModelBindings, ILayout, ILayouts } from 'src/layout/layout';
+import type { CompGroupNonRepeatingExternal, CompGroupRepeatingExternal } from 'src/layout/Group/config.generated';
+import type { CompHeaderExternal } from 'src/layout/Header/config.generated';
+import type { CompInputExternal } from 'src/layout/Input/config.generated';
+import type { CompInternal, HierarchyDataSources, ILayout, ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
-import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IValidations } from 'src/utils/validation/types';
 
 const { resolvedNodesInLayouts } = _private;
 
 describe('Hierarchical layout tools', () => {
-  const header: Omit<ExprUnresolved<ILayoutCompHeader>, 'id'> = { type: 'Header', size: 'L' };
-  const input: Omit<ExprUnresolved<ILayoutCompInput>, 'id'> = {
+  const header: Omit<CompHeaderExternal, 'id'> = { type: 'Header', size: 'L' };
+  const input: Omit<CompInputExternal, 'id'> = {
     type: 'Input',
     hidden: ['equals', ['dataModel', 'Model.ShouldBeTrue'], 'true'],
+    dataModelBindings: {
+      simpleBinding: 'MyModel.Input',
+    },
   };
-  const group: Omit<ExprUnresolved<ILayoutGroup>, 'id' | 'children'> = { type: 'Group' };
-  const repGroup: Omit<ExprUnresolved<ILayoutGroup>, 'id' | 'children'> = {
+  const group: Omit<CompGroupNonRepeatingExternal, 'id' | 'children'> = { type: 'Group' };
+  const repGroup: Omit<CompGroupRepeatingExternal, 'id' | 'children' | 'dataModelBindings'> = {
     type: 'Group',
     maxCount: 3,
     hidden: ['equals', ['dataModel', 'Model.ShouldBeFalse'], 'false'],
@@ -76,7 +78,7 @@ describe('Hierarchical layout tools', () => {
           { key: 'stop', value: '2' },
         ],
       },
-    } as Omit<ExprUnresolved<ILayoutGroup>, 'children'>,
+    } as Omit<CompGroupRepeatingExternal, 'children'>,
     group3h: { id: 'group3_header', ...header },
     group3i: { id: 'group3_input', ...input },
     group3n: { id: 'group3nested', ...repGroup },
@@ -190,8 +192,8 @@ describe('Hierarchical layout tools', () => {
   describe('generateHierarchy', () => {
     it('should resolve a very simple layout', () => {
       const root = new LayoutPage();
-      const top1 = new LayoutNode(components.top1 as AnyItem, root, root, dataSources);
-      const top2 = new LayoutNode(components.top2 as AnyItem, root, root, dataSources);
+      const top1 = new BaseLayoutNode(components.top1 as CompInternal, root, root, dataSources) as LayoutNode;
+      const top2 = new BaseLayoutNode(components.top2 as CompInternal, root, root, dataSources) as LayoutNode;
       root._addChild(top1);
       root._addChild(top2);
 
@@ -432,11 +434,11 @@ describe('Hierarchical layout tools', () => {
     expect(uniqueHidden(nodes.current()?.flat(true))).toEqual(plain);
     expect(uniqueHidden(nodes.current()?.children())).toEqual(plain);
 
-    if (group2?.isRepGroup()) {
+    if (group2?.isType('Group') && group2.isRepGroup()) {
       expect(group2.item.rows[0]?.items[1].item.hidden).toEqual(true);
       expect(group2.item.rows[0]?.items[2].item.hidden).toEqual(true);
       const group2n = group2.item.rows[0]?.items[2];
-      if (group2n?.isRepGroup()) {
+      if (group2n?.isType('Group') && group2n.isRepGroup()) {
         expect(group2n.item.rows[0]?.items[1].item.hidden).toEqual(true);
       } else {
         expect(false).toEqual(true);
@@ -449,10 +451,7 @@ describe('Hierarchical layout tools', () => {
   describe('LayoutPages', () => {
     const layout1: ILayout = [components.top1, components.top2];
 
-    const layout2: ILayout = [
-      { ...components.top1, readOnly: true },
-      { ...components.top2, readOnly: true },
-    ];
+    const layout2: ILayout = [{ ...components.top1 }, { ...components.top2, readOnly: true }];
 
     const layouts = {
       l1: generateHierarchy(layout1, {}, dataSources, getLayoutComponentObject),
@@ -463,8 +462,20 @@ describe('Hierarchical layout tools', () => {
     const collection2 = new LayoutPages('l2', layouts);
 
     it('should find the component in the current layout first', () => {
-      expect(collection1?.findById(components.top1.id)?.item.readOnly).toBeUndefined();
-      expect(collection2?.findById(components.top1.id)?.item.readOnly).toEqual(true);
+      function expectReadOnly(
+        collection: LayoutPages<{ l1: LayoutPage; l2: LayoutPage }> | undefined,
+        id: string,
+        expected: true | undefined,
+      ) {
+        const item = collection?.findById(id)?.item;
+        const readOnly = item && 'readOnly' in item ? item.readOnly : undefined;
+        expect(readOnly).toEqual(expected);
+      }
+
+      expectReadOnly(collection1, components.top1.id, undefined);
+      expectReadOnly(collection1, components.top2.id, undefined);
+      expectReadOnly(collection2, components.top1.id, undefined);
+      expectReadOnly(collection2, components.top2.id, true);
     });
 
     it('should find the current layout', () => {
@@ -689,8 +700,9 @@ describe('Hierarchical layout tools', () => {
       state.formLayout.uiConfig.currentView = 'page1';
       const resolved = resolvedLayoutsFromState(state);
       const dataBindingFor = (id: string) => {
-        const dmBindings = (resolved?.findById(id)?.item.dataModelBindings as IDataModelBindings) || undefined;
-        return dmBindings?.simpleBinding;
+        const item = resolved?.findById(id)?.item || undefined;
+        const dmBindings = item && 'dataModelBindings' in item ? item?.dataModelBindings : undefined;
+        return dmBindings && 'simpleBinding' in dmBindings ? dmBindings.simpleBinding : undefined;
       };
 
       expect(dataBindingFor('child-2')).toEqual('MyModel.MainGroup[2].Child');

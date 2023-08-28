@@ -1,22 +1,23 @@
 import React from 'react';
+import type { JSX } from 'react';
 
+import { GroupDef } from 'src/layout/Group/config.def.generated';
 import { GroupRenderer } from 'src/layout/Group/GroupRenderer';
 import { GroupHierarchyGenerator } from 'src/layout/Group/hierarchy';
+import { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
-import { ContainerComponent } from 'src/layout/LayoutComponent';
 import { runValidationOnNodes } from 'src/utils/validation/validation';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
 import type { ComponentValidation, GroupValidation, PropsFromGenericComponent } from 'src/layout';
-import type { HGroups, IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/types';
-import type { TextBindingsForSummarizableComponents } from 'src/layout/layout';
+import type { CompInternal, HierarchyDataSources } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class Group extends ContainerComponent<'Group'> implements GroupValidation, ComponentValidation {
+export class Group extends GroupDef implements GroupValidation, ComponentValidation {
   private _hierarchyGenerator = new GroupHierarchyGenerator();
 
   directRender(): boolean {
@@ -57,12 +58,8 @@ export class Group extends ContainerComponent<'Group'> implements GroupValidatio
     return this._hierarchyGenerator;
   }
 
-  canRenderInTable(): boolean {
-    return false;
-  }
-
   runComponentValidation(
-    node: LayoutNodeFromType<'Group'>,
+    node: LayoutNode<'Group'>,
     { langTools }: IValidationContext,
     _overrideFormData?: IFormData,
   ): IValidationObject[] {
@@ -91,38 +88,20 @@ export class Group extends ContainerComponent<'Group'> implements GroupValidatio
   }
 
   runGroupValidations(
-    node: LayoutNodeFromType<'Group'>,
+    node: LayoutNode<'Group'>,
     validationContext: IValidationContext,
     onlyInRowIndex?: number,
   ): IValidationObject[] {
     return runValidationOnNodes(node.flat(true, onlyInRowIndex), validationContext);
   }
+
+  makeNode(
+    item: CompInternal<'Group'>,
+    parent: LayoutNode | LayoutPage,
+    top: LayoutPage,
+    dataSources: HierarchyDataSources,
+    rowIndex?: number,
+  ): LayoutNodeForGroup {
+    return new LayoutNodeForGroup(item, parent, top, dataSources, rowIndex);
+  }
 }
-
-export const Config = {
-  def: new Group(),
-  rendersWithLabel: false as const,
-};
-
-export type TypeConfig = {
-  layout: ILayoutGroup;
-  nodeItem: HGroups;
-  nodeObj: LayoutNode;
-  validTextResourceBindings:
-    | TextBindingsForSummarizableComponents
-    | 'title'
-    // Used in repeating groups:
-    | 'add_button_full'
-    | 'add_button'
-    | 'save_button'
-    | 'save_and_next_button'
-    | 'edit_button_close'
-    | 'edit_button_open'
-    // Used when rendered as Panel:
-    | 'add_label'
-    | 'body'
-    // Used when in Likert mode:
-    | 'leftColumnHeader'
-    | 'description';
-  validDataModelBindings: IDataModelBindingsForGroup;
-};

@@ -1,8 +1,8 @@
 import { mapFormData } from 'src/utils/databindings';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 import type { IFormData } from 'src/features/formData';
+import type { IMapping } from 'src/layout/common.generated';
 import type { SortDirection } from 'src/layout/List/types';
-import type { IMapping } from 'src/types';
 
 const { org, app } = window;
 const origin = window.location.origin;

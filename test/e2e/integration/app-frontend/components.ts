@@ -107,12 +107,12 @@ describe('UI Components', () => {
   it('should implement delete confirmation for both file upload components and require user confirmation', () => {
     const components = [
       {
-        type: 'FileUpload',
+        type: 'FileUpload' as const,
         uploader: appFrontend.changeOfName.upload,
         shouldExist: appFrontend.changeOfName.uploadedTable,
       },
       {
-        type: 'FileUploadWithTag',
+        type: 'FileUploadWithTag' as const,
         uploader: appFrontend.changeOfName.uploadWithTag.uploadZone,
         shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
       },
@@ -205,7 +205,7 @@ describe('UI Components', () => {
           ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
         ];
       } else {
-        component.readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
+        (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
       }
     });
     cy.goto('changename');

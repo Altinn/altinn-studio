@@ -8,10 +8,9 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderWithProviders } from 'src/testUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutComponent } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 
-const render = (props: Partial<ExprUnresolved<ILayoutComponent>> = {}) => {
+const render = (props: Partial<CompExternal> = {}) => {
   const formLayout = getFormLayoutStateMock({
     layouts: {
       FormLayout: [
@@ -112,7 +111,7 @@ describe('GenericComponent', () => {
         title: 'titleKey',
         description: 'descriptionKey',
       },
-    });
+    } as any);
 
     expect(screen.queryByTestId('description-mockId')).not.toBeInTheDocument();
     expect(screen.queryByTestId('label-mockId')).not.toBeInTheDocument();

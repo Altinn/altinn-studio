@@ -21,7 +21,7 @@ describe('updateFormDataSagas', () => {
       formDataAfter: any,
       attachmentState: IAttachments,
       componentId: string,
-      dataBinding: IDataModelBindings,
+      dataBinding: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'>,
     ) =>
     () => {
       const state: IRuntimeState = getInitialStateMock();

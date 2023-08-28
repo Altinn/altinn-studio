@@ -19,7 +19,7 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
 
   let actualTextResourceBindings = textResourceBindings || {};
   let isRepGroup = false;
-  if (node.isRepGroup()) {
+  if (node.isType('Group') && node.isRepGroup()) {
     // Text resource bindings are resolved per-row for repeating groups. We'll show the
     // first row here, and inform the user.
     isRepGroup = true;
