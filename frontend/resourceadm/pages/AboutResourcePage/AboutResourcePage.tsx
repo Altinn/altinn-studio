@@ -24,7 +24,7 @@ import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import {
   getMissingInputLanguageString,
-  getResourcePageTextfieldError
+  getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
 import { resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next'
@@ -184,8 +184,6 @@ export const AboutResourcePage = ({
    * @param type the selected string
    */
   const handleChangeResourceType = (type: ResourceTypeOption) => {
-    // TODO - When implementing translations I think we should create an enum/map that makes the keys static regardless of the language itself.
-    console.log(type)
     setResourceType(type);
     setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
   };
