@@ -570,7 +570,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         }
 
-        private async Task<Cookie> GenerateTokenAndGetAuthorizedTokenCookie(string csrf,  Uri giteaUrl, string tokenKeyName )
+        private async Task<Cookie> GenerateTokenAndGetAuthorizedTokenCookie(string csrf, Uri giteaUrl, string tokenKeyName)
         {
             using HttpClient client = GetWebHtmlClient(false);
             // creating new API key
@@ -579,7 +579,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (response.StatusCode != HttpStatusCode.Redirect && response.StatusCode != HttpStatusCode.SeeOther)
             {
-                content  = GenerateScopesContent(tokenKeyName, csrf, true);
+                content = GenerateScopesContent(tokenKeyName, csrf, true);
                 response = await client.PostAsync(giteaUrl, content);
             }
 
@@ -598,7 +598,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
 
-            if(isVersion20Plus)
+            if (isVersion20Plus)
             {
                 formValues.Add(new KeyValuePair<string, string>("scope", "write:activitypub"));
                 formValues.Add(new KeyValuePair<string, string>("scope", "write:admin"));
@@ -631,7 +631,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
             }
 
-            if(Regex.IsMatch(token,  "^[0-9a-z]{40}$"))
+            if (Regex.IsMatch(token, "^[0-9a-z]{40}$"))
             {
                 return token;
             }
