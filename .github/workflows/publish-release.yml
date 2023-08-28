@@ -1,4 +1,4 @@
-name: Pack and publish nugets
+name: Pack and publish
 
 on:
   release:
@@ -6,7 +6,8 @@ on:
       - published
 
 jobs:
-  build-pack:
+  release-nugets:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,7 +18,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
-            5.0.x
             6.0.x
       - name: Install deps
         run: |
@@ -34,3 +34,36 @@ jobs:
       - name: Publish
         run: |
           dotnet nuget push src/**/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+  release-upgrade-tool:
+    if: startsWith(github.ref, 'refs/tags/altinn-app-cli')
+    runs-on: ubuntu-latest
+    defaults: 
+        run:
+            working-directory: ./cli-tools/altinn-app-cli
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install dotnet6
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+      - name: Build bundles
+        run: |
+          make bundles
+      - name: Upload files to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            publish/archives/osx-x64.tar.gz
+            publish/archives/osx-arm64.tar.gz
+            publish/archives/linux-x64.tar.gz
+            publish/archives/linux-arm64.tar.gz
+            publish/archives/win-x64.zip
+            publish/archives/osx-x64.tar.gz.sha512
+            publish/archives/osx-arm64.tar.gz.sha512
+            publish/archives/linux-x64.tar.gz.sha512
+            publish/archives/linux-arm64.tar.gz.sha512
+            publish/archives/win-x64.zip.sha512
+            
