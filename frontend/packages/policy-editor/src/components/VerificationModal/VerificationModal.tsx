@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './VerificationModal.module.css';
 import Modal from 'react-modal';
 import { Button, Heading, Paragraph } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 const modalStyles = {
   content: {
@@ -66,6 +67,8 @@ export const VerificationModal = ({
   actionButtonText,
   onPerformAction,
 }: VerificationModalProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   return (
     <Modal
       isOpen={isOpen}
@@ -75,7 +78,7 @@ export const VerificationModal = ({
       ariaHideApp={false}
     >
       <Heading size='xsmall' spacing level={2}>
-        Slett regel?
+        {t('policy_editor.verification_modal_heading')}
       </Heading>
       <div className={classes.contentDivider} />
       <Paragraph size='small'>{text}</Paragraph>
