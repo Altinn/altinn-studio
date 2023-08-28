@@ -366,6 +366,7 @@ export function getHighestIndexOfChildGroup(group: string, repeatingGroups: IRep
 
 export function missingFieldsInLayoutValidations(
   layoutValidations: ILayoutValidations,
+  requiredValidationTextResources: string[],
   langTools: IUseLanguage,
 ): boolean {
   let result = false;
@@ -392,7 +393,15 @@ export function missingFieldsInLayoutValidations(
       }
 
       const errors = layoutValidations[component][binding]?.errors;
-      result = !!(errors && errors.length > 0 && errors.findIndex(lookForRequiredMsg) > -1);
+
+      const customRequiredValidationMessageExists = errors?.some((error) =>
+        requiredValidationTextResources.includes(error),
+      );
+
+      result = !!(
+        (errors && errors.length > 0 && errors.findIndex(lookForRequiredMsg) > -1) ||
+        customRequiredValidationMessageExists
+      );
     });
   });
 

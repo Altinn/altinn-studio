@@ -7,6 +7,7 @@ import { getFieldName } from 'src/utils/formComponentUtils';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { IDataModelBindingsForList, ILayoutCompList } from 'src/layout/List/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -47,6 +48,8 @@ export class List extends FormComponent<'List'> {
       return [];
     }
 
+    const { langAsString } = langTools;
+    const textResourceBindings = node.item.textResourceBindings as ITextResourceBindings;
     const validationObjects: IValidationObject[] = [];
 
     const bindings = Object.values(node.item.dataModelBindings ?? {});
@@ -60,7 +63,9 @@ export class List extends FormComponent<'List'> {
     }
     if (listHasErrors) {
       const fieldName = getFieldName(node.item.textResourceBindings, langTools, undefined);
-      const message = langTools.langAsString('form_filler.error_required', [fieldName]);
+      const message = textResourceBindings?.requiredValidation
+        ? langAsString(textResourceBindings?.requiredValidation, [fieldName])
+        : langAsString('form_filler.error_required', [fieldName]);
       validationObjects.push(buildValidationObject(node, 'errors', message));
     }
     return validationObjects;
