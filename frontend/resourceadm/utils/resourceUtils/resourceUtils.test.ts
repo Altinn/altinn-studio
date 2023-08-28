@@ -31,13 +31,25 @@ describe('getResourcePageTextfieldError', () => {
 
 describe('mapLanguageKeyToLanguageText', () => {
   it ('to return Bokmål for nb', () => {
-    const result = mapLanguageKeyToLanguageText('nb');
+    const translationFunctionMock = (key: string) => {
+      if (key === 'language.nb') return 'Bokmål';
+      if (key === 'language.nn') return 'Nynorsk';
+      if (key === 'language.en') return 'Engelsk';
+      return key;
+    };
+
+    const result = mapLanguageKeyToLanguageText('nb', translationFunctionMock);
     expect(result).toEqual('Bokmål');
   })
 })
 
 describe('getMissingInputLanguageString', () => {
   it ('to map a language with 2 non-empty fields to correct string', () => {
+    const translationFunctionMock = (key: string) => {
+      if (key === 'resourceadm.about_resource_langauge_error_missing_2') return 'Du mangler oversettelse for test på Nynorsk og Engelsk.';
+      return key;
+    };
+
     const languageStringMock: SupportedLanguage = {
       nb: 'Test tekst',
       nn: '',
@@ -45,7 +57,7 @@ describe('getMissingInputLanguageString', () => {
     }
     const missingInputLanguageStringTestMock: string = 'Du mangler oversettelse for test på Nynorsk og Engelsk.'
 
-    const result = getMissingInputLanguageString(languageStringMock, 'test');
+    const result = getMissingInputLanguageString(languageStringMock, 'test', translationFunctionMock);
     expect(result).toEqual(missingInputLanguageStringTestMock)
   })
 })
