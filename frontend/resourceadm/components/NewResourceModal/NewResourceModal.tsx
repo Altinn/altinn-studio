@@ -7,6 +7,7 @@ import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { useTranslation } from 'react-i18next'
 
 type NewResourceModalProps = {
   /**
@@ -30,6 +31,8 @@ type NewResourceModalProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const navigate = useNavigate();
 
   const { selectedContext } = useParams();
@@ -123,11 +126,11 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Opprett ny ressurs'>
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dahboard_create_modal_title')}>
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
-        text='Velg navn og id for ressursen. Språkstøtte på navn kan legges til på neste side. Id er foreslått basert på navnet du skriver og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.'
+        text={t('resourceadm.dahboard_create_modal_resource_name_and_id_text')}
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
@@ -138,7 +141,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
           <Button onClick={onClose} color='primary' variant='quiet' size='small'>
-            Avbryt
+            {t('general.cancel')}
           </Button>
         </div>
         <Button
@@ -147,7 +150,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
           aria-disabled={id.length === 0 || title.length === 0}
           size='small'
         >
-          Opprett ressurs
+          {t('resourceadm.dahboard_create_modal_create_button')}
         </Button>
       </div>
     </Modal>

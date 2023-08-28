@@ -11,6 +11,7 @@ import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
+import { useTranslation } from 'react-i18next'
 
 /**
  * @component
@@ -21,6 +22,8 @@ import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 export const ResourceDashboardPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
+
+  const { t } = useTranslation();
 
   const [searchValue, setSearchValue] = useState('');
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
@@ -54,7 +57,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
+          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
         </div>
       );
     } else {
@@ -63,13 +66,13 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div style={{ width: '100%' }}>
             <Heading size='xsmall' level={2}>
-              {`Alle ressurser (${resourceListData?.length ?? 0})`}
+              {`${t('resourceadm.dashboard_num_resources')} (${resourceListData?.length ?? 0})`}
             </Heading>
           </div>
           <ResourceTable list={filteredResourceList} />
           {filteredResourceList.length === 0 && (
             <Paragraph size='small' className={classes.noResultText}>
-              Det finnes ingen ressursen som har navnet du søkte etter.
+              {t('resourceadm.dashboard_empty_list')}
             </Paragraph>
           )}
         </>
@@ -81,29 +84,29 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
-          {`${selectedContext}'s ressurser`}
+          {t('resourceadm.dashboard_header', { org: selectedContext })}
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button
             variant='quiet'
             color='secondary'
-            icon={<MigrationIcon title='Importer ressurs' />}
+            icon={<MigrationIcon title={t('resourceadm.dashboard_import_resource')} />}
             iconPlacement='right'
             onClick={() => setImportModalOpen(true)}
             size='medium'
           >
-            <strong>Importer ressurs</strong>
+            <strong>{t('resourceadm.dashboard_import_resource')}</strong>
           </Button>
           <div className={classes.verticalDivider} />
           <Button
             variant='quiet'
             color='secondary'
-            icon={<PlusCircleIcon title='Opprett ny ressurs' />}
+            icon={<PlusCircleIcon title={t('resourceadm.dashboard_create_resource')} />}
             iconPlacement='right'
             onClick={() => setNewResourceModalOpen(true)}
             size='medium'
           >
-            <strong>Opprett ny ressurs</strong>
+            <strong>{t('resourceadm.dashboard_create_resource')}</strong>
           </Button>
         </div>
       </div>
