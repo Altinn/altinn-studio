@@ -82,7 +82,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             }
 
             string filetype = splitFilename[splitFilename.Length - 1];
-            string mimeType = MimeTypeMap.GetMimeType(filetype);
+            var mimeType = MimeTypeMap.GetMimeType(filetype);
 
             if (!request.Headers.TryGetValue("Content-Type", out StringValues contentType))
             {
@@ -97,7 +97,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             }
 
             // Verify that file mime type matches content type in request
-            if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
+            if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType))
             {
                 errors.Add(new ValidationIssue
                 {
@@ -110,7 +110,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             }
 
             // Verify that file mime type is an allowed content-type
-            if (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
+            if (!dataType.AllowedContentTypes.Contains(contentType.ToString(), StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
             {
                 errors.Add(new ValidationIssue
                 {
