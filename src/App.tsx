@@ -81,7 +81,7 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
   // Set the title of the app
   React.useEffect(() => {
     if (appName && appOwner) {
-      document.title = `${appName} • ${appOwner}`;
+      document.title = `${appName} - ${appOwner}`;
     } else if (appName && !appOwner) {
       document.title = appName;
     } else if (!appName && appOwner) {
