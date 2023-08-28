@@ -27,27 +27,33 @@ export interface FormDesignerProps {
   selectedLayoutSet: string | undefined;
 }
 
-export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesignerProps): JSX.Element => {
+export const FormDesigner = ({
+  selectedLayout,
+  selectedLayoutSet,
+}: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
+    org,
+    app,
+    selectedLayoutSet
+  );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-  const layoutOrder = useMemo(() => formLayouts?.[selectedLayout]?.order || {}, [formLayouts, selectedLayout]);
+  const layoutOrder = useMemo(
+    () => formLayouts?.[selectedLayout]?.order || {},
+    [formLayouts, selectedLayout]
+  );
   const t = useText();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const formLayoutIsReady =
-    instanceId &&
-    formLayouts &&
-    formLayoutSettings &&
-    ruleModel &&
-    isRuleConfigFetched;
+    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -55,13 +61,13 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
 
     const createErrorMessage = (resource: string): { title: string; message: string } => ({
       title: `${defaultTitle} ${resource}`,
-      message: defaultMessage
+      message: defaultMessage,
     });
 
     if (layoutFetchedError) {
       return createErrorMessage(t('general.layout'));
     }
-  }
+  };
 
   /**
    * Set the correct selected layout based on url parameters
@@ -77,7 +83,6 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);
-
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -95,7 +100,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message}/>;
+    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {
@@ -106,7 +111,11 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
             <LeftMenu className={classes.leftContent + ' ' + classes.item} />
             <FormContextProvider>
               <DesignView className={classes.mainContent + ' ' + classes.item} />
-              <RightMenu className={classes.rightContent + ' ' + classes.item} />
+              {/* key on rightMenu is used to force rerender when selectedLayout changes */}
+              <RightMenu
+                key={selectedLayout}
+                className={classes.rightContent + ' ' + classes.item}
+              />
             </FormContextProvider>
           </div>
         </div>
