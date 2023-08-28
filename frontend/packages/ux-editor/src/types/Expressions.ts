@@ -1,15 +1,15 @@
 import i18next from 'i18next';
 
-export interface Dynamic {
+export interface Expression {
   id?: string;
   editMode: boolean;
   operator?: Operator;
   property?: ExpressionPropertyBase | ExpressionPropertyForGroup;
-  expressionElements?: ExpressionElement[];
+  subExpressions?: SubExpression[];
   complexExpression?: any;
 }
 
-export interface ExpressionElement {
+export interface SubExpression {
   id: string;
   function?: ExpressionFunction;
   dataSource?: string;
