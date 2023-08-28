@@ -2360,32 +2360,32 @@ __metadata:
   linkType: hard
 
 "@digdir/design-system-react@npm:^0.23.2":
-  version: 0.23.2
-  resolution: "@digdir/design-system-react@npm:0.23.2"
+  version: 0.23.3
+  resolution: "@digdir/design-system-react@npm:0.23.3"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.4.1
+    "@digdir/design-system-tokens": ^0.4.2
     "@floating-ui/react": 0.24.1
     "@navikt/aksel-icons": ^3.2.4
     react-number-format: 5.2.2
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 708250c71feba127e427820dfa855897455ee6ba3772fe43bdbc79a79c4a52c0677d955c3cf0e54cc6e629d62c975c0be0a8d87d899632c0cdb464157e07a89b
+  checksum: 3ea878b0284b6e45769afb9fe4e29bb0ad4e575265080b67bfcb4612db16d9dbe0017c5bffac853c82f8eab4841e74dcca5d776efaddeaf2a7c70b22e8cf81be
   languageName: node
   linkType: hard
 
 "@digdir/design-system-tokens@npm:^0.1.3":
-  version: 0.1.4
-  resolution: "@digdir/design-system-tokens@npm:0.1.4"
-  checksum: adbfd26c86093441d9fef454ad891bf176c865bcc96b1950d0feba38bf71de642692512e05a8cdc76c30861853485a9ec3e0a701bdf0a6a2a041368bdc10e1b0
+  version: 0.1.7
+  resolution: "@digdir/design-system-tokens@npm:0.1.7"
+  checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@digdir/design-system-tokens@npm:0.4.1"
-  checksum: 38e672a6003175b432d48162332ca2cc3f39d8ce53440f48a324e1dcd66529f2e5ff26a26964407e0d2d97fd9172e81c14781cc927663a9647fd65ce04fc1ad0
+"@digdir/design-system-tokens@npm:^0.4.1, @digdir/design-system-tokens@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@digdir/design-system-tokens@npm:0.4.2"
+  checksum: e75d52501d183eb7a78d92b9403909ec1c00c4ef19bd1fcf0677c1cc3a7b918a48b5d460377bc7ead331a101b817b4a08093b8e394187dec7e181512934f5d04
   languageName: node
   linkType: hard
 
