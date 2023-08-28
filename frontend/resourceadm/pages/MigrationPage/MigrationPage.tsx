@@ -38,6 +38,8 @@ type MigrationPageProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): React.ReactNode => {
+  // TODO - translation. Issue: #10715
+
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -49,10 +51,10 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
   const { data: validateResourceData, isLoading: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
 
-  // TODO - API call
+  // TODO - API call. Issue: #10715
   const deployOK = false;
 
-  // TODO - This might be a saved value from backend
+  // TODO - This might be a saved value from backend. Issue: #10715
   const initialDate = new Date().toISOString().split('T')[0];
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');

@@ -1188,9 +1188,6 @@
   "resourceadm.left_nav_bar_policy": "Policy rules",
   "resourceadm.left_nav_bar_deploy": "Deploy",
   "resourceadm.left_nav_bar_migrate": "Migrate",
-
-
-
   "resourceadm.deploy_title": "Publish the resource",
   "resourceadm.deploy_spinner": "Loading publish status",
   "resourceadm.deploy_status_card_success": "The resource is ready to be published",
@@ -1211,12 +1208,7 @@
   "resourceadm.deploy_test_env": "Test environment",
   "resourceadm.deploy_prod_env": "Production environment",
   "resourceadm.deploy_card_arrow_icon": "New version for {{env}}",
-  "resourceadm.deploy_card_publish": "Publish to {{env}}"
-
-
-
-
-
-
-
+  "resourceadm.deploy_card_publish": "Publish to {{env}}",
+  "resourceadm.right_translation_bar_title": "Translation",
+  "resourceadm.right_translation_bar_alert": "In order to publish the resource, you must add a Norwegian and English translation."
 }

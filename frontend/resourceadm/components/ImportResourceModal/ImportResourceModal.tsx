@@ -176,7 +176,6 @@ export const ImportResourceModal = ({
     console.log('Importing... Coming soon');
   };
 
-  // TODO - translation
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dahboard_import_modal_title')}>
       <div className={classes.dropdownWraper}>

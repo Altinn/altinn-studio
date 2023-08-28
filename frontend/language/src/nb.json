@@ -1346,9 +1346,6 @@
   "resourceadm.left_nav_bar_policy": "Tilgangsregler",
   "resourceadm.left_nav_bar_deploy": "Publiser",
   "resourceadm.left_nav_bar_migrate": "Migrer",
-
-
-
   "resourceadm.deploy_title": "Publiser ressursen",
   "resourceadm.deploy_spinner": "Laster inn publiserings status",
   "resourceadm.deploy_status_card_success": "Ressursen er klar til å publiseres",
@@ -1369,5 +1366,7 @@
   "resourceadm.deploy_test_env": "Testmiljø",
   "resourceadm.deploy_prod_env": "Produksjonsmiljø",
   "resourceadm.deploy_card_arrow_icon": "Ny versjon for {{env}}",
-  "resourceadm.deploy_card_publish": "Publiser tik {{env}}"
+  "resourceadm.deploy_card_publish": "Publiser tik {{env}}",
+  "resourceadm.right_translation_bar_title": "Oversettelse",
+  "resourceadm.right_translation_bar_alert": "For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse."
 }
