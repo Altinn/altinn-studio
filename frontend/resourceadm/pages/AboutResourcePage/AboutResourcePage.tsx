@@ -25,7 +25,7 @@ import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar'
 import {
   convertResourceTypeToDisplayString,
   getMissingInputLanguageString,
-  getResourcePageTextfieldError
+  getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
 
 /**
@@ -185,9 +185,9 @@ export const AboutResourcePage = ({
   const handleChangeResourceType = (type: string) => {
     // TODO - When implementing translations I think we should create an enum/map that makes the keys static regardless of the language itself.
     const resourceTypeMap = {
-      "Standard": "Default",
-      "System ressurs": "Systemresource",
-      "Maskinporten skjema": "MaskinportenSchema",
+      Standard: 'Default',
+      'System ressurs': 'Systemresource',
+      'Maskinporten skjema': 'MaskinportenSchema',
     };
     setResourceType(resourceTypeMap[type]);
     setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
