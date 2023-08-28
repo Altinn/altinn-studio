@@ -64,7 +64,7 @@ export const ResourceDeployStatus = ({
       );
     }
     return error.map((e, index) => {
-      const textArr = e.message.split('"');
+      const textArr = e.message.split('\'');
 
       return (
         <div className={classes.cardElement} key={index + resourceId}>
@@ -74,7 +74,7 @@ export const ResourceDeployStatus = ({
             <LinkButton onClick={() => onNavigateToPageWithError(e.pageWithError)}>
               {textArr[1]}
             </LinkButton>
-            {'"'}
+            {'"' + textArr[2]}
           </Paragraph>
         </div>
       );

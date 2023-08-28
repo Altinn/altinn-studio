@@ -1182,7 +1182,38 @@
   "resourceadm.about_resource_public_service_show": "will be",
   "resourceadm.about_resource_public_service_dont_show": "will not be",
   "resourceadm.about_resource_spinner": "Loading resource",
-  "resourceadm.switch_toggle": "Toggle off or on"
+  "resourceadm.switch_toggle": "Toggle off or on",
+  "resourceadm.left_nav_bar_back": "Back to dashboard",
+  "resourceadm.left_nav_bar_about": "About the resource",
+  "resourceadm.left_nav_bar_policy": "Policy rules",
+  "resourceadm.left_nav_bar_deploy": "Deploy",
+  "resourceadm.left_nav_bar_migrate": "Migrate",
+
+
+
+  "resourceadm.deploy_title": "Publish the resource",
+  "resourceadm.deploy_spinner": "Loading publish status",
+  "resourceadm.deploy_status_card_success": "The resource is ready to be published",
+  "resourceadm.deploy_status_card_error_title": "You must fix the following errors before you can proceed",
+  "resourceadm.deploy_status_card_error_resource_page": "{{num}} fields are missing completion or contain errors on the 'About the resource' page.",
+  "resourceadm.deploy_status_card_error_resource_page_default": "There are errors on the 'About the resource' page.",
+  "resourceadm.deploy_status_card_error_policy_page": "{{num}} fields are missing completion or contain errors on the 'Policy rules' page.",
+  "resourceadm.deploy_status_card_error_policy_page_default": "There are errors on the 'Policy rules' page.",
+  "resourceadm.deploy_status_card_error_policy_page_missing": "You must have at least one rule on the 'Policy rules' page.",
+  "resourceadm.deploy_status_card_error_version": "Local repo missing version number. Please upload a version number in the field below.",
+  "resourceadm.deploy_status_card_error_repo": "Local repo is not in sync with remote repo. Please upload and download so you are in sync.",
+  "resourceadm.deploy_description": "By publishing resources, the information becomes available on <0>Altinn.no</0> and other websites that list resources in Altinn. End users can then start delegating rights to the resource. You should first verify in a test environment that texts and metadata are presented as intended before publishing to production.",
+  "resourceadm.deploy_version_label": "New version number",
+  "resourceadm.deploy_version_text": "A resource needs to have a version number before it is published. In case of changes, the version number must be updated before new publication.",
+  "resourceadm.deploy_version_input_label": "Set a version number for the changes you have made",
+  "resourceadm.deploy_version_upload_button": "Upload your changes",
+  "resourceadm.deploy_select_env_label": "Select the environment where you want to publish the changes",
+  "resourceadm.deploy_test_env": "Test environment",
+  "resourceadm.deploy_prod_env": "Production environment",
+  "resourceadm.deploy_card_arrow_icon": "New version for {{env}}",
+  "resourceadm.deploy_card_publish": "Publish to {{env}}"
+
+
 
 
 

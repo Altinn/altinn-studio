@@ -1340,6 +1340,34 @@
   "resourceadm.about_resource_public_service_show": "skal",
   "resourceadm.about_resource_public_service_dont_show": "skal ikke",
   "resourceadm.about_resource_spinner": "Laster inn ressurs",
-  "resourceadm.switch_toggle": "Toggle av eller på"
+  "resourceadm.switch_toggle": "Toggle av eller på",
+  "resourceadm.left_nav_bar_back": "Tilbake til dashboard",
+  "resourceadm.left_nav_bar_about": "Om ressursen",
+  "resourceadm.left_nav_bar_policy": "Tilgangsregler",
+  "resourceadm.left_nav_bar_deploy": "Publiser",
+  "resourceadm.left_nav_bar_migrate": "Migrer",
 
+
+
+  "resourceadm.deploy_title": "Publiser ressursen",
+  "resourceadm.deploy_spinner": "Laster inn publiserings status",
+  "resourceadm.deploy_status_card_success": "Ressursen er klar til å publiseres",
+  "resourceadm.deploy_status_card_error_title": "Du må fikse disse feilene før du kan gå videre",
+  "resourceadm.deploy_status_card_error_resource_page": "{{num}} felt mangler utfylling eller inneholder feil på siden 'Om ressursen'.",
+  "resourceadm.deploy_status_card_error_resource_page_default": "Det finnes mangler på siden 'Om ressursen'.",
+  "resourceadm.deploy_status_card_error_policy_page": "{{num}} felt mangler utfylling eller inneholder feil på siden 'Tilgangsregler'.",
+  "resourceadm.deploy_status_card_error_policy_page_default": "Det finnes mangler på siden 'Tilgangsregler'",
+  "resourceadm.deploy_status_card_error_policy_page_missing": "Du må ha minst en regel på siden 'Tilgangsregler'.",
+  "resourceadm.deploy_status_card_error_version": "Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.",
+  "resourceadm.deploy_status_card_error_repo": "Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.",
+  "resourceadm.deploy_description": "Ved å publisere ressurser blir informasjonen tilgjengelig på <0>Altinn.no</0> og andre nettsteder som lister ressurser i Altinn. Sluttbrukere kan da starte delegere rettigheter til ressursen. Man bør verifisere i testmiljø først at tekster og metadata blir presentert som tenkt før man publiserer til produksjon.",
+  "resourceadm.deploy_version_label": "Nytt versjonsnummer",
+  "resourceadm.deploy_version_text": "En ressurs trenger å ha et versjonsnummer før den blir publisert. Ved endringer må versjonsnummer oppdateres før ny publisering.",
+  "resourceadm.deploy_version_input_label": "Sett et versjonsnummer for endringene du har gjort",
+  "resourceadm.deploy_version_upload_button": "Last opp dine endringer",
+  "resourceadm.deploy_select_env_label": "Velg miljø der du ønsker å publisere endringene",
+  "resourceadm.deploy_test_env": "Testmiljø",
+  "resourceadm.deploy_prod_env": "Produksjonsmiljø",
+  "resourceadm.deploy_card_arrow_icon": "Ny versjon for {{env}}",
+  "resourceadm.deploy_card_publish": "Publiser tik {{env}}"
 }
