@@ -1289,5 +1289,7 @@
   "resourceadm.dahboard_resource_name_and_id_delete_icon": "Slett ny ressurs id",
   "resourceadm.dahboard_resource_name_and_id_checkmark_icon": "Bruk ny ressurs id",
   "resourceadm.dahboard_resource_name_and_id_edit_id_icon": "Endre ressurs id",
-  "resourceadm.dahboard_resource_name_and_id_error": "Ressurs med valgt id eksisterer allerede."
+  "resourceadm.dahboard_resource_name_and_id_error": "Ressurs med valgt id eksisterer allerede.",
+  "resourceadm.policy_editor_title": "Tilgangsregler",
+  "resourceadm.policy_editor_spinner": "Laster inn tilgangsregler"
 }

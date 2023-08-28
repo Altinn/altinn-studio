@@ -10,6 +10,7 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'resourceadm/hooks/queries';
 import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
+import { useTranslation } from 'react-i18next'
 
 type PolicyEditorPageProps = {
   /**
@@ -27,7 +28,7 @@ type PolicyEditorPageProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): React.ReactNode => {
-  // TODO - translation
+  const { t } = useTranslation();
 
   const { resourceId, selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
@@ -72,7 +73,7 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
     if (policyLoading || actionLoading || subjectsLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.policy_editor_spinner')} />
         </div>
       );
     }
@@ -92,7 +93,7 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
   return (
     <div className={classes.policyEditorWrapper}>
       <Heading size='large' spacing level={1}>
-        Tilgangsregler
+        {t('resourceadm.policy_editor_title')}
       </Heading>
       {displayContent()}
     </div>
