@@ -15,8 +15,11 @@ import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerC
 
 const store = setupStore();
 
+// TODO find out how to handle env-variables
+const altinnWindow = window as any as { APPLICATION_INSIGHTS_CONNECTION_STRING: string };
+
 const loggerConfig: LoggerConfig = {
-  connectionString: process.env.APPLICATION_INSIGHTS_CONNECTION_STRING,
+  connectionString: altinnWindow.APPLICATION_INSIGHTS_CONNECTION_STRING,
   enableUnhandledPromiseRejectionTracking: true,
   loggingLevelTelemetry: 2,
 };
