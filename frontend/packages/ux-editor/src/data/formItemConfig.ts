@@ -4,13 +4,16 @@ import { FormPanelVariant } from '../types/FormComponent';
 import {
   InformationIcon,
   FingerButtonIcon,
-  HouseIcon,
+  FileTextIcon,
   PaperclipIcon,
   CheckmarkIcon,
   CalendarIcon,
   ChevronDownIcon,
   FileCodeIcon,
-  TasklistIcon
+  TasklistIcon,
+  PinIcon,
+  ExclamationmarkIcon,
+  MenuHamburgerIcon
 } from '@navikt/aksel-icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
@@ -31,7 +34,7 @@ export const formItemConfigs: FormItemConfigs = {
       severity: 'info',
       propertyPath: 'definitions/alertComponent',
     },
-    icon: InformationIcon,
+    icon: ExclamationmarkIcon,
   },
   [ComponentType.Accordion]: {
     name: ComponentType.Accordion,
@@ -70,7 +73,7 @@ export const formItemConfigs: FormItemConfigs = {
       simplified: true,
       propertyPath: 'definitions/addressComponent',
     },
-    icon: HouseIcon,
+    icon: PinIcon,
   },
   [ComponentType.AttachmentList]: {
     name: ComponentType.AttachmentList,
@@ -216,7 +219,7 @@ export const formItemConfigs: FormItemConfigs = {
       size: 'L',
       propertyPath: 'definitions/headerComponent',
     },
-    icon: InformationIcon,
+    icon: FileTextIcon,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
@@ -319,7 +322,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/mapComponent',
     },
-    icon: HouseIcon,
+    icon: PinIcon,
   },
   [ComponentType.MultipleSelect]: {
     name: ComponentType.MultipleSelect,
@@ -342,7 +345,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.NavigationBar,
       propertyPath: 'definitions/navigationBarComponent',
     },
-    icon: InformationIcon,
+    icon: MenuHamburgerIcon,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
@@ -353,7 +356,7 @@ export const formItemConfigs: FormItemConfigs = {
       onClickAction: () => { },
       propertyPath: 'definitions/navigationButtonsComponent',
     },
-    icon: FingerButtonIcon,
+    icon: MenuHamburgerIcon,
   },
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
@@ -365,7 +368,7 @@ export const formItemConfigs: FormItemConfigs = {
       showIcon: true,
       propertyPath: 'definitions/panelComponent',
     },
-    icon: InformationIcon,
+    icon: FileTextIcon,
   },
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
@@ -374,7 +377,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Paragraph,
     },
-    icon: InformationIcon,
+    icon: FileTextIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
