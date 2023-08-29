@@ -1,15 +1,15 @@
-import i18next from 'i18next';
+import { UseText } from '../hooks';
 
-export interface Dynamic {
+export interface Expression {
   id?: string;
   editMode: boolean;
   operator?: Operator;
   property?: ExpressionPropertyBase | ExpressionPropertyForGroup;
-  expressionElements?: ExpressionElement[];
+  subExpressions?: SubExpression[];
   complexExpression?: any;
 }
 
-export interface ExpressionElement {
+export interface SubExpression {
   id: string;
   function?: ExpressionFunction;
   dataSource?: string;
@@ -71,43 +71,43 @@ export const isDataSourceWithDropDown = (dataSource: DataSource) => {
   }
 };
 
-export const expressionFunctionTexts = (t: typeof i18next.t) => ({
-  [ExpressionFunction.Equals]: t('right_menu.dynamics_function_equals'),
-  [ExpressionFunction.NotEquals]: t('right_menu.dynamics_function_not_equals'),
-  [ExpressionFunction.Not]: t('right_menu.dynamics_function_not'),
-  [ExpressionFunction.GreaterThan]: t('right_menu.dynamics_function_greater_than'),
-  [ExpressionFunction.GreaterThanEq]: t('right_menu.dynamics_function_greater_than_eq'),
-  [ExpressionFunction.LessThan]: t('right_menu.dynamics_function_less_than'),
-  [ExpressionFunction.LessThanEq]: t('right_menu.dynamics_function_less_than_eq'),
+export const expressionFunctionTexts = (t: UseText) => ({
+  [ExpressionFunction.Equals]: t('right_menu.expressions_function_equals'),
+  [ExpressionFunction.NotEquals]: t('right_menu.expressions_function_not_equals'),
+  [ExpressionFunction.Not]: t('right_menu.expressions_function_not'),
+  [ExpressionFunction.GreaterThan]: t('right_menu.expressions_function_greater_than'),
+  [ExpressionFunction.GreaterThanEq]: t('right_menu.expressions_function_greater_than_eq'),
+  [ExpressionFunction.LessThan]: t('right_menu.expressions_function_less_than'),
+  [ExpressionFunction.LessThanEq]: t('right_menu.expressions_function_less_than_eq'),
 });
 
-export const expressionPropertyTexts = (t: typeof i18next.t) => ({
-  [ExpressionPropertyBase.Hidden]: t('right_menu.dynamics_property_hidden'),
-  [ExpressionPropertyBase.ReadOnly]: t('right_menu.dynamics_property_read_only'),
-  [ExpressionPropertyBase.Required]: t('right_menu.dynamics_property_required'),
-  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.dynamics_group_property_show_add_button'),
-  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.dynamics_group_property_show_edit_button'),
-  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.dynamics_group_property_show_delete_button'),
-  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.dynamics_group_property_show_save_button'),
+export const expressionPropertyTexts = (t: UseText) => ({
+  [ExpressionPropertyBase.Hidden]: t('right_menu.expressions_property_hidden'),
+  [ExpressionPropertyBase.ReadOnly]: t('right_menu.expressions_property_read_only'),
+  [ExpressionPropertyBase.Required]: t('right_menu.expressions_property_required'),
+  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.expressions_group_property_show_add_button'),
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.expressions_group_property_show_edit_button'),
+  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.expressions_group_property_show_delete_button'),
+  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.expressions_group_property_show_save_button'),
 });
 
-export const expressionInPreviewPropertyTexts = (t: typeof i18next.t) => ({
-  [ExpressionPropertyBase.Hidden]: t('right_menu.dynamics_property_preview_hidden'),
-  [ExpressionPropertyBase.ReadOnly]: t('right_menu.dynamics_property_preview_read_only'),
-  [ExpressionPropertyBase.Required]: t('right_menu.dynamics_property_preview_required'),
-  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.dynamics_group_property_preview_show_add_button'),
-  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.dynamics_group_property_preview_show_edit_button'),
-  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.dynamics_group_property_preview_show_delete_button'),
-  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.dynamics_group_property_preview_show_save_button'),
+export const expressionInPreviewPropertyTexts = (t: UseText) => ({
+  [ExpressionPropertyBase.Hidden]: t('right_menu.expressions_property_preview_hidden'),
+  [ExpressionPropertyBase.ReadOnly]: t('right_menu.expressions_property_preview_read_only'),
+  [ExpressionPropertyBase.Required]: t('right_menu.expressions_property_preview_required'),
+  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.expressions_group_property_preview_show_add_button'),
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.expressions_group_property_preview_show_edit_button'),
+  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.expressions_group_property_preview_show_delete_button'),
+  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.expressions_group_property_preview_show_save_button'),
 });
 
-export const expressionDataSourceTexts = (t: typeof i18next.t) => ({
-  [DataSource.Component]: t('right_menu.dynamics_data_source_component'),
-  [DataSource.DataModel]: t('right_menu.dynamics_data_source_data_model'),
-  [DataSource.InstanceContext]: t('right_menu.dynamics_data_source_instance_context'),
-  [DataSource.ApplicationSettings]: t('right_menu.dynamics_data_source_application_settings'),
-  [DataSource.String]: t('right_menu.dynamics_data_source_string'),
-  [DataSource.Number]: t('right_menu.dynamics_data_source_number'),
-  [DataSource.Boolean]: t('right_menu.dynamics_data_source_boolean'),
-  [DataSource.Null]: t('right_menu.dynamics_data_source_null'),
+export const expressionDataSourceTexts = (t: UseText) => ({
+  [DataSource.Component]: t('right_menu.expressions_data_source_component'),
+  [DataSource.DataModel]: t('right_menu.expressions_data_source_data_model'),
+  [DataSource.InstanceContext]: t('right_menu.expressions_data_source_instance_context'),
+  [DataSource.ApplicationSettings]: t('right_menu.expressions_data_source_application_settings'),
+  [DataSource.String]: t('right_menu.expressions_data_source_string'),
+  [DataSource.Number]: t('right_menu.expressions_data_source_number'),
+  [DataSource.Boolean]: t('right_menu.expressions_data_source_boolean'),
+  [DataSource.Null]: t('right_menu.expressions_data_source_null'),
 });

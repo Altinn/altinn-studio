@@ -23,19 +23,11 @@ import type {
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import {
-  convertResourceTypeToDisplayString,
   getMissingInputLanguageString,
-  getResourcePageTextfieldError
+  getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
-
-/**
- * The resource type options to be used in the select
- */
-const resourceTypeOptions = [
-  { value: 'Standard', label: 'Standard' },
-  { value: 'System ressurs', label: 'System ressurs' },
-  { value: 'Maskinporten skjema', label: 'Maskinporten skjema' },
-];
+import { resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { useTranslation } from 'react-i18next'
 
 /**
  * Initial value for languages with empty fields
@@ -86,8 +78,17 @@ export const AboutResourcePage = ({
   thematicData,
   onSaveResource,
 }: AboutResourcePageProps): React.ReactNode => {
-  // TODO - translation
+  const { t } = useTranslation();
+
   const { resourceId } = useParams();
+
+  /**
+   * Resource type options
+   */
+  const resourceTypeOptions = Object.keys(resourceTypeMap).map(key => ({
+    value: key,
+    label: resourceTypeMap[key]
+  }));
 
   /**
    * ------------ Temporary functions -------------
@@ -182,14 +183,8 @@ export const AboutResourcePage = ({
    *
    * @param type the selected string
    */
-  const handleChangeResourceType = (type: string) => {
-    // TODO - When implementing translations I think we should create an enum/map that makes the keys static regardless of the language itself.
-    const resourceTypeMap = {
-      "Standard": "Default",
-      "System ressurs": "Systemresource",
-      "Maskinporten skjema": "MaskinportenSchema",
-    };
-    setResourceType(resourceTypeMap[type]);
+  const handleChangeResourceType = (type: ResourceTypeOption) => {
+    setResourceType(type);
     setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
   };
 
@@ -278,10 +273,10 @@ export const AboutResourcePage = ({
         <RightTranslationBar
           title={
             translationType === 'title'
-              ? 'Navn på tjenesten'
+              ? t('resourceadm.about_resource_translation_title')
               : translationType === 'description'
-              ? 'Beskrivelse'
-              : 'Delgasjonstekst'
+              ? t('resourceadm.about_resource_translation_description')
+              : t('resourceadm.about_resource_translation_right_description')
           }
           value={
             translationType === 'title'
@@ -308,20 +303,20 @@ export const AboutResourcePage = ({
     return (
       <>
         <Heading size='large' spacing level={1}>
-          Om ressursen
+          {t('resourceadm.about_resource_title')}
         </Heading>
         <Label size='medium' spacing>
-          Ressurstype
+          {t('resourceadm.about_resource_resource_type')}
         </Label>
         <Paragraph short size='small'>
-          Velg en ressurstype fra listen under.
+          {t('resourceadm.about_resource_resource_type_label')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
-            options={resourceTypeOptions}
+            options={resourceTypeOptions.map(o => ({ ...o, label: t(o.label) }))}
             onChange={handleChangeResourceType}
-            value={convertResourceTypeToDisplayString(resourceType)}
-            label='Ressurstype'
+            value={resourceType}
+            label={t('resourceadm.about_resource_resource_type')}
             hideLabel
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
@@ -329,15 +324,14 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasResourceTypeError &&
-            displayWarningCard('Du mangler å legge til ressurstype.')}
+            displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Navn på tjenesten (Bokmål)
+          {t('resourceadm.about_resource_resource_title_label')}
         </Label>
         <Paragraph size='small'>
-          Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass
-          på at navnet er forståelig og gjenkjennbart.
+          {t('resourceadm.about_resource_resource_title_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
@@ -352,19 +346,18 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan
             id='resource-title'
-            label='Navn på tjenesten - Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på at navnet er forståelig og gjenkjennbart.'
+            label={t('resourceadm.about_resource_resource_title_sr_label')}
           />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguageString(title, 'tittel'))}
+            displayWarningCard(getMissingInputLanguageString(title, t('resourceadm.about_resource_error_usage_string_title'), t))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Beskrivelse (Bokmål)
+          {t('resourceadm.about_resource_resource_description_label')}
         </Label>
         <Paragraph size='small'>
-          Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
-          offentlige nettløsninger.
+          {t('resourceadm.about_resource_resource_description_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextArea
@@ -383,19 +376,19 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan
             id='resource-description'
-            label='Beskrivelse - Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av offentlige nettløsninger.'
+            label={t('resourceadm.about_resource_resource_description_sr_label')}
           />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(description, 'beskrivelse'))}
+            displayWarningCard(getMissingInputLanguageString(description, t('resourceadm.about_resource_error_usage_string_description'), t))}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Hjemmeside
+          {t('resourceadm.about_resource_homepage_label')}
         </Label>
         <Paragraph short size='small'>
-          Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den.
+          {t('resourceadm.about_resource_homepage_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
@@ -408,17 +401,15 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan
             id='resource-homepage'
-            label='Hjemmeside - Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den.'
+            label={t('resourceadm.about_resource_homepage_sr_label')}
           />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Nøkkelord
+          {t('resourceadm.about_resource_keywords_label')}
         </Label>
         <Paragraph size='small'>
-          {
-            'Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
-          }
+          {t('resourceadm.about_resource_keywords_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
@@ -430,16 +421,15 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan
             id='resource-keywords'
-            label='Nøkkelord - Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
+            label={t('resourceadm.about_resource_keywords_sr_label')}
           />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Sektor
+          {t('resourceadm.about_resource_sector_label')}
         </Label>
         <Paragraph size='small'>
-          Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere
-          industrier/sektorer.
+          {t('resourceadm.about_resource_sector_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
@@ -448,7 +438,7 @@ export const AboutResourcePage = ({
             options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
             onChange={(e) => setSector(e)}
             value={sector}
-            label='Sektor - Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere industrier/sektorer.'
+            label={t('resourceadm.about_resource_sector_sr_label')}
             hideLabel
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
@@ -456,18 +446,17 @@ export const AboutResourcePage = ({
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Tematisk område
+          {t('resourceadm.about_resource_thematic_label')}
         </Label>
         <Paragraph size='small'>
-          Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk
-          område.
+          {t('resourceadm.about_resource_thematic_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
             onChange={(e: string) => setThematicArea(e)}
             value={thematicArea}
-            label='Tematisk område - Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk område.'
+            label={t('resourceadm.about_resource_thematic_sr_label')}
             hideLabel
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
@@ -475,11 +464,10 @@ export const AboutResourcePage = ({
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Delegasjonstekst
+          {t('resourceadm.about_resource_rights_description_label')}
         </Label>
         <Paragraph size='small'>
-          Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker
-          av rettigheter kan utføre på vegne av den som han har fått rettighet for.
+          {t('resourceadm.about_resource_rights_description_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
@@ -494,19 +482,18 @@ export const AboutResourcePage = ({
           />
           <ScreenReaderSpan
             id='resource-delegationtext'
-            label='Delegasjonstekst - Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for'
+            label={t('resourceadm.about_resource_rights_description_sr_label')}
           />
           {showAllErrors &&
             hasRightDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(rightDescription, 'delegasjonstekst'))}
+            displayWarningCard(getMissingInputLanguageString(rightDescription, t('resourceadm.about_resource_error_usage_string_rights_description'), t))}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Vis i offentlige kataloger
+          {t('resourceadm.about_resource_public_service_label')}
         </Label>
         <Paragraph short size='small'>
-          Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på
-          norge.no og data.norge.no.
+          {t('resourceadm.about_resource_public_service_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Switch
@@ -518,7 +505,9 @@ export const AboutResourcePage = ({
           />
           <p
             className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
-          >{`Ressursen ${isPublicService ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
+          >
+            {t('resourceadm.about_resource_public_service_show_text', { showText: isPublicService ? t('resourceadm.about_resource_public_service_show') : t('resourceadm.about_resource_public_service_dont_show') })}
+          </p>
         </div>
       </>
     );

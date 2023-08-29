@@ -1,6 +1,6 @@
-import { convertResourceTypeToDisplayString, getMissingInputLanguageString, getResourcePageTextfieldError, mapLanguageKeyToLanguageText } from "./resourceUtils";
+import { getMissingInputLanguageString, getResourcePageTextfieldError, mapLanguageKeyToLanguageText } from "./resourceUtils";
 import type { SupportedLanguage } from "resourceadm/types/global";
-import type { ResourceTypeOption, SupportedLanguageKey } from "app-shared/types/ResourceAdm";
+import type { SupportedLanguageKey } from "app-shared/types/ResourceAdm";
 
 describe('getResourcePageTextfieldError', () => {
   it('returns false when the field have valid data', () => {
@@ -29,29 +29,27 @@ describe('getResourcePageTextfieldError', () => {
   });
 });
 
-describe('convertResourceTypeToDisplayString', () => {
-  it ('converts the type to the correct display string', () => {
-    const resourceTypeOptionDefaultMock: ResourceTypeOption = 'Default';
-    const result = convertResourceTypeToDisplayString(resourceTypeOptionDefaultMock);
-    expect(result).toEqual('Standard');
-  })
-
-  it('to return undefined for incorrect type', () => {
-    const resourceTypeOptionIncorrectMock: any = 'Incorrect';
-    const result = convertResourceTypeToDisplayString(resourceTypeOptionIncorrectMock);
-    expect(result).toBeUndefined();
-  })
-})
-
 describe('mapLanguageKeyToLanguageText', () => {
   it ('to return Bokmål for nb', () => {
-    const result = mapLanguageKeyToLanguageText('nb');
+    const translationFunctionMock = (key: string) => {
+      if (key === 'language.nb') return 'Bokmål';
+      if (key === 'language.nn') return 'Nynorsk';
+      if (key === 'language.en') return 'Engelsk';
+      return key;
+    };
+
+    const result = mapLanguageKeyToLanguageText('nb', translationFunctionMock);
     expect(result).toEqual('Bokmål');
   })
 })
 
 describe('getMissingInputLanguageString', () => {
   it ('to map a language with 2 non-empty fields to correct string', () => {
+    const translationFunctionMock = (key: string) => {
+      if (key === 'resourceadm.about_resource_langauge_error_missing_2') return 'Du mangler oversettelse for test på Nynorsk og Engelsk.';
+      return key;
+    };
+
     const languageStringMock: SupportedLanguage = {
       nb: 'Test tekst',
       nn: '',
@@ -59,7 +57,7 @@ describe('getMissingInputLanguageString', () => {
     }
     const missingInputLanguageStringTestMock: string = 'Du mangler oversettelse for test på Nynorsk og Engelsk.'
 
-    const result = getMissingInputLanguageString(languageStringMock, 'test');
+    const result = getMissingInputLanguageString(languageStringMock, 'test', translationFunctionMock);
     expect(result).toEqual(missingInputLanguageStringTestMock)
   })
 })

@@ -3,6 +3,7 @@ import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
+import { useTranslation } from 'react-i18next'
 
 // TODO MOVE to types folder when the types are 100% agreed on.
 type EnvironmentType = 'AT21' | 'AT22' | 'AT23' | 'AT24' | 'TT02' | 'PROD';
@@ -53,6 +54,8 @@ export const ImportResourceModal = ({
   isOpen,
   onClose,
 }: ImportResourceModalProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
   const [id, setId] = useState('');
@@ -131,7 +134,7 @@ export const ImportResourceModal = ({
             options={dummyServices.map((s) => ({ value: s.name, label: s.name }))}
             onChange={handleSelectService}
             value={selectedService}
-            label='Velg servicen du vil importere'
+            label={t('resourceadm.dahboard_import_modal_select_service')}
           />
         </div>
       );
@@ -152,7 +155,7 @@ export const ImportResourceModal = ({
           <ResourceNameAndId
             isEditOpen={editIdFieldOpen}
             title={title}
-            text='Ressursnavn er foreslått basert på servicen du har valgt, og språkstøtte kan legges til på neste side. Id er foreslått basert på ressursnavnet, og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.'
+            text={t('resourceadm.dahboard_import_modal_resource_and_id_text')}
             id={id}
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}
@@ -173,27 +176,26 @@ export const ImportResourceModal = ({
     console.log('Importing... Coming soon');
   };
 
-  // TODO - translation
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Importer en ressurs fra Altinn 2'>
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dahboard_import_modal_title')}>
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
           onChange={(e: EnvironmentType) => setSelectedEnv(e)}
           value={selectedEnv}
-          label='Velg miljøet du vil importere fra'
+          label={t('resourceadm.dahboard_import_modal_resource_name_and_id_text')}
         />
       </div>
       {displayService()}
       {displayTitleAndId()}
       <div className={classes.buttonWrapper}>
         <Button onClick={handleClose} color='primary' variant='quiet' size='small'>
-          Avbryt
+          {t('general.cancel')}
         </Button>
         {selectedEnv && selectedService && (
           <div className={classes.importButton}>
-            <Button onClick={handleImportResource} color='primary'>
-              Importer ressurs
+            <Button onClick={handleImportResource} color='primary' size='small'>
+              {t('resourceadm.dahboard_import_modal_import_button')}
             </Button>
           </div>
         )}

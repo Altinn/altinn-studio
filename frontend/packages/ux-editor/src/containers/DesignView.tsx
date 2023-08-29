@@ -20,7 +20,6 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
-import * as testids from '../../../../testing/testids';
 
 export interface DesignViewProps {
   className?: string;
@@ -120,11 +119,6 @@ export const DesignView = ({ className }: DesignViewProps) => {
   return (
     <div
       className={className}
-      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
-        event.stopPropagation();
-        if (formId) handleEdit(null)
-      }}
-      data-testid={testids.designViewContainer}
     >
       <h1 className={classes.pageHeader}>{layoutName}</h1>
       {layout && renderContainer(BASE_CONTAINER_ID, true)}

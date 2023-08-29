@@ -64,17 +64,17 @@ export const ResourceDeployStatus = ({
       );
     }
     return error.map((e, index) => {
-      const textArr = e.message.split('"');
+      const [leftOfLinkText, linkText, rightOfLinkText] = e.message.split('\'')
 
       return (
         <div className={classes.cardElement} key={index + resourceId}>
           <ArrowRightIcon title={e.message} fontSize='1.5rem' />
           <Paragraph size='small' className={classes.text}>
-            {textArr[0] + ' "'}
+            {leftOfLinkText + ' "'}
             <LinkButton onClick={() => onNavigateToPageWithError(e.pageWithError)}>
-              {textArr[1]}
+              {linkText}
             </LinkButton>
-            {'"'}
+            {'"' + rightOfLinkText}
           </Paragraph>
         </div>
       );

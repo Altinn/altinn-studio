@@ -22,6 +22,7 @@ import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next'
 
 /**
  * @component
@@ -30,6 +31,8 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourcePage = (): React.ReactNode => {
+  const { t } = useTranslation();
+
   const navigate = useNavigate();
 
   const { pageType, resourceId, selectedContext } = useParams();
@@ -194,7 +197,7 @@ export const ResourcePage = (): React.ReactNode => {
         {currentPage === 'about' &&
           (resourceLoading || sectorsLoading || losLoading || eurLoading ? (
             <div className={classes.spinnerWrapper}>
-              <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurs' />
+              <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.about_resource_spinner')} />
             </div>
           ) : (
             <AboutResourcePage
@@ -234,7 +237,7 @@ export const ResourcePage = (): React.ReactNode => {
             setPolicyErrorModalOpen(false);
           }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i tilgangsregler'
+          title={t('resourceadm.resource_navigation_modal_title_policy')}
         />
       )}
       {resourceErrorModalOpen && (
@@ -244,7 +247,7 @@ export const ResourcePage = (): React.ReactNode => {
             setResourceErrorModalOpen(false);
           }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i ressurs'
+          title={t('resourceadm.resource_navigation_modal_title_resource')}
         />
       )}
     </div>
