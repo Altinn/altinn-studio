@@ -88,7 +88,7 @@ export const AboutResourcePage = ({
   const resourceTypeOptions = Object.keys(resourceTypeMap).map(key => ({
     value: key,
     label: resourceTypeMap[key]
-  }))
+  }));
 
   /**
    * ------------ Temporary functions -------------

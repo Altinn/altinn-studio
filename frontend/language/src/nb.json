@@ -1362,7 +1362,7 @@
   "resourceadm.deploy_version_input_label": "Sett et versjonsnummer for endringene du har gjort",
   "resourceadm.deploy_version_upload_button": "Last opp dine endringer",
   "resourceadm.deploy_select_env_label": "Velg miljø der du ønsker å publisere endringene",
-  "resourceadm.deploy_test_env": "Testmiljø",
+  "resourceadm.deploy_test_env": "Testmiljø TT-02",
   "resourceadm.deploy_prod_env": "Produksjonsmiljø",
   "resourceadm.deploy_card_arrow_icon": "Ny versjon for {{env}}",
   "resourceadm.deploy_card_publish": "Publiser tik {{env}}",

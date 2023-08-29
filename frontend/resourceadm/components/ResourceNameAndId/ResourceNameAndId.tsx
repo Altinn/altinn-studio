@@ -109,17 +109,17 @@ export const ResourceNameAndId = ({
   return (
     <>
       <Paragraph size='small'>{text}</Paragraph>
-      <Label className={classes.label} size='small'>
+      <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
         {t('resourceadm.dahboard_resource_name_and_id_resource_name')}
       </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label={t('resourceadm.dahboard_resource_name_and_id_resource_name')}
+          id='resourceNameInputId'
         />
       </div>
-      <Label className={classes.label} size='small'>
+      <Label className={classes.label} size='small' htmlFor='resourceIdInputId'>
         {t('resourceadm.dahboard_resource_name_and_id_resource_id')}
       </Label>
       <div className={classes.editFieldWrapper}>
@@ -129,7 +129,7 @@ export const ResourceNameAndId = ({
               <TextField
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
-                aria-label={t('resourceadm.dahboard_resource_name_and_id_resource_id')}
+                id='resourceIdInputId'
                 isValid={!resourceIdExists}
               />
             </div>

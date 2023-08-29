@@ -275,7 +275,7 @@ export const DeployResourcePage = ({
             <div className={classes.deployCardsWrapper}>
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('test', versionInTest)}
-                envName={`${t('resourceadm.deploy_test_env')} TT-02`}
+                envName={t('resourceadm.deploy_test_env')}
                 currentEnvVersion={versionInTest}
                 newEnvVersion={
                   versionData.resourceVersion !== versionInTest

@@ -39,7 +39,7 @@ export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOpt
 /**
  * Maps the language key to the text
  */
-export const mapLanguageKeyToLanguageText = (val: 'nb' | 'nn' | 'en', translationFunction: any) => {
+export const mapLanguageKeyToLanguageText = (val: 'nb' | 'nn' | 'en', translationFunction: (key: string, params?: object) => string) => {
   if (val === 'nb') return translationFunction('language.nb');
   if (val === 'nn') return translationFunction('language.nn');
   return translationFunction('language.en');
@@ -55,7 +55,7 @@ export const mapLanguageKeyToLanguageText = (val: 'nb' | 'nn' | 'en', translatio
 export const getMissingInputLanguageString = (
   language: SupportedLanguage,
   usageString: string,
-  translationFunction: any
+  translationFunction: (key: string, params?: object) => string
 ): string => {
   const valArr: ('nb' | 'nn' | 'en')[] = [];
 
