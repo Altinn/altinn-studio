@@ -59,9 +59,8 @@ export const FormContainer = ({
       )}
       onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        if (isEditMode) return;
+        if (isBaseContainer || isEditMode) return;
         await handleSave();
-        if (isBaseContainer) return;
         handleEdit({ ...container, id });
       }}
     >
