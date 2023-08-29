@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
@@ -30,9 +30,14 @@
           "age": "Alder",
           "profession": "Yrke"
         },
-        "sortableColumns": [ "age" ],
+        "sortableColumns": [
+          "age"
+        ],
         "pagination": {
-          "alternatives": [ 5, 10 ],
+          "alternatives": [
+            5,
+            10
+          ],
           "default": 5
         },
         "mapping": {
@@ -48,7 +53,9 @@
           "next": "Neste"
         },
         "dataModelBindings": {},
-        "triggers": [ "validatePage" ]
+        "triggers": [
+          "validatePage"
+        ]
       }
     ]
   }
