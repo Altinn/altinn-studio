@@ -119,7 +119,7 @@ export const FormComponent = memo(function FormComponent({
             />
           ) : (
             <div className={classes.formComponentTitle}>
-               <i className={classes.draggedIcon}>{Icon && <Icon />} </i>
+               <i className={classes.draggedIcon} data-testid="form-component-icon">{Icon && <Icon />} </i>
               {textResource
                 ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||

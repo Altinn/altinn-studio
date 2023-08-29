@@ -167,6 +167,33 @@ describe('FormComponent', () => {
       expect(screen.getByText(textMock('ux_editor.component_unknown'))).toBeInTheDocument();
     });
   })
+
+  describe('icon', () => {
+    it('should display the icon', async () => {
+      await render({
+        component: {
+          ...component1Mock,
+          icon: 'Icon',
+        },
+      });
+
+      const iconElement = screen.getByTestId('form-component-icon');
+      expect(iconElement).toBeInTheDocument();
+    });
+
+    it('should not display the icon when the component is in preview mode', async () => {
+      await render({
+        component: {
+          ...component1Mock,
+          icon: 'Icon',
+        },
+        isEditMode: false,
+      });
+      
+      expect(screen.queryByText('Icon')).not.toBeInTheDocument();
+    });
+  });
+  
 });
 
 const waitForData = async () => {

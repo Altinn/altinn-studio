@@ -14,7 +14,13 @@ import {
   PinIcon,
   ExclamationmarkIcon,
   MenuHamburgerIcon,
-  EyeClosedIcon
+  EyeClosedIcon,
+  TabsIcon,
+  TableIcon,
+  CaptionsIcon,
+  BulletListIcon,
+  BookmarkIcon,
+  ChevronDownDoubleIcon,
 } from '@navikt/aksel-icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
@@ -45,6 +51,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
     },
+    icon: ChevronDownIcon,
   },
   [ComponentType.AccordionGroup]: {
     name: ComponentType.AccordionGroup,
@@ -54,6 +61,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.AccordionGroup,
       propertyPath: 'definitions/accordionGroupComponent',
     },
+    icon: ChevronDownDoubleIcon,
   },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
@@ -201,7 +209,7 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/gridComponent',
       rows: [],
     },
-    icon: InformationIcon,
+    icon: TableIcon,
   },
   [ComponentType.Group]: {
     name: ComponentType.Group,
@@ -209,7 +217,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'CONTAINER',
       propertyPath: 'definitions/groupComponent',
     },
-    icon: InformationIcon,
+    icon: TabsIcon,
   },
   [ComponentType.Header]: {
     name: ComponentType.Header,
@@ -220,7 +228,7 @@ export const formItemConfigs: FormItemConfigs = {
       size: 'L',
       propertyPath: 'definitions/headerComponent',
     },
-    icon: FileTextIcon,
+    icon: BookmarkIcon,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
@@ -257,7 +265,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/inputComponent',
     },
-    icon: InformationIcon,
+    icon: CaptionsIcon,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
@@ -399,7 +407,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: InformationIcon
+    icon: BulletListIcon,
   },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
@@ -421,7 +429,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/textAreaComponent',
     },
-    icon: InformationIcon,
+    icon: CaptionsIcon,
   },
 };
 
