@@ -1341,6 +1341,7 @@
   "resourceadm.about_resource_spinner": "Laster inn ressurs",
   "resourceadm.switch_toggle": "Toggle av eller på",
   "resourceadm.left_nav_bar_back": "Tilbake til dashboard",
+  "resourceadm.left_nav_bar_back_icon": "Tilbake til dashboard",
   "resourceadm.left_nav_bar_about": "Om ressursen",
   "resourceadm.left_nav_bar_policy": "Tilgangsregler",
   "resourceadm.left_nav_bar_deploy": "Publiser",
