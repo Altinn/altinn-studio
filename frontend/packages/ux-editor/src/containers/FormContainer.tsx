@@ -61,7 +61,8 @@ export const FormContainer = ({
         event.stopPropagation();
         if (isEditMode) return;
         await handleSave();
-        handleEdit(isBaseContainer ? null : { ...container, id });
+        if (isBaseContainer) return;
+        handleEdit({ ...container, id });
       }}
     >
       {!isBaseContainer && (

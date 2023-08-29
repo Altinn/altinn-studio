@@ -119,11 +119,6 @@ export const DesignView = ({ className }: DesignViewProps) => {
   return (
     <div
       className={className}
-      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
-        event.stopPropagation();
-        if (formId) handleEdit(null)
-      }}
-      data-testid="designViewContainer"
     >
       <h1 className={classes.pageHeader}>{layoutName}</h1>
       {layout && renderContainer(BASE_CONTAINER_ID, true)}
