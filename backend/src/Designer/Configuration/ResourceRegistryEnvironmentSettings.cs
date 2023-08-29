@@ -11,6 +11,6 @@
         public string MetadataBaseUrl { get; set; }
 
         public string SblBridgeBaseUrl { get; set; }
-        
+
     }
 }

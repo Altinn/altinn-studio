@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Net.Http;
-using System;
-using Altinn.Studio.Designer.Models;
-using PolicyAdmin.Models;
-using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Utils;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Microsoft.Extensions.Options;
+using PolicyAdmin.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 {
@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
         public Altinn2MetadataClient(HttpClient httpClient, IOptions<ResourceRegistryIntegrationSettings> rrs)
         {
             _httpClient = httpClient;
-            _rrs = rrs.Value; 
+            _rrs = rrs.Value;
         }
 
         public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
