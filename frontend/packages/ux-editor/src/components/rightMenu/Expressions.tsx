@@ -86,9 +86,9 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   };
 
   const updateExpression = (index: number, newExpression: Expression) => {
-    const updatedExpressions = deepCopy(expressions);
-    updatedExpressions[index] = newExpression;
-    setExpressions(updatedExpressions);
+    const newExpressions = deepCopy(expressions);
+    newExpressions[index] = newExpression;
+    setExpressions(newExpressions);
   }
 
   const editExpression = (expression: Expression) => {
@@ -109,7 +109,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
     }
     const defaultExpression: Expression = { id: uuidv4(), editMode: true, subExpressions: [] };
     const newExpressions = expressions.length === 1 ? expressions.filter(prevExpression => prevExpression !== expression).concat(defaultExpression) : expressions.filter(prevExpression => prevExpression !== expression);
-    setExpressions(newExpressions)
+    setExpressions(newExpressions);
   };
 
   const getProperties = (expression: Expression) => {
@@ -140,7 +140,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
       ))}
       {expressions.length < expressionProperties.length ? (
         <Button
-          aria-label={t('right_menu.dynamics_add')}
+          aria-label={t('right_menu.expressions_add')}
           color='primary'
           fullWidth
           icon={<PlusIcon/>}
@@ -149,11 +149,11 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
           size='small'
           variant='outline'
         >
-          {t('right_menu.dynamics_add')}
+          {t('right_menu.expressions_add')}
         </Button>
       ) : (
         <Alert className={classes.expressionsAlert}>
-          {t('right_menu.dynamics_dynamics_limit_reached_alert')}
+          {t('right_menu.expressions_expressions_limit_reached_alert')}
         </Alert>
       )}
       {shouldDisplayFeature('expressions') &&

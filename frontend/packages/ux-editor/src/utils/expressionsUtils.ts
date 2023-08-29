@@ -8,9 +8,9 @@ import {
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
 import { deepCopy } from 'app-shared/pure';
-import {DatamodelFieldElement} from "app-shared/types/DatamodelFieldElement";
-import {IFormLayouts} from "../types/global";
-import {FormComponent} from "../types/FormComponent";
+import { DatamodelFieldElement } from "app-shared/types/DatamodelFieldElement";
+import { IFormLayouts } from "../types/global";
+import { FormComponent } from "../types/FormComponent";
 
 export const convertExpressionToExternalFormat = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {

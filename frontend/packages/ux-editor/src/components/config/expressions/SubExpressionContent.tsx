@@ -6,19 +6,20 @@ import {
   ExpressionFunction,
   SubExpression,
   expressionFunctionTexts,
-  Operator,
+  Operator, Expression,
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
-import classes from './ExpressionContent.module.css';
-import { useTranslation } from 'react-i18next';
+import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
 import { addDataSource, addDataSourceValue } from '../../../utils/expressionsUtils';
+import { useText } from '../../../hooks';
 
 interface IExpressionContentProps {
   expressionAction: boolean;
   subExpression: SubExpression;
-  expressionOperator?: Operator;
+  expression: Expression;
+  index: number;
   onAddSubExpression: (expOp: string) => void;
   onUpdateSubExpression: (subExpression: SubExpression) => void;
   onUpdateExpressionOperator: (expressionOp: Operator) => void;
@@ -28,15 +29,16 @@ interface IExpressionContentProps {
 export const SubExpressionContent = ({
     expressionAction,
     subExpression,
-    expressionOperator,
+    expression,
+    index,
     onAddSubExpression,
     onUpdateSubExpression,
     onUpdateExpressionOperator,
     onRemoveSubExpression,
 }: IExpressionContentProps) => {
-  const { t } = useTranslation();
+  const t = useText();
 
-  const showAddExpressionButton: boolean = !expressionOperator;
+  const showAddExpressionButton: boolean = index == expression.subExpressions.length - 1;
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(subExpression.function as ExpressionFunction);
 
   const addFunctionToSubExpression = (func: string) => {
@@ -74,7 +76,7 @@ export const SubExpressionContent = ({
 
   return (
     <div>
-      <p>{t('right_menu.dynamics_function_on_action')}</p>
+      <p>{t('right_menu.expressions_function_on_action')}</p>
       <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         onChange={(func: string) => addFunctionToSubExpression(func)}
         options={[{ label: 'Velg oppsett...', value: 'default' }].concat(
@@ -145,7 +147,7 @@ export const SubExpressionContent = ({
                 <Button
                   variant='quiet'
                   size='small'
-                  onClick={() => handleAddSubExpression(expressionOperator || Operator.And)}
+                  onClick={() => handleAddSubExpression(expression.operator || Operator.And)}
                 >
                   <i
                     className={cn('fa', classes.plusIcon, {
@@ -153,7 +155,7 @@ export const SubExpressionContent = ({
                       'fa-circle-plus-outline': !showAddExpressionButton,
                     })}
                   />
-                  {t('right_menu.dynamics_add_expression')}
+                  {t('right_menu.expressions_add_expression')}
                 </Button>
               ) : (
                 <div className={classes.andOrToggleButtons}>
@@ -163,7 +165,7 @@ export const SubExpressionContent = ({
                     { label: 'Eller', value: Operator.Or }
                   ]}
                   onChange={(value) => handleUpdateExpressionOperator(value as Operator)}
-                  selectedValue={expressionOperator || Operator.And}
+                  selectedValue={expression.operator || Operator.And}
                 />
               </div>
             )}

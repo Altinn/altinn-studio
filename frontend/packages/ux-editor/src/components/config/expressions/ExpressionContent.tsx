@@ -12,7 +12,7 @@ import { ArrowRightIcon, CheckmarkIcon, PencilIcon, XMarkIcon } from '@navikt/ak
 import { SubExpressionContent } from './SubExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import classes from './ExpressionContent.module.css';
 import {
   addAction,
@@ -21,6 +21,7 @@ import {
   updateExpression,
   updateOperator
 } from '../../../utils/expressionsUtils';
+import { useText } from '../../../hooks';
 
 interface ExpressionProps {
   component: FormComponent | FormContainer;
@@ -47,7 +48,7 @@ export const ExpressionContent = ({
 }: ExpressionProps) => {
   const expressionInEditStateRef = useRef(null);
   const expressionInPreviewStateRef = useRef(null);
-  const { t } = useTranslation();
+  const t = useText();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -109,16 +110,16 @@ export const ExpressionContent = ({
     onUpdateExpression(newExpression);
   };
 
-  const tryFormatExpression = (expression: any): string => {
+  const tryFormatExpression = (subExpression: any): string => {
     try {
       // Implies during editing and when the expression has not been able to be parsed to JSON due to syntax
-      if (typeof expression === 'string') {
-        return expression;
+      if (typeof subExpression === 'string') {
+        return subExpression;
       }
       // Attempt to format the JSON input
-      return JSON.stringify(expression);
+      return JSON.stringify(subExpression);
     } catch (error) {
-      return expression.toString();
+      return subExpression.toString();
     }
   };
 
@@ -142,7 +143,7 @@ export const ExpressionContent = ({
           )}
           <p>
             <Trans
-              i18nKey={'right_menu.dynamics_action_on_component'}
+              i18nKey={'right_menu.expressions_action_on_component'}
               values={{ componentName: component.id }}
               components={{ bold: <strong/> }}/>
           </p>
@@ -161,7 +162,7 @@ export const ExpressionContent = ({
                 onChange={event => updateExpressionComplexExpression(event.target.value)}
               />
               <Alert>
-                {t('right_menu.dynamics_complex_dynamic_message')}
+                {t('right_menu.expressions_complex_expression_message')}
               </Alert>
             </div>
           ) : (
@@ -170,7 +171,8 @@ export const ExpressionContent = ({
                 <SubExpressionContent
                   expressionAction={allowToSpecifyExpression}
                   subExpression={subExp}
-                  expressionOperator={index == expression.subExpressions.length - 1 ? undefined : expression.operator}
+                  expression={expression}
+                  index={index}
                   onAddSubExpression={(expressionOp: Operator) => addSubExpression(expressionOp)}
                   onUpdateSubExpression={(subExpression: SubExpression) => updateSubExpression(index, subExpression)}
                   onUpdateExpressionOperator={(expressionOp: Operator) => updateExpressionOperator(expressionOp)}
@@ -198,7 +200,7 @@ export const ExpressionContent = ({
                     disabled={true}
                   />
                 <Alert>
-                  {t('right_menu.dynamics_complex_dynamic_message')}
+                  {t('right_menu.expressions_complex_expression_message')}
                 </Alert>
               </div>
             ) : (
@@ -216,7 +218,7 @@ export const ExpressionContent = ({
             )}
             {successfullyAddedMark && (
               <div className={classes.checkMark}>
-                <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.dynamics_successfully_added_text')}
+                <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.expression_successfully_added_text')}
               </div>
             )}
           </div>
