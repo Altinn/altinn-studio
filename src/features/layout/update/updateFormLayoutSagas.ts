@@ -36,7 +36,7 @@ import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
-export const selectFormData = (state: IRuntimeState) => state.formData;
+export const selectFormData = (state: IRuntimeState) => state.formData.formData;
 export const selectFormLayouts = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectAttachmentState = (state: IRuntimeState) => state.attachments;
 export const selectValidations = (state: IRuntimeState) => state.formValidations.validations;

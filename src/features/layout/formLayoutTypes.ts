@@ -133,3 +133,12 @@ export interface IHiddenLayoutsUpdate {
 export interface IInitRepeatingGroups {
   changedFields?: IFormData;
 }
+
+export interface IRepGroupAddRow {
+  groupId: string;
+}
+
+export interface IRepGroupDelRow {
+  groupId: string;
+  index: number;
+}

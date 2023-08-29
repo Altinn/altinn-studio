@@ -6,6 +6,7 @@ import axios from 'axios';
 import { Label } from 'src/components/form/Label';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import classes from 'src/layout/Address/AddressComponent.module.css';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
@@ -71,7 +72,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
     saveWhileTyping,
   );
 
-  const [validations, setValidations] = React.useState<IAddressValidationErrors>({});
+  const [validations, setValidations] = useStateDeepEqual<IAddressValidationErrors>({});
   const prevZipCode = React.useRef<string | undefined>(undefined);
   const hasFetchedPostPlace = React.useRef<boolean>(false);
 
@@ -103,7 +104,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
         }
       }
     },
-    [validate, handleDataChange, setPostPlace],
+    [validate, setValidations, handleDataChange, setPostPlace],
   );
 
   React.useEffect(() => {
@@ -154,7 +155,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
-  }, [formData.zipCode, langAsString, source, onSaveField, validations, setPostPlace, id]);
+  }, [formData.zipCode, langAsString, source, onSaveField, validations, setPostPlace, id, setValidations]);
 
   const updateField = (key: AddressKeys, saveImmediately: boolean, event: any): void => {
     const changedFieldValue: string = event.target.value;

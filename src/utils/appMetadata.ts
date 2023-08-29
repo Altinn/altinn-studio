@@ -85,7 +85,7 @@ export const getCurrentTaskDataElementId = (
   layoutSets: ILayoutSets | null,
 ) => {
   const currentDataTypeId = getCurrentDataTypeId(appMetaData, instance, layoutSets);
-  const currentTaskDataElement = instance?.data.find((element) => element.dataType === currentDataTypeId);
+  const currentTaskDataElement = (instance?.data || []).find((element) => element.dataType === currentDataTypeId);
   return currentTaskDataElement?.id;
 };
 

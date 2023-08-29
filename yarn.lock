@@ -5810,6 +5810,7 @@ __metadata:
     ts-node: ^10.9.1
     tsconfig-paths: ^4.2.0
     typescript: 5.1.6
+    use-immer: ^0.9.0
     utility-types: 3.10.0
     uuid: 9.0.0
     webpack: 5.88.2
@@ -17218,6 +17219,16 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 7913df383a5a6fcb399212eedefaac2e0c6f843555202d4e3010bac3848afe38ecaa3d0d6500ad1d936fbeffd637e6c517e68edb024af5e6beca7f27f3ce7b21
+  languageName: node
+  linkType: hard
+
+"use-immer@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "use-immer@npm:0.9.0"
+  peerDependencies:
+    immer: ">=2.0.0"
+    react: ^16.8.0 || ^17.0.1 || ^18.0.0
+  checksum: 3f02e31d38f354125e6cffaaed0a08d9bf122b9df261aa7b38a25246813b3bd8b22bf97b192099d4e84adcfbbb07e69e14ba29520e0ac8d93f3991ef3a3652b4
   languageName: node
   linkType: hard
 

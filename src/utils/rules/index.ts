@@ -1,11 +1,11 @@
 import type { IRuleConnections } from 'src/features/dynamics';
-import type { IFormDataState } from 'src/features/formData';
+import type { IFormData } from 'src/features/formData';
 import type { IRuleModelFieldElement } from 'src/features/formRules';
 import type { ILayouts } from 'src/layout/layout';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnections | null,
-  formDataState: Partial<IFormDataState>,
+  formData: IFormData,
   layouts: ILayouts | null,
   lastUpdatedDataBinding: string,
 ) {
@@ -43,7 +43,7 @@ export function checkIfRuleShouldRun(
         const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
           const inputParamBinding = connectionDef.inputParams[elem];
 
-          acc[elem] = formDataState.formData && formDataState.formData[inputParamBinding];
+          acc[elem] = formData && formData[inputParamBinding];
           return acc;
         }, {});
         const result = window.ruleHandlerObject[functionToRun](newObj);

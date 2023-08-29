@@ -3,13 +3,13 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
-import { selectFormData, selectFormLayouts } from 'src/features/layout/update/updateFormLayoutSagas';
+import { selectFormLayouts } from 'src/features/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import { getRepeatingGroupFilteredIndices, getRepeatingGroups } from 'src/utils/formLayout';
 import { selectNotNull } from 'src/utils/sagas';
 import { removeGroupValidationsByIndex } from 'src/utils/validation/validation';
-import type { IFormDataState } from 'src/features/formData';
+import type { IFormData } from 'src/features/formData';
 import type { IInitRepeatingGroups } from 'src/features/layout/formLayoutTypes';
 import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
@@ -18,14 +18,14 @@ export function* initRepeatingGroupsSaga({
   payload: { changedFields },
 }: Pick<PayloadAction<IInitRepeatingGroups>, 'payload'>): SagaIterator {
   const layouts = yield selectNotNull(selectFormLayouts);
-  const formDataState: IFormDataState = yield select(selectFormData);
+  const formData: IFormData = yield select((state: IRuntimeState) => state.formData.formData);
   const state: IRuntimeState = yield select();
   const currentGroups = state.formLayout.uiConfig.repeatingGroups || {};
   let newGroups: IRepeatingGroups = {};
   Object.keys(layouts).forEach((layoutKey: string) => {
     newGroups = {
       ...newGroups,
-      ...getRepeatingGroups(layouts[layoutKey], formDataState.formData),
+      ...getRepeatingGroups(layouts[layoutKey], formData),
     };
   });
   // if any groups have been removed as part of calculation we delete the associated validations
@@ -61,7 +61,7 @@ export function* initRepeatingGroupsSaga({
     const group = newGroups[key];
     const container = groupContainers.find((element) => element.id === key);
     if (container && group.index >= 0 && groupIsRepeatingExt(container)) {
-      const filteredIndexList = getRepeatingGroupFilteredIndices(formDataState.formData, container.edit?.filter);
+      const filteredIndexList = getRepeatingGroupFilteredIndices(formData, container.edit?.filter);
 
       if (container.edit?.openByDefault === 'first') {
         group.editIndex = filteredIndexList ? filteredIndexList[0] : 0;

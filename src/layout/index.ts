@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { type IUseLanguage, staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { ComponentConfigs } from 'src/layout/components.generated';
 import type { IAttachments } from 'src/features/attachments';
@@ -161,7 +162,7 @@ export function implementsDisplayData<Type extends CompTypes>(
   return 'getDisplayData' in component && 'useDisplayData' in component;
 }
 
-export function getDisplayDataPropsFromState(state: IRuntimeState): DisplayDataProps {
+function getDisplayDataPropsFromState(state: IRuntimeState): DisplayDataProps {
   return {
     formData: state.formData.formData,
     attachments: state.attachments.attachments,
@@ -169,4 +170,8 @@ export function getDisplayDataPropsFromState(state: IRuntimeState): DisplayDataP
     uiConfig: state.formLayout.uiConfig,
     langTools: staticUseLanguageFromState(state),
   };
+}
+
+export function useDisplayDataProps(): DisplayDataProps {
+  return useAppSelector(getDisplayDataPropsFromState);
 }

@@ -767,11 +767,8 @@ export const ExprTypes: {
  * to try out a given expression (even in the context of a given component ID), and see the result directly in
  * the browser console window.
  *
- * @deprecated DO NOT use this directly, it is only meant for app developers to test out their expressions. It is not
- * meant to be performant, and will never get optimized in any way. In addition, it will spit out nice errors in the
- * console for app developers to understand. Use other alternatives in your code instead.
- *
- * @see resolvedNodesInLayouts
+ * @deprecated This has been replaced by the developer tools, and should not be used anymore. It throws an error, but
+ * after a while we can probably remove it entirely.
  */
 window.evalExpression = () => {
   throw new Error(

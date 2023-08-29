@@ -1,5 +1,5 @@
 import { checkIfRuleShouldRun, getRuleModelFields } from 'src/utils/rules';
-import type { IFormDataState } from 'src/features/formData';
+import type { IFormData } from 'src/features/formData';
 
 const ruleHandleFn = (obj) => {
   obj.a = +obj.a;
@@ -10,7 +10,7 @@ const ruleHandleFn = (obj) => {
 
 describe('rules checkIfRuleShouldRun', () => {
   let mockRuleConnectionState: any;
-  let mockFormDataState: Partial<IFormDataState>;
+  let mockFormData: IFormData;
   let mockFormLayoutState: any;
   let mockLastUpdatedDataBinding: string;
   let mockRuleHandlerHelper;
@@ -77,12 +77,8 @@ describe('rules checkIfRuleShouldRun', () => {
         outParams: { outParam0: 'mockDataModelBinding4' },
       },
     };
-    mockFormDataState = {
-      error: null,
-      formData: {
-        mockDataModelBinding1: '1',
-      },
-      unsavedChanges: false,
+    mockFormData = {
+      mockDataModelBinding1: '1',
     };
     mockFormLayoutState = {
       error: null,
@@ -96,7 +92,7 @@ describe('rules checkIfRuleShouldRun', () => {
   it('should return true if rule should be triggered', () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -109,7 +105,7 @@ describe('rules checkIfRuleShouldRun', () => {
 
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -121,7 +117,7 @@ describe('rules checkIfRuleShouldRun', () => {
 
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -155,7 +151,7 @@ describe('rules checkIfRuleShouldRun', () => {
     };
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -171,7 +167,7 @@ describe('rules checkIfRuleShouldRun', () => {
     };
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -187,7 +183,7 @@ describe('rules checkIfRuleShouldRun', () => {
           outParams: { outParam0: 'mockDataModelBinding4' },
         },
       },
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -207,7 +203,7 @@ describe('rules checkIfRuleShouldRun', () => {
           outParams: {},
         },
       },
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );
@@ -230,7 +226,7 @@ describe('rules checkIfRuleShouldRun', () => {
     };
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
-      mockFormDataState,
+      mockFormData,
       mockFormLayoutState.layouts,
       mockLastUpdatedDataBinding,
     );

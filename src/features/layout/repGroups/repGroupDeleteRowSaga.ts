@@ -25,15 +25,14 @@ import type {
   IDeleteAttachmentActionFulfilled,
   IDeleteAttachmentActionRejected,
 } from 'src/features/attachments/delete/deleteAttachmentActions';
-import type { IFormDataState } from 'src/features/formData';
+import type { IFormData } from 'src/features/formData';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
+import type { IRepGroupDelRow } from 'src/features/layout/formLayoutTypes';
 import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { IOptions, IRepeatingGroups } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
-export function* repGroupDeleteRowSaga({
-  payload: { groupId, index },
-}: PayloadAction<{ groupId: string; index: number }>): SagaIterator {
+export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadAction<IRepGroupDelRow>): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
     const repeatingGroups = formLayoutState.uiConfig.repeatingGroups;
@@ -77,14 +76,14 @@ export function* repGroupDeleteRowSaga({
       updatedRepeatingGroups = removeRepeatingGroupFromUIConfig(updatedRepeatingGroups, group.id, index, true);
     });
 
-    const formDataState: IFormDataState = yield select(selectFormData);
+    const formData: IFormData = yield select(selectFormData);
     const attachments: IAttachmentState = yield select(selectAttachmentState);
     const options: IOptions = yield select(selectOptions);
     const repeatingGroup = repeatingGroups[groupId];
 
     // Find uploaded attachments inside group and delete them
     const childAttachments = findChildAttachments(
-      formDataState.formData,
+      formData,
       attachments.attachments,
       currentLayout,
       groupId,
@@ -142,7 +141,7 @@ export function* repGroupDeleteRowSaga({
       );
 
       // Remove the form data associated with the group
-      const updatedFormData = removeGroupData(formDataState.formData, index, currentLayout, groupId, repeatingGroup);
+      const updatedFormData = removeGroupData(formData, index, currentLayout, groupId, repeatingGroup);
 
       // Remove the validations associated with the group
       const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
