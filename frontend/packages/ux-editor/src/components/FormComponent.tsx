@@ -55,6 +55,7 @@ export const FormComponent = memo(function FormComponent({
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+  const Icon = formItemConfigs[component.type]?.icon;
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
     org,
@@ -118,7 +119,7 @@ export const FormComponent = memo(function FormComponent({
             />
           ) : (
             <div className={classes.formComponentTitle}>
-              <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
+               <i className={classes.draggedIcon}>{Icon && <Icon />} </i>
               {textResource
                 ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||

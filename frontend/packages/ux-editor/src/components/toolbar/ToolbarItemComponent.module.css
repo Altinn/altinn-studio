@@ -10,7 +10,9 @@
 
 .componentIcon {
   min-width: 40px;
-  flex: 0 0 32px;
+  display: flex;
+  font-size: 1.5rem;
+  flex: 0 0 40;
 }
 
 .componentLabel {

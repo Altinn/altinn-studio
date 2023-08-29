@@ -86,4 +86,13 @@
 .formComponentTitle {
   margin-top: 0.6rem;
   color: #022F51;
+  align-items: center;
+  display: flex;
+}
+
+.draggedIcon {
+  font-size: 1.5rem;
+  align-items: center;
+  min-width: 40px;
+  display: flex;
 }
