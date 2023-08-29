@@ -2,13 +2,19 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
+using Altinn.Studio.PolicyAdmin.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
+using Designer.Tests.Utils;
+using FluentAssertions.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,10 +28,12 @@ namespace Designer.Tests.Controllers
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly Mock<IRepository> _repositoryMock;
+        private readonly Mock<IAltinn2MetadataClient> _altinn2MetadataClientMock;
 
         public ResourceAdminControllerTests(WebApplicationFactory<ResourceAdminController> factory) : base(factory)
         {
             _repositoryMock = new Mock<IRepository>();
+            _altinn2MetadataClientMock = new Mock<IAltinn2MetadataClient>();
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)
@@ -34,6 +42,7 @@ namespace Designer.Tests.Controllers
                 c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddTransient(_ => _repositoryMock.Object);
+            services.AddTransient(_ => _altinn2MetadataClientMock.Object);  
         }
 
         [Fact]
@@ -150,6 +159,17 @@ namespace Designer.Tests.Controllers
             string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
+
+            ServiceResource serviceResource = new ServiceResource()
+            {
+                Identifier = "234",
+            };
+
+            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("resource_registry_delegatableapi.xml");
+
+            _altinn2MetadataClientMock.Setup(r => r.GetServiceResourceFromService(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(serviceResource);
+            _altinn2MetadataClientMock.Setup(r => r.GetXacmlPolicy(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(policy);
+
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string contenthtml = await res.Content.ReadAsStringAsync();
@@ -166,6 +186,23 @@ namespace Designer.Tests.Controllers
             string uri = $"designer/api/brg/resources/altinn2linkservices/at23";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
+            List<AvailableService> services = new List<AvailableService>();
+            services.Add(new AvailableService()
+            {
+                 ServiceName = "Test",
+                 ExternalServiceCode = "Test",
+                 ExternalServiceEditionCode = 123
+                 
+            });
+            services.Add(new AvailableService()
+            {
+                ServiceName = "Test 2",
+                ExternalServiceCode = "Test2",
+                ExternalServiceEditionCode = 123
+            });
+
+            _altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
+      
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string contenthtml = await res.Content.ReadAsStringAsync();
