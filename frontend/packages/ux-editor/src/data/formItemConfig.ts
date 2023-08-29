@@ -13,7 +13,8 @@ import {
   TasklistIcon,
   PinIcon,
   ExclamationmarkIcon,
-  MenuHamburgerIcon
+  MenuHamburgerIcon,
+  EyeClosedIcon
 } from '@navikt/aksel-icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
@@ -244,7 +245,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       propertyPath: 'definitions/imageComponent',
     },
-    icon: FingerButtonIcon,
+    icon: EyeClosedIcon,
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
