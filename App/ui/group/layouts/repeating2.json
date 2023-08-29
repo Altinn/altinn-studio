@@ -1,14 +1,7 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
-    "hidden": [
-      "equals",
-      [
-        "dataModel",
-        "numAboveLimit"
-      ],
-      0
-    ],
+    "hidden": ["equals", ["dataModel", "numAboveLimit"], 0],
     "layout": [
       {
         "id": "nav-rep2",
@@ -18,15 +11,7 @@
         "id": "header-rep2",
         "type": "Header",
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Endringer med fra-verdi over ",
-            [
-              "dataModel",
-              "hideRowValue"
-            ],
-            " NOK"
-          ]
+          "title": ["concat", "Endringer med fra-verdi over ", ["dataModel", "hideRowValue"], " NOK"]
         },
         "size": "h3"
       },
@@ -62,19 +47,14 @@
             "showInExpandedEdit": true
           }
         },
-        "triggers": [
-          "validateRow"
-        ],
+        "triggers": ["validateRow"],
         "hiddenRow": [
           "lessThan",
           [
             "dataModel",
             "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
           ],
-          [
-            "dataModel",
-            "hideRowValue"
-          ]
+          ["dataModel", "hideRowValue"]
         ],
         "edit": {
           "mode": "onlyTable",
@@ -86,26 +66,16 @@
             "header": true,
             "cells": [
               {},
-              {
-                "text": "Alle endringer"
-              },
-              {
-                "text": "Disse endringene"
-              }
+              { "text": "Alle endringer" },
+              { "text": "Disse endringene" }
             ]
           },
           {
             "readOnly": true,
             "cells": [
-              {
-                "text": "SUM"
-              },
-              {
-                "component": "sum-all"
-              },
-              {
-                "component": "sum-above-limit"
-              }
+              { "text": "SUM" },
+              { "component": "sum-all" },
+              { "component": "sum-above-limit" }
             ]
           }
         ]
@@ -124,9 +94,7 @@
           "dataModel",
           "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
         ],
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -150,11 +118,8 @@
         },
         "required": false,
         "readOnly": [
-          "equals",
-          [
-            "dataModel",
-            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
-          ]
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
         ],
         "grid": {
           "md": 6
@@ -181,9 +146,7 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
