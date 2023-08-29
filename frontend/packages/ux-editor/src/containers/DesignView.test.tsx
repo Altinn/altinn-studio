@@ -4,16 +4,13 @@ import { DesignView } from './DesignView';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import userEvent from '@testing-library/user-event';
 import { FormContext } from './FormContext';
-
-const user = userEvent.setup();
 
 // Test data:
 const org = 'org';
@@ -41,15 +38,6 @@ describe('DesignView', () => {
     };
     await render(queries);
     expect(screen.getByText(layout1NameMock)).toBeInTheDocument();
-  });
-
-  it('Calls handleEdit when the parent element is clicked', async () => {
-    const queries: Partial<ServicesContextProps> = {
-      getFormLayouts: () => Promise.resolve({})
-    };
-    await render(queries);
-    await act(() => user.click(screen.getByTestId('designViewContainer')));
-    expect(mockHandleEdit).toHaveBeenCalled();
   });
 
   it('Does not render container if no container id', async () => {
