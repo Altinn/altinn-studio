@@ -392,6 +392,75 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
+        public async Task GetApplicationMetadata_logo_can_intstantiate_with_source_and_DisplayAppOwnerNameInHeader()
+        {
+            var featureManagerMock = new Mock<IFeatureManager>();
+            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+
+            AppSettings appSettings = GetAppSettings("AppMetadata", "logo-org-source.applicationmetadata.json");
+            IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
+            ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
+            {
+                Id = "tdd/bestilling",
+                Org = "tdd",
+                Created = DateTime.Parse("2019-09-16T22:22:22"),
+                CreatedBy = "username",
+                Title = new Dictionary<string, string>()
+                {
+                    { "nb", "Bestillingseksempelapp" }
+                },
+                DataTypes = new List<DataType>()
+                {
+                    new()
+                    {
+                        Id = "vedlegg",
+                        AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
+                        MinCount = 0,
+                        TaskId = "Task_1"
+                    },
+                    new()
+                    {
+                        Id = "ref-data-as-pdf",
+                        AllowedContentTypes = new List<string>() { "application/pdf" },
+                        MinCount = 1,
+                        TaskId = "Task_1"
+                    }
+                },
+                PartyTypesAllowed = new PartyTypesAllowed()
+                {
+                    BankruptcyEstate = true,
+                    Organisation = true,
+                    Person = true,
+                    SubUnit = true
+                },
+                OnEntry = new OnEntry()
+                {
+                    Show = "select-instance",
+                    InstanceSelection = new()
+                    {
+                        SortDirection = "desc",
+                        RowsPerPageOptions = new List<int>()
+                        {
+                            5, 3, 10, 25, 50, 100
+                        },
+                        DefaultRowsPerPage = 1,
+                        DefaultSelectedOption = 3
+                    }
+                },
+                Logo = new Logo
+                {
+                    Source = "org",
+                    DisplayAppOwnerNameInHeader = true
+                },
+                Features = enabledFrontendFeatures
+            };
+            var actual = await appMetadata.GetApplicationMetadata();
+            actual.Should().NotBeNull();
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
         public async void GetApplicationMetadata_throws_ApplicationConfigException_if_file_not_found()
         {
             AppSettings appSettings = GetAppSettings("AppMetadata", "notfound.applicationmetadata.json");

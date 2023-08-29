@@ -54,9 +54,9 @@ namespace Altinn.App.Core.Models
         public AppIdentifier AppIdentifier { get; private set; }
 
         /// <summary>
-        /// A flag to specify that the form should use a custom logo
+        /// Configure options for setting organisation logo
         /// </summary>
-        [JsonProperty(PropertyName = "useCustomLogo")]
-        public bool UseCustomLogo { get; set; }
+        [JsonProperty(PropertyName = "logo")]
+        public Logo? Logo { get; set; }
     }
 }
