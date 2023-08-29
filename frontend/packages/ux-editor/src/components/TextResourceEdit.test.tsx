@@ -50,8 +50,10 @@ describe('TextResourceEdit', () => {
   });
 
   it('Does not render anything if edit id is undefined', async () => {
-    const { renderResult } = await render();
-    expect(renderResult.container).toBeEmptyDOMElement();
+    await render();
+    expect(screen.queryByText(legendText)).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: closeText })).not.toBeInTheDocument();
   });
 
   it('Renders correctly when a valid edit id is given', async () => {
