@@ -5,6 +5,7 @@ import { Button, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
+import * as testids from '../../../../testing/testids';
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -47,7 +48,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   };
   const { t } = useTranslation();
   return (
-    <div data-testid='reset-repo-container'>
+    <div data-testid={testids.resetRepoContainer}>
       <Popover
         open={props.open}
         anchorEl={props.anchorRef.current}
@@ -60,7 +61,6 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           vertical: 'center',
           horizontal: 'center',
         }}
-        data-testid='reset-repo-popover'
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
@@ -101,7 +101,6 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
             <div className={classes.buttonContainer}>
               <Button
                 color='danger'
-                data-testid='confirm-reset-repo-button'
                 disabled={!canDelete}
                 id='confirm-reset-repo-button'
                 onClick={onResetWrapper}

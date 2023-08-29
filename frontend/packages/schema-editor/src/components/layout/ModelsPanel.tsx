@@ -4,7 +4,6 @@ import { ActionMenu } from '../common/ActionMenu';
 import classes from './ModelsPanel.module.css';
 import { IconImage } from '../common/Icon';
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
-import { SchemaEditorTestIds } from '../SchemaEditor';
 import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -66,44 +65,37 @@ export const ModelsPanel = ({
               action: () => handleAddProperty(ObjectKind.Field),
               icon: IconImage.Object,
               text: t('field'),
-              testId: SchemaEditorTestIds.menuAddField,
             },
             {
               action: () => handleAddProperty(ObjectKind.Reference),
               icon: IconImage.Reference,
               text: t('reference'),
-              testId: SchemaEditorTestIds.menuAddReference,
             },
             {
               action: () => handleAddProperty(ObjectKind.Combination),
               icon: IconImage.Combination,
               text: t('combination'),
-              testId: SchemaEditorTestIds.menuAddCombination,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
               className: classes.dividerAbove,
               icon: IconImage.String,
               text: t('string'),
-              testId: SchemaEditorTestIds.menuAddString,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
               icon: IconImage.Number,
               text: t('integer'),
-              testId: SchemaEditorTestIds.menuAddInteger,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
               icon: IconImage.Number,
               text: t('number'),
-              testId: SchemaEditorTestIds.menuAddNumber,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
               icon: IconImage.Boolean,
               text: t('boolean'),
-              testId: SchemaEditorTestIds.menuAddBoolean,
             },
           ]}
           openButtonText={t('add')}

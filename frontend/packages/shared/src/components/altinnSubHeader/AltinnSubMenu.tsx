@@ -10,7 +10,7 @@ export interface AltinnSubMenuProps {
 
 export const AltinnSubMenu = ({ variant, children }: AltinnSubMenuProps) => {
   return (
-    <div data-testid='altinn-sub-menu'>
+    <div>
       <div className={classnames(classes.subToolbar, classes[variant])}>{children}</div>
     </div>
   );

@@ -37,7 +37,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
   };
 
   return (
-    <div className={cn(className, classes.rightMenu)} data-testid={'ux-editor.right-menu'}>
+    <div className={cn(className, classes.rightMenu)}>
       <Accordion color="subtle">
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>{t('right_menu.content')}</Accordion.Header>

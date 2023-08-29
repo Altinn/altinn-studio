@@ -12,6 +12,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { FormContext } from './FormContext';
+import * as testids from '../../../../testing/testids';
 
 const user = userEvent.setup();
 
@@ -48,7 +49,7 @@ describe('DesignView', () => {
       getFormLayouts: () => Promise.resolve({})
     };
     await render(queries);
-    await act(() => user.click(screen.getByTestId('designViewContainer')));
+    await act(() => user.click(screen.getByTestId(testids.designViewContainer)));
     expect(mockHandleEdit).toHaveBeenCalled();
   });
 

@@ -28,16 +28,6 @@ import {
   rootNodesSelector,
 } from '@altinn/schema-editor/selectors/schemaSelectors';
 
-export enum SchemaEditorTestIds {
-  menuAddReference = 'action-menu-add-reference',
-  menuAddField = 'action-menu-add-field',
-  menuAddCombination = 'action-menu-add-combination',
-  menuAddString = 'action-menu-add-string',
-  menuAddInteger = 'action-menu-add-integer',
-  menuAddNumber = 'action-menu-add-number',
-  menuAddBoolean = 'action-menu-add-boolean',
-}
-
 export interface SchemaEditorProps {
   modelName?: string;
 }
@@ -122,7 +112,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
       </aside>
       {selectedType ? (
         <div
-          data-testid='types-editor'
           id='types-editor'
           className={classNames(classes.editor, classes.editorTypes)}
         >
@@ -152,7 +141,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
           />
         </div>
       ) : (
-        <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
+        <div id='schema-editor' className={classes.editor}>
           <ModelsPanel
             setExpandedPropNodes={setExpandedPropNodes}
             expandedPropNodes={expandedPropNodes}

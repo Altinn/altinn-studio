@@ -53,7 +53,7 @@ export const TypesInspector = ({
   }
 
   return (
-    <div className={classes.root} data-testid='types-inspector'>
+    <div className={classes.root}>
       <div className={classes.types}>
         <div className={classes.addRow}>
           <span className={classes.addRowText}>{t('schema_editor.types')}</span>

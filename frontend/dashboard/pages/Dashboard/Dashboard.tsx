@@ -66,7 +66,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               </div>
               {searchText && (
                 <Button
-                  data-testid='clear-search-button'
                   className={classes.clearSearchButton}
                   aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}

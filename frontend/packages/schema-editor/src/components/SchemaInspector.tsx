@@ -68,7 +68,7 @@ export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
 
   if (selectedItem) {
     return (
-      <div className={classes.root} data-testid='schema-inspector'>
+      <div className={classes.root}>
         <Tabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
       </div>
     );

@@ -37,7 +37,6 @@ export interface SchemaItemLabelProps {
   icon: string;
   refNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
-  translate: (key: string) => string;
 }
 export enum SchemaItemLabelTestIds {
   contextMenuAddReference = 'context-menu-add-reference',
@@ -52,7 +51,6 @@ export const SchemaItemLabel = ({
   icon,
   refNode,
   selectedNode,
-  translate,
 }: SchemaItemLabelProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -157,11 +155,10 @@ export const SchemaItemLabel = ({
         )}
       </div>
       <Button
-        data-testid='open-context-menu-button'
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'
-        title={translate('open_action_menu')}
+        title={t('schema_editor.open_action_menu')}
         onClick={handleToggleContextMenuClick}
         icon={<MenuElipsisVerticalIcon />}
         variant='quiet'
@@ -177,10 +174,9 @@ export const SchemaItemLabel = ({
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddReference}
             id='add-reference-to-node-button'
-            data-testid={''}
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
-            text={translate('add_reference')}
+            text={t('schema_editor.add_reference')}
             iconClass='fa fa-datamodel-ref'
           />
         )}
@@ -190,7 +186,7 @@ export const SchemaItemLabel = ({
             id='add-field-to-node-button'
             key='add_field'
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
-            text={translate('add_field')}
+            text={t('schema_editor.add_field')}
             iconClass='fa fa-datamodel-properties'
           />
         )}
@@ -200,7 +196,7 @@ export const SchemaItemLabel = ({
             id='add-combination-to-node-button'
             key='add_combination'
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
-            text={translate('add_combination')}
+            text={t('schema_editor.add_combination')}
             iconClass='fa fa-group'
           />
         )}
@@ -210,7 +206,7 @@ export const SchemaItemLabel = ({
             id='convert-node-to-reference-button'
             key='convert-node-to-reference'
             onClick={handleConvertToReference}
-            text={translate('promote')}
+            text={t('schema_editor.promote')}
             iconClass='fa fa-arrowup'
           />
         )}
@@ -220,7 +216,7 @@ export const SchemaItemLabel = ({
             id='convert-node-to-field-buttonn'
             key='convert-node-to-field'
             onClick={handleConvertToField}
-            text={translate('convert_to_field')}
+            text={t('schema_editor.convert_to_field')}
             iconClass='fa fa-arrowdown'
             disabled={true}
           />
@@ -247,7 +243,7 @@ export const SchemaItemLabel = ({
                   event.stopPropagation();
                   setIsConfirmDeleteDialogOpen((prevState) => !prevState);
                 }}
-                text={hasReferredNodes ? translate('in_use_error') : translate('delete')}
+                text={hasReferredNodes ? t('schema_editor.in_use_error') : t('schema_editor.delete')}
                 iconClass='fa fa-trash'
                 disabled={hasReferredNodes}
               />

@@ -33,7 +33,6 @@ export const ThreeDotsMenu = ({
             icon={<MenuElipsisVerticalIcon title='Gitea menu' />}
             variant='quiet'
             color='inverted'
-            data-testid='menuBtn'
             size='small'
           />
         }

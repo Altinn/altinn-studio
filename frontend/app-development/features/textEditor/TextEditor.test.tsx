@@ -6,6 +6,7 @@ import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
+import * as testids from '../../../testing/testids';
 
 // Test data
 const org = 'test-org';
@@ -152,7 +153,7 @@ describe('TextEditor', () => {
 
     await render({ deleteLanguageCode });
 
-    const deleteButton = screen.getByTestId('delete-en');
+    const deleteButton = screen.getByTestId(testids.deleteButton('en'));
     await act(() => user.click(deleteButton));
 
     const confirmButton = await screen.findByRole('button', {
