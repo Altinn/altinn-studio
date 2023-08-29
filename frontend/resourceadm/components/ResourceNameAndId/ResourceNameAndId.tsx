@@ -110,7 +110,7 @@ export const ResourceNameAndId = ({
     <>
       <Paragraph size='small'>{text}</Paragraph>
       <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
-        {t('resourceadm.dahboard_resource_name_and_id_resource_name')}
+        {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
       </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
@@ -120,7 +120,7 @@ export const ResourceNameAndId = ({
         />
       </div>
       <Label className={classes.label} size='small' htmlFor='resourceIdInputId'>
-        {t('resourceadm.dahboard_resource_name_and_id_resource_id')}
+        {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
       </Label>
       <div className={classes.editFieldWrapper}>
         {isEditOpen ? (
@@ -139,14 +139,14 @@ export const ResourceNameAndId = ({
                   onClick={() => handleClickEditButton(false)}
                   variant='quiet'
                   color='danger'
-                  icon={<MultiplyIcon title={t('resourceadm.dahboard_resource_name_and_id_delete_icon')} />}
+                  icon={<MultiplyIcon title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')} />}
                   size='small'
                 />
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
                 variant='quiet'
-                icon={<CheckmarkIcon title={t('resourceadm.dahboard_resource_name_and_id_checkmark_icon')} />}
+                icon={<CheckmarkIcon title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')} />}
                 size='small'
               />
             </div>
@@ -164,7 +164,7 @@ export const ResourceNameAndId = ({
               <Button
                 onClick={() => handleClickEditButton(false)}
                 iconPlacement='right'
-                icon={<PencilWritingIcon title={t('resourceadm.dahboard_resource_name_and_id_edit_id_icon')} />}
+                icon={<PencilWritingIcon title={t('resourceadm.dashboard_resource_name_and_id_edit_id_icon')} />}
                 variant='quiet'
                 color='primary'
                 size='small'
@@ -177,7 +177,7 @@ export const ResourceNameAndId = ({
       </div>
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <ErrorMessage size='small'>{t('resourceadm.dahboard_resource_name_and_id_erro')}</ErrorMessage>
+          <ErrorMessage size='small'>{t('resourceadm.dashboard_resource_name_and_id_erro')}</ErrorMessage>
         )}
       </div>
     </>

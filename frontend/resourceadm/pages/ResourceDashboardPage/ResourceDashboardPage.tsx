@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
@@ -12,6 +12,7 @@ import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal'
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 import { useTranslation } from 'react-i18next'
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
  * @component
@@ -24,6 +25,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const repo = `${selectedContext}-resources`;
 
   const { t } = useTranslation();
+
+  const navigate = useNavigate();
 
   const [searchValue, setSearchValue] = useState('');
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
@@ -50,6 +53,9 @@ export const ResourceDashboardPage = (): React.ReactNode => {
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
+  const handleNavigateToResource = (id: string) => {
+    navigate(getResourcePageURL(selectedContext, repo, id, 'about'))
+  }
   /**
    * Display different content based on the loading state
    */
@@ -69,7 +75,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
               {`${t('resourceadm.dashboard_num_resources')} (${resourceListData?.length ?? 0})`}
             </Heading>
           </div>
-          <ResourceTable list={filteredResourceList} />
+          <ResourceTable list={filteredResourceList} onClickEditResource={handleNavigateToResource} />
           {filteredResourceList.length === 0 && (
             <Paragraph size='small' className={classes.noResultText}>
               {t('resourceadm.dashboard_empty_list')}

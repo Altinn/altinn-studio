@@ -1,7 +1,6 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { LeftNavigationBar, LeftNavigationBarProps } from './LeftNavigationBar';
-import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
@@ -12,15 +11,10 @@ describe('LeftNavigationBar', () => {
   const mockGoBack = jest.fn();
 
   const defaultProps: LeftNavigationBarProps = {
-
     currentPage: 'about',
     navigateToPage: mockNavigateToPage,
     goBack: mockGoBack,
   };
-
-  it('renders without crashing', () => {
-    render(<LeftNavigationBar {...defaultProps} />);
-  });
 
   it('navigates to the selected page', async () => {
     const user = userEvent.setup();
