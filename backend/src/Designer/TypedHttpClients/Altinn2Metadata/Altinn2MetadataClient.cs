@@ -9,6 +9,8 @@ using Altinn.Authorization.ABAC.Utils;
 using System.IO;
 using System.Xml;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
+using Altinn.Studio.Designer.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 {
@@ -16,15 +18,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
     {
         private readonly HttpClient _httpClient;
 
-        public Altinn2MetadataClient(HttpClient httpClient)
+        private readonly ResourceRegistryIntegrationSettings _rrs;
+        public Altinn2MetadataClient(HttpClient httpClient, IOptions<ResourceRegistryIntegrationSettings> rrs)
         {
             _httpClient = httpClient;
+            _rrs = rrs.Value; 
         }
 
         public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
         {
-            // Temp location. Will be moved to CDN
-            string url = $"https://at23.altinn.cloud/sblbridge/metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+
+            string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+            string url = $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             ServiceResource serviceResource;
 
@@ -43,10 +48,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
         {
-            string url = $"https://at23.altinn.cloud/sblbridge/authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
-
             try
             {
+                string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+                string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
+
+
                 HttpResponseMessage response = await _httpClient.GetAsync(url);
                 string contentString = await response.Content.ReadAsStringAsync();
                 XacmlPolicy policy;

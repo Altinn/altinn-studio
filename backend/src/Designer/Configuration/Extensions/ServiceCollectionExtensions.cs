@@ -52,7 +52,7 @@ this IServiceCollection services, IConfigurationSection section)
                 ResourceRegistryEnvironmentSettings rris = new ResourceRegistryEnvironmentSettings();
                 settingSection.Bind(rris);
                 rris.environment = settingSection.Key;
-                services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.environment, rris));
+                services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.environment.ToLower(), rris));
             }
 
             return services;
