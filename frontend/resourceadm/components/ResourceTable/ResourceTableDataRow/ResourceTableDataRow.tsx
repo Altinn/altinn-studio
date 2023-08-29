@@ -6,6 +6,7 @@ import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next'
 
 type ResourceTableDataRowProps = {
   /**
@@ -25,18 +26,19 @@ type ResourceTableDataRowProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const navigate = useNavigate();
 
-  // TODO - translate
   return (
     <tr style={{ width: '100%' }}>
       <td className={cn(classes.tableDataXLarge, classes.tableData)}>
         {/* TODO - Fix translation of title */}
         <Paragraph size='small'>
-          {resource.title['nb'] === '' ? 'Mangler tittel på Bokmål' : resource.title['nb']}
+          {resource.title['nb'] === '' ? t('resourceadm.dashboard_table_row_missing_title') : resource.title['nb']}
         </Paragraph>
       </td>
       <td className={cn(classes.tableDataLarge, classes.tableData)}>
@@ -47,7 +49,7 @@ export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): R
       </td>
       <td className={cn(classes.tableDataMedium, classes.tableData)}>
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
-          {resource.hasPolicy ? 'Har tilgangsregler' : 'Mangler tilgangsregler'}
+          {resource.hasPolicy ? t('resourceadm.dashboard_table_row_has_policy') : t('resourceadm.dashboard_table_row_missing_policy')}
         </Tag>
       </td>
       <td className={cn(classes.tableDataSmall, classes.tableData)}>
@@ -55,13 +57,13 @@ export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): R
           variant='quiet'
           size='small'
           color='secondary'
-          icon={<PencilWritingIcon title='Rediger ressurs' />}
+          icon={<PencilWritingIcon title={t('resourceadm.dashboard_table_row_edit')} />}
           iconPlacement='right'
           onClick={() =>
             navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'))
           }
         >
-          Rediger
+          {t('resourceadm.dashboard_table_row_edit')}
         </Button>
       </td>
     </tr>

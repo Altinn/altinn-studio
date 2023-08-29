@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './ResourceNameAndId.module.css';
 import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { useTranslation } from 'react-i18next'
 
 type ResourceNameAndIdProps = {
   /**
@@ -76,6 +77,8 @@ export const ResourceNameAndId = ({
   resourceIdExists,
   bothFieldsHaveSameValue,
 }: ResourceNameAndIdProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
    *
@@ -106,18 +109,18 @@ export const ResourceNameAndId = ({
   return (
     <>
       <Paragraph size='small'>{text}</Paragraph>
-      <Label className={classes.label} size='small'>
-        Ressursnavn (Bokmål)
+      <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
+        {t('resourceadm.dahboard_resource_name_and_id_resource_name')}
       </Label>
       <div className={classes.textfieldWrapper}>
         <TextField
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label='Ressursnavn (Bokmål)'
+          id='resourceNameInputId'
         />
       </div>
-      <Label className={classes.label} size='small'>
-        Ressurs id
+      <Label className={classes.label} size='small' htmlFor='resourceIdInputId'>
+        {t('resourceadm.dahboard_resource_name_and_id_resource_id')}
       </Label>
       <div className={classes.editFieldWrapper}>
         {isEditOpen ? (
@@ -126,7 +129,7 @@ export const ResourceNameAndId = ({
               <TextField
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
-                aria-label='Ressurs id'
+                id='resourceIdInputId'
                 isValid={!resourceIdExists}
               />
             </div>
@@ -136,14 +139,14 @@ export const ResourceNameAndId = ({
                   onClick={() => handleClickEditButton(false)}
                   variant='quiet'
                   color='danger'
-                  icon={<MultiplyIcon title='Slett ny ressurs id' />}
+                  icon={<MultiplyIcon title={t('resourceadm.dahboard_resource_name_and_id_delete_icon')} />}
                   size='small'
                 />
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
                 variant='quiet'
-                icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
+                icon={<CheckmarkIcon title={t('resourceadm.dahboard_resource_name_and_id_checkmark_icon')} />}
                 size='small'
               />
             </div>
@@ -161,12 +164,12 @@ export const ResourceNameAndId = ({
               <Button
                 onClick={() => handleClickEditButton(false)}
                 iconPlacement='right'
-                icon={<PencilWritingIcon title='Endre ressurs id' />}
+                icon={<PencilWritingIcon title={t('resourceadm.dahboard_resource_name_and_id_edit_id_icon')} />}
                 variant='quiet'
                 color='primary'
                 size='small'
               >
-                Rediger
+                {t('general.edit')}
               </Button>
             </div>
           </>
@@ -174,7 +177,7 @@ export const ResourceNameAndId = ({
       </div>
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <ErrorMessage size='small'>Ressurs med valgt id eksisterer allerede.</ErrorMessage>
+          <ErrorMessage size='small'>{t('resourceadm.dahboard_resource_name_and_id_erro')}</ErrorMessage>
         )}
       </div>
     </>

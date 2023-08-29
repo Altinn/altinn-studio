@@ -5,6 +5,7 @@ import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
 import { Button } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next'
 
 type ResourceTableProps = {
   /**
@@ -22,6 +23,8 @@ type ResourceTableProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
 
   /**
@@ -36,7 +39,6 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
     return list.reverse();
   };
 
-  // TODO - translate
   return (
     <table className={classes.table}>
       <tbody>
@@ -48,9 +50,9 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
               variant='quiet'
               icon={
                 isSortedByNewest ? (
-                  <CaretDownFillIcon title='Vis eldst først' />
+                  <CaretDownFillIcon title={t('resourceadm.dashboard_table_header_down_icon')} />
                 ) : (
-                  <CaretUpFillIcon title='Vis nyest først' />
+                  <CaretUpFillIcon title={t('resourceadm.dashboard_table_header_up_icon')} />
                 )
               }
               onClick={handleSortTable}
@@ -58,13 +60,13 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
               color='secondary'
               size='small'
             >
-              Sist endret
+              {t('resourceadm.dashboard_table_header_last_changed')}
             </Button>
           </th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>Tilgangsregler</th>
+          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>{t('resourceadm.dashboard_table_header_policy_rules')}</th>
           <th
             className={cn(classes.tableHeaderSmall, classes.tableHeader)}
-            aria-label='Rediger ressurs kolonne'
+            aria-label={t('resourceadm.dashboard_table_header_edit')}
           />
         </tr>
         {displayRows}

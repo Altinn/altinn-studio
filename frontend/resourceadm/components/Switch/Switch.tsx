@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import classes from './Switch.module.css';
+import { useTranslation } from 'react-i18next'
 
 type SwitchProps = {
   /**
@@ -38,6 +39,8 @@ type SwitchProps = {
 // TODO - replace with Design system chip. Issue: #10892
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
   ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
+    const { t } = useTranslation();
+
     const handleToggle = () => {
       const newCheckedState = !isChecked;
       onToggle(newCheckedState);
@@ -57,7 +60,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
           ref={ref}
         />
         <label
-          aria-label='Toggle av eller på'
+          aria-label={t('resourceadm.switch_toggle')}
           htmlFor='toggleSwitch'
           className={classes.slider}
         ></label>

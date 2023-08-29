@@ -19,8 +19,8 @@ import {
   useValidateResourceQuery,
 } from 'resourceadm/hooks/queries';
 import { UploadIcon } from '@navikt/aksel-icons';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { useTranslation, Trans } from 'react-i18next'
 
 type DeployResourcePageProps = {
   /**
@@ -42,6 +42,8 @@ type DeployResourcePageProps = {
 export const DeployResourcePage = ({
   navigateToPageWithError,
 }: DeployResourcePageProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -123,8 +125,8 @@ export const DeployResourcePage = ({
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors
-            ? `${validateResourceData.errors.length} felt mangler utfylling eller inneholder feil på siden "Om ressursen".`
-            : 'Det finnes mangler på siden "Om ressursen"',
+            ? t('resourceadm.deploy_status_card_error_resource_page', { num: validateResourceData.errors.length })
+            : t('resourceadm.deploy_status_card_error_resource_page_default'),
           pageWithError: 'about',
         });
       }
@@ -133,17 +135,17 @@ export const DeployResourcePage = ({
           message:
             hasPolicyError === 'validationFailed'
               ? validatePolicyData.errors
-                ? `${validatePolicyData.errors.length} felt mangler utfylling eller inneholder feil på siden "Tilgangsregler".`
-                : 'Det finnes mangler på siden "Tilgangsregler"'
-              : 'Du må ha minst en regel på siden "Tilgangsregler"',
+                ? t('resourceadm.deploy_status_card_error_policy_page', { num: validatePolicyData.errors.length })
+                : t('resourceadm.deploy_status_card_error_policy_page_default')
+              : t('resourceadm.deploy_status_card_error_policy_page_missing'),
           pageWithError: 'policy',
         });
       }
       return errorList;
     } else if (versionData.resourceVersion === null) {
-      return 'Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.';
+      return t('resourceadm.deploy_status_card_error_version');
     } else if (!isLocalRepoInSync) {
-      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
+      return t('resourceadm.deploy_status_card_error_repo');
     }
     return [];
   };
@@ -155,7 +157,7 @@ export const DeployResourcePage = ({
     if (getStatusCardType() === 'success') {
       return (
         <ResourceDeployStatus
-          title='Ressursen er klar til å publiseres'
+          title={t('resourceadm.deploy_status_card_success')}
           error={[]}
           isSuccess
           resourceId={resourceId}
@@ -164,7 +166,7 @@ export const DeployResourcePage = ({
     }
     return (
       <ResourceDeployStatus
-        title='Du må fikse disse feilene før du kan gå videre'
+        title={t('resourceadm.deploy_status_card_error_title')}
         error={getStatusError()}
         onNavigateToPageWithError={navigateToPageWithError}
         resourceId={resourceId}
@@ -212,7 +214,7 @@ export const DeployResourcePage = ({
     if (versionLoading || validatePolicyLoading || validateResourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deply_spinner')} />
         </div>
       );
     } else {
@@ -226,26 +228,23 @@ export const DeployResourcePage = ({
       return (
         <>
           <Heading size='large' spacing level={1}>
-            Publiser ressursen
+            {t('resourceadm.deploy_title')}
           </Heading>
           <div className={classes.contentWrapper}>
             {displayStatusCard()}
             <Paragraph size='small' className={classes.informationText}>
-              Ved å publisere ressurser blir informasjonen tilgjengelig på{' '}
-              <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
-                Altinn.no
-              </Link>{' '}
-              og andre nettsteder som lister ressurser i Altinn. Sluttbrukere kan da starte delegere
-              rettigheter til ressursen. Man bør verifisere i testmiljø først at tekster og metadata
-              blir presentert som tenkt før man publiserer til produksjon.
+              <Trans i18nKey='resourceadm.deploy_description'>
+                <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
+                  Altinn.no
+                </Link>
+              </Trans>
             </Paragraph>
             <div className={classes.newVersionWrapper}>
               <Label size='medium' spacing>
-                Nytt versjonsnummer
+                {t('resourceadm.deploy_version_label')}
               </Label>
               <Paragraph size='small' className={classes.newVersionParagraph}>
-                En ressurs trenger å ha et versjonsnummer før den blir publisert. Ved endringer må
-                versjonsnummer oppdateres før ny publisering.
+                {t('resourceadm.deploy_version_text')}
               </Paragraph>
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
@@ -253,11 +252,9 @@ export const DeployResourcePage = ({
                     placeholder=''
                     value={newVersionText}
                     onChange={(e) => setNewVersionText(e.target.value)}
-                    aria-labelledby='versionnumber-field'
-                    label='Sett et versjonsnummer for endringene du har gjort'
+                    label={t('resourceadm.deploy_version_input_label')}
                   />
                 </div>
-                <ScreenReaderSpan id='versionnumber-field' label='Nytt versjonssnummer' />
                 <Button
                   color='primary'
                   onClick={() => {
@@ -266,19 +263,19 @@ export const DeployResourcePage = ({
                   }}
                   iconPlacement='left'
                   size='small'
-                  icon={<UploadIcon title='Lagre versjonsnummer' />}
+                  icon={<UploadIcon title={t('resourceadm.deploy_version_upload_button')} />}
                 >
-                  Last opp dine endringer
+                  {t('resourceadm.deploy_version_upload_button')}
                 </Button>
               </div>
             </div>
             <Label size='medium' spacing>
-              Velg miljø der du ønsker å publisere endringene
+              {t('resourceadm.deploy_select_env_label')}
             </Label>
             <div className={classes.deployCardsWrapper}>
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('test', versionInTest)}
-                envName='Testmiljø TT-02'
+                envName={t('resourceadm.deploy_test_env')}
                 currentEnvVersion={versionInTest}
                 newEnvVersion={
                   versionData.resourceVersion !== versionInTest
@@ -288,7 +285,7 @@ export const DeployResourcePage = ({
               />
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('prod', versionInProd)}
-                envName='Produksjonsmiljø'
+                envName={t('resourceadm.deploy_prod_env')}
                 currentEnvVersion={versionInProd}
                 newEnvVersion={
                   versionData.resourceVersion !== versionInProd
