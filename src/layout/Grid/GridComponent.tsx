@@ -193,7 +193,7 @@ function CellWithComponent({ node, className, columnStyleOptions }: CellWithComp
 
 function CellWithText({ children, className, columnStyleOptions, help }: CellWithTextProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-
+  const { lang } = useLanguage();
   return (
     <TableCell
       className={cn(css.tableCellFormatting, className)}
@@ -209,7 +209,7 @@ function CellWithText({ children, className, columnStyleOptions, help }: CellWit
         {help && (
           <HelpTextContainer
             title={getPlainTextFromNode(children)}
-            helpText={help}
+            helpText={lang(help)}
           />
         )}
       </span>
@@ -229,7 +229,7 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent }: Ce
   const required =
     (referenceComponent && 'required' in referenceComponent.item && referenceComponent.item.required) ?? false;
   const componentId = referenceComponent?.item.id ?? referenceComponent?.item.baseComponentId;
-
+  const { lang } = useLanguage();
   return (
     <TableCell
       className={cn(css.tableCellFormatting, className)}
@@ -243,7 +243,7 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent }: Ce
               labelText={title}
               id={componentId}
               required={required}
-              helpText={help}
+              helpText={lang(help)}
             />
           </span>
           <Description
