@@ -299,22 +299,19 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             bool hasMinimum = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
             bool hasMaximum = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
 
-            string minValue = GetRangeValueAsString(element, minRestriction);
-            string maxValue = GetRangeValueAsString(element, maxRestriction);
-
             if (hasMinimum && hasMaximum)
             {
-                classBuilder.AppendLine($"{Indent(2)}[Range({minValue}, {maxValue}{errorMessage})]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({GetRangeValueAsString(element, minRestriction)}, {GetRangeValueAsString(element, maxRestriction)}{errorMessage})]");
                 hasRange = true;
             }
             else if (hasMinimum)
             {
-                classBuilder.AppendLine($"{Indent(2)}[Range({minValue}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({GetRangeValueAsString(element, minRestriction)}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
                 hasRange = true;
             }
             else if (hasMaximum)
             {
-                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {maxValue}{errorMessage})]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {GetRangeValueAsString(element, maxRestriction)}{errorMessage})]");
                 hasRange = true;
             }
         }
