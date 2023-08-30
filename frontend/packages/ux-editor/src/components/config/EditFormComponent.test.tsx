@@ -7,6 +7,7 @@ import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mock
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 
 const user = userEvent.setup();
 
@@ -35,7 +36,51 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
+const getDatamodelMetadata = () =>
+  Promise.resolve({
+    elements: {
+      testModel: {
+        id: 'testModel',
+        type: 'ComplexType',
+        dataBindingName: 'testModel',
+        displayString: 'testModel',
+        isReadOnly: false,
+        isTagContent: false,
+        jsonSchemaPointer: '#/definitions/testModel',
+        maxOccurs: 1,
+        minOccurs: 1,
+        name: 'testModel',
+        parentElement: null,
+        restrictions: [],
+        texts: [],
+        xmlSchemaXPath: '/testModel',
+        xPath: '/testModel',
+      },
+      'testModel.field1': {
+        id: 'testModel.field1',
+        type: 'SimpleType',
+        dataBindingName: 'testModel.field1',
+        displayString: 'testModel.field1',
+        isReadOnly: false,
+        isTagContent: false,
+        jsonSchemaPointer: '#/definitions/testModel/properteis/field1',
+        maxOccurs: 1,
+        minOccurs: 1,
+        name: 'testModel/field1',
+        parentElement: null,
+        restrictions: [],
+        texts: [],
+        xmlSchemaXPath: '/testModel/field1',
+        xPath: '/testModel/field1',
+      },
+    },
+  });
+
 describe('EditFormComponent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('should return input specific content when type input', async () => {
     await render({
       componentProps: {
@@ -43,13 +88,15 @@ describe('EditFormComponent', () => {
       },
     });
 
-    const labels = [
-      'ux_editor.modal_properties_component_change_id *',
-      'ux_editor.modal_properties_data_model_helper',
-      'ux_editor.modal_configure_read_only',
-    ];
+    const labels = {
+      'ux_editor.modal_properties_component_change_id': 'textbox',
+      'ux_editor.modal_properties_data_model_helper': 'combobox',
+      'ux_editor.modal_configure_read_only': 'checkbox',
+    };
 
-    labels.map((label) => expect(screen.getByLabelText(label)));
+    Object.keys(labels).map(async (label) =>
+      expect(await screen.findByRole(labels[label], { name: label }))
+    );
     expect(screen.getByRole('combobox'));
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
@@ -61,8 +108,10 @@ describe('EditFormComponent', () => {
       },
     });
 
-    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id *'));
-    await waitFor(() => expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })));
+    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id'));
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' }))
+    );
   });
 
   test('should return file uploader specific content when type file uploader', async () => {
@@ -73,7 +122,7 @@ describe('EditFormComponent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id *',
+      'ux_editor.modal_properties_component_change_id',
       'ux_editor.modal_properties_file_upload_simple',
       'ux_editor.modal_properties_file_upload_list',
       'ux_editor.modal_properties_valid_file_endings_all',
@@ -155,15 +204,27 @@ describe('EditFormComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+  const dataModelMetadataResult = renderHookWithMockStore(
+    {},
+    { getDatamodelMetadata }
+  )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
+  await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
+const render = async ({
+  componentProps = {},
+  handleComponentUpdate = jest.fn(),
+  isProd = true,
+}: {
   componentProps?: Partial<FormComponent>;
   handleComponentUpdate?: (component: FormComponent) => {
     allComponentProps: FormComponent;
   };
+  isProd?: boolean;
 }) => {
   const allComponentProps: FormComponent = {
     dataModelBindings: {},
@@ -180,11 +241,16 @@ const render = async ({ componentProps = {}, handleComponentUpdate = jest.fn() }
 
   await waitForData();
 
-  renderWithMockStore()(<EditFormComponent
-    editFormId={''}
-    component={allComponentProps}
-    handleComponentUpdate={handleComponentUpdate}
-  />);
+  renderWithMockStore(
+    {},
+    { getDatamodelMetadata }
+  )(
+    <EditFormComponent
+      editFormId={''}
+      component={allComponentProps}
+      handleComponentUpdate={handleComponentUpdate}
+    />
+  );
 
   return { allComponentProps };
 };

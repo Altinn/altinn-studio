@@ -1,0 +1,49 @@
+.textfieldWrapper {
+  width: 80%;
+}
+
+.label {
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.idBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--fds-semantic-border-neutral-default);
+  border-radius: 1px;
+  margin-right: 10px;
+}
+
+.idText {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editButtonWrapper {
+  margin-left: 20px;
+}
+
+.editFieldWrapper {
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+
+.buttonWrapper {
+  display: flex;
+}
+
+.stopEditingButton {
+  margin-left: 10px;
+}
+
+.resourceIdError {
+  display: flex;
+  align-items: center;
+  height: 40px;
+}

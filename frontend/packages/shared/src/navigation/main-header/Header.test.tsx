@@ -28,16 +28,12 @@ describe('Header', () => {
 
   it(`should render org name when selected context is a org username`, () => {
     render({ selectedContext: orgUsername });
-
-    expect(screen.getByTestId('Header-org-name')).toBeInTheDocument();
     expect(screen.getByText(orgFullName)).toBeInTheDocument();
   });
 
   Object.values(SelectedContextType).forEach((context) => {
     it(`should not render org name when selected context is ${context}`, () => {
       render({ selectedContext: context });
-
-      expect(screen.queryByTestId('Header-org-name')).not.toBeInTheDocument();
       expect(screen.queryByText(orgFullName)).not.toBeInTheDocument();
     });
   });

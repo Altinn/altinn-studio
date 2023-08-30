@@ -4,16 +4,16 @@ import { useDrag, useDrop } from 'react-dnd';
 import type { DragItem } from './dnd-helpers';
 import { dragSourceSpec, dropTargetSpec } from './dnd-helpers';
 
-interface Props {
+type DndItemProps = {
   onMove: (from: DragItem, to: DragItem) => void;
-}
+};
 export const DndItem = ({
   children,
   itemId,
   containerId,
   index,
   onMove,
-}: Props & PropsWithChildren & DragItem) => {
+}: DndItemProps & PropsWithChildren & DragItem) => {
   const item = { itemId, index, containerId };
 
   const ref = useRef<HTMLDivElement>(null);

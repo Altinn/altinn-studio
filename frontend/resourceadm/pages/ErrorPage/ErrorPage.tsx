@@ -1,23 +1,22 @@
 import React from 'react';
-import { CenterContainer } from 'resourceadm/components/CenterContainer';
 import classes from './ErrorPage.module.css';
-import { Footer } from 'resourceadm/components/Footer';
+import { Heading, Link } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
-export const ErrorPage = () => {
+/**
+ * @component
+ *    Displays an error page
+ *
+ * @returns {React.ReactNode} - The rendered component
+ */
+export const ErrorPage = (): React.ReactNode => {
+  const { t } = useTranslation();
   return (
-    <>
-      <div className={classes.pageWrapper}>
-        <CenterContainer>
-          <h1>Feil i URL</h1>
-          <br></br>
-          <h2>Du har nådd en ugyldig adresse</h2>
-          <br></br>
-          <p>
-            <a href='/'>Gå tilbake til Dashboard</a>
-          </p>
-        </CenterContainer>
-      </div>
-      <Footer />
-    </>
+    <div className={classes.pageWrapper}>
+      <Heading size='medium' level={1} spacing>
+        {t('resourceadm.error_page_text')}
+      </Heading>
+      <Link href='/'>{t('resourceadm.error_back_to_dashboard')}</Link>
+    </div>
   );
 };

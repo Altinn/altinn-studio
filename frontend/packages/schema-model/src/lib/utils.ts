@@ -32,7 +32,7 @@ export const getCombinationKind = (schemaNode: KeyValuePairs): CombinationKind =
 };
 
 export const getObjectKind = (schemaNode: KeyValuePairs): ObjectKind => {
-  if (schemaNode.$ref) {
+  if (schemaNode.$ref !== undefined) {
     return ObjectKind.Reference;
   } else if (getCombinationKind(schemaNode)) {
     return ObjectKind.Combination;

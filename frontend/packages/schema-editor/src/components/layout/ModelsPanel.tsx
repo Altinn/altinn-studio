@@ -4,7 +4,6 @@ import { ActionMenu } from '../common/ActionMenu';
 import classes from './ModelsPanel.module.css';
 import { IconImage } from '../common/Icon';
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
-import { SchemaEditorTestIds } from '../SchemaEditor';
 import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -17,18 +16,16 @@ import {
 } from '@altinn/schema-model';
 import { useDispatch, useSelector } from 'react-redux';
 import type { SchemaState } from '../../types';
-import type { PanelProps } from './layoutTypes';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 
-export type ModelsPanelProps = PanelProps & {
+export type ModelsPanelProps = {
   expandedPropNodes: string[];
   setExpandedPropNodes: (nodes: string[]) => void;
   properties: UiSchemaNodes;
 };
 export const ModelsPanel = ({
-  editMode,
   expandedPropNodes,
   setExpandedPropNodes,
   properties,
@@ -62,58 +59,48 @@ export const ModelsPanel = ({
     setExpandedPropNodes(nodeIds);
   return (
     <>
-      {editMode && (
         <ActionMenu
           items={[
             {
               action: () => handleAddProperty(ObjectKind.Field),
               icon: IconImage.Object,
               text: t('field'),
-              testId: SchemaEditorTestIds.menuAddField,
             },
             {
               action: () => handleAddProperty(ObjectKind.Reference),
               icon: IconImage.Reference,
               text: t('reference'),
-              testId: SchemaEditorTestIds.menuAddReference,
             },
             {
               action: () => handleAddProperty(ObjectKind.Combination),
               icon: IconImage.Combination,
               text: t('combination'),
-              testId: SchemaEditorTestIds.menuAddCombination,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
               className: classes.dividerAbove,
               icon: IconImage.String,
               text: t('string'),
-              testId: SchemaEditorTestIds.menuAddString,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
               icon: IconImage.Number,
               text: t('integer'),
-              testId: SchemaEditorTestIds.menuAddInteger,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
               icon: IconImage.Number,
               text: t('number'),
-              testId: SchemaEditorTestIds.menuAddNumber,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
               icon: IconImage.Boolean,
               text: t('boolean'),
-              testId: SchemaEditorTestIds.menuAddBoolean,
             },
           ]}
           openButtonText={t('add')}
         />
-      )}
       <SchemaTreeView
-        editMode={editMode}
         expanded={expandedPropNodes}
         items={properties}
         translate={t}

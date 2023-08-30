@@ -1,52 +1,80 @@
 import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
-import { Button } from '@digdir/design-system-react';
-import { ArrowRightIcon, PackageFillIcon } from '@navikt/aksel-icons';
+import { Button, Tag, Paragraph } from '@digdir/design-system-react';
+import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { useTranslation } from 'react-i18next'
 
-interface Props {
+type ResourceDeployEnvCardProps = {
+  /**
+   * Flag for if deploy is possible or not
+   */
   isDeployPossible: boolean;
+  /**
+   * The name of the environment
+   */
   envName: string;
+  /**
+   * The current version in the environment
+   */
   currentEnvVersion: string;
+  /**
+   * The new version the resource will deploy to
+   */
   newEnvVersion?: string;
-}
+};
 
 /**
- * Component for the card displaying the button for publishing the resource
- * to an environment and information about the resource version
+ * @component
+ *    Component for the card displaying the button for publishing the resource
+ *    to an environment and information about the resource version
  *
- * @param props.isDeployPossible flag for if deploy is possible or not
- * @param props.envName the name of the environment
- * @param props.currentEnvVersion the current version in the environment
- * @param props.newEnvVersion the new version the resource will deploy to
+ * @property {boolean}[isDeployPossible] - Flag for if deploy is possible or not
+ * @property {string}[envName] - The name of the environment
+ * @property {string}[currentEnvVersion] - The current version in the environment
+ * @property {string}[newEnvVersion] - The new version the resource will deploy to
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDeployEnvCard = ({
   isDeployPossible,
   envName,
   currentEnvVersion,
   newEnvVersion,
-}: Props) => {
-  // TODO - Translation
+}: ResourceDeployEnvCardProps): React.ReactNode => {
+  const { t } = useTranslation();
+
+  const handleOnClick = () => {
+    console.log('Coming soon...');
+  };
+
   return (
     <div className={classes.cardWrapper}>
-      <p className={classes.envName}>{envName}</p>
+      <Paragraph size='small' className={classes.envName}>
+        <strong>{envName}</strong>
+      </Paragraph>
       <div className={classes.envWrapper}>
-        <div className={classes.currentEnv}>
-          <PackageFillIcon title={`Nåværende versjon i ${envName}`} />
-          <p className={classes.currentEnvText}>v{currentEnvVersion}</p>
-        </div>
+        <Tag color='neutral' variant='outlined'>
+          <Paragraph size='small'>v{currentEnvVersion}</Paragraph>
+        </Tag>
         {newEnvVersion && (
           <>
             <div className={classes.arrowWrapper}>
-              <ArrowRightIcon title={`Ny versjon for ${envName}`} fontSize='1.5rem' />
+              <ArrowRightIcon title={t('resourceadm.deploy_card_arrow_icon', { env: envName })} fontSize='1.5rem' />
             </div>
-            <div className={classes.newEnv}>
-              <p>v{newEnvVersion}</p>
-            </div>
+            <Tag color='success' variant='outlined'>
+              <Paragraph size='small'>v{newEnvVersion}</Paragraph>
+            </Tag>
           </>
         )}
       </div>
       <div className={classes.buttonWrapper}>
-        <Button disabled={!isDeployPossible}>Publiser til miljø</Button>
+        <Button
+          aria-disabled={!isDeployPossible}
+          onClick={isDeployPossible ? handleOnClick : undefined}
+          size='small'
+        >
+          {t('resourceadm.deploy_card_publish', { env: envName })}
+        </Button>
       </div>
     </div>
   );

@@ -7,13 +7,14 @@ import type {
   UpsertTextResourceMutation,
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
 import { ITextResources } from 'app-shared/types/global';
+import { useTranslation } from 'react-i18next';
 
 export interface TextEditorProps {
   addLanguage: (language: LangCode) => void;
@@ -40,8 +41,8 @@ export const TextEditor = ({
   updateTextId,
   upsertTextResource,
 }: TextEditorProps) => {
+  const { t } = useTranslation();
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
-
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages]
@@ -77,15 +78,16 @@ export const TextEditor = ({
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
           <Button
-            variant={ButtonVariant.Filled}
-            color={ButtonColor.Primary}
+            variant='filled'
+            color='primary'
             onClick={handleAddNewEntryClick}
-            data-testid='text-editor-btn-add'
+            size='small'
           >
-            Ny tekst
+            {t('text_editor.new_text')}
           </Button>
           <div>
             <SearchField
+              id='text-editor-search'
               label='Søk etter tekst eller id'
               value={searchQuery}
               onChange={handleSearchChange}

@@ -30,8 +30,20 @@
   background-color: #00000010;
   border-bottom-left-radius: 5px;
   border-top-left-radius: 5px;
-  visibility: hidden;
   width: var(--drag-handle-width);
+}
+
+.dragHandle,
+.buttons {
+  visibility: hidden;
+}
+
+.editMode .dragHandle,
+.editMode .buttons,
+.wrapper:hover .dragHandle,
+.wrapper:hover .buttons,
+.buttons:has(button[aria-expanded="true"]) {
+  visibility: visible;
 }
 
 .editMode .dragHandle {
@@ -39,11 +51,6 @@
   --drag-handle-inner-width: calc(var(--drag-handle-width) - var(--drag-handle-border-left-width));
   border-left: var(--drag-handle-border-left-width) solid #008FD6;
   box-sizing: border-box;
-}
-
-.editMode .dragHandle,
-.wrapper:hover .dragHandle {
-  visibility: visible;
 }
 
 .formComponentWithHandle:has(.dragHandle:hover) {
@@ -56,6 +63,7 @@
   color: #022F51;
   flex: 1;
   padding: 1rem;
+  cursor: pointer;
 }
 
 .editMode .formComponent,
@@ -73,10 +81,6 @@
   flex-direction: column;
   margin-left: var(--buttons-distance);
   gap: var(--buttons-distance);
-}
-
-.wrapper:not(.editMode):not(:hover) .buttons button {
-  visibility: hidden;
 }
 
 .formComponentTitle {

@@ -32,10 +32,10 @@ namespace DataModeling.Tests.Templates
 
             // Assert
             JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
-            var idKeyword = jsonSchema.GetKeyword<IdKeyword>();
+            var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
             idKeyword.Id.Should().Be(expectedId);
 
-            var infoKeyword = jsonSchema.GetKeyword<InfoKeyword>();
+            var infoKeyword = jsonSchema.GetKeywordOrNull<InfoKeyword>();
             var value = infoKeyword.Value;
             value.GetProperty("meldingsnavn").GetString().Should().Be("melding");
             value.GetProperty("modellnavn").GetString().Should().Be("melding-modell");

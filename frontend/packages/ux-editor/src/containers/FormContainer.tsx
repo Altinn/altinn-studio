@@ -15,6 +15,7 @@ export interface IFormContainerProps {
   container: IFormContainer;
   dragHandleRef?: ConnectDragSource;
   handleDiscard: () => void;
+  handleSave: () => Promise<void>;
   handleEdit: (container: IFormContainer) => void;
   id: string;
   isBaseContainer?: boolean;
@@ -26,6 +27,7 @@ export const FormContainer = ({
   container,
   dragHandleRef,
   handleDiscard,
+  handleSave,
   handleEdit,
   id,
   isBaseContainer,
@@ -43,11 +45,10 @@ export const FormContainer = ({
 
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const handleDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.stopPropagation();
+  const handleDelete = useCallback((): void => {
     handleDeleteFormContainer(id);
-    handleDiscard();
-  }, [handleDeleteFormContainer, handleDiscard, id]);
+    if (isEditMode) handleDiscard();
+  }, [handleDeleteFormContainer, handleDiscard, id, isEditMode]);
 
   return (
     <div
@@ -56,14 +57,11 @@ export const FormContainer = ({
         isEditMode && classes.editMode,
         !isBaseContainer && classes.formGroupWrapper,
       )}
-      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+      onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
-        if (isEditMode) return;
-        if (isBaseContainer) {
-          handleEdit(null);
-        } else {
-          handleEdit({ ...container, id });
-        }
+        if (isBaseContainer || isEditMode) return;
+        await handleSave();
+        handleEdit({ ...container, id });
       }}
     >
       {!isBaseContainer && (
@@ -73,7 +71,6 @@ export const FormContainer = ({
           isEditMode={isEditMode}
           handleExpanded={setExpanded}
           handleDelete={handleDelete}
-          handleEdit={handleEdit}
           dragHandleRef={dragHandleRef}
         />
       )}

@@ -8,6 +8,7 @@ import type {
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
 import { FormItem } from '../types/FormItem';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {
@@ -92,4 +93,58 @@ export const generateRandomOption = (): IOption =>
 export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
   const { defaultProperties } = formItemConfigs[type];
   return type === ComponentType.Group ? defaultProperties : { ...defaultProperties, id };
+};
+
+/**
+ * Sets the given property of the given component to the given value.
+ * @param component The component to set the property on.
+ * @param propertyKey The property to set.
+ * @param value The value to set the property to.
+ * @returns The component with updated property.
+ */
+export const setComponentProperty = (component: FormComponent, propertyKey: string, value: any): FormComponent => ({
+  ...component,
+  [propertyKey]: value,
+});
+
+/**
+ * Gets an array of unsupported property keys
+ * @param properties The properties object to check.
+ * @param knownUnsupportedPropertyKeys An array of additional known unsupported property keys.
+ * @returns An array of unsupported property keys.
+ */
+export const getUnsupportedPropertyTypes = (
+  properties: KeyValuePairs,
+  knownUnsupportedPropertyKeys?: string[]
+) => {
+  const propertyKeys = Object.keys(properties);
+  let unsupportedPropertyKeys = propertyKeys.filter((key) => knownUnsupportedPropertyKeys ? !knownUnsupportedPropertyKeys.includes(key) : true).filter((key) => {
+    return !isPropertyTypeSupported(properties[key]);
+  });
+
+  if (knownUnsupportedPropertyKeys) {
+    unsupportedPropertyKeys = unsupportedPropertyKeys.concat(knownUnsupportedPropertyKeys);
+  }
+
+  return unsupportedPropertyKeys;
+};
+
+const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string', 'object'];
+const supportedPropertyRefs = [
+  'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+];
+
+/**
+ * Checks if a given property with optional property key is supported by component config view.
+ * @param property The property to check
+ * @returns A boolean indicating if the property is supported.
+ */
+export const isPropertyTypeSupported = (property: KeyValuePairs) => {
+  if (property?.$ref) {
+    return supportedPropertyRefs.includes(property.$ref);
+  }
+  if (property?.type === 'array' && property?.items?.type === 'string') {
+    return true;
+  }
+  return supportedPropertyTypes.includes(property?.type);
 };

@@ -1,57 +1,42 @@
 import React from 'react';
-import { unmountComponentAtNode } from 'react-dom';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { queryClientMock } from '../test/mocks/queryClientMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { dataMock } from '@altinn/schema-editor/mockData';
 
-let container: any = null;
+// Mocks:
+const schemaEditorTestId = 'schema-editor';
+jest.mock('./components/SchemaEditor', () => ({
+  SchemaEditor: () => <div data-testid={schemaEditorTestId}/>,
+}));
 
-beforeEach(() => {
-  container = document.createElement('div');
-  document.body.appendChild(container);
-});
-
-afterEach(() => {
-  unmountComponentAtNode(container);
-  container.remove();
-  container = null;
-});
-
-test('SchemaEditorApp', async () => {
+export const render = () => {
   const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
-  render(
-    <ServicesContextProvider {...{ ...queriesMock, getDatamodel }} client={queryClientMock}>
+  rtlRender(
+    <ServicesContextProvider
+      {...{ ...queriesMock, getDatamodel }}
+      client={createQueryClientMock()}
+    >
       <PreviewConnectionContextProvider>
-        <SchemaEditorApp
-          LandingPagePanel={null}
-          editMode={false}
-          loading={false}
-          modelPath='modelPath'
-          name='test'
-          onSaveSchema={jest.fn()}
-          schemaState={{ saving: false, error: null }}
-          toggleEditMode={jest.fn()}
-          toolbarProps={{
-            createNewOpen: false,
-            createPathOption: false,
-            handleCreateSchema: jest.fn(),
-            handleDeleteSchema: jest.fn(),
-            handleXsdUploaded: jest.fn(),
-            metadataOptions: [],
-            modelNames: [],
-            selectedOption: { value: { fileName: '', fileType: '.json', repositoryRelativeUrl: '' }, label: '' },
-            setCreateNewOpen: jest.fn(),
-            setSelectedOption: jest.fn(),
-          }}
-        />
+        <SchemaEditorApp modelName='test' modelPath='test'/>
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
   );
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-  expect(screen.getByTestId('schema-editor')).toBeDefined();
+};
+
+describe('SchemaEditorApp', () => {
+  it('should render the spinner when loading', async () => {
+    render();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('Renders schema editor when finished loading', async () => {
+    render();
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
+  });
 });

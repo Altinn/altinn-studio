@@ -133,6 +133,10 @@ namespace Altinn.Studio.Designer.Controllers
                 await _textsService.SaveTextV1(org, app, developer, jsonData, languageCode);
                 return Ok($"Text resource, resource.{languageCode}.json, was successfully saved.");
             }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
             catch (NotFoundException)
             {
                 return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");

@@ -1,32 +1,83 @@
 import React, { useState } from 'react';
 import classes from './NewResourceModal.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
-import { PencilWritingIcon, MultiplyIcon } from '@navikt/aksel-icons';
+import { Button } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
+import { ResourceNameAndId } from '../ResourceNameAndId';
+import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
+import { useNavigate, useParams } from 'react-router-dom';
+import type { NewResource } from 'app-shared/types/ResourceAdm';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { useTranslation } from 'react-i18next'
 
-interface Props {
+type NewResourceModalProps = {
+  /**
+   * Boolean for if the modal is open
+   */
   isOpen: boolean;
+  /**
+   * Function to handle close
+   * @returns void
+   */
   onClose: () => void;
-  onCreateNewResource: (id: string, title: string) => void;
-}
+};
 
 /**
- * Displays the modal telling the user that there is a merge conflict
+ * @component
+ *    Displays the modal telling the user that there is a merge conflict
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.onClose function to close the modal
- * @param props.onCreateNewResource function that handles the creation of a new resource
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {function}[onClose] - Function to handle close
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props) => {
+export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): React.ReactNode => {
+  const { t } = useTranslation();
+
+  const navigate = useNavigate();
+
+  const { selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
+
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
+  const [resourceIdExists, setResourceIdExists] = useState(false);
+  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
+
+  // Mutation function to create new resource
+  const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+
+  /**
+   * Creates a new resource in backend, and navigates if success
+   */
+  const handleCreateNewResource = () => {
+    const idAndTitle: NewResource = {
+      identifier: id,
+      title: {
+        nb: title,
+        nn: '',
+        en: '',
+      },
+    };
+
+    createNewResource(idAndTitle, {
+      onSuccess: () =>
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+      onError: (error: any) => {
+        if (error.response.status === 409) {
+          setResourceIdExists(true);
+          setEditIdFieldOpen(true);
+        }
+      },
+    });
+  };
 
   /**
    * Replaces the spaces in the value typed with '-'.
    */
   const handleIDInput = (val: string) => {
     setId(val.replace(/\s/g, '-'));
+    setResourceIdExists(false);
   };
 
   /**
@@ -36,35 +87,10 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
    * @param val the title value typed
    */
   const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen) {
+    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
       setId(val.replace(/\s/g, '-'));
     }
     setTitle(val);
-  };
-
-  /**
-   * Replaces spaces and '.' with '-' so that the ID looks correct
-   *
-   * @param s the string to format
-   *
-   * @returns the string formatted
-   */
-  const formatString = (s: string): string => {
-    return s.replace(/[\s.]+/g, '-');
-  };
-
-  /**
-   * If the edit field is open, then the id to dispay is the actual id
-   * value, otherwise it is the title value
-   *
-   * @returns the formatted value
-   */
-  const getIdToDisplay = (): string => {
-    if (editIdFieldOpen) {
-      return formatString(id);
-    } else {
-      return formatString(title);
-    }
   };
 
   /**
@@ -72,86 +98,59 @@ export const NewResourceModal = ({ isOpen, onClose, onCreateNewResource }: Props
    * so that it closes the edit field, the id is set to the title.
    *
    * @param isOpened the value of the button when it is pressed
+   * @param isSave if the save button is pressed, keep id and title separate
    */
-  const handleClickEditButton = (isOpened: boolean) => {
+  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
     setEditIdFieldOpen(isOpened);
 
-    // If we stop editing, set the ID to the title
-    if (!isOpened) {
-      if (title !== id) setId(title.replace(/\s/g, '-'));
+    if (isSave) {
+      setBothFieldsHaveSameValue(false);
+    } else {
+      if (!isOpened) {
+        setBothFieldsHaveSameValue(true);
+        // If we stop editing, set the ID to the title
+        if (title !== id) setId(title.replace(/\s/g, '-'));
+      }
     }
   };
 
+  /**
+   * Closes the modal and resets the fields
+   */
+  const handleClose = () => {
+    onClose();
+    setId('');
+    setTitle('');
+    setEditIdFieldOpen(false);
+    setResourceIdExists(false);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title='Opprett ny ressurs'>
-      <p className={classes.text}>Velg et navn for å opprette ressursen din.</p>
-      <p className={classes.text}>Navnet kan endres på frem til tjenesten din er publisert.</p>
-      <p className={classes.textfieldHeader}>Ressursnavn (Bokmål)</p>
-      <div className={classes.textfieldWrapper}>
-        <TextField
-          placeholder='Ressursnavn (Bokmål)'
-          value={title}
-          onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label='Ressursnavn (Bokmål)'
-        />
-      </div>
-      <p className={classes.textfieldHeader}>Ressurs id</p>
-      <div className={classes.editFieldWrapper}>
-        {editIdFieldOpen ? (
-          <>
-            <div className={classes.textfieldWrapper}>
-              <TextField
-                placeholder='Ressurs id'
-                value={id}
-                onChange={(e) => handleIDInput(e.target.value)}
-                aria-label='Ressurs id'
-                // TODO - Potentially show error if ID exists
-              />
-            </div>
-            <div className={classes.stopEditingButton}>
-              <Button
-                onClick={() => handleClickEditButton(!editIdFieldOpen)}
-                variant='quiet'
-                icon={<MultiplyIcon title='Slutt å endre ressurs id' />}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={classes.idBox}>
-              <p className={classes.idText}>id</p>
-            </div>
-            <p className={classes.text}>
-              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-              altinn.svv.<strong>{getIdToDisplay()}</strong>
-            </p>
-            <div className={classes.editButtonWrapper}>
-              <Button
-                onClick={() => handleClickEditButton(!editIdFieldOpen)}
-                iconPlacement='right'
-                icon={<PencilWritingIcon title='Endre ressurs id' />}
-                variant='quiet'
-                color='primary'
-              >
-                Rediger
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-      {/* TODO - Add if the id is valid or not based on API calls later */}
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dahboard_create_modal_title')}>
+      <ResourceNameAndId
+        isEditOpen={editIdFieldOpen}
+        title={title}
+        text={t('resourceadm.dahboard_create_modal_resource_name_and_id_text')}
+        id={id}
+        handleEditTitle={handleEditTitle}
+        handleIdInput={handleIDInput}
+        handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
+        resourceIdExists={resourceIdExists}
+        bothFieldsHaveSameValue={bothFieldsHaveSameValue}
+      />
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
-          <Button onClick={onClose} color='primary' variant='quiet'>
-            Avbryt
+          <Button onClick={onClose} color='primary' variant='quiet' size='small'>
+            {t('general.cancel')}
           </Button>
         </div>
         <Button
-          onClick={() => onCreateNewResource(id, title)}
+          onClick={!(id.length === 0 || title.length === 0) && handleCreateNewResource}
           color='primary'
-          disabled={id.length === 0 || title.length === 0}
+          aria-disabled={id.length === 0 || title.length === 0}
+          size='small'
         >
-          Opprett ressurs
+          {t('resourceadm.dahboard_create_modal_create_button')}
         </Button>
       </div>
     </Modal>

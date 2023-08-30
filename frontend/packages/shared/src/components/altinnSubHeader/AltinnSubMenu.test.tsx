@@ -3,11 +3,6 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import { AltinnSubMenu, AltinnSubMenuProps } from './AltinnSubMenu';
 
 describe('AltinnSubMenu', () => {
-  it('should render component', () => {
-    render();
-    expect(screen.getByTestId('altinn-sub-menu')).toBeInTheDocument();
-  });
-
   it('should render provided child components', () => {
     render({
       children: <button>test-button</button>,

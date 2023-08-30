@@ -4,21 +4,15 @@ import { PropertyItem } from './PropertyItem';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
-import {
-  addProperty,
-  deleteNode,
-  getNameFromPointer,
-  setPropertyName,
-  setType,
-} from '@altinn/schema-model';
+import { addProperty, deleteNode, setType } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
@@ -44,14 +38,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       newNodeInput?.select();
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes, fieldNodes]);
-
-  const onChangePropertyName = (path: string, value: string) =>
-    mutate(
-      setPropertyName(data, {
-        path,
-        name: value,
-      })
-    );
 
   const onChangeType = (path: string, type: FieldType) => mutate(setType(data, { path, type }));
 
@@ -86,22 +72,21 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
           inputId={fieldNode.domId}
           key={fieldNode.pointer}
           onChangeType={onChangeType}
-          onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
           onEnterKeyPress={dispatchAddProperty}
           readOnly={readonly}
           required={fieldNode.isRequired}
           type={fieldNode.fieldType as FieldType}
-          value={getNameFromPointer(fieldNode)}
         />
       ))}
       {!readonly && (
         <div className={classes.addButtonCell}>
           <Button
-            color={ButtonColor.Secondary}
+            color='secondary'
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
-            variant={ButtonVariant.Outline}
+            variant='outline'
+            size='small'
           >
             {t('schema_editor.add_property')}
           </Button>

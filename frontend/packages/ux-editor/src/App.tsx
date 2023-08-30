@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { useParams } from 'react-router-dom';
@@ -12,8 +11,7 @@ import { selectedLayoutNameSelector, selectedLayoutSetSelector } from './selecto
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
-
-import '@digdir/design-system-tokens/brand/altinn/tokens.css';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 /**
  * This is the main React component responsible for controlling
@@ -26,7 +24,7 @@ export function App() {
   const t = useText();
   const { org, app } = useParams();
   const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const selectedLayoutSetInPreviewFromLocalStorage = localStorage.getItem('layoutSet' + app);
+  const selectedLayoutSetInPreviewFromLocalStorage = typedLocalStorage.getItem<string>('layoutSet' + app);
   const selectedLayoutSetInPreview = selectedLayoutSetInPreviewFromLocalStorage !== '' ? selectedLayoutSetInPreviewFromLocalStorage : null;
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -64,14 +62,14 @@ export function App() {
     if (selectedLayoutSet === null && layoutSets){
       // Only set layout set if layout sets exists and there is no layout set selected yet
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSets.sets[0].id));
-      localStorage.setItem('layoutSet' + app, layoutSets.sets[0].id);
+      typedLocalStorage.setItem<string>('layoutSet' + app, layoutSets.sets[0].id);
     }
   }, [dispatch, selectedLayoutSet, layoutSets, app]);
 
   useEffect(() => {
     const layoutSetInEditor = selectedLayoutSetInPreview ?? selectedLayoutSet;
     if (layoutSets && layoutSetInEditor !== null && layoutSetInEditor !== '' && layoutSetInEditor !== ""){
-      localStorage.setItem('layoutSet' + app, layoutSetInEditor);
+      typedLocalStorage.setItem<string>('layoutSet' + app, layoutSetInEditor);
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetInEditor));
     }
   }, [dispatch, selectedLayoutSet, layoutSets, selectedLayoutSetInPreview, app]);
@@ -83,14 +81,11 @@ export function App() {
 
   if (componentIsReady) {
     return (
-      <>
-        <ErrorMessageComponent />
-        <FormDesigner
-          selectedLayout={selectedLayout}
-          selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
-        />
-      </>
+      <FormDesigner
+        selectedLayout={selectedLayout}
+        selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
+      />
     );
   }
-  return <PageSpinner text={t('general.loading')} />;
+  return <PageSpinner />;
 }

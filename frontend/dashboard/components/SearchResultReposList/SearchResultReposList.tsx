@@ -21,7 +21,7 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
   });
 
   return (
-    <div data-testid='search-result-repos-list'>
+    <div>
       <h2>{t('dashboard.search_result')}</h2>
       <RepoList
         repos={reposWithStarred}

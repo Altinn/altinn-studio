@@ -6,7 +6,7 @@ import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { Label } from 'app-shared/components/Label';
 import classes from './StringRestrictions.module.css';
-import { Checkbox, ErrorMessage, TextField } from '@digdir/design-system-react';
+import { LegacyCheckbox, ErrorMessage, TextField } from '@digdir/design-system-react';
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerAction,
@@ -99,7 +99,7 @@ export function NumberRestrictions({
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <Checkbox
+          <LegacyCheckbox
             aria-checked='true'
             checked={formatState.isMinInclusive}
             label={t('schema_editor.format_date_inclusive')}
@@ -123,7 +123,7 @@ export function NumberRestrictions({
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <Checkbox
+          <LegacyCheckbox
             checkboxId='include-minimum-value-checkbox'
             aria-checked='true'
             checked={formatState.isMaxInclusive}

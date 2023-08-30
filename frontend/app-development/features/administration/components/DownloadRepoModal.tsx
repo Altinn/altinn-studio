@@ -1,6 +1,6 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import classes from './RepoModal.module.css';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { Trans, useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ interface IDownloadRepoModalProps {
 export function DownloadRepoModal(props: IDownloadRepoModalProps) {
   const { t } = useTranslation();
   return (
-    <div data-testid='download-repo-container'>
+    <div>
       <Popover
         open={props.open}
         anchorEl={props.anchorRef.current}
@@ -29,7 +29,6 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
           vertical: 'center',
           horizontal: 'center',
         }}
-        data-testid='download-repo-popover'
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.download_repo_heading')}</h2>
@@ -47,11 +46,7 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
             </a>
           </p>
           <div className={classes.buttonContainer}>
-            <Button
-              color={ButtonColor.Secondary}
-              onClick={props.onClose}
-              variant={ButtonVariant.Outline}
-            >
+            <Button color='secondary' onClick={props.onClose} variant='outline' size='small'>
               {t('general.cancel')}
             </Button>
           </div>

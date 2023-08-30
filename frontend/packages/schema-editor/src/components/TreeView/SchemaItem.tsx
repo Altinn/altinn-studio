@@ -18,13 +18,13 @@ import { DndItem } from './DnDWrapper';
 import type { DragItem } from './dnd-helpers';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { getRefNodeSelector, selectedIdSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
+import { getRefNodeSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
+import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
 
-type SchemaItemProps = {
+export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
   isPropertiesView: boolean;
-  editMode: boolean;
   onLabelClick?: (e: any) => void;
   index: number;
 };
@@ -36,7 +36,6 @@ SchemaItem.defaultProps = {
 export function SchemaItem({
   selectedNode,
   isPropertiesView,
-  editMode,
   translate,
   index,
 }: SchemaItemProps) {
@@ -66,37 +65,35 @@ export function SchemaItem({
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
   const onMove = (from: DragItem, to: DragItem) =>
     mutate(changeChildrenOrder(data, { pointerA: from.itemId, pointerB: to.itemId }));
+
   return (
-    <DndItem index={index} itemId={selectedNode.pointer} containerId={base} onMove={onMove}>
-      <TreeItem
-        nodeId={selectedNode.pointer}
-        classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
-        onClick={(e: any) => onLabelClick(e, selectedNode)}
-        onFocusCapture={(e: any) => e.stopPropagation()}
-        label={
+    <TreeItem
+      nodeId={selectedNode.pointer}
+      classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
+      onClick={(e: any) => onLabelClick(e, selectedNode)}
+      onFocusCapture={(e: any) => e.stopPropagation()}
+      label={
+        <DndItem index={index} itemId={selectedNode.pointer} containerId={base} onMove={onMove}>
           <SchemaItemLabel
-            editMode={editMode}
             icon={getIconStr(refNode ?? selectedNode)}
             key={`${selectedNode.pointer}-label`}
             selectedNode={selectedNode}
             refNode={refNode}
-            translate={translate}
             hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
           />
-        }
-      >
-        {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
-          <SchemaItem
-            index={childNodeIndex}
-            editMode={editMode}
-            isPropertiesView={isPropertiesView}
-            selectedNode={childNode}
-            key={`${keyPrefix}-${childNode.pointer}`}
-            translate={translate}
-            onLabelClick={(e: any) => onLabelClick(e, childNode)}
-          />
-        ))}
-      </TreeItem>
-    </DndItem>
+        </DndItem>
+      }
+    >
+      {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
+        <SchemaItem
+          index={childNodeIndex}
+          isPropertiesView={isPropertiesView}
+          selectedNode={childNode}
+          key={`${keyPrefix}-${childNode.pointer}`}
+          translate={translate}
+          onLabelClick={(e: any) => onLabelClick(e, childNode)}
+        />
+      ))}
+    </TreeItem>
   );
 }

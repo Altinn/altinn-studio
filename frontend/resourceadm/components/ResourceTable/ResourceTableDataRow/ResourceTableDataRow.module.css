@@ -1,6 +1,6 @@
 .tableData {
   padding-block: 15px;
-  border-bottom: 2px solid #BCC7CC;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
 }
 
 .tableDataXLarge {
@@ -13,20 +13,14 @@
 }
 
 .tableDataMedium {
-  width: 18%;
+  width: 19%;
 }
 
 .tableDataSmall {
-  width: 10%;
+  width: 8%;
   justify-content: flex-end;
 }
 
 .tableDataDate {
-  padding-left: 1%;
-}
-
-.tableDataText {
-  font-size: 16px;
-  font-weight: 400;
-  font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  padding-left: 12px;
 }

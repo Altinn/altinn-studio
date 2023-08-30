@@ -1,7 +1,10 @@
-import { get } from 'app-shared/utils/networking';
+import { get, put } from 'app-shared/utils/networking';
 import {
+  appPolicyPath,
   branchStatusPath,
   datamodelMetadataPath,
+  datamodelPath,
+  datamodelsPath,
   datamodelsXsdPath,
   deployPermissionsPath,
   deploymentsPath,
@@ -10,12 +13,25 @@ import {
   instanceIdForPreviewPath,
   layoutSetsPath,
   layoutSettingsPath,
+  optionListIdsPath,
   orgsListPath,
+  processEditorPath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
   repoStatusPath,
+  resourceActionsPath,
+  resourceListPath,
+  resourcePolicyPath,
+  resourcePublishStatusPath,
+  resourceSectorsPath,
+  resourceSinglePath,
+  resourceSubjectsPath,
+  resourceThematicEurovocPath,
+  resourceThematicLosPath,
+  resourceValidatePolicyPath,
+  resourceValidateResourcePath,
   ruleConfigPath,
   ruleHandlerPath,
   textLanguagesPath,
@@ -23,18 +39,10 @@ import {
   userCurrentPath,
   userStarredListPath,
   widgetSettingsPath,
-  optionListIdsPath,
-  datamodelPath,
 } from './paths';
-import {
-  AppDeploymentsResponse,
-  AppReleasesResponse,
-  DatamodelMetadataResponse,
-  SearchRepoFilterParams,
-  SearchRepositoryResponse,
-} from 'app-shared/types/api';
+import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
-import { DatamodelsXsd } from 'app-shared/types/DatamodelsXsd';
+import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -47,15 +55,18 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { User } from 'app-shared/types/User';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { orgsListUrl } from '../cdn-paths';
+import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
+import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
+import type { Resource, ResourceListItem, ResourceSector, ResourceThematic, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));
 export const getDatamodelMetadata = (owner: string, app: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app));
-export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelsXsd[]>(datamodelsXsdPath(owner, app));
+export const getDatamodels = (owner: string, app: string) => get<DatamodelMetadataJson[]>(datamodelsPath(owner, app));
+export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<AppDeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
@@ -81,3 +92,29 @@ export const getOptionListIds = (owner: string, app: string) => get<string[]>(op
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
 export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl());
+export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
+export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
+
+export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
+
+// Resourceadm
+export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
+export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
+export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
+export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
+export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
+export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
+export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
+export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
+export const getResourceSectors = (org: string) => get<ResourceSector[]>(resourceSectorsPath(org));
+export const getResourceThematicLos = (org: string) => get<ResourceThematic[]>(resourceThematicLosPath(org));
+export const getResourceThematicEurovoc = (org: string) => get<ResourceThematic[]>(resourceThematicEurovocPath(org));
+
+// ProcessEditor
+export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));
+export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
+  put(processEditorPath(org, app), bpmnXml, {
+    headers: {
+      'Content-Type': 'application/xml',
+    },
+  });

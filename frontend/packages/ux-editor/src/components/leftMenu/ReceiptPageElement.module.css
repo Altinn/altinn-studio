@@ -1,7 +1,3 @@
-.pageElementWrapper {
-  background-color: #E4FFF0;
-}
-
 .buttonWrapper {
-  padding: 10px;
+  padding: var(--fds-spacing-1) var(--fds-spacing-2);
 }

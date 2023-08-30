@@ -2,24 +2,14 @@ import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
-import {
-  Button,
-  ButtonColor,
-  ButtonSize,
-  ButtonVariant,
-  ErrorMessage,
-  Popover,
-  PopoverVariant,
-  TableCell,
-  TableRow,
-  TextField,
-} from '@digdir/design-system-react';
+import { Button, ErrorMessage, TableCell, TableRow, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
+import { AltinnConfirmDialog } from 'app-shared/components';
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -46,9 +36,10 @@ export const TextRow = ({
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
+  const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const { t } = useTranslation();
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
@@ -72,10 +63,32 @@ export const TextRow = ({
     removeEntry({ textId });
   };
 
-  const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
-
   return (
-    <TableRow data-testid={'lang-row'}>
+    <TableRow>
+      <TableCell>
+        {showButton && (
+          <AltinnConfirmDialog
+            open={isConfirmDeleteDialogOpen}
+            confirmText={t('schema_editor.textRow-deletion-confirm')}
+            onConfirm={handleDeleteClick}
+            onClose={() => setIsConfirmDeleteDialogOpen(false)}
+            trigger={
+              <Button
+                className={classes.deleteButton}
+                icon={<TrashIcon title={`Slett ${textId}`} />}
+                variant='quiet'
+                onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
+                aria-label={t('schema_editor.delete')}
+                size='small'
+              >
+                {t('schema_editor.delete')}
+              </Button>
+            }
+          >
+            <p>{t('schema_editor.textRow-deletion-text')}</p>
+          </AltinnConfirmDialog>
+        )}
+      </TableCell>
       {selectedLanguages.map((lang) => {
         let translation = textRowEntries.find((e) => e.lang === lang);
         if (!translation) {
@@ -85,8 +98,13 @@ export const TextRow = ({
           };
         }
         return (
-          <TableCell key={translation.lang + '-' + textId}>
-            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
+          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
+            <TextEntry
+              {...translation}
+              upsertTextResource={upsertTextResource}
+              textId={textId}
+              className={classes.textEntryComponent}
+            />
           </TableCell>
         );
       })}
@@ -113,52 +131,15 @@ export const TextRow = ({
             <Button
               aria-label={'toggle-textkey-edit'}
               icon={<PencilIcon className={classes.smallIcon} />}
-              variant={ButtonVariant.Quiet}
-              size={ButtonSize.Small}
+              variant='quiet'
+              size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}
         </ButtonContainer>
       </TableCell>
       <TableCell>
-        <Variables variables={variables} />
-      </TableCell>
-      <TableCell>
-        <Popover
-          title={'Slett_rad'}
-          variant={PopoverVariant.Warning}
-          placement={'left'}
-          open={isConfirmDeleteOpen}
-          trigger={
-            <Button
-              className={classes.deleteButton}
-              icon={<TrashIcon title={`Slett ${textId}`} />}
-              variant={ButtonVariant.Quiet}
-              onClick={toggleConfirmDeletePopover}
-              aria-label={t('schema_editor.delete')}
-            >
-              {t('schema_editor.delete')}
-            </Button>
-          }
-        >
-          {isConfirmDeleteOpen && (
-            <div>
-              <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
-              <div className={classes.popoverButtons}>
-                <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
-                  <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
-                </Button>
-                <Button
-                  variant={ButtonVariant.Quiet}
-                  onClick={toggleConfirmDeletePopover}
-                  color={ButtonColor.Secondary}
-                >
-                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
-                </Button>
-              </div>
-            </div>
-          )}
-        </Popover>
+        <Variables variables={textVariables} />
       </TableCell>
     </TableRow>
   );

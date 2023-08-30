@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button, ButtonColor, ButtonVariant, TextField } from '@digdir/design-system-react';
+import { Button, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
+import * as testids from '../../../../testing/testids';
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -47,7 +48,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   };
   const { t } = useTranslation();
   return (
-    <div data-testid='reset-repo-container'>
+    <div data-testid={testids.resetRepoContainer}>
       <Popover
         open={props.open}
         anchorEl={props.anchorRef.current}
@@ -60,7 +61,6 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           vertical: 'center',
           horizontal: 'center',
         }}
-        data-testid='reset-repo-popover'
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
@@ -90,11 +90,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 })}
               </div>
               <div className={classes.buttonContainer}>
-                <Button
-                  color={ButtonColor.Secondary}
-                  onClick={onCloseWrapper}
-                  variant={ButtonVariant.Outline}
-                >
+                <Button color='secondary' onClick={onCloseWrapper} variant='outline' size='small'>
                   {t('general.close')}
                 </Button>
               </div>
@@ -104,20 +100,16 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           {!repoResetMutation.isLoading && !repoResetMutation.isSuccess && (
             <div className={classes.buttonContainer}>
               <Button
-                color={ButtonColor.Danger}
-                data-testid='confirm-reset-repo-button'
+                color='danger'
                 disabled={!canDelete}
                 id='confirm-reset-repo-button'
                 onClick={onResetWrapper}
-                variant={ButtonVariant.Outline}
+                variant='outline'
+                size='small'
               >
                 {t('administration.reset_repo_button')}
               </Button>
-              <Button
-                color={ButtonColor.Secondary}
-                onClick={onCloseWrapper}
-                variant={ButtonVariant.Outline}
-              >
+              <Button color='secondary' onClick={onCloseWrapper} variant='outline' size='small'>
                 {t('general.cancel')}
               </Button>
             </div>

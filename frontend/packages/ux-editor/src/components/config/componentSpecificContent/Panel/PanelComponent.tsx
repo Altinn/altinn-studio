@@ -1,27 +1,24 @@
 import React from 'react';
-import { Checkbox, Select } from '@digdir/design-system-react';
+import { LegacyCheckbox, Select } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 
-export const PanelComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
 
   const handleShowIconClick = (showIcon: boolean) => {
     handleComponentChange({ ...component, showIcon });
-  }
+  };
 
   const handleVariantClick = (variant: FormPanelVariant) => {
     handleComponentChange({ ...component, variant });
-  }
+  };
 
   return (
-    <>
+    <div>
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}
@@ -36,10 +33,9 @@ export const PanelComponent = ({
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
       >
-        {({ value, onChange }) => <Checkbox
-          checked={value}
-          onChange={(e) => onChange(e.target.checked, e)}
-        />}
+        {({ value, onChange }) => (
+          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+        )}
       </FormField>
       <FormField
         id={component.id}
@@ -48,15 +44,15 @@ export const PanelComponent = ({
         onChange={handleVariantClick}
         propertyPath={`${component.propertyPath}/properties/variant`}
       >
-        {
-          () => <Select
+        {() => (
+          <Select
             options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
               label: t(`ux_editor.${value}`),
               value,
             }))}
           />
-        }
+        )}
       </FormField>
-    </>
+    </div>
   );
 };

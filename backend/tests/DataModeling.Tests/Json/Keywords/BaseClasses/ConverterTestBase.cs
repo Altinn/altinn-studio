@@ -48,7 +48,7 @@ where TKeywordType : IJsonSchemaKeyword
 
     protected TTestType KeywordReadFromSchema()
     {
-        Keyword = JsonSchema.GetKeyword<TKeywordType>();
+        Keyword = JsonSchema.GetKeywordOrNull<TKeywordType>();
         return this as TTestType;
     }
 

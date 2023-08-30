@@ -1,14 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import {
-  TextField,
-  Popover,
-  PopoverVariant,
-  Button,
-  ButtonSize,
-  ButtonColor,
-  ButtonVariant,
-} from '@digdir/design-system-react';
+import { TextField, Popover, Button } from '@digdir/design-system-react';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
 import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 import { FormField } from '../../FormField';
@@ -114,8 +106,8 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         onChange={handleWordClick}
         propertyPath={`${component.propertyPath}/properties/autocomplete`}
       >
-        {
-          ({ onChange }) => <TextField
+        {({ onChange }) => (
+          <TextField
             onFocus={(): void => setSearchFieldFocused(true)}
             onBlur={(): void => {
               if (searchFieldFocused) setSearchFieldFocused(false);
@@ -126,29 +118,29 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
               onChange(value);
             }}
           />
-        }
+        )}
       </FormField>
       <Popover
-        variant={PopoverVariant.Default}
+        variant='default'
         open={searchFieldFocused && autoCompleteOptions.length > 0}
         placement='bottom-start'
         arrow={false}
         trigger={<div />}
       >
-      {autoCompleteOptions.map(
-        (option): JSX.Element => (
-          <Button
-            role='option'
-            key={option}
-            size={ButtonSize.Small}
-            color={ButtonColor.Secondary}
-            variant={ButtonVariant.Quiet}
-            onMouseDown={() => handleWordClick(option)}
-          >
-            {option}
-          </Button>
-        )
-      )}
+        {autoCompleteOptions.map(
+          (option): JSX.Element => (
+            <Button
+              role='option'
+              key={option}
+              size='small'
+              color='secondary'
+              variant='quiet'
+              onMouseDown={() => handleWordClick(option)}
+            >
+              {option}
+            </Button>
+          )
+        )}
       </Popover>
     </div>
   );

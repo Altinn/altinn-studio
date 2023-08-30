@@ -1,6 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
@@ -36,7 +36,7 @@ export const CheckboxGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <CheckboxGroup
+      <Checkbox.Group
         legend={
           <TextResource
             handleIdChange={changeLegend}
@@ -48,6 +48,7 @@ export const CheckboxGroupPreview = ({
               layoutId: layoutName,
               textResourceKey: 'title',
             }}
+            handleRemoveTextResource={() => changeLegend(undefined)}
           />
         }
         description={
@@ -61,23 +62,22 @@ export const CheckboxGroupPreview = ({
               layoutId: layoutName,
               textResourceKey: 'description',
             }}
+            handleRemoveTextResource={() => changeDescription(undefined)}
           />
         }
-        items={
-          component.options?.map(({ value, label }) => ({
-            name: value,
-            label: (
-              <TextResource
-                handleIdChange={(id) => changeOptionLabel(value, id)}
-                placeholder={tCheckboxes('option_label_placeholder')}
-                previewMode
-                textResourceId={label}
-              />
-            ),
-          })) || []
-        }
-        presentation
-      />
+      >
+        {component.options?.map(({ value, label }) => (
+        <Checkbox key={value} id={value} value={value}>
+           <TextResource
+              handleIdChange={(id) => changeOptionLabel(value, id)}
+              placeholder={tCheckboxes('option_label_placeholder')}
+              previewMode
+              textResourceId={label}
+              handleRemoveTextResource={() => changeOptionLabel(value, undefined)}
+            />
+        </Checkbox>
+          )) || []}
+      </Checkbox.Group>
       {!component.optionsId && (
         <AddOption<FormCheckboxesComponent>
           addButtonClass={classes.addCheckbox}

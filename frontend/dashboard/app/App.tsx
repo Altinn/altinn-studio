@@ -4,7 +4,6 @@ import { PageSpinner } from 'app-shared/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 import { ErrorMessage } from 'dashboard/components/ErrorMessage';
@@ -13,7 +12,6 @@ import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
 
 export const App = (): JSX.Element => {
-  const { t } = useTranslation();
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
@@ -62,5 +60,5 @@ export const App = (): JSX.Element => {
     );
   }
 
-  return <PageSpinner text={t('dashboard.loading')} />;
+  return <div className={classes.appDashboardSpinner}><PageSpinner/></div>;
 };

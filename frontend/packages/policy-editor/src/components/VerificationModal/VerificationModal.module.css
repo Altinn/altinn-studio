@@ -1,0 +1,14 @@
+.buttonWrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 40px;
+}
+
+.contentDivider {
+  border: solid 1px var(--fds-semantic-border-neutral-divider);
+  margin-block: 25px;
+}
+
+.closeButtonWrapper {
+  margin-right: 10px;
+}

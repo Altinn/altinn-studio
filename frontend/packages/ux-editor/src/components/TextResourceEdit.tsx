@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  FieldSet,
-  TextArea,
-} from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, TextArea } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -32,11 +26,11 @@ export const TextResourceEdit = () => {
   }
 
   return (
-    <FieldSet
+    <LegacyFieldSet
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id', { id: editId })}
-      contentClassName={classes.textBoxList}
     >
+      <div className={classes.textBoxList}>
       {languages.map((language) => (
         <TextBox
           key={language}
@@ -47,14 +41,16 @@ export const TextResourceEdit = () => {
         />
       ))}
       <Button
-        color={ButtonColor.Secondary}
+        color='secondary'
         icon={<XMarkIcon />}
         onClick={() => setEditId(undefined)}
-        variant={ButtonVariant.Outline}
+        variant='filled'
+        size='small'
       >
         {t('general.close')}
       </Button>
-    </FieldSet>
+      </div>
+    </LegacyFieldSet>
   );
 };
 
@@ -69,18 +65,22 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { org, app } = useParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
+  const textResourceValue = textResource?.value || '';
+
   const updateTextResource = (text: string) => {
-      mutate({
-        language,
-        textResources: [{ id: textResourceId, value: text, variables:textResource?.variables }],
-      });
+    if (text === textResourceValue) return;
+
+    mutate({
+      language,
+      textResources: [{ id: textResourceId, value: text, variables: textResource?.variables }],
+    });
   };
 
-  const [value, setValue] = useState<string>(textResource?.value || '');
+  const [value, setValue] = useState<string>(textResourceValue);
 
   useEffect(() => {
-    setValue(textResource?.value || '')
-  }, [textResource?.value]);
+    setValue(textResourceValue);
+  }, [textResourceValue]);
 
   return (
     <div>

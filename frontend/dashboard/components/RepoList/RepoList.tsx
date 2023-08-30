@@ -176,7 +176,6 @@ export const RepoList = ({
           return [
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
-              data-testid='gitea-repo-link'
               icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
               key={`dashboard.repository${params.row.id}`}
               label={t('dashboard.repository')}
@@ -185,7 +184,6 @@ export const RepoList = ({
               edge='end'
             />,
             <GridActionsCellItem
-              data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
               icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
               key={`dashboard.edit_app${params.row.id}`}
@@ -196,7 +194,6 @@ export const RepoList = ({
               <a
                 key={params.row.id}
                 href={params.row.html_url}
-                data-testid='gitea-repo-link'
                 className={cn(classes.actionLink, classes.repoLink)}
               >
                 <span>{t(editTextKey)}</span>

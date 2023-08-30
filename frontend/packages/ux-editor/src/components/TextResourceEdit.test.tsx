@@ -50,8 +50,10 @@ describe('TextResourceEdit', () => {
   });
 
   it('Does not render anything if edit id is undefined', async () => {
-    const { renderResult } = await render();
-    expect(renderResult.container).toBeEmptyDOMElement();
+    await render();
+    expect(screen.queryByText(legendText)).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: closeText })).not.toBeInTheDocument();
   });
 
   it('Renders correctly when a valid edit id is given', async () => {
@@ -89,12 +91,22 @@ additionalValue });
 
   it('upsertTextResources should not be called when the text is NOT changed', async () => {
     const id = 'some-id';
-    const oldValue = 'Lorem';
-    const newValue = `${oldValue} ipsum`;
-    const resources: ITextResources = { nb: [{ id, value: oldValue }] };
+    const value = 'Lorem';
+    const resources: ITextResources = { nb: [{ id, value }] };
     await render(resources, id);
     const textBox = screen.getByLabelText(nbText);
-    fireEvent.change(textBox, { target: { value: newValue } });
+    await act(() => user.clear(textBox));
+    await act(() => user.type(textBox, value));
+    await act(() => user.tab());
+    expect(queriesMock.upsertTextResources).not.toHaveBeenCalled();
+  });
+
+  it('upsertTextResources should not be called when the text resource does not exist and the text is empty', async () => {
+    const id = 'some-id';
+    const resources: ITextResources = { nb: [] };
+    await render(resources, id);
+    const textBox = screen.getByLabelText(nbText);
+    await act(() => user.clear(textBox));
     await act(() => user.tab());
     expect(queriesMock.upsertTextResources).not.toHaveBeenCalled();
   });

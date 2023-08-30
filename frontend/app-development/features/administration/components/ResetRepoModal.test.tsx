@@ -7,6 +7,7 @@ import { renderWithMockStore } from 'app-development/test/mocks';
 
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import * as testids from '../../../../testing/testids';
 
 const user = userEvent.setup();
 
@@ -56,7 +57,7 @@ describe('ResetRepoModal', () => {
 
   it('renders the component', () => {
     render();
-    const resetRepoContainer = screen.getByTestId('reset-repo-container');
+    const resetRepoContainer = screen.getByTestId(testids.resetRepoContainer);
     expect(resetRepoContainer).toBeDefined();
   });
 

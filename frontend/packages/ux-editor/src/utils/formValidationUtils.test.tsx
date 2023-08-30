@@ -1,5 +1,6 @@
 import {
   addSchemas,
+  dereferenceSchema,
   getPropertyByPath,
   isPropertyRequired,
   validate,
@@ -8,14 +9,20 @@ import {
 import expressionSchema from '../testing/schemas/json/layout/expression.schema.v1.json';
 import numberFormatSchema from '../testing/schemas/json/layout/number-format.schema.v1.json';
 import layoutSchema from '../testing/schemas/json/layout/layout.schema.v1.json';
-
-addSchemas([expressionSchema, numberFormatSchema, layoutSchema]);
+import inputSchema from '../testing/schemas/json/component/Input.schema.v1.json';
+import commonDefsSchema from '../testing/schemas/json/component/common-defs.schema.v1.json';
 
 describe('formValidationUtils', () => {
+  beforeAll(() => {
+    addSchemas([expressionSchema, numberFormatSchema, commonDefsSchema, layoutSchema, inputSchema]);
+  });
+
   describe('Schema validation functions', () => {
     describe('getPropertyByPath', () => {
       it('should return object at the given path', () => {
-        expect(getPropertyByPath(layoutSchema, 'definitions/component/properties/id')).toEqual(layoutSchema.definitions.component.properties.id);
+        expect(getPropertyByPath(layoutSchema, 'definitions/component/properties/id')).toEqual(
+          layoutSchema.definitions.component.properties.id
+        );
       });
     });
 
@@ -32,13 +39,73 @@ describe('formValidationUtils', () => {
 
     describe('validate', () => {
       it('should validate the whole layout and return errors if validation fails', () => {
-        expect(validate(layoutSchema.$id, 'test')).toEqual([{ "instancePath": "", "keyword": "type", "message": "must be object", "params": { "type": "object" }, "schemaPath": "#/type" }]);
+        expect(validate(layoutSchema.$id, 'test')).toEqual([
+          {
+            instancePath: '',
+            keyword: 'type',
+            message: 'must be object',
+            params: { type: 'object' },
+            schemaPath: '#/type',
+          },
+        ]);
       });
     });
 
     describe('validateProperty', () => {
       it('should validate property and return error keyword if validation fails', () => {
-        expect(validateProperty(`${layoutSchema.$id}#/definitions/component/properties/id`, '@')).toEqual('pattern');
+        expect(
+          validateProperty(`${layoutSchema.$id}#/definitions/component/properties/id`, '@')
+        ).toEqual('pattern');
+      });
+    });
+  });
+
+  describe('Dereference schema', () => {
+    it('should return the dereferenced schema', () => {
+      expect(
+        dereferenceSchema({
+          $ref: 'https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings',
+        })
+      ).toEqual({
+        title: 'Data model bindings',
+        description: 'Data model bindings for component',
+        type: 'object',
+        properties: {
+          simpleBinding: {
+            type: 'string',
+            title: 'Simple binding',
+            description:
+              'Data model binding for components connection to a single field in the data model',
+          },
+        },
+        required: ['simpleBinding'],
+        additionalProperties: false,
+      });
+    });
+
+    it('should still return the dereferenced schema', () => {
+      expect(
+        dereferenceSchema({
+          properties: {
+            required: {
+              title: 'Required',
+              description:
+                'Boolean or expression indicating if the component is required when filling in the form. Defaults to false.',
+              default: false,
+              $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+            },
+          },
+        })
+      ).toEqual({
+        properties: {
+          required: {
+            title: 'Required',
+            description:
+              'Boolean or expression indicating if the component is required when filling in the form. Defaults to false.',
+            default: false,
+            $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+          },
+        },
       });
     });
   });

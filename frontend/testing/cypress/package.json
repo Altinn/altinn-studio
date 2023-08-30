@@ -6,11 +6,11 @@
     "@faker-js/faker": "8.0.2",
     "@testing-library/cypress": "9.0.0",
     "axe-core": "4.7.2",
-    "cypress": "12.16.0",
+    "cypress": "12.17.4",
     "cypress-axe": "1.4.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.44.0",
-    "eslint-plugin-cypress": "2.13.3"
+    "eslint": "8.47.0",
+    "eslint-plugin-cypress": "2.14.0"
   },
   "main": "index.js",
   "scripts": {

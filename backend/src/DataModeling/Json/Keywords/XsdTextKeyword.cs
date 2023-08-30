@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Json.Schema;
@@ -9,10 +10,11 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// Adds @XsdText keyword to schema indicating if member should be treated as XML text when serialized or deserialized.
 /// </summary>
 [SchemaKeyword(Name)]
-[SchemaDraft(Draft.Draft6)]
-[SchemaDraft(Draft.Draft7)]
-[SchemaDraft(Draft.Draft201909)]
-[SchemaDraft(Draft.Draft202012)]
+[SchemaSpecVersion(SpecVersion.Draft6)]
+[SchemaSpecVersion(SpecVersion.Draft7)]
+[SchemaSpecVersion(SpecVersion.Draft201909)]
+[SchemaSpecVersion(SpecVersion.Draft202012)]
+[SchemaSpecVersion(SpecVersion.DraftNext)]
 [JsonConverter(typeof(XsdTextKeywordJsonConverter))]
 public sealed class XsdTextKeyword : IJsonSchemaKeyword, IEquatable<XsdTextKeyword>
 {
@@ -41,12 +43,9 @@ public sealed class XsdTextKeyword : IJsonSchemaKeyword, IEquatable<XsdTextKeywo
         Value = value;
     }
 
-    /// <summary>
-    /// Always validates as true
-    /// </summary>
-    public void Validate(ValidationContext context)
+    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
     {
-        // No validation for keyword.
+        return new KeywordConstraint(Name, (e, c) => { });
     }
 
     /// <inheritdoc/>

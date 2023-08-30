@@ -3,3 +3,5 @@ query-filters:
       id: js/ml-powered/xss
   - exclude:
       id: js/ml-powered/sql-injection
+  - exclude:
+      id: js/ml-powered/nosql-injection

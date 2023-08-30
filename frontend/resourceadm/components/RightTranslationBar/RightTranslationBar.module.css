@@ -1,0 +1,32 @@
+.wrapper {
+  background-color: var(--fds-semantic-background-subtle);
+  min-height: 100vh;
+  height: 100%;
+  right: 0;
+  border: 1px solid var(--fds-semantic-border-neutral-divider);
+  border-top: none;
+}
+
+.topWrapper {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  padding-bottom: 0;
+}
+
+.topText {
+  margin-left: 10px;
+}
+
+.icon {
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.inputWrapper {
+  margin-block: 30px;
+}
+
+.bodyWrapper {
+  padding-inline: 20px;
+  margin-top: 20px;
+}

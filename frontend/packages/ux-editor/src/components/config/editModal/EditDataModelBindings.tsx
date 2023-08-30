@@ -4,7 +4,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
-import { Label } from 'app-shared/components/Label';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useParams } from 'react-router-dom';
 
@@ -15,12 +14,14 @@ export interface EditDataModelBindingsProps extends IGenericEditComponent {
     key?: string;
     uniqueKey?: any;
   };
+  helpText?: string;
 }
 
 export const EditDataModelBindings = ({
   component,
   handleComponentChange,
   renderOptions,
+  helpText,
 }: EditDataModelBindingsProps) => {
   const { org, app } = useParams();
   const { data } = useDatamodelMetadataQuery(org, app);
@@ -43,20 +44,27 @@ export const EditDataModelBindings = ({
 
   const { uniqueKey, key, label } = renderOptions || {};
   return (
-     <div key={uniqueKey || ''}>
-      <Label htmlFor={`selectDataModelSelect-${label}`}>
-        {
+    <div key={uniqueKey || ''}>
+      <SelectDataModelComponent
+        propertyPath={`definitions/component/properties/dataModelBindings/properties/${
+          key || 'simpleBinding'
+        }`}
+        label={
           label
             ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
             : t('ux_editor.modal_properties_data_model_helper')
         }
-      </Label>
-      <SelectDataModelComponent
+        componentType={component.type}
         inputId={`selectDataModelSelect-${label}`}
-        selectedElement={component.dataModelBindings[key || 'simpleBinding']}
+        selectedElement={
+          component.dataModelBindings
+            ? component.dataModelBindings[key || 'simpleBinding']
+            : undefined
+        }
         onDataModelChange={(dataModelField: string) => handleDataModelChange(dataModelField, key)}
         noOptionsMessage={t('general.no_options')}
+        helpText={helpText}
       />
     </div>
-  )
+  );
 };

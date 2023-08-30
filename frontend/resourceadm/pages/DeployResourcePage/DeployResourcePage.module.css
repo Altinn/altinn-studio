@@ -1,47 +1,36 @@
 .deployPageWrapper {
   width: 90%;
   margin: 0;
-  padding-top: 2%;
-  padding-bottom: 50px;
-  padding-inline: 2%;
-}
-
-.pageHeader {
-  margin-bottom: 40px;
-  font-weight: 400;
-  font-size: 30px;
+  padding: 40px;
 }
 
 .contentWrapper {
   width: 630px;
 }
 
-.subHeader {
-  font-weight: 500;
-  margin-top: 40px;
-  margin-bottom: 5px;
-  font-size: 18px;
-}
-
 .deployCardsWrapper {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 10px;
+}
+
+.informationText {
+  margin-top: 30px;
 }
 
 .newVersionWrapper {
-  margin-top: 40px;
+  margin-top: 30px;
   width: 100%;
+  margin-bottom: 40px;
 }
 
-.text {
-  margin-bottom: 5px;
-  font-size: 16px;
-  font-weight: 400;
+.newVersionParagraph {
+  margin-bottom: 10px;
 }
 
 .textAndButton {
   display: flex;
+  align-items: flex-end;
   width: 100%;
 }
 
@@ -54,7 +43,9 @@
   margin-bottom: 20px;
 }
 
-p, h1, h2 {
+p,
+h1,
+h2 {
   margin: 0;
   line-height: 24px;
 }

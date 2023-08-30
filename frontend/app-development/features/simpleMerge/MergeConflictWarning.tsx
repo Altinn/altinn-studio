@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import classes from './MergeConflictWarning.module.css';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { Download } from '@navikt/ds-icons';
 import { ButtonContainer } from 'app-shared/primitives';
 import { DownloadRepoModal } from '../administration/components/DownloadRepoModal';
@@ -26,11 +26,12 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
       <p>{t('merge_conflict.body1')} </p>
       <p>{t('merge_conflict.body2')}</p>
       <Button
-        variant={ButtonVariant.Quiet}
+        variant='quiet'
         icon={<Download />}
         iconPlacement={'right'}
         onClick={toggleDownloadModal}
         ref={downloadModalAnchor}
+        size='small'
       >
         {t('merge_conflict.download_zip_file')}
       </Button>
@@ -42,7 +43,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
         app={app}
       />
       <ButtonContainer className={classes.buttonContainer}>
-        <Button ref={resetRepoModalAnchor} onClick={toggleResetModal}>
+        <Button ref={resetRepoModalAnchor} onClick={toggleResetModal} size='small'>
           {t('merge_conflict.remove_my_changes')}
         </Button>
         <ResetRepoModal

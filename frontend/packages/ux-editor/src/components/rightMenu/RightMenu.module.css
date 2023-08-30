@@ -1,14 +1,7 @@
-.main {
-  border-left: 1px solid #c9c9c9;
-  height: 100%;
-  margin-top: 0;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  padding-bottom: 8rem;
+.expressionsAlert {
+  z-index: 1;
 }
 
-.main CheckBox {
-  position: absolute;
-  right: 4px;
-  top: 4px;
+.expressionsVersionCheckBox {
+  z-index: 1;
 }

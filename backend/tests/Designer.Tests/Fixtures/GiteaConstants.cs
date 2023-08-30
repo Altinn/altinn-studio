@@ -3,7 +3,7 @@
 namespace Designer.Tests.Fixtures
 {
     [ExcludeFromCodeCoverage]
-    public abstract class GiteaConstants
+    public static class GiteaConstants
     {
         public const string AdminUser = "adminUser";
         public const string AdminPassword = "Test1234$";

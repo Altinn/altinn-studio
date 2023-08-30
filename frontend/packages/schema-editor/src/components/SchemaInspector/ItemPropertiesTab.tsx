@@ -14,6 +14,6 @@ export const ItemPropertiesTab = ({ selectedItem }: ItemPropertiesTabProps) => {
   } else if (selectedItem.pointer === ROOT_POINTER) {
     return <>root</>;
   } else {
-    return <ItemDataComponent {...selectedItem} />;
+    return <ItemDataComponent schemaNode={selectedItem} />;
   }
 };

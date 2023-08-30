@@ -1,7 +1,6 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { NameError } from '../../types';
 import {
   navigateToType,
   removeSelection,
@@ -10,9 +9,8 @@ import {
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import {
-  Checkbox,
-  ErrorMessage,
-  FieldSet,
+  LegacyCheckbox,
+  LegacyFieldSet,
   Select,
   TextArea,
   TextField,
@@ -39,19 +37,20 @@ import {
   combinationIsNullable,
   getChildNodesByPointer,
   getNameFromPointer,
-  hasNodePointer,
-  replaceLastPointerSegment,
 } from '@altinn/schema-model';
-import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
+import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { NameField } from './NameField';
 
-export type IItemDataComponentProps = Omit<UiSchemaNode, 'children'>;
+export type IItemDataComponentProps = {
+  schemaNode: UiSchemaNode;
+};
 
-export function ItemDataComponent(props: IItemDataComponentProps) {
+export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const {
     fieldType,
     pointer,
@@ -62,7 +61,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     objectKind,
     isArray,
     custom,
-  } = props;
+  } = schemaNode;
   const dispatch = useDispatch();
   const { data } = useDatamodelQuery();
   const { mutate } = useDatamodelMutation();
@@ -70,37 +69,14 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
 
-  const [nameError, setNameError] = useState(NameError.NoError);
+  useEffect(() => {
+    setNodeName(getNameFromPointer({ pointer }));
+  }, [pointer]);
+
   const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
-
-  const softValidateName = (nodeNameToValidate: string) => {
-    const error = !isValidName(nodeNameToValidate) ? NameError.InvalidCharacter : NameError.NoError;
-    setNameError(error);
-    return error;
-  };
-  const hardValidateName = () => {
-    const error = softValidateName(nodeName);
-    if (error !== NameError.NoError) {
-      return error;
-    }
-    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeName))) {
-      setNameError(NameError.AlreadyInUse);
-      return NameError.AlreadyInUse;
-    }
-    return error;
-  };
-
-  useEffect(() => {
-    softValidateName(nodeName);
-  }, [nodeName]);
-
-  const onNameChange = ({ target }: ChangeEvent) => {
-    const { value } = target as HTMLInputElement;
-    setNodeName(value);
-  };
 
   const onChangeRef = (path: string, ref: string) => mutate(setRef(data, { path, ref }));
 
@@ -143,21 +119,14 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
 
-  const handleChangeNodeName = () => {
-    const staleName = getNameFromPointer({ pointer });
-    if (staleName === nodeName) {
-      return;
-    }
-    const error = hardValidateName();
-    if (error === NameError.NoError) {
-      mutate(
-        setPropertyName(data, {
-          path: pointer,
-          name: nodeName,
-          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-        })
-      );
-    }
+  const handleChangeNodeName = (newNodeName: string) => {
+    mutate(
+      setPropertyName(data, {
+        path: pointer,
+        name: newNodeName,
+        callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+      })
+    );
   };
 
   const { t } = useTranslation();
@@ -167,30 +136,15 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
 
-  const nameErrorMessage = {
-    [NameError.InvalidCharacter]: t('schema_editor.nameError_invalidCharacter'),
-    [NameError.AlreadyInUse]: t('schema_editor.nameError_alreadyInUse'),
-    [NameError.NoError]: '',
-  }[nameError];
-
   return (
     <div className={classes.root}>
       {!isCombinationItem && (
-        <div>
-          <TextField
-            aria-describedby='Selected Item Name'
-            aria-errormessage={nameErrorMessage}
-            aria-label={t('schema_editor.name')}
-            aria-placeholder='Name'
-            id='selectedItemName'
-            label={t('schema_editor.name')}
-            onBlur={handleChangeNodeName}
-            onChange={onNameChange}
-            placeholder='Name'
-            value={nodeName}
-          />
-          {nameError !== NameError.NoError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}
-        </div>
+        <NameField
+          id='selectedItemName'
+          label={t('schema_editor.name')}
+          handleSave={handleChangeNodeName}
+          pointer={pointer}
+        />
       )}
       {objectKind === ObjectKind.Field && (
         <Select
@@ -211,7 +165,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
         />
       )}
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
-        <Checkbox
+        <LegacyCheckbox
           checked={isArray}
           label={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
@@ -229,7 +183,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
         />
       )}
       {objectKind === ObjectKind.Combination && (
-        <Checkbox
+        <LegacyCheckbox
           checkboxId='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
           label={t('schema_editor.nullable')}
@@ -237,15 +191,15 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
           onChange={onChangeNullable}
         />
       )}
-      <ItemRestrictions {...props} />
+      <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (
         <>
-          <Divider marginless/>
-          <CustomProperties path={pointer}/>
+          <Divider marginless />
+          <CustomProperties path={pointer} />
         </>
       )}
-      <Divider marginless/>
-      <FieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
+      <Divider marginless />
+      <LegacyFieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <TextField
             id={titleId}
@@ -269,7 +223,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
             value={itemDescription}
           />
         </div>
-      </FieldSet>
+      </LegacyFieldSet>
     </div>
   );
 }
