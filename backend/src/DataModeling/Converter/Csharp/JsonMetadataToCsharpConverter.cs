@@ -321,9 +321,10 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
         private static string GetRangeValueAsString(ElementMetadata element, Restriction restriction)
         {
-            string value = restriction?.Value;
+            string value = restriction?.Value ?? string.Empty;
+            bool isAlreadyDecimal = value.Contains('.') || value.Contains(',');
             // Use decimal range value for all types except int and long
-            if (element.XsdValueType.HasValue && !new[]
+            if (!isAlreadyDecimal && element.XsdValueType.HasValue && !new[]
                 {
                     BaseValueType.Int, BaseValueType.Long
                 }.Contains(element.XsdValueType.Value))
@@ -346,7 +347,6 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 case BaseValueType.NonPositiveInteger:
                 case BaseValueType.NonNegativeInteger:
                 case BaseValueType.PositiveInteger:
-                case BaseValueType.Decimal:
                     classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:

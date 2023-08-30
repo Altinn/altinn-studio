@@ -251,7 +251,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("MobilBoenhet")]
     public bool? MobilBoenhet { get; set; }
 
-    [Range(1, 999)]
+    [Range(1d, 999d)]
     [XmlElement("AntallEnerom", Order = 4)]
     [JsonProperty("AntallEnerom")]
     [JsonPropertyName("AntallEnerom")]
@@ -267,7 +267,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("TvEllerInternett")]
     public bool? TvEllerInternett { get; set; }
 
-    [Range(0, 999)]
+    [Range(0d, 999d)]
     [XmlElement("AntallRomMedKjokken", Order = 7)]
     [JsonProperty("AntallRomMedKjokken")]
     [JsonPropertyName("AntallRomMedKjokken")]
