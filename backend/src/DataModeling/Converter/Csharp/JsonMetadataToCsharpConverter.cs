@@ -322,25 +322,14 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             switch (type)
             {
                 case BaseValueType.Double:
-                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
-                    break;
                 case BaseValueType.Int:
-                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
-                    break;
                 case BaseValueType.Integer:
-                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
-                    break;
+                case BaseValueType.Long:
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},-1" + errorMessage + ")]");
-                    break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},0" + errorMessage + ")]");
-                    break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine(Indent(2) + $"[Range(0,{RightRangeLimit(type)}" + errorMessage + ")]");
-                    break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine(Indent(2) + $"[Range(1,{RightRangeLimit(type)}" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
                     classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
@@ -376,6 +365,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             BaseValueType.PositiveInteger => "1",
             BaseValueType.Decimal => "Double.MinValue",
             BaseValueType.Double => "Double.MinValue",
+            BaseValueType.Long => "Int64.MinValue",
             _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
         };
         private string RightRangeLimit(BaseValueType? type) => type switch
@@ -388,6 +378,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             BaseValueType.PositiveInteger => "Double.MaxValue",
             BaseValueType.Decimal => "Double.MaxValue",
             BaseValueType.Double => "Double.MaxValue",
+            BaseValueType.Long => "Int64.MaxValue",
             _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
         };
 
