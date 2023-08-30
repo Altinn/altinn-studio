@@ -296,25 +296,25 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         private void SetRangeRestriction(StringBuilder classBuilder, ElementMetadata element, string errorMessage, string leftRestrictionName, string rightRestrictionName, out bool hasRange)
         {
             hasRange = false;
-            bool hasMin = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
-            bool hasMax = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
+            bool hasMinimum = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
+            bool hasMaximum = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
 
-            string minVal = GetStringRangeValue(element, minRestriction);
-            string maxVal = GetStringRangeValue(element, maxRestriction);
+            string minValue = GetStringRangeValue(element, minRestriction);
+            string maxValue = GetStringRangeValue(element, maxRestriction);
 
-            if (hasMin && hasMax)
+            if (hasMinimum && hasMaximum)
             {
-                classBuilder.AppendLine($"{Indent(2)}[Range({minVal}, {maxVal}{errorMessage})]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({minValue}, {maxValue}{errorMessage})]");
                 hasRange = true;
             }
-            else if (hasMin)
+            else if (hasMinimum)
             {
-                classBuilder.AppendLine($"{Indent(2)}[Range({minVal}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({minValue}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
                 hasRange = true;
             }
-            else if (hasMax)
+            else if (hasMaximum)
             {
-                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {maxVal}{errorMessage})]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {maxValue}{errorMessage})]");
                 hasRange = true;
             }
         }
