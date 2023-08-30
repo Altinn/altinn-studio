@@ -329,6 +329,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 case BaseValueType.NonPositiveInteger:
                 case BaseValueType.NonNegativeInteger:
                 case BaseValueType.PositiveInteger:
+                case BaseValueType.Decimal:
                     classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:

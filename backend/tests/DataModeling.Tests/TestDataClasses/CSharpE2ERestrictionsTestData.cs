@@ -33,6 +33,9 @@ public class CSharpE2ERestrictionsTestData : IEnumerable<object[]>
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeLimits", "long?", "[Range(Int64.MinValue, Int64.MaxValue)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeLeftLimit", "long?", "[Range(-100, Int64.MaxValue)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeRightLimit", "long?", "[Range(Int64.MinValue, 100)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeLimits", "decimal?", "[Range(Double.MinValue, Double.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeLeftLimit", "decimal?", "[Range(-100.0, Double.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeRightLimit", "decimal?", "[Range(Double.MinValue, 100.0)]" };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

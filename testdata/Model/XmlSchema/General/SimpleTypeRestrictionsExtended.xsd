@@ -27,6 +27,9 @@
         <xsd:element name="longRangeLimits" type="longRangeLimits" />
         <xsd:element name="longRangeLeftLimit" type="longRangeLeftLimit" />
         <xsd:element name="longRangeRightLimit" type="longRangeRightLimit" />
+        <xsd:element name="decimalRangeLimits" type="decimalRangeLimits" />
+        <xsd:element name="decimalRangeLeftLimit" type="decimalRangeLeftLimit" />
+        <xsd:element name="decimalRangeRightLimit" type="decimalRangeRightLimit" />
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
@@ -151,6 +154,20 @@
   <xsd:simpleType name="longRangeRightLimit">
     <xsd:restriction base="xsd:long">
       <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeLimits">
+    <xsd:restriction base="xsd:decimal">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeLeftLimit">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:minInclusive value="-100.0" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeRightLimit">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:maxInclusive value="100.0" />
     </xsd:restriction>
   </xsd:simpleType>
 
