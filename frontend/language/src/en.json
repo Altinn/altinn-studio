@@ -740,6 +740,7 @@
   "schema_editor.datamodel_field_deletion_confirm": "Yes, delete field",
   "schema_editor.datamodel_field_deletion_info": "Please ensure that the field is not linked to any layouts or rules before deleting it.",
   "schema_editor.datamodel_field_deletion_text": "Are you sure you want to delete this field?",
+  "schema_editor.datamodel_generation_success_message": "The generation of your data models was successful!",
   "schema_editor.definitions": "Definitions",
   "schema_editor.delete": "Delete",
   "schema_editor.delete_data_model": "Delete data model",

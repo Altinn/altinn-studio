@@ -36,7 +36,8 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     repoResetMutation.mutate(null, {
       onSuccess: () => {
         onCloseWrapper();
-        toast.success(t('administration.reset_repo_completed'));
+        const messageKey = 'administration.reset_repo_completed';
+        toast.success(t(messageKey), { toastId: messageKey });
       }
     });
   };

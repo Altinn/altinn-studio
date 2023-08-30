@@ -810,6 +810,7 @@
   "schema_editor.datamodel_field_deletion_confirm": "Ja, slett feltet",
   "schema_editor.datamodel_field_deletion_info": "Vennligst forsikre deg om at feltet ikke er knyttet til noen oppsett eller regler før du sletter det.",
   "schema_editor.datamodel_field_deletion_text": "Er du sikker på at du vil slette dette feltet?",
+  "schema_editor.datamodel_generation_success_message": "Genereringen av dine datamodeller var vellykket!",
   "schema_editor.definitions": "Definisjoner",
   "schema_editor.delete": "Slett",
   "schema_editor.delete_data_model": "Slett datamodell",

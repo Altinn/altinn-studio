@@ -80,7 +80,7 @@ export const ServicesContextProvider = ({
         // TODO : log rendering errors
       }}
     >
-      <ToastContainer position='top-center' autoClose={5000} theme='colored' transition={Slide} />
+      <ToastContainer position='top-center' theme='colored' transition={Slide} draggable={false} />
       <QueryClientProvider client={queryClient}>
         <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />
