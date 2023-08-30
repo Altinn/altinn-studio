@@ -299,8 +299,8 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             bool hasMinimum = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
             bool hasMaximum = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
 
-            string minValue = GetStringRangeValue(element, minRestriction);
-            string maxValue = GetStringRangeValue(element, maxRestriction);
+            string minValue = GetRangeValueAsString(element, minRestriction);
+            string maxValue = GetRangeValueAsString(element, maxRestriction);
 
             if (hasMinimum && hasMaximum)
             {
@@ -319,7 +319,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private static string GetStringRangeValue(ElementMetadata element, Restriction restriction)
+        private static string GetRangeValueAsString(ElementMetadata element, Restriction restriction)
         {
             string value = restriction?.Value;
             // Use decimal range value for all types except int and long
