@@ -356,7 +356,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private string LeftRangeLimit(BaseValueType type) => type switch
+        private static string LeftRangeLimit(BaseValueType type) => type switch
         {
             BaseValueType.Int => "Int32.MinValue",
             BaseValueType.Integer => "Double.MinValue",
@@ -369,7 +369,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             BaseValueType.Long => "Int64.MinValue",
             _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
         };
-        private string RightRangeLimit(BaseValueType? type) => type switch
+        private static string RightRangeLimit(BaseValueType? type) => type switch
         {
             BaseValueType.Int => "Int32.MaxValue",
             BaseValueType.Integer => "Double.MaxValue",
