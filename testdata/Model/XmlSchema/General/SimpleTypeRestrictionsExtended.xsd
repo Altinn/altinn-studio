@@ -18,6 +18,12 @@
         <xsd:element name="f5" type="numberRestrictionsFractional4" />
         <xsd:element name="f6" type="numberRestrictionsFractional5" />
         <xsd:element name="nonPrimitive" type="nestedStringRestrictions" />
+        <xsd:element name="intRangeLimits" type="intRangeLimits" />
+        <xsd:element name="intRangeLeftLimit" type="intRangeLeftLimit" />
+        <xsd:element name="intRangeRightLimit" type="intRangeRightLimit" />
+        <xsd:element name="integerRangeLimits" type="integerRangeLimits" />
+        <xsd:element name="integerRangeLeftLimit" type="integerRangeLeftLimit" />
+        <xsd:element name="integerRangeRightLimit" type="integerRangeRightLimit" />
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
@@ -100,6 +106,35 @@
   <xsd:simpleType name="nestedStringRestrictions">
     <xsd:restriction base="stringMinMaxLengthRestrictions">
       <xsd:pattern value="[0-9]+"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="intRangeLimits">
+    <xsd:restriction base="xsd:int">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeLimits">
+    <xsd:restriction base="xsd:integer">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="intRangeLeftLimit">
+    <xsd:restriction base="xsd:int">
+      <xsd:minInclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="intRangeRightLimit">
+    <xsd:restriction base="xsd:int">
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeLeftLimit">
+    <xsd:restriction base="xsd:integer">
+      <xsd:minInclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeRightLimit">
+    <xsd:restriction base="xsd:integer">
+      <xsd:maxInclusive value="100" />
     </xsd:restriction>
   </xsd:simpleType>
 </xsd:schema>
