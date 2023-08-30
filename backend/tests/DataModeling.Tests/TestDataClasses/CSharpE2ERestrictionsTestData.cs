@@ -24,16 +24,20 @@ public class CSharpE2ERestrictionsTestData : IEnumerable<object[]>
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "nonPrimitive", "string", @"[RegularExpression(@""[0-9]+"")]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "nonPrimitive", "string", "[MinLength(5)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "nonPrimitive", "string", "[MaxLength(20)]" };
-        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "intRangeLimits", "int?", "[Range(Int32.MinValue, Int32.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "intRangeWithoutLimits", "int?", "[Range(Int32.MinValue, Int32.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "intRangeWithLimits", "int?", "[Range(-100, 100)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "intRangeLeftLimit", "int?", "[Range(-100, Int32.MaxValue)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "intRangeRightLimit", "int?", "[Range(Int32.MinValue, 100)]" };
-        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "integerRangeLimits", "decimal?", "[Range(Double.MinValue, Double.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "integerRangeWithoutLimits", "decimal?", "[Range(Double.MinValue, Double.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "integerRangeWithLimits", "decimal?", "[Range(-100, 100)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "integerRangeLeftLimit", "decimal?", "[Range(-100, Double.MaxValue)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "integerRangeRightLimit", "decimal?", "[Range(Double.MinValue, 100)]" };
-        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeLimits", "long?", "[Range(Int64.MinValue, Int64.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeWithoutLimits", "long?", "[Range(Int64.MinValue, Int64.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeWithLimits", "long?", "[Range(-100, 100)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeLeftLimit", "long?", "[Range(-100, Int64.MaxValue)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "longRangeRightLimit", "long?", "[Range(Int64.MinValue, 100)]" };
-        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeLimits", "decimal?", "[Range(Double.MinValue, Double.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeWithoutLimits", "decimal?", "[Range(Double.MinValue, Double.MaxValue)]" };
+        yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeWithLimits", "decimal?", "[Range(-100, 100.0)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeLeftLimit", "decimal?", "[Range(-100.0, Double.MaxValue)]" };
         yield return new object[] { "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "decimalRangeRightLimit", "decimal?", "[Range(Double.MinValue, 100.0)]" };
     }
