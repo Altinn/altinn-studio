@@ -30,28 +30,32 @@ export const useRuleModelQuery =
         };
 
         // Add the rule handler functions to the rule model
-        Object.keys(ruleHandlerObject).forEach((functionName) => {
-          if (typeof ruleHandlerHelper[functionName] === 'function') {
-            const innerFuncObj: IRuleModelFieldElement = {
-              name: functionName,
-              inputs: ruleHandlerHelper[functionName](),
-              type: 'rule',
-            };
-            ruleModelFields.push(innerFuncObj);
-          }
-        });
+        if (ruleHandlerObject) {
+          Object.keys(ruleHandlerObject).forEach((functionName) => {
+            if (typeof ruleHandlerHelper[functionName] === 'function') {
+              const innerFuncObj: IRuleModelFieldElement = {
+                name: functionName,
+                inputs: ruleHandlerHelper[functionName](),
+                type: 'rule',
+              };
+              ruleModelFields.push(innerFuncObj);
+            }
+          });
+        };
 
         // Add the conditional rule handler functions to the rule model
-        Object.keys(conditionalRuleHandlerObject).forEach((functionName) => {
-          if (typeof conditionalRuleHandlerHelper[functionName] === 'function') {
-            const innerFuncObj: IRuleModelFieldElement = {
-              name: functionName,
-              inputs: conditionalRuleHandlerHelper[functionName](),
-              type: 'condition',
-            };
-            ruleModelFields.push(innerFuncObj);
-          }
-        });
+        if (conditionalRuleHandlerObject) {
+          Object.keys(conditionalRuleHandlerObject).forEach((functionName) => {
+            if (typeof conditionalRuleHandlerHelper[functionName] === 'function') {
+              const innerFuncObj: IRuleModelFieldElement = {
+                name: functionName,
+                inputs: conditionalRuleHandlerHelper[functionName](),
+                type: 'condition',
+              };
+              ruleModelFields.push(innerFuncObj);
+            }
+          });
+        };
 
         return ruleModelFields;
       })

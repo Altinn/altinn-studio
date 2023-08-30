@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -68,16 +68,31 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
-      setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
-      dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
-    } else if (searchParams.has('layout')) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
-      // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-      if (instanceId) typedLocalStorage.setItem(instanceId, selectedLayout);
+    const firstLayoutPage = layoutPagesOrder?.[0];
+    if (!firstLayoutPage) return;
+
+    const searchParamsLayout = searchParams.get('layout');
+
+    const selectFirstLayoutPage = () => {
+      setSearchParams({ ...deepCopy(searchParams), layout: firstLayoutPage });
+    };
+
+    if (searchParamsLayout) {
+      const isExistingLayout = layoutPagesOrder?.includes(searchParamsLayout);
+      const isReceipt = formLayoutSettings?.receiptLayoutName === searchParamsLayout;
+      if (isExistingLayout || isReceipt) {
+        if (selectedLayout !== searchParamsLayout) {
+          dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
+          // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
+          if (instanceId) typedLocalStorage.setItem(instanceId, selectedLayout);
+        }
+      } else {
+        selectFirstLayoutPage();
+      }
+    } else {
+      selectFirstLayoutPage();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);
+  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams, selectedLayout, setSearchParams]);
 
 
   useEffect((): void => {
