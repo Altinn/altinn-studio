@@ -251,6 +251,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             WriteTypeRestrictions(classBuilder, element.XsdValueType.Value, errorMessage);
         }
+
         private void WriteRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage, out bool hasRange)
         {
             hasRange = false;
@@ -301,7 +302,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             string minVal = GetStringRangeValue(element, minRestriction);
             string maxVal = GetStringRangeValue(element, maxRestriction);
 
-            if ( hasMin && hasMax)
+            if (hasMin && hasMax)
             {
                 classBuilder.AppendLine($"{Indent(2)}[Range({minVal}, {maxVal}{errorMessage})]");
                 hasRange = true;
@@ -318,7 +319,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private string GetStringRangeValue(ElementMetadata element, Restriction restriction)
+        private static string GetStringRangeValue(ElementMetadata element, Restriction restriction)
         {
             string value = restriction?.Value;
             // Use decimal range value for all types except int and long
@@ -331,7 +332,6 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
             return value;
         }
-
 
         private void WriteTypeRestrictions(StringBuilder classBuilder, BaseValueType type, string errorMessage)
         {
@@ -386,6 +386,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             BaseValueType.Long => "Int64.MinValue",
             _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
         };
+
         private static string RightRangeLimit(BaseValueType? type) => type switch
         {
             BaseValueType.Int => "Int32.MaxValue",
