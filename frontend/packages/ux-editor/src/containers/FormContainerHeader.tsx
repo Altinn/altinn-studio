@@ -30,7 +30,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   return (
-    <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
+    <div className={cn(isEditMode && classes.editMode, classes.formGroup)}>
       <div ref={dragHandleRef} className={classes.dragHandle}>
         <DragHandle />
       </div>

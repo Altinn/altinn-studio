@@ -3,6 +3,7 @@ import { getNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
 import { CogIcon } from '@navikt/aksel-icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
+import * as testids from '../../../../../testing/testids';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
@@ -20,7 +21,7 @@ export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemPr
         [classes.itemSelected]: selected,
       })}
       onClick={handleClick}
-      data-testid={`type-item-${uiSchemaNode.pointer}`}
+      data-testid={testids.typeItem(uiSchemaNode.pointer)}
     >
       <div>
         <i className={`fa fa-datamodel-object ${classes.typeIcon}`} />

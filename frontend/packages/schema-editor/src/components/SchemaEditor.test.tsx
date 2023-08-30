@@ -21,6 +21,7 @@ import { getSavedModel } from '../../test/test-utils';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { jsonMetadata1Mock } from '../../test/mocks/metadataMocks';
+import * as testids from '../../../../testing/testids'
 
 const user = userEvent.setup();
 
@@ -291,7 +292,7 @@ describe('SchemaEditor', () => {
     };
     setSchema(jsonSchema);
     renderEditor();
-    const type = screen.getByTestId(`type-item-#/${Keyword.Definitions}/TestType`);
+    const type = screen.getByTestId(testids.typeItem(`#/${Keyword.Definitions}/TestType`));
     await act(() => user.click(type));
     expect(screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))).toBeDefined();
   });
@@ -314,7 +315,7 @@ describe('SchemaEditor', () => {
     };
     setSchema(jsonSchema);
     renderEditor();
-    const type = screen.getByTestId(`type-item-#/${Keyword.Definitions}/TestType`);
+    const type = screen.getByTestId(testids.typeItem(`#/${Keyword.Definitions}/TestType`));
     await act(() => user.click(type));
     const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });
     await act(() => user.click(closeType));

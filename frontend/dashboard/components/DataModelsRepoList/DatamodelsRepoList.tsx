@@ -45,7 +45,7 @@ export const DatamodelsReposList = ({
   }
 
   return (
-    <div data-testid='datamodels-repos-list'>
+    <div>
       <h2>{getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}</h2>
       <RepoList repos={reposWithStarred} isLoading={isLoadingOrgRepos} pageSize={5} rowCount={2} />
     </div>

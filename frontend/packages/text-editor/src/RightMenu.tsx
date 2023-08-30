@@ -8,6 +8,7 @@ import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
+import * as testids from '../../../testing/testids';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;
@@ -69,7 +70,7 @@ export const RightMenu = ({
                       trigger={
                         <Button
                           variant={canDeleteLang(langCode) ? 'filled' : 'outline'}
-                          data-testid={`delete-${langCode}`}
+                          data-testid={testids.deleteButton(langCode)}
                           color='danger'
                           onClick={() =>
                             setLangCodeToDelete((prevState) =>

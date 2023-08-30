@@ -18,7 +18,7 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
   };
 
   return (
-    <div data-testid='panel-component-container'>
+    <div>
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}

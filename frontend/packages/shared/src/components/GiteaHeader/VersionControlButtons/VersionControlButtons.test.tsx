@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import * as testids from '../../../../../../testing/testids';
 
 const user = userEvent.setup();
 const org = 'test-org';
@@ -76,9 +77,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {
     render();
     await waitFor(() => expect(getRepoMetadata).toHaveBeenCalledTimes(1));
-    expect(await screen.findByTestId('version-control-header')).not.toBeNull();
-    expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
-    expect(screen.queryByTestId('version-control-share-button')).toBeNull();
+    expect(await screen.findByTestId(testids.versionControlHeader)).not.toBeNull();
   });
 
   it('Refetches queries when clicking the fetch button', async () => {

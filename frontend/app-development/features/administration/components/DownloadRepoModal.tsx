@@ -16,7 +16,7 @@ interface IDownloadRepoModalProps {
 export function DownloadRepoModal(props: IDownloadRepoModalProps) {
   const { t } = useTranslation();
   return (
-    <div data-testid='download-repo-container'>
+    <div>
       <Popover
         open={props.open}
         anchorEl={props.anchorRef.current}
@@ -29,7 +29,6 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
           vertical: 'center',
           horizontal: 'center',
         }}
-        data-testid='download-repo-popover'
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.download_repo_heading')}</h2>

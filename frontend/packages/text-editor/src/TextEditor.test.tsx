@@ -5,6 +5,7 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
+import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();
 
@@ -63,7 +64,7 @@ describe('TextEditor', () => {
     renderTextEditor({
       deleteLanguage: handleDeleteLang,
     });
-    const deleteBtn = screen.getByTestId('delete-en');
+    const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
     await act(() => user.click(deleteBtn));
     await screen.findByRole('dialog');
@@ -86,7 +87,7 @@ describe('TextEditor', () => {
       setSelectedLangCodes: setSelectedLangCodes,
       deleteLanguage: handleDeleteLang,
     });
-    const deleteBtn = screen.getByTestId('delete-en');
+    const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
     await act(() => user.click(deleteBtn));
     await screen.findByRole('dialog');

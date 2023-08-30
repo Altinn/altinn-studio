@@ -28,11 +28,8 @@ describe('SchemaItem', () => {
     it('should open the confirmation dialog when clicking the delete button', async () => {
       await render();
 
-      const menuButton = screen.getByTestId('open-context-menu-button');
-      await act(() => user.click(menuButton));
-
-      const deleteButton = screen.getByText(textMock('delete'));
-      await act(() => user.click(deleteButton));
+      await act(() => user.click(getMenuButton()));
+      await act(() => user.click(getDeleteButton()));
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -54,11 +51,8 @@ describe('SchemaItem', () => {
       const utils = await render();
       const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-      const menuButton = screen.getByTestId('open-context-menu-button');
-      await act(() => user.click(menuButton));
-
-      const deleteButton = screen.getByText(textMock('delete'));
-      await act(() => user.click(deleteButton));
+      await act(() => user.click(getMenuButton()));
+      await act(() => user.click(getDeleteButton()));
 
       const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.datamodel_field_deletion_confirm') });
       await act(() => user.click(confirmButton));
@@ -76,11 +70,8 @@ describe('SchemaItem', () => {
       const utils = await render();
       const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-      const menuButton = screen.getByTestId('open-context-menu-button');
-      await act(() => user.click(menuButton));
-
-      const deleteButton = screen.getByText(textMock('delete'));
-      await act(() => user.click(deleteButton));
+      await act(() => user.click(getMenuButton()));
+      await act(() => user.click(getDeleteButton()));
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
       await act(() => user.click(cancelButton));
@@ -95,12 +86,8 @@ describe('SchemaItem', () => {
       const utils = await render();
       const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-      const menuButton = screen.getByTestId('open-context-menu-button');
-      await act(() => user.click(menuButton));
-
-      const deleteButton = screen.getByText(textMock('delete'));
-      await act(() => user.click(deleteButton));
-
+      await act(() => user.click(getMenuButton()));
+      await act(() => user.click(getDeleteButton()));
       await act(() => user.click(document.body));
 
       await waitFor(() => {
@@ -108,6 +95,9 @@ describe('SchemaItem', () => {
       });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
+
+    const getMenuButton = () => screen.getByRole('button', { name: textMock('schema_editor.open_action_menu') });
+    const getDeleteButton = () => screen.getByRole('menuitem', { name: textMock('schema_editor.delete') });
   });
 });
 

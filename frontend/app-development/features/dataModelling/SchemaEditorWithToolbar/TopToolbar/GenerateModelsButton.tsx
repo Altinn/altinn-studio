@@ -49,7 +49,6 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
           trigger={
             <Button
               id='save-model-button'
-              data-testid='save-model-button'
               onClick={handleGenerateButtonClick}
               icon={<CogIcon />}
               variant='quiet'

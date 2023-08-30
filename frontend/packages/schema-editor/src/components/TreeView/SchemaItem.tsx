@@ -79,7 +79,6 @@ export function SchemaItem({
             key={`${selectedNode.pointer}-label`}
             selectedNode={selectedNode}
             refNode={refNode}
-            translate={translate}
             hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
           />
         </DndItem>
