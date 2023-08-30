@@ -192,7 +192,6 @@ namespace Designer.Tests.Controllers
                 ServiceName = "Test",
                 ExternalServiceCode = "Test",
                 ExternalServiceEditionCode = 123
-                 
             });
             services.Add(new AvailableService()
             {
@@ -202,7 +201,7 @@ namespace Designer.Tests.Controllers
             });
 
             _altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
-      
+
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string contenthtml = await res.Content.ReadAsStringAsync();
