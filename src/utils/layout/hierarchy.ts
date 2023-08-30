@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { createSelector } from 'reselect';
+
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { staticUseLanguageFromState, useLanguage } from 'src/hooks/useLanguage';
@@ -120,6 +122,8 @@ export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources
   };
 }
 
+export const selectDataSourcesFromState = createSelector(dataSourcesFromState, (data) => data);
+
 function innerResolvedLayoutsFromState(
   layouts: ILayouts | null,
   currentView: string | undefined,
@@ -152,21 +156,20 @@ export function resolvedLayoutsFromState(state: IRuntimeState) {
  * and trades verbosity and code duplication for performance and caching.
  */
 function useResolvedExpressions() {
-  const state = useAppSelector((state) => state);
-  const instance = state.instanceData?.instance;
-  const formData = state.formData.formData;
-  const attachments = state.attachments.attachments;
-  const uiConfig = state.formLayout.uiConfig;
-  const options = state.optionState.options;
-  const process = state.process;
-  const applicationSettings = state.applicationSettings.applicationSettings;
-  const hiddenFields = state.formLayout.uiConfig.hiddenFields;
-  const validations = state.formValidations.validations;
-  const layouts = state.formLayout.layouts;
-  const currentView = state.formLayout.uiConfig.currentView;
-  const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
-  const textResources = state.textResources.resources;
-  const devTools = state.devTools;
+  const instance = useAppSelector((state) => state.instanceData?.instance);
+  const formData = useAppSelector((state) => state.formData.formData);
+  const attachments = useAppSelector((state) => state.attachments.attachments);
+  const uiConfig = useAppSelector((state) => state.formLayout.uiConfig);
+  const options = useAppSelector((state) => state.optionState.options);
+  const process = useAppSelector((state) => state.process);
+  const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);
+  const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
+  const validations = useAppSelector((state) => state.formValidations.validations);
+  const layouts = useAppSelector((state) => state.formLayout.layouts);
+  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
+  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
+  const textResources = useAppSelector((state) => state.textResources.resources);
+  const devTools = useAppSelector((state) => state.devTools);
   const langTools = useLanguage();
 
   const dataSources: HierarchyDataSources = useMemo(

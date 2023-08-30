@@ -6,6 +6,8 @@ import { AltinnLogo } from 'src/components/AltinnLogo';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import classes from 'src/components/organisms/AltinnAppHeader.module.css';
 import { AltinnAppHeaderMenu } from 'src/components/organisms/AltinnAppHeaderMenu';
+import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { renderPartyName } from 'src/utils/party';
 import type { IParty } from 'src/types/shared';
@@ -21,6 +23,8 @@ export interface IAltinnAppHeaderProps {
 
 export const AltinnAppHeader = ({ logoColor, headerBackgroundColor, party, userParty }: IAltinnAppHeaderProps) => {
   const { langAsString } = useLanguage();
+
+  const useOrganisationLogo = useAppSelector((state) => state.applicationMetadata.applicationMetadata?.logo != null);
 
   return (
     <AppBar
@@ -38,7 +42,8 @@ export const AltinnAppHeader = ({ logoColor, headerBackgroundColor, party, userP
         ]}
       />
       <div className={classes.container}>
-        <AltinnLogo color={logoColor} />
+        {useOrganisationLogo && <OrganisationLogo />}
+        {!useOrganisationLogo && <AltinnLogo color={logoColor} />}
         <div className={classes.wrapper}>
           {party && userParty && party.partyId === userParty.partyId && (
             <span className={classes.appBarText}>{renderPartyName(userParty)}</span>

@@ -13,7 +13,7 @@ import { asExpression } from 'src/features/expressions/validation';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useExprContext } from 'src/utils/layout/ExprContext';
-import { dataSourcesFromState } from 'src/utils/layout/hierarchy';
+import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import type { ExprConfig, Expression, ExprFunction } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -39,7 +39,7 @@ export const ExpressionPlayground = () => {
   ]);
   const nodes = useExprContext();
   const currentPage = nodes?.current()?.top.myKey;
-  const dataSources = useAppSelector(dataSourcesFromState);
+  const dataSources = useAppSelector(selectDataSourcesFromState);
 
   const setOutputWithHistory = useCallback(
     (newValue: string, isError: boolean): boolean => {

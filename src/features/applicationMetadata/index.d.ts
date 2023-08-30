@@ -1,5 +1,10 @@
 import type { IDataType, ITitle } from 'src/types/shared';
 
+type ILogoOptions = {
+  source: 'org' | 'resource';
+  displayAppOwnerNameInHeader?: boolean;
+};
+
 export interface IApplicationMetadata {
   createdBy: string;
   created: string;
@@ -14,6 +19,7 @@ export interface IApplicationMetadata {
   onEntry?: IOnEntry;
   features?: Partial<IBackendFeaturesState>;
   promptForParty?: 'always' | 'never';
+  logo?: ILogoOptions;
 }
 
 export interface IApplicationMetadataState {

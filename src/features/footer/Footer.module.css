@@ -2,6 +2,9 @@
   max-width: var(--page-max-width);
   padding: 60px var(--page-padding-x);
   margin: 0 auto;
+}
+
+.elements {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
@@ -11,7 +14,21 @@
 }
 
 @media only screen and (min-width: 600px) {
-  .footer {
+  .elements {
     flex-direction: row;
   }
+}
+
+.columnLayout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.separator {
+  margin: 36px 0;
+  background-color: var(--fds-semantic-surface-neutral-dark);
+  height: 1px;
+  width: 100%;
 }

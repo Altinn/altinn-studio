@@ -59,7 +59,7 @@ describe('infoTaskQueueSaga', () => {
       dataTypes: [
         {
           id: 'testModel',
-          allowedContentTypes: '',
+          allowedContentTypes: [''],
           maxCount: 1,
           minCount: 0,
         },

@@ -120,6 +120,9 @@
     },
     "messageBoxConfig": {
       "$ref": "#/definitions/messageBoxConfig"
+    },
+    "logo": {
+      "$ref": "#/definitions/logo"
     }
   },
   "definitions": {
@@ -549,6 +552,24 @@
           }
         }
       ]
+    },
+    "logo": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "title": "Source",
+          "description": "The source of the logo. Can be a \"org\" or \"resource\". If \"org\" the logo will be fetched from altinn-orgs.json. If \"resource\" the logo will be fetched from text resources with the key \"appLogo.url\".",
+          "enum": ["org", "resource"]
+        },
+        "displayAppOwnerNameInHeader": {
+          "type": "boolean",
+          "title": "Display app owner name in header",
+          "description": "A boolean indicating if the app owner name should be displayed in the header next to the logo."
+        }
+      },
+      "required": ["source"],
+      "additionalProperties": false
     }
   }
 }

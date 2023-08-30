@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fds-spacing-2);
+}
+
+.img {
+  max-height: 32px;
+}
