@@ -176,7 +176,6 @@ describe('FormComponent', () => {
           icon: 'Icon',
         },
       });
-
       const iconElement = screen.getByTestId('form-component-icon');
       expect(iconElement).toBeInTheDocument();
     });
@@ -188,12 +187,10 @@ describe('FormComponent', () => {
           icon: 'Icon',
         },
         isEditMode: false,
-      });
-      
+      }); 
       expect(screen.queryByText('Icon')).not.toBeInTheDocument();
     });
   });
-  
 });
 
 const waitForData = async () => {
