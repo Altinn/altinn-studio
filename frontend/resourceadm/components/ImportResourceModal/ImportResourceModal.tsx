@@ -124,7 +124,7 @@ export const ImportResourceModal = ({
    * Display loading (todo), the service, or nothing based on the
    * state of the selected environment
    */
-  const displayService = () => {
+  const DisplayService = () => {
     // If environment loading, display loading, else do below
     if (selectedEnv) {
       return (
@@ -146,7 +146,7 @@ export const ImportResourceModal = ({
    * Display loading (todo), the title and id, or nothing based on the
    * state of the selected service
    */
-  const displayTitleAndId = () => {
+  const DisplayTitleAndId = () => {
     // If service loading, display loading, else do below
     if (selectedService) {
       return (
@@ -186,8 +186,8 @@ export const ImportResourceModal = ({
           label={t('resourceadm.dashboard_import_modal_select_env')}
         />
       </div>
-      {displayService()}
-      {displayTitleAndId()}
+      <DisplayService />
+      <DisplayTitleAndId />
       <div className={classes.buttonWrapper}>
         <Button onClick={handleClose} color='primary' variant='quiet' size='small'>
           {t('general.cancel')}

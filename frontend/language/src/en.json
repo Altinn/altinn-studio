@@ -1127,7 +1127,6 @@
   "resourceadm.dashboard_resource_name_and_id_resource_id": "Resource id",
   "resourceadm.dashboard_resource_name_and_id_delete_icon": "Delete new resource id",
   "resourceadm.dashboard_resource_name_and_id_checkmark_icon": "Use new resource id",
-  "resourceadm.dashboard_resource_name_and_id_edit_id_icon": "Edit resource id",
   "resourceadm.dashboard_resource_name_and_id_error": "It already exists a resource with the selected id.",
   "resourceadm.policy_editor_title": "Policy rules",
   "resourceadm.policy_editor_spinner": "Loading policy rules",

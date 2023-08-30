@@ -4,7 +4,7 @@ import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/desig
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next'
 
-type ResourceNameAndIdProps = {
+export type ResourceNameAndIdProps = {
   /**
    * Flag to decide if the edit ID is open or not
    */
@@ -106,25 +106,18 @@ export const ResourceNameAndId = ({
     }
   };
 
-  return (
-    <>
-      <Paragraph size='small'>{text}</Paragraph>
-      <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
-        {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
-      </Label>
-      <div className={classes.textfieldWrapper}>
-        <TextField
-          value={title}
-          onChange={(e) => handleEditTitle(e.target.value)}
-          id='resourceNameInputId'
-        />
-      </div>
-      <Label className={classes.label} size='small' htmlFor='resourceIdInputId'>
-        {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
-      </Label>
-      <div className={classes.editFieldWrapper}>
-        {isEditOpen ? (
-          <>
+  /**
+   * Displays either the id input field or the id text
+   * @returns ReactNode
+   */
+  const DisplayIdTextOrInput = () => {
+    if (isEditOpen) {
+      return (
+        <>
+          <Label className={classes.label} size='small' htmlFor='resourceIdInputId' >
+            {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+          </Label>
+          <div className={classes.editFieldWrapper}>
             <div className={classes.textfieldWrapper}>
               <TextField
                 value={id}
@@ -150,34 +143,57 @@ export const ResourceNameAndId = ({
                 size='small'
               />
             </div>
-          </>
-        ) : (
-          <>
-            <div className={classes.idBox}>
-              <p className={classes.idText}>id</p>
-            </div>
-            <Paragraph size='small'>
-              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-              altinn.svv.<strong>{getIdToDisplay()}</strong>
-            </Paragraph>
-            <div className={classes.editButtonWrapper}>
-              <Button
-                onClick={() => handleClickEditButton(false)}
-                iconPlacement='right'
-                icon={<PencilWritingIcon title={t('resourceadm.dashboard_resource_name_and_id_edit_id_icon')} />}
-                variant='quiet'
-                color='primary'
-                size='small'
-              >
-                {t('general.edit')}
-              </Button>
-            </div>
-          </>
-        )}
+          </div>
+        </>
+      )
+    }
+    return (
+      <>
+       <Paragraph className={classes.label} size='small' >
+          {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+        </Paragraph>
+        <div className={classes.editFieldWrapper}>
+          <div className={classes.idBox}>
+            <p className={classes.idText}>id</p>
+          </div>
+          <Paragraph size='small'>
+            {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
+            altinn.svv.<strong>{getIdToDisplay()}</strong>
+          </Paragraph>
+          <div className={classes.editButtonWrapper}>
+            <Button
+              onClick={() => handleClickEditButton(false)}
+              iconPlacement='right'
+              icon={<PencilWritingIcon />}
+              variant='quiet'
+              color='primary'
+              size='small'
+            >
+              {t('general.edit')}
+            </Button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Paragraph size='small'>{text}</Paragraph>
+      <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
+        {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
+      </Label>
+      <div className={classes.textfieldWrapper}>
+        <TextField
+          value={title}
+          onChange={(e) => handleEditTitle(e.target.value)}
+          id='resourceNameInputId'
+        />
       </div>
+      <DisplayIdTextOrInput />
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <ErrorMessage size='small'>{t('resourceadm.dashboard_resource_name_and_id_erro')}</ErrorMessage>
+          <ErrorMessage size='small'>{t('resourceadm.dashboard_resource_name_and_id_error')}</ErrorMessage>
         )}
       </div>
     </>

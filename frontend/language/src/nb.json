@@ -1285,7 +1285,6 @@
   "resourceadm.dashboard_resource_name_and_id_resource_id": "Ressurs id",
   "resourceadm.dashboard_resource_name_and_id_delete_icon": "Slett ny ressurs id",
   "resourceadm.dashboard_resource_name_and_id_checkmark_icon": "Bruk ny ressurs id",
-  "resourceadm.dashboard_resource_name_and_id_edit_id_icon": "Endre ressurs id",
   "resourceadm.dashboard_resource_name_and_id_error": "Ressurs med valgt id eksisterer allerede.",
   "resourceadm.policy_editor_title": "Tilgangsregler",
   "resourceadm.policy_editor_spinner": "Laster inn tilgangsregler",
@@ -1364,7 +1363,7 @@
   "resourceadm.deploy_test_env": "Testmiljø TT-02",
   "resourceadm.deploy_prod_env": "Produksjonsmiljø",
   "resourceadm.deploy_card_arrow_icon": "Ny versjon for {{env}}",
-  "resourceadm.deploy_card_publish": "Publiser tik {{env}}",
+  "resourceadm.deploy_card_publish": "Publiser til {{env}}",
   "resourceadm.right_translation_bar_title": "Oversettelse",
   "resourceadm.right_translation_bar_alert": "For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse."
 }
