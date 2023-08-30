@@ -270,10 +270,10 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[MaxLength(" + maxLengthRestriction.Value + errorMessage + ")]");
             }
 
-            SetRangeRestriction(classBuilder, element, errorMessage, "minInclusive", "maxInclusive", out hasRange);
+            WriteRangeRestriction(classBuilder, element, errorMessage, "minInclusive", "maxInclusive", out hasRange);
             if (!hasRange)
             {
-                SetRangeRestriction(classBuilder, element, errorMessage, "minimum", "maximum", out hasRange);
+                WriteRangeRestriction(classBuilder, element, errorMessage, "minimum", "maximum", out hasRange);
             }
 
 
@@ -293,7 +293,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void SetRangeRestriction(StringBuilder classBuilder, ElementMetadata element, string errorMessage, string leftRestrictionName, string rightRestrictionName, out bool hasRange)
+        private void WriteRangeRestriction(StringBuilder classBuilder, ElementMetadata element, string errorMessage, string leftRestrictionName, string rightRestrictionName, out bool hasRange)
         {
             hasRange = false;
             bool hasMinimum = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
