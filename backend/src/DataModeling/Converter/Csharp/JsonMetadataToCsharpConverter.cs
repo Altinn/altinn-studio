@@ -298,21 +298,38 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             bool hasMin = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
             bool hasMax = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
 
+            string minVal = GetStringRangeValue(element, minRestriction);
+            string maxVal = GetStringRangeValue(element, maxRestriction);
+
             if ( hasMin && hasMax)
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + minRestriction.Value + ", " + maxRestriction.Value + errorMessage + ")]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({minVal}, {maxVal}{errorMessage})]");
                 hasRange = true;
             }
             else if (hasMin)
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + minRestriction.Value + ", " + RightRangeLimit(element.XsdValueType ?? BaseValueType.Double) + errorMessage + ")]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({minVal}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
                 hasRange = true;
             }
             else if (hasMax)
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" +  LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double) + ", " + maxRestriction.Value + errorMessage + ")]");
+                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {maxVal}{errorMessage})]");
                 hasRange = true;
             }
+        }
+
+        private string GetStringRangeValue(ElementMetadata element, Restriction restriction)
+        {
+            string value = restriction?.Value;
+            // Use decimal range value for all types except int and long
+            if (element.XsdValueType.HasValue && !new[]
+                {
+                    BaseValueType.Int, BaseValueType.Long
+                }.Contains(element.XsdValueType.Value))
+            {
+                value = $"{value}d";
+            }
+            return value;
         }
 
 

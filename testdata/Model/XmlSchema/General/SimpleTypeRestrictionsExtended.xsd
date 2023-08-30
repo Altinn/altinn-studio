@@ -184,7 +184,7 @@
   </xsd:simpleType>
   <xsd:simpleType name="decimalRangeWithLimits">
     <xsd:restriction base="xsd:decimal">
-      <xsd:minInclusive value="-100" />
+      <xsd:minInclusive value="-100.0" />
       <xsd:maxInclusive value="100.0" />
     </xsd:restriction>
   </xsd:simpleType>
