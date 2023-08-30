@@ -600,7 +600,7 @@
   "right_menu.expressions_add_expression": "Legg til uttrykk",
   "right_menu.expressions_complex_expression_message": "Formatet på dette uttrykket kan ikke tolkes av Studio, men du kan redigere det manuelt",
   "right_menu.expressions_data_source_application_settings": "Applikasjonsinnstillinger",
-  "right_menu.expressions_data_source_boolean": "Boolsk",
+  "right_menu.expressions_data_source_boolean": "Bolsk",
   "right_menu.expressions_data_source_component": "Komponent",
   "right_menu.expressions_data_source_data_model": "Datamodell",
   "right_menu.expressions_data_source_instance_context": "Instanskontekst",

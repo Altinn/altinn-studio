@@ -75,7 +75,7 @@ export const SubExpressionContent = ({
   };
 
   return (
-    <div>
+    <div style={{border: '1px solid red'}}>
       <p>{t('right_menu.expressions_function_on_action')}</p>
       <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         onChange={(func: string) => addFunctionToSubExpression(func)}
@@ -141,34 +141,6 @@ export const SubExpressionContent = ({
                 />
               )}
             </div>
-          </div>
-          <div className={classes.addExpression}>
-            {showAddExpressionButton ? (
-                <Button
-                  variant='quiet'
-                  size='small'
-                  onClick={() => handleAddSubExpression(expression.operator || Operator.And)}
-                >
-                  <i
-                    className={cn('fa', classes.plusIcon, {
-                      'fa-circle-plus': showAddExpressionButton,
-                      'fa-circle-plus-outline': !showAddExpressionButton,
-                    })}
-                  />
-                  {t('right_menu.expressions_add_expression')}
-                </Button>
-              ) : (
-                <div className={classes.andOrToggleButtons}>
-                <ToggleButtonGroup
-                  items={[
-                    { label: 'Og', value: Operator.And },
-                    { label: 'Eller', value: Operator.Or }
-                  ]}
-                  onChange={(value) => handleUpdateExpressionOperator(value as Operator)}
-                  selectedValue={expression.operator || Operator.And}
-                />
-              </div>
-            )}
           </div>
         </>
       )}

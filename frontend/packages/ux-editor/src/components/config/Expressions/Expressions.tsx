@@ -2,32 +2,32 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
-import { ExpressionContent } from '../config/expressions/ExpressionContent';
+import { Expression as ExpressionContent } from './Expression';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { useText } from '../../hooks';
-import { FormContext } from '../../containers/FormContext';
+import { useText } from '../../../hooks';
+import { FormContext } from '../../../containers/FormContext';
 import {
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
   Expression,
-} from '../../types/Expressions';
+} from '../../../types/Expressions';
 import {
   complexExpressionIsSet,
   convertExpressionToExternalFormat,
   convertExternalExpressionToInternal,
   tryParseString
-} from '../../utils/expressionsUtils';
-import { LayoutItemType } from '../../types/global';
-import classes from './RightMenu.module.css';
+} from '../../../utils/expressionsUtils';
+import { LayoutItemType } from '../../../types/global';
+import classes from './Expressions.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { Divider } from 'app-shared/primitives';
-import { FormComponent } from '../../types/FormComponent';
-import { useUpdateFormComponentMutation } from '../../hooks/mutations/useUpdateFormComponentMutation';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { FormComponent } from '../../../types/FormComponent';
+import { useUpdateFormComponentMutation } from '../../../hooks/mutations/useUpdateFormComponentMutation';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 
-type ExpressionsProps = {
+export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;
   showNewExpressions: boolean;
 };
@@ -37,14 +37,17 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   const { org, app } = useParams();
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSetName);
+  const { mutate: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSetName);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
   const t = useText();
 
   // adapt list of actions if component is group
-  const expressionProperties = form && (form.itemType === LayoutItemType.Container ?
-    (Object.values(ExpressionPropertyBase) as string[])
-      .concat(Object.values(ExpressionPropertyForGroup) as string[]) : Object.values(ExpressionPropertyBase));
+  const expressionProperties = form && (
+    form.itemType === LayoutItemType.Container
+      ? (Object.values(ExpressionPropertyBase) as string[])
+        .concat(Object.values(ExpressionPropertyForGroup) as string[])
+      : Object.values(ExpressionPropertyBase)
+  );
 
   useEffect(() => {
     if (form) {
@@ -122,7 +125,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
 
   console.log('expressions: ', expressions)
   return (
-    <div className={classes.expressions}>
+    <div className={classes.root}>
       {Object.values(expressions).map((expression: Expression, index: number) => (
         <div key={expression.id}>
           <ExpressionContent

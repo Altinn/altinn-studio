@@ -1,19 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  Expression, expressionDataSourceTexts,
+  Expression as IExpression,
+  expressionDataSourceTexts,
   SubExpression,
   expressionFunctionTexts,
   expressionInPreviewPropertyTexts,
   expressionPropertyTexts,
   Operator,
 } from '../../../types/Expressions';
-import { Alert, Button, Select, TextArea } from '@digdir/design-system-react';
-import { ArrowRightIcon, CheckmarkIcon, PencilIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { ArrowRightIcon, CheckmarkIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { SubExpressionContent } from './SubExpressionContent';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { Trans } from 'react-i18next';
-import classes from './ExpressionContent.module.css';
+import classes from './Expression.module.css';
+import cn from 'classnames';
 import {
   addAction,
   addExpression, complexExpressionIsSet, removeSubExpressionAndAddDefaultIfEmpty,
@@ -22,20 +24,21 @@ import {
   updateOperator
 } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
+import { ComplexExpression } from './ComplexExpression';
 
 interface ExpressionProps {
   component: FormComponent | FormContainer;
-  expression: Expression;
-  onGetProperties: (expression: Expression) => { availableProperties: string[], expressionProperties: string[] };
+  expression: IExpression;
+  onGetProperties: (expression: IExpression) => { availableProperties: string[], expressionProperties: string[] };
   showRemoveExpressionButton: boolean;
   onAddExpression: () => void;
   successfullyAddedExpressionId: string;
-  onUpdateExpression: (newExpression: Expression) => void;
-  onRemoveExpression: (expression: Expression) => void;
-  onEditExpression: (expression: Expression) => void;
+  onUpdateExpression: (newExpression: IExpression) => void;
+  onRemoveExpression: (expression: IExpression) => void;
+  onEditExpression: (expression: IExpression) => void;
 }
 
-export const ExpressionContent = ({
+export const Expression = ({
   component,
   expression,
   onGetProperties,
@@ -81,46 +84,33 @@ export const ExpressionContent = ({
   const propertiesList = onGetProperties(expression).availableProperties;
 
   const addActionToExpression = (action: string) => {
-    const newExpression: Expression = addAction(expression, action);
+    const newExpression: IExpression = addAction(expression, action);
     onUpdateExpression(newExpression);
   };
 
   const addSubExpression = (expressionOperator: Operator) => {
-    const newExpression: Expression = addExpression(expression, expressionOperator);
+    const newExpression: IExpression = addExpression(expression, expressionOperator);
     onUpdateExpression(newExpression);
   };
 
   const updateExpressionOperator = (expressionOperator: Operator) => {
-    const newExpression: Expression = updateOperator(expression, expressionOperator);
+    const newExpression: IExpression = updateOperator(expression, expressionOperator);
     onUpdateExpression(newExpression);
   };
 
   const updateSubExpression = (index: number, subExpression: SubExpression) => {
-    const newExpression: Expression = updateExpression(expression, index, subExpression);
+    const newExpression: IExpression = updateExpression(expression, index, subExpression);
     onUpdateExpression(newExpression);
   };
 
   const updateExpressionComplexExpression = (newComplexExpression: any) => {
-    const newExpression: Expression = updateComplexExpression(expression, newComplexExpression);
+    const newExpression: IExpression = updateComplexExpression(expression, newComplexExpression);
     onUpdateExpression(newExpression);
   };
 
   const removeSubExpression = (subExpression: SubExpression) => {
-    const newExpression: Expression = removeSubExpressionAndAddDefaultIfEmpty(expression, subExpression);
+    const newExpression: IExpression = removeSubExpressionAndAddDefaultIfEmpty(expression, subExpression);
     onUpdateExpression(newExpression);
-  };
-
-  const tryFormatExpression = (subExpression: any): string => {
-    try {
-      // Implies during editing and when the expression has not been able to be parsed to JSON due to syntax
-      if (typeof subExpression === 'string') {
-        return subExpression;
-      }
-      // Attempt to format the JSON input
-      return JSON.stringify(subExpression);
-    } catch (error) {
-      return subExpression.toString();
-    }
   };
 
   console.log('expression', expression); // TODO: Remove when fully tested
@@ -128,25 +118,27 @@ export const ExpressionContent = ({
     <>
       {expression.editMode ? (
         <div
-          className={showRemoveExpressionButton ? classes.expressionInEdit : null}
+          className={classes.editMode}
           ref={expressionInEditStateRef}
         >
-          {showRemoveExpressionButton && (
-            <Button
-              className={classes.removeExpressionButton}
-              color='danger'
-              icon={<XMarkIcon />}
-              onClick={() => onRemoveExpression(expression)}
-              variant='quiet'
-              size='small'
-            />
-          )}
-          <p>
-            <Trans
-              i18nKey={'right_menu.expressions_action_on_component'}
-              values={{ componentName: component.id }}
-              components={{ bold: <strong/> }}/>
-          </p>
+          <div className={classes.topBar}>
+            <p>
+              <Trans
+                i18nKey={'right_menu.expressions_action_on_component'}
+                values={{ componentName: component.id }}
+                components={{ bold: <strong/> }}
+              />
+            </p>
+            {showRemoveExpressionButton && (
+              <Button
+                color='danger'
+                icon={<TrashIcon />}
+                onClick={() => onRemoveExpression(expression)}
+                variant='quiet'
+                size='small'
+              />
+            )}
+          </div>
           <Select
             onChange={(action) => addActionToExpression(action)}
             options={[{ label: 'Velg handling...', value: 'default' }].concat(propertiesList.map((property: string) => ({
@@ -156,15 +148,10 @@ export const ExpressionContent = ({
             value={expression.property || 'default'}
           />
           {complexExpressionIsSet(expression.complexExpression) ? (
-            <div className={classes.complexExpressionContainer}>
-              <TextArea
-                value={tryFormatExpression(expression.complexExpression)}
-                onChange={event => updateExpressionComplexExpression(event.target.value)}
-              />
-              <Alert>
-                {t('right_menu.expressions_complex_expression_message')}
-              </Alert>
-            </div>
+            <ComplexExpression
+              expression={expression}
+              onChange={updateExpressionComplexExpression}
+            />
           ) : (
             expression.subExpressions.map((subExp: SubExpression, index: number) => (
               <div key={subExp.id}>
@@ -183,7 +170,7 @@ export const ExpressionContent = ({
           )}
         </div>
       ) : (
-        <div className={classes.expressionInPreview} ref={expressionInPreviewStateRef}>
+        <div className={classes.previewMode} ref={expressionInPreviewStateRef}>
           <div className={classes.expressionDetails}>
             <span>
               <Trans
@@ -193,26 +180,24 @@ export const ExpressionContent = ({
               />
             </span>
             {complexExpressionIsSet(expression.complexExpression) ? (
-              <div className={classes.complexExpressionContainer}>
-                  <TextArea
-                    className={classes.complexExpression}
-                    value={tryFormatExpression(expression.complexExpression)}
-                    disabled={true}
-                  />
-                <Alert>
-                  {t('right_menu.expressions_complex_expression_message')}
-                </Alert>
-              </div>
+              <ComplexExpression expression={expression} disabled/>
             ) : (
               expression.subExpressions.map((subExp: SubExpression, index: number) => (
                 <div key={subExp.id}>
-                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[subExp.dataSource]} {' '}
-                    <span>{subExp.value}</span></p>
+                  <p>
+                    <ArrowRightIcon fontSize='1.5rem'/>
+                    {expressionDataSourceTexts(t)[subExp.dataSource]}
+                    <span>{subExp.value}</span>
+                  </p>
                   <p className={classes.bold}>{expressionFunctionTexts(t)[subExp.function]}</p>
-                  <p><ArrowRightIcon fontSize='1.5rem'/>{expressionDataSourceTexts(t)[subExp.comparableDataSource]} {' '}
-                    <span>{subExp.comparableValue}</span></p>
+                  <p>
+                    <ArrowRightIcon fontSize='1.5rem'/>
+                    {expressionDataSourceTexts(t)[subExp.comparableDataSource]}
+                    <span>{subExp.comparableValue}</span>
+                  </p>
                   {index !== expression.subExpressions.length - 1 && (
-                    <p className={classes.bold}>{expression.operator === Operator.And ? 'Og' : 'Eller'}</p>)}
+                    <p className={classes.bold}>{expression.operator === Operator.And ? 'Og' : 'Eller'}</p>
+                  )}
                 </div>
               ))
             )}
@@ -225,7 +210,7 @@ export const ExpressionContent = ({
           <div>
             <Button
               color='danger'
-              icon={<XMarkIcon />}
+              icon={<TrashIcon />}
               onClick={() => onRemoveExpression(expression)}
               variant='quiet'
               size='small'
