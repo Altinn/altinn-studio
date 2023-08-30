@@ -12,14 +12,13 @@ import * as mutations from 'app-shared/api/mutations';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import 'app-shared/design-tokens';
 import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
+import 'app-shared/design-tokens';
+import { altinnStudioWindow } from 'app-shared/utils/altinnStudioWindow';
 
 const store = setupStore();
 
-// TODO find out how to handle env-variables
-const altinnWindow = window as any as { APPLICATION_INSIGHTS_CONNECTION_STRING: string };
-
 const loggerConfig: LoggerConfig = {
-  connectionString: altinnWindow.APPLICATION_INSIGHTS_CONNECTION_STRING,
+  instrumentationKey: altinnStudioWindow.instrumentationKey,
   enableUnhandledPromiseRejectionTracking: true,
   loggingLevelTelemetry: 2,
 };
@@ -29,7 +28,7 @@ const loggerConfig: LoggerConfig = {
  */
 run();
 
-const container = document.getElementById('root');
+const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 
 root.render(

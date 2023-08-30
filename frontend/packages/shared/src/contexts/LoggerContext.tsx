@@ -21,7 +21,7 @@ export const LoggerContextProvider = ({
     ? new ApplicationInsights({
         config: {
           ...config,
-          extensions: [...config.extensions, reactPlugin],
+          extensions: [reactPlugin],
         },
       })
     : null;
