@@ -42,7 +42,7 @@ namespace Designer.Tests.Controllers
                 c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddTransient(_ => _repositoryMock.Object);
-            services.AddTransient(_ => _altinn2MetadataClientMock.Object);  
+            services.AddTransient(_ => _altinn2MetadataClientMock.Object);
         }
 
         [Fact]
@@ -189,9 +189,9 @@ namespace Designer.Tests.Controllers
             List<AvailableService> services = new List<AvailableService>();
             services.Add(new AvailableService()
             {
-                 ServiceName = "Test",
-                 ExternalServiceCode = "Test",
-                 ExternalServiceEditionCode = 123
+                ServiceName = "Test",
+                ExternalServiceCode = "Test",
+                ExternalServiceEditionCode = 123
                  
             });
             services.Add(new AvailableService()
