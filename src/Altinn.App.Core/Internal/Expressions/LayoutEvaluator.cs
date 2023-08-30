@@ -37,7 +37,7 @@ public static class LayoutEvaluator
 
         foreach (var (bindingName, binding) in context.Component.DataModelBindings)
         {
-            if(bindingName == "group")
+            if (bindingName == "group")
             {
                 continue;
             }
@@ -108,6 +108,7 @@ public static class LayoutEvaluator
                             Field = field,
                             Description = $"{field} is required in component with id {context.Component.Id}",
                             Code = "required",
+                            Source = ValidationIssueSources.Required
                         });
                     }
                 }

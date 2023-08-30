@@ -282,6 +282,7 @@ namespace Altinn.App.Core.Features.Validation
                         {
                             InstanceId = instance.Id,
                             DataElementId = dataElementId,
+                            Source = ValidationIssueSources.ModelState,
                             Code = severityAndMessage.Message,
                             Field = ModelKeyToField(modelKey, modelType)!,
                             Severity = severityAndMessage.Severity,

@@ -31,7 +31,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string org = "tdd";
             string app = "contributer-restriction";
             HttpClient client = GetRootedClient(org, app);
- 
+
             Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
             TestData.DeleteInstance(org, app, 1337, guid);
             TestData.PrepareInstance(org, app, 1337, guid);
@@ -161,7 +161,7 @@ namespace Altinn.App.Api.Tests.Controllers
             {
                 ValidationIssue error = new()
                 {
-                    Source = "File",
+                    Source = ValidationIssueSources.File,
                     Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                     Severity = ValidationIssueSeverity.Error,
                     Description = $"The {fileMimeTypeResult?.Filename + " "}file does not appear to be of the allowed content type according to the configuration for data type {dataType.Id}. Allowed content types are {string.Join(", ", dataType.AllowedContentTypes)}"
