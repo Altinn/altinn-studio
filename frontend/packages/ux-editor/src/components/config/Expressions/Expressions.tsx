@@ -61,30 +61,25 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
         )
       : Object.values(ExpressionPropertyBase));
 
+  const propertiesWithExpressions: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined =
+    Object.keys(form)
+      .filter(property => expressionProperties?.includes(property))
+      .map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
+
   useEffect(() => {
     if (form) {
-      const propertiesWithExpressions:
-        | (ExpressionPropertyBase | ExpressionPropertyForGroup)[]
-        | undefined =
-        expressionProperties &&
-        Object.keys(form)
-          .filter((property) => expressionProperties.includes(property))
-          .map((property) => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
-      const potentialConvertedExternalExpressions: Expression[] = propertiesWithExpressions
-        ?.filter((property) => typeof form[property] !== 'boolean')
-        ?.map((property) => convertExternalExpressionToInternal(property, form[property]));
-      const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
-      const startingExpressions =
-        potentialConvertedExternalExpressions?.length === 0
-          ? [defaultExpression]
-          : potentialConvertedExternalExpressions;
-      setExpressions(startingExpressions);
-      // Check if the first expression in startingExpressions is the default --> set to edit, if not let all expressions be preview
-      if (startingExpressions[0].id === defaultExpression.id) {
+      const potentialConvertedExternalExpressions: Expression[] =
+        propertiesWithExpressions?.filter(property => typeof form[property] !== 'boolean')?.map(property => convertExternalExpressionToInternal(property, form[property]));
+      // Check if there was no existing expressions
+      if (potentialConvertedExternalExpressions?.length === 0) {
+        const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
         setExpressionInEditModeId(defaultExpression.id);
+        setExpressions([defaultExpression]);
+      } else {
+        setExpressions(potentialConvertedExternalExpressions);
       }
     }
-  }, [form]);
+  }, [form, propertiesWithExpressions])
 
   const successfullyAddedExpressionIdRef = useRef('default');
   const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;

@@ -12,7 +12,7 @@ import { DatamodelFieldElement } from "app-shared/types/DatamodelFieldElement";
 import { IFormLayouts } from "../types/global";
 import { FormComponent } from "../types/FormComponent";
 
-export const convertExpressionToExternalFormat = (expression: Expression): any => {
+export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
@@ -87,12 +87,15 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
   }
 };
 
-function convertSubExpression(internalExpEl: SubExpression, externalExpEl: any, isComparable: boolean): SubExpression {
+export function convertSubExpression(internalExpEl: SubExpression, externalExpEl: any, isComparable: boolean): SubExpression {
   if (Array.isArray(externalExpEl)) {
     isComparable ? internalExpEl.comparableDataSource = externalExpEl[0] as DataSource : internalExpEl.dataSource = externalExpEl[0] as DataSource;
     isComparable ? internalExpEl.comparableValue = externalExpEl[1] : internalExpEl.value = externalExpEl[1];
+  } else if (!externalExpEl) {
+    isComparable ? internalExpEl.comparableDataSource = DataSource.Null : internalExpEl.dataSource = DataSource.Null;
+    isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
   } else {
-    isComparable ? internalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : internalExpEl.dataSource = (typeof externalExpEl as DataSource) // to string. Can be string, number, boolean or null
+    isComparable ? internalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : internalExpEl.dataSource = (typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
     isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
   }
   return internalExpEl;
@@ -206,7 +209,7 @@ export const addDataSource = (expEl: SubExpression, dataSource: string, isCompar
     }
     isComparable ? newExpEl.comparableDataSource = dataSource as DataSource : newExpEl.dataSource = dataSource as DataSource;
     if (dataSource === DataSource.Null) {
-      isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+      isComparable ? newExpEl.comparableValue = null : newExpEl.value = null;
     }
   }
   return newExpEl;
