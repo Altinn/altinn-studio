@@ -3,16 +3,19 @@ import cn from 'classnames';
 import classes from './ResourceTableDataRow.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next'
 
-type ResourceTableDataRowProps = {
+export type ResourceTableDataRowProps = {
   /**
    * The resource to display in the row
    */
   resource: ResourceListItem;
+  /**
+   * Function to be executed when clicking the edit resoruce
+   * @returns void
+   */
+  onClickEditResource: () => void
 };
 
 /**
@@ -22,16 +25,12 @@ type ResourceTableDataRowProps = {
  *    two buttons, one for editing a resource, and one for doing more actions
  *
  * @property {Resource}[resource] - The resource to display in the row
+ * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resoruce
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): React.ReactNode => {
+export const ResourceTableDataRow = ({ resource, onClickEditResource }: ResourceTableDataRowProps): React.ReactNode => {
   const { t } = useTranslation();
-
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
-
-  const navigate = useNavigate();
 
   return (
     <tr style={{ width: '100%' }}>
@@ -57,11 +56,9 @@ export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): R
           variant='quiet'
           size='small'
           color='secondary'
-          icon={<PencilWritingIcon title={t('resourceadm.dashboard_table_row_edit')} />}
+          icon={<PencilWritingIcon />}
           iconPlacement='right'
-          onClick={() =>
-            navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'))
-          }
+          onClick={onClickEditResource}
         >
           {t('resourceadm.dashboard_table_row_edit')}
         </Button>
