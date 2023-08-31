@@ -283,14 +283,19 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.resourcetype", "resourceerror.missingresourcetype");
             }
 
-            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.RightDescription))
+            if (resource.Delegable.HasValue && resource.Delegable.Value && !ResourceAdminHelper.ValidDictionaryAttribute(resource.RightDescription))
             {
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
             }
 
-            if (strictMode && (resource.ThematicArea == null || string.IsNullOrEmpty(resource.ThematicArea)))
+            if (resource.ResourceType == null)
             {
-                ModelState.AddModelError($"{resource.Identifier}.thematicarea", "resourceerror.missingthematicarea");
+                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingresourcetype");
+            }
+
+            if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingcontactpoints");
             }
 
             ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
