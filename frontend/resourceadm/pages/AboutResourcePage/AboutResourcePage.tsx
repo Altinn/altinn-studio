@@ -13,7 +13,7 @@ import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
-  ResourceThematic,
+  // ResourceThematic,
   SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
@@ -50,7 +50,7 @@ type AboutResourcePageProps = {
   /**
    * The list of possible thematic areas
    */
-  thematicData: ResourceThematic[];
+  // thematicData: ResourceThematic[];
   /**
    * Function to be handled when saving the resource
    * @param r the resource
@@ -75,7 +75,7 @@ export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   sectorsData,
-  thematicData,
+  // thematicData,
   onSaveResource,
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -120,7 +120,7 @@ export const AboutResourcePage = ({
       ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
       : []
   );
-  const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
+  // const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
@@ -170,7 +170,7 @@ export const AboutResourcePage = ({
       homepage,
       isPublicService,
       sector: sectorToSave,
-      thematicArea,
+      // thematicArea,
       rightDescription,
     };
 
@@ -444,7 +444,7 @@ export const AboutResourcePage = ({
             onBlur={handleSaveResource}
           />
         </div>
-        <div className={classes.divider} />
+        {/*<div className={classes.divider} />
         <Label size='medium' spacing>
           {t('resourceadm.about_resource_thematic_label')}
         </Label>
@@ -461,7 +461,7 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
           />
-        </div>
+          </div>*/}
         <div className={classes.divider} />
         <Label size='medium' spacing>
           {t('resourceadm.about_resource_rights_description_label')}

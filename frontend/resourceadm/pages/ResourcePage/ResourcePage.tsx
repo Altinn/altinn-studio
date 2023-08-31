@@ -8,8 +8,8 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
   useResourceSectorsQuery,
-  useResourceThematicAreaEurovocQuery,
-  useResourceThematicAreaLosQuery,
+  // useResourceThematicAreaEurovocQuery,
+  // useResourceThematicAreaLosQuery,
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
@@ -72,9 +72,9 @@ export const ResourcePage = (): React.ReactNode => {
     isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
   const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
-  const { data: losData, isLoading: losLoading } = useResourceThematicAreaLosQuery(selectedContext);
-  const { data: eurData, isLoading: eurLoading } =
-    useResourceThematicAreaEurovocQuery(selectedContext);
+  //const { data: losData, isLoading: losLoading } = useResourceThematicAreaLosQuery(selectedContext);
+  //const { data: eurData, isLoading: eurLoading } =
+   // useResourceThematicAreaEurovocQuery(selectedContext);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
@@ -195,7 +195,7 @@ export const ResourcePage = (): React.ReactNode => {
       </div>
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' &&
-          (resourceLoading || sectorsLoading || losLoading || eurLoading ? (
+          (resourceLoading || sectorsLoading /*|| losLoading || eurLoading*/ ? (
             <div className={classes.spinnerWrapper}>
               <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.about_resource_spinner')} />
             </div>
@@ -204,7 +204,7 @@ export const ResourcePage = (): React.ReactNode => {
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
               sectorsData={sectorsData}
-              thematicData={[...losData, ...eurData]}
+              // thematicData={[...losData, ...eurData]}
               onSaveResource={(r: Resource) => {
                 editResource(r, {
                   onSuccess: () => {

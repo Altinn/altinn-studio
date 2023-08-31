@@ -59,17 +59,16 @@ const getResourceList = jest.fn().mockImplementation(() => Promise.resolve({}));
 describe('ResourceDashBoardPage', () => {
   afterEach(jest.clearAllMocks);
 
-  it('fetches models on mount', () => {
+  it('fetches resource list on mount', () => {
     render();
     expect(getResourceList).toHaveBeenCalledTimes(1);
   });
 
-  it('does not show the content when the data has not been loaded yet', () => {
+  it('shows the loading state when page is loading', () => {
     render();
     expect(screen.getByTitle(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }), level: 2 } )).not.toBeInTheDocument();
     expect(screen.queryByLabelText(textMock('resourceadm.dashboard_searchbox'))).not.toBeInTheDocument();
-
   });
 
   it('does not show the spinner when the resource list is present', async () => {
