@@ -88,11 +88,10 @@
   color: #022F51;
   align-items: center;
   display: flex;
+  gap: .5rem;
 }
 
-.draggedIcon {
+.formComponentTitle .icon {
   font-size: 2rem;
-  align-items: center;
-  min-width: 35px;
-  display: flex;
+  display: inline-flex;
 }

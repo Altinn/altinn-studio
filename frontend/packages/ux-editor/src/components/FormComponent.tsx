@@ -119,7 +119,7 @@ export const FormComponent = memo(function FormComponent({
             />
           ) : (
             <div className={classes.formComponentTitle}>
-               <i className={classes.draggedIcon} data-testid="form-component-icon">{Icon && <Icon />} </i>
+               <span className={classes.icon} >{Icon  && <Icon aria-label={"icon"}/>} </span>
               {textResource
                 ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||
@@ -157,7 +157,7 @@ export const FormComponent = memo(function FormComponent({
             color='secondary'
             icon={<MonitorIcon title={t('general.preview')} />}
             onClick={handlePreview}
-            title='Forhåndsvisning (under utvikling)'
+            title={'Forhåndsvisning (under utvikling)'}
             variant='quiet'
             size='small'
           />

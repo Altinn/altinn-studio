@@ -13,6 +13,7 @@ import { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
 import { UseMutationResult } from '@tanstack/react-query';
 import { IInternalLayout } from '../types/global';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const user = userEvent.setup();
 
@@ -176,19 +177,7 @@ describe('FormComponent', () => {
           icon: 'Icon',
         },
       });
-      const iconElement = screen.getByTestId('form-component-icon');
-      expect(iconElement).toBeInTheDocument();
-    });
-
-    it('should not display the icon when the component is in preview mode', async () => {
-      await render({
-        component: {
-          ...component1Mock,
-          icon: 'Icon',
-        },
-        isEditMode: false,
-      }); 
-      expect(screen.queryByText('Icon')).not.toBeInTheDocument();
+      expect(screen.getByRole('img', { name:'icon' })).toBeInTheDocument();
     });
   });
 });

@@ -2,31 +2,31 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from '../types/FormComponent';
 import {
-  InformationIcon,
   FingerButtonIcon,
   FileTextIcon,
   PaperclipIcon,
-  CheckmarkIcon,
   CalendarIcon,
   ChevronDownIcon,
-  FileCodeIcon,
   TasklistIcon,
   PinIcon,
   ExclamationmarkIcon,
   MenuHamburgerIcon,
-  EyeClosedIcon,
+  ImageIcon,
   TabsIcon,
   TableIcon,
   CaptionsIcon,
   BulletListIcon,
   BookmarkIcon,
   ChevronDownDoubleIcon,
+  ThumbUpIcon,
+  LinkIcon,
+  PresentationIcon
 } from '@navikt/aksel-icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
-  icon?: string | React.ComponentType;
+  icon?: React.ComponentType;
 };
 
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
@@ -127,7 +127,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: CheckmarkIcon,
+    icon: BulletListIcon,
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
@@ -165,7 +165,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: ChevronDownIcon,
+    icon: BulletListIcon,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
@@ -238,7 +238,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.IFrame,
       sandbox: {},
     },
-    icon: FileCodeIcon,
+    icon: PresentationIcon,
   },
   [ComponentType.Image]: {
     name: ComponentType.Image,
@@ -253,7 +253,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       propertyPath: 'definitions/imageComponent',
     },
-    icon: EyeClosedIcon,
+    icon: ImageIcon,
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
@@ -275,7 +275,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.InstanceInformation,
       propertyPath: 'definitions/instanceInformationComponent',
     },
-    icon: InformationIcon,
+    icon: FileTextIcon,
   },
   [ComponentType.InstantiationButton]: {
     name: ComponentType.InstantiationButton,
@@ -295,7 +295,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: CheckmarkIcon,
+    icon: ThumbUpIcon,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
@@ -304,7 +304,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Link,
     },
-    icon: FileCodeIcon,
+    icon: LinkIcon,
   },
   [ComponentType.List]: {
     name: ComponentType.List,
@@ -344,7 +344,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: ChevronDownIcon,
+    icon: BulletListIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
@@ -365,7 +365,7 @@ export const formItemConfigs: FormItemConfigs = {
       onClickAction: () => { },
       propertyPath: 'definitions/navigationButtonsComponent',
     },
-    icon: MenuHamburgerIcon,
+    icon: FingerButtonIcon,
   },
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
@@ -417,7 +417,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Summary,
       propertyPath: 'definitions/summaryComponent',
     },
-    icon: InformationIcon,
+    icon: FileTextIcon,
   },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
