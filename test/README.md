@@ -69,6 +69,12 @@ or
     yarn run cy:test:stateless-anonymous -e environment=local
 ```
 
+or
+
+```cmd
+    yarn run cy:test:signing -e environment=local
+```
+
 ### Running a single test
 
 To run a single test case open cypress runner using
