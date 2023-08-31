@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -29,6 +30,8 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISourceControl _sourceControl;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly string _layoutSetNameRegEx = "[a-zA-Z0-9-]{3,28}";
+        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
@@ -37,12 +40,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="altinnGitRepositoryFactory"></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _applicationInsightsSettings = applicationInsightsSettings;
         }
 
         /// <summary>
@@ -53,6 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult Index(string org, string app)
         {
             _sourceControl.VerifyCloneExists(org, app);
+            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
             return View();
         }
 
