@@ -17,11 +17,9 @@ import type {
   SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
-  ResourceKeyword,
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
 } from 'app-shared/types/ResourceAdm';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import {
   getMissingInputLanguageString,
@@ -30,6 +28,8 @@ import {
 import {
   availableForTypeMap,
   resourceStatusMap,
+  mapKeywordStringToKeywordTypeArray,
+  mapKeywordsArrayToString,
   resourceTypeMap,
 } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +39,7 @@ import { useTranslation } from 'react-i18next';
  */
 const emptyLangauges: SupportedLanguage = { nb: '', nn: '', en: '' };
 
-type AboutResourcePageProps = {
+export type AboutResourcePageProps = {
   /**
    * Flag to decide if all errors should be shown or not
    */
@@ -110,19 +110,6 @@ export const AboutResourcePage = ({
     value: key,
     label: availableForTypeMap[key],
   }));
-
-  /**
-   * ------------ Temporary functions -------------
-   * The first one maps keyword to string, and the second from string to keyword
-   *
-   * TODO - Find out how to handle it in the future
-   */
-  const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): string => {
-    return resourceKeywords.map((k) => k.word).join(', ');
-  };
-  const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
-    return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
-  };
 
   // States to store the different input values
   const [resourceType, setResourceType] = useState<ResourceTypeOption>(resourceData.resourceType);
@@ -352,7 +339,7 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutResourceType'>
           {t('resourceadm.about_resource_resource_type')}
         </Label>
         <Paragraph short size='small'>
@@ -363,18 +350,17 @@ export const AboutResourcePage = ({
             options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
             onChange={handleChangeResourceType}
             value={resourceType}
-            label={t('resourceadm.about_resource_resource_type')}
-            hideLabel
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
             onBlur={handleSaveResource}
+            inputId='aboutResourceType'
           />
           {showAllErrors &&
             hasResourceTypeError &&
             displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutNBTitle'>
           {t('resourceadm.about_resource_resource_title_label')}
         </Label>
         <Paragraph size='small'>{t('resourceadm.about_resource_resource_title_text')}</Paragraph>
@@ -383,15 +369,11 @@ export const AboutResourcePage = ({
             value={title['nb']}
             onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
             onFocus={() => setTranslationType('title')}
-            aria-labelledby='resource-title'
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
             ref={titleFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-title'
-            label={t('resourceadm.about_resource_resource_title_sr_label')}
+            id='aboutNBTitle'
           />
           {showAllErrors &&
             hasTitleError &&
@@ -404,7 +386,7 @@ export const AboutResourcePage = ({
             )}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutNBDescription'>
           {t('resourceadm.about_resource_resource_description_label')}
         </Label>
         <Paragraph size='small'>
@@ -419,15 +401,11 @@ export const AboutResourcePage = ({
             }}
             onFocus={() => setTranslationType('description')}
             rows={5}
-            aria-labelledby='resource-description'
             isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
             ref={descriptionFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-description'
-            label={t('resourceadm.about_resource_resource_description_sr_label')}
+            id='aboutNBDescription'
           />
           {showAllErrors &&
             hasDescriptionError &&
@@ -441,7 +419,7 @@ export const AboutResourcePage = ({
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutHomepage'>
           {t('resourceadm.about_resource_homepage_label')}
         </Label>
         <Paragraph short size='small'>
@@ -451,18 +429,14 @@ export const AboutResourcePage = ({
           <TextField
             value={homepage}
             onChange={(e) => setHomepage(e.target.value)}
-            aria-labelledby='resource-homepage'
             onFocus={() => setTranslationType('none')}
             ref={homePageRef}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-homepage'
-            label={t('resourceadm.about_resource_homepage_sr_label')}
+            id='aboutHomepage'
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutKeywords'>
           {t('resourceadm.about_resource_keywords_label')}
         </Label>
         <Paragraph size='small'>{t('resourceadm.about_resource_keywords_text')}</Paragraph>
@@ -470,13 +444,9 @@ export const AboutResourcePage = ({
           <TextField
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
-            aria-labelledby='resource-keywords'
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-keywords'
-            label={t('resourceadm.about_resource_keywords_sr_label')}
+            id='aboutKeywords'
           />
         </div>
         <div className={classes.divider} />
@@ -503,7 +473,7 @@ export const AboutResourcePage = ({
           </p>
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutRightDescription'>
           {t('resourceadm.about_resource_rights_description_label')}
         </Label>
         <Paragraph size='small'>
@@ -513,16 +483,12 @@ export const AboutResourcePage = ({
           <TextField
             value={rightDescription['nb']}
             onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
-            aria-labelledby='resource-delegationtext'
             onFocus={() => setTranslationType('rightDescription')}
             ref={rightDescriptionRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
             isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
-          />
-          <ScreenReaderSpan
-            id='resource-delegationtext'
-            label={t('resourceadm.about_resource_rights_description_sr_label')}
+            id='aboutRightDescription'
           />
           {showAllErrors &&
             hasRightDescriptionError &&

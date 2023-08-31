@@ -3,6 +3,7 @@ import type {
   ResourceTypeOption,
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
+  ResourceKeyword,
 } from 'app-shared/types/ResourceAdm';
 import { SupportedLanguage } from 'resourceadm/types/global';
 
@@ -118,4 +119,17 @@ export const getMissingInputLanguageString = (
     });
   }
   return '';
+};
+
+/**
+ * ------------ Temporary functions -------------
+ * The first one maps keyword to string, and the second from string to keyword
+ *
+ * TODO - Find out how to handle it in the future
+ */
+export const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): string => {
+  return resourceKeywords.map((k) => k.word).join(', ');
+};
+export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
+  return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
 };

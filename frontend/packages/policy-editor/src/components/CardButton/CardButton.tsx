@@ -31,7 +31,7 @@ export const CardButton = ({ buttonText, onClick }: CardButtonProps): React.Reac
   return (
     <button className={classes.button} type='button' onClick={onClick}>
       <Paragraph size='small'>{buttonText}</Paragraph>
-      <PlusIcon title={t('policy_editor.card_button_icon')} fontSize='1.4rem' />
+      <PlusIcon fontSize='1.4rem' />
     </button>
   );
 };
