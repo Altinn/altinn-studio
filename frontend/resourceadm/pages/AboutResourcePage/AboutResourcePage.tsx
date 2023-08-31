@@ -68,6 +68,14 @@ export const AboutResourcePage = ({
 
   const { resourceId } = useParams();
 
+  //
+  //
+  //
+  // TODO - FIX VALIDATION TO CHECK AND ADD ERROR TO THE NEW FIELDS
+  //
+  //
+  //
+
   /**
    * Resource type options
    */
@@ -104,7 +112,7 @@ export const AboutResourcePage = ({
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
-  const [isPublicService, setIsPublicService] = useState(resourceData.isPublicService ?? false);
+  const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
@@ -129,7 +137,7 @@ export const AboutResourcePage = ({
   const descriptionFieldRef = useRef(null);
   const homePageRef = useRef(null);
   const rightDescriptionRef = useRef(null);
-  const isPublicServiceRef = useRef(null);
+  const isVisibleRef = useRef(null);
 
   /**
    * Function that saves the resource to backend
@@ -143,7 +151,7 @@ export const AboutResourcePage = ({
       description,
       keywords: mapKeywordStringToKeywordTypeArray(keywords),
       homepage,
-      isPublicService,
+      visible: isVisible,
       rightDescription,
     };
 
@@ -229,9 +237,9 @@ export const AboutResourcePage = ({
         }
       }
       if (translationType === 'rightDescription') {
-        if (isPublicServiceRef.current) {
+        if (isVisibleRef.current) {
           e.preventDefault();
-          isPublicServiceRef.current.focus(null);
+          isVisibleRef.current.focus(null);
         }
       }
     }
@@ -439,24 +447,24 @@ export const AboutResourcePage = ({
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          {t('resourceadm.about_resource_public_service_label')}
+          {t('resourceadm.about_resource_visible_label')}
         </Label>
         <Paragraph short size='small'>
-          {t('resourceadm.about_resource_public_service_text')}
+          {t('resourceadm.about_resource_visible_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Switch
-            isChecked={isPublicService}
-            onToggle={(b: boolean) => setIsPublicService(b)}
+            isChecked={isVisible}
+            onToggle={(b: boolean) => setIsVisible(b)}
             onFocus={() => setTranslationType('none')}
-            ref={isPublicServiceRef}
+            ref={isVisibleRef}
             onBlur={handleSaveResource}
           />
-          <p className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}>
-            {t('resourceadm.about_resource_public_service_show_text', {
-              showText: isPublicService
-                ? t('resourceadm.about_resource_public_service_show')
-                : t('resourceadm.about_resource_public_service_dont_show'),
+          <p className={isVisible ? classes.toggleTextActive : classes.toggleTextInactive}>
+            {t('resourceadm.about_resource_visible_show_text', {
+              showText: isVisible
+                ? t('resourceadm.about_resource_visible_show')
+                : t('resourceadm.about_resource_visible_dont_show'),
             })}
           </p>
         </div>
