@@ -13,7 +13,7 @@
 .pageWrapper {
   margin: 0;
   padding: 40px;
-  width: 600px;
+  width: 650px;
 }
 
 .divider {
@@ -21,7 +21,7 @@
 }
 
 .inputWrapper {
-  width: 450px;
+  width: 500px;
   margin-top: 10px;
   position: relative;
 }
@@ -45,4 +45,8 @@ h2 {
 
 .warningCardWrapper {
   margin-top: 5px;
+}
+
+.checkboxParagraph {
+  padding-left: 0.5rem;
 }

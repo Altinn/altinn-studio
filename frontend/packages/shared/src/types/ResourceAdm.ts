@@ -18,9 +18,9 @@ export interface Resource {
   status?: ResourceStatusOption;
   selfIdentifiedUserEnabled: boolean;
   enterpriseUserEnabled: boolean;
+  availableForType: ResourceAvailableForTypeOption[];
   // -- Nye
   contactPoint?: ContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
-  availableForType: string[]; // NY - påkrevd - dropdown / Checkbox
 }
 /*
 
@@ -46,6 +46,12 @@ export interface ContactPoint {
 
 export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
+export type ResourceAvailableForTypeOption =
+  | 'PrivatePerson'
+  | 'LegalEntityEnterprise'
+  | 'Company'
+  | 'BankruptcyEstate'
+  | 'SelfRegisteredUser';
 
 export interface ResourceKeyword {
   language: 'nb' | 'nn' | 'en';

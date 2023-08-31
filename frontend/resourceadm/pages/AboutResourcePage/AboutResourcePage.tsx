@@ -8,6 +8,7 @@ import {
   Heading,
   Paragraph,
   Label,
+  Checkbox,
 } from '@digdir/design-system-react';
 import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
@@ -18,6 +19,7 @@ import type {
   ResourceTypeOption,
   ResourceKeyword,
   ResourceStatusOption,
+  ResourceAvailableForTypeOption,
 } from 'app-shared/types/ResourceAdm';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
@@ -25,7 +27,11 @@ import {
   getMissingInputLanguageString,
   getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
-import { resourceStatusMap, resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
+import {
+  availableForTypeMap,
+  resourceStatusMap,
+  resourceTypeMap,
+} from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -76,6 +82,8 @@ export const AboutResourcePage = ({
   //
   // TODO - CHECK THAT THE TAB SEQUENCE IS CORRECT
   //
+  // TODO - Can each input field and type be its own reusable component?
+  //
   //
   //
 
@@ -93,6 +101,14 @@ export const AboutResourcePage = ({
   const statusOptions = Object.keys(resourceStatusMap).map((key) => ({
     value: key,
     label: resourceStatusMap[key],
+  }));
+
+  /**
+   * Available for options
+   */
+  const acailableForOptions = Object.keys(availableForTypeMap).map((key) => ({
+    value: key,
+    label: availableForTypeMap[key],
   }));
 
   /**
@@ -131,6 +147,9 @@ export const AboutResourcePage = ({
   );
   const [isEnterpriseUserEnabled, setIsEnterpriseUserEnabled] = useState(
     resourceData.enterpriseUserEnabled ?? false
+  );
+  const [availableForType, setAvailableForType] = useState<ResourceAvailableForTypeOption[]>(
+    resourceData.availableForType
   );
 
   // To handle which translation value is shown in the right menu
@@ -175,6 +194,7 @@ export const AboutResourcePage = ({
       status: resourceStatus,
       selfIdentifiedUserEnabled: isSelfIdentifiedUserEnabled,
       enterpriseUserEnabled: isEnterpriseUserEnabled,
+      availableForType,
       rightDescription,
     };
 
@@ -276,6 +296,19 @@ export const AboutResourcePage = ({
         }
       }
     }
+  };
+
+  const handleChangeAvailableFortype = (value: ResourceAvailableForTypeOption[]) => {
+    setAvailableForType(value);
+    handleSaveResource();
+  };
+
+  const displayAvailableForCheckboxes = () => {
+    return acailableForOptions.map((option) => (
+      <Checkbox value={option.value} key={option.value} size='small'>
+        {t(option.label)}
+      </Checkbox>
+    ));
   };
 
   /**
@@ -572,6 +605,20 @@ export const AboutResourcePage = ({
                 : t('resourceadm.switch_should_not'),
             })}
           </p>
+        </div>
+        <div className={classes.divider} />
+        <div className={classes.inputWrapper}>
+          <Checkbox.Group
+            legend={t('resourceadm.about_resource_available_for_legend')}
+            error={false} // TODO
+            onChange={handleChangeAvailableFortype}
+            // TODO - sett value!
+          >
+            <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
+              {t('resourceadm.about_resource_available_for_description')}
+            </Paragraph>
+            {displayAvailableForCheckboxes()}
+          </Checkbox.Group>
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>

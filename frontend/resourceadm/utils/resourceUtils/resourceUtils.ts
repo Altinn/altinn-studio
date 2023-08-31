@@ -2,6 +2,7 @@ import type {
   SupportedLanguageKey,
   ResourceTypeOption,
   ResourceStatusOption,
+  ResourceAvailableForTypeOption,
 } from 'app-shared/types/ResourceAdm';
 import { SupportedLanguage } from 'resourceadm/types/global';
 
@@ -22,6 +23,17 @@ export const resourceStatusMap: Record<ResourceStatusOption, string> = {
   Deprecated: 'resourceadm.about_resource_status_deprecated',
   UnderDevelopment: 'resourceadm.about_resource_status_under_development',
   Withdrawn: 'resourceadm.about_resource_status_withdrawn',
+};
+
+/**
+ * The map of resource status
+ */
+export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string> = {
+  PrivatePerson: 'resourceadm.about_resource_available_for_type_private',
+  LegalEntityEnterprise: 'resourceadm.about_resource_available_for_type_legal',
+  Company: 'resourceadm.about_resource_available_for_type_company',
+  BankruptcyEstate: 'resourceadm.about_resource_available_for_type_bankruptcy',
+  SelfRegisteredUser: 'resourceadm.about_resource_available_for_type_self_registered',
 };
 
 /**
