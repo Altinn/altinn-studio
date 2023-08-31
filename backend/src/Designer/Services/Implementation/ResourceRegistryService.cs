@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,25 +36,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
         }
 
-        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env = null)
+        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policy = null)
         {
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-            string fullResourceRegistryUrl;
+            string publishResourceToResourceRegistryUrl;
+            string getResourceRegistryUrl;
+            string fullWritePolicyToResourceRegistryUrl;
 
             if (env == null || string.IsNullOrEmpty(env))
             {
                 return new StatusCodeResult(400);
             }
 
-            //Checks if tested locally by passing dev as env parameter
+            //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                fullResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
+                publishResourceToResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
+                getResourceRegistryUrl = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
                 tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
+
+                fullWritePolicyToResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
             else
             {
-                fullResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
+                publishResourceToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
+                getResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}{serviceResource.Identifier}";
 
                 if (!_platformSettings.ResourceRegistryDefaultBaseUrl.Contains("localhost") && _platformSettings.ResourceRegistryDefaultBaseUrl.Contains("platform"))
                 {
@@ -60,13 +68,53 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     env = splittedBaseUrl[1];
                     tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
                 }
+
+                fullWritePolicyToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
 
             string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
             _httpClientFactory.CreateClient("myHttpClient");
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
 
-            HttpResponseMessage response = await _httpClient.PostAsync(fullResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+            if (policy != null)
+            {
+                MultipartFormDataContent content = new MultipartFormDataContent();
+
+                byte[] policyFileContentBytes = File.ReadAllBytes(policy);
+                ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
+                content.Add(fileContent, "policyFile", "policy.xml");
+                HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
+
+                if (writePolicyResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Policy written successfully!");
+                }
+                else
+                {
+                    Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
+                    string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Response content: {responseContent}");
+                    return new StatusCodeResult(400);
+                }
+            }
+
+            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
+
+            if (getResourceResponse.IsSuccessStatusCode)
+            {
+                HttpResponseMessage putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+
+                if (putResponse.IsSuccessStatusCode)
+                {
+                    return new StatusCodeResult(200);
+                }
+                else
+                {
+                    return new StatusCodeResult(400);
+                }
+            }
+
+            HttpResponseMessage response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
             if (response.StatusCode == HttpStatusCode.Created)
             {
                 return new StatusCodeResult(201);

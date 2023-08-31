@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Enums;
@@ -9,6 +10,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,7 @@ namespace Designer.Tests.Controllers
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly Mock<IRepository> _repositoryMock;
+        private readonly Mock<PlatformSettings> _platformSettingsMock;
 
         public ResourceAdminControllerTests(WebApplicationFactory<ResourceAdminController> factory) : base(factory)
         {
@@ -540,7 +543,7 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/ttd/resources/publish/ttd-resources/testresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            _repositoryMock.Setup(r => r.PublishResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
+            _repositoryMock.Setup(r => r.PublishResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
 
             //Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);

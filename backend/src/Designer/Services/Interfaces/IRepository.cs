@@ -87,13 +87,22 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy);
 
         /// <summary>
-        /// Gets a specific polic for ann app or for a generic
+        /// Gets a specific polic for an app or for a generic
         /// </summary>
         /// <param name="org"></param>
         /// <param name="repo"></param>
         /// <param name="resourceId"></param>
         /// <returns></returns>
         XacmlPolicy GetPolicy(string org, string repo, string resourceId);
+
+        /// <summary>
+        /// Gets the filepath of the policyfile
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="repo"></param>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
+        string GetPolicyPath(string org, string repo, string resourceId);
 
         /// <summary>
         /// Gets the widget settings for an app
@@ -189,8 +198,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The repository where the resource resides</param>
         /// <param name="id">The id of the resource that should be published</param>
         /// <param name="env">The environment the resource will be published to</param>
+        /// <param name="policy">The policy that goes with the resource</param>
         /// <returns></returns>
-        public Task<ActionResult> PublishResource(string org, string repository, string id, string env);
+        public Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null);
 
         /// <summary>
         /// Returns the path to the app folder

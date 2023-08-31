@@ -847,10 +847,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
-        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
+        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
         {
             ServiceResource resource = GetServiceResourceById(org, repository, id);
-            return await _resourceRegistryService.PublishServiceResource(resource, env);
+            return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
         }
 
         public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)
@@ -1032,7 +1032,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return policy;
         }
 
-        private string GetPolicyPath(string org, string repo, string resourceId)
+        public string GetPolicyPath(string org, string repo, string resourceId)
         {
             string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);

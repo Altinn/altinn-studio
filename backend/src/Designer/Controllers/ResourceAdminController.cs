@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
-using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -263,9 +262,10 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
-        public Task<ActionResult> PublishResource(string org, string repository, string id, string env)
+        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {
-            return _repository.PublishResource(org, repository, id, env);
+            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
+            return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
         }
     }
 }
