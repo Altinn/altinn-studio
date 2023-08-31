@@ -29,19 +29,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string url = $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
-            ServiceResource serviceResource;
-
-            try
-            {
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
-                string contentString = await response.Content.ReadAsStringAsync();
-                serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(contentString);
-                return serviceResource;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Something went wrong when retrieving service resource", ex);
-            }
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            string contentString = await response.Content.ReadAsStringAsync();
+            ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(contentString);
+            return serviceResource;
         }
 
         public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
@@ -49,22 +40,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
 
-            try
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            string contentString = await response.Content.ReadAsStringAsync();
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
             {
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
-                string contentString = await response.Content.ReadAsStringAsync();
-                XacmlPolicy policy;
-                using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
-                {
-                    policy = XacmlParser.ParseXacmlPolicy(reader);
-                }
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
 
-                return policy;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Something went wrong when retrieving xacml policy for service resource", ex);
-            }
+            return policy;
         }
 
         public async Task<List<AvailableService>> AvailableServices(int languageId, string environment)
@@ -73,22 +57,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string availabbleServicePath = $"h{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
-            try
-            {
-                HttpResponseMessage response = await _httpClient.GetAsync(availabbleServicePath);
+            HttpResponseMessage response = await _httpClient.GetAsync(availabbleServicePath);
 
-                string availableServiceString = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(availableServiceString))
-                {
-                    availableServices = System.Text.Json.JsonSerializer.Deserialize<List<AvailableService>>(availableServiceString, new System.Text.Json.JsonSerializerOptions());
-                }
-
-                return availableServices;
-            }
-            catch (Exception ex)
+            string availableServiceString = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(availableServiceString))
             {
-                throw new Exception($"Something went wrong when retrieving available services", ex);
+                availableServices = System.Text.Json.JsonSerializer.Deserialize<List<AvailableService>>(availableServiceString, new System.Text.Json.JsonSerializerOptions());
             }
+
+            return availableServices;
         }
 
         private string GetSblBridgeUrl(string environment)
