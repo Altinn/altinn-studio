@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import classes from './Switch.module.css';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 type SwitchProps = {
   /**
@@ -23,6 +23,7 @@ type SwitchProps = {
    * @returns void
    */
   onBlur: () => void;
+  id: string;
 };
 
 /**
@@ -38,7 +39,7 @@ type SwitchProps = {
  */
 // TODO - replace with Design system chip. Issue: #10892
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
-  ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
+  ({ onToggle, isChecked, onFocus, onBlur, id }, ref): React.ReactNode => {
     const { t } = useTranslation();
 
     const handleToggle = () => {
@@ -50,18 +51,18 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       <div className={classes.switch}>
         <input
           type='checkbox'
-          id='toggleSwitch'
+          id={id}
           className={classes.checkbox}
           checked={isChecked}
           onChange={handleToggle}
-          aria-label='toggleSwitch'
+          aria-label={id}
           onFocus={onFocus}
           onBlur={onBlur}
           ref={ref}
         />
         <label
           aria-label={t('resourceadm.switch_toggle')}
-          htmlFor='toggleSwitch'
+          htmlFor={id}
           className={classes.slider}
         ></label>
       </div>

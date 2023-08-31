@@ -74,6 +74,8 @@ export const AboutResourcePage = ({
   //
   // TODO - FIX VALIDATION TO CHECK AND ADD ERROR TO THE NEW FIELDS
   //
+  // TODO - CHECK THAT THE TAB SEQUENCE IS CORRECT
+  //
   //
   //
 
@@ -124,6 +126,9 @@ export const AboutResourcePage = ({
   const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
   const [isDelegable, setIsDelegable] = useState(resourceData.delegable ?? true);
   const [resourceStatus, setResourceStatus] = useState<ResourceStatusOption>(resourceData.status);
+  const [isSelfIdentifiedUserEnabled, setIsSelfIdentifiedUserEnabled] = useState(
+    resourceData.selfIdentifiedUserEnabled ?? false
+  );
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
@@ -164,6 +169,8 @@ export const AboutResourcePage = ({
       homepage,
       visible: isVisible,
       delegable: isDelegable,
+      status: resourceStatus,
+      selfIdentifiedUserEnabled: isSelfIdentifiedUserEnabled,
       rightDescription,
     };
 
@@ -448,10 +455,11 @@ export const AboutResourcePage = ({
             onToggle={(b: boolean) => setIsDelegable(b)}
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
+            id='isDelegableSwitch'
           />
           <p className={isDelegable ? classes.toggleTextActive : classes.toggleTextInactive}>
             {t('resourceadm.about_resource_delegable_show_text', {
-              showText: isVisible
+              showText: isDelegable
                 ? t('resourceadm.switch_should')
                 : t('resourceadm.switch_should_not'),
             })}
@@ -509,6 +517,33 @@ export const AboutResourcePage = ({
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
+          {t('resourceadm.about_resource_self_identified_label')}
+        </Label>
+        <Paragraph short size='small'>
+          {t('resourceadm.about_resource_self_identified_text')}
+        </Paragraph>
+        <div className={classes.inputWrapper}>
+          <Switch
+            isChecked={isSelfIdentifiedUserEnabled}
+            onToggle={(b: boolean) => setIsSelfIdentifiedUserEnabled(b)}
+            onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
+            id='selfIdentifiedUsersEnabledSwitch'
+          />
+          <p
+            className={
+              isSelfIdentifiedUserEnabled ? classes.toggleTextActive : classes.toggleTextInactive
+            }
+          >
+            {t('resourceadm.about_resource_self_identified_show_text', {
+              showText: isSelfIdentifiedUserEnabled
+                ? t('resourceadm.switch_should')
+                : t('resourceadm.switch_should_not'),
+            })}
+          </p>
+        </div>
+        <div className={classes.divider} />
+        <Label size='medium' spacing>
           {t('resourceadm.about_resource_visible_label')}
         </Label>
         <Paragraph short size='small'>
@@ -521,6 +556,7 @@ export const AboutResourcePage = ({
             onFocus={() => setTranslationType('none')}
             ref={isVisibleRef}
             onBlur={handleSaveResource}
+            id='isVisibleSwitch'
           />
           <p className={isVisible ? classes.toggleTextActive : classes.toggleTextInactive}>
             {t('resourceadm.about_resource_visible_show_text', {
