@@ -16,8 +16,8 @@ export const LoggerContextProvider = ({
 }: LoggerContextProviderProps): JSX.Element => {
   const reactPlugin = new ReactPlugin();
 
-  // check if we have a connection string, if not, don't initialize app insights (we do not want AI to run on localhost)
-  const applicationinsights = config.connectionString
+  // check if we have a instrumentationKey, if not, don't initialize app insights (we do not want AI to run on localhost)
+  const applicationinsights = config.instrumentationKey
     ? new ApplicationInsights({
         config: {
           ...config,
