@@ -1,15 +1,13 @@
 import React from 'react';
-import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, Select } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
   SubExpression,
   expressionFunctionTexts,
-  Operator, Expression,
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import cn from 'classnames';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
 import { addDataSource, addDataSourceValue } from '../../../utils/expressionsUtils';
@@ -18,31 +16,26 @@ import { useText } from '../../../hooks';
 interface IExpressionContentProps {
   expressionAction: boolean;
   subExpression: SubExpression;
-  expression: Expression;
-  index: number;
-  onAddSubExpression: (expOp: string) => void;
   onUpdateSubExpression: (subExpression: SubExpression) => void;
-  onUpdateExpressionOperator: (expressionOp: Operator) => void;
   onRemoveSubExpression: (subExpression: SubExpression) => void;
 }
 
 export const SubExpressionContent = ({
-    expressionAction,
-    subExpression,
-    expression,
-    index,
-    onAddSubExpression,
-    onUpdateSubExpression,
-    onUpdateExpressionOperator,
-    onRemoveSubExpression,
+  expressionAction,
+  subExpression,
+  onUpdateSubExpression,
+  onRemoveSubExpression,
 }: IExpressionContentProps) => {
   const t = useText();
 
-  const showAddExpressionButton: boolean = index == expression.subExpressions.length - 1;
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(subExpression.function as ExpressionFunction);
 
   const addFunctionToSubExpression = (func: string) => {
-    subExpression.function = func as ExpressionFunction;
+    if (func === 'default') {
+      delete subExpression.function;
+    } else {
+      subExpression.function = func as ExpressionFunction;
+    }
     handleUpdateSubExpression();
   };
 
@@ -56,14 +49,6 @@ export const SubExpressionContent = ({
     const newSubExpression = addDataSourceValue(subExpression, dataSourceValue, isComparable);
     subExpression = { ...newSubExpression };
     handleUpdateSubExpression();
-  };
-
-  const handleUpdateExpressionOperator = (operator: Operator) => {
-    onUpdateExpressionOperator(operator);
-  };
-
-  const handleAddSubExpression = (expressionOperator: Operator) => {
-    onAddSubExpression(expressionOperator);
   };
 
   const handleUpdateSubExpression = () => {

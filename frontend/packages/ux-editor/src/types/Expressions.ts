@@ -2,7 +2,6 @@ import { UseText } from '../hooks';
 
 export interface Expression {
   id?: string;
-  editMode: boolean;
   operator?: Operator;
   property?: ExpressionPropertyBase | ExpressionPropertyForGroup;
   subExpressions?: SubExpression[];

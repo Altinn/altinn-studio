@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
-import { Expression as ExpressionContent } from './Expression';
+import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import { FormContext } from '../../../containers/FormContext';
@@ -12,16 +12,15 @@ import {
   Expression,
 } from '../../../types/Expressions';
 import {
-  complexExpressionIsSet,
-  convertExpressionToExternalFormat,
+  addExpressionIfLimitNotReached,
   convertExternalExpressionToInternal,
-  tryParseString
+  deleteExpressionAndAddDefaultIfEmpty, removeInvalidExpressions,
+  saveExpression,
 } from '../../../utils/expressionsUtils';
 import { LayoutItemType } from '../../../types/global';
 import classes from './Expressions.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { Divider } from 'app-shared/primitives';
-import { FormComponent } from '../../../types/FormComponent';
 import { useUpdateFormComponentMutation } from '../../../hooks/mutations/useUpdateFormComponentMutation';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
@@ -39,6 +38,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const { mutate: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSetName);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
+  const [expressionInEditModeId, setExpressionInEditModeId] = React.useState<string | undefined>(undefined);
   const t = useText();
 
   // adapt list of actions if component is group
@@ -53,38 +53,32 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
     if (form) {
       const propertiesWithExpressions: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined = expressionProperties && Object.keys(form).filter(property => expressionProperties.includes(property)).map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
       const potentialConvertedExternalExpressions: Expression[] = propertiesWithExpressions?.filter(property => typeof form[property] !== 'boolean')?.map(property => convertExternalExpressionToInternal(property, form[property]));
-      const defaultExpression: Expression = { id: uuidv4(), editMode: true, subExpressions: [] };
-      const defaultExpressions = potentialConvertedExternalExpressions?.length === 0 ? [defaultExpression] : potentialConvertedExternalExpressions;
-      setExpressions(defaultExpressions);
+      const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
+      const startingExpressions = potentialConvertedExternalExpressions?.length === 0 ? [defaultExpression] : potentialConvertedExternalExpressions;
+      setExpressions(startingExpressions);
+      if (startingExpressions[0].id === defaultExpression.id) {
+        setExpressionInEditModeId(defaultExpression.id);
+      }
     }
   }, [form])
 
-  const showRemoveExpressionButton = expressions?.length > 1;
   const successfullyAddedExpressionIdRef = useRef('default');
+  const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;
+  const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
 
   if (!formId || !form) return t('right_menu.content_empty');
 
-  const addExpression = async () => {
-    // TODO: Consider have a state for expressionIdInEditMode instead of iterating over all every time to adapt the editMode prop
-    const nonEditableExpressions: Expression[] = await Promise.all([...expressions.filter(prevExpression => (prevExpression.subExpressions && prevExpression.subExpressions.length > 0) || complexExpressionIsSet(prevExpression.complexExpression))].map(async prevExpression => {
-      if (complexExpressionIsSet(prevExpression.complexExpression)) {
-        const newExpression = tryParseString(prevExpression, prevExpression.complexExpression);
-        prevExpression = { ...newExpression };
-      }
-      if (prevExpression.property && prevExpression.editMode) {
-        // TODO: What if expression is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
-        form[prevExpression.property] = convertExpressionToExternalFormat(prevExpression);
-        try {
-          await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
-          successfullyAddedExpressionIdRef.current = prevExpression.id;
-        } catch (error) {
-          successfullyAddedExpressionIdRef.current = 'default';
-        }
-      }
-      return ({ ...prevExpression, editMode: false })
-    }));
-    const expression: Expression = { id: uuidv4(), editMode: true, subExpressions: [] };
-    const newExpressions = expressions.length < expressionProperties.length ? nonEditableExpressions.concat(expression) : nonEditableExpressions;
+  const saveExpressionAndSetCheckMark = async (expression: Expression) => {
+    await saveExpression(form, formId, expression, updateFormComponent);
+    setExpressionInEditModeId(undefined);
+    successfullyAddedExpressionIdRef.current = expression.id;
+  };
+
+  const addNewExpression = async () => {
+    // TODO: Check if expression is in edit mode and try to save?
+    const validExpressions = removeInvalidExpressions(expressions);
+    const newExpressions = addExpressionIfLimitNotReached(validExpressions, isExpressionLimitReached);
+    setExpressionInEditModeId(newExpressions[newExpressions.length - 1].id);
     setExpressions(newExpressions);
   };
 
@@ -95,23 +89,22 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   }
 
   const editExpression = (expression: Expression) => {
-    // TODO: Consider have a state for expressionIdInEditMode instead of iterating over all every time to adapt the editMode prop
-    // Set editMode fields for all prev expressions to false
-    const updatedExpressions = [...expressions.filter(prevExpression => (prevExpression.subExpressions && prevExpression.subExpressions.length > 0) || prevExpression.complexExpression)].map(prevExpression => {
-      if (prevExpression === expression) return { ...prevExpression, editMode: true }
-      else return { ...prevExpression, editMode: false }
-    });
-    setExpressions(updatedExpressions);
+    // TODO: Check if expression is in edit mode and try to save?
+    const validExpression = removeInvalidExpressions(expressions);
+    setExpressionInEditModeId(expression.id);
+    setExpressions(validExpression);
   };
 
-  const removeExpression = async (expression: Expression) => {
-    if (expression.property) {
-      // TODO: What if the property was set to true or false before? Issue #10860
-      delete form[expression.property];
-      await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
+  const deleteExpression = async (expression: Expression) => {
+    const newExpressions = await deleteExpressionAndAddDefaultIfEmpty(form, formId, expression, expressions, updateFormComponent);
+    if (newExpressions.length === 1 && !newExpressions[0].property) {
+      // Set default expression as expression in edit mode if it has been added
+      setExpressionInEditModeId(newExpressions[0].id);
     }
-    const defaultExpression: Expression = { id: uuidv4(), editMode: true, subExpressions: [] };
-    const newExpressions = expressions.length === 1 ? expressions.filter(prevExpression => prevExpression !== expression).concat(defaultExpression) : expressions.filter(prevExpression => prevExpression !== expression);
+    if (expressionInEditModeId === expression.id) {
+      // Unset expression in edit mode if expression to delete was in edit mode
+      setExpressionInEditModeId(undefined);
+    }
     setExpressions(newExpressions);
   };
 
@@ -123,7 +116,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
     return { availableProperties, expressionProperties }
   };
 
-  console.log('expressions: ', expressions)
+  console.log('expressions: ', expressions) // TODO: Remove when fully tested
+  console.log('expression in edit mode id: ', expressionInEditModeId) // TODO: Remove when fully tested
   return (
     <div className={classes.root}>
       {Object.values(expressions).map((expression: Expression, index: number) => (
@@ -133,31 +127,32 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
             expression={expression}
             onGetProperties={() => getProperties(expression)}
             showRemoveExpressionButton={showRemoveExpressionButton}
-            onAddExpression={addExpression}
+            onSaveExpression={() => saveExpressionAndSetCheckMark(expression)}
             successfullyAddedExpressionId={successfullyAddedExpressionIdRef.current}
+            expressionInEditModeId={expressionInEditModeId}
             onUpdateExpression={newExpression => updateExpression(index, newExpression)}
-            onRemoveExpression={() => removeExpression(expression)}
+            onRemoveExpression={() => deleteExpression(expression)}
             onEditExpression={() => editExpression(expression)}
           />
         </div>
       ))}
-      {expressions.length < expressionProperties.length ? (
+      {isExpressionLimitReached ? (
+          <Alert className={classes.expressionsAlert}>
+            {t('right_menu.expressions_expressions_limit_reached_alert')}
+          </Alert>
+      ) : (
         <Button
           aria-label={t('right_menu.expressions_add')}
           color='primary'
           fullWidth
           icon={<PlusIcon/>}
           id='right_menu.dynamics_add'
-          onClick={addExpression}
+          onClick={addNewExpression}
           size='small'
           variant='outline'
         >
           {t('right_menu.expressions_add')}
         </Button>
-      ) : (
-        <Alert className={classes.expressionsAlert}>
-          {t('right_menu.expressions_expressions_limit_reached_alert')}
-        </Alert>
       )}
       {shouldDisplayFeature('expressions') &&
         (<div className={classes.expressionsVersionCheckBox}>

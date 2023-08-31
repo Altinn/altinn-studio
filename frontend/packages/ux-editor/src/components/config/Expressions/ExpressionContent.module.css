@@ -44,30 +44,10 @@
   gap: 0.5rem;
 }
 
-.bold {
-  font-weight: bold;
-}
-
 .checkMark {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   color: var(--fds-semantic-surface-success-default);
-}
-
-.andOrToggleButtons {
-  width: fit-content;
-}
-
-.addExpression {
-  margin-bottom: 20px;
-}
-
-.plusIcon {
-  font-size: 40px;
-  width: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
