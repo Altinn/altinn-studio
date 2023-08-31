@@ -13,12 +13,12 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import 'app-shared/design-tokens';
 import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import 'app-shared/design-tokens';
-import { altinnStudioWindow } from 'app-shared/utils/altinnStudioWindow';
+import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
 const store = setupStore();
 
 const loggerConfig: LoggerConfig = {
-  instrumentationKey: altinnStudioWindow.instrumentationKey,
+  instrumentationKey: altinnStudioEnvironment.instrumentationKey,
   enableUnhandledPromiseRejectionTracking: true,
   loggingLevelTelemetry: 2,
 };
