@@ -75,6 +75,7 @@
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
     <Watch Remove="Models\AvailableService.cs" />
     <Watch Remove="Models\ConceptSchema.cs" />
+    <Watch Remove="Models\ContactPoint.cs" />
     <Watch Remove="Models\DataTheme.cs" />
     <Watch Remove="Models\DataThemesContainer.cs" />
     <Watch Remove="Models\EuroVocTerm.cs" />
