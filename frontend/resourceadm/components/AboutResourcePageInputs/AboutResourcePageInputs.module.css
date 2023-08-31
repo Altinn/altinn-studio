@@ -1,0 +1,13 @@
+.divider {
+  margin-top: 30px;
+}
+
+.inputWrapper {
+  width: 500px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.warningCardWrapper {
+  margin-top: 5px;
+}
