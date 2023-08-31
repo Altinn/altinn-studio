@@ -113,6 +113,7 @@ export const AboutResourcePage = ({
     resourceData.rightDescription ?? emptyLangauges
   );
   const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
+  const [isDelegable, setIsDelegable] = useState(resourceData.delegable ?? true);
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
@@ -152,6 +153,7 @@ export const AboutResourcePage = ({
       keywords: mapKeywordStringToKeywordTypeArray(keywords),
       homepage,
       visible: isVisible,
+      delegable: isDelegable,
       rightDescription,
     };
 
@@ -415,6 +417,28 @@ export const AboutResourcePage = ({
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
+          {t('resourceadm.about_resource_delegable_label')}
+        </Label>
+        <Paragraph short size='small'>
+          {t('resourceadm.about_resource_delegable_text')}
+        </Paragraph>
+        <div className={classes.inputWrapper}>
+          <Switch
+            isChecked={isDelegable}
+            onToggle={(b: boolean) => setIsDelegable(b)}
+            onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
+          />
+          <p className={isDelegable ? classes.toggleTextActive : classes.toggleTextInactive}>
+            {t('resourceadm.about_resource_delegable_show_text', {
+              showText: isVisible
+                ? t('resourceadm.switch_should')
+                : t('resourceadm.switch_should_not'),
+            })}
+          </p>
+        </div>
+        <div className={classes.divider} />
+        <Label size='medium' spacing>
           {t('resourceadm.about_resource_rights_description_label')}
         </Label>
         <Paragraph size='small'>
@@ -463,8 +487,8 @@ export const AboutResourcePage = ({
           <p className={isVisible ? classes.toggleTextActive : classes.toggleTextInactive}>
             {t('resourceadm.about_resource_visible_show_text', {
               showText: isVisible
-                ? t('resourceadm.about_resource_visible_show')
-                : t('resourceadm.about_resource_visible_dont_show'),
+                ? t('resourceadm.switch_should')
+                : t('resourceadm.switch_should_not'),
             })}
           </p>
         </div>

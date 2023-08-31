@@ -4,17 +4,17 @@ export interface NewResource {
 }
 
 export interface Resource {
-  identifier: string; // OK - PÅKREVD
-  resourceType?: ResourceTypeOption; // MÅ ENDRE EN VERDI - PÅKREVD
-  title: SupportedLanguageKey<string>; // OK - PÅKREVD
-  description?: SupportedLanguageKey<string>; // OK - PÅKREVD
-  keywords?: ResourceKeyword[]; // OK - ikke påkrevd - // TODO - Does this need to be changed? Issue: #10883
-  homepage?: string; // OK - ikke påkrevd
-  visible?: boolean; // BYTT til visible - påkrevd - bytte til den
-  delegable?: boolean; // NY - PÅKREVD - lag switch
-  rightDescription?: SupportedLanguageKey<string>; // OK - PÅKREVD hvis delegatable = true
-  version?: Version; // behold
-  resourceReferences?: ResourceReference[]; // ikke påkrevd - brukes til å vise migrering
+  identifier: string;
+  resourceType?: ResourceTypeOption;
+  title: SupportedLanguageKey<string>;
+  description?: SupportedLanguageKey<string>;
+  keywords?: ResourceKeyword[]; // TODO - Does this need to be changed? Issue: #10883
+  homepage?: string;
+  visible?: boolean;
+  delegable?: boolean;
+  rightDescription?: SupportedLanguageKey<string>;
+  version?: Version;
+  resourceReferences?: ResourceReference[];
   // -- Nye
   contactPoint?: ContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
   status?: string; // NY - ikke påkrevd
@@ -23,6 +23,18 @@ export interface Resource {
   // availableForType - påkrevd - dropdown / Checkbox
 }
 /*
+
+PÅKREVD - Fix for error validation
+- resourceType
+- title
+- description
+- visible
+- delegable
+- rightDescription - HVIS delegable=true
+- contactPoint
+- selfIdentifiedUserEnabled
+- enterpriseUserEnabled
+- availableForType
 
 Fra backend:
 - availableForType
@@ -35,7 +47,7 @@ export interface ContactPoint {
   contactPage: string;
 }
 
-export type ResourceTypeOption = 'Default' | 'Systemresource' | 'MaskinportenSchema';
+export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
 
 export interface ResourceKeyword {
   language: 'nb' | 'nn' | 'en';

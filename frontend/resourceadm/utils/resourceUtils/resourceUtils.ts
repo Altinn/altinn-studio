@@ -1,13 +1,13 @@
-import type { SupportedLanguageKey, ResourceTypeOption } from "app-shared/types/ResourceAdm";
-import { SupportedLanguage } from "resourceadm/types/global";
+import type { SupportedLanguageKey, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
+import { SupportedLanguage } from 'resourceadm/types/global';
 
 /**
  * The map of resource type
  */
 export const resourceTypeMap: Record<ResourceTypeOption, string> = {
-  Default: "resourceadm.about_resource_resource_type_default",
-  Systemresource: "resourceadm.about_resource_resource_type_system_resource",
-  MaskinportenSchema: "resourceadm.about_resource_resource_type_maskinporten",
+  GenericAccessResource: 'resourceadm.about_resource_resource_type_generic_access_resource',
+  Systemresource: 'resourceadm.about_resource_resource_type_system_resource',
+  MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
 };
 
 /**
@@ -19,11 +19,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
  * @returns boolean for if it has error or not
  */
 export const getResourcePageTextfieldError = (text: SupportedLanguageKey<string>): boolean =>
-  text === undefined ||
-  text === null ||
-  text.nb === '' ||
-  text.nn === '' ||
-  text.en === '';
+  text === undefined || text === null || text.nb === '' || text.nn === '' || text.en === '';
 
 /**
  * Converts the resource type key to the correct displayable string
@@ -39,7 +35,10 @@ export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOpt
 /**
  * Maps the language key to the text
  */
-export const mapLanguageKeyToLanguageText = (val: 'nb' | 'nn' | 'en', translationFunction: (key: string, params?: object) => string) => {
+export const mapLanguageKeyToLanguageText = (
+  val: 'nb' | 'nn' | 'en',
+  translationFunction: (key: string, params?: object) => string
+) => {
   if (val === 'nb') return translationFunction('language.nb');
   if (val === 'nn') return translationFunction('language.nn');
   return translationFunction('language.en');
@@ -72,13 +71,25 @@ export const getMissingInputLanguageString = (
 
   // Return different messages based on the length
   if (valArr.length === 1) {
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_1', { usageString, lang: mapLanguageKeyToLanguageText(valArr[0], translationFunction) })
+    return translationFunction('resourceadm.about_resource_langauge_error_missing_1', {
+      usageString,
+      lang: mapLanguageKeyToLanguageText(valArr[0], translationFunction),
+    });
   }
   if (valArr.length === 2) {
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_2', { usageString, lang1: mapLanguageKeyToLanguageText(valArr[0], translationFunction), lang2: mapLanguageKeyToLanguageText(valArr[1], translationFunction) })
+    return translationFunction('resourceadm.about_resource_langauge_error_missing_2', {
+      usageString,
+      lang1: mapLanguageKeyToLanguageText(valArr[0], translationFunction),
+      lang2: mapLanguageKeyToLanguageText(valArr[1], translationFunction),
+    });
   }
   if (valArr.length === 3) {
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_3', { usageString, lang1: mapLanguageKeyToLanguageText(valArr[0], translationFunction), lang2: mapLanguageKeyToLanguageText(valArr[1], translationFunction), lang3: mapLanguageKeyToLanguageText(valArr[2], translationFunction) })
+    return translationFunction('resourceadm.about_resource_langauge_error_missing_3', {
+      usageString,
+      lang1: mapLanguageKeyToLanguageText(valArr[0], translationFunction),
+      lang2: mapLanguageKeyToLanguageText(valArr[1], translationFunction),
+      lang3: mapLanguageKeyToLanguageText(valArr[2], translationFunction),
+    });
   }
   return '';
 };
