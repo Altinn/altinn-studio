@@ -3,7 +3,6 @@ import classes from './AboutResourcePage.module.css';
 import {
   Select,
   TextField,
-  TextArea,
   ErrorMessage,
   Heading,
   Paragraph,
@@ -33,6 +32,10 @@ import {
   resourceTypeMap,
 } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
+import {
+  ResourceLanguageTextArea,
+  ResourceLanguageTextField,
+} from 'resourceadm/components/AboutResourcePageInputs';
 
 /**
  * Initial value for languages with empty fields
@@ -287,7 +290,7 @@ export const AboutResourcePage = ({
 
   const handleChangeAvailableFortype = (value: ResourceAvailableForTypeOption[]) => {
     setAvailableForType(value);
-    handleSaveResource();
+    //handleSaveResource();
   };
 
   const displayAvailableForCheckboxes = () => {
@@ -352,71 +355,51 @@ export const AboutResourcePage = ({
             value={resourceType}
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
-            onBlur={handleSaveResource}
+            // onBlur={handleSaveResource}
             inputId='aboutResourceType'
           />
           {showAllErrors &&
             hasResourceTypeError &&
             displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
         </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor='aboutNBTitle'>
-          {t('resourceadm.about_resource_resource_title_label')}
-        </Label>
-        <Paragraph size='small'>{t('resourceadm.about_resource_resource_title_text')}</Paragraph>
-        <div className={classes.inputWrapper}>
-          <TextField
-            value={title['nb']}
-            onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
-            onFocus={() => setTranslationType('title')}
-            isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
-            ref={titleFieldRef}
-            onKeyDown={handleTabKeyIntoRightBar}
-            onBlur={handleSaveResource}
-            id='aboutNBTitle'
-          />
-          {showAllErrors &&
-            hasTitleError &&
-            displayWarningCard(
-              getMissingInputLanguageString(
-                title,
-                t('resourceadm.about_resource_error_usage_string_title'),
-                t
-              )
-            )}
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor='aboutNBDescription'>
-          {t('resourceadm.about_resource_resource_description_label')}
-        </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_resource_description_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <TextArea
-            value={description['nb']}
-            resize='vertical'
-            onChange={(e) => {
-              handleChangeTranslationValues({ ...description, nb: e.currentTarget.value });
-            }}
-            onFocus={() => setTranslationType('description')}
-            rows={5}
-            isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
-            ref={descriptionFieldRef}
-            onKeyDown={handleTabKeyIntoRightBar}
-            onBlur={handleSaveResource}
-            id='aboutNBDescription'
-          />
-          {showAllErrors &&
-            hasDescriptionError &&
-            displayWarningCard(
-              getMissingInputLanguageString(
-                description,
-                t('resourceadm.about_resource_error_usage_string_description'),
-                t
-              )
-            )}
-        </div>
+        <ResourceLanguageTextField
+          label={t('resourceadm.about_resource_resource_title_label')}
+          description={t('resourceadm.about_resource_resource_title_text')}
+          value={title['nb']}
+          onFocus={() => setTranslationType('title')}
+          id='aboutNBTitle'
+          isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
+          ref={titleFieldRef}
+          onKeyDown={handleTabKeyIntoRightBar}
+          onChangeValue={(value: string) => handleChangeTranslationValues({ ...title, nb: value })}
+          onBlur={handleSaveResource}
+          showErrorMessage={showAllErrors && hasTitleError}
+          errorText={getMissingInputLanguageString(
+            title,
+            t('resourceadm.about_resource_error_usage_string_title'),
+            t
+          )}
+        />
+        <ResourceLanguageTextArea
+          label={t('resourceadm.about_resource_resource_description_label')}
+          description={t('resourceadm.about_resource_resource_description_text')}
+          value={description['nb']}
+          onFocus={() => setTranslationType('description')}
+          id='aboutNBDescription'
+          isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
+          ref={descriptionFieldRef}
+          onKeyDown={handleTabKeyIntoRightBar}
+          onChangeValue={(value: string) => {
+            handleChangeTranslationValues({ ...description, nb: value });
+          }}
+          onBlur={handleSaveResource}
+          showErrorMessage={showAllErrors && hasDescriptionError}
+          errorText={getMissingInputLanguageString(
+            description,
+            t('resourceadm.about_resource_error_usage_string_description'),
+            t
+          )}
+        />
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
         <Label size='medium' spacing htmlFor='aboutHomepage'>
@@ -431,7 +414,7 @@ export const AboutResourcePage = ({
             onChange={(e) => setHomepage(e.target.value)}
             onFocus={() => setTranslationType('none')}
             ref={homePageRef}
-            onBlur={handleSaveResource}
+            // onBlur={handleSaveResource}
             id='aboutHomepage'
           />
         </div>
@@ -445,7 +428,7 @@ export const AboutResourcePage = ({
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
             onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
+            //   onBlur={handleSaveResource}
             id='aboutKeywords'
           />
         </div>
@@ -472,34 +455,26 @@ export const AboutResourcePage = ({
             })}
           </p>
         </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor='aboutRightDescription'>
-          {t('resourceadm.about_resource_rights_description_label')}
-        </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_rights_description_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <TextField
-            value={rightDescription['nb']}
-            onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
-            onFocus={() => setTranslationType('rightDescription')}
-            ref={rightDescriptionRef}
-            onKeyDown={handleTabKeyIntoRightBar}
-            onBlur={handleSaveResource}
-            isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
-            id='aboutRightDescription'
-          />
-          {showAllErrors &&
-            hasRightDescriptionError &&
-            displayWarningCard(
-              getMissingInputLanguageString(
-                rightDescription,
-                t('resourceadm.about_resource_error_usage_string_rights_description'),
-                t
-              )
-            )}
-        </div>
+        <ResourceLanguageTextField
+          label={t('resourceadm.about_resource_rights_description_label')}
+          description={t('resourceadm.about_resource_rights_description_label')}
+          value={rightDescription['nb']}
+          onFocus={() => setTranslationType('rightDescription')}
+          id='aboutNBRightDescription'
+          isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
+          ref={rightDescriptionRef}
+          onKeyDown={handleTabKeyIntoRightBar}
+          onChangeValue={(value: string) =>
+            handleChangeTranslationValues({ ...rightDescription, nb: value })
+          }
+          onBlur={handleSaveResource}
+          showErrorMessage={showAllErrors && hasRightDescriptionError}
+          errorText={getMissingInputLanguageString(
+            rightDescription,
+            t('resourceadm.about_resource_error_usage_string_rights_description'),
+            t
+          )}
+        />
         <div className={classes.divider} />
         <Label size='medium' spacing htmlFor='aboutResourceStatus'>
           {t('resourceadm.about_resource_status_label')}
@@ -515,7 +490,7 @@ export const AboutResourcePage = ({
             label={t('resourceadm.about_resource_status_label')}
             hideLabel
             onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
+            //     onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
