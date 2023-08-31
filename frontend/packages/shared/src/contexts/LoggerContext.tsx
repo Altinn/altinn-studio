@@ -1,4 +1,4 @@
-import React, { ReactNode, createContext } from 'react';
+import React, { ReactNode, createContext, useEffect, useMemo } from 'react';
 import { ApplicationInsights, IConfiguration, IConfig } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
 
@@ -14,20 +14,36 @@ export const LoggerContextProvider = ({
   children,
   config,
 }: LoggerContextProviderProps): JSX.Element => {
-  const reactPlugin = new ReactPlugin();
+  const reactPlugin = useMemo(() => new ReactPlugin(), []);
 
-  // check if we have a instrumentationKey, if not, don't initialize app insights (we do not want AI to run on localhost)
-  const applicationinsights = config.instrumentationKey
-    ? new ApplicationInsights({
-        config: {
-          ...config,
-          extensions: [reactPlugin],
-        },
-      })
-    : null;
+  const applicationinsights = useMemo(() => {
+    // check if we have a instrumentationKey, if not, don't initialize app insights (we do not want AI to run on localhost)
+    if (!config.instrumentationKey) return null;
 
-  if (applicationinsights) {
-    applicationinsights.loadAppInsights();
-  }
+    const insights = new ApplicationInsights({
+      config: {
+        ...config,
+        extensions: [reactPlugin],
+      },
+    });
+
+    insights.loadAppInsights();
+    return insights;
+  }, [config, reactPlugin]);
+
+  useEffect(() => {
+    const handleWindowError = (event: ErrorEvent) => {
+      console.log({ event, error: event.error });
+      applicationinsights?.trackException({ error: event.error });
+    };
+
+    if (applicationinsights) {
+      window.addEventListener('error', handleWindowError);
+
+      return () => {
+        window.removeEventListener('error', handleWindowError);
+      };
+    }
+  }, [applicationinsights]);
   return <LoggerContext.Provider value={applicationinsights}>{children}</LoggerContext.Provider>;
 };
