@@ -15,9 +15,9 @@ export interface Resource {
   rightDescription?: SupportedLanguageKey<string>;
   version?: Version;
   resourceReferences?: ResourceReference[];
+  status?: ResourceStatusOption;
   // -- Nye
   contactPoint?: ContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
-  status?: string; // NY - ikke påkrevd
   selfIdentifiedUserEnabled: boolean; // NY - PÅKREVD - Switch
   enterpriseUserEnabled: boolean; //  NY - PÅKREVD - Switch
   // availableForType - påkrevd - dropdown / Checkbox
@@ -48,6 +48,7 @@ export interface ContactPoint {
 }
 
 export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
+export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
 export interface ResourceKeyword {
   language: 'nb' | 'nn' | 'en';

@@ -1,4 +1,8 @@
-import type { SupportedLanguageKey, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
+import type {
+  SupportedLanguageKey,
+  ResourceTypeOption,
+  ResourceStatusOption,
+} from 'app-shared/types/ResourceAdm';
 import { SupportedLanguage } from 'resourceadm/types/global';
 
 /**
@@ -8,6 +12,16 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   GenericAccessResource: 'resourceadm.about_resource_resource_type_generic_access_resource',
   Systemresource: 'resourceadm.about_resource_resource_type_system_resource',
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
+};
+
+/**
+ * The map of resource status
+ */
+export const resourceStatusMap: Record<ResourceStatusOption, string> = {
+  Completed: 'resourceadm.about_resource_status_completed',
+  Deprecated: 'resourceadm.about_resource_status_deprecated',
+  UnderDevelopment: 'resourceadm.about_resource_status_under_development',
+  Withdrawn: 'resourceadm.about_resource_status_withdrawn',
 };
 
 /**

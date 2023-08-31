@@ -17,6 +17,7 @@ import type {
   Resource,
   ResourceTypeOption,
   ResourceKeyword,
+  ResourceStatusOption,
 } from 'app-shared/types/ResourceAdm';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
@@ -24,7 +25,7 @@ import {
   getMissingInputLanguageString,
   getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
-import { resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { resourceStatusMap, resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -85,6 +86,14 @@ export const AboutResourcePage = ({
   }));
 
   /**
+   * Status options
+   */
+  const statusOptions = Object.keys(resourceStatusMap).map((key) => ({
+    value: key,
+    label: resourceStatusMap[key],
+  }));
+
+  /**
    * ------------ Temporary functions -------------
    * The first one maps keyword to string, and the second from string to keyword
    *
@@ -114,6 +123,7 @@ export const AboutResourcePage = ({
   );
   const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
   const [isDelegable, setIsDelegable] = useState(resourceData.delegable ?? true);
+  const [resourceStatus, setResourceStatus] = useState<ResourceStatusOption>(resourceData.status);
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
@@ -169,6 +179,16 @@ export const AboutResourcePage = ({
   const handleChangeResourceType = (type: ResourceTypeOption) => {
     setResourceType(type);
     setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
+  };
+
+  /**
+   * Handles the change in the dropdown of resource status option. Based on the string
+   * selected it updates the status option with the correct key.
+   *
+   * @param type the selected string
+   */
+  const handleChangeStatusOption = (type: ResourceStatusOption) => {
+    setResourceStatus(type);
   };
 
   /**
@@ -468,6 +488,24 @@ export const AboutResourcePage = ({
                 t
               )
             )}
+        </div>
+        <div className={classes.divider} />
+        <Label size='medium' spacing htmlFor='aboutResourceStatus'>
+          {t('resourceadm.about_resource_status_label')}
+        </Label>
+        <Paragraph short size='small'>
+          {t('resourceadm.about_resource_status_text')}
+        </Paragraph>
+        <div className={classes.inputWrapper}>
+          <Select
+            options={statusOptions.map((o) => ({ ...o, label: t(o.label) }))}
+            onChange={handleChangeStatusOption}
+            value={resourceStatus}
+            label={t('resourceadm.about_resource_status_label')}
+            hideLabel
+            onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
+          />
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
