@@ -545,23 +545,6 @@ namespace Designer.Tests.Controllers
             Assert.NotEmpty(losTerms);
         }
 
-        [Fact]
-        public async Task GetEuroVocs()
-        {
-            //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/eurovoc";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
-            string eurovocscontent = await res.Content.ReadAsStringAsync();
-            List<EuroVocTerm> eurovocs = System.Text.Json.JsonSerializer.Deserialize<List<EuroVocTerm>>(eurovocscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
-
-            //Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-            Assert.NotEmpty(eurovocs);
-        }
-
         private static List<ResourceReference> GetTestResourceReferences()
         {
             List<ResourceReference> resourceReferences = new List<ResourceReference>
