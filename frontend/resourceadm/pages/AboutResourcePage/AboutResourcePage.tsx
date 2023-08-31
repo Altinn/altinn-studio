@@ -13,28 +13,29 @@ import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
-  // ResourceThematic,
   SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
-  ResourceKeyword,
   ResourceSector,
 } from 'app-shared/types/ResourceAdm';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import {
   getMissingInputLanguageString,
   getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
-import { resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
-import { useTranslation } from 'react-i18next'
+import {
+  mapKeywordStringToKeywordTypeArray,
+  mapKeywordsArrayToString,
+  resourceTypeMap,
+} from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Initial value for languages with empty fields
  */
 const emptyLangauges: SupportedLanguage = { nb: '', nn: '', en: '' };
 
-type AboutResourcePageProps = {
+export type AboutResourcePageProps = {
   /**
    * Flag to decide if all errors should be shown or not
    */
@@ -47,10 +48,6 @@ type AboutResourcePageProps = {
    * The list of possible sectors
    */
   sectorsData: ResourceSector[];
-  /**
-   * The list of possible thematic areas
-   */
-  // thematicData: ResourceThematic[];
   /**
    * Function to be handled when saving the resource
    * @param r the resource
@@ -66,7 +63,6 @@ type AboutResourcePageProps = {
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {Resource}[resourceData] - The metadata for the resource
  * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
- * @property {ResourceThematic[]}[thematicData] - The list of possible thematic areas
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  *
  * @returns {React.ReactNode} - The rendered component
@@ -75,7 +71,6 @@ export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   sectorsData,
-  // thematicData,
   onSaveResource,
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -85,23 +80,10 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.keys(resourceTypeMap).map(key => ({
+  const resourceTypeOptions = Object.keys(resourceTypeMap).map((key) => ({
     value: key,
-    label: resourceTypeMap[key]
+    label: resourceTypeMap[key],
   }));
-
-  /**
-   * ------------ Temporary functions -------------
-   * The first one maps keyword to string, and the second from string to keyword
-   *
-   * TODO - Find out how to handle it in the future
-   */
-  const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): string => {
-    return resourceKeywords.map((k) => k.word).join(', ');
-  };
-  const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
-    return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
-  };
 
   // States to store the different input values
   const [resourceType, setResourceType] = useState<ResourceTypeOption>(resourceData.resourceType);
@@ -170,7 +152,6 @@ export const AboutResourcePage = ({
       homepage,
       isPublicService,
       sector: sectorToSave,
-      // thematicArea,
       rightDescription,
     };
 
@@ -305,7 +286,7 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutResourceType'>
           {t('resourceadm.about_resource_resource_type')}
         </Label>
         <Paragraph short size='small'>
@@ -313,47 +294,46 @@ export const AboutResourcePage = ({
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
-            options={resourceTypeOptions.map(o => ({ ...o, label: t(o.label) }))}
+            options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
             onChange={handleChangeResourceType}
             value={resourceType}
-            label={t('resourceadm.about_resource_resource_type')}
-            hideLabel
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
             onBlur={handleSaveResource}
+            inputId='aboutResourceType'
           />
           {showAllErrors &&
             hasResourceTypeError &&
             displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutNBTitle'>
           {t('resourceadm.about_resource_resource_title_label')}
         </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_resource_title_text')}
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_resource_title_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
             onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
             onFocus={() => setTranslationType('title')}
-            aria-labelledby='resource-title'
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
             ref={titleFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-title'
-            label={t('resourceadm.about_resource_resource_title_sr_label')}
+            id='aboutNBTitle'
           />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguageString(title, t('resourceadm.about_resource_error_usage_string_title'), t))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                title,
+                t('resourceadm.about_resource_error_usage_string_title'),
+                t
+              )
+            )}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutNBDescription'>
           {t('resourceadm.about_resource_resource_description_label')}
         </Label>
         <Paragraph size='small'>
@@ -368,23 +348,25 @@ export const AboutResourcePage = ({
             }}
             onFocus={() => setTranslationType('description')}
             rows={5}
-            aria-labelledby='resource-description'
             isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
             ref={descriptionFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-description'
-            label={t('resourceadm.about_resource_resource_description_sr_label')}
+            id='aboutNBDescription'
           />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(description, t('resourceadm.about_resource_error_usage_string_description'), t))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                description,
+                t('resourceadm.about_resource_error_usage_string_description'),
+                t
+              )
+            )}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutHomepage'>
           {t('resourceadm.about_resource_homepage_label')}
         </Label>
         <Paragraph short size='small'>
@@ -394,43 +376,31 @@ export const AboutResourcePage = ({
           <TextField
             value={homepage}
             onChange={(e) => setHomepage(e.target.value)}
-            aria-labelledby='resource-homepage'
             onFocus={() => setTranslationType('none')}
             ref={homePageRef}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-homepage'
-            label={t('resourceadm.about_resource_homepage_sr_label')}
+            id='aboutHomepage'
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutKeywords'>
           {t('resourceadm.about_resource_keywords_label')}
         </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_keywords_text')}
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_keywords_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
-            aria-labelledby='resource-keywords'
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-keywords'
-            label={t('resourceadm.about_resource_keywords_sr_label')}
+            id='aboutKeywords'
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutSector'>
           {t('resourceadm.about_resource_sector_label')}
         </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_sector_text')}
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_sector_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             multiple
@@ -438,32 +408,13 @@ export const AboutResourcePage = ({
             options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
             onChange={(e) => setSector(e)}
             value={sector}
-            label={t('resourceadm.about_resource_sector_sr_label')}
-            hideLabel
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
+            inputId='aboutSector'
           />
         </div>
-        {/*<div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_thematic_label')}
-        </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_thematic_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Select
-            options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
-            onChange={(e: string) => setThematicArea(e)}
-            value={thematicArea}
-            label={t('resourceadm.about_resource_thematic_sr_label')}
-            hideLabel
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-          />
-          </div>*/}
         <div className={classes.divider} />
-        <Label size='medium' spacing>
+        <Label size='medium' spacing htmlFor='aboutRightDescription'>
           {t('resourceadm.about_resource_rights_description_label')}
         </Label>
         <Paragraph size='small'>
@@ -473,20 +424,22 @@ export const AboutResourcePage = ({
           <TextField
             value={rightDescription['nb']}
             onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
-            aria-labelledby='resource-delegationtext'
             onFocus={() => setTranslationType('rightDescription')}
             ref={rightDescriptionRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
             isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
-          />
-          <ScreenReaderSpan
-            id='resource-delegationtext'
-            label={t('resourceadm.about_resource_rights_description_sr_label')}
+            id='aboutRightDescription'
           />
           {showAllErrors &&
             hasRightDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(rightDescription, t('resourceadm.about_resource_error_usage_string_rights_description'), t))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                rightDescription,
+                t('resourceadm.about_resource_error_usage_string_rights_description'),
+                t
+              )
+            )}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
@@ -503,10 +456,12 @@ export const AboutResourcePage = ({
             ref={isPublicServiceRef}
             onBlur={handleSaveResource}
           />
-          <p
-            className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
-          >
-            {t('resourceadm.about_resource_public_service_show_text', { showText: isPublicService ? t('resourceadm.about_resource_public_service_show') : t('resourceadm.about_resource_public_service_dont_show') })}
+          <p className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}>
+            {t('resourceadm.about_resource_public_service_show_text', {
+              showText: isPublicService
+                ? t('resourceadm.about_resource_public_service_show')
+                : t('resourceadm.about_resource_public_service_dont_show'),
+            })}
           </p>
         </div>
       </>
