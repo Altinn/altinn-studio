@@ -102,7 +102,6 @@ export const AboutResourcePage = ({
       ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
       : []
   );
-  // const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
