@@ -13,7 +13,6 @@ import { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
 import { UseMutationResult } from '@tanstack/react-query';
 import { IInternalLayout } from '../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
 
 const user = userEvent.setup();
 

@@ -8,7 +8,7 @@ interface IToolbarItemProps {
   notDraggable?: boolean;
   onClick: (type: ComponentType, event: MouseEvent) => void;
   componentType: ComponentType;
-  icon?: React.ComponentType |string ;
+  icon?: React.ComponentType ;
 }
 
 export const ToolbarItem = ({
