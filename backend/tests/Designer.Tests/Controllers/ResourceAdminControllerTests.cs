@@ -135,15 +135,16 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"/resourceadm/ttd/resources";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
+            {
+                // Act
+                HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                string contenthtml = await res.Content.ReadAsStringAsync();
 
-            // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
-            string contenthtml = await res.Content.ReadAsStringAsync();
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-            Assert.Contains("resourceadm.js", contenthtml);
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+                Assert.Contains("resourceadm.js", contenthtml);
+            }
         }
 
         [Fact]
@@ -177,29 +178,30 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"designer/api/brg/resources/altinn2linkservices/at23";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            List<AvailableService> services = new List<AvailableService>();
-            services.Add(new AvailableService()
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
             {
-                ServiceName = "Test",
-                ExternalServiceCode = "Test",
-                ExternalServiceEditionCode = 123
-            });
-            services.Add(new AvailableService()
-            {
-                ServiceName = "Test 2",
-                ExternalServiceCode = "Test2",
-                ExternalServiceEditionCode = 123
-            });
+                List<AvailableService> services = new List<AvailableService>();
+                services.Add(new AvailableService()
+                {
+                    ServiceName = "Test",
+                    ExternalServiceCode = "Test",
+                    ExternalServiceEditionCode = 123
+                });
+                services.Add(new AvailableService()
+                {
+                    ServiceName = "Test 2",
+                    ExternalServiceCode = "Test2",
+                    ExternalServiceEditionCode = 123
+                });
 
-            _altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
+                _altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
 
-            // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                // Act
+                HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            }
         }
 
         private static List<Keyword> GetTestKeywords()
