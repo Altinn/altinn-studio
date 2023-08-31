@@ -5,24 +5,22 @@ export interface NewResource {
 
 export interface Resource {
   identifier: string; // OK - PÅKREVD
-  resourceType?: ResourceTypeOption;
+  resourceType?: ResourceTypeOption; // OK - PÅKREVD
   title: SupportedLanguageKey<string>; // OK - PÅKREVD
   description?: SupportedLanguageKey<string>; // OK - PÅKREVD
   keywords?: ResourceKeyword[]; // OK - ikke påkrevd - // TODO - Does this need to be changed? Issue: #10883
   homepage?: string; // OK - ikke påkrevd
-  isPublicService?: boolean; // visible - påkrevd - bytte til den
-  sector?: string[]; // FJERN det - Rune sjekker
+  isPublicService?: boolean; // BYTT til visible - påkrevd - bytte til den
+  delegable?: boolean; // NY - PÅKREVD - lag switch
   rightDescription?: SupportedLanguageKey<string>; // OK - PÅKREVD hvis delegatable = true
   version?: Version; // behold
   resourceReferences?: ResourceReference[]; // ikke påkrevd - brukes til å vise migrering
-  
+
   // contactpoint - påkrevd - Fritekst, sendes som string[] - komma separert
   // status - dropdown - ikke påkrevd
   // availableForType - påkrevd - dropdown / Checkbox
   // SelfIdentified UserEnabled	 - påkrevd - switch
   // Enterprise UserEnabled	 - påkrevd - switch
-  // delegable - påkrevd - switch - default true?
-
 }
 /*
 
@@ -46,11 +44,6 @@ export interface ResourceKeyword {
 export interface Version {
   version: string;
   environment: string;
-}
-
-export interface ResourceSector {
-  code: string;
-  label: SupportedLanguageKey<string>;
 }
 
 export interface ResourceListItem {

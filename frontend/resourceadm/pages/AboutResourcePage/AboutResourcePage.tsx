@@ -17,7 +17,6 @@ import type {
   Resource,
   ResourceTypeOption,
   ResourceKeyword,
-  ResourceSector,
 } from 'app-shared/types/ResourceAdm';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
@@ -26,7 +25,7 @@ import {
   getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
 import { resourceTypeMap } from 'resourceadm/utils/resourceUtils/resourceUtils';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 /**
  * Initial value for languages with empty fields
@@ -43,10 +42,6 @@ type AboutResourcePageProps = {
    */
   resourceData: Resource;
   /**
-   * The list of possible sectors
-   */
-  sectorsData: ResourceSector[];
-  /**
    * Function to be handled when saving the resource
    * @param r the resource
    * @returns void
@@ -60,7 +55,6 @@ type AboutResourcePageProps = {
  *
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {Resource}[resourceData] - The metadata for the resource
- * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  *
  * @returns {React.ReactNode} - The rendered component
@@ -68,7 +62,6 @@ type AboutResourcePageProps = {
 export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
-  sectorsData,
   onSaveResource,
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -78,9 +71,9 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.keys(resourceTypeMap).map(key => ({
+  const resourceTypeOptions = Object.keys(resourceTypeMap).map((key) => ({
     value: key,
-    label: resourceTypeMap[key]
+    label: resourceTypeMap[key],
   }));
 
   /**
@@ -107,11 +100,6 @@ export const AboutResourcePage = ({
   const [homepage, setHomepage] = useState(resourceData.homepage ?? '');
   const [keywords, setKeywords] = useState(
     resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''
-  );
-  const [sector, setSector] = useState<string[]>(
-    resourceData.sector
-      ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
-      : []
   );
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
@@ -147,11 +135,6 @@ export const AboutResourcePage = ({
    * Function that saves the resource to backend
    */
   const handleSaveResource = () => {
-    // Map sectoroption to with label to the sector code - TODO: Language
-    const sectorToSave: string[] = sector.map(
-      (s) => sectorsData.find((sd) => sd.label['nb'] === s).code
-    );
-
     const editedResourceObject: Resource = {
       ...resourceData,
       identifier: resourceId,
@@ -161,7 +144,6 @@ export const AboutResourcePage = ({
       keywords: mapKeywordStringToKeywordTypeArray(keywords),
       homepage,
       isPublicService,
-      sector: sectorToSave,
       rightDescription,
     };
 
@@ -304,7 +286,7 @@ export const AboutResourcePage = ({
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
-            options={resourceTypeOptions.map(o => ({ ...o, label: t(o.label) }))}
+            options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
             onChange={handleChangeResourceType}
             value={resourceType}
             label={t('resourceadm.about_resource_resource_type')}
@@ -321,9 +303,7 @@ export const AboutResourcePage = ({
         <Label size='medium' spacing>
           {t('resourceadm.about_resource_resource_title_label')}
         </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_resource_title_text')}
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_resource_title_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
@@ -341,7 +321,13 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguageString(title, t('resourceadm.about_resource_error_usage_string_title'), t))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                title,
+                t('resourceadm.about_resource_error_usage_string_title'),
+                t
+              )
+            )}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
@@ -371,7 +357,13 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(description, t('resourceadm.about_resource_error_usage_string_description'), t))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                description,
+                t('resourceadm.about_resource_error_usage_string_description'),
+                t
+              )
+            )}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
@@ -399,9 +391,7 @@ export const AboutResourcePage = ({
         <Label size='medium' spacing>
           {t('resourceadm.about_resource_keywords_label')}
         </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_keywords_text')}
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_keywords_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={keywords}
@@ -413,26 +403,6 @@ export const AboutResourcePage = ({
           <ScreenReaderSpan
             id='resource-keywords'
             label={t('resourceadm.about_resource_keywords_sr_label')}
-          />
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_sector_label')}
-        </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_sector_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Select
-            multiple
-            // TODO - Language
-            options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
-            onChange={(e) => setSector(e)}
-            value={sector}
-            label={t('resourceadm.about_resource_sector_sr_label')}
-            hideLabel
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
@@ -459,7 +429,13 @@ export const AboutResourcePage = ({
           />
           {showAllErrors &&
             hasRightDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(rightDescription, t('resourceadm.about_resource_error_usage_string_rights_description'), t))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                rightDescription,
+                t('resourceadm.about_resource_error_usage_string_rights_description'),
+                t
+              )
+            )}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
@@ -476,10 +452,12 @@ export const AboutResourcePage = ({
             ref={isPublicServiceRef}
             onBlur={handleSaveResource}
           />
-          <p
-            className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
-          >
-            {t('resourceadm.about_resource_public_service_show_text', { showText: isPublicService ? t('resourceadm.about_resource_public_service_show') : t('resourceadm.about_resource_public_service_dont_show') })}
+          <p className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}>
+            {t('resourceadm.about_resource_public_service_show_text', {
+              showText: isPublicService
+                ? t('resourceadm.about_resource_public_service_show')
+                : t('resourceadm.about_resource_public_service_dont_show'),
+            })}
           </p>
         </div>
       </>

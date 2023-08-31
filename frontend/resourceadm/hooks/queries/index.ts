@@ -1,5 +1,4 @@
 export { useOrganizationsQuery } from './useOrganizationsQuery';
-export { useResourceSectorsQuery } from './useResourceSectorsQuery';
 export { useResourcePolicyQuery } from './useResourcePolicyQuery';
 export { useResourcePolicyActionsQuery } from './useResourcePolicyActionsQuery';
 export { useResourcePolicySubjectsQuery } from './useResourcePolicySubjectsQuery';
