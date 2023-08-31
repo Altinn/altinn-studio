@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "ttd/stateless-app",
   "org": "ttd",
   "title": {
@@ -7,28 +7,74 @@
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
-      "allowedContentTypes": ["application/pdf"],
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
       "maxCount": 0,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     },
     {
       "id": "stateless",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema"
-      }      
+        "classRef": "Altinn.App.Models.Skjema",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     },
     {
       "id": "message",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.MessageV1"
+        "classRef": "Altinn.App.Models.MessageV1",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "task2",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.task2",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
       },
       "maxCount": 1,
-      "taskId": "Task_1",
-      "minCount": 1
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {
@@ -37,8 +83,10 @@
     "person": false,
     "subUnit": false
   },
-  "onEntry": { "show": "stateless" },
   "autoDeleteOnProcessEnd": true,
+  "onEntry": {
+    "show": "stateless"
+  },
   "created": "2021-05-11T08:57:08.4231228Z",
   "createdBy": "jeeva",
   "lastChanged": "2021-05-11T08:57:08.4232208Z",
