@@ -47,24 +47,25 @@ namespace Altinn.Studio.Designer.Models
         public string? Status { get; set; }
 
         /// <summary>
-        /// When the resource is available from
+        /// spatial coverage
+        /// This property represents that area(s) a Public Service is likely to be available only within, typically the area(s) covered by a particular public authority.
         /// </summary>
-        public DateTime? ValidFrom { get; set; }
+        public List<string>? Spatial { get; set; }
 
         /// <summary>
-        /// When the resource is available to
+        /// List of possible contact points
         /// </summary>
-        public DateTime? ValidTo { get; set; }
+        public List<string> ContactPoints { get; set; }
+
+        /// <summary>
+        /// Linkes to the outcome of a public service
+        /// </summary>
+        public List<string>? Produces { get; set; }
 
         /// <summary>
         /// IsPartOf
         /// </summary>
         public string? IsPartOf { get; set; }
-
-        /// <summary>
-        /// IsPublicService
-        /// </summary>
-        public bool? IsPublicService { get; set; }
 
         /// <summary>
         /// ThematicArea
@@ -75,11 +76,6 @@ namespace Altinn.Studio.Designer.Models
         /// ResourceReference
         /// </summary>
         public List<ResourceReference>? ResourceReferences { get; set; }
-
-        /// <summary>
-        /// IsComplete
-        /// </summary>
-        public bool? IsComplete { get; set; }
 
         /// <summary>
         /// Is this resource possible to delegate to others or not
@@ -102,9 +98,19 @@ namespace Altinn.Studio.Designer.Models
         public List<Keyword>? Keywords { get; set; }
 
         /// <summary>
-        /// Sector
+        /// Defines if the resource is limited by Resource Rights Registry
         /// </summary>
-        public List<string>? Sector { get; set; }
+        public bool LimitedByRRR { get; set; }
+
+        /// <summary>
+        /// The user acting on behalf of party can be a selfidentifed users
+        /// </summary>
+        public bool SelfIdentifiedUserEnabled { get; set; }
+
+        /// <summary>
+        /// The user acting on behalf of party can be an enterprise users
+        /// </summary>
+        public bool EnterpriseUserEnabled { get; set; }
 
         /// <summary>
         /// ResourceType

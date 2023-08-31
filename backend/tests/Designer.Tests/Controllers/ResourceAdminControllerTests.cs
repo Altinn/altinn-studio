@@ -92,18 +92,13 @@ namespace Designer.Tests.Controllers
                         RightDescription = new Dictionary<string, string>(),
                         Homepage = "test.no",
                         Status = string.Empty,
-                        ValidFrom = new System.DateTime(),
-                        ValidTo = new System.DateTime(),
                         IsPartOf = string.Empty,
-                        IsPublicService = true,
                         ThematicArea = string.Empty,
                         ResourceReferences = GetTestResourceReferences(),
-                        IsComplete = true,
                         Delegable = true,
                         Visible = true,
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
-                        Sector = new List<string>(),
                         ResourceType = ResourceType.Default,
                         MainLanguage = "en-US",
                     }
@@ -235,18 +230,13 @@ namespace Designer.Tests.Controllers
                         RightDescription = new Dictionary<string, string>(),
                         Homepage = "test.no",
                         Status = string.Empty,
-                        ValidFrom = new System.DateTime(),
-                        ValidTo = new System.DateTime(),
                         IsPartOf = string.Empty,
-                        IsPublicService = true,
                         ThematicArea = string.Empty,
                         ResourceReferences = GetTestResourceReferences(),
-                        IsComplete = true,
                         Delegable = true,
                         Visible = true,
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
-                        Sector = new List<string>(),
                         ResourceType = ResourceType.Default,
                         MainLanguage = "en-US",
                     });
@@ -278,18 +268,13 @@ namespace Designer.Tests.Controllers
                         RightDescription = new Dictionary<string, string>(),
                         Homepage = "test.no",
                         Status = string.Empty,
-                        ValidFrom = new System.DateTime(),
-                        ValidTo = new System.DateTime(),
                         IsPartOf = string.Empty,
-                        IsPublicService = true,
                         ThematicArea = string.Empty,
                         ResourceReferences = GetTestResourceReferences(),
-                        IsComplete = true,
                         Delegable = true,
                         Visible = true,
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
-                        Sector = new List<string>(),
                         ResourceType = ResourceType.Default,
                         MainLanguage = "en-US",
                     }
@@ -321,19 +306,14 @@ namespace Designer.Tests.Controllers
                         RightDescription = new Dictionary<string, string>(),
                         Homepage = "test.no",
                         Status = string.Empty,
-                        ValidFrom = new System.DateTime(),
-                        ValidTo = new System.DateTime(),
                         IsPartOf = string.Empty,
-                        IsPublicService = true,
                         ThematicArea = string.Empty,
                         ResourceReferences = GetTestResourceReferences(),
-                        IsComplete = true,
                         Delegable = true,
                         Visible = true,
                         Version = "2023.12",
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
-                        Sector = new List<string>(),
                         ResourceType = ResourceType.Default,
                         MainLanguage = "en-US",
                     });
@@ -409,18 +389,13 @@ namespace Designer.Tests.Controllers
                 RightDescription = new Dictionary<string, string> { { "en", "Access Management" }, { "no", "Tilgangsstyring" } },
                 Homepage = "test.no",
                 Status = "Active",
-                ValidFrom = new System.DateTime(2023, 12, 10, 12, 0, 0),
-                ValidTo = new System.DateTime(2025, 12, 10, 12, 0, 0),
                 IsPartOf = "Altinn",
-                IsPublicService = true,
                 ThematicArea = "",
                 ResourceReferences = GetTestResourceReferences(),
-                IsComplete = true,
                 Delegable = true,
                 Visible = true,
                 HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                 Keywords = GetTestKeywords(),
-                Sector = new List<string> { "private", "public" },
                 ResourceType = ResourceType.Default,
                 MainLanguage = "en-US",
             };
@@ -451,18 +426,13 @@ namespace Designer.Tests.Controllers
                 RightDescription = new Dictionary<string, string> { { "en", "Access Management" }, { "no", "Tilgangsstyring" } },
                 Homepage = "test.no",
                 Status = "Active",
-                ValidFrom = new System.DateTime(2023, 12, 10, 12, 0, 0),
-                ValidTo = new System.DateTime(2025, 12, 10, 12, 0, 0),
                 IsPartOf = "Altinn",
-                IsPublicService = true,
                 ThematicArea = "",
                 ResourceReferences = GetTestResourceReferences(),
-                IsComplete = true,
                 Delegable = true,
                 Visible = true,
                 HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                 Keywords = GetTestKeywords(),
-                Sector = new List<string> { "private", "public" },
                 ResourceType = ResourceType.Default,
                 MainLanguage = "en-US",
             };
@@ -617,7 +587,6 @@ namespace Designer.Tests.Controllers
                 serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
                 serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
                 serviceResource.ResourceType = ResourceType.Default;
-                serviceResource.IsComplete = true;
                 serviceResource.ThematicArea = "ttdThematicArea";
                 return serviceResource;
             }
@@ -628,7 +597,6 @@ namespace Designer.Tests.Controllers
                 serviceResource.Title = null;
                 serviceResource.Description = null;
                 serviceResource.ResourceType = ResourceType.Default;
-                serviceResource.IsComplete = false;
                 serviceResource.ThematicArea = string.Empty;
                 return serviceResource;
             }
@@ -644,7 +612,6 @@ namespace Designer.Tests.Controllers
                 serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
                 serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
                 serviceResource.ResourceType = ResourceType.Default;
-                serviceResource.IsComplete = true;
                 serviceResource.ThematicArea = "ttdThematicArea";
                 resourceList.Add(serviceResource);
                 return resourceList;
@@ -657,7 +624,6 @@ namespace Designer.Tests.Controllers
                 serviceResource.Title = null;
                 serviceResource.Description = null;
                 serviceResource.ResourceType = ResourceType.Default;
-                serviceResource.IsComplete = false;
                 serviceResource.ThematicArea = string.Empty;
                 resourceList.Add(serviceResource);
                 return resourceList;
