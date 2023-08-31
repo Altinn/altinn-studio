@@ -118,7 +118,7 @@ namespace Designer.Tests.Fixtures
         {
             if (responseMessage.Headers.Contains("Set-Cookie"))
             {
-                return responseMessage.Headers.GetValues("Set-Cookie").Where(x => x.Contains("i_like_gitea") || x.Contains("macaron_flash")).ToList();
+                return responseMessage.Headers.GetValues("Set-Cookie").Where(x => x.Contains("i_like_gitea") || x.Contains("_flash")).ToList();
             }
 
             throw new ArgumentException("Response message does not contain any cookies");

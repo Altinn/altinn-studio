@@ -1,6 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import { AppPreviewMenuItem } from './AppPreviewBarConfig';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation, textMock } from '../../../../testing/mocks/i18nMock';
 import { getTopBarAppPreviewMenu, menu } from './AppPreviewBarConfig';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -24,8 +24,8 @@ describe('getTopBarAppPreviewMenu', () => {
   it('should render all buttons on right side', () => {
     render(<SubPreviewMenuRightContent />);
 
-    expect(screen.getByTestId('restartBtn'));
-    expect(screen.getByTestId('showBtn'));
-    expect(screen.getByTestId('shareBtn'));
+    expect(screen.getByRole('button', { name: textMock('preview.subheader.restart') }));
+    expect(screen.getByRole('button', { name: textMock('preview.subheader.showas') }));
+    expect(screen.getByRole('button', { name: textMock('preview.subheader.sharelink') }));
   });
 });

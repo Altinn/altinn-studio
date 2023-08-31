@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -546,46 +547,95 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
             string csrf = await GetCsrf();
-
-            await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
+            await DeleteCurrentAppKeys(csrf, keyName);
 
             Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
+
+            Cookie flashTokenCookie = await GenerateTokenAndGetAuthorizedTokenCookie(csrf, giteaUrl, keyName);
+            if (flashTokenCookie is null)
+            {
+                return null;
+            }
+
+            using HttpClient clientWithToken = GetWebHtmlClient(false, flashTokenCookie);
+            // reading the API key value
+            HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
+            string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
+            string token = ExtractTokenFromHtmlContent(htmlContent);
+            List<string> keys = FindAllAppKeysId(htmlContent, keyName);
+
+            KeyValuePair<string, string> keyValuePair = new(keys.FirstOrDefault() ?? "1", token);
+
+            return keyValuePair;
+
+        }
+
+        private async Task<Cookie> GenerateTokenAndGetAuthorizedTokenCookie(string csrf, Uri giteaUrl, string tokenKeyName)
+        {
+            using HttpClient client = GetWebHtmlClient(false);
+            // creating new API key
+            FormUrlEncodedContent content = GenerateScopesContent(tokenKeyName, csrf);
+            HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
+
+            if (response.StatusCode != HttpStatusCode.Redirect && response.StatusCode != HttpStatusCode.SeeOther)
+            {
+                content = GenerateScopesContent(tokenKeyName, csrf, true);
+                response = await client.PostAsync(giteaUrl, content);
+            }
+
+            if (response.StatusCode != HttpStatusCode.Redirect && response.StatusCode != HttpStatusCode.SeeOther)
+            {
+                return null;
+            }
+
+            return StealFlashCookie(response);
+        }
+
+        private static FormUrlEncodedContent GenerateScopesContent(string keyName, string csrf, bool isVersion20Plus = false)
+        {
 
             List<KeyValuePair<string, string>> formValues = new();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
-            formValues.Add(new KeyValuePair<string, string>("scope", "repo"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:org"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:public_key"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "user"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "delete_repo"));
-            FormUrlEncodedContent content = new(formValues);
 
-            using (HttpClient client = GetWebHtmlClient(false))
+            if (isVersion20Plus)
             {
-                // creating new API key
-                HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:activitypub"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:admin"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:issue"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:misc"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:notification"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:organization"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:package"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:repository"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "write:user"));
+            }
+            else
+            {
+                formValues.Add(new KeyValuePair<string, string>("scope", "repo"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "admin:org"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "admin:public_key"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "user"));
+                formValues.Add(new KeyValuePair<string, string>("scope", "delete_repo"));
+            }
+            FormUrlEncodedContent content = new(formValues);
+            return content;
+        }
 
-                if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.SeeOther)
-                {
-                    Cookie cookie = StealMacaronCookie(response);
+        private string ExtractTokenFromHtmlContent(string htmlContent)
+        {
 
-                    using (HttpClient clientWithToken = GetWebHtmlClient(false, cookie))
-                    {
-                        // reading the API key value
-                        HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
-                        string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
-                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
-                        List<string> keys = FindAllAppKeysId(htmlContent, keyName);
-
-                        KeyValuePair<string, string> keyValuePair = new(keys.FirstOrDefault() ?? "1", token);
-
-                        return keyValuePair;
-                    }
-                }
+            string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-message flash-info\">\n\t\t<p>", "</p>");
+            if (token.Length != 40)
+            {
+                token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
             }
 
-            return null;
+            if (Regex.IsMatch(token, "^[0-9a-z]{40}$"))
+            {
+                return token;
+            }
+            throw new ArgumentException("Unable to extract the token!");
         }
 
         /// <inheritdoc />
@@ -832,18 +882,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
         }
 
-        private Cookie StealMacaronCookie(HttpResponseMessage response)
+        private Cookie StealFlashCookie(HttpResponseMessage response)
         {
-            string macaronFlashKey = "macaron_flash";
-            string setCookieHeader = response.Headers.GetValues("Set-Cookie")
-                .Where(s => s.Contains(macaronFlashKey))
-                .First()
-                .Split(";")[0];
+            const string flashCookieSuffix = "_flash";
+            string setCookieHeader = response.Headers
+                .GetValues("Set-Cookie")
+                .First(s => s.Contains(flashCookieSuffix))
+                .Split(";")
+                .First();
 
-            var splitSetCookieHeader = setCookieHeader.Split("=");
-            string macaronFlashValue = splitSetCookieHeader[1];
+            string[] splitSetCookieHeader = setCookieHeader.Split("=");
+            string cookieValue = splitSetCookieHeader[1];
+            string cookieName = splitSetCookieHeader[0];
 
-            return new Cookie(macaronFlashKey, macaronFlashValue, "/", GetApiEndpointHost());
+            return new Cookie(cookieName, cookieValue, "/", GetApiEndpointHost());
         }
+
+
     }
 }

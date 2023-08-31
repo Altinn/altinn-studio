@@ -18,7 +18,7 @@ export function AdministrationComponent() {
   const repositoryType = getRepositoryType(org, app);
 
   return (
-    <div data-testid='administration-container'>
+    <div>
       {repository && (
         <AltinnColumnLayout
           sideMenuChildren={

@@ -98,7 +98,6 @@ export function AccessControlContainer() {
     <div>
       <AltinnColumnLayout header={t('access_control.header')} sideMenuChildren={<SideMenu />}>
         <Checkbox.Group
-          data-testid='access-control-container'
           description={t('access_control.party_type')}
           legend={t('access_control.party_type_header')}
           onChange={(values) => handlePartyTypesAllowedChange(values)}

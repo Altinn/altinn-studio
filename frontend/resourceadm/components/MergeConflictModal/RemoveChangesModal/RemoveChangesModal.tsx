@@ -80,7 +80,6 @@ export const RemoveChangesModal = ({
       <div className={classes.buttonWrapper}>
         <Button
           color='danger'
-          data-testid='confirm-reset-repo-button'
           aria-disabled={repo !== deleteRepoName}
           onClick={repo === deleteRepoName && handleDelete}
           variant='outline'

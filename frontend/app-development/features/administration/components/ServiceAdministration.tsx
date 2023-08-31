@@ -104,7 +104,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
   const render = repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div data-testid='service-administration-container' className={classes.root}>
+    <div className={classes.root}>
       {render ? (
         <MainContent
           appDescription={newDescription}

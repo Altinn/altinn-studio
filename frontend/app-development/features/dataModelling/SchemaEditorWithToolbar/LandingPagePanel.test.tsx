@@ -4,6 +4,8 @@ import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../packages/schema-editor/test/renderWithProviders';
+import * as testids from '../../../../testing/testids';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -15,17 +17,17 @@ describe('LandingPagePanel', () => {
   it('renders component', async () => {
     render();
 
-    expect(screen.getByText(/app_data_modelling.landing_dialog_header/)).toBeInTheDocument();
-    expect(screen.getByText(/app_data_modelling.landing_dialog_paragraph/)).toBeInTheDocument();
-    expect(screen.getByTestId('FileSelector-input')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /app_data_modelling.landing_dialog_upload/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /app_data_modelling.landing_dialog_create/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_data_modelling.landing_dialog_paragraph'))).toBeInTheDocument();
+    expect(screen.getByTestId(testids.fileSelectorInput)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_upload') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_create') })).toBeInTheDocument();
   });
 
   it('opens create dialog when clicking create button', async () => {
     render();
 
-    const button = screen.getByRole('button', { name: /app_data_modelling.landing_dialog_create/ });
+    const button = screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_create') });
     await act(() => user.click(button));
 
     expect(landingPagePropsMock.openCreateNew).toBeCalledTimes(1);
