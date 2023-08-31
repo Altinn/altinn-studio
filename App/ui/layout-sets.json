@@ -2,7 +2,7 @@
   "sets": [
     {
       "id": "stateless",
-      "dataType": "default"      
+      "dataType": "stateless"
     },
     {
       "id": "statefull",

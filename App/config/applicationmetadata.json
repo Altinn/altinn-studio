@@ -12,7 +12,7 @@
       "minCount": 0
     },
     {
-      "id": "default",
+      "id": "stateless",
       "allowedContentTypes": ["application/xml"],
       "appLogic": {
         "autoCreate": true,
