@@ -10,7 +10,6 @@ using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.Extensions.Options;
-using PolicyAdmin.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 {
@@ -27,6 +26,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
         {
+            if (!_rrs.ContainsKey(environment))
+            {
+                throw new ApplicationException($"Missing environment config for {environment}");
+            }
 
             string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
             string url = $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
@@ -48,12 +51,16 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
         {
+            if (!_rrs.ContainsKey(environment))
+            {
+                throw new ApplicationException($"Missing environment config for {environment}");
+            }
+
+            string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+            string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
+
             try
             {
-                string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
-                string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
-
-
                 HttpResponseMessage response = await _httpClient.GetAsync(url);
                 string contentString = await response.Content.ReadAsStringAsync();
                 XacmlPolicy policy;
@@ -66,17 +73,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             }
             catch (Exception ex)
             {
-                throw new Exception($"Something went wrong when retrieving service resource", ex);
+                throw new Exception($"Something went wrong when retrieving xacml policy for service resource", ex);
             }
-
-            return null;
-
         }
 
         public async Task<List<AvailableService>> AvailableServices(int languageId, string environment)
         {
+            if (!_rrs.ContainsKey(environment))
+            {
+                throw new ApplicationException($"Missing environment config for {environment}");
+            }
+
             List<AvailableService>? availableServices = null;
-            string availabbleServicePath = $"https://at23.altinn.cloud/sblbridge/metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
+            string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+            string availabbleServicePath = $"h{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
             try
             {
@@ -92,7 +102,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             }
             catch (Exception ex)
             {
-                throw new Exception($"Something went wrong when retrieving Action options", ex);
+                throw new Exception($"Something went wrong when retrieving available services", ex);
             }
         }
 
