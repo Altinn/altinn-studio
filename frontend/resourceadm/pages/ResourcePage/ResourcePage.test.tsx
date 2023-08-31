@@ -16,23 +16,26 @@ const mockResource1: Resource = {
   resourceType: 'Default',
   title: { nb: 'ressurs 1', nn: 'res1', en: 'resource 1' },
   description: { nb: 'Beskrivelse av resource 1', nn: 'Mock', en: 'Description of test resource' },
-  keywords: [ { language: 'nb', word: 'Key1 ' }, { language: 'nb', word: 'Key 2' } ],
+  keywords: [
+    { language: 'nb', word: 'Key1 ' },
+    { language: 'nb', word: 'Key 2' },
+  ],
   isPublicService: false,
-  resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Default' }]
-}
+  resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Default' }],
+};
 
 const mockResource2: Resource = {
   identifier: 'r2',
   title: { nb: '', nn: '', en: '' },
-}
+};
 
-const mockSelectedContext: string = 'test'
+const mockSelectedContext: string = 'test';
 
 const mockSectors: ResourceSector[] = [
   { code: 'Sec1', label: { nb: 'Sec1', nn: 'Sec1', en: 'Sec1' } },
   { code: 'Sec2', label: { nb: 'Sec2', nn: 'Sec2', en: 'Sec2' } },
   { code: 'Sec3', label: { nb: 'Sec3', nn: 'Sec3', en: 'Sec3' } },
-]
+];
 
 const getValidatePolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getValidateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
@@ -44,7 +47,7 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     pageType: 'about',
-    resourceId: mockResource1,
+    resourceId: mockResource1.identifier,
     selectedContext: mockSelectedContext,
   }),
 }));
@@ -67,23 +70,34 @@ describe('ResourcePage', () => {
     expect(getResource).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches sectors mount', () => {
+  it('fetches sectors on mount', () => {
     render();
     expect(getResourceSectors).toHaveBeenCalledTimes(1);
   });
 
   it('displays left navigation bar on mount', () => {
     render();
-    expect(screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_about') })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_policy') })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_deploy') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_about') })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_policy') })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_deploy') })
+    ).toBeInTheDocument();
   });
 
   it('displays the about resource page spinner when loading page first time', () => {
     render();
 
     expect(screen.getByTitle(textMock('resourceadm.about_resource_spinner'))).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: textMock('resourceadm.about_resource_title'), level: 1 } )).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('resourceadm.about_resource_title'),
+        level: 1,
+      })
+    ).not.toBeInTheDocument();
   });
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
@@ -91,9 +105,13 @@ describe('ResourcePage', () => {
     getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
     render();
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('resourceadm.about_resource_spinner')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner'))
+    );
 
-    expect(screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })
+    ).toBeInTheDocument();
   });
 
   it('does not display migrate tab in left navigation bar when resource reference is not in resource', async () => {
@@ -101,9 +119,13 @@ describe('ResourcePage', () => {
     getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
     render();
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('resourceadm.about_resource_spinner')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner'))
+    );
 
-    expect(screen.queryByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })
+    ).not.toBeInTheDocument();
   });
 
   it('opens navigation modal when resource has errors', async () => {
@@ -112,18 +134,35 @@ describe('ResourcePage', () => {
     getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
     render();
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('resourceadm.about_resource_spinner')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner'))
+    );
 
-    expect(screen.queryByRole('heading', { name: textMock('resourceadm.resource_navigation_modal_title_resource'), level: 2 })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
+        level: 2,
+      })
+    ).not.toBeInTheDocument();
 
-    const policyButton = screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_policy') });
+    const policyButton = screen.getByRole('button', {
+      name: textMock('resourceadm.left_nav_bar_policy'),
+    });
     await act(() => user.click(policyButton));
 
-    expect(screen.getByRole('heading', { name: textMock('resourceadm.resource_navigation_modal_title_resource'), level: 2 })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
+        level: 2,
+      })
+    ).toBeInTheDocument();
   });
 });
 
-const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = createQueryClientMock()) => {
+const render = (
+  queries: Partial<ServicesContextProps> = {},
+  queryClient: QueryClient = createQueryClientMock()
+) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getValidatePolicy,
@@ -139,5 +178,5 @@ const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryC
         <ResourcePage />
       </ServicesContextProvider>
     </MemoryRouter>
-  )
-}
+  );
+};
