@@ -9,7 +9,7 @@ import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { useTranslation } from 'react-i18next'
 
-type NewResourceModalProps = {
+export type NewResourceModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -126,11 +126,11 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dahboard_create_modal_title')}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dashboard_create_modal_title')}>
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
-        text={t('resourceadm.dahboard_create_modal_resource_name_and_id_text')}
+        text={t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
@@ -145,12 +145,12 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
           </Button>
         </div>
         <Button
-          onClick={!(id.length === 0 || title.length === 0) && handleCreateNewResource}
+          onClick={() => !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined}
           color='primary'
           aria-disabled={id.length === 0 || title.length === 0}
           size='small'
         >
-          {t('resourceadm.dahboard_create_modal_create_button')}
+          {t('resourceadm.dashboard_create_modal_create_button')}
         </Button>
       </div>
     </Modal>

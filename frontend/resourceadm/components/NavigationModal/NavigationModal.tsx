@@ -4,7 +4,7 @@ import { Button, Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 import { useTranslation } from 'react-i18next'
 
-type NavigationModalProps = {
+export type NavigationModalProps = {
   /**
    * Boolean for if the modal is open
    */

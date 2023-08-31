@@ -12,7 +12,7 @@ import type { NavigationBarPage } from 'resourceadm/types/global';
 import { Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next'
 
-type LeftNavigationBarProps = {
+export type LeftNavigationBarProps = {
   /**
    * The currentPage displayed
    */
@@ -78,7 +78,7 @@ export const LeftNavigationBar = ({
           type='button'
           onClick={goBack}
         >
-          <ArrowLeftIcon className={classes.icon} title={t('resourceadm.left_nav_bar_back')} fontSize='1.8rem' />
+          <ArrowLeftIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             {t('resourceadm.left_nav_bar_back')}
           </Paragraph>
@@ -90,8 +90,9 @@ export const LeftNavigationBar = ({
           )}
           onClick={() => handleClick('about')}
           onBlur={() => setNewPageClicked(null)}
+          type='button'
         >
-          <InformationSquareIcon className={classes.icon} title={t('resourceadm.left_nav_bar_about')} fontSize='1.8rem' />
+          <InformationSquareIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             {t('resourceadm.left_nav_bar_about')}
           </Paragraph>
@@ -103,8 +104,9 @@ export const LeftNavigationBar = ({
           )}
           onClick={() => handleClick('policy')}
           onBlur={() => setNewPageClicked(null)}
+          type='button'
         >
-          <GavelSoundBlockIcon className={classes.icon} title={t('resourceadm.left_nav_bar_policy')} fontSize='1.8rem' />
+          <GavelSoundBlockIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             {t('resourceadm.left_nav_bar_policy')}
           </Paragraph>
@@ -116,8 +118,9 @@ export const LeftNavigationBar = ({
           )}
           onClick={() => handleClick('deploy')}
           onBlur={() => setNewPageClicked(null)}
+          type='button'
         >
-          <UploadIcon className={classes.icon} title={t('resourceadm.left_nav_bar_deploy')} fontSize='1.8rem' />
+          <UploadIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
             {t('resourceadm.left_nav_bar_deploy')}
           </Paragraph>
@@ -130,8 +133,9 @@ export const LeftNavigationBar = ({
             )}
             onClick={() => handleClick('migration')}
             onBlur={() => setNewPageClicked(null)}
+            type='button'
           >
-            <MigrationIcon className={classes.icon} title={t('resourceadm.left_nav_bar_migrate')} fontSize='1.8rem' />
+            <MigrationIcon className={classes.icon} fontSize='1.8rem' />
             <Paragraph size='small' short className={classes.buttonText}>
               {t('resourceadm.left_nav_bar_migrate')}
             </Paragraph>
