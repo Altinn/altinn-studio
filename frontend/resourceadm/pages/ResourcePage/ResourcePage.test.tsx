@@ -40,12 +40,6 @@ const getResource = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getResourceSectors = jest.fn().mockImplementation(() => Promise.resolve({}));
 const updateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-
-
-
-
-
-
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
@@ -112,10 +106,21 @@ describe('ResourcePage', () => {
     expect(screen.queryByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })).not.toBeInTheDocument();
   });
 
-  it ('navigates to another page on click', () => {});
-  it ('opens navigation modal when resource has errors', () => {});
-  it ('opens navigation modal when policy has errors', () => {});
+  it('opens navigation modal when resource has errors', async () => {
+    const user = userEvent.setup();
+    getResource.mockImplementation(() => Promise.resolve(mockResource2));
+    getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
+    render();
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('resourceadm.about_resource_spinner')));
+
+    expect(screen.queryByRole('heading', { name: textMock('resourceadm.resource_navigation_modal_title_resource'), level: 2 })).not.toBeInTheDocument();
+
+    const policyButton = screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_policy') });
+    await act(() => user.click(policyButton));
+
+    expect(screen.getByRole('heading', { name: textMock('resourceadm.resource_navigation_modal_title_resource'), level: 2 })).toBeInTheDocument();
+  });
 });
 
 const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = createQueryClientMock()) => {
