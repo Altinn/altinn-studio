@@ -13,7 +13,6 @@ import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
-  ResourceThematic,
   SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
@@ -48,10 +47,6 @@ type AboutResourcePageProps = {
    */
   sectorsData: ResourceSector[];
   /**
-   * The list of possible thematic areas
-   */
-  thematicData: ResourceThematic[];
-  /**
    * Function to be handled when saving the resource
    * @param r the resource
    * @returns void
@@ -66,7 +61,6 @@ type AboutResourcePageProps = {
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {Resource}[resourceData] - The metadata for the resource
  * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
- * @property {ResourceThematic[]}[thematicData] - The list of possible thematic areas
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  *
  * @returns {React.ReactNode} - The rendered component
@@ -75,7 +69,6 @@ export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   sectorsData,
-  thematicData,
   onSaveResource,
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -120,7 +113,6 @@ export const AboutResourcePage = ({
       ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
       : []
   );
-  const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
@@ -170,7 +162,6 @@ export const AboutResourcePage = ({
       homepage,
       isPublicService,
       sector: sectorToSave,
-      thematicArea,
       rightDescription,
     };
 
@@ -439,24 +430,6 @@ export const AboutResourcePage = ({
             onChange={(e) => setSector(e)}
             value={sector}
             label={t('resourceadm.about_resource_sector_sr_label')}
-            hideLabel
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-          />
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_thematic_label')}
-        </Label>
-        <Paragraph size='small'>
-          {t('resourceadm.about_resource_thematic_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Select
-            options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
-            onChange={(e: string) => setThematicArea(e)}
-            value={thematicArea}
-            label={t('resourceadm.about_resource_thematic_sr_label')}
             hideLabel
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}

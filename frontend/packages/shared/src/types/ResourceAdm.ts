@@ -12,7 +12,6 @@ export interface Resource {
   homepage?: string;
   isPublicService?: boolean;
   sector?: string[];
-  thematicArea?: string;
   rightDescription?: SupportedLanguageKey<string>;
   version?: Version;
   resourceReferences?: ResourceReference[];
@@ -33,10 +32,6 @@ export interface Version {
 export interface ResourceSector {
   code: string;
   label: SupportedLanguageKey<string>;
-}
-
-export interface ResourceThematic {
-  uri: string;
 }
 
 export interface ResourceListItem {

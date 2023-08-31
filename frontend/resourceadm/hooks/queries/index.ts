@@ -8,5 +8,3 @@ export { useGetResourceListQuery } from './useGetResourceListQuery';
 export { useSinlgeResourceQuery } from './useSinlgeResourceQuery';
 export { useValidatePolicyQuery } from './useValidatePolicyQuery';
 export { useValidateResourceQuery } from './useValidateResourceQuery';
-export { useResourceThematicAreaLosQuery } from './useResourceThematicAreaLosQuery';
-export { useResourceThematicAreaEurovocQuery } from './useResourceThematicAreaEurovocQuery';

@@ -133,8 +133,6 @@ export const resourceEditPath = (org, id) => `${basePath}/${org}/resources/updat
 export const resourceValidatePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy/validate/${id}`; // Get
 export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${org}/resources/validate/${repo}/${id}`; // Get
 export const resourceSectorsPath = (org) => `${basePath}/${org}/resources/sectors`; // Get
-export const resourceThematicLosPath = (org) => `${basePath}/${org}/resources/losterms`; // Get
-export const resourceThematicEurovocPath = (org) => `${basePath}/${org}/resources/eurovoc`; // Get
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
