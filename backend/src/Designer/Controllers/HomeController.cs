@@ -42,6 +42,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
+        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
