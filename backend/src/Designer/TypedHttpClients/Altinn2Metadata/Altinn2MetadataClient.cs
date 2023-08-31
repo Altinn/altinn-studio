@@ -26,12 +26,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
         {
-            if (!_rrs.ContainsKey(environment))
-            {
-                throw new ApplicationException($"Missing environment config for {environment}");
-            }
-
-            string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+            string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string url = $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             ServiceResource serviceResource;
@@ -51,12 +46,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
         {
-            if (!_rrs.ContainsKey(environment))
-            {
-                throw new ApplicationException($"Missing environment config for {environment}");
-            }
-
-            string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+            string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
 
             try
@@ -79,13 +69,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<List<AvailableService>> AvailableServices(int languageId, string environment)
         {
-            if (!_rrs.ContainsKey(environment))
-            {
-                throw new ApplicationException($"Missing environment config for {environment}");
-            }
-
             List<AvailableService>? availableServices = null;
-            string bridgeBaseUrl = _rrs[environment].SblBridgeBaseUrl;
+            string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string availabbleServicePath = $"h{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
             try
@@ -106,5 +91,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             }
         }
 
+        private string GetSblBridgeUrl(string environment)
+        {
+            if (!_rrs.TryGetValue(environment, out ResourceRegistryEnvironmentSettings envSettings))
+            {
+                throw new ArgumentException($"Invalid environment. Missing environment config for {environment}");
+            }
+
+            return envSettings.SblBridgeBaseUrl;
+        }
     }
 }
