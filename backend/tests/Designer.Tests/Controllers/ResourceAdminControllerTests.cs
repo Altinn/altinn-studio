@@ -100,7 +100,6 @@ namespace Designer.Tests.Controllers
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
-                        MainLanguage = "en-US",
                     }
                 });
 
@@ -238,7 +237,6 @@ namespace Designer.Tests.Controllers
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
-                        MainLanguage = "en-US",
                     });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -276,7 +274,6 @@ namespace Designer.Tests.Controllers
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
-                        MainLanguage = "en-US",
                     }
                 });
 
@@ -315,7 +312,6 @@ namespace Designer.Tests.Controllers
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
-                        MainLanguage = "en-US",
                     });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -397,7 +393,6 @@ namespace Designer.Tests.Controllers
                 HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                 Keywords = GetTestKeywords(),
                 ResourceType = ResourceType.Default,
-                MainLanguage = "en-US",
             };
 
             _repositoryMock.Setup(r => r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
@@ -434,7 +429,6 @@ namespace Designer.Tests.Controllers
                 HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                 Keywords = GetTestKeywords(),
                 ResourceType = ResourceType.Default,
-                MainLanguage = "en-US",
             };
 
             _repositoryMock.Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
