@@ -9,6 +9,7 @@ import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMe
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
+import { useText } from "../../../hooks";
 
 interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -18,15 +19,17 @@ interface DataSourceValueProps {
 }
 
 export const DataSourceValue = ({
-                                  subExpression,
-                                  currentDataSource,
-                                  specifyDataSourceValue,
-                                  isComparableValue,
-                                }: DataSourceValueProps) => {
+  subExpression,
+  currentDataSource,
+  specifyDataSourceValue,
+  isComparableValue,
+}: DataSourceValueProps) => {
   const { org, app } = useParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const datamodelQuery = useDatamodelMetadataQuery(org, app);
   const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const t = useText();
+
   const dataModelElementsData = datamodelQuery?.data ?? [];
   const formLayoutsData = formLayoutsQuery?.data ?? [];
 
@@ -53,7 +56,7 @@ export const DataSourceValue = ({
     case DataSource.ApplicationSettings:
       return (<Select
         onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue, isComparableValue)}
-        options={[{ label: 'Velg...', value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
+        options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
         value={isComparableValue ? subExpression.comparableValue : subExpression.value || 'default'}
       />);
     case DataSource.String:

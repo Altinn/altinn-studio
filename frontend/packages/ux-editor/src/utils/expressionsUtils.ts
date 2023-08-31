@@ -124,8 +124,12 @@ export const deleteExpressionAndAddDefaultIfEmpty = async (form, formId, express
     delete form[expressionToDelete.property];
     await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
   }
-  const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
-  return newExpressions.length > 1 ? newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id) : [defaultExpression];
+  let updatedExpressions = newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
+  if (updatedExpressions.length === 0) {
+    const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
+    updatedExpressions = [defaultExpression];
+  }
+  return updatedExpressions;
 };
 
 export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
@@ -172,18 +176,16 @@ export const updateComplexExpression = (oldExpression: Expression, complexExpres
   return newExpression;
 };
 
-export const removeSubExpressionAndAddDefaultIfEmpty = (oldExpression: Expression, subExpression: SubExpression) => {
+export const removeSubExpressionAndAdaptParentProps = (oldExpression: Expression, subExpression: SubExpression) => {
   const newExpression = deepCopy(oldExpression);
   const updatedSubExpressions = newExpression.subExpressions.filter((expEl: SubExpression) => expEl.id !== subExpression.id);
-  // Add default if the last expression was deleted
   if (updatedSubExpressions.length === 0) {
-    const newSubExpression: SubExpression = { id: uuidv4() };
-    newExpression.subExpressions = [newSubExpression];
-  } else if (newExpression.subExpressions.length === 1) {
     delete newExpression.operator;
-  } else {
-    newExpression.subExpressions = updatedSubExpressions;
+    delete newExpression.property;
+  } else if (updatedSubExpressions.length === 1) {
+    delete newExpression.operator;
   }
+  newExpression.subExpressions = updatedSubExpressions;
   return newExpression;
 };
 

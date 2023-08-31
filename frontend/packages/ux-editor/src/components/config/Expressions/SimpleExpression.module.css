@@ -1,15 +1,8 @@
 .addExpression {
-  margin-bottom: 20px;
-}
-
-.plusIcon {
-  font-size: 40px;
-  width: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 10px 0 10px 0;
 }
 
 .andOrToggleButtons {
+  margin-top: 10px;
   width: fit-content;
 }

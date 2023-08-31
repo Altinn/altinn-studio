@@ -55,16 +55,21 @@ export const SubExpressionContent = ({
     onUpdateSubExpression(subExpression);
   };
 
-  const handleRemoveSubExpression = () => {
-    onRemoveSubExpression(subExpression);
-  };
-
   return (
-    <div style={{border: '1px solid red'}}>
-      <p>{t('right_menu.expressions_function_on_action')}</p>
+    <div>
+      <div className={classes.subExpressionTop}>
+        <p>{t('right_menu.expressions_function_on_action')}</p>
+        <Button
+          color='danger'
+          icon={<XMarkIcon />}
+          onClick={() => onRemoveSubExpression(subExpression)}
+          variant='quiet'
+          size='small'
+        />
+      </div>
       <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         onChange={(func: string) => addFunctionToSubExpression(func)}
-        options={[{ label: 'Velg oppsett...', value: 'default' }].concat(
+        options={[{ label: t('right_menu.expressions_function_select'), value: 'default' }].concat(
           Object.values(ExpressionFunction).map((func: string) => ({
             label: expressionFunctionTexts(t)[func],
             value: func,
@@ -73,20 +78,11 @@ export const SubExpressionContent = ({
         value={subExpression.function || 'default'}
       />
       {allowToSpecifyExpression && (
-        <>
-          <div className={classes.expression}>
-            <Button
-              className={classes.expressionDeleteButton}
-              color='danger'
-              icon={<XMarkIcon />}
-              onClick={handleRemoveSubExpression}
-              variant='quiet'
-              size='small'
-            />
+        <div className={classes.expression}>
             <div className={classes.expressionDetails}>
               <Select
                 onChange={(dataSource: string) => addDataSourceToExpression(dataSource, false)}
-                options={[{ label: 'Velg...', value: 'default' }].concat(
+                options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(
                   Object.values(DataSource).map((ds: string) => ({
                     label: expressionDataSourceTexts(t)[ds],
                     value: ds,
@@ -109,7 +105,7 @@ export const SubExpressionContent = ({
                 onChange={(compDataSource: string) =>
                   addDataSourceToExpression(compDataSource, true)
                 }
-                options={[{ label: 'Velg...', value: 'default' }].concat(
+                options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(
                   Object.values(DataSource).map((cds: string) => ({
                     label: expressionDataSourceTexts(t)[cds],
                     value: cds,
@@ -127,7 +123,6 @@ export const SubExpressionContent = ({
               )}
             </div>
           </div>
-        </>
       )}
     </div>
   );

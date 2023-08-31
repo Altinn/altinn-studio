@@ -56,6 +56,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
       const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
       const startingExpressions = potentialConvertedExternalExpressions?.length === 0 ? [defaultExpression] : potentialConvertedExternalExpressions;
       setExpressions(startingExpressions);
+      // Check if the first expression in startingExpressions is the default --> set to edit, if not let all expressions be preview
       if (startingExpressions[0].id === defaultExpression.id) {
         setExpressionInEditModeId(defaultExpression.id);
       }
@@ -100,8 +101,9 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
     if (newExpressions.length === 1 && !newExpressions[0].property) {
       // Set default expression as expression in edit mode if it has been added
       setExpressionInEditModeId(newExpressions[0].id);
-    }
-    if (expressionInEditModeId === expression.id) {
+    } else if (expressionInEditModeId !== expression.id) {
+      setExpressionInEditModeId(expressionInEditModeId);
+    } else {
       // Unset expression in edit mode if expression to delete was in edit mode
       setExpressionInEditModeId(undefined);
     }

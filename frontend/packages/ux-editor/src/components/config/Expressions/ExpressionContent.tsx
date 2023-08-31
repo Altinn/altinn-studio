@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {
   Expression,
   SubExpression,
@@ -6,23 +6,25 @@ import {
   expressionPropertyTexts,
   Operator,
 } from '../../../types/Expressions';
-import {Button, Select} from '@digdir/design-system-react';
-import {CheckmarkIcon, PencilIcon, TrashIcon} from '@navikt/aksel-icons';
-import {FormComponent} from '../../../types/FormComponent';
-import {FormContainer} from '../../../types/FormContainer';
-import {Trans} from 'react-i18next';
+import { Button, Select } from '@digdir/design-system-react';
+import { CheckmarkIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
+import { FormComponent } from '../../../types/FormComponent';
+import { FormContainer } from '../../../types/FormContainer';
+import { Trans } from 'react-i18next';
 import classes from './ExpressionContent.module.css';
 import {
   addAction,
-  addSubExpressionToExpression, complexExpressionIsSet, removeSubExpressionAndAddDefaultIfEmpty,
+  addSubExpressionToExpression,
+  complexExpressionIsSet,
+  removeSubExpressionAndAdaptParentProps,
   updateComplexExpression,
   updateExpression,
   updateOperator
 } from '../../../utils/expressionsUtils';
-import {useText} from '../../../hooks';
-import {ComplexExpression} from './ComplexExpression';
-import {SimpleExpression} from "./SimpleExpression";
-import {SimpleExpressionPreview} from "./SimpleExpressionPreview";
+import { useText } from '../../../hooks';
+import { ComplexExpression } from './ComplexExpression';
+import { SimpleExpression } from "./SimpleExpression";
+import { SimpleExpressionPreview } from "./SimpleExpressionPreview";
 
 interface ExpressionContentProps {
   component: FormComponent | FormContainer;
@@ -49,16 +51,21 @@ export const ExpressionContent = ({
   onRemoveExpression,
   onEditExpression,
 }: ExpressionContentProps) => {
-  const expressionInEditStateRef = useRef(null);
-  const expressionInPreviewStateRef = useRef(null);
   const t = useText();
 
   const expressionInEditMode = expression.id === expressionInEditModeId;
   const successfullyAddedMark = expression.id === successfullyAddedExpressionId;
   const allowToSpecifyExpression = Object.values(onGetProperties(expression).expressionProperties).includes(expression.property);
-  const allowToSaveExpression = expression.subExpressions?.filter(subExp => !subExp.function)?.length === 0
+  const allowToSaveExpression = (
+    expression.subExpressions?.filter(subExp => !subExp.function)?.length === 0
+    && expression.subExpressions.length !== 0
     && expressionInEditMode
-    && expression.property;
+    && !!expression.property
+  ) || (
+    complexExpressionIsSet(expression.complexExpression)
+    && expressionInEditMode
+    && !!expression.property
+  );
   const propertiesList = onGetProperties(expression).availableProperties;
 
   const addActionToExpression = (action: string) => {
@@ -87,23 +94,20 @@ export const ExpressionContent = ({
   };
 
   const removeSubExpression = (subExpression: SubExpression) => {
-    const newExpression: Expression = removeSubExpressionAndAddDefaultIfEmpty(expression, subExpression);
+    const newExpression: Expression = removeSubExpressionAndAdaptParentProps(expression, subExpression);
     onUpdateExpression(newExpression);
   };
 
   return (
     <>
       {expressionInEditMode ? (
-        <div
-          className={classes.editMode}
-          ref={expressionInEditStateRef}
-        >
+        <div className={classes.editMode}>
           <div className={classes.topBar}>
             <p>
               <Trans
                 i18nKey={'right_menu.expressions_action_on_component'}
-                values={{componentName: component.id}}
-                components={{bold: <strong/>}}
+                values={{ componentName: component.id }}
+                components={{ bold: <strong/> }}
               />
             </p>
             {showRemoveExpressionButton && (
@@ -118,7 +122,7 @@ export const ExpressionContent = ({
           </div>
           <Select
             onChange={(action) => addActionToExpression(action)}
-            options={[{label: 'Velg handling...', value: 'default'}].concat(propertiesList.map((property: string) => ({
+            options={[{ label: t('right_menu.expressions_action_select'), value: 'default' }].concat(propertiesList.map((property: string) => ({
               label: expressionPropertyTexts(t)[property],
               value: property
             })))}
@@ -130,7 +134,6 @@ export const ExpressionContent = ({
               onChange={updateExpressionComplexExpression}
             />
           ) : (
-            <>
             <SimpleExpression
               allowToSpecifyExpression={allowToSpecifyExpression}
               expression={expression}
@@ -139,26 +142,25 @@ export const ExpressionContent = ({
               onUpdateExpressionOperator={(expressionOp: Operator) => updateExpressionOperator(expressionOp)}
               onRemoveSubExpression={(subExp: SubExpression) => removeSubExpression(subExp)}
             />
+          )}
           {allowToSaveExpression && (
             <Button
-            color='success'
-            icon={<CheckmarkIcon/>}
-            onClick={() => onSaveExpression(expression)}
-            variant='quiet'
-            size='small'
-            />
-            )}
-            </>
+              color='success'
+              icon={<CheckmarkIcon/>}
+              onClick={() => onSaveExpression(expression)}
+              variant='filled'
+              size='small'
+            >{t('general.save')}</Button>
           )}
         </div>
       ) : (
-        <div className={classes.previewMode} ref={expressionInPreviewStateRef}>
+        <div className={classes.previewMode}>
           <div className={classes.expressionDetails}>
             <span>
               <Trans
                 i18nKey={expressionInPreviewPropertyTexts(t)[expression.property]}
-                values={{componentName: component.id}}
-                components={{bold: <strong/>}}
+                values={{ componentName: component.id }}
+                components={{ bold: <strong/> }}
               />
             </span>
             {complexExpressionIsSet(expression.complexExpression) ? (

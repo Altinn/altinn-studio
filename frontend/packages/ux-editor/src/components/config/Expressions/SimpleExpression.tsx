@@ -1,10 +1,11 @@
 import React from 'react';
-import {Expression, Operator, SubExpression} from '../../../types/Expressions';
-import {SubExpressionContent} from './SubExpressionContent';
+import { Expression, Operator, SubExpression } from '../../../types/Expressions';
+import { SubExpressionContent } from './SubExpressionContent';
 import classes from './SimpleExpression.module.css';
-import {Button, ToggleButtonGroup} from '@digdir/design-system-react';
-import {useText} from '../../../hooks';
-import cn from 'classnames';
+import { Button, ToggleButtonGroup } from '@digdir/design-system-react';
+import { PlusCircleIcon } from '@navikt/aksel-icons';
+import { useText } from '../../../hooks';
+import { Divider } from "app-shared/primitives";
 
 export type SimpleExpressionProps = {
   allowToSpecifyExpression: boolean;
@@ -28,6 +29,7 @@ export const SimpleExpression = ({
     <>
       {expression.subExpressions.map((subExp: SubExpression, index: number) => (
         <div key={subExp.id}>
+          <Divider/>
           <SubExpressionContent
             expressionAction={allowToSpecifyExpression}
             subExpression={subExp}
@@ -40,21 +42,16 @@ export const SimpleExpression = ({
                 variant='quiet'
                 size='small'
                 onClick={() => onAddSubExpression(expression.operator || Operator.And)}
+                icon={<PlusCircleIcon />}
               >
-                <i
-                  className={cn('fa', classes.plusIcon, {
-                    'fa-circle-plus': index === expression.subExpressions.length - 1,
-                    'fa-circle-plus-outline': index !== expression.subExpressions.length - 1,
-                  })}
-                />
                 {t('right_menu.expressions_add_expression')}
               </Button>
             ) : (
               <div className={classes.andOrToggleButtons}>
                 <ToggleButtonGroup
                   items={[
-                    {label: 'Og', value: Operator.And},
-                    {label: 'Eller', value: Operator.Or}
+                    { label: 'Og', value: Operator.And },
+                    { label: 'Eller', value: Operator.Or }
                   ]}
                   onChange={(value) => onUpdateExpressionOperator(value as Operator)}
                   selectedValue={expression.operator || Operator.And}

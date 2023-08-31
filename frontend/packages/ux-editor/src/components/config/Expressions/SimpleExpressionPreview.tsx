@@ -8,13 +8,13 @@ import {
 } from '../../../types/Expressions';
 import classes from './SimpleExpressionPreview.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
-import {useText} from '../../../hooks';
+import { useText } from '../../../hooks';
 
 export type SimpleExpressionPreviewProps = {
   expression: Expression;
 };
 
-export const SimpleExpressionPreview = ({expression}: SimpleExpressionPreviewProps) => {
+export const SimpleExpressionPreview = ({ expression }: SimpleExpressionPreviewProps) => {
   const t = useText();
   return (
     <>
