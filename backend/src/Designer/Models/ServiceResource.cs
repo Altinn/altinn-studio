@@ -121,7 +121,7 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Available for type defines which type of entity / person that resource targets
         /// </summary>
-        public List<string>? AvailableForType {get; set; }
+        public List<string>? AvailableForType { get; set; }
 
         /// <summary>
         /// Writes key information when this object is written to Log.
