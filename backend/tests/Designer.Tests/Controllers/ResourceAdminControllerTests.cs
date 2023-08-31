@@ -152,7 +152,7 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
-            { 
+            {
                 ServiceResource serviceResource = new ServiceResource()
                 {
                     Identifier = "234",
