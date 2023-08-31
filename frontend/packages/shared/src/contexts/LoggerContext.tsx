@@ -33,7 +33,6 @@ export const LoggerContextProvider = ({
 
   useEffect(() => {
     const handleWindowError = (event: ErrorEvent) => {
-      console.log({ event, error: event.error });
       applicationinsights?.trackException({ error: event.error });
     };
 
