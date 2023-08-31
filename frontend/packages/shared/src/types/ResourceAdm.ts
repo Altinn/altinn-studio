@@ -4,18 +4,37 @@ export interface NewResource {
 }
 
 export interface Resource {
-  identifier: string;
+  identifier: string; // OK - PÅKREVD
   resourceType?: ResourceTypeOption;
-  title: SupportedLanguageKey<string>;
-  description?: SupportedLanguageKey<string>;
-  keywords?: ResourceKeyword[]; // TODO - Does this need to be changed? Issue: #10883
-  homepage?: string;
-  isPublicService?: boolean;
-  sector?: string[];
-  rightDescription?: SupportedLanguageKey<string>;
-  version?: Version;
-  resourceReferences?: ResourceReference[];
+  title: SupportedLanguageKey<string>; // OK - PÅKREVD
+  description?: SupportedLanguageKey<string>; // OK - PÅKREVD
+  keywords?: ResourceKeyword[]; // OK - ikke påkrevd - // TODO - Does this need to be changed? Issue: #10883
+  homepage?: string; // OK - ikke påkrevd
+  isPublicService?: boolean; // visible - påkrevd - bytte til den
+  sector?: string[]; // FJERN det - Rune sjekker
+  rightDescription?: SupportedLanguageKey<string>; // OK - PÅKREVD hvis delegatable = true
+  version?: Version; // behold
+  resourceReferences?: ResourceReference[]; // ikke påkrevd - brukes til å vise migrering
+  
+  // contactpoint - påkrevd - Fritekst, sendes som string[] - komma separert
+  // status - dropdown - ikke påkrevd
+  // availableForType - påkrevd - dropdown / Checkbox
+  // SelfIdentified UserEnabled	 - påkrevd - switch
+  // Enterprise UserEnabled	 - påkrevd - switch
+  // delegable - påkrevd - switch - default true?
+
 }
+/*
+
+Fra backend:
+- Mangler contactpoint
+- availableForType
+- SelfIdentified UserEnabled
+- Enterprise UserEnabled
+
+Visible of isPublicService er der, hvilken skal brukes?
+
+ */
 
 export type ResourceTypeOption = 'Default' | 'Systemresource' | 'MaskinportenSchema';
 
