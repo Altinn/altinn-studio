@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, screen, getByText, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { starredRepoMock } from '../../data-mocks/starredRepoMock';
@@ -53,5 +53,15 @@ describe('RepoList', () => {
     expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,
     });
+  });
+
+  test("Should render GridActionsCellItem", () => {
+   renderWithMockServices({
+      isLoading: false,
+      isServerSort: true,
+      rowCount: 5,
+    });
+    const gridActionsCellItem = screen.getByTestId('gridActionsCellItem');
+    expect(gridActionsCellItem).toBeInTheDocument();
   });
 });

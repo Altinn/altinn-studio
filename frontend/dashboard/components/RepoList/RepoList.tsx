@@ -115,11 +115,14 @@ export const RepoList = ({
 
         return [
           <GridActionsCellItem
+            data-testid='gridActionsCellItem'
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
             label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
-            icon={ repo.user_has_starred ? (<StarFillIcon className={cn(classes.favoriteIcon)} /> ) : ( <StarIcon className={cn(classes.dropdownIcon)} /> )}
+            icon={ repo.user_has_starred 
+                ? (<StarFillIcon name ="star-fill-icon" className={cn(classes.favoriteIcon)} /> )
+                : ( <StarIcon name="star-icon" className={cn(classes.dropdownIcon)} /> )}
           />,
         ];
       },

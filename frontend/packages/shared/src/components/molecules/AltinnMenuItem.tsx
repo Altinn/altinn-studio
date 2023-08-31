@@ -4,7 +4,7 @@ import classes from './AltinnMenuItem.module.css';
 
 export interface IAltinnMenuItemProps {
   text: string;
-  iconClass: string;
+  iconClass?: React.ComponentType;
   onClick: (event: React.SyntheticEvent) => void;
   disabled?: boolean;
   id: string;
@@ -13,7 +13,7 @@ export interface IAltinnMenuItemProps {
 }
 
 function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
-  const { text, iconClass, onClick, disabled, id, className, testId } = props;
+  const { text, iconClass:IconComponent, onClick, disabled, id, className, testId } = props;
   return (
     <MenuItem
       data-testid={testId}
@@ -25,7 +25,7 @@ function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElemen
       classes={{ root: classes.menu }}
     >
       <ListItemIcon classes={{ root: classes.icon }}>
-        <i className={iconClass} />
+        <i>{IconComponent && <IconComponent />}</i>     
       </ListItemIcon>
       <ListItemText disableTypography={true}>
         <Typography variant='caption'>{text}</Typography>
