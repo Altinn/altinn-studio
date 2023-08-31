@@ -13,6 +13,6 @@ class SupportedContextPadProvider {
 }
 
 export default {
-  __init__: ['SupportedContextPadProvider'],
-  SupportedContextPadProvider: ['type', SupportedContextPadProvider],
+  init: ['supportedContextPadProvider'],
+  supportedContextPadProvider: ['type', SupportedContextPadProvider],
 };
