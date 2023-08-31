@@ -23,6 +23,9 @@ type SwitchProps = {
    * @returns void
    */
   onBlur: () => void;
+  /**
+   * The id of the component
+   */
   id: string;
 };
 
@@ -34,6 +37,7 @@ type SwitchProps = {
  * @property {boolean}[isChecked] - Flag for if the switch is chekced or not
  * @property {function}[onFocus] - Function to be executed on focus
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {string}[id] - The id of the component
  *
  * @returns {React.ReactNode} - The rendered component
  */

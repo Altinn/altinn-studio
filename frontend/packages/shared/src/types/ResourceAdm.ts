@@ -16,10 +16,10 @@ export interface Resource {
   version?: Version;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
-  selfIdentifiedUserEnabled: boolean; // NY - PÅKREVD - Switch
+  selfIdentifiedUserEnabled: boolean;
+  enterpriseUserEnabled: boolean;
   // -- Nye
   contactPoint?: ContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
-  enterpriseUserEnabled: boolean; //  NY - PÅKREVD - Switch
   availableForType: string[]; // NY - påkrevd - dropdown / Checkbox
 }
 /*

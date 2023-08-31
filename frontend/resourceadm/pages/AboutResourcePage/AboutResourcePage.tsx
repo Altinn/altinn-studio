@@ -129,6 +129,9 @@ export const AboutResourcePage = ({
   const [isSelfIdentifiedUserEnabled, setIsSelfIdentifiedUserEnabled] = useState(
     resourceData.selfIdentifiedUserEnabled ?? false
   );
+  const [isEnterpriseUserEnabled, setIsEnterpriseUserEnabled] = useState(
+    resourceData.enterpriseUserEnabled ?? false
+  );
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
@@ -171,6 +174,7 @@ export const AboutResourcePage = ({
       delegable: isDelegable,
       status: resourceStatus,
       selfIdentifiedUserEnabled: isSelfIdentifiedUserEnabled,
+      enterpriseUserEnabled: isEnterpriseUserEnabled,
       rightDescription,
     };
 
@@ -537,6 +541,33 @@ export const AboutResourcePage = ({
           >
             {t('resourceadm.about_resource_self_identified_show_text', {
               showText: isSelfIdentifiedUserEnabled
+                ? t('resourceadm.switch_should')
+                : t('resourceadm.switch_should_not'),
+            })}
+          </p>
+        </div>
+        <div className={classes.divider} />
+        <Label size='medium' spacing>
+          {t('resourceadm.about_resource_enterprise_label')}
+        </Label>
+        <Paragraph short size='small'>
+          {t('resourceadm.about_resource_enterprise_text')}
+        </Paragraph>
+        <div className={classes.inputWrapper}>
+          <Switch
+            isChecked={isEnterpriseUserEnabled}
+            onToggle={(b: boolean) => setIsEnterpriseUserEnabled(b)}
+            onFocus={() => setTranslationType('none')}
+            onBlur={handleSaveResource}
+            id='enterpriseUserEnabledSwitch'
+          />
+          <p
+            className={
+              isEnterpriseUserEnabled ? classes.toggleTextActive : classes.toggleTextInactive
+            }
+          >
+            {t('resourceadm.about_resource_enterprise_show_text', {
+              showText: isEnterpriseUserEnabled
                 ? t('resourceadm.switch_should')
                 : t('resourceadm.switch_should_not'),
             })}
