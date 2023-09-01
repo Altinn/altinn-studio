@@ -8,7 +8,6 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 
-
 export function ComponentSpecificContent({
   component,
   handleComponentChange,

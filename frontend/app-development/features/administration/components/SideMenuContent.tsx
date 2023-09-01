@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit } from '../../../types/global';
 import { RepositoryType } from 'app-shared/types/global';
@@ -8,7 +8,7 @@ import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoStatusQuery } from '../../../hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Repository } from 'app-shared/types/Repository';
 
 interface ISideMenuContent {
@@ -72,10 +72,11 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         </ul>
       </div>
       <Button
-        color={ButtonColor.Secondary}
+        color='secondary'
         id='reset-repo-button'
         onClick={onClickResetRepo}
-        variant={ButtonVariant.Outline}
+        variant='outline'
+        size='small'
       >
         {t('administration.reset_repo_button')}
       </Button>
@@ -89,11 +90,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       />
       {/* Download local repository */}
       <h3>{t('administration.download_repo')}</h3>
-      <Button
-        color={ButtonColor.Secondary}
-        onClick={toggleDownloadModal}
-        variant={ButtonVariant.Outline}
-      >
+      <Button color='secondary' onClick={toggleDownloadModal} variant='outline' size='small'>
         {t('administration.download_repo')}
       </Button>
       <div ref={downloadModalAnchor} />

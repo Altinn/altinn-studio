@@ -1,10 +1,9 @@
 .toolbarItem {
+  background-color: white;
   cursor: grab;
-  margin-bottom: 6px;
-  background-color: #ffffff;
+  margin: 6px 0;
+  border: 1px solid var(--fds-semantic-border-neutral-subtle);
   display: flex;
-  box-shadow: rgb(0 0 0 / 20%) 0 2px 1px -1px, rgb(0 0 0 / 14%) 0 1px 1px 0,
-    rgb(0 0 0 / 12%) 0 1px 3px 0;
   padding: 8px;
   align-items: center;
 }

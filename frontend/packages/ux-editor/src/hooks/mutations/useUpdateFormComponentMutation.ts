@@ -7,20 +7,20 @@ import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachment
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useFormLayout } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
-export interface UpdateFormComponentArgs {
+export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
   id: string;
 }
 
-export const useUpdateFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
-  const { layout, layoutName } = useSelectedFormLayoutWithName();
+export const useUpdateFormComponentMutation = (org: string, app: string, layoutName: string, layoutSetName: string) => {
+  const layout = useFormLayout(layoutName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
@@ -29,7 +29,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   return useMutation({
-    mutationFn: ({ updatedComponent, id }: UpdateFormComponentArgs) => {
+    mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
 
       const updatedLayout: IInternalLayout = deepCopy(layout);
       const { components, order } = updatedLayout;
@@ -52,7 +52,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
         const containerIndex = parentContainerOrder.indexOf(id);
         parentContainerOrder[containerIndex] = newId;
       } else {
-        if (components[id].type === ComponentType.RadioButtons || components[id].type === ComponentType.Checkboxes) {
+        if (components[id]?.type === ComponentType.RadioButtons || components[id]?.type === ComponentType.Checkboxes) {
           delete components[id].options;
           delete components[id].optionsId;
         }

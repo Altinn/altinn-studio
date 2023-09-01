@@ -7,6 +7,12 @@ import { User } from 'app-shared/types/User';
 import { IGiteaOrganisation } from 'app-shared/types/global';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { useNavigate } from 'react-router-dom';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+}));
 
 const renderWithMockServices = (
   services?: Partial<ServicesContextProps>,
@@ -120,7 +126,7 @@ describe('CreateService', () => {
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
 
-    const emptyFieldErrors = await screen.findAllByText(textMock('dashboard.app_already_exist'));
+    const emptyFieldErrors = await screen.findAllByText(textMock('dashboard.app_already_exists'));
     expect(emptyFieldErrors.length).toBe(1);
   });
 
@@ -149,5 +155,17 @@ describe('CreateService', () => {
       textMock('dashboard.error_when_creating_app')
     );
     expect(emptyFieldErrors.length).toBe(1);
+  });
+
+  it('navigates back when clicking cancel button', async () => {
+    const mockNavigate = jest.fn();
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+
+    const user = userEvent.setup();
+    renderWithMockServices();
+
+    await act(() => user.click(screen.getByText(/general.cancel/)));
+
+    expect(mockNavigate).toHaveBeenCalledWith(-1);
   });
 });

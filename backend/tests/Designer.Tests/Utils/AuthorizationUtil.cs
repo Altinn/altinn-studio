@@ -63,7 +63,7 @@ namespace Designer.Tests.Utils
             return policy;
         }
 
-        private static string GetPolicyPath()
+        internal static string GetPolicyPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AuthorizationUtil).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Authorization", "Policies", "Xacml");

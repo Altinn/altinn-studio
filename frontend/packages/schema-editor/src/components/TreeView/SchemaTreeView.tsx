@@ -1,5 +1,4 @@
 import React from 'react';
-import classes from './SchemaTreeView.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { DndProvider } from 'react-dnd';
 import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
@@ -8,7 +7,6 @@ import { SchemaItem } from './SchemaItem';
 import { TreeView } from '@mui/lab';
 
 export interface SchemaTreeViewProps {
-  editMode: boolean;
   expanded: any;
   items: UiSchemaNode[];
   onNodeToggle: any;
@@ -18,7 +16,6 @@ export interface SchemaTreeViewProps {
 }
 
 export const SchemaTreeView = ({
-  editMode,
   expanded,
   items,
   onNodeToggle,
@@ -29,7 +26,6 @@ export const SchemaTreeView = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <TreeView
-        className={classes.treeView}
         multiSelect={false}
         selected={selectedPointer}
         defaultCollapseIcon={<ChevronDownIcon />}
@@ -40,7 +36,6 @@ export const SchemaTreeView = ({
         {items.map((item: UiSchemaNode, index: number) => (
           <SchemaItem
             index={index}
-            editMode={editMode}
             isPropertiesView={isPropertiesView}
             selectedNode={item}
             key={item.pointer}

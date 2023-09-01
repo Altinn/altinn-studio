@@ -1,10 +1,15 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MapComponent, MapComponentProps } from './MapComponent';
-import { renderWithMockStore, renderHookWithMockStore, appDataMock } from '../../../../testing/mocks';
+import { MapComponent } from './MapComponent';
+import {
+  renderWithMockStore,
+  renderHookWithMockStore,
+  appDataMock,
+} from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { IGenericEditComponent } from '../../componentConfig';
 
 const texts: Record<string, string> = {
   'validation_errors.required': 'Feltet er påkrevd!',
@@ -21,29 +26,24 @@ const texts: Record<string, string> = {
   'ux_editor.subdomains_label': 'Subdomener (kommaseparert)',
 };
 
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 const handleComponentChangeMock = jest.fn();
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const renderMapComponent = async ({
   component = {} as any,
-  handleComponentChange = handleComponentChangeMock
-}: Partial<MapComponentProps>) => {
-  const user = userEvent.setup();
-
+  handleComponentChange = handleComponentChangeMock,
+}: Partial<IGenericEditComponent>) => {
   await waitForData();
 
   renderWithMockStore({
-    appData: { ...appDataMock }
+    appData: { ...appDataMock },
   })(<MapComponent component={component} handleComponentChange={handleComponentChange} />);
-  return { user };
 };
 
 describe('MapComponent', () => {
@@ -63,34 +63,37 @@ describe('MapComponent', () => {
   });
 
   test('should be able to set latitude', async () => {
-    const { user } = await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock
+    const user = userEvent.setup();
+    await renderMapComponent({
+      handleComponentChange: handleComponentChangeMock,
     });
 
     const latitudeInput = screen.getByLabelText('Latitude');
     await act(() => user.type(latitudeInput, '40'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { latitude: 40 }
+      centerLocation: { latitude: 40 },
     });
   });
 
   test('should be able to set longitude', async () => {
-    const { user } = await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock
+    const user = userEvent.setup();
+    await renderMapComponent({
+      handleComponentChange: handleComponentChangeMock,
     });
 
     const longitudeInput = screen.getByLabelText('Longitude');
     await act(() => user.type(longitudeInput, '21'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { longitude: 21 }
+      centerLocation: { longitude: 21 },
     });
   });
 
   test('should be able to set zoom', async () => {
-    const { user } = await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock
+    const user = userEvent.setup();
+    await renderMapComponent({
+      handleComponentChange: handleComponentChangeMock,
     });
 
     const zoomInput = screen.getByLabelText('Standard zoom');
@@ -105,11 +108,13 @@ describe('AddMapLayer', () => {
 
   afterEach(() => {
     componentMock = {
-      layers: [{
-        attribution: undefined,
-        subdomains: undefined,
-        url: undefined
-      }]
+      layers: [
+        {
+          attribution: undefined,
+          subdomains: undefined,
+          url: undefined,
+        },
+      ],
     };
   });
 
@@ -131,61 +136,75 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set link', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.url_label']);
     await act(() => user.type(input, 'test'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      layers: [{
-        attribution: undefined,
-        subdomains: undefined,
-        url: 'test'
-      }]
+      layers: [
+        {
+          attribution: undefined,
+          subdomains: undefined,
+          url: 'test',
+        },
+      ],
     });
   });
 
   test('should be able to set attribution', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
     await act(() => user.type(input, 'test'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      layers: [{
-        attribution: 'test',
-        subdomains: undefined,
-        url: undefined
-      }]
+      layers: [
+        {
+          attribution: 'test',
+          subdomains: undefined,
+          url: undefined,
+        },
+      ],
     });
   });
 
   test('should be able to set subdomains', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
     await act(() => user.type(input, 'test'));
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      layers: [{
-        attribution: undefined,
-        subdomains: ['test'],
-        url: undefined
-      }]
+      layers: [
+        {
+          attribution: undefined,
+          subdomains: ['test'],
+          url: undefined,
+        },
+      ],
     });
   });
 
   it('calls handleAddLayer on button click', async () => {
-    const { user } = await renderMapComponent({});
+    const user = userEvent.setup();
+    await renderMapComponent({});
 
     const button = screen.getByRole('button');
 
     await act(() => user.click(button));
 
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ layers: [{
-      attribution: undefined,
-      subdomains: undefined,
-      url: undefined
-    }] });
+    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
+      layers: [
+        {
+          attribution: undefined,
+          subdomains: undefined,
+          url: undefined,
+        },
+      ],
+    });
   });
 });

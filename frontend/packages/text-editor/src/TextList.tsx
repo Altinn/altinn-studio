@@ -31,12 +31,12 @@ export const TextList = ({
     <Table>
       <TableHeader>
         <TableRow>
+          <TableCell></TableCell>
           {selectedLanguages.map((language) => (
             <TableCell key={'header-lang' + language}>{getLangName({ code: language })}</TableCell>
           ))}
           <TableCell>Tekstnøkkel</TableCell>
           <TableCell>Variabler</TableCell>
-          <TableCell></TableCell>
         </TableRow>
       </TableHeader>
       <TableBody>

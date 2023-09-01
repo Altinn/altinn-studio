@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AddOption.module.css';
 import { TextResource } from './TextResource';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  FieldSet,
-  TextField,
-} from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
 import { IOption } from '../types/global';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -55,8 +49,8 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
 
   return isAddMode ? (
     <div className={classes.addSection}>
-      <FieldSet
-        contentClassName={classes.fieldSetContent}
+      <LegacyFieldSet
+        className={classes.fieldSetContent}
         error={errorMessage}
         legend={t('ux_editor.add_option')}
       >
@@ -81,23 +75,25 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
             disabled={!isNewValueValid}
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => addOption(event, newOption)}
             title={t('general.add')}
+            size='small'
           >
             {t('general.add')}
           </Button>
-          <Button onClick={() => setIsAddMode(false)} title={t('general.cancel')}>
+          <Button onClick={() => setIsAddMode(false)} title={t('general.cancel')} size='small'>
             {t('general.cancel')}
           </Button>
         </div>
-      </FieldSet>
+      </LegacyFieldSet>
     </div>
   ) : (
     <div>
       <Button
         className={classes.addButton}
         onClick={() => setIsAddMode(true)}
-        color={ButtonColor.Success}
+        color='success'
         title={t('ux_editor.add_option')}
-        variant={ButtonVariant.Quiet}
+        variant='quiet'
+        size='small'
       >
         <span className={addButtonClass}>
           <PlusIcon />

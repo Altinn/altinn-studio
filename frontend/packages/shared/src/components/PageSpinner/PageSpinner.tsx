@@ -1,12 +1,16 @@
 import React from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import classes from './PageSpinner.module.css';
+import { Center } from '../Center';
 
-type PageSpinnerProps = {
-  text: string;
+export type PageSpinnerProps = {
+  spinnerText?: string;
 };
-export const PageSpinner = ({ text }: PageSpinnerProps) => (
-  <div className={classes.container}>
-    <AltinnSpinner spinnerText={text} className={classes.spinnerText} />
-  </div>
-);
+
+export const PageSpinner = ({ spinnerText }: PageSpinnerProps) => {
+  return (
+    <Center>
+      <AltinnSpinner spinnerText={spinnerText} size='3xLarge' className={classes.spinnerText} />
+    </Center>
+  );
+}

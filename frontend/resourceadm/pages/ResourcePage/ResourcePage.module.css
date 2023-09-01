@@ -4,25 +4,14 @@
 
 .resourcePageWrapper {
   flex-grow: 1;
-  padding: 20px;
-}
-
-.resourcePage {
-  width: 80%;
-  margin: 0;
-  padding-top: 2%;
-  padding-bottom: 50px;
-  padding-inline: 2%;
-}
-
-.resourceH2 {
-  margin-bottom: 40px;
-  font-weight: 400;
-  font-size: 30px;
 }
 
 .leftNavWrapper {
   height: 100vh;
   top: 0;
   position: sticky;
+}
+
+.spinnerWrapper {
+  padding: 10%;
 }

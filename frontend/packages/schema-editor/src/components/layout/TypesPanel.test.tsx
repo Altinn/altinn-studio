@@ -7,7 +7,7 @@ import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const typesText = 'Typer';
@@ -29,7 +29,7 @@ queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const render = (props?: Partial<TypesPanelProps>, editMode?: boolean) => {
+const render = (props?: Partial<TypesPanelProps>) => {
   const mockInitialState: SchemaState = {
     name: 'test',
     selectedDefinitionNodeId: '',
@@ -51,7 +51,6 @@ const render = (props?: Partial<TypesPanelProps>, editMode?: boolean) => {
       pointer: '#/$defs/TestType',
       restrictions: {},
     },
-    editMode: editMode === undefined ? true : editMode,
     expandedDefNodes: [],
     setExpandedDefNodes: () => {},
   };

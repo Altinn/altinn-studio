@@ -4,27 +4,85 @@
   "title": "Expression",
   "description": "Multi-purpose expression mini-language used to declare dynamic behaviour in Altinn 3 apps",
   "examples": [
-    ["equals", ["dataModel", "My.Model.Group.Field"], "string constant"],
-    ["greaterThanEq", ["component", "my-component-id"], ["dataModel", "My.Model.Other.Field"]],
-    ["or", ["equals", "foo", "bar"], ["equals", "foo", "baz"]],
+    [
+      "equals",
+      [
+        "dataModel",
+        "My.Model.Group.Field"
+      ],
+      "string constant"
+    ],
+    [
+      "greaterThanEq",
+      [
+        "component",
+        "my-component-id"
+      ],
+      [
+        "dataModel",
+        "My.Model.Other.Field"
+      ]
+    ],
+    [
+      "or",
+      [
+        "equals",
+        "foo",
+        "bar"
+      ],
+      [
+        "equals",
+        "foo",
+        "baz"
+      ]
+    ],
     [
       "if",
       [
         "or",
-        ["equals", ["component", "my-component"], ""],
-        ["equals", ["component", "my-component"], null]
+        [
+          "equals",
+          [
+            "component",
+            "my-component"
+          ],
+          ""
+        ],
+        [
+          "equals",
+          [
+            "component",
+            "my-component"
+          ],
+          null
+        ]
       ],
       "This will be the value if the condition above is true",
       "else",
       [
         "if",
-        ["notEquals", ["component", "my-other-component"], "illegal value"],
+        [
+          "notEquals",
+          [
+            "component",
+            "my-other-component"
+          ],
+          "illegal value"
+        ],
         "This will be the value if the first condition is false, and the second is true",
         "else",
         "This will be the value if all the conditions above are false"
       ]
     ],
-    ["concat", "Are you sure you want to delete ", ["dataModel", "My.Model.Title"], "?"]
+    [
+      "concat",
+      "Are you sure you want to delete ",
+      [
+        "dataModel",
+        "My.Model.Title"
+      ],
+      "?"
+    ]
   ],
   "$ref": "#/definitions/any",
   "definitions": {
@@ -233,7 +291,7 @@
     },
     "func-if-without-else": {
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
           "const": "if"
         },
@@ -248,8 +306,9 @@
     },
     "func-if-with-else": {
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "if"
         },
         {
@@ -259,6 +318,7 @@
           "$ref": "#/definitions/any"
         },
         {
+          "type": "string",
           "const": "else"
         },
         {
@@ -271,8 +331,9 @@
       "title": "Component value lookup function",
       "description": "This function will look up a nearby component and its value (only supports simpleBinding currently). Other components can be siblings, or siblings of parent groups.",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "component"
         },
         {
@@ -285,8 +346,9 @@
       "title": "Data model lookup function",
       "description": "This function will look up a value in the data model, using the JSON dot notation for referencing the data model structure. Relative positioning inside repeating groups will be resolved automatically if no positional indexes are specified.",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "dataModel"
         },
         {
@@ -299,12 +361,17 @@
       "title": "Instance context lookup function",
       "description": "This function can be used to lookup a value from the instance context",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "instanceContext"
         },
         {
-          "enum": ["appId", "instanceId", "instanceOwnerPartyId"]
+          "enum": [
+            "appId",
+            "instanceId",
+            "instanceOwnerPartyId"
+          ]
         }
       ],
       "additionalItems": false
@@ -313,12 +380,20 @@
       "title": "Auth context lookup function",
       "description": "This function can be used to check the users permissions on the current process step.",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "authContext"
         },
         {
-          "enum": ["read", "write", "instantiate", "confirm", "sign", "reject"]
+          "enum": [
+            "read",
+            "write",
+            "instantiate",
+            "confirm",
+            "sign",
+            "reject"
+          ]
         }
       ],
       "additionalItems": false
@@ -327,8 +402,9 @@
       "title": "Frontend settings lookup function",
       "description": "This function can be used to lookup a value from frontendSettings (only supports scalar values, no objects or arrays)",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "frontendSettings"
         },
         {
@@ -341,8 +417,9 @@
       "title": "String concatenation function",
       "description": "This function will concatenate strings or numbers, producing a final string as a result",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "concat"
         }
       ],
@@ -354,7 +431,7 @@
       "title": "Equals function",
       "description": "This function compares two values (or expressions) for equality",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
           "const": "equals"
         },
@@ -371,8 +448,9 @@
       "title": "Not equals function",
       "description": "This function compares two values (or expressions) for inequality",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "notEquals"
         },
         {
@@ -388,8 +466,9 @@
       "title": "Not function",
       "description": "This function inverts a boolean, returning true if given false, and vice versa.",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "not"
         },
         {
@@ -402,8 +481,9 @@
       "title": "Greater than function",
       "description": "This function compares two values (or expressions), returning true if the first argument is greater than the second",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "greaterThan"
         },
         {
@@ -419,8 +499,9 @@
       "title": "Greater than or equals function",
       "description": "This function compares two values (or expressions), returning true if the first argument is greater than or equals the second",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "greaterThanEq"
         },
         {
@@ -436,8 +517,9 @@
       "title": "Less than function",
       "description": "This function compares two values (or expressions), returning true if the first argument is less than the second",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "lessThan"
         },
         {
@@ -453,8 +535,9 @@
       "title": "Less than or equals function",
       "description": "This function compares two values (or expressions), returning true if the first argument is less than or equals the second",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "lessThanEq"
         },
         {
@@ -470,8 +553,9 @@
       "title": "And combinator",
       "description": "This function returns true if all the arguments (or expressions) are true",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "and"
         },
         {
@@ -486,8 +570,9 @@
       "title": "Or combinator",
       "description": "This function returns true if any of the arguments (or expressions) are true",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "or"
         },
         {
@@ -502,8 +587,9 @@
       "title": "Round function",
       "description": "This function rounds a number to the nearest integer, or to the specified number of decimals",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "round"
         },
         {
@@ -519,8 +605,9 @@
       "title": "Text function",
       "description": "This function retrieves the value of a text resource key, or returns the key if no text resource is found",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "text"
         },
         {
@@ -533,8 +620,9 @@
       "title": "Language function",
       "description": "This function retrieves the current language (usually 'nb', 'nn' or 'en')",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "language"
         }
       ],
@@ -544,8 +632,9 @@
       "title": "Contains function",
       "description": "This function checks if the first string contains the second string",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "contains"
         },
         {
@@ -561,8 +650,9 @@
       "title": "Not contains function",
       "description": "This function checks if the first string does not contain the second string",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "notContains"
         },
         {
@@ -578,8 +668,9 @@
       "title": "Starts with function",
       "description": "This function checks if the first string starts with the second string",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "startsWith"
         },
         {
@@ -595,8 +686,9 @@
       "title": "Ends with function",
       "description": "This function checks if the first string ends with the second string",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "endsWith"
         },
         {
@@ -612,8 +704,9 @@
       "title": "String length function",
       "description": "This function returns the length of a string",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "stringLength"
         },
         {
@@ -626,8 +719,9 @@
       "title": "Comma contains function",
       "description": "This function checks if the first comma-separated string contains the second string",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "commaContains"
         },
         {
@@ -643,8 +737,9 @@
       "title": "Lower case function",
       "description": "This function converts a string to lower case",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "lowerCase"
         },
         {
@@ -657,8 +752,9 @@
       "title": "Upper case function",
       "description": "This function converts a string to upper case",
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
+          "type": "string",
           "const": "upperCase"
         },
         {

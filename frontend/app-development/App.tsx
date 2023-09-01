@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
-import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import {
   fetchRemainingSession,
   keepAliveSession,
@@ -28,8 +26,10 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useRepoStatusQuery } from './hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
+import { PageSpinner } from 'app-shared/components';
+import * as testids from '../testing/testids';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -59,13 +59,6 @@ export function App() {
   const dispatch = useAppDispatch();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-    if (repositoryType === RepositoryType.App) {
-      dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
-    }
-  }, [app, dispatch, org, repositoryType]);
 
   useEffect(() => {
     dispatch(fetchRemainingSession());
@@ -146,12 +139,15 @@ export function App() {
     [dispatch]
   );
   if (!repoStatus) {
-    return null;
+    return (
+      <div className={classes.appSpinner}>
+        <PageSpinner />
+      </div>
+    );
   }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <AltinnPopoverSimple
-        testId='logout-warning'
         anchorEl={sessionExpiredPopoverRef.current}
         open={remainingSessionMinutes < 11}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -167,7 +163,7 @@ export function App() {
       </AltinnPopoverSimple>
       <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
 
-      <div className={classes.contentWrapper} data-testid={'app-content-wrapper'}>
+      <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
         {repoStatus.hasMergeConflict ? (
           <MergeConflictWarning org={org} app={app} />
         ) : (

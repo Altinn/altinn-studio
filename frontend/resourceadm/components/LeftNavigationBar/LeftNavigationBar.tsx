@@ -1,45 +1,146 @@
-import React from 'react';
+import React, { useState } from 'react';
+import cn from 'classnames';
 import classes from './LeftNavigationBar.module.css';
-import { InformationSquareIcon, GavelSoundBlockIcon, UploadIcon } from '@navikt/aksel-icons';
-import { NavigationBarPageType } from 'resourceadm/types/global';
+import {
+  InformationSquareIcon,
+  GavelSoundBlockIcon,
+  UploadIcon,
+  ArrowLeftIcon,
+  MigrationIcon,
+} from '@navikt/aksel-icons';
+import type { NavigationBarPage } from 'resourceadm/types/global';
+import { Paragraph } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next'
 
-interface Props {
-  currentPage: NavigationBarPageType;
-  navigateToPage: (page: NavigationBarPageType) => void;
+export type LeftNavigationBarProps = {
+  /**
+   * The currentPage displayed
+   */
+  currentPage: NavigationBarPage;
+  /**
+   * Function that navigates to another page in the navbar
+   * @param page the page to navigate to
+   * @returns void
+   */
+  navigateToPage: (page: NavigationBarPage) => void;
+  /**
+   * Function to go back to dashboard
+   * @returns void
+   */
   goBack: () => void;
-}
+  /**
+   * Flag for if the migrate tab should be shown
+   */
+  showMigrate?: boolean;
+};
 
 /**
- * Displays a navigation bar component to the left of the screen.
- * This navigation bar contains 3 elements: "about", "policy", "deploy"
+ * @component
+ *    Displays a navigation bar component to the left of the screen.
+ *    This navigation bar contains 3 elements: "about", "policy", "deploy"
  *
- * @param props.currentPage the currentPage displayed
- * @param props.navigateToPage function that navigates to another page in the navbar
- * @param props.goBack function to go back
+ * @example
+ *    <LeftNavigationBar
+ *        currentPage={currentPage}
+ *        navigateToPage={navigateToPage}
+ *        goBack={goBack}
+ *    />
+ *
+ * @property {NavigationBarPage}[currentPage] - The currentPage displayed
+ * @property {function}[navigateToPage] - Function that navigates to another page in the navbar
+ * @property {function}[goBack] - Function to go back to dashboard
+ * @property {boolean}[showMigrate] - Flag for if the migrate tab should be shown
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const LeftNavigationBar = ({ currentPage, navigateToPage, goBack }: Props) => {
-  const getNavElementClass = (page: NavigationBarPageType) => {
-    return currentPage === page ? classes.navigationElementSelected : classes.navigationElement;
+export const LeftNavigationBar = ({
+  currentPage,
+  navigateToPage,
+  goBack,
+  showMigrate = false,
+}: LeftNavigationBarProps): React.ReactNode => {
+  const { t } = useTranslation();
+
+  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPage>(null);
+
+  const handleClick = (page: NavigationBarPage) => {
+    if (page !== currentPage) {
+      setNewPageClicked(page);
+      navigateToPage(page);
+    }
   };
 
   return (
     <div className={classes.navigationBar}>
-      <button className={classes.backButton} type='button' onClick={goBack}>
-        <p className={classes.buttonText}>Tilbake til dashboard</p>
-      </button>
       <div className={classes.navigationElements}>
-        <button className={getNavElementClass('about')} onClick={() => navigateToPage('about')}>
-          <InformationSquareIcon className={classes.icon} title='Om ressursen' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Om ressursen</p>
+        <button
+          className={cn(classes.navigationElement, classes.backButton)}
+          type='button'
+          onClick={goBack}
+        >
+          <ArrowLeftIcon className={classes.icon} fontSize='1.8rem' />
+          <Paragraph size='small' short className={classes.buttonText}>
+            {t('resourceadm.left_nav_bar_back')}
+          </Paragraph>
         </button>
-        <button className={getNavElementClass('policy')} onClick={() => navigateToPage('policy')}>
-          <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Policy</p>
+        <button
+          className={cn(
+            currentPage === 'about' && classes.selected,
+            newPageClicked === 'about' ? classes.newPage : classes.navigationElement
+          )}
+          onClick={() => handleClick('about')}
+          onBlur={() => setNewPageClicked(null)}
+          type='button'
+        >
+          <InformationSquareIcon className={classes.icon} fontSize='1.8rem' />
+          <Paragraph size='small' short className={classes.buttonText}>
+            {t('resourceadm.left_nav_bar_about')}
+          </Paragraph>
         </button>
-        <button className={getNavElementClass('deploy')} onClick={() => navigateToPage('deploy')}>
-          <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
-          <p className={classes.buttonText}>Publiser</p>
+        <button
+          className={cn(
+            currentPage === 'policy' && classes.selected,
+            newPageClicked === 'policy' ? classes.newPage : classes.navigationElement
+          )}
+          onClick={() => handleClick('policy')}
+          onBlur={() => setNewPageClicked(null)}
+          type='button'
+        >
+          <GavelSoundBlockIcon className={classes.icon} fontSize='1.8rem' />
+          <Paragraph size='small' short className={classes.buttonText}>
+            {t('resourceadm.left_nav_bar_policy')}
+          </Paragraph>
         </button>
+        <button
+          className={cn(
+            currentPage === 'deploy' && classes.selected,
+            newPageClicked === 'deploy' ? classes.newPage : classes.navigationElement
+          )}
+          onClick={() => handleClick('deploy')}
+          onBlur={() => setNewPageClicked(null)}
+          type='button'
+        >
+          <UploadIcon className={classes.icon} fontSize='1.8rem' />
+          <Paragraph size='small' short className={classes.buttonText}>
+            {t('resourceadm.left_nav_bar_deploy')}
+          </Paragraph>
+        </button>
+        {showMigrate && (
+          <button
+            className={cn(
+              currentPage === 'migration' && classes.selected,
+              newPageClicked === 'migration' ? classes.newPage : classes.navigationElement
+            )}
+            onClick={() => handleClick('migration')}
+            onBlur={() => setNewPageClicked(null)}
+            type='button'
+          >
+            <MigrationIcon className={classes.icon} fontSize='1.8rem' />
+            <Paragraph size='small' short className={classes.buttonText}>
+              {t('resourceadm.left_nav_bar_migrate')}
+            </Paragraph>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -195,6 +195,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
     services.RegisterServiceImplementations(configuration);
+    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
 
     services.AddHttpContextAccessor();
     services.AddMemoryCache();

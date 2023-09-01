@@ -1,4 +1,3 @@
-import { firstAvailableLayout } from "../utils/formLayoutsUtils";
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { DndProvider } from 'react-dnd';
@@ -21,6 +20,7 @@ import { PageSpinner } from 'app-shared/components';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -67,22 +67,13 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    if (searchParams.has('deletedLayout')) {
-      const layoutToSelect = firstAvailableLayout(
-        searchParams.get('deletedLayout'),
-        layoutPagesOrder
-      );
-      dispatch(FormLayoutActions.updateSelectedLayout(layoutToSelect));
-      setSearchParams(
-        layoutToSelect !== DEFAULT_SELECTED_LAYOUT_NAME ? { layout: layoutToSelect } : {}
-      );
-    } else if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
+    if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
       setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
       dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
     } else if (searchParams.has('layout')) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
       // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-      if (instanceId) localStorage.setItem(instanceId, selectedLayout);
+      if (instanceId) typedLocalStorage.setItem(instanceId, selectedLayout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);
@@ -122,5 +113,5 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
       </DndProvider>
     );
   }
-  return <PageSpinner text={t('general.loading')}/>;
+  return <PageSpinner />;
 };

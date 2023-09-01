@@ -5,6 +5,7 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
+import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();
 
@@ -45,7 +46,7 @@ describe('TextEditor', () => {
       upsertTextResource,
     });
     const addBtn = screen.getByRole('button', {
-      name: /ny tekst/i,
+      name: textMock('text_editor.new_text'),
     });
 
     await act(() => user.click(addBtn));
@@ -63,11 +64,43 @@ describe('TextEditor', () => {
     renderTextEditor({
       deleteLanguage: handleDeleteLang,
     });
-    const deleteBtn = screen.getByTestId('delete-en');
+    const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
     await act(() => user.click(deleteBtn));
+    await screen.findByRole('dialog');
+    await act(() =>
+      user.click(
+        screen.getByRole('button', {
+          name: textMock('schema_editor.language_confirm_deletion'),
+        })
+      )
+    );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
+  });
+
+  it('removes nb from selectedLanguages when delete lang is clicked', async () => {
+    const setSelectedLangCodes = jest.fn((langs: string[]) => langs);
+    const handleDeleteLang = jest.fn();
+    renderTextEditor({
+      selectedLangCodes: ['nb', 'en'],
+      setSelectedLangCodes: setSelectedLangCodes,
+      deleteLanguage: handleDeleteLang,
+    });
+    const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
+
+    await act(() => user.click(deleteBtn));
+    await screen.findByRole('dialog');
+    await act(() =>
+      user.click(
+        screen.getByRole('button', {
+          name: textMock('schema_editor.language_confirm_deletion'),
+        })
+      )
+    );
+
+    expect(handleDeleteLang).toHaveBeenCalledWith('en');
+    expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb']);
   });
 
   it('calls setSelectedLang code when lang is changed', async () => {
@@ -100,8 +133,8 @@ describe('TextEditor', () => {
     expect(translationsToChange).toHaveLength(2);
     const changedTranslations = nb;
     changedTranslations[0].value = 'new translation';
-    await act(() => user.tripleClick(translationsToChange[0])); // select all text
-    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); // type new text and blur
+    await act(() => user.tripleClick(translationsToChange[0]));
+    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`));
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
       textId: 'textId1',
@@ -124,7 +157,7 @@ describe('TextEditor', () => {
       await act(() =>
         user.click(
           screen.getByRole('button', {
-            name: textMock('schema_editor.textRow-confirm-cancel-popover'),
+            name: textMock('schema_editor.textRow-deletion-confirm'),
           })
         )
       );

@@ -2,6 +2,8 @@ import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import i18next from 'i18next';
+import { UseText } from '../hooks';
+import { TranslationKey } from 'app-shared/types/language';
 
 export function getComponentHelperTextByComponentType(type: ComponentType, language: any): string {
   switch (type) {
@@ -96,7 +98,7 @@ export function getComponentTitleByComponentType(type: ComponentType, t: typeof 
       return t('ux_editor.component_map');
     }
     default: {
-      return '';
+      return type;
     }
   }
 }
@@ -112,9 +114,10 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof 
     case CollapsableMenus.AdvancedComponents: {
       return t('ux_editor.collapsable_text_advanced_components');
     }
-    case CollapsableMenus.Widgets: {
-      return t('ux_editor.collapsable_text_widgets');
-    }
+    // TODO : Uncomment when we have widgets components
+    // case CollapsableMenus.Widgets: {
+    //   return t('ux_editor.collapsable_text_widgets');
+    // }
     // case CollapsableMenus.ThirdParty: {
     //   return language['ux_editor.collapsable_text_thirdparty_components'];
     // }
@@ -132,6 +135,13 @@ export function truncate(s: string, size: number) {
 }
 
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
-  const textResource = textResources?.find((resource) => resource.id === resourceKey);
-  return textResource ? textResource.value : resourceKey;
+  if (!resourceKey || !textResources?.length) return;
+  const textResource = textResources.find((resource) => resource.id === resourceKey);
+  return textResource?.value;
 }
+
+export const getComponentPropertyLabel = (propertyKey: string, t: UseText): string => {
+  const translationKey: string = `ux_editor.component_properties.${propertyKey}`;
+  const translation = t(translationKey as TranslationKey);
+  return translation === translationKey ? propertyKey : translation;
+};

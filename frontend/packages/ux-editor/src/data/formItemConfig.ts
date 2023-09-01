@@ -11,6 +11,44 @@ export type FormItemConfig<T extends ComponentType = ComponentType> = {
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
+  [ComponentType.Alert]: {
+    name: ComponentType.Alert,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Alert,
+      severity: 'info',
+      propertyPath: 'definitions/alertComponent',
+    },
+    icon: 'fa fa-circle-exclamation',
+  },
+  [ComponentType.Accordion]: {
+    name: ComponentType.Accordion,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Accordion,
+      propertyPath: 'definitions/accordionComponent',
+    },
+  },
+  [ComponentType.AccordionGroup]: {
+    name: ComponentType.AccordionGroup,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.AccordionGroup,
+      propertyPath: 'definitions/accordionGroupComponent',
+    },
+  },
+  [ComponentType.ActionButton]: {
+    name: ComponentType.ActionButton,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.ActionButton,
+    },
+    icon: 'fa fa-button',
+  },
   [ComponentType.AddressComponent]: {
     name: ComponentType.AddressComponent,
     defaultProperties: {
@@ -46,6 +84,16 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-button',
   },
+  [ComponentType.ButtonGroup]: {
+    name: ComponentType.ButtonGroup,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.ButtonGroup,
+      propertyPath: 'definitions/buttonGroupComponent',
+    },
+    icon: 'fa fa-button',
+  },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
     defaultProperties: {
@@ -57,6 +105,16 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
     icon: 'fa fa-checkbox',
+  },
+  [ComponentType.Custom]: {
+    name: ComponentType.Custom,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Custom,
+      tagName: 'tag',
+      framework: 'framework',
+    },
   },
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
@@ -119,6 +177,17 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-attachment',
   },
+  [ComponentType.Grid]: {
+    name: ComponentType.Grid,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Grid,
+      propertyPath: 'definitions/gridComponent',
+      rows: [],
+    },
+    icon: 'fa fa-group',
+  },
   [ComponentType.Group]: {
     name: ComponentType.Group,
     defaultProperties: {
@@ -138,6 +207,16 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-title',
   },
+  [ComponentType.IFrame]: {
+    name: ComponentType.IFrame,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.IFrame,
+      sandbox: {},
+    },
+    icon: 'fa fa-code-files',
+  },
   [ComponentType.Image]: {
     name: ComponentType.Image,
     defaultProperties: {
@@ -151,6 +230,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       propertyPath: 'definitions/imageComponent',
     },
+    icon: 'fa fa-preview',
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
@@ -163,6 +243,55 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/inputComponent',
     },
     icon: 'fa fa-short-answer',
+  },
+  [ComponentType.InstanceInformation]: {
+    name: ComponentType.InstanceInformation,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.InstanceInformation,
+      propertyPath: 'definitions/instanceInformationComponent',
+    },
+    icon: 'fa fa-info-circle',
+  },
+  [ComponentType.InstantiationButton]: {
+    name: ComponentType.InstantiationButton,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.InstantiationButton,
+    },
+    icon: 'fa fa-button',
+  },
+  [ComponentType.Likert]: {
+    name: ComponentType.Likert,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Likert,
+      dataModelBindings: {},
+      propertyPath: 'definitions/radioAndCheckboxComponents',
+    },
+    icon: 'fa fa-checkbox',
+  },
+  [ComponentType.Link]: {
+    name: ComponentType.Link,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Link,
+    },
+    icon: 'fa fa-code-files',
+  },
+  [ComponentType.List]: {
+    name: ComponentType.List,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.List,
+      propertyPath: 'definitions/listComponent',
+    },
+    icon: 'fa fa-list',
   },
   [ComponentType.Map]: {
     name: ComponentType.Map,
@@ -180,6 +309,19 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/mapComponent',
     },
     icon: 'fa fa-address',
+  },
+  [ComponentType.MultipleSelect]: {
+    name: ComponentType.MultipleSelect,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.MultipleSelect,
+      dataModelBindings: {},
+      optionsId: '',
+      required: true,
+      propertyPath: 'definitions/selectionComponents',
+    },
+    icon: 'fa fa-drop-down',
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
@@ -223,6 +365,15 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-paragraph',
   },
+  [ComponentType.PrintButton]: {
+    name: ComponentType.PrintButton,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.PrintButton,
+    },
+    icon: 'fa fa-button',
+  },
   [ComponentType.RadioButtons]: {
     name: ComponentType.RadioButtons,
     defaultProperties: {
@@ -234,6 +385,16 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
     icon: 'fa fa-radio-button',
+  },
+  [ComponentType.Summary]: {
+    name: ComponentType.Summary,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Summary,
+      propertyPath: 'definitions/summaryComponent',
+    },
+    icon: 'fa fa-info-circle',
   },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
@@ -247,24 +408,19 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-long-answer',
   },
-  [ComponentType.ThirdParty]: {
-    name: ComponentType.ThirdParty,
-    defaultProperties: {
-      id: '',
-      itemType: 'COMPONENT',
-      type: ComponentType.ThirdParty,
-      tagName: 'tag',
-      framework: 'framework',
-    },
-  },
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.AddressComponent],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
+  formItemConfigs[ComponentType.Grid],
   formItemConfigs[ComponentType.NavigationBar],
   formItemConfigs[ComponentType.Map],
+  formItemConfigs[ComponentType.ButtonGroup],
+  formItemConfigs[ComponentType.Accordion],
+  formItemConfigs[ComponentType.AccordionGroup],
+  formItemConfigs[ComponentType.List],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -273,17 +429,28 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Checkboxes],
   formItemConfigs[ComponentType.RadioButtons],
   formItemConfigs[ComponentType.Dropdown],
+  formItemConfigs[ComponentType.MultipleSelect],
+  formItemConfigs[ComponentType.Likert],
+  formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
-  formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.Button],
+  formItemConfigs[ComponentType.NavigationButtons],
+  formItemConfigs[ComponentType.PrintButton],
+  formItemConfigs[ComponentType.InstantiationButton],
+  formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
+  formItemConfigs[ComponentType.Link],
+  formItemConfigs[ComponentType.IFrame],
+  formItemConfigs[ComponentType.InstanceInformation],
+  formItemConfigs[ComponentType.Summary],
 ];
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
+  formItemConfigs[ComponentType.Alert],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [

@@ -16,3 +16,32 @@ export const substringAfterLast = (str: string, separator: string): string => la
  */
 export const substringBeforeLast = (str: string, separator: string): string =>
   str.includes(separator) ? str.substring(0, str.lastIndexOf(separator)) : str;
+
+/**
+ * Replaces the given substring with the given replacement at the end of the string.
+ * If the substring does not appear at the end of the string, the string is returned unchanged.
+ * @param str The string to search in.
+ * @param substring The substring to search for.
+ * @param replacement The replacement to replace the substring with.
+ * @returns The string with the substring replaced at the end.
+ */
+export const replaceEnd = (str: string, substring: string, replacement: string): string =>
+  str.replace(new RegExp(substring + '$'), replacement);
+
+/**
+ * Removes any of the given substrings from the end of the string.
+ * If none of the substrings appear at the end of the string, the string is returned unchanged.
+ * Not case sensitive.
+ * @param str The string to search in.
+ * @param substrings The substrings to search for.
+ * @returns The string with the substrings removed from the end.
+ */
+export const removeEnd = (str: string, ...substrings: string[]): string => {
+  const lowerCaseStr = str.toLowerCase();
+  for (const substring of substrings) {
+    if (lowerCaseStr.endsWith(substring.toLowerCase())) {
+      return str.slice(0, -substring.length);
+    }
+  }
+  return str;
+}

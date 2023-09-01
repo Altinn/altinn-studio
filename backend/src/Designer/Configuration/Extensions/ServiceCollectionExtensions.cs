@@ -45,16 +45,16 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
         }
 
         public static IServiceCollection ConfigureResourceRegistryIntegrationSettings(
-        this IServiceCollection services, IConfigurationSection section)
+this IServiceCollection services, IConfigurationSection section)
         {
             IEnumerable<IConfigurationSection> resourceRegistrySettingSections = section.GetChildren();
 
             foreach (IConfigurationSection settingSection in resourceRegistrySettingSections)
             {
-                ResourceRegistryBaseUrlSetting rris = new ResourceRegistryBaseUrlSetting();
+                ResourceRegistryEnvironmentSettings rris = new ResourceRegistryEnvironmentSettings();
                 settingSection.Bind(rris);
                 rris.environment = settingSection.Key;
-                services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.environment, rris));
+                services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.environment.ToLower(), rris));
             }
 
             return services;

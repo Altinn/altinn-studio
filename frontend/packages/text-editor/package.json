@@ -5,7 +5,7 @@
     "iso-639-1": "2.1.15"
   },
   "devDependencies": {
-    "jest": "29.5.0"
+    "jest": "29.6.2"
   },
   "license": "MIT",
   "main": "index.ts",

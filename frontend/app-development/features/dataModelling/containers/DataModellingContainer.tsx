@@ -1,22 +1,19 @@
 import React from 'react';
-import { DataModelling } from 'app-shared/features';
+import { DataModelling } from '../DataModelling';
 import classes from './DataModellingContainer.module.css';
-import { useParams } from 'react-router-dom';
+import * as testids from '../../../../testing/testids';
 
-const DataModellingContainer = () => {
-  const { org, app } = useParams();
-
-  return (
-    <div
-      className={classes.root}
-      id='data-modelling-container'
-      data-testid='data-modelling-container'
-    >
-      <div className={classes.dataModellingWrapper}>
-        <DataModelling org={org} repo={app} />
-      </div>
+// Todo: Is this component necessary?
+const DataModellingContainer = () => (
+  <div
+    className={classes.root}
+    id={testids.dataModellingContainer}
+    data-testid={testids.dataModellingContainer}
+  >
+    <div className={classes.dataModellingWrapper}>
+      <DataModelling/>
     </div>
-  );
-};
+  </div>
+);
 
 export default DataModellingContainer;

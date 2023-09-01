@@ -7,7 +7,7 @@ import { SchemaState } from '@altinn/schema-editor/types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
-import { queryClientMock } from '../../../test/mocks/queryClientMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
@@ -86,7 +86,9 @@ describe('CustomProperties', () => {
 
   it('Renders an "unsupported property" message for unsupported properties', () => {
     render();
-    expect(screen.getAllByText(textMock('schema_editor.custom_props_unknown_format'))).toHaveLength(1);
+    expect(screen.getAllByText(textMock('schema_editor.custom_props_unknown_format'))).toHaveLength(
+      1
+    );
   });
 
   it('Renders a "delete" button for each property', () => {
@@ -97,7 +99,9 @@ describe('CustomProperties', () => {
 
   it('Saves model without deleted property when the delete button is clicked', async () => {
     render();
-    await act(() => user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]));
+    await act(() =>
+      user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0])
+    );
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = getNodeByPointer(updatedModel, defaultPath);
@@ -150,6 +154,6 @@ const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = 
   return renderWithProviders({
     servicesContextProps: { saveDatamodel },
     appContextProps: { modelPath },
-    state: { ...defaultSchemaState, ...schemaState }
-  })(<CustomProperties path={path}/>);
+    state: { ...defaultSchemaState, ...schemaState },
+  })(<CustomProperties path={path} />);
 };

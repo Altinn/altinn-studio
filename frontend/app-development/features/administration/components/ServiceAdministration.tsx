@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './Administration.module.css';
 import type { Repository } from 'app-shared/types/Repository';
-import { AltinnSpinner } from 'app-shared/components';
+import { PageSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
 import { serviceConfigPath } from 'app-shared/api/paths';
@@ -104,7 +104,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
   const render = repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div data-testid='service-administration-container' className={classes.root}>
+    <div className={classes.root}>
       {render ? (
         <MainContent
           appDescription={newDescription}
@@ -122,7 +122,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
           repositoryName={repository?.name || ''}
         />
       ) : (
-        <AltinnSpinner spinnerText='Laster siden' className={classes.spinner} />
+        <PageSpinner />
       )}
     </div>
   );

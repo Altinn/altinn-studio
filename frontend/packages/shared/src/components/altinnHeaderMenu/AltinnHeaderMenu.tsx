@@ -16,7 +16,7 @@ export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHead
   if (!menu?.length) return null;
 
   return (
-    <ul className={classes.menu} data-testid='altinn-header-menu'>
+    <ul className={classes.menu}>
       {menu.map((item) => (
         <li
           key={item.key}

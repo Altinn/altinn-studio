@@ -1,1 +1,0 @@
-export { SyncModal } from './SyncModal'

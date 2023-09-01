@@ -2,6 +2,7 @@ const { defineConfig } = require('cypress');
 const path = require('path');
 
 module.exports = defineConfig({
+  projectId: 'o7mikf',
   e2e: {
     supportFile: 'src/support/index.js',
     specPattern: 'src/integration/',

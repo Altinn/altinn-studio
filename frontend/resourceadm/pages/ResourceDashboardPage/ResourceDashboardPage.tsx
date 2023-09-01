@@ -1,40 +1,46 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner } from '@digdir/design-system-react';
-import { PlusCircleIcon } from '@navikt/aksel-icons';
+import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
+import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { ResourceType } from 'resourceadm/types/global';
-import { useOnce } from 'resourceadm/hooks/useOnce';
-import { get, post } from 'app-shared/utils/networking';
-import { getCreateResourceUrl, getResourcesUrl } from 'resourceadm/utils/backendUrlUtils';
-import { mapResourceListBackendResultToResourceList } from 'resourceadm/utils/mapperUtils';
-import { Footer } from 'resourceadm/components/Footer';
-import { useRepoStatusQuery } from 'resourceadm/hooks/queries';
+import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
+import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { filterTableData } from 'resourceadm/utils/resourceListUtils';
+import { useTranslation } from 'react-i18next'
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
- * Displays the page for the resource dashboard
+ * @component
+ *    Displays the page for the resource dashboard
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceDashboardPage = () => {
+export const ResourceDashboardPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
+  const { t } = useTranslation();
+
+  const navigate = useNavigate();
+
   const [searchValue, setSearchValue] = useState('');
-  const [resourceList, setResourceList] = useState<ResourceType[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
-  // Gets the repo status and the function to refetch it
+  // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
-
-  const navigate = useNavigate();
+  const {
+    data: resourceListData,
+    isLoading: resourceListLoading,
+    isRefetching: refetchingList,
+  } = useGetResourceListQuery(selectedContext);
 
   /**
    * Updates the value for if there is a merge conflict when the repostatus is not undefined
@@ -45,131 +51,86 @@ export const ResourceDashboardPage = () => {
     }
   }, [repoStatus]);
 
-  /**
-   * Get the resources once the page loads
-   */
-  useOnce(() => {
-    setLoading(true);
+  const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
-    get(getResourcesUrl(selectedContext))
-      .then((res: unknown) => {
-        setResourceList(mapResourceListBackendResultToResourceList(res));
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error getting the resources', err);
-        setLoading(false);
-        setHasError(true);
-      });
-
-    /**
-     * IF you do not want to run agains backend, comment out the code above,
-     * and comment in the code below. It will then work the same.
-     */
-    // setResourceList(mockResources);
-  });
-
-  /**
-   * Filter the list based on what is typed in the search box
-   */
-  const filteredTableData = resourceList.filter((resource: ResourceType) =>
-    resource.title.toLowerCase().includes(searchValue.toLocaleLowerCase())
-  );
-
-  /**
-   * Creates a new resource in backend
-   */
-  const handleCreateNewResource = (id: string, title: string) => {
-    // TODO - API call to backend to add resource
-    const idAndTitle = {
-      identifier: id,
-      title: {
-        nb: title,
-      },
-    };
-
-    // TODO - missing API connection - not working atm
-    post(getCreateResourceUrl(selectedContext), idAndTitle)
-      .then(() => {
-        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
-      })
-      .catch((err) => {
-        console.error('Error posting the new resource', err);
-      });
-  };
-
+  const handleNavigateToResource = (id: string) => {
+    navigate(getResourcePageURL(selectedContext, repo, id, 'about'))
+  }
   /**
    * Display different content based on the loading state
    */
   const displayContent = () => {
-    if (loading) {
+    if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
         </div>
       );
+    } else {
+      return (
+        <>
+          <SearchBox onChange={(value: string) => setSearchValue(value)} />
+          <div style={{ width: '100%' }}>
+            <Heading size='xsmall' level={2}>
+              {`${t('resourceadm.dashboard_num_resources')} (${resourceListData?.length ?? 0})`}
+            </Heading>
+          </div>
+          <ResourceTable list={filteredResourceList} onClickEditResource={handleNavigateToResource} />
+          {filteredResourceList.length === 0 && (
+            <Paragraph size='small' className={classes.noResultText}>
+              {t('resourceadm.dashboard_empty_list')}
+            </Paragraph>
+          )}
+        </>
+      );
     }
-    // TODO error handling
-    if (hasError) {
-      return <p>Beklager, det skjedde en feil under innhenting av innholdet</p>;
-    }
-    return (
-      <>
-        <h2 className={classes.subheader}>{`Alle ressurser (${resourceList.length})`}</h2>
-        <ResourceTable list={filteredTableData} />
-      </>
-    );
   };
 
   return (
-    <>
-      <div className={classes.pageWrapper}>
-        <div className={classes.topWrapper}>
-          <h1>{`${selectedContext}'s ressurser`}</h1>
-          <div className={classes.topRightWrapper}>
-            <Button
-              variant='quiet'
-              color='secondary'
-              icon={<PlusCircleIcon title='Migrer ressurs' />}
-              iconPlacement='right'
-              onClick={() => {}}
-              size='medium'
-            >
-              <strong>Migrer ressurs</strong>
-            </Button>
-            <div className={classes.verticalDivider} />
-            <Button
-              variant='quiet'
-              color='secondary'
-              icon={<PlusCircleIcon title='Opprett ny ressurs' />}
-              iconPlacement='right'
-              onClick={() => setNewResourceModalOpen(true)}
-              size='medium'
-            >
-              <strong>Opprett ny ressurs</strong>
-            </Button>
-          </div>
+    <div className={classes.pageWrapper}>
+      <div className={classes.topWrapper}>
+        <Heading size='large' level={1}>
+          {t('resourceadm.dashboard_header', { org: selectedContext })}
+        </Heading>
+        <div className={classes.topRightWrapper}>
+          <Button
+            variant='quiet'
+            color='secondary'
+            icon={<MigrationIcon title={t('resourceadm.dashboard_import_resource')} />}
+            iconPlacement='right'
+            onClick={() => setImportModalOpen(true)}
+            size='medium'
+          >
+            <strong>{t('resourceadm.dashboard_import_resource')}</strong>
+          </Button>
+          <div className={classes.verticalDivider} />
+          <Button
+            variant='quiet'
+            color='secondary'
+            icon={<PlusCircleIcon title={t('resourceadm.dashboard_create_resource')} />}
+            iconPlacement='right'
+            onClick={() => setNewResourceModalOpen(true)}
+            size='medium'
+          >
+            <strong>{t('resourceadm.dashboard_create_resource')}</strong>
+          </Button>
         </div>
-        <div className={classes.horizontalDivider} />
-        <div className={classes.componentWrapper}>
-          <SearchBox onChange={(value: string) => setSearchValue(value)} />
-        </div>
-        <div className={classes.componentWrapper}>{displayContent()}</div>
-        {hasMergeConflict && (
-          <MergeConflictModal
-            isOpen={hasMergeConflict}
-            handleSolveMerge={refetch}
-            org={selectedContext}
-            repo={repo}
-          />
-        )}
-        <NewResourceModal
-          isOpen={newResourceModalOpen}
-          onClose={() => setNewResourceModalOpen(false)}
-          onCreateNewResource={handleCreateNewResource}
-        />
       </div>
-      <Footer />
-    </>
+      <div className={classes.horizontalDivider} />
+      <div className={classes.componentWrapper}>{displayContent()}</div>
+      {hasMergeConflict && (
+        <MergeConflictModal
+          isOpen={hasMergeConflict}
+          handleSolveMerge={refetch}
+          org={selectedContext}
+          repo={repo}
+        />
+      )}
+      <NewResourceModal
+        isOpen={newResourceModalOpen}
+        onClose={() => setNewResourceModalOpen(false)}
+      />
+      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
+    </div>
   );
 };

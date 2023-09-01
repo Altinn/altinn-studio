@@ -32,6 +32,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly GeneralSettings _generalSettings;
+        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -41,18 +42,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
+        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             IGitea giteaWrapper,
-            ISourceControl sourceControl)
+            ISourceControl sourceControl,
+            ApplicationInsightsSettings applicationInsightsSettings)
         {
             _logger = logger;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
+            _applicationInsightsSettings = applicationInsightsSettings;
         }
 
         /// <summary>
@@ -85,6 +89,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
         public ActionResult Index()
         {
+            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
             return View();
         }
 

@@ -19,7 +19,7 @@ export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {
     return FieldType.Object;
-  } else if (typeof schemaNode.type === 'string' && objectKind === ObjectKind.Field) {
+  } else if (typeof schemaNode.type === 'string' && [ObjectKind.Field, ObjectKind.Reference].includes(objectKind)) {
     return schemaNode.type;
   } else if (objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);

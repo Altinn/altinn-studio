@@ -1,34 +1,35 @@
 import React, { ChangeEvent } from 'react';
 import classes from './ResourceSeachBox.module.css';
-import { MagnifyingGlassIcon } from '@navikt/aksel-icons';
+import { TextField } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next'
 
-interface Props {
+export type SearchBoxProps = {
+  /**
+   * Function to handle the change of value
+   * @param value the value typed
+   * @returns void
+   */
   onChange: (value: string) => void;
-}
+};
 
 /**
- * Searchbox component that displays an input field and a search icon
+ * @component
+ *    Searchbox component that displays an input field and a search icon
  *
- * @param props.onChange function to handle the change of value
+ * @property {function}[onChange] - Function to handle the change of value
+ *
+ * @returns {React.ReactNode} - The rendered component
  */
-export const SearchBox = ({ onChange }: Props) => {
+export const SearchBox = ({ onChange }: SearchBoxProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
 
-  // TODO - translation
   return (
     <div className={classes.searchBox}>
-      <input
-        className={classes.searchField}
-        type='text'
-        placeholder='Søk etter ressurs'
-        onChange={handleChange}
-        aria-label='Søk etter ressurs'
-      />
-      <div className={classes.searchIconWrapper}>
-        <MagnifyingGlassIcon title='Search icon' fontSize='1.5rem' />
-      </div>
+      <TextField onChange={handleChange} label={t('resourceadm.dashboard_searchbox')} />
     </div>
   );
 };

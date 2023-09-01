@@ -1,0 +1,66 @@
+.pageWrapper {
+  width: 90%;
+  margin: 0;
+  padding: 40px;
+}
+
+.contentWrapper {
+  width: 630px;
+}
+
+.contentDivider {
+  border: solid 1px #d6d6d6;
+  margin-top: 25px;
+  margin-bottom: 15px;
+}
+
+.introWrapper {
+  margin-bottom: 30px;
+}
+
+.selectEnv {
+  margin-top: 10px;
+  margin-bottom: 30px;
+  width: 350px;
+}
+
+.linkWrapper {
+  margin-left: 40px;
+}
+
+.datePickers {
+  display: flex;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.datePickerWrapper:last-child {
+  margin-left: 100px;
+}
+
+.buttonWrapper {
+  margin-top: 30px;
+}
+
+.button {
+  margin-block: 5px;
+}
+
+.migrateBox {
+  background-color: #e3f7ff;
+  margin-top: 40px;
+  padding-inline: 30px;
+  padding-block: 24px;
+}
+
+.migrateSteps {
+  margin-block: 20px;
+}
+
+.numDelegations {
+  margin-bottom: 30px;
+}
+
+.delegations {
+  margin-top: 10px;
+}

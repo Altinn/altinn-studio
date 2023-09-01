@@ -18,6 +18,7 @@ export const EditGroupDataModelBindings = ({
     <div>
       <Label htmlFor='dataModalHelper'>{t('ux_editor.modal_properties_data_model_helper')}</Label>
       <SelectDataModelComponent
+        label={t('ux_editor.modal_properties_data_model_helper')}
         inputId='dataModalHelper'
         selectedElement={dataModelBindings?.group}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, 'group')}

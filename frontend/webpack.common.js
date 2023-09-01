@@ -15,6 +15,8 @@ module.exports = {
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
       '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
+      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
+      '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
     },
     fallback: {
       'react/jsx-runtime': 'react/jsx-runtime.js',
@@ -35,7 +37,11 @@ module.exports = {
           'style-loader',
           {
             loader: 'css-loader',
-            options: { modules: true },
+            options: {
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
+            },
           },
         ],
       },

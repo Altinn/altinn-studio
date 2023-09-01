@@ -1,10 +1,10 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { login } from '../../pageobjects/loginandreg';
-import { header } from '../../pageobjects/header';
-import { dashboard } from '../../pageobjects/dashboard';
-import * as texts from '../../fixtures/texts.json';
+import { login } from '../../selectors/login';
+import { dashboard } from '../../selectors/dashboard';
+import { header } from '../../selectors/header';
+import {gitea} from "../../selectors/gitea";
 
 context('Login', () => {
   beforeEach(() => {
@@ -13,14 +13,15 @@ context('Login', () => {
 
   it('is possible to login with valid user credentials and logout', () => {
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.get(dashboard.searchApp).should('be.visible');
-    cy.get(header.profileIcon).should('be.visible').click();
-    cy.get(header.menu.logOut).should('be.visible').click();
-    cy.contains(login.container, texts.welcome).should('be.visible');
+    dashboard.getSearchReposField().should('be.visible');
+    header.getAvatar().should('be.visible').click();
+    header.getMenuItemLogout().should('be.visible').click();
+    login.getLoginButton().should('be.visible');
+    login.getCreateUserLink().should('be.visible');
   });
 
   it('is not possible to login with invalid user credentials', () => {
     cy.studiologin(Cypress.env('autoTestUser'), 'test123');
-    cy.get(login.errorMessage).should('be.visible');
+    gitea.getLoginErrorMessage().should('be.visible');
   });
 });

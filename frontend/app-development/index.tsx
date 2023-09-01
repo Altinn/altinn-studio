@@ -9,26 +9,38 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
-import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
+import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
+import 'app-shared/design-tokens';
+import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
+import 'app-shared/design-tokens';
+import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
 const store = setupStore();
+
+const loggerConfig: LoggerConfig = {
+  instrumentationKey: altinnStudioEnvironment.instrumentationKey,
+  enableUnhandledPromiseRejectionTracking: true,
+  loggingLevelTelemetry: 2,
+};
 
 /**
  * Setup all Sagas to listen to the defined events
  */
 run();
 
-const container = document.getElementById('root');
+const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 
 root.render(
-  <Provider store={store}>
-    <BrowserRouter basename={APP_DEVELOPMENT_BASENAME}>
-      <ServicesContextProvider {...queries} {...mutations}>
-        <PreviewConnectionContextProvider>
-          <App />
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    </BrowserRouter>
-  </Provider>
+  <LoggerContextProvider config={loggerConfig}>
+    <Provider store={store}>
+      <BrowserRouter basename={APP_DEVELOPMENT_BASENAME}>
+        <ServicesContextProvider {...queries} {...mutations}>
+          <PreviewConnectionContextProvider>
+            <App />
+          </PreviewConnectionContextProvider>
+        </ServicesContextProvider>
+      </BrowserRouter>
+    </Provider>
+  </LoggerContextProvider>
 );

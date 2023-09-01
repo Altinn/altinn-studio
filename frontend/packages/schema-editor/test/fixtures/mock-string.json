@@ -747,6 +747,9 @@
       "type": "string",
       "@xsdUnhandledAttribute1": "seres:elementtype=Dataenkeltype",
       "@xsdUnhandledAttribute2": "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/TokenTekst/486190"
+    },
+    "Test": {
+      "type": "string"
     }
   }
 }
