@@ -23,13 +23,13 @@ export const SimpleExpressionPreview = ({ expression }: SimpleExpressionPreviewP
           <p>
             <ArrowRightIcon fontSize='1.5rem'/>
             {expressionDataSourceTexts(t)[subExp.dataSource]}
-            <span>{subExp.value}</span>
+            <span>{subExp.value === null ? 'null' : subExp.value.toString()}</span>
           </p>
           <p className={classes.bold}>{expressionFunctionTexts(t)[subExp.function]}</p>
           <p>
             <ArrowRightIcon fontSize='1.5rem'/>
             {expressionDataSourceTexts(t)[subExp.comparableDataSource]}
-            <span>{subExp.comparableValue}</span>
+            <span>{subExp.comparableValue === null ? 'null' : subExp.comparableValue.toString()}</span>
           </p>
           {index !== expression.subExpressions.length - 1 && (
             <center className={classes.bold}>{expression.operator === Operator.And ? 'Og' : 'Eller'}</center>

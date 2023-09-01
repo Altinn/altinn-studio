@@ -12,9 +12,9 @@ export interface SubExpression {
   id: string;
   function?: ExpressionFunction;
   dataSource?: string;
-  value?: string;
+  value?: string | number | boolean;
   comparableDataSource?: string;
-  comparableValue?: string;
+  comparableValue?: string | number | boolean;
 }
 
 export enum Operator {

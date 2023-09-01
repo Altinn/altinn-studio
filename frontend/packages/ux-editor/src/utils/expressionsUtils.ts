@@ -8,44 +8,66 @@ import {
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
 import { deepCopy } from 'app-shared/pure';
-import { DatamodelFieldElement } from "app-shared/types/DatamodelFieldElement";
-import { IFormLayouts } from "../types/global";
-import { FormComponent } from "../types/FormComponent";
+import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import { IFormLayouts } from '../types/global';
+import { FormComponent } from '../types/FormComponent';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
   const expressions: any[] = [];
-  expression.subExpressions.map(expression => {
+  expression.subExpressions.map(subEXp => {
     const expressionObject = [];
-    expressionObject[0] = expression.function;
-    if (expression.dataSource === DataSource.ApplicationSettings ||
-      expression.dataSource === DataSource.Component ||
-      expression.dataSource === DataSource.DataModel ||
-      expression.dataSource === DataSource.InstanceContext) {
-      expressionObject[1] = [expression.dataSource, expression.value];
+    expressionObject[0] = subEXp.function;
+    if (subEXp.dataSource === DataSource.ApplicationSettings ||
+      subEXp.dataSource === DataSource.Component ||
+      subEXp.dataSource === DataSource.DataModel ||
+      subEXp.dataSource === DataSource.InstanceContext) {
+      expressionObject[1] = [subEXp.dataSource, subEXp.value];
+    } else if (!subEXp.dataSource) {
+      expressionObject[1] = null;
     } else {
-      expressionObject[1] = expression.value;
+      expressionObject[1] = subEXp.value;
     }
-    if (expression.comparableDataSource === DataSource.ApplicationSettings ||
-      expression.comparableDataSource === DataSource.Component ||
-      expression.comparableDataSource === DataSource.DataModel ||
-      expression.comparableDataSource === DataSource.InstanceContext) {
-      expressionObject[2] = [expression.comparableDataSource, expression.comparableValue];
+    if (subEXp.comparableDataSource === DataSource.ApplicationSettings ||
+      subEXp.comparableDataSource === DataSource.Component ||
+      subEXp.comparableDataSource === DataSource.DataModel ||
+      subEXp.comparableDataSource === DataSource.InstanceContext) {
+      expressionObject[2] = [subEXp.comparableDataSource, subEXp.comparableValue];
+    } else if (!subEXp.comparableDataSource) {
+      expressionObject[2] = null;
     } else {
-      expressionObject[2] = expression.comparableValue;
+      expressionObject[2] = subEXp.comparableValue;
     }
     expressions.push(expressionObject);
   });
-  return expression.operator ? [expression.operator].concat(expressions) : expressions[0];
+  return  expression.operator ? [expression.operator].concat(expressions) : expressions[0];
+};
+
+export const isStudioFriendlyExpression = (expression: any): boolean => {
+
+  const isStudioFriendlySubExpression = (subExp: any): boolean => {
+    // SubExpression is Studio friendly if it is an array of three elements where the two last elements
+    // are either an array of two elements or a non-array element. And the first element must be a valid function
+    if (Array.isArray(subExp) && subExp.length !== 3) return false;
+    if (Array.isArray(subExp[1]) && subExp[1].length !== 2) return false;
+    if (Array.isArray(subExp[2]) && subExp[2].length !== 2) return false;
+    return (Object.values(ExpressionFunction).includes(subExp[0] as ExpressionFunction));
+  };
+  // Nested expression
+  if (Object.values(Operator).includes(expression[0] as Operator)) {
+    for (let i = 1; i < expression.length; i++) {
+      if (!isStudioFriendlySubExpression(expression[i])) return false;
+    }
+    return true;
+  }
+  else {
+    return isStudioFriendlySubExpression(expression);
+  }
 };
 
 export const convertExternalExpressionToInternal = (booleanValue: string, expression: any): Expression => {
-
-  const validOperatorOrFunction = (operatorOrFunction: string): boolean => {
-    return (Object.values(Operator).includes(operatorOrFunction as Operator) || Object.values(ExpressionFunction).includes(operatorOrFunction as ExpressionFunction));
-  }
 
   const hasMoreExpressions: boolean = Object.values(Operator).includes(expression[0] as Operator);
   const convertedExpression: Expression = {
@@ -54,11 +76,7 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
     subExpressions: [],
   };
 
-  // Fall back to complex expression if:
-  // 1. Expression does not start with an operator or a function, or
-  // 2. Expression does not starts with an operator, but has two elements
-  // (Studio will only be able to visualize expressions that does not match any of the above conditions)
-  if (!validOperatorOrFunction(expression[0]) || (!Object.values(Operator).includes(expression[0]) && expression.length === 2)) {
+  if (!isStudioFriendlyExpression(expression)) {
     delete convertedExpression.subExpressions;
     convertedExpression.complexExpression = expression;
     return convertedExpression;
@@ -67,7 +85,7 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
   if (!hasMoreExpressions) {
     const subExp: SubExpression = {
       id: uuidv4(),
-      function: expression[0] as ExpressionFunction, // might need an error handling if function is invalid
+      function: expression[0] as ExpressionFunction,
     }
     const updatedExpAddingValue = convertSubExpression(subExp, expression[1], false);
     convertedExpression.subExpressions.push(convertSubExpression(updatedExpAddingValue, expression[2], true));
@@ -93,7 +111,7 @@ export function convertSubExpression(internalExpEl: SubExpression, externalExpEl
     isComparable ? internalExpEl.comparableValue = externalExpEl[1] : internalExpEl.value = externalExpEl[1];
   } else if (!externalExpEl) {
     isComparable ? internalExpEl.comparableDataSource = DataSource.Null : internalExpEl.dataSource = DataSource.Null;
-    isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
+    isComparable ? internalExpEl.comparableValue = null : internalExpEl.value = null;
   } else {
     isComparable ? internalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : internalExpEl.dataSource = (typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
     isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
@@ -101,7 +119,8 @@ export function convertSubExpression(internalExpEl: SubExpression, externalExpEl
   return internalExpEl;
 }
 
-export const saveExpression = async (form, formId, expression: Expression, updateFormComponent) => {
+export const convertAndAddExpressionToComponent = (form, formId, expression: Expression): FormComponent => {
+  let newFrom = deepCopy(form);
   let newExpression = deepCopy(expression);
   if (complexExpressionIsSet(newExpression.complexExpression)) {
     const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
@@ -109,8 +128,8 @@ export const saveExpression = async (form, formId, expression: Expression, updat
   }
   if (newExpression.property) {
     // TODO: What if expression is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
-    form[newExpression.property] = convertExpressionToExternalFormat(newExpression);
-    await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
+    newFrom[newExpression.property] = convertInternalExpressionToExternal(newExpression);
+    return newFrom;
   }
 };
 
@@ -120,19 +139,20 @@ export const addExpressionIfLimitNotReached = (oldExpressions: Expression[], isE
   return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
 };
 
-export const deleteExpressionAndAddDefaultIfEmpty = async (form, formId, expressionToDelete: Expression, oldExpressions: Expression[], updateFormComponent): Promise<Expression[]> => {
+export const deleteExpressionAndAddDefaultIfEmpty = (form, formId, expressionToDelete: Expression, oldExpressions: Expression[]): {form: FormComponent, expressions:Expression[]} => {
+  let newFrom = deepCopy(form);
   const newExpressions = deepCopy(oldExpressions);
+  let updatedExpressions = newExpressions;
   if (expressionToDelete.property) {
     // TODO: What if the property was set to true or false before? Issue #10860
-    delete form[expressionToDelete.property];
-    await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
+    delete newFrom[expressionToDelete.property];
+    updatedExpressions = newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
+    if (updatedExpressions.length === 0) {
+      const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
+      updatedExpressions = [defaultExpression];
+    }
   }
-  let updatedExpressions = newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
-  if (updatedExpressions.length === 0) {
-    const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
-    updatedExpressions = [defaultExpression];
-  }
-  return updatedExpressions;
+  return {form: newFrom as FormComponent, expressions: updatedExpressions};
 };
 
 export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {

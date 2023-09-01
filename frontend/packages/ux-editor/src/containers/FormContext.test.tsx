@@ -29,7 +29,14 @@ mockUseUpdateFormContainerMutation.mockReturnValue({
   mutateAsync: mockUpdateFormContainer,
 } as unknown as UseMutationResult<{ currentId: string; newId: string }, unknown, UpdateFormContainerMutationArgs, unknown>);
 
-jest.mock('../hooks/mutations/useUpdateFormComponentMutation');
+const mutate = jest.fn();
+jest.mock('../hooks/mutations/useUpdateFormComponentMutation', () => ({
+  useUpdateFormComponentMutation: () => ({
+    mutate
+  })
+}));
+expect(mutate).toHaveBeenCalledTimes()
+
 const mockUpdateFormComponent = jest.fn();
 const mockUseUpdateFormComponentMutation = useUpdateFormComponentMutation as jest.MockedFunction<
   typeof useUpdateFormComponentMutation
@@ -132,16 +139,16 @@ describe('FormContext', () => {
     expect(screen.getByTestId('form.itemType')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByTestId('formId')).toHaveTextContent(mockForm.id);  
+      expect(screen.getByTestId('formId')).toHaveTextContent(mockForm.id);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('form.id')).toHaveTextContent(mockForm.id); 
+      expect(screen.getByTestId('form.id')).toHaveTextContent(mockForm.id);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('form.itemType')).toHaveTextContent(mockForm.itemType); 
+      expect(screen.getByTestId('form.itemType')).toHaveTextContent(mockForm.itemType);
     });
   });
-  
+
   it('should discard the form when calling handleDiscard', async () => {
     const user = userEvent.setup();
     const { store } = render(() => {

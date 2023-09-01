@@ -10,11 +10,9 @@ import {
   Expression,
 } from '../../../types/Expressions';
 import {
-  addExpressionIfLimitNotReached,
+  addExpressionIfLimitNotReached, convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
-  deleteExpressionAndAddDefaultIfEmpty,
-  removeInvalidExpressions,
-  saveExpression,
+  deleteExpressionAndAddDefaultIfEmpty, removeInvalidExpressions,
 } from '../../../utils/expressionsUtils';
 import { LayoutItemType } from '../../../types/global';
 import classes from './Expressions.module.css';
@@ -28,7 +26,7 @@ import {
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useFormContext } from '../../../containers/FormContext';
+import {FormComponent} from "../../../types/FormComponent";
 
 export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;
@@ -61,9 +59,9 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
         )
       : Object.values(ExpressionPropertyBase));
 
-  const propertiesWithExpressions: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined =
+  const propertiesWithExpressions: (ExpressionPropertyBase | ExpressionPropertyForGroup)[] | undefined = expressionProperties &&
     Object.keys(form)
-      .filter(property => expressionProperties?.includes(property))
+      .filter(property => expressionProperties.includes(property))
       .map(property => property as ExpressionPropertyBase | ExpressionPropertyForGroup);
 
   useEffect(() => {
@@ -79,7 +77,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
         setExpressions(potentialConvertedExternalExpressions);
       }
     }
-  }, [form, propertiesWithExpressions])
+  }, [form])
 
   const successfullyAddedExpressionIdRef = useRef('default');
   const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;
@@ -88,7 +86,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   if (!formId || !form) return t('right_menu.content_empty');
 
   const saveExpressionAndSetCheckMark = async (expression: Expression) => {
-    await saveExpression(form, formId, expression, updateFormComponent);
+    const updatedComponent = convertAndAddExpressionToComponent(form, formId, expression);
+    await updateFormComponent({ updatedComponent, id: formId });
     setExpressionInEditModeId(undefined);
     successfullyAddedExpressionIdRef.current = expression.id;
   };
@@ -118,13 +117,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   };
 
   const deleteExpression = async (expression: Expression) => {
-    const newExpressions = await deleteExpressionAndAddDefaultIfEmpty(
-      form,
-      formId,
-      expression,
-      expressions,
-      updateFormComponent
-    );
+    const {newForm, newExpressions} = await deleteExpressionAndAddDefaultIfEmpty(form, formId, expression, expressions, updateFormComponent);
+    await updateFormComponent({ updatedComponent: newForm as FormComponent, id: formId });
     if (newExpressions.length === 1 && !newExpressions[0].property) {
       // Set default expression as expression in edit mode if it has been added
       setExpressionInEditModeId(newExpressions[0].id);
@@ -147,8 +141,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
     return { availableProperties, expressionProperties };
   };
 
-  console.log('expressions: ', expressions); // TODO: Remove when fully tested
-  console.log('expression in edit mode id: ', expressionInEditModeId); // TODO: Remove when fully tested
+
+  console.log('expressions: ', expressions) // TODO: Remove when fully tested
   return (
     <div className={classes.root}>
       {Object.values(expressions).map((expression: Expression, index: number) => (
