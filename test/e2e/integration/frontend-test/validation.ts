@@ -144,24 +144,6 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newLastName).should('be.focused');
   });
 
-  it('Process should not continue if any validation fails, even if unmappable', () => {
-    cy.goto('changename');
-    cy.fillOut('changename');
-
-    cy.get(appFrontend.grid.bolig.percent).numberFormatClear();
-    cy.get(appFrontend.grid.studie.percent).numberFormatClear();
-    cy.get(appFrontend.grid.kredittkort.percent).numberFormatClear();
-    cy.get(appFrontend.grid.kredittkort.percent).type('44');
-    cy.get(appFrontend.grid.studie.percent).type('56');
-
-    // When filling out the credit card field with 44%, there is a special validation that triggers and is added to
-    // a field on a hidden page. Even though this should not happen, we should still not be able to continue, as
-    // submitting the form now when there is a validation error should not be possible - and attempting it will cause
-    // the dreaded 'unknown error' message to appear.
-    cy.get(appFrontend.sendinButton).click();
-    cy.get(appFrontend.errorReport).should('contain.text', 'Valideringsmelding på felt som aldri vises');
-  });
-
   it('Validation on uploaded attachment type', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
@@ -257,6 +239,19 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('contain.text', 'task validation');
   });
 
+  function injectErrorOnSendersName() {
+    cy.intercept('GET', '**/validate', [
+      {
+        code: 'Tullevalidering',
+        description: 'Tullevalidering',
+        field: 'Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value',
+        severity: BackendValidationSeverity.Error,
+        scope: null,
+        targetId: 'sendersName',
+      },
+    ] as BackendValidationIssue[]);
+  }
+
   it('Validations are removed for hidden fields', () => {
     // Init and add data to group
     cy.goto('group');
@@ -286,16 +281,7 @@ describe('Validation', () => {
       }
     });
 
-    cy.intercept('GET', '**/validate', [
-      {
-        code: 'Tullevalidering',
-        description: 'Tullevalidering',
-        field: 'Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value',
-        severity: BackendValidationSeverity.Error,
-        scope: null,
-        targetId: 'sendersName',
-      },
-    ] as BackendValidationIssue[]);
+    injectErrorOnSendersName();
 
     // Verify that validation message is shown, but also make sure only one error message is shown
     // (there is a hidden layout that also binds to the same location, and a bug caused it to show
@@ -573,5 +559,131 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.uploadError).should('contain.text', texts.invalidMimeType);
     cy.get(appFrontend.errorReport).should('contain.text', texts.invalidMimeType);
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
+  });
+
+  it('Submitting should be rejected if validation fails on field hidden by tracks', () => {
+    cy.goto('changename');
+    cy.fillOut('changename');
+
+    cy.get(appFrontend.grid.bolig.percent).numberFormatClear();
+    cy.get(appFrontend.grid.studie.percent).numberFormatClear();
+    cy.get(appFrontend.grid.kredittkort.percent).numberFormatClear();
+    cy.get(appFrontend.grid.kredittkort.percent).type('44');
+    cy.get(appFrontend.grid.studie.percent).type('56');
+
+    // When filling out the credit card field with 44%, there is a special validation that triggers and is added to
+    // a field on a hidden page. Even though this should not happen, we should still not be able to continue, as
+    // submitting the form now when there is a validation error should not be possible - and attempting it will cause
+    // the dreaded 'unknown error' message to appear.
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'Valideringsmelding på felt som aldri vises');
+  });
+
+  it('Submitting should be rejected if validation fails on field hidden using expression', () => {
+    cy.interceptLayout('group', (c) => {
+      if (c.type === 'Input' && c.id === 'sendersName') {
+        c.hidden = ['equals', ['component', 'comments'], 'hideSendersName'];
+      }
+    });
+
+    cy.goto('group');
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.addItemToGroup(2, 3, 'hideSendersName');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is still visible
+    cy.navPage('hide').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.group.sendersName).should('not.exist');
+
+    injectErrorOnSendersName();
+    cy.gotoNavPage('summary');
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
+
+    // Two errors show up, because there is one error on the page where the field is hidden using expression, and one
+    // on the page that was never even visible.
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+  });
+
+  it('Submitting should be rejected if validation fails on a field hidden using legacy dynamics', () => {
+    cy.intercept('POST', '**/pages/order*', (req) => {
+      req.reply((res) => {
+        res.send({
+          // Always reply with all pages, as none should be hidden using tracks here
+          body: ['prefill', 'repeating', 'repeating2', 'hide', 'summary'],
+        });
+      });
+    });
+    cy.intercept('GET', '**/api/ruleconfiguration/group', (req) => {
+      req.reply((res) => {
+        res.send({
+          body: {
+            data: {
+              ruleConnection: {},
+              conditionalRendering: {
+                hideSendersName: {
+                  selectedFunction: 'biggerThan10',
+                  inputParams: {
+                    number:
+                      'Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value',
+                  },
+                  selectedAction: 'Hide',
+                  selectedFields: {
+                    abc123: 'sendersName',
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+    });
+
+    cy.goto('group');
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.addItemToGroup(1, 11, 'whatever');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page should be visible and active
+    cy.navPage('hide').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.group.sendersName).should('not.exist');
+
+    injectErrorOnSendersName();
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
+
+    // Two errors show up, because there is one error on the page where the field is hidden using legacy dynamics, and
+    // one on the page that was never even visible.
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+  });
+
+  it('Submitting should be rejected if validation fails on page hidden using expression', () => {
+    cy.interceptLayout(
+      'group',
+      () => undefined,
+      (layoutSet) => {
+        layoutSet.hide.data.hidden = ['equals', ['component', 'comments'], 'hidePage'];
+      },
+    );
+
+    cy.goto('group');
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.addItemToGroup(2, 3, 'hidePage');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuButtons).should('have.length', 3); // 'hide' page is now invisible
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+
+    injectErrorOnSendersName();
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
+
+    // Two errors show up, because there is one error on the page hidden using expressions, and one on the page
+    // that was never even visible.
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 });

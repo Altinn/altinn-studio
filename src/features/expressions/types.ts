@@ -31,7 +31,9 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Str
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
  */
-export type ExprValToActualOrExpr<T extends ExprVal> = ExprValToActual<T> | Expression<FunctionsReturning<T>>;
+export type ExprValToActualOrExpr<T extends ExprVal> =
+  | ExprValToActual<T>
+  | NonRecursiveExpression<FunctionsReturning<T>>;
 
 type ArgsToActualOrNull<T extends readonly ExprVal[]> = {
   [Index in keyof T]: ExprValToActual<T[Index]> | null;
@@ -91,6 +93,11 @@ type MaybeRecursive<
  * inside a layout definition, you probably want something like ExpressionOr<'boolean'>
  */
 export type Expression<F extends ExprFunction = ExprFunction> = MaybeRecursive<F, 2>;
+
+/**
+ * A much simpler variant of the type above, as it only type-checks the very outer function name
+ */
+export type NonRecursiveExpression<F extends ExprFunction = ExprFunction> = [F, ...any];
 
 /**
  * This type removes all expressions from the input type (replacing them with the type

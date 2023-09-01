@@ -1,6 +1,8 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { CompOrGroupExternal } from 'src/layout/layout';
+
 const appFrontend = new AppFrontend();
 
 describe('Dynamics', () => {
@@ -55,7 +57,7 @@ describe('Dynamics', () => {
         layoutSet.summary.data.hidden = ['equals', ['component', 'newFirstName'], 'hideSummary'];
 
         const summaryComponents = [...layoutSet.summary.data.layout];
-        const lastButton = summaryComponents.pop();
+        const lastButton = summaryComponents.pop() as CompOrGroupExternal;
         layoutSet.summary.data.layout = [
           ...summaryComponents,
           {

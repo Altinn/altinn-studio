@@ -26,6 +26,12 @@ import type {
 } from 'src/utils/validation/types';
 import type { IValidationOptions } from 'src/utils/validation/validation';
 
+export interface IsHiddenOptions {
+  respectLegacy?: boolean;
+  respectDevTools?: boolean;
+  respectTracks?: boolean;
+}
+
 /**
  * A LayoutNode wraps a component with information about its parent, allowing you to traverse a component (or an
  * instance of a component inside a repeating group), finding other components near it.
@@ -154,9 +160,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
    * Checks if this field should be hidden. This also takes into account the group this component is in, so the
    * methods returns true if the component is inside a hidden group.
    */
-  public isHidden(
-    options: { respectLegacy?: boolean; respectDevTools?: boolean; respectTracks?: boolean } = {},
-  ): boolean {
+  public isHidden(options: IsHiddenOptions = {}): boolean {
     const { respectLegacy = true, respectDevTools = true, respectTracks = false } = options;
 
     const hiddenList = respectLegacy ? this.dataSources.hiddenFields : new Set();
