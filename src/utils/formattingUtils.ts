@@ -32,7 +32,13 @@ export const formatNumber = (
     return defaultFormat;
   }
 
-  const intlFormatting = new Intl.NumberFormat(locale ?? 'nb', options).formatToParts(parseFloat(number));
+  //This is a temporary fix until Intl.NumberFormat is fixed in Chrome using nynorsk
+  //https://stackoverflow.com/questions/72173540/datetime-internationalization-not-working-for-norwegian-nynorsk-locale
+  const browserSupportsLocale =
+    locale && locale.includes('nn') ? Intl.NumberFormat.supportedLocalesOf(['nn', 'nn-NO']).length > 0 : true;
+  const finalLocale = browserSupportsLocale && locale ? locale : 'nb';
+
+  const intlFormatting = new Intl.NumberFormat(finalLocale, options).formatToParts(parseFloat(number));
   const intlResult = defaultFormat;
 
   intlFormatting.forEach((part) => {
