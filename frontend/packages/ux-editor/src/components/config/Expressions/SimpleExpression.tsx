@@ -5,7 +5,7 @@ import classes from './SimpleExpression.module.css';
 import { Button, ToggleButtonGroup } from '@digdir/design-system-react';
 import { PlusCircleIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
-import { Divider } from "app-shared/primitives";
+import { Divider } from 'app-shared/primitives';
 
 export type SimpleExpressionProps = {
   allowToSpecifyExpression: boolean;

@@ -23,8 +23,8 @@ import {
 } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
 import { ComplexExpression } from './ComplexExpression';
-import { SimpleExpression } from "./SimpleExpression";
-import { SimpleExpressionPreview } from "./SimpleExpressionPreview";
+import { SimpleExpression } from './SimpleExpression';
+import { SimpleExpressionPreview } from './SimpleExpressionPreview';
 
 interface ExpressionContentProps {
   component: FormComponent | FormContainer;

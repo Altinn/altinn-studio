@@ -9,7 +9,7 @@ import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMe
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
-import { useText } from "../../../hooks";
+import { useText } from '../../../hooks';
 
 interface DataSourceValueProps {
   subExpression: SubExpression;
