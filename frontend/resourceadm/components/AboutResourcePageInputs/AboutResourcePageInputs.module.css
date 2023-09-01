@@ -11,3 +11,11 @@
 .warningCardWrapper {
   margin-top: 5px;
 }
+
+.toggleTextActive {
+  color: var(--fds-semantic-text-success-default);
+}
+
+.toggleTextInactive {
+  color: var(--fds-semantic-text-neutral-subtle);
+}

@@ -35,6 +35,8 @@ import { useTranslation } from 'react-i18next';
 import {
   ResourceLanguageTextArea,
   ResourceLanguageTextField,
+  ResourceSwitchInput,
+  ResourceTextField,
 } from 'resourceadm/components/AboutResourcePageInputs';
 
 /**
@@ -122,15 +124,10 @@ export const AboutResourcePage = ({
   const [description, setDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.description ?? emptyLangauges
   );
-  const [homepage, setHomepage] = useState(resourceData.homepage ?? '');
-  const [keywords, setKeywords] = useState(
-    resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''
-  );
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
   const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
-  const [isDelegable, setIsDelegable] = useState(resourceData.delegable ?? true);
   const [resourceStatus, setResourceStatus] = useState<ResourceStatusOption>(resourceData.status);
   const [isSelfIdentifiedUserEnabled, setIsSelfIdentifiedUserEnabled] = useState(
     resourceData.selfIdentifiedUserEnabled ?? false
@@ -177,18 +174,18 @@ export const AboutResourcePage = ({
       resourceType,
       title,
       description,
-      keywords: mapKeywordStringToKeywordTypeArray(keywords),
-      homepage,
       visible: isVisible,
-      delegable: isDelegable,
       status: resourceStatus,
       selfIdentifiedUserEnabled: isSelfIdentifiedUserEnabled,
       enterpriseUserEnabled: isEnterpriseUserEnabled,
       availableForType,
       rightDescription,
     };
+    handleSave(editedResourceObject);
+  };
 
-    onSaveResource(editedResourceObject);
+  const handleSave = (res: Resource) => {
+    onSaveResource(res);
   };
 
   /**
@@ -342,6 +339,7 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
+        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <Label size='medium' spacing htmlFor='aboutResourceType'>
           {t('resourceadm.about_resource_resource_type')}
         </Label>
@@ -362,6 +360,7 @@ export const AboutResourcePage = ({
             hasResourceTypeError &&
             displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
         </div>
+        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
@@ -380,6 +379,7 @@ export const AboutResourcePage = ({
             t
           )}
         />
+        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextArea
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
@@ -400,61 +400,39 @@ export const AboutResourcePage = ({
             t
           )}
         />
-        {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
-        <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor='aboutHomepage'>
-          {t('resourceadm.about_resource_homepage_label')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_homepage_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <TextField
-            value={homepage}
-            onChange={(e) => setHomepage(e.target.value)}
-            onFocus={() => setTranslationType('none')}
-            ref={homePageRef}
-            // onBlur={handleSaveResource}
-            id='aboutHomepage'
-          />
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor='aboutKeywords'>
-          {t('resourceadm.about_resource_keywords_label')}
-        </Label>
-        <Paragraph size='small'>{t('resourceadm.about_resource_keywords_text')}</Paragraph>
-        <div className={classes.inputWrapper}>
-          <TextField
-            value={keywords}
-            onChange={(e) => setKeywords(e.target.value)}
-            onFocus={() => setTranslationType('none')}
-            //   onBlur={handleSaveResource}
-            id='aboutKeywords'
-          />
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_delegable_label')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_delegable_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Switch
-            isChecked={isDelegable}
-            onToggle={(b: boolean) => setIsDelegable(b)}
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-            id='isDelegableSwitch'
-          />
-          <p className={isDelegable ? classes.toggleTextActive : classes.toggleTextInactive}>
-            {t('resourceadm.about_resource_delegable_show_text', {
-              showText: isDelegable
-                ? t('resourceadm.switch_should')
-                : t('resourceadm.switch_should_not'),
-            })}
-          </p>
-        </div>
+        {/* OPTIONAL */}
+        <ResourceTextField
+          label={t('resourceadm.about_resource_homepage_label')}
+          description={t('resourceadm.about_resource_homepage_text')}
+          value={resourceData.homepage ?? ''}
+          onFocus={() => setTranslationType('none')}
+          ref={homePageRef}
+          id='aboutHomepage'
+          onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
+        />
+        {/* OPTIONAL */}
+        <ResourceTextField
+          label={t('resourceadm.about_resource_keywords_label')}
+          description={t('resourceadm.about_resource_keywords_text')}
+          value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
+          onFocus={() => setTranslationType('none')}
+          ref={homePageRef}
+          id='aboutKeywords'
+          onBlur={(val: string) =>
+            handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
+          }
+        />
+        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
+        <ResourceSwitchInput
+          label={t('resourceadm.about_resource_delegable_label')}
+          description={t('resourceadm.about_resource_delegable_text')}
+          value={resourceData.delegable ?? true}
+          onFocus={() => setTranslationType('none')}
+          onBlur={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
+          id='isDelegableSwitch'
+          toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
+        />
+        {/* MANDATORY IF DELEGABLE IS TRUE - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_rights_description_label')}
           description={t('resourceadm.about_resource_rights_description_label')}
@@ -475,6 +453,7 @@ export const AboutResourcePage = ({
             t
           )}
         />
+        {/* OPTIONAL */}
         <div className={classes.divider} />
         <Label size='medium' spacing htmlFor='aboutResourceStatus'>
           {t('resourceadm.about_resource_status_label')}
@@ -490,7 +469,7 @@ export const AboutResourcePage = ({
             label={t('resourceadm.about_resource_status_label')}
             hideLabel
             onFocus={() => setTranslationType('none')}
-            //     onBlur={handleSaveResource}
+            onBlur={handleSaveResource}
           />
         </div>
         <div className={classes.divider} />
@@ -547,6 +526,7 @@ export const AboutResourcePage = ({
             })}
           </p>
         </div>
+        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <div className={classes.divider} />
         <div className={classes.inputWrapper}>
           <Checkbox.Group

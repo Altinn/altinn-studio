@@ -30,14 +30,6 @@
   margin-block: 30px;
 }
 
-.toggleTextActive {
-  color: var(--fds-semantic-text-success-default);
-}
-
-.toggleTextInactive {
-  color: var(--fds-semantic-text-neutral-subtle);
-}
-
 p,
 h2 {
   margin: 0;
