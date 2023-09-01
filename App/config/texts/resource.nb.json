@@ -248,11 +248,15 @@
     },
     {
       "id": "feedback.body",
-      "value": "Du må flytte instansen til neste prosess med et API kall til process/next.<br><br>Firmanavn: {0}<br>Navn: {1}<br>ID: {2}",
+      "value": "Du må flytte instansen til neste prosess med et API kall til process/next.<br><br>Firmanavn: {0}<br>Org.nr: {1}<br>Navn: {2}<br>ID: {3}",
       "variables": [
         {
           "key": "property1",
           "dataSource": "dataModel.task2"
+        },
+        {
+          "key": "property2",
+          "dataSource": "dataModel.default"
         },
         {
           "key": "Sender",
