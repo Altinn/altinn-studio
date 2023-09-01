@@ -99,23 +99,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
+            HttpResponseMessage putResponse = new HttpResponseMessage();
 
             if (getResourceResponse.IsSuccessStatusCode)
             {
-                HttpResponseMessage putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
-
-                if (putResponse.IsSuccessStatusCode)
-                {
-                    return new StatusCodeResult(200);
-                }
-                else
-                {
-                    return new StatusCodeResult(400);
-                }
+                putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
             }
 
             HttpResponseMessage response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
-            if (response.StatusCode == HttpStatusCode.Created)
+            if (response.StatusCode == HttpStatusCode.Created && putResponse.IsSuccessStatusCode)
             {
                 return new StatusCodeResult(201);
             }
