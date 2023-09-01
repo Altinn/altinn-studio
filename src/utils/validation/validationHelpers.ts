@@ -114,11 +114,6 @@ export function hasInvalidDataTypes(validationObjects: IValidationObject[]): boo
 }
 
 // Preserves fixed validations, as these can fix validations on other components.
-export function filterValidationObjectsByComponentId(validations: IValidationObject[], componentId: string) {
-  return validations.filter((v) => v.componentId === componentId || (!v.empty && v.severity === 'fixed'));
-}
-
-// Preserves fixed validations, as these can fix validations on other components.
 export function filterValidationObjectsByPage(
   validations: IValidationObject[],
   trigger: TriggersPageValidation,

@@ -11,7 +11,6 @@ import {
   selectFormData,
   selectFormLayoutState,
   selectOptions,
-  selectValidations,
 } from 'src/features/layout/update/updateFormLayoutSagas';
 import { OptionsActions } from 'src/features/options/optionsSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
@@ -83,7 +82,6 @@ describe('repGroupDeleteRowSaga', function () {
         [select(selectFormLayoutState), selectFormLayoutState(state)],
         [select(selectFormData), selectFormData(state)],
         [select(selectAttachmentState), selectAttachmentState(state)],
-        [select(selectValidations), selectValidations(state)],
         [select(ResolvedNodesSelector), resolvedLayoutsFromState(state)],
         [select(selectOptions), selectOptions(state)],
         [

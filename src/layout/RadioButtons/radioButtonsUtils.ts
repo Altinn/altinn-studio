@@ -1,27 +1,11 @@
 import React, { useMemo } from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
-
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useHasChangedIgnoreUndefined } from 'src/hooks/useHasChangedIgnoreUndefined';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
-
-export const useRadioStyles = makeStyles(() => ({
-  legend: {
-    color: '#000000',
-  },
-  formControl: {
-    alignItems: 'flex-start',
-    marginBottom: '0.75rem',
-    wordBreak: 'break-word',
-    '& > span:last-child': {
-      marginTop: 9,
-    },
-  },
-}));
 
 export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButtonsContainerProps) => {
   const { optionsId, options, preselectedOptionIndex, mapping, queryParameters, source } = node.item;

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { getOptionList } from 'src/hooks/useOptionList';
-import { getSelectedValueToText } from 'src/hooks/useSelectedValueToText';
+import { getOptionList } from 'src/features/options/getOptionList';
+import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';

@@ -1,16 +1,7 @@
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
 import type { IFormData } from 'src/features/formData';
 import type { IOption, ISelectionComponent } from 'src/layout/common.generated';
 import type { IOptions, IRepeatingGroups, ITextResource } from 'src/types';
-
-export function useOptionList(component: ISelectionComponent): IOption[] {
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const formData = useAppSelector((state) => state.formData.formData);
-  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
-  const options = useAppSelector((state) => state.optionState.options);
-  return getOptionList(component, textResources, formData, repeatingGroups, options);
-}
 
 export function getOptionList(
   component: ISelectionComponent,

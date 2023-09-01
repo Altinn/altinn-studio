@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
+import { getOptionList } from 'src/features/options/getOptionList';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getCommaSeparatedOptionsToText } from 'src/hooks/useCommaSeparatedOptionsToText';
 import { type IUseLanguage, useLanguage } from 'src/hooks/useLanguage';
-import { getOptionList } from 'src/hooks/useOptionList';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';

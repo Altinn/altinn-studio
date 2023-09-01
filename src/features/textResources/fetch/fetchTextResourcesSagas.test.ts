@@ -11,11 +11,9 @@ import {
 import { TextResourcesActions } from 'src/features/textResources/textResourcesSlice';
 import { staticUseLanguageForTests, staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import { profileStateSelector } from 'src/selectors/simpleSelectors';
 import { httpGet } from 'src/utils/network/networking';
 import { waitFor } from 'src/utils/sagas';
 import { textResourcesUrl } from 'src/utils/urls/appUrlHelper';
-import type { IProfile } from 'src/types/shared';
 
 describe('fetchTextResourcesSagas', () => {
   it('should dispatch action fetchTextResources', async () => {
@@ -82,17 +80,6 @@ describe('fetchTextResourcesSagas', () => {
       .run();
   });
   it('should run fetch text resources using app language', () => {
-    const profileMock: IProfile = {
-      userId: 1,
-      userName: '',
-      partyId: 1234,
-      userType: 1,
-      profileSettingPreference: {
-        doNotPromptForParty: false,
-        language: 'nb',
-        preSelectedPartyId: 0,
-      },
-    };
     const mockTextResource = {
       language: 'en',
       resources: [
@@ -106,7 +93,6 @@ describe('fetchTextResourcesSagas', () => {
       .provide([
         [select(staticUseLanguageFromState), staticUseLanguageForTests({ selectedAppLanguage: 'en' })],
         [select(makeGetAllowAnonymousSelector()), false],
-        [select(profileStateSelector), profileMock],
         [call(httpGet, textResourcesUrl('en')), mockTextResource],
       ])
       .put(

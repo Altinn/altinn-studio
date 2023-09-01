@@ -18,7 +18,6 @@ import {
   currentSelectedPartyIdSelector,
   instanceDataSelector,
   layoutSetsSelector,
-  processStateSelector,
 } from 'src/selectors/simpleSelectors';
 import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
 import * as networking from 'src/utils/network/sharedNetworking';
@@ -303,14 +302,12 @@ describe('fetchFormDataSagas', () => {
 
   it('should trigger fetchFormDataInitialSaga', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
-    const processState = processStateSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
 
     expectSaga(watchFetchFormDataInitialSaga)
       .provide([
         [select(appMetaDataSelector), appMetadata],
         [select(instanceDataSelector), instance],
-        [select(processStateSelector), processState],
       ])
       .take(InstanceDataActions.getFulfilled)
       .take(DataModelActions.fetchJsonSchemaFulfilled)

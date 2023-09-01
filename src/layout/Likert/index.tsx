@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { getOptionList } from 'src/hooks/useOptionList';
-import { getSelectedValueToText } from 'src/hooks/useSelectedValueToText';
+import { getOptionList } from 'src/features/options/getOptionList';
+import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';

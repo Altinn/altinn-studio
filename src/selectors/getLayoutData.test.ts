@@ -1,8 +1,7 @@
-import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
+import { makeGetFocus } from 'src/selectors/getLayoutData';
 
 describe('getLayoutData', () => {
   let initialState: any;
-  let mockProps: any;
   let mockPropsFocus: any;
 
   beforeAll(() => {
@@ -44,18 +43,9 @@ describe('getLayoutData', () => {
         },
       },
     };
-    mockProps = {
-      id: 'mockId_2',
-    };
     mockPropsFocus = {
       id: 'mockId',
     };
-  });
-
-  it('getHidden should return correct hidden status for layout element', () => {
-    const getHidden = makeGetHidden();
-    const result = getHidden(initialState, mockProps);
-    expect(result).toEqual(true);
   });
 
   it('getFocus should return correct focus status for layout element', () => {

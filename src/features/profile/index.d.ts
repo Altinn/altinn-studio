@@ -6,10 +6,6 @@ export interface IProfileState {
   error: Error | null;
 }
 
-export interface IFetchProfile {
-  url: string;
-}
-
 export interface IFetchProfileFulfilled {
   profile: IProfile;
 }

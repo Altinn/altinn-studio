@@ -5,6 +5,5 @@ export const instanceDataSelector = (state: IRuntimeState) => state.instanceData
 export const processStateSelector = (state: IRuntimeState) => state.process;
 export const currentSelectedPartyIdSelector = (state: IRuntimeState) => state.party.selectedParty?.partyId;
 export const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
-export const profileStateSelector = (state: IRuntimeState) => state.profile.profile;
 export const selectAllOrgs = (state: IRuntimeState) => state.organisationMetaData.allOrgs;
 export const selectOrg = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata?.org;

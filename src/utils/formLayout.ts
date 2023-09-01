@@ -348,26 +348,6 @@ export function findChildren(
 }
 
 /**
- * Takes a layout and removes the components in it that belong to groups. This returns
- * only the top-level layout components.
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- */
-export function topLevelComponents(layout: ILayout) {
-  const inGroup = new Set<string>();
-  layout.forEach((component) => {
-    if (component.type === 'Group' && groupIsRepeatingExt(component)) {
-      const childList = component.edit?.multiPage
-        ? component.children.map((childId) => childId.split(':')[1] || childId)
-        : component.children;
-      childList.forEach((childId) => inGroup.add(childId));
-    }
-  });
-  return layout.filter((component) => !inGroup.has(component.id));
-}
-
-/**
  * Takes a layout and splits it into two return parts; the last will contain
  * all the buttons on the bottom of the input layout, while the first returned
  * value is the input layout except for these extracted components.

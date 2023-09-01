@@ -4,7 +4,6 @@ import {
   getRepeatingGroups,
   mapFileUploadersWithTag,
   removeRepeatingGroupFromUIConfig,
-  topLevelComponents,
 } from 'src/utils/formLayout';
 import type { IAttachmentState } from 'src/features/attachments';
 import type { ILayout } from 'src/layout/layout';
@@ -628,27 +627,6 @@ describe('findChildren', () => {
 
     expect(result2).toHaveLength(3);
     expect(result2.map((c) => c.id)).toEqual(['field2', 'field3', 'field4']);
-  });
-});
-
-function onlyIds(layout: ILayout): string[] {
-  return layout.map((c) => c.id);
-}
-
-describe('topLevelComponents', () => {
-  it('should only return the test layout group', () => {
-    const output = topLevelComponents(testLayout);
-    expect(onlyIds(output)).toEqual(['Group1']);
-  });
-  it('should also include a free-standing top level component', () => {
-    const output = topLevelComponents([
-      ...testLayout,
-      {
-        id: 'freeStanding',
-        type: 'Button',
-      },
-    ]);
-    expect(onlyIds(output)).toEqual(['Group1', 'freeStanding']);
   });
 });
 

@@ -17,11 +17,9 @@ import type { IInstance } from 'src/types/shared';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
 
-export const selectLayoutsState = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectApplicationMetadataState = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 export const selectInstanceState = (state: IRuntimeState) => state.instanceData.instance;
 export const selectLayoutSetsState = (state: IRuntimeState) => state.formLayout.layoutsets;
-export const selectValidationsState = (state: IRuntimeState) => state.formValidations.validations;
 export const selectHiddenFieldsState = (state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields;
 
 export function* runSingleFieldValidationSaga({

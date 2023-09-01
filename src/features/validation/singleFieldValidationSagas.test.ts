@@ -10,8 +10,6 @@ import {
   selectHiddenFieldsState,
   selectInstanceState,
   selectLayoutSetsState,
-  selectLayoutsState,
-  selectValidationsState,
 } from 'src/features/validation/singleFieldValidationSagas';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
@@ -75,12 +73,10 @@ describe('singleFieldValidationSagas', () => {
       .provide([
         [select(), mockState],
         [select(selectApplicationMetadataState), mockState.applicationMetadata.applicationMetadata],
-        [select(selectLayoutsState), mockState.formLayout.layouts],
         [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
         [select(selectInstanceState), mockState.instanceData.instance],
         [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
         [select(staticUseLanguageFromState), staticUseLanguageFromState(mockState)],
-        [select(selectValidationsState), mockState.formValidations.validations],
         [select(ResolvedNodesSelector), resolvedLayoutsFromState(mockState)],
         [call(httpGet, url, options), validationIssues],
       ])
@@ -114,12 +110,10 @@ describe('singleFieldValidationSagas', () => {
     })
       .provide([
         [select(selectApplicationMetadataState), mockState.applicationMetadata.applicationMetadata],
-        [select(selectLayoutsState), mockState.formLayout.layouts],
         [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
         [select(selectInstanceState), mockState.instanceData.instance],
         [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
         [select(staticUseLanguageFromState), staticUseLanguageFromState(mockState)],
-        [select(selectValidationsState), mockState.formValidations.validations],
         [select(ResolvedNodesSelector), resolvedLayoutsFromState(mockState)],
         [call(httpGet, url, options), throwError(error)],
       ])
