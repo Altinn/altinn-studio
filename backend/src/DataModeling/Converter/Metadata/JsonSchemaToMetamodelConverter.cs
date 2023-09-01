@@ -598,20 +598,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             var baseValueType = BaseValueType.Integer;
 
-            if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
-            {
-                decimal? minimum = minimumKeyword.Value;
-
-                if (minimum > 0.0m)
-                {
-                    baseValueType = BaseValueType.PositiveInteger;
-                }
-                else if (minimum == 0.0m)
-                {
-                    baseValueType = BaseValueType.NonNegativeInteger;
-                }
-            }
-            else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
+            if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
             {
                 baseValueType = parsedBaseValueType;
             }

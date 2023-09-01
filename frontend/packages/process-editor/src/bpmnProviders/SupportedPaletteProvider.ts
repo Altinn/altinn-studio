@@ -34,6 +34,6 @@ class SupportedPaletteProvider {
 }
 
 export default {
-  __init__: ['SupportedPaletteProvider'],
-  SupportedPaletteProvider: ['type', SupportedPaletteProvider],
+  init: ['supportedPaletteProvider'],
+  supportedPaletteProvider: ['type', SupportedPaletteProvider],
 };
