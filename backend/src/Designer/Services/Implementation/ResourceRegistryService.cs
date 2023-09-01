@@ -104,10 +104,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (getResourceResponse.IsSuccessStatusCode)
             {
                 putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+                return putResponse.IsSuccessStatusCode ? new StatusCodeResult(200) : new StatusCodeResult(400);
             }
 
             HttpResponseMessage response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
-            if (response.StatusCode == HttpStatusCode.Created && putResponse.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.Created)
             {
                 return new StatusCodeResult(201);
             }

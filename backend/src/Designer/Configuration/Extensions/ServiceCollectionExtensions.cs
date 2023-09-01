@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Altinn.Common.Authentication.Configuration;
-using Altinn.Common.Authentication.Models;
 using Altinn.Studio.Designer.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

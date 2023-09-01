@@ -180,10 +180,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AllowSynchronousIO = true;
     });
 
-    //services.Configure<ResourceRegistryIntegrationSettings>(configuration.GetSection("ResourceRegistryIntegrationSettings"));
-    //var resourceRegistryIntegrationSettings = new ResourceRegistryIntegrationSettings();
-    //configuration.GetSection("ResourceRegistryIntegrationSettings").Bind(resourceRegistryIntegrationSettings);
-
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
@@ -195,7 +191,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
     services.RegisterServiceImplementations(configuration);
-    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
 
     services.AddHttpContextAccessor();
     services.AddMemoryCache();
