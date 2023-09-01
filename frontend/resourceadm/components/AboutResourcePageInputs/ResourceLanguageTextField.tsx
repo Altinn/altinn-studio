@@ -1,6 +1,7 @@
 import React, { Ref } from 'react';
 import classes from './AboutResourcePageInputs.module.css';
-import { TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
+import { TextField, Paragraph, Label } from '@digdir/design-system-react';
+import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceLanguageTextFieldProps = {
   /**
@@ -52,7 +53,7 @@ type ResourceLanguageTextFieldProps = {
    */
   showErrorMessage?: boolean;
   /**
-   * The text to be shown
+   * The error text to be shown
    */
   errorText?: string;
 };
@@ -72,7 +73,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {React.KeyboardEventHandler<HTMLInputElement>}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
- * @property {string}[errorText] - The text to be shown
+ * @property {string}[errorText] - The error text to be shown
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -108,11 +109,7 @@ export const ResourceLanguageTextField = ({
           onKeyDown={onKeyDown}
           onBlur={onBlur}
         />
-        {showErrorMessage && (
-          <div className={classes.warningCardWrapper}>
-            <ErrorMessage size='small'>{errorText}</ErrorMessage>
-          </div>
-        )}
+        {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
       </div>
     </>
   );

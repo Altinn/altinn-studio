@@ -1,14 +1,6 @@
 import React, { useRef, useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import {
-  Select,
-  ErrorMessage,
-  Heading,
-  Paragraph,
-  Label,
-  Checkbox,
-} from '@digdir/design-system-react';
-import { Switch } from 'resourceadm/components/Switch';
+import { Heading } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
@@ -32,11 +24,13 @@ import {
 } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
+  ResourceCheckboxGroup,
   ResourceLanguageTextArea,
   ResourceLanguageTextField,
   ResourceSwitchInput,
   ResourceTextField,
 } from 'resourceadm/components/AboutResourcePageInputs';
+import { ResourceDropdown } from 'resourceadm/components/AboutResourcePageInputs/ResourceDropdown';
 
 /**
  * Initial value for languages with empty fields
@@ -110,13 +104,12 @@ export const AboutResourcePage = ({
   /**
    * Available for options
    */
-  const acailableForOptions = Object.keys(availableForTypeMap).map((key) => ({
+  const availableForOptions = Object.keys(availableForTypeMap).map((key) => ({
     value: key,
     label: availableForTypeMap[key],
   }));
 
   // States to store the different input values
-  const [resourceType, setResourceType] = useState<ResourceTypeOption>(resourceData.resourceType);
   const [title, setTitle] = useState<SupportedLanguageKey<string>>(
     resourceData.title ?? emptyLangauges
   );
@@ -126,19 +119,11 @@ export const AboutResourcePage = ({
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
-  const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
-  const [resourceStatus, setResourceStatus] = useState<ResourceStatusOption>(resourceData.status);
-  const [availableForType, setAvailableForType] = useState<ResourceAvailableForTypeOption[]>(
-    resourceData.availableForType
-  );
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
 
   // To handle the error state of the page
-  const [hasResourceTypeError, setHasResourceTypeError] = useState(
-    resourceData.resourceType === undefined || resourceData.resourceType === null
-  );
   const [hasTitleError, setHasTitleError] = useState(
     getResourcePageTextfieldError(resourceData.title)
   );
@@ -164,12 +149,8 @@ export const AboutResourcePage = ({
     const editedResourceObject: Resource = {
       ...resourceData,
       identifier: resourceId,
-      resourceType,
       title,
       description,
-      visible: isVisible,
-      status: resourceStatus,
-      availableForType,
       rightDescription,
     };
     handleSave(editedResourceObject);
@@ -177,40 +158,6 @@ export const AboutResourcePage = ({
 
   const handleSave = (res: Resource) => {
     onSaveResource(res);
-  };
-
-  /**
-   * Handles the change in the dropdown of resource type. Based on the string
-   * selected it updates the resource type with the correct key.
-   *
-   * @param type the selected string
-   */
-  const handleChangeResourceType = (type: ResourceTypeOption) => {
-    setResourceType(type);
-    setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
-  };
-
-  /**
-   * Handles the change in the dropdown of resource status option. Based on the string
-   * selected it updates the status option with the correct key.
-   *
-   * @param type the selected string
-   */
-  const handleChangeStatusOption = (type: ResourceStatusOption) => {
-    setResourceStatus(type);
-  };
-
-  /**
-   * Displays the given text in a warning card
-   *
-   * @param text the text to display
-   */
-  const displayWarningCard = (text: string) => {
-    return (
-      <div className={classes.warningCardWrapper}>
-        <ErrorMessage size='small'>{text}</ErrorMessage>
-      </div>
-    );
   };
 
   /**
@@ -276,19 +223,6 @@ export const AboutResourcePage = ({
     }
   };
 
-  const handleChangeAvailableFortype = (value: ResourceAvailableForTypeOption[]) => {
-    setAvailableForType(value);
-    //handleSaveResource();
-  };
-
-  const displayAvailableForCheckboxes = () => {
-    return acailableForOptions.map((option) => (
-      <Checkbox value={option.value} key={option.value} size='small'>
-        {t(option.label)}
-      </Checkbox>
-    ));
-  };
-
   /**
    * Displays the correct content in the right translation bar.
    */
@@ -331,26 +265,21 @@ export const AboutResourcePage = ({
           {t('resourceadm.about_resource_title')}
         </Heading>
         {/* MANDATORY - MUST HAVE ERROR HANDLING */}
-        <Label size='medium' spacing htmlFor='aboutResourceType'>
-          {t('resourceadm.about_resource_resource_type')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_resource_type_label')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Select
-            options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
-            onChange={handleChangeResourceType}
-            value={resourceType}
-            onFocus={() => setTranslationType('none')}
-            error={showAllErrors && hasResourceTypeError}
-            // onBlur={handleSaveResource}
-            inputId='aboutResourceType'
-          />
-          {showAllErrors &&
-            hasResourceTypeError &&
-            displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
-        </div>
+        <ResourceDropdown
+          label={t('resourceadm.about_resource_resource_type')}
+          description={t('resourceadm.about_resource_resource_type_label')}
+          value={resourceData.resourceType}
+          options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
+          hasError={
+            showAllErrors && !Object.keys(resourceTypeMap).includes(resourceData.resourceType)
+          }
+          onFocus={() => setTranslationType('none')}
+          onBlur={(selected: ResourceTypeOption) =>
+            handleSave({ ...resourceData, resourceType: selected })
+          }
+          id='aboutResourceType'
+          errorText={t('resourceadm.about_resource_resource_type_error')}
+        />
         {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
@@ -445,24 +374,18 @@ export const AboutResourcePage = ({
           )}
         />
         {/* OPTIONAL */}
-        <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor='aboutResourceStatus'>
-          {t('resourceadm.about_resource_status_label')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_status_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Select
-            options={statusOptions.map((o) => ({ ...o, label: t(o.label) }))}
-            onChange={handleChangeStatusOption}
-            value={resourceStatus}
-            label={t('resourceadm.about_resource_status_label')}
-            hideLabel
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-          />
-        </div>
+        <ResourceDropdown
+          spacingTop
+          label={t('resourceadm.about_resource_status_label')}
+          description={t('resourceadm.about_resource_status_text')}
+          value={resourceData.status}
+          options={statusOptions.map((o) => ({ ...o, label: t(o.label) }))}
+          onFocus={() => setTranslationType('none')}
+          onBlur={(selected: ResourceStatusOption) =>
+            handleSave({ ...resourceData, status: selected })
+          }
+          id='aboutResourceStatus'
+        />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_self_identified_label')}
           description={t('resourceadm.about_resource_self_identified_text')}
@@ -486,44 +409,25 @@ export const AboutResourcePage = ({
           toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
         />
         {/* MANDATORY - MUST HAVE ERROR HANDLING */}
-        <div className={classes.divider} />
-        <div className={classes.inputWrapper}>
-          <Checkbox.Group
-            legend={t('resourceadm.about_resource_available_for_legend')}
-            error={false} // TODO
-            onChange={handleChangeAvailableFortype}
-            // TODO - sett value!
-          >
-            <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
-              {t('resourceadm.about_resource_available_for_description')}
-            </Paragraph>
-            {displayAvailableForCheckboxes()}
-          </Checkbox.Group>
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_visible_label')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_visible_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Switch
-            isChecked={isVisible}
-            onToggle={(b: boolean) => setIsVisible(b)}
-            onFocus={() => setTranslationType('none')}
-            ref={isVisibleRef}
-            onBlur={handleSaveResource}
-            id='isVisibleSwitch'
-          />
-          <p className={isVisible ? classes.toggleTextActive : classes.toggleTextInactive}>
-            {t('resourceadm.about_resource_visible_show_text', {
-              showText: isVisible
-                ? t('resourceadm.switch_should')
-                : t('resourceadm.switch_should_not'),
-            })}
-          </p>
-        </div>
+        <ResourceCheckboxGroup
+          options={availableForOptions}
+          legend={t('resourceadm.about_resource_available_for_legend')}
+          description={t('resourceadm.about_resource_available_for_description')}
+          error={false} // TODO
+          onChange={(selected: ResourceAvailableForTypeOption[]) =>
+            handleSave({ ...resourceData, availableForType: selected })
+          }
+        />
+        <ResourceSwitchInput
+          label={t('resourceadm.about_resource_visible_label')}
+          description={t('resourceadm.about_resource_visible_text')}
+          value={resourceData.visible ?? false}
+          onFocus={() => setTranslationType('none')} // TODO
+          onBlur={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
+          id='isVisibleSwitch'
+          toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
+          ref={isVisibleRef}
+        />
       </>
     );
   };
