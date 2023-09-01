@@ -91,6 +91,7 @@
     <Watch Remove="Models\ListviewServiceResource.cs" />
     <Watch Remove="Models\LosTerm.cs" />
     <Watch Remove="Models\LosTerms.cs" />
+    <Watch Remove="Models\ResourcePartyType.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ResourceVersionInfo.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
