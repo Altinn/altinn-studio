@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import {
   Select,
-  TextField,
   ErrorMessage,
   Heading,
   Paragraph,
@@ -129,12 +128,6 @@ export const AboutResourcePage = ({
   );
   const [isVisible, setIsVisible] = useState(resourceData.visible ?? false);
   const [resourceStatus, setResourceStatus] = useState<ResourceStatusOption>(resourceData.status);
-  const [isSelfIdentifiedUserEnabled, setIsSelfIdentifiedUserEnabled] = useState(
-    resourceData.selfIdentifiedUserEnabled ?? false
-  );
-  const [isEnterpriseUserEnabled, setIsEnterpriseUserEnabled] = useState(
-    resourceData.enterpriseUserEnabled ?? false
-  );
   const [availableForType, setAvailableForType] = useState<ResourceAvailableForTypeOption[]>(
     resourceData.availableForType
   );
@@ -176,8 +169,6 @@ export const AboutResourcePage = ({
       description,
       visible: isVisible,
       status: resourceStatus,
-      selfIdentifiedUserEnabled: isSelfIdentifiedUserEnabled,
-      enterpriseUserEnabled: isEnterpriseUserEnabled,
       availableForType,
       rightDescription,
     };
@@ -472,60 +463,28 @@ export const AboutResourcePage = ({
             onBlur={handleSaveResource}
           />
         </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_self_identified_label')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_self_identified_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Switch
-            isChecked={isSelfIdentifiedUserEnabled}
-            onToggle={(b: boolean) => setIsSelfIdentifiedUserEnabled(b)}
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-            id='selfIdentifiedUsersEnabledSwitch'
-          />
-          <p
-            className={
-              isSelfIdentifiedUserEnabled ? classes.toggleTextActive : classes.toggleTextInactive
-            }
-          >
-            {t('resourceadm.about_resource_self_identified_show_text', {
-              showText: isSelfIdentifiedUserEnabled
-                ? t('resourceadm.switch_should')
-                : t('resourceadm.switch_should_not'),
-            })}
-          </p>
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          {t('resourceadm.about_resource_enterprise_label')}
-        </Label>
-        <Paragraph short size='small'>
-          {t('resourceadm.about_resource_enterprise_text')}
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Switch
-            isChecked={isEnterpriseUserEnabled}
-            onToggle={(b: boolean) => setIsEnterpriseUserEnabled(b)}
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-            id='enterpriseUserEnabledSwitch'
-          />
-          <p
-            className={
-              isEnterpriseUserEnabled ? classes.toggleTextActive : classes.toggleTextInactive
-            }
-          >
-            {t('resourceadm.about_resource_enterprise_show_text', {
-              showText: isEnterpriseUserEnabled
-                ? t('resourceadm.switch_should')
-                : t('resourceadm.switch_should_not'),
-            })}
-          </p>
-        </div>
+        <ResourceSwitchInput
+          label={t('resourceadm.about_resource_self_identified_label')}
+          description={t('resourceadm.about_resource_self_identified_text')}
+          value={resourceData.selfIdentifiedUserEnabled ?? false}
+          onFocus={() => setTranslationType('none')} // TODO
+          onBlur={(isChecked: boolean) =>
+            handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
+          }
+          id='selfIdentifiedUsersEnabledSwitch'
+          toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
+        />
+        <ResourceSwitchInput
+          label={t('resourceadm.about_resource_enterprise_label')}
+          description={t('resourceadm.about_resource_enterprise_text')}
+          value={resourceData.enterpriseUserEnabled ?? false}
+          onFocus={() => setTranslationType('none')} // TODO
+          onBlur={(isChecked: boolean) =>
+            handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
+          }
+          id='enterpriseUserEnabledSwitch'
+          toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
+        />
         {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <div className={classes.divider} />
         <div className={classes.inputWrapper}>
