@@ -131,7 +131,7 @@ export const AboutResourcePage = ({
     getResourcePageTextfieldError(resourceData.description)
   );
   const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
-    getResourcePageTextfieldError(resourceData.rightDescription)
+    resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false
   );
 
   // useRefs to handle tabbing between the input elements and the right translation bar
@@ -176,7 +176,7 @@ export const AboutResourcePage = ({
       setDescription(value);
     }
     if (translationType === 'rightDescription') {
-      setHasRightDescriptionError(error);
+      setHasRightDescriptionError(resourceData.delegable ? error : false);
       setRightDescription(value);
     }
   };
@@ -246,7 +246,11 @@ export const AboutResourcePage = ({
           }
           onLanguageChange={handleChangeTranslationValues}
           usesTextArea={translationType === 'description'}
-          showErrors={showAllErrors}
+          showErrors={
+            translationType === 'rightDescription'
+              ? resourceData.delegable && showAllErrors
+              : showAllErrors
+          }
           ref={rightTranslationBarRef}
           onLeaveLastField={handleLeaveLastFieldRightBar}
           onBlur={handleSaveResource}
@@ -264,7 +268,6 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
-        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceDropdown
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
@@ -280,7 +283,6 @@ export const AboutResourcePage = ({
           id='aboutResourceType'
           errorText={t('resourceadm.about_resource_resource_type_error')}
         />
-        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
@@ -299,7 +301,6 @@ export const AboutResourcePage = ({
             t
           )}
         />
-        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextArea
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
@@ -320,7 +321,6 @@ export const AboutResourcePage = ({
             t
           )}
         />
-        {/* OPTIONAL */}
         <ResourceTextField
           label={t('resourceadm.about_resource_homepage_label')}
           description={t('resourceadm.about_resource_homepage_text')}
@@ -330,7 +330,6 @@ export const AboutResourcePage = ({
           id='aboutHomepage'
           onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
         />
-        {/* OPTIONAL */}
         <ResourceTextField
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
@@ -342,7 +341,6 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
           }
         />
-        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_delegable_label')}
           description={t('resourceadm.about_resource_delegable_text')}
@@ -352,28 +350,29 @@ export const AboutResourcePage = ({
           id='isDelegableSwitch'
           toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
         />
-        {/* MANDATORY IF DELEGABLE IS TRUE - MUST HAVE ERROR HANDLING */}
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_rights_description_label')}
           description={t('resourceadm.about_resource_rights_description_label')}
           value={rightDescription['nb']}
           onFocus={() => setTranslationType('rightDescription')}
           id='aboutNBRightDescription'
-          isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
+          isValid={
+            !(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '') ||
+            !resourceData.delegable
+          }
           ref={rightDescriptionRef}
           onKeyDown={handleTabKeyIntoRightBar}
           onChangeValue={(value: string) =>
             handleChangeTranslationValues({ ...rightDescription, nb: value })
           }
           onBlur={handleSaveResource}
-          showErrorMessage={showAllErrors && hasRightDescriptionError}
+          showErrorMessage={showAllErrors && hasRightDescriptionError && resourceData.delegable}
           errorText={getMissingInputLanguageString(
             rightDescription,
             t('resourceadm.about_resource_error_usage_string_rights_description'),
             t
           )}
         />
-        {/* OPTIONAL */}
         <ResourceDropdown
           spacingTop
           label={t('resourceadm.about_resource_status_label')}
