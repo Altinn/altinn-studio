@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expressionsAlert {
+  z-index: 1;
+}
+
+.expressionsVersionCheckBox {
+  z-index: 1;
+}
