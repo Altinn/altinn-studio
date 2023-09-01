@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.ResourceRegistry.Core.Enums.Altinn2;
+using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,14 +28,16 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IResourceRegistryOptions _resourceRegistryOptions;
         private readonly IMemoryCache _memoryCache;
         private readonly CacheSettings _cacheSettings;
+        private readonly IAltinn2MetadataClient _altinn2MetadataClient;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient)
         {
             _giteaApi = gitea;
             _repository = repository;
             _resourceRegistryOptions = resourceRegistryOptions;
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
+            _altinn2MetadataClient = altinn2MetadataClient;
         }
 
         [HttpGet]
@@ -163,7 +169,17 @@ namespace Altinn.Studio.Designer.Controllers
             return _repository.AddServiceResource(org, resource);
         }
 
-
+        [HttpGet]
+        [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{environment}")]
+        public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment)
+        {
+            string repository = string.Format("{0}-resources", org);
+            ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition, environment);
+            _repository.AddServiceResource(org, resource);
+            XacmlPolicy policy = await _altinn2MetadataClient.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment);
+            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+            return Ok(resource);
+        }
 
         [HttpGet]
         [Route("designer/api/{org}/resources/sectors")]
@@ -228,6 +244,28 @@ namespace Altinn.Studio.Designer.Controllers
             return sectors;
         }
 
+        [HttpGet]
+        [Route("designer/api/{org}/resources/altinn2linkservices/{environment}")]
+        public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string enviroment)
+        {
+            string cacheKey = "availablelinkservices:" + org;
+            if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
+            {
+
+                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, enviroment);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
+            }
+
+            return linkServices;
+        }
+
+
         private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
         {
             if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
@@ -245,14 +283,19 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.resourcetype", "resourceerror.missingresourcetype");
             }
 
-            if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.RightDescription))
+            if (resource.Delegable.HasValue && resource.Delegable.Value && !ResourceAdminHelper.ValidDictionaryAttribute(resource.RightDescription))
             {
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
             }
 
-            if (strictMode && (resource.ThematicArea == null || string.IsNullOrEmpty(resource.ThematicArea)))
+            if (resource.ResourceType == null)
             {
-                ModelState.AddModelError($"{resource.Identifier}.thematicarea", "resourceerror.missingthematicarea");
+                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingresourcetype");
+            }
+
+            if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingcontactpoints");
             }
 
             ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
