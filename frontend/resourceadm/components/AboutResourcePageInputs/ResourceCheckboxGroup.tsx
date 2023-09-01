@@ -26,6 +26,10 @@ type ResourceCheckboxGroupProps = {
    * @returns void
    */
   onChange: (val: string[]) => void;
+  /**
+   * The selected options
+   */
+  value: string[];
 };
 
 /**
@@ -37,6 +41,7 @@ type ResourceCheckboxGroupProps = {
  * @property {string}[description] - The description of the group
  * @property {boolean}[error] - If the group has errors
  * @property {function}[onChange] - Fucntion to execute on change
+ * @property {string[]}[value] - The selected options
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -46,6 +51,7 @@ export const ResourceCheckboxGroup = ({
   description,
   error,
   onChange,
+  value,
 }: ResourceCheckboxGroupProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -61,7 +67,7 @@ export const ResourceCheckboxGroup = ({
     <>
       <div className={classes.divider} />
       <div className={classes.inputWrapper}>
-        <Checkbox.Group legend={legend} error={error} onChange={onChange}>
+        <Checkbox.Group legend={legend} error={error} onChange={onChange} value={value}>
           <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
             {description}
           </Paragraph>

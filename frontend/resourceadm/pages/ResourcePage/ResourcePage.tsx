@@ -69,6 +69,8 @@ export const ResourcePage = (): React.ReactNode => {
     isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
 
+  console.log(resourceData);
+
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
 

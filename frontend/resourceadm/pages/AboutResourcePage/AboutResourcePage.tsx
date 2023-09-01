@@ -417,6 +417,7 @@ export const AboutResourcePage = ({
           onChange={(selected: ResourceAvailableForTypeOption[]) =>
             handleSave({ ...resourceData, availableForType: selected })
           }
+          value={resourceData.availableForType ?? []}
         />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_visible_label')}

@@ -16,8 +16,8 @@ export interface Resource {
   version?: Version;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
-  selfIdentifiedUserEnabled: boolean;
-  enterpriseUserEnabled: boolean;
+  selfIdentifiedUserEnabled?: boolean;
+  enterpriseUserEnabled?: boolean;
   availableForType: ResourceAvailableForTypeOption[];
   // -- Nye
   contactPoint?: ContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
