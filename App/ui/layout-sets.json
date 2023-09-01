@@ -5,11 +5,14 @@
       "dataType": "stateless"
     },
     {
-      "id": "statefull",
+      "id": "stateful1",
       "dataType": "message",
-      "tasks": [
-        "Task_1"
-      ]
+      "tasks": ["Task_1"]
+    },
+    {
+      "id": "stateful2",
+      "dataType": "task2",
+      "tasks": ["Task_2"]
     }
   ]
 }

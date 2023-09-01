@@ -1,4 +1,5 @@
 {
+  "$schema": "https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json",
   "language": "nb",
   "resources": [
     {
@@ -247,7 +248,21 @@
     },
     {
       "id": "feedback.body",
-      "value": "Du må flytte instansen til neste prosess med et API kall til process/next."
+      "value": "Du må flytte instansen til neste prosess med et API kall til process/next.<br><br>Firmanavn: {0}<br>Navn: {1}<br>ID: {2}",
+      "variables": [
+        {
+          "key": "property1",
+          "dataSource": "dataModel.task2"
+        },
+        {
+          "key": "Sender",
+          "dataSource": "dataModel.message"
+        },
+        {
+          "key": "Reference",
+          "dataSource": "dataModel.default"
+        }
+      ]
     }
     
   ]

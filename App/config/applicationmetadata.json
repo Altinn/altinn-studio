@@ -68,6 +68,7 @@
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false
       },
+      "taskId": "Task_2",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": true,

@@ -1,0 +1,47 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "header",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Dette er det andre prosess-steget i den tilstandsbevarende prosessen (tredje steget totalt)"
+        }
+      },
+      {
+        "id": "name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Firmanavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "property1"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "idnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Organisasjonsnummer",
+          "description": "11 siffer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "property2"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }       
+      }
+    ]
+  }
+}
