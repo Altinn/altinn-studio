@@ -80,9 +80,9 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.keys(resourceTypeMap).map((key) => ({
+  const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
     value: key,
-    label: resourceTypeMap[key],
+    label: value,
   }));
 
   // States to store the different input values

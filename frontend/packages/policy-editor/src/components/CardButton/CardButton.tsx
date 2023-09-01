@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './CardButton.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Paragraph } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
 
 type CardButtonProps = {
   /**
@@ -26,8 +25,6 @@ type CardButtonProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const CardButton = ({ buttonText, onClick }: CardButtonProps): React.ReactNode => {
-  const { t } = useTranslation();
-
   return (
     <button className={classes.button} type='button' onClick={onClick}>
       <Paragraph size='small'>{buttonText}</Paragraph>
