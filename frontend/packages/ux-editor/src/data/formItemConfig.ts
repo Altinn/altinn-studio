@@ -22,11 +22,12 @@ import {
   LinkIcon,
   PresentationIcon
 } from '@navikt/aksel-icons';
+import { RefAttributes, SVGProps } from 'react';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
-  icon?: React.ComponentType;
+  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> & RefAttributes<SVGSVGElement>;
 };
 
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };

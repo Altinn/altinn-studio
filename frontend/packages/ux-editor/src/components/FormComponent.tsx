@@ -119,7 +119,7 @@ export const FormComponent = memo(function FormComponent({
             />
           ) : (
             <div className={classes.formComponentTitle}>
-               <span className={classes.icon} >{Icon  && <Icon aria-label={"icon"}/>} </span>
+              <span className={classes.icon} >{Icon  && <Icon title={getComponentTitleByComponentType(component.type, t)}/> } </span>
               {textResource
                 ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||
