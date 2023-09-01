@@ -72,7 +72,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div style={{ width: '100%' }}>
             <Heading size='xsmall' level={2}>
-              {`${t('resourceadm.dashboard_num_resources')} (${resourceListData?.length ?? 0})`}
+              {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </Heading>
           </div>
           <ResourceTable list={filteredResourceList} onClickEditResource={handleNavigateToResource} />
@@ -96,7 +96,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <Button
             variant='quiet'
             color='secondary'
-            icon={<MigrationIcon title={t('resourceadm.dashboard_import_resource')} />}
+            icon={<MigrationIcon />}
             iconPlacement='right'
             onClick={() => setImportModalOpen(true)}
             size='medium'
@@ -107,7 +107,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <Button
             variant='quiet'
             color='secondary'
-            icon={<PlusCircleIcon title={t('resourceadm.dashboard_create_resource')} />}
+            icon={<PlusCircleIcon />}
             iconPlacement='right'
             onClick={() => setNewResourceModalOpen(true)}
             size='medium'

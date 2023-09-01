@@ -32,6 +32,9 @@ export const useValidatePolicyQuery = (
 
         return { status: data.status, errors: allErrors };
       },
+      meta: {
+        hideDefaultError: true,
+      },
     }
   );
 };
