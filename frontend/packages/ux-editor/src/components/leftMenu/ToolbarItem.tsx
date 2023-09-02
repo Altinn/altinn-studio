@@ -3,12 +3,13 @@ import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import { DraggableToolbarItem } from '../dragAndDrop/DraggableToolbarItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
+
 interface IToolbarItemProps {
   text: string;
   notDraggable?: boolean;
   onClick: (type: ComponentType, event: MouseEvent) => void;
   componentType: ComponentType;
-  icon?: React.ComponentType |string ;
+  icon?: React.ComponentType;
 }
 
 export const ToolbarItem = ({

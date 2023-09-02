@@ -62,7 +62,7 @@ export interface IWidgetTexts {
 
 export interface IToolbarElement {
   label: string;
-  icon?: string | React.ComponentType;
+  icon?: React.ComponentType;
   type: ComponentType;
 }
 
