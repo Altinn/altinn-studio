@@ -118,8 +118,9 @@ export const FormComponent = memo(function FormComponent({
               layoutName={selectedLayout}
             />
           ) : (
-            <div className={classes.formComponentTitle}>
-              <span className={classes.icon} >{Icon  && <Icon title={getComponentTitleByComponentType(component.type, t)}/> } </span>
+            <div className={classes.formComponentTitle}>         
+              <span className={classes.icon} >
+                {Icon  && <Icon  title="icon"/> } </span>
               {textResource
                 ? truncate(textResource, 80)
                 : getComponentTitleByComponentType(component.type, t) ||
