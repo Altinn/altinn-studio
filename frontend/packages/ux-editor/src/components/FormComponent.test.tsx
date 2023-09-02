@@ -177,7 +177,7 @@ describe('FormComponent', () => {
         },
       });
       
-      expect(screen.getByLabelText("icon")).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "icon" })).toBeInTheDocument();
     });
   });
 });
