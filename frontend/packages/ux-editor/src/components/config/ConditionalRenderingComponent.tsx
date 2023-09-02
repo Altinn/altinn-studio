@@ -16,6 +16,7 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ConditionalRenderingConnection, ConditionalRenderingConnections } from 'app-shared/types/RuleConfig';
 import i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
+import { Buldings2Icon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;
@@ -268,7 +269,7 @@ class ConditionalRendering extends React.Component<
         overlayClassName={classes.reactModalOverlay}
       >
         <div className={classes.modalHeader}>
-          <i className='fa fa-corp' />
+          <i className={classes.configConditionalIcon}> <Buldings2Icon/></i>
           <h1 className={classes.modalHeaderTitle}>
             {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
           </h1>
@@ -395,7 +396,7 @@ class ConditionalRendering extends React.Component<
                         className={classes.deleteFieldButton}
                         onClick={this.removeFieldMapping.bind(null, key)}
                       >
-                        <i className='fa fa-circle-exit a-danger ai-left' />
+                        <i className={classes.exitIcon}><XMarkOctagonFillIcon/></i>
                       </button>
                     </div>
                   );

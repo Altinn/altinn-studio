@@ -7,6 +7,7 @@ import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
 import { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
 import i18next from 'i18next';
+import { Buldings2Icon } from '@navikt/aksel-icons';
 
 export interface IRuleComponentProps {
   connectionId?: string;
@@ -122,7 +123,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
         overlayClassName={classes.reactModalOverlay}
       >
         <div className={classes.modalHeader}>
-          <i className='fa fa-corp' />
+        <i className={classes.configRulesIcon}> <Buldings2Icon/></i>
           <h1 className={classes.modalHeaderTitle}>
             <span>{this.props.t('ux_editor.modal_configure_rules_header')}</span>
           </h1>

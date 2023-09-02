@@ -1,6 +1,6 @@
 import React from 'react';
 import { getNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon, FileJsonIcon } from '@navikt/aksel-icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import * as testids from '../../../../../testing/testids';
@@ -24,7 +24,7 @@ export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemPr
       data-testid={testids.typeItem(uiSchemaNode.pointer)}
     >
       <div>
-        <i className={`fa fa-datamodel-object ${classes.typeIcon}`} />
+        <i className={classes.typeIcon}> <FileJsonIcon/> </i>
       </div>
       <span className={classes.typeName}>
         {getNameFromPointer({ pointer: uiSchemaNode.pointer })}
