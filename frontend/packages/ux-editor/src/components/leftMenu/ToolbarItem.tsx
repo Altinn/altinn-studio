@@ -1,4 +1,4 @@
-import React, { MouseEvent, RefAttributes, SVGProps } from 'react';
+import React, { MouseEvent } from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import { DraggableToolbarItem } from '../dragAndDrop/DraggableToolbarItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
