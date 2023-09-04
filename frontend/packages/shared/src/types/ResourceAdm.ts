@@ -19,8 +19,7 @@ export interface Resource {
   selfIdentifiedUserEnabled?: boolean;
   enterpriseUserEnabled?: boolean;
   availableForType: ResourceAvailableForTypeOption[];
-  // -- Nye
-  contactPoints?: ResourceContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
+  contactPoints?: ResourceContactPoint[];
 }
 /*
 

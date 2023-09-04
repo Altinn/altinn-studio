@@ -57,7 +57,7 @@ export const ResourceContactPointTextField = ({
         onBlur={() => onBlur(val)}
         isValid={!(val === '' && showErrors)}
       />
-      {showErrors && <InputFieldErrorMessage message={errorMessage} />}
+      {showErrors && val === '' && <InputFieldErrorMessage message={errorMessage} />}
     </div>
   );
 };

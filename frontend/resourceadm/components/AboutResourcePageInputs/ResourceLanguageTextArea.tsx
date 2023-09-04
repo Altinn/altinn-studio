@@ -1,6 +1,7 @@
 import React, { Ref } from 'react';
 import classes from './AboutResourcePageInputs.module.css';
-import { ErrorMessage, Paragraph, Label, TextArea } from '@digdir/design-system-react';
+import { Paragraph, Label, TextArea } from '@digdir/design-system-react';
+import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceLanguageTextAreaProps = {
   /**
@@ -110,11 +111,7 @@ export const ResourceLanguageTextArea = ({
           onKeyDown={onKeyDown}
           onBlur={onBlur}
         />
-        {showErrorMessage && (
-          <div className={classes.warningCardWrapper}>
-            <ErrorMessage size='small'>{errorText}</ErrorMessage>
-          </div>
-        )}
+        {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
       </div>
     </>
   );

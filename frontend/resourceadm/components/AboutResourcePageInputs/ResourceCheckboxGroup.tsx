@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './AboutResourcePageInputs.module.css';
 import { Checkbox, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceCheckboxGroupProps = {
   /**
@@ -17,9 +18,9 @@ type ResourceCheckboxGroupProps = {
    */
   description: string;
   /**
-   * If the group has errors
+   * If the errors should be shown
    */
-  error: boolean;
+  showErrors: boolean;
   /**
    * Fucntion to execute on change
    * @param val the values selected
@@ -39,7 +40,7 @@ type ResourceCheckboxGroupProps = {
  * @property {{value: string, label: string}[]}[options] - The options to display in the checkbox group
  * @property {string}[legend] - The legend of the group
  * @property {string}[description] - The description of the group
- * @property {boolean}[error] - If the group has errors
+ * @property {boolean}[showErrors] - If the errors should be shown
  * @property {function}[onChange] - Fucntion to execute on change
  * @property {string[]}[value] - The selected options
  *
@@ -49,7 +50,7 @@ export const ResourceCheckboxGroup = ({
   options,
   legend,
   description,
-  error,
+  showErrors,
   onChange,
   value,
 }: ResourceCheckboxGroupProps): React.ReactNode => {
@@ -67,13 +68,23 @@ export const ResourceCheckboxGroup = ({
     <>
       <div className={classes.divider} />
       <div className={classes.inputWrapper}>
-        <Checkbox.Group legend={legend} error={error} onChange={onChange} value={value}>
+        <Checkbox.Group
+          legend={legend}
+          error={showErrors && value.length === 0}
+          onChange={onChange}
+          value={value}
+        >
           <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
             {description}
           </Paragraph>
           {displayAvailableForCheckboxes()}
         </Checkbox.Group>
       </div>
+      {showErrors && (
+        <InputFieldErrorMessage
+          message={t('resourceadm.about_resource_available_for_error_message')}
+        />
+      )}
     </>
   );
 };

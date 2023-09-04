@@ -76,15 +76,7 @@ export const AboutResourcePage = ({
   const { resourceId } = useParams();
 
   //
-  //
-  //
-  // TODO - FIX VALIDATION TO CHECK AND ADD ERROR TO THE NEW FIELDS
-  //
   // TODO - CHECK THAT THE TAB SEQUENCE IS CORRECT
-  //
-  // TODO - Can each input field and type be its own reusable component?
-  //
-  //
   //
 
   /**
@@ -292,14 +284,6 @@ export const AboutResourcePage = ({
           id='aboutResourceType'
           errorText={t('resourceadm.about_resource_resource_type_error')}
         />
-        <ResourceContactPointFields
-          contactPointList={resourceData.contactPoints}
-          onClickAddMoreContactPoint={handleClickAddContactPoint}
-          onLeaveTextFields={(contactPoints: ResourceContactPoint[]) =>
-            handleSave({ ...resourceData, contactPoints: contactPoints })
-          }
-          showErrors={showAllErrors}
-        />
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
@@ -428,11 +412,19 @@ export const AboutResourcePage = ({
           options={availableForOptions}
           legend={t('resourceadm.about_resource_available_for_legend')}
           description={t('resourceadm.about_resource_available_for_description')}
-          error={false} // TODO
+          showErrors={showAllErrors} // TODO
           onChange={(selected: ResourceAvailableForTypeOption[]) =>
             handleSave({ ...resourceData, availableForType: selected })
           }
           value={resourceData.availableForType ?? []}
+        />
+        <ResourceContactPointFields
+          contactPointList={resourceData.contactPoints}
+          onClickAddMoreContactPoint={handleClickAddContactPoint}
+          onLeaveTextFields={(contactPoints: ResourceContactPoint[]) =>
+            handleSave({ ...resourceData, contactPoints: contactPoints })
+          }
+          showErrors={showAllErrors} // TODO
         />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_visible_label')}
