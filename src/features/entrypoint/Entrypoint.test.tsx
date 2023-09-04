@@ -8,6 +8,7 @@ import type { AxiosError } from 'axios';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { renderWithProviders } from 'src/testUtils';
+import type { AppQueriesContext } from 'src/contexts/appQueriesContext';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IRuntimeState } from 'src/types';
 import type { IApplicationLogic } from 'src/types/shared';
@@ -35,11 +36,12 @@ describe('Entrypoint', () => {
   });
 
   test('should show invalid party error if user has no valid parties', async () => {
-    const doPartyValidation = () => Promise.resolve({ data: { valid: false, validParties: [], message: '' } });
-    const queries = {
-      doPartyValidation,
-    };
-    render({ store: mockStore, queries });
+    render({
+      store: mockStore,
+      queries: {
+        doPartyValidation: () => Promise.resolve({ valid: false, validParties: [], message: '' }),
+      },
+    });
 
     await waitForElementToBeRemoved(screen.queryByText('Vent litt, vi henter det du trenger'));
 
@@ -60,10 +62,6 @@ describe('Entrypoint', () => {
   });
 
   test('should show loader while fetching data then start statelessQueue if stateless app', async () => {
-    const doPartyValidation = () => Promise.resolve({ data: { valid: true, validParties: [], message: '' } });
-    const queries = {
-      doPartyValidation,
-    };
     const statelessApplication: IApplicationMetadata = {
       ...(mockInitialState.applicationMetadata.applicationMetadata as IApplicationMetadata),
       onEntry: {
@@ -77,7 +75,13 @@ describe('Entrypoint', () => {
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
-    render({ store: mockStore, queries, allowAnonymous: false });
+    render({
+      store: mockStore,
+      queries: {
+        doPartyValidation: () => Promise.resolve({ valid: true, validParties: [], message: '' }),
+      },
+      allowAnonymous: false,
+    });
     const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
 
@@ -131,25 +135,25 @@ describe('Entrypoint', () => {
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
-    const doPartyValidation = () => Promise.resolve({ data: { valid: true, validParties: [], message: '' } });
-
-    const queries = {
-      doPartyValidation,
-      fetchActiveInstances: () =>
-        Promise.resolve([
-          {
-            id: 'some-id-1',
-            lastChanged: '28-01-1992',
-            lastChangedBy: 'Navn Navnesen',
-          },
-          {
-            id: 'some-id-2',
-            lastChanged: '06-03-1974',
-            lastChangedBy: 'Test Testesen',
-          },
-        ]),
-    };
-    render({ store: mockStore, queries });
+    render({
+      store: mockStore,
+      queries: {
+        doPartyValidation: () => Promise.resolve({ valid: true, validParties: [], message: '' }),
+        fetchActiveInstances: () =>
+          Promise.resolve([
+            {
+              id: 'some-id-1',
+              lastChanged: '28-01-1992',
+              lastChangedBy: 'Navn Navnesen',
+            },
+            {
+              id: 'some-id-2',
+              lastChanged: '06-03-1974',
+              lastChangedBy: 'Test Testesen',
+            },
+          ]),
+      },
+    });
 
     await waitFor(async () => {
       const selectInstanceText = await screen.findByText('Du har allerede startet å fylle ut dette skjemaet.');
@@ -172,7 +176,15 @@ describe('Entrypoint', () => {
     expect(missingRolesText).not.toBeNull();
   });
 
-  function render({ store, allowAnonymous = false, queries }: { store: any; allowAnonymous?: boolean; queries?: any }) {
+  function render({
+    store,
+    allowAnonymous = false,
+    queries,
+  }: {
+    store: any;
+    allowAnonymous?: boolean;
+    queries?: Partial<AppQueriesContext>;
+  }) {
     return renderWithProviders(
       <MemoryRouter>
         <Entrypoint allowAnonymous={allowAnonymous} />

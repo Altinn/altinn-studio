@@ -6,15 +6,11 @@ import { QueueActions } from 'src/features/queue/queueSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-enum ServerStateCacheKey {
-  UseParties = 'fetchUseParties',
-}
-
 export const usePartiesQuery = (enabled: boolean) => {
   const dispatch = useAppDispatch();
 
   const { fetchParties } = useAppQueriesContext();
-  return useQuery([ServerStateCacheKey.UseParties], fetchParties, {
+  return useQuery(['fetchUseParties'], fetchParties, {
     enabled,
     onSuccess: (parties) => {
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache

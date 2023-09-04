@@ -8,7 +8,9 @@ import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { useApplicationMetadataQuery } from 'src/hooks/queries/useApplicationMetadataQuery';
 import { useApplicationSettingsQuery } from 'src/hooks/queries/useApplicationSettingsQuery';
+import { useCurrentDataModelSchemaQuery } from 'src/hooks/queries/useCurrentDataModelSchemaQuery';
 import { useFooterLayoutQuery } from 'src/hooks/queries/useFooterLayoutQuery';
+import { useFormDataQuery } from 'src/hooks/queries/useFormDataQuery';
 import { useCurrentPartyQuery } from 'src/hooks/queries/useGetCurrentPartyQuery';
 import { usePartiesQuery } from 'src/hooks/queries/useGetPartiesQuery';
 import { useLayoutSetsQuery } from 'src/hooks/queries/useLayoutSetsQuery';
@@ -31,6 +33,7 @@ export const App = () => {
   const { isError: hasLayoutSetError } = useLayoutSetsQuery();
   const { isError: hasOrgsError } = useOrgsQuery();
   useFooterLayoutQuery(!!applicationMetadata?.features?.footer);
+  useCurrentDataModelSchemaQuery();
 
   const componentIsReady = applicationSettings && applicationMetadata;
   const componentHasError =
@@ -59,10 +62,10 @@ type AppInternalProps = {
 
 const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | null => {
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
-  const allowAnonymous: boolean = useAppSelector(allowAnonymousSelector);
+  const allowAnonymous = useAppSelector(allowAnonymousSelector);
 
-  const { isError: hasProfileError } = useProfileQuery(allowAnonymous === false);
-  const { isError: hasPartiesError } = usePartiesQuery(allowAnonymous === false);
+  const { isError: hasProfileError, isFetching: isProfileFetching } = useProfileQuery(allowAnonymous === false);
+  const { isError: hasPartiesError, isFetching: isPartiesFetching } = usePartiesQuery(allowAnonymous === false);
 
   const alwaysPromptForParty = useAlwaysPromptForParty();
 
@@ -75,8 +78,10 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
 
   useKeepAlive(applicationSettings.appOidcProvider, allowAnonymous);
   useUpdatePdfState(allowAnonymous);
+  const { isFetching: isFormDataFetching } = useFormDataQuery();
 
   const hasComponentError = hasProfileError || hasCurrentPartyError || hasPartiesError;
+  const isFetching = isProfileFetching || isPartiesFetching || isFormDataFetching;
 
   // Set the title of the app
   React.useEffect(() => {
@@ -104,7 +109,7 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
           />
           <Route
             path='/instance/:partyId/:instanceGuid'
-            element={<ProcessWrapper />}
+            element={<ProcessWrapper isFetching={isFetching} />}
           />
         </Routes>
       </>

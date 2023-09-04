@@ -8,14 +8,10 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-enum ServerStateCacheKey {
-  ApplicationMetadata = 'fetchApplicationMetadata',
-}
-
 export const useApplicationMetadataQuery = (): UseQueryResult<IApplicationMetadata> => {
   const dispatch = useAppDispatch();
   const { fetchApplicationMetadata } = useAppQueriesContext();
-  return useQuery([ServerStateCacheKey.ApplicationMetadata], fetchApplicationMetadata, {
+  return useQuery(['fetchApplicationMetadata'], fetchApplicationMetadata, {
     onSuccess: (applicationMetadata) => {
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache
       dispatch(ApplicationMetadataActions.getFulfilled({ applicationMetadata }));

@@ -9,10 +9,6 @@ const redirectToLogin = (appOidcProvider: string | null): void => {
   window.location.href = getEnvironmentLoginUrl(appOidcProvider);
 };
 
-enum ServerStateCacheKey {
-  RefreshJwtToken = 'refreshJwtToken',
-}
-
 export const useRefreshJwtTokenQuery = (
   appOidcProvider: string | null,
   options: {
@@ -22,7 +18,7 @@ export const useRefreshJwtTokenQuery = (
   },
 ): UseQueryResult<void> => {
   const { fetchRefreshJwtToken } = useAppQueriesContext();
-  return useQuery([ServerStateCacheKey.RefreshJwtToken], fetchRefreshJwtToken, {
+  return useQuery(['refreshJwtToken'], fetchRefreshJwtToken, {
     ...options,
     onError: (error: HttpClientError) => {
       try {

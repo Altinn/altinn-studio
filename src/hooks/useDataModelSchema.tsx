@@ -7,15 +7,19 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { getRootElementPath } from 'src/utils/schemaUtils';
 
-function useDraft(enabled: boolean) {
-  const dataModels = useAppSelector((state) => state.formDataModel.schemas);
-  const currentDataModelName = useAppSelector((state) =>
+export function useCurrentDataModelName() {
+  return useAppSelector((state) =>
     getCurrentDataTypeForApplication({
       application: state.applicationMetadata.applicationMetadata,
       instance: state.instanceData.instance,
       layoutSets: state.formLayout.layoutsets,
     }),
   );
+}
+
+function useDraft(enabled: boolean) {
+  const dataModels = useAppSelector((state) => state.formDataModel.schemas);
+  const currentDataModelName = useCurrentDataModelName();
   const currentModel =
     dataModels && currentDataModelName && currentDataModelName in dataModels && dataModels[currentDataModelName];
 

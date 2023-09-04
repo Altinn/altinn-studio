@@ -1,5 +1,7 @@
+import type { JSONSchema7 } from 'json-schema';
+
 export interface IJsonSchemas {
-  [id: string]: object;
+  [id: string]: JSONSchema7;
 }
 
 export interface IDataModelState {
@@ -8,10 +10,10 @@ export interface IDataModelState {
 }
 
 export interface IFetchJsonSchemaFulfilled {
-  schema: object;
+  schema: JSONSchema7;
   id: string;
 }
 
 export interface IFetchJsonSchemaRejected {
-  error: Error;
+  error: Error | null;
 }

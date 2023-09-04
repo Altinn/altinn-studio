@@ -119,11 +119,7 @@ export function* fetchLayoutSaga(): SagaIterator {
 
 export function* watchFetchFormLayoutSaga(): SagaIterator {
   while (true) {
-    yield all([
-      take(FormLayoutActions.fetch),
-      take(FormDataActions.fetchInitial),
-      take(FormDataActions.fetchFulfilled),
-    ]);
+    yield all([take(FormLayoutActions.fetch), take(FormDataActions.fetchFulfilled)]);
     yield call(fetchLayoutSaga);
   }
 }

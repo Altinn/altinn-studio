@@ -1,3 +1,6 @@
+import type { AxiosRequestConfig } from 'axios';
+import type { JSONSchema7 } from 'json-schema';
+
 import { httpPost } from 'src/utils/network/networking';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import {
@@ -6,6 +9,7 @@ import {
   currentPartyUrl,
   getActiveInstancesUrl,
   getFooterLayoutUrl,
+  getJsonSchemaUrl,
   getLayoutSetsUrl,
   getPartyValidationUrl,
   profileApiUrl,
@@ -18,7 +22,7 @@ import type { IFooterLayout } from 'src/features/footer/types';
 import type { ILayoutSets, ISimpleInstance } from 'src/types';
 import type { IAltinnOrgs, IApplicationSettings, IProfile } from 'src/types/shared';
 
-export const doPartyValidation = (partyId: string) => httpPost(getPartyValidationUrl(partyId));
+export const doPartyValidation = async (partyId: string) => (await httpPost(getPartyValidationUrl(partyId))).data;
 
 export const fetchActiveInstances = (partyId: string): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));
@@ -43,3 +47,8 @@ export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
 export const fetchUserProfile = (): Promise<IProfile> => httpGet(profileApiUrl);
 
 export const fetchRefreshJwtToken = () => httpGet(refreshJwtTokenUrl);
+
+export const fetchDataModelSchema = (dataTypeName: string): Promise<JSONSchema7> =>
+  httpGet(getJsonSchemaUrl() + dataTypeName);
+
+export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);

@@ -1,7 +1,6 @@
 import type { AnyAction } from 'redux';
 
 import { checkIfDataListShouldRefetchSaga } from 'src/features/dataLists/fetchDataListsSaga';
-import { fetchFormDataSaga, watchFetchFormDataInitialSaga } from 'src/features/formData/fetch/fetchFormDataSagas';
 import { autoSaveSaga, saveFormDataSaga, submitFormSaga } from 'src/features/formData/submit/submitFormDataSagas';
 import { deleteAttachmentReferenceSaga, updateFormDataSaga } from 'src/features/formData/update/updateFormDataSagas';
 import { checkIfRuleShouldRunSaga } from 'src/features/formRules/checkRulesSagas';
@@ -27,6 +26,7 @@ export const initialState: IFormDataState = {
   saving: false,
   submittingId: '',
   error: null,
+  reFetch: false,
 };
 
 const isProcessAction = (action: AnyAction) =>
@@ -39,22 +39,23 @@ export const formDataSlice = () => {
     initialState,
     actions: {
       fetch: mkAction<IFetchFormData>({
-        takeLatest: fetchFormDataSaga,
-      }),
-      fetchInitial: mkAction<void>({
-        saga: () => watchFetchFormDataInitialSaga,
+        reducer: (state) => {
+          state.reFetch = true;
+        },
       }),
       fetchFulfilled: mkAction<IFetchFormDataFulfilled>({
         reducer: (state, action) => {
           const { formData } = action.payload;
           state.formData = formData;
           state.lastSavedFormData = formData;
+          state.reFetch = false;
         },
       }),
       fetchRejected: mkAction<IFormDataRejected>({
         reducer: (state, action) => {
           const { error } = action.payload;
           state.error = error;
+          state.reFetch = false;
         },
       }),
       setFulfilled: mkAction<IFetchFormDataFulfilled>({

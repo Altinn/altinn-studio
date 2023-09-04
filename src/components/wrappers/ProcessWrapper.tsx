@@ -24,7 +24,11 @@ import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { checkIfAxiosError, HttpStatusCodes } from 'src/utils/network/networking';
 
-export const ProcessWrapper = () => {
+export interface IProcessWrapperProps {
+  isFetching?: boolean;
+}
+
+export const ProcessWrapper = ({ isFetching }: IProcessWrapperProps) => {
   const instantiating = useAppSelector((state) => state.instantiation.instantiating);
   const isLoading = useAppSelector((state) => state.isLoading.dataTask);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
@@ -87,7 +91,7 @@ export const ProcessWrapper = () => {
           appOwner={appOwner}
           type={taskType}
         >
-          {isLoading === false ? (
+          {isLoading === false && isFetching !== true ? (
             <>
               {taskType === ProcessTaskType.Data || behavesLikeDataTask(process.taskId, layoutSets) ? (
                 <Form />

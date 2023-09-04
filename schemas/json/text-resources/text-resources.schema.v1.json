@@ -79,7 +79,7 @@
           "type": "string",
           "title": "Variable lookup location",
           "description": "Location of the variable in the data source",
-          "pattern": "^[\\w\\p{L}.\\-_{}[\\]]+$"
+          "pattern": "^[\\w\\p{L}.\\-_{}\\[\\]]+$"
         },
         "dataSource": {
           "title": "Variable data source",

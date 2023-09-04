@@ -1,4 +1,3 @@
-import { watchFetchJsonSchemaSaga } from 'src/features/datamodel/fetchFormDatamodelSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type {
   IDataModelState,
@@ -18,16 +17,13 @@ export const formDataModelSlice = () => {
     name: 'formDataModel',
     initialState,
     actions: {
-      fetchJsonSchema: mkAction<void>({
-        saga: () => watchFetchJsonSchemaSaga,
-      }),
-      fetchJsonSchemaFulfilled: mkAction<IFetchJsonSchemaFulfilled>({
+      fetchFulfilled: mkAction<IFetchJsonSchemaFulfilled>({
         reducer: (state, action) => {
           const { schema, id } = action.payload;
           state.schemas[id] = schema;
         },
       }),
-      fetchJsonSchemaRejected: mkAction<IFetchJsonSchemaRejected>({
+      fetchRejected: mkAction<IFetchJsonSchemaRejected>({
         reducer: (state, action) => {
           const { error } = action.payload;
           state.error = error;

@@ -7,14 +7,10 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { ISimpleInstance } from 'src/types';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-enum ServerStateCacheKey {
-  GetActiveInstances = 'getActiveInstances',
-}
-
 export const useActiveInstancesQuery = (partyId?: string, enabled?: boolean): UseQueryResult<ISimpleInstance[]> => {
   const dispatch = useAppDispatch();
   const { fetchActiveInstances } = useAppQueriesContext();
-  return useQuery([ServerStateCacheKey.GetActiveInstances], () => fetchActiveInstances(partyId || ''), {
+  return useQuery(['getActiveInstances'], () => fetchActiveInstances(partyId || ''), {
     enabled,
     onSuccess: (instanceData) => {
       // Sort array by last changed date

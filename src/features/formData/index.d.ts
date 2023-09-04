@@ -21,6 +21,9 @@ export interface IFormDataState {
   submittingId: string;
 
   error: Error | null;
+
+  // Setting this to true will force a re-fetch of the form data.
+  reFetch?: boolean;
 }
 
 export interface IFormData {

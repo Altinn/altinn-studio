@@ -5,7 +5,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const usePartyValidationMutation = () => {
   const { doPartyValidation } = useAppQueriesContext();
-  return useMutation((partyId: string) => doPartyValidation(partyId).then((response) => response.data), {
+  return useMutation((partyId: string) => doPartyValidation(partyId), {
     onError: (error: HttpClientError) => {
       console.warn(error);
       throw new Error('Server did not respond with party validation');

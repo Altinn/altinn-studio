@@ -1,7 +1,6 @@
 import { all, put, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
-import { DataModelActions } from 'src/features/datamodel/datamodelSlice';
 import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormRulesActions } from 'src/features/formRules/rulesSlice';
@@ -15,7 +14,6 @@ export function* watcherFinishStatelessIsLoadingSaga(): SagaIterator {
     take(FormDataActions.fetchFulfilled),
     take(FormLayoutActions.fetchFulfilled),
     take(FormLayoutActions.fetchSettingsFulfilled),
-    take(DataModelActions.fetchJsonSchemaFulfilled),
     take(FormRulesActions.fetchFulfilled),
     take(FormDynamicsActions.fetchFulfilled),
   ]);

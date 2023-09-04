@@ -15,10 +15,13 @@ import { setupStore } from 'src/redux/store';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ExprContextWrapper, useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { AppQueriesContext } from 'src/contexts/appQueriesContext';
+import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { IFooterLayout } from 'src/features/footer/types';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppStore, RootState } from 'src/redux/store';
-import type { IRuntimeState } from 'src/types';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
+import type { IProfile } from 'src/types/shared';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -33,18 +36,22 @@ export const renderWithProviders = (
   function Wrapper({ children }: React.PropsWithChildren) {
     const theme = createTheme(AltinnAppTheme);
 
-    const mockedQueries = {
-      doPartyValidation: () => Promise.resolve({ data: { isValid: true, validParties: [] } }),
+    const allMockedQueries = {
+      doPartyValidation: () => Promise.resolve({ isValid: true, validParties: [] }),
       fetchActiveInstances: () => Promise.resolve([]),
-      fetchApplicationMetadata: () => Promise.resolve({}),
+      fetchApplicationMetadata: () => Promise.resolve({} as unknown as IApplicationMetadata),
       fetchCurrentParty: () => Promise.resolve({}),
       fetchApplicationSettings: () => Promise.resolve({}),
-      fetchFooterLayout: () => Promise.resolve({}),
-      fetchLayoutSets: () => Promise.resolve([]),
-      fetchOrgs: () => Promise.resolve({}),
-      fetchUserProfile: () => Promise.resolve({}),
-      ...queries,
+      fetchFooterLayout: () => Promise.resolve({} as unknown as IFooterLayout),
+      fetchLayoutSets: () => Promise.resolve({} as unknown as ILayoutSets),
+      fetchOrgs: () => Promise.resolve({ orgs: {} }),
+      fetchUserProfile: () => Promise.resolve({} as unknown as IProfile),
+      fetchDataModelSchema: () => Promise.resolve({}),
+      fetchParties: () => Promise.resolve({}),
+      fetchRefreshJwtToken: () => Promise.resolve({}),
+      fetchFormData: () => Promise.resolve({}),
     } as AppQueriesContext;
+    const mockedQueries = { ...allMockedQueries, ...queries };
 
     const client = new QueryClient({
       logger: {

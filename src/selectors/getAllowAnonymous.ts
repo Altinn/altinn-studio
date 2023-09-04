@@ -6,7 +6,7 @@ import type { IRuntimeState } from 'src/types';
 const getApplicationMetadata = (state: IRuntimeState) => state.applicationMetadata?.applicationMetadata;
 const getLayoutSets = (state: IRuntimeState) => state.formLayout.layoutsets;
 
-let selector: any = undefined;
+let selector: ((state: IRuntimeState) => boolean | undefined) | undefined = undefined;
 const getAllowAnonymous = () => {
   if (selector) {
     return selector;
