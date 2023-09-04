@@ -42,9 +42,8 @@ import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { NameField } from './NameField';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -63,8 +62,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     custom,
   } = schemaNode;
   const dispatch = useDispatch();
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
@@ -78,14 +76,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
 
-  const onChangeRef = (path: string, ref: string) => mutate(setRef(data, { path, ref }));
+  const onChangeRef = (path: string, ref: string) => save(setRef(data, { path, ref }));
 
-  const onChangeFieldType = (type: FieldType) => mutate(setType(data, { path: pointer, type }));
+  const onChangeFieldType = (type: FieldType) => save(setType(data, { path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
-      mutate(
+      save(
         addCombinationItem(data, {
           pointer: pointer,
           props: { fieldType: FieldType.Null },
@@ -97,16 +95,16 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (childNode.fieldType === FieldType.Null) {
-        mutate(deleteNode(data, childNode.pointer));
+        save(deleteNode(data, childNode.pointer));
         removeSelection(childNode.pointer);
       }
     });
   };
 
-  const onChangeTitle = () => mutate(setTitle(data, { path: pointer, title: itemTitle }));
+  const onChangeTitle = () => save(setTitle(data, { path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
-    mutate(setDescription(data, { path: pointer, description: itemDescription }));
+    save(setDescription(data, { path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
     if (reference !== undefined) {
@@ -115,12 +113,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    mutate(setCombinationType(data, { path: pointer, type: value }));
+    save(setCombinationType(data, { path: pointer, type: value }));
 
-  const handleArrayPropertyToggle = () => mutate(toggleArrayField(data, pointer));
+  const handleArrayPropertyToggle = () => save(toggleArrayField(data, pointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
-    mutate(
+    save(
       setPropertyName(data, {
         path: pointer,
         name: newNodeName,

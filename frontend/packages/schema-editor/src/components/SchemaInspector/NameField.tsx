@@ -9,8 +9,8 @@ import {
 } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { FormField } from 'app-shared/components/FormField';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type NameFieldProps = TextFieldProps & {
   id: string;
@@ -27,7 +27,7 @@ export function NameField({
   ...props
 }: NameFieldProps) {
   const { t } = useTranslation();
-  const { data } = useDatamodelQuery();
+  const { data } = useSchemaEditorAppContext();
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
 
   useEffect(() => {

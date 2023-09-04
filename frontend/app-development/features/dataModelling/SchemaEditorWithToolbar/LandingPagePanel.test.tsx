@@ -3,9 +3,9 @@ import { screen, act } from '@testing-library/react';
 import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../../../packages/schema-editor/test/renderWithProviders';
 import * as testids from '../../../../testing/testids';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { renderWithMockStore } from '../../../test/mocks';
 
 const user = userEvent.setup();
 
@@ -34,6 +34,5 @@ describe('LandingPagePanel', () => {
   });
 });
 
-const render = (props: Partial<LandingPagePanelProps> = {}) => {
-  return renderWithProviders()(<LandingPagePanel {...landingPagePropsMock} {...props} />);
-};
+const render = (props: Partial<LandingPagePanelProps> = {}) =>
+  renderWithMockStore()(<LandingPagePanel {...landingPagePropsMock} {...props} />);

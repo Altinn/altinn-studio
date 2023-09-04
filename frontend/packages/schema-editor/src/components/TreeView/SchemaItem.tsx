@@ -16,10 +16,9 @@ import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
 import { DndItem } from './DnDWrapper';
 import type { DragItem } from './dnd-helpers';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { getRefNodeSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
 import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
@@ -40,8 +39,7 @@ export function SchemaItem({
   index,
 }: SchemaItemProps) {
   const dispatch = useDispatch();
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
@@ -64,7 +62,7 @@ export function SchemaItem({
   const isRef = selectedNode.objectKind === ObjectKind.Reference;
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
   const onMove = (from: DragItem, to: DragItem) =>
-    mutate(changeChildrenOrder(data, { pointerA: from.itemId, pointerB: to.itemId }));
+    save(changeChildrenOrder(data, { pointerA: from.itemId, pointerB: to.itemId }));
 
   return (
     <TreeItem

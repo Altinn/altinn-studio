@@ -1,8 +1,8 @@
-import { renderHookWithProviders } from '../../../packages/schema-editor/test/renderHookWithProviders';
 import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { useDatamodelsMetadataQuery } from './useDatamodelsMetadataQuery';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderHookWithMockStore } from '../../test/mocks';
 
 // Test data:
 const jsonMetadata1: DatamodelMetadataJson = {
@@ -38,25 +38,27 @@ const xsdMetadata2: DatamodelMetadataXsd = {
 
 describe('useDatamodelsMetadataQuery', () => {
   it('Returns a concatenated list of Json and Xsd metadata items', async () => {
-    const { result } = renderHookWithProviders({
-      queryClient: createQueryClientMock(),
-      servicesContextProps: {
+    const { renderHookResult: { result } } = renderHookWithMockStore(
+      {},
+      {
         getDatamodels: () => Promise.resolve([jsonMetadata1]),
         getDatamodelsXsd: () => Promise.resolve([xsdMetadata2]),
       },
-    })(useDatamodelsMetadataQuery);
+      createQueryClientMock(),
+    )(useDatamodelsMetadataQuery);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([jsonMetadata1, xsdMetadata2]);
   });
 
   it('Does not include Xsd files if there is a Json file with the same name', async () => {
-    const { result } = renderHookWithProviders({
-      queryClient: createQueryClientMock(),
-      servicesContextProps: {
+    const { renderHookResult: { result } } = renderHookWithMockStore(
+      {},
+      {
         getDatamodels: () => Promise.resolve([jsonMetadata1]),
         getDatamodelsXsd: () => Promise.resolve([xsdMetadata1, xsdMetadata2]),
       },
-    })(useDatamodelsMetadataQuery);
+      createQueryClientMock(),
+    )(useDatamodelsMetadataQuery);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([jsonMetadata1, xsdMetadata2]);
   });
