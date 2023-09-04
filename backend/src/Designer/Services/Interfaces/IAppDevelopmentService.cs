@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
@@ -15,8 +16,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Identifier for application</param>
         /// <param name="developer">Identifier for app-developer</param>
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A list of all FormLayouts for a layoutset</returns>
-        public Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, [CanBeNull] string layoutSetName);
+        public Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, [CanBeNull] string layoutSetName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Saves the form layout for a specific layoutname. If app-structure
