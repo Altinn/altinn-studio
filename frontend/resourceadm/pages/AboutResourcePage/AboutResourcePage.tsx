@@ -9,6 +9,7 @@ import type {
   ResourceTypeOption,
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
+  ResourceContactPoint,
 } from 'app-shared/types/ResourceAdm';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import {
@@ -29,8 +30,9 @@ import {
   ResourceLanguageTextField,
   ResourceSwitchInput,
   ResourceTextField,
+  ResourceDropdown,
 } from 'resourceadm/components/AboutResourcePageInputs';
-import { ResourceDropdown } from 'resourceadm/components/AboutResourcePageInputs/ResourceDropdown';
+import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
 
 /**
  * Initial value for languages with empty fields
@@ -223,6 +225,13 @@ export const AboutResourcePage = ({
     }
   };
 
+  const handleClickAddContactPoint = (contactPoints: ResourceContactPoint[]) => {
+    handleSave({
+      ...resourceData,
+      contactPoints,
+    });
+  };
+
   /**
    * Displays the correct content in the right translation bar.
    */
@@ -282,6 +291,14 @@ export const AboutResourcePage = ({
           }
           id='aboutResourceType'
           errorText={t('resourceadm.about_resource_resource_type_error')}
+        />
+        <ResourceContactPointFields
+          contactPointList={resourceData.contactPoints}
+          onClickAddMoreContactPoint={handleClickAddContactPoint}
+          onLeaveTextFields={(contactPoints: ResourceContactPoint[]) =>
+            handleSave({ ...resourceData, contactPoints: contactPoints })
+          }
+          showErrors={showAllErrors}
         />
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
@@ -407,7 +424,6 @@ export const AboutResourcePage = ({
           id='enterpriseUserEnabledSwitch'
           toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
         />
-        {/* MANDATORY - MUST HAVE ERROR HANDLING */}
         <ResourceCheckboxGroup
           options={availableForOptions}
           legend={t('resourceadm.about_resource_available_for_legend')}

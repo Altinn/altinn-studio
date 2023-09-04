@@ -20,7 +20,7 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType: ResourceAvailableForTypeOption[];
   // -- Nye
-  contactPoint?: ContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
+  contactPoints?: ResourceContactPoint[]; // NY - PÅKREVD - Skal man fylle inn alle??
 }
 /*
 
@@ -37,7 +37,7 @@ PÅKREVD - Fix for error validation
 - availableForType
  */
 
-export interface ContactPoint {
+export interface ResourceContactPoint {
   category: string;
   email: string;
   telephone: string;
