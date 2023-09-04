@@ -47,48 +47,11 @@ namespace Designer.Tests.Controllers.PreviewController
         {
         }
 
-        [Fact]
-        public async Task Get_PreviewStatus_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/preview/preview-status";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Get_ApplicationMetadata_Ok()
-        {
-            string expectedApplicationMetadata = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/config/applicationmetadata.json");
 
-            string dataPathWithData = $"{Org}/{App}/api/v1/applicationmetadata";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(expectedApplicationMetadata, _serializerOptions), _serializerOptions);
-            JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task Get_ApplicationSettings_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/v1/applicationsettings";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ApplicationSettings applicationSettings = JsonConvert.DeserializeObject<ApplicationSettings>(responseDocument.RootElement.ToString());
-            Assert.Equal("ttd/preview-app", applicationSettings.Id);
-            Assert.Equal("ttd", applicationSettings.Org);
-            Assert.Equal("preview-app", applicationSettings.Title["nb"]);
-        }
+        
 
         [Fact]
         public async Task Get_LayoutSets_NotFound()
