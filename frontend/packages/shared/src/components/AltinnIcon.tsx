@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface IAltinnIconComponentProvidedProps {
-  iconClass: string;
+  iconClass?: React.ComponentType | string;
   isActive?: boolean;
   isActiveIconColor?: string;
   iconColor: any;
@@ -21,12 +21,9 @@ export function AltinnIconComponent(props: IAltinnIconComponentProvidedProps) {
     ...(props.margin && { margin: props.margin }),
     ...(props.padding && { padding: props.padding }),
   };
-  return (
-    <i
-      className={props.iconClass}
-      style={Object.keys(style).length ? style : undefined}
-    />
-  );
+  return (<i style={Object.keys(style).length ? style : undefined} >
+            { <props.iconClass/> } 
+          </i>);
 }
 
 export default AltinnIconComponent;

@@ -8,6 +8,7 @@ import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 
 import type {
   ICreateAppDeploymentErrors,
@@ -116,7 +117,7 @@ export const AppDeploymentComponent = ({
           {!deployPermission && (
             <div className={classes.deployStatusGridContainer}>
               <div className={classes.deploySpinnerGridItem}>
-                <AltinnIcon iconClass='fa fa-info-circle' iconColor='#000' iconSize='3.6rem' />
+                <AltinnIcon iconClass={InformationSquareFillIcon} iconColor='#000' iconSize='3.6rem' />
               </div>
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
