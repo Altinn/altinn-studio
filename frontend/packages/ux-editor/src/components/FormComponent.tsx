@@ -102,6 +102,7 @@ export const FormComponent = memo(function FormComponent({
         await handleSave();
         handleEdit(component);
       }}
+      aria-labelledby={`${id}-title`}
     >
       <div className={classes.formComponentWithHandle}>
         <div ref={dragHandleRef} className={classes.dragHandle}>
@@ -118,13 +119,16 @@ export const FormComponent = memo(function FormComponent({
               layoutName={selectedLayout}
             />
           ) : (
-            <div className={classes.formComponentTitle}>         
-              <span className={classes.icon} >
-                {Icon  && <Icon  title="icon"/> } </span>
-              {textResource
-                ? truncate(textResource, 80)
-                : getComponentTitleByComponentType(component.type, t) ||
+            <div className={classes.formComponentTitle}>
+              <span className={classes.icon}>
+                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)}/>}
+              </span>
+              <span id={`${id}-title`}>
+                {textResource
+                  ? truncate(textResource, 80)
+                  : getComponentTitleByComponentType(component.type, t) ||
                   t('ux_editor.component_unknown')}
+              </span>
             </div>
           )}
         </div>
@@ -137,7 +141,6 @@ export const FormComponent = memo(function FormComponent({
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
           trigger={
             <Button
-              data-testid='component-delete-button'
               color='secondary'
               icon={<TrashIcon />}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {

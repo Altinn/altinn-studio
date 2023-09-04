@@ -22,7 +22,7 @@ import {
   LinkIcon,
   PresentationIcon
 } from '@navikt/aksel-icons';
-import { RefAttributes, SVGProps } from 'react';
+import React, { RefAttributes, SVGProps } from 'react';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;

@@ -43,11 +43,11 @@ describe('FormComponent', () => {
 
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
   });
-  
+
   it('should edit the component when clicking on the component', async () => {
     await render();
 
-    const component = screen.getByText(textMock('ux_editor.component_input'));
+    const component = screen.getByRole('listitem');
     await act(() => user.click(component));
 
     expect(handleSaveMock).toBeCalledTimes(1);
@@ -139,7 +139,7 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByText(textMock('ux_editor.component_input'))).toBeInTheDocument();
+      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
     });
 
     it('should display the component type when the title is undefined', async () => {
@@ -152,7 +152,7 @@ describe('FormComponent', () => {
         }
       });
 
-      expect(screen.getByText(textMock('ux_editor.component_input'))).toBeInTheDocument(); 
+      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
     });
 
     it('should display "Unknown component" when both the title and the component type are undefined', async () => {
@@ -176,8 +176,8 @@ describe('FormComponent', () => {
           icon: 'Icon',
         },
       });
-      
-      expect(screen.getByRole("img", { name: "icon" })).toBeInTheDocument();
+
+      expect(screen.getByRole("img", { name: textMock('ux_editor.component_input') })).toBeInTheDocument();
     });
   });
 });
