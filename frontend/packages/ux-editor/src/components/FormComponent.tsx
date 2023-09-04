@@ -55,6 +55,7 @@ export const FormComponent = memo(function FormComponent({
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+  const Icon = formItemConfigs[component.type]?.icon;
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
     org,
@@ -101,6 +102,7 @@ export const FormComponent = memo(function FormComponent({
         await handleSave();
         handleEdit(component);
       }}
+      aria-labelledby={`${id}-title`}
     >
       <div className={classes.formComponentWithHandle}>
         <div ref={dragHandleRef} className={classes.dragHandle}>
@@ -118,11 +120,15 @@ export const FormComponent = memo(function FormComponent({
             />
           ) : (
             <div className={classes.formComponentTitle}>
-              <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
-              {textResource
-                ? truncate(textResource, 80)
-                : getComponentTitleByComponentType(component.type, t) ||
+              <span className={classes.icon}>
+                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)}/>}
+              </span>
+              <span id={`${id}-title`}>
+                {textResource
+                  ? truncate(textResource, 80)
+                  : getComponentTitleByComponentType(component.type, t) ||
                   t('ux_editor.component_unknown')}
+              </span>
             </div>
           )}
         </div>
@@ -155,7 +161,7 @@ export const FormComponent = memo(function FormComponent({
             color='secondary'
             icon={<MonitorIcon title={t('general.preview')} />}
             onClick={handlePreview}
-            title='Forhåndsvisning (under utvikling)'
+            title={'Forhåndsvisning (under utvikling)'}
             variant='quiet'
             size='small'
           />
