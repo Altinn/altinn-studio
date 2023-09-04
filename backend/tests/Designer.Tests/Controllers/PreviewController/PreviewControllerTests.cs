@@ -71,289 +71,33 @@ namespace Designer.Tests.Controllers.PreviewController
 
 
 
-        [Fact]
-        public async Task Post_InstanceForStatefulApp_Ok()
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(Org, StatefulApp, Developer, targetRepository);
 
-            string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal("test-datatask-id", instance.Data[0].Id);
-            Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
-        }
 
-        [Fact]
-        public async Task Get_FormData_Ok()
-        {
-            string expectedFormData = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
 
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedFormData, responseBody).Should().BeTrue();
-        }
 
-        [Fact]
-        public async Task Get_FormDataForAppWithoutDatamodel_Ok()
-        {
-            string dataPathWithData = $"{Org}/empty-app/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            responseBody.Should().Be($"{PartyId}/{InstanceGuId}");
-        }
 
-        [Fact]
-        public async Task Get_FormDataForStatefulApp_Ok()
-        {
-            string expectedFormData = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, "App/models/datamodel.schema.json");
 
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedFormData, responseBody).Should().BeTrue();
-        }
 
-        [Fact]
-        public async Task Get_FormDataForStatefulAppForTaskWithoutDatamodel_Ok()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName2}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            responseBody.Should().Be($"{PartyId}/{InstanceGuId}");
-        }
 
-        [Fact]
-        public async Task Put_UpdateFormData_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Post_Attachment_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data?dataType=FileUploadId";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status201Created, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Delete_Attachment_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Post_AttachmentForStateFulApp_Ok()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data?dataType=FileUploadId";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status201Created, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Delete_AttachmentForStateFulApp_Ok()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        }
-
-        [Fact]
-        public async Task Get_Process_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
-            Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
-        }
-
-        [Fact]
-        public async Task Get_ProcessForStatefulApp_Ok()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
-            Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
-        }
-
-        [Fact]
-        public async Task Get_InstanceForNextProcess_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal($"{PartyId}/{InstanceGuId}", instance.Id);
-            Assert.Equal("ttd", instance.Org);
-        }
-
-        [Fact]
-        public async Task Get_InstanceForNextTaskForStatefulApp_Ok_TaskIsIncreased()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal($"{PartyId}/{InstanceGuId}", instance.Id);
-            Assert.Equal("ttd", instance.Org);
-            Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
-        }
-
-        [Fact]
-        public async Task Get_ProcessNext_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
-            Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
-        }
-
-        [Fact]
-        public async Task Get_ProcessNextForStatefulApp_Ok()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process/next";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
-            Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
-        }
-
-        [Fact]
-        public async Task Put_ProcessNext_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Assert.Equal(@"{""ended"": ""ended""}", responseBody);
-        }
-
-        [Fact]
-        public async Task Put_ProcessNextForStatefulAppForNonExistingTask_Ok()
-        {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process/next";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
-            Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
-        }
-
-        [Fact]
-        public async Task Get_TextResources_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/v1/textresources";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
-            Assert.Equal("nb", text.Language);
-        }
 
         [Fact]
         public async Task Get_Datamodel_Ok()

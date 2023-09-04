@@ -537,7 +537,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Process object where ended is set</returns>
         [HttpPut]
         [Route("instances/{partyId}/{instanceGuId}/process/next")]
-        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang, CancellationToken cancellationToken)
         {
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
