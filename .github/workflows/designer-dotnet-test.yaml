@@ -36,4 +36,4 @@ jobs:
            dotnet build backend/Designer.sln -v m
       - name: Test
         run: |
-           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m --no-build
+           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v n --no-build
