@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './ErrorPage.module.css';
 import { Heading, Link } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * @component
@@ -9,12 +10,13 @@ import { Heading, Link } from '@digdir/design-system-react';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ErrorPage = (): React.ReactNode => {
+  const { t } = useTranslation();
   return (
     <div className={classes.pageWrapper}>
       <Heading size='medium' level={1} spacing>
-        Du har nådd en ugyldig adresse
+        {t('resourceadm.error_page_text')}
       </Heading>
-      <Link href='/'>Gå tilbake til dashboard</Link>
+      <Link href='/'>{t('resourceadm.error_back_to_dashboard')}</Link>
     </div>
   );
 };

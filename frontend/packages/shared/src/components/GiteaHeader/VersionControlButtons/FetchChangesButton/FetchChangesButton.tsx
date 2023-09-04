@@ -24,7 +24,6 @@ export const FetchChangesButton = ({
     <Button
       className={classes.button}
       color='inverted'
-      data-testid='fetch-changes-button'
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
       size='small'

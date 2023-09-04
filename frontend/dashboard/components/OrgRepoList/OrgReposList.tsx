@@ -37,7 +37,7 @@ export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposList
   });
 
   return (
-    <div data-testid='org-repos-list'>
+    <div>
       <h2>{getReposLabel({ selectedContext, orgs: organizations, t })}</h2>
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}

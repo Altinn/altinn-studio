@@ -18,7 +18,6 @@ export interface IAltinnPopoverProps {
   children: React.ReactNode;
   handleClose: any;
   paperProps?: any;
-  testId?: string;
   transformOrigin?: PopoverOrigin;
   open: boolean;
 }
@@ -55,7 +54,6 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
       anchorReference={props.anchorEl ? 'anchorEl' : 'none'}
       PaperProps={{ square: true, ...props.paperProps }}
       aria-label={props.ariaLabel ? props.ariaLabel : ''}
-      data-testid={props.testId}
     >
       <div className={classes.container}>
         <div>{props.children}</div>

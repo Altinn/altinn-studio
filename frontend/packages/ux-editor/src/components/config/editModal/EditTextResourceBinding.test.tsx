@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -16,17 +16,6 @@ const user = userEvent.setup();
 // Test data:
 const org = 'org';
 const app = 'app';
-const addText = 'Legg til';
-const searchText = 'Søk';
-const texts: Record<string, string> = {
-  'ux_editor.modal_text': 'Tekst',
-  'general.add': addText,
-  'general.search': searchText,
-};
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
@@ -48,7 +37,7 @@ describe('EditTextResourceBindings component', () => {
 
   test('that it renders', async () => {
     await renderEditTextResourceBindingsComponent({});
-    const label = screen.getByText('Tekst');
+    const label = screen.getByText(textMock('ux_editor.modal_text'));
     const textResourceValue = screen.getByText('This is a test');
     expect(label).toBeInTheDocument();
     expect(textResourceValue).toBeInTheDocument();
@@ -57,7 +46,7 @@ describe('EditTextResourceBindings component', () => {
   test('that handleComponentChange is called when adding a new text', async () => {
     const handleComponentChange = jest.fn();
     await renderEditTextResourceBindingsComponent({ handleComponentChange, textKey: 'does-not-exist' });
-    await act(() => user.click(screen.getByLabelText(addText)));
+    await act(() => user.click(screen.getByLabelText(textMock('general.add'))));
     expect(handleComponentChange).toBeCalledTimes(1);
   });
 
@@ -66,7 +55,7 @@ describe('EditTextResourceBindings component', () => {
     await renderEditTextResourceBindingsComponent({ handleComponentChange, textKey: 'does-not-exist' });
 
     // Click search button
-    await act(() => user.click(screen.getByLabelText(searchText)));
+    await act(() => user.click(screen.getByLabelText(textMock('general.search'))));
 
     // Select with existing texts should be shown
     const select = screen.getByRole('combobox');
@@ -86,6 +75,20 @@ describe('EditTextResourceBindings component', () => {
     });
   });
 
+  test('That handleComponentChange and removeTextResourceBinding are called when confirm delete textResourceBinding button is clicked', async () => {
+    const handleComponentChange = jest.fn();
+    const removeTextResourceBinding = jest.fn();
+    await renderEditTextResourceBindingsComponent({ handleComponentChange, removeTextResourceBinding });
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await act(() => user.click(screen.getByRole('button', { name: textMock('ux_editor.text_resource_bindings.delete_confirm') })));
+    expect(handleComponentChange).toBeCalledTimes(1);
+    expect(handleComponentChange).toBeCalledWith({
+      ...mockComponent,
+      textResourceBindings: {},
+    });
+    expect(removeTextResourceBinding).toBeCalledTimes(1);
+  });
+
   const waitForData = async () => {
     const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
     const { result } = renderHookWithMockStore({}, {
@@ -102,6 +105,7 @@ describe('EditTextResourceBindings component', () => {
   const renderEditTextResourceBindingsComponent = async ({
     component = mockComponent,
     handleComponentChange = () => {},
+    removeTextResourceBinding = () => {},
     textKey = 'test',
     labelKey = 'ux_editor.modal_text',
   }: Partial<EditTextResourceBindingProps>) => {
@@ -110,6 +114,7 @@ describe('EditTextResourceBindings component', () => {
     return renderWithMockStore()(<EditTextResourceBinding
       component={component}
       handleComponentChange={handleComponentChange}
+      removeTextResourceBinding={removeTextResourceBinding}
       textKey={textKey}
       labelKey={labelKey}
     />);

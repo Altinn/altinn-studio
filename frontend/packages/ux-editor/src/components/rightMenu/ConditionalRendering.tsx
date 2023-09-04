@@ -9,13 +9,13 @@ import { useText } from '../../hooks';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type ConditionalRenderingProps = {
-  onShowNewDynamics: (value: boolean) => void;
-  showNewDynamics: boolean;
+  onShowNewExpressions: (value: boolean) => void;
+  showNewExpressions: boolean;
 };
 
 export const ConditionalRendering = ({
-  onShowNewDynamics,
-  showNewDynamics,
+  onShowNewExpressions,
+  showNewExpressions,
 }: ConditionalRenderingProps) => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const t = useText();
@@ -51,8 +51,8 @@ export const ConditionalRendering = ({
           <LegacyCheckbox
             label={t('right_menu.show_new_dynamics')}
             name={'checkbox-name'}
-            checked={showNewDynamics}
-            onChange={() => onShowNewDynamics(!showNewDynamics)}
+            checked={showNewExpressions}
+            onChange={() => onShowNewExpressions(!showNewExpressions)}
           />
       </div>
       )}

@@ -5,6 +5,7 @@ import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import type { PolicyEditorUsage, PolicyRuleResource } from '../../../types';
+import { useTranslation } from 'react-i18next';
 
 type ResourceNarrowingListProps = {
   /**
@@ -77,6 +78,8 @@ export const ResourceNarrowingList = ({
   onBlur,
   usageType,
 }: ResourceNarrowingListProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   /**
    * Displays the list of resources
    */
@@ -119,9 +122,9 @@ export const ResourceNarrowingList = ({
             size='small'
             dashedBorder
             variant='outline'
-            icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+            icon={<PlusIcon title={t('policy_editor.narrowing_list_add_button')} fontSize='1.5rem' />}
           >
-            Legg til en innsnevring av sub-ressursen
+            {t('policy_editor.narrowing_list_add_button')}
           </Button>
         </div>
       </ExpandablePolicyElement>

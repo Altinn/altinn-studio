@@ -55,9 +55,8 @@ export const GiteaHeader = ({
   return (
     <div className={classes.wrapper}>
       <div className={`${classes.contentWrapper} ${className && className}`}>
-        <VersionControlButtons data-testid='version-control-header' org={org} app={app} />
+        <VersionControlButtons org={org} app={app} />
         <ThreeDotsMenu
-          data-testid='three-dots-menu'
           onlyShowRepository={menuOnlyHasRepository}
           hasCloneModal={hasCloneModal}
         />

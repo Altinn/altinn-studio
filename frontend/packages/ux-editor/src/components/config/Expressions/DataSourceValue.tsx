@@ -2,53 +2,36 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
-import { DataSource, ExpressionElement } from '../../../types/Expressions';
+import { DataSource, SubExpression } from '../../../types/Expressions';
 import { IFormLayouts } from '../../../types/global';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { FormComponent } from '../../../types/FormComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
+import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
+import { useText } from '../../../hooks';
 
 interface DataSourceValueProps {
-  expressionElement: ExpressionElement;
+  subExpression: SubExpression;
   currentDataSource: DataSource;
   specifyDataSourceValue: (dataSourceValue: string, isComparable: boolean) => void;
   isComparableValue: boolean;
 }
 
 export const DataSourceValue = ({
-                                  expressionElement,
-                                  currentDataSource,
-                                  specifyDataSourceValue,
-                                  isComparableValue,
-                                }: DataSourceValueProps) => {
+  subExpression,
+  currentDataSource,
+  specifyDataSourceValue,
+  isComparableValue,
+}: DataSourceValueProps) => {
   const { org, app } = useParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const datamodelQuery = useDatamodelMetadataQuery(org, app);
   const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const t = useText();
+
   const dataModelElementsData = datamodelQuery?.data ?? [];
   const formLayoutsData = formLayoutsQuery?.data ?? [];
-
-  // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
-  const getDataModelElementNames = (dataModelElements: DatamodelFieldElement[]) => {
-    return dataModelElements
-      .filter(element => element.dataBindingName)
-      .map((element) => ({
-        value: element.dataBindingName,
-        label: element.dataBindingName,
-      }))
-  };
-
-  const getComponentIds = (formLayouts: IFormLayouts) => {
-    // TODO: Make sure all components from the layout set are included, also those inside groups. Issue #10855
-    const components = Object.values(formLayouts).flatMap(layout => Object.values(layout.components));
-    // TODO: Make sure there are not duplicate component ids. Related issue: 10857
-    return Object.values(components).map((comp: FormComponent) => ({
-      value: comp.id,
-      label: comp.id,
-    }));
-  };
 
   const getCorrespondingDataSourceValues = (dataSource: DataSource) => {
     switch (dataSource) {
@@ -73,15 +56,15 @@ export const DataSourceValue = ({
     case DataSource.ApplicationSettings:
       return (<Select
         onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue, isComparableValue)}
-        options={[{ label: 'Velg...', value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
-        value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'default'}
+        options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
+        value={isComparableValue ? subExpression.comparableValue : subExpression.value || 'default'}
       />);
     case DataSource.String:
     case DataSource.Number:
       return (<TextField
         formatting={currentDataSource === DataSource.Number ? { number: {} } : {}}
         onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
-        value={isComparableValue ? expressionElement.comparableValue : expressionElement.value || ''}
+        value={isComparableValue ? subExpression.comparableValue : subExpression.value || ''}
       />);
     case DataSource.Boolean:
       return (<ToggleButtonGroup
@@ -90,7 +73,7 @@ export const DataSourceValue = ({
           { label: 'False', value: 'false' }
         ]}
         onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
-        selectedValue={isComparableValue ? expressionElement.comparableValue : expressionElement.value || 'true'}
+        selectedValue={isComparableValue ? subExpression.comparableValue : subExpression.value || 'true'}
       />);
     case DataSource.Null:
       return (<div></div>);

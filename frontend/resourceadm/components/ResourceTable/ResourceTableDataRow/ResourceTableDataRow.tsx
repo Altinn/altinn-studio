@@ -3,15 +3,19 @@ import cn from 'classnames';
 import classes from './ResourceTableDataRow.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next'
 
-type ResourceTableDataRowProps = {
+export type ResourceTableDataRowProps = {
   /**
    * The resource to display in the row
    */
   resource: ResourceListItem;
+  /**
+   * Function to be executed when clicking the edit resoruce
+   * @returns void
+   */
+  onClickEditResource: () => void
 };
 
 /**
@@ -21,22 +25,19 @@ type ResourceTableDataRowProps = {
  *    two buttons, one for editing a resource, and one for doing more actions
  *
  * @property {Resource}[resource] - The resource to display in the row
+ * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resoruce
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): React.ReactNode => {
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+export const ResourceTableDataRow = ({ resource, onClickEditResource }: ResourceTableDataRowProps): React.ReactNode => {
+  const { t } = useTranslation();
 
-  const navigate = useNavigate();
-
-  // TODO - translate
   return (
     <tr style={{ width: '100%' }}>
       <td className={cn(classes.tableDataXLarge, classes.tableData)}>
         {/* TODO - Fix translation of title */}
         <Paragraph size='small'>
-          {resource.title['nb'] === '' ? 'Mangler tittel på Bokmål' : resource.title['nb']}
+          {resource.title['nb'] === '' ? t('resourceadm.dashboard_table_row_missing_title') : resource.title['nb']}
         </Paragraph>
       </td>
       <td className={cn(classes.tableDataLarge, classes.tableData)}>
@@ -47,7 +48,7 @@ export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): R
       </td>
       <td className={cn(classes.tableDataMedium, classes.tableData)}>
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
-          {resource.hasPolicy ? 'Har tilgangsregler' : 'Mangler tilgangsregler'}
+          {resource.hasPolicy ? t('resourceadm.dashboard_table_row_has_policy') : t('resourceadm.dashboard_table_row_missing_policy')}
         </Tag>
       </td>
       <td className={cn(classes.tableDataSmall, classes.tableData)}>
@@ -55,13 +56,11 @@ export const ResourceTableDataRow = ({ resource }: ResourceTableDataRowProps): R
           variant='quiet'
           size='small'
           color='secondary'
-          icon={<PencilWritingIcon title='Rediger ressurs' />}
+          icon={<PencilWritingIcon />}
           iconPlacement='right'
-          onClick={() =>
-            navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'))
-          }
+          onClick={onClickEditResource}
         >
-          Rediger
+          {t('resourceadm.dashboard_table_row_edit')}
         </Button>
       </td>
     </tr>

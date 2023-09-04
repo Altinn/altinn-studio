@@ -28,7 +28,7 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
   };
 
   return (
-    <div data-testid='header-size-select-wrapper'>
+    <div>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_header_type_helper')}

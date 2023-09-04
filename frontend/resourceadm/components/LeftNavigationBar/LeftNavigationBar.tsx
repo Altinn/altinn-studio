@@ -10,8 +10,9 @@ import {
 } from '@navikt/aksel-icons';
 import type { NavigationBarPage } from 'resourceadm/types/global';
 import { Paragraph } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next'
 
-type LeftNavigationBarProps = {
+export type LeftNavigationBarProps = {
   /**
    * The currentPage displayed
    */
@@ -58,6 +59,8 @@ export const LeftNavigationBar = ({
   goBack,
   showMigrate = false,
 }: LeftNavigationBarProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [newPageClicked, setNewPageClicked] = useState<NavigationBarPage>(null);
 
   const handleClick = (page: NavigationBarPage) => {
@@ -75,9 +78,9 @@ export const LeftNavigationBar = ({
           type='button'
           onClick={goBack}
         >
-          <ArrowLeftIcon className={classes.icon} title='Tilbake til dashboard' fontSize='1.8rem' />
+          <ArrowLeftIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
-            Tilbake til dashboard
+            {t('resourceadm.left_nav_bar_back')}
           </Paragraph>
         </button>
         <button
@@ -87,10 +90,11 @@ export const LeftNavigationBar = ({
           )}
           onClick={() => handleClick('about')}
           onBlur={() => setNewPageClicked(null)}
+          type='button'
         >
-          <InformationSquareIcon className={classes.icon} title='Om ressursen' fontSize='1.8rem' />
+          <InformationSquareIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
-            Om ressursen
+            {t('resourceadm.left_nav_bar_about')}
           </Paragraph>
         </button>
         <button
@@ -100,10 +104,11 @@ export const LeftNavigationBar = ({
           )}
           onClick={() => handleClick('policy')}
           onBlur={() => setNewPageClicked(null)}
+          type='button'
         >
-          <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
+          <GavelSoundBlockIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
-            Tilgangsregler
+            {t('resourceadm.left_nav_bar_policy')}
           </Paragraph>
         </button>
         <button
@@ -113,10 +118,11 @@ export const LeftNavigationBar = ({
           )}
           onClick={() => handleClick('deploy')}
           onBlur={() => setNewPageClicked(null)}
+          type='button'
         >
-          <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
+          <UploadIcon className={classes.icon} fontSize='1.8rem' />
           <Paragraph size='small' short className={classes.buttonText}>
-            Publiser
+            {t('resourceadm.left_nav_bar_deploy')}
           </Paragraph>
         </button>
         {showMigrate && (
@@ -127,10 +133,11 @@ export const LeftNavigationBar = ({
             )}
             onClick={() => handleClick('migration')}
             onBlur={() => setNewPageClicked(null)}
+            type='button'
           >
-            <MigrationIcon className={classes.icon} title='Migrer' fontSize='1.8rem' />
+            <MigrationIcon className={classes.icon} fontSize='1.8rem' />
             <Paragraph size='small' short className={classes.buttonText}>
-              Migrer
+              {t('resourceadm.left_nav_bar_migrate')}
             </Paragraph>
           </button>
         )}

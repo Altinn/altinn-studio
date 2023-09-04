@@ -3,27 +3,20 @@ import {
   EditTextResourceBindings,
   EditTextResourceBindingsProps,
 } from './EditTextResourceBindings';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
+import userEvent from '@testing-library/user-event';
 
 // Test data:
 const org = 'org';
 const app = 'app';
-const addText = 'Legg til';
-const searchText = 'Søk';
-const texts: Record<string, string> = {
-  'ux_editor.modal_text': 'Tekst',
-  'general.add': addText,
-  'general.search': searchText,
-};
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
@@ -46,14 +39,49 @@ describe('EditTextResourceBindings component', () => {
   test('that it renders with expected text resource binding keys', async () => {
     const textResourceBindingKeys = ['title', 'description', 'help'];
     await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
-    textResourceBindingKeys.forEach((key) => {
-      const label = screen.getByText(`ux_editor.modal_properties_textResourceBindings_${key}`);
-      const placeholder = screen.getByText(
-        `ux_editor.modal_properties_textResourceBindings_${key}_add`
-      );
-      expect(label).toBeInTheDocument();
-      expect(placeholder).toBeInTheDocument();
-    });
+    const label = screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_test`));
+    const text = screen.getByText('This is a test');
+    expect(label).toBeInTheDocument();
+    expect(text).toBeInTheDocument();
+  });
+
+  test('that it renders no text resource bindings if none are added', async () => {
+    await renderEditTextResourceBindingsComponent({ component: { ...mockComponent, textResourceBindings: {} } });
+    const titleLabel = screen.queryByText(textMock(`ux_editor.modal_properties_textResourceBindings_title`));
+    expect(titleLabel).not.toBeInTheDocument();
+    const searchTextButton = screen.queryByRole('button', { name: textMock('general.search') });
+    expect(searchTextButton).not.toBeInTheDocument();
+  });
+
+  test('that it renders the combobox for selecting text resource binding keys to add', async () => {
+    const textResourceBindingKeys = ['title', 'description', 'help'];
+    await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
+    const selectTextResourcesCombobox = screen.getByRole('combobox', { name: textMock('ux_editor.text_resource_bindings.add_label') });
+    expect(selectTextResourcesCombobox).toBeInTheDocument();
+  });
+
+  test('that the combobox for selecting text resource binding keys only contains keys that are not already added', async () => {
+    const textResourceBindingKeys = ['title', 'description', 'help'];
+    await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
+    const selectTextResourcesCombobox = screen.getByRole('combobox', { name: textMock('ux_editor.text_resource_bindings.add_label') });
+
+    await act(() => userEvent.click(selectTextResourcesCombobox)); // eslint-disable-line testing-library/no-unnecessary-act
+    let options = screen.getAllByRole('option');
+    expect(options.length).toBe(3);
+
+    await act(() => userEvent.click(options[0])); // eslint-disable-line testing-library/no-unnecessary-act
+    await act(() => userEvent.click(selectTextResourcesCombobox)); // eslint-disable-line testing-library/no-unnecessary-act
+    options = screen.getAllByRole('option');
+    expect(options.length).toBe(2);
+  });
+
+  test('that it does not render the combobox for selecting text resource binding keys when all available keys are added', async () => {
+    const textResourceBindingKeys = ['test'];
+    await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
+    const selectTextResourcesCombobox = screen.queryByRole('combobox', { name: textMock('ux_editor.text_resource_bindings.add_label') });
+    const addTextResourceButton = screen.queryByRole('button', { name: textMock('general.add') });
+    expect(selectTextResourcesCombobox).not.toBeInTheDocument();
+    expect(addTextResourceButton).not.toBeInTheDocument();
   });
 
   const waitForData = async () => {

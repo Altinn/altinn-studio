@@ -20,7 +20,7 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
   };
 
   return (
-    <LegacyFieldSet className={classes.root} data-testid='address-component-container'>
+    <LegacyFieldSet className={classes.root}>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_configure_address_component_simplified')}

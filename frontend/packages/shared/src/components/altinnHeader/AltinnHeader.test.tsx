@@ -37,22 +37,22 @@ describe('AltinnHeader', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('should render AltinnSubMenu when showSubMenu is true', () => {
-    render();
-    expect(screen.getByTestId('altinn-sub-menu')).toBeInTheDocument();
+  it('should render subMenu with provided subMenuContent when showSubMenu is true', () => {
+    const subMenuContentText = 'subMenuContent';
+    render({
+      showSubMenu: true,
+      subMenuContent: <Button>{subMenuContentText}</Button>,
+    });
+    expect(screen.getByRole('button', { name: subMenuContentText })).toBeInTheDocument();
   });
 
   it('should not render AltinnSubMenu when showSubMenu is false', () => {
-    render({ showSubMenu: false });
-    expect(screen.queryByTestId('altinn-sub-menu')).not.toBeInTheDocument();
-  });
-
-  it('should render subMenu with provided subMenuContent when showSubMenu is true', () => {
+    const subMenuContentText = 'subMenuContent';
     render({
-      showSubMenu: true,
-      subMenuContent: <Button>{textMock('subMenuButton')}</Button>,
+      showSubMenu: false,
+      subMenuContent: <Button>{subMenuContentText}</Button>,
     });
-    expect(screen.getByRole('button', { name: textMock('subMenuButton') })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: subMenuContentText })).not.toBeInTheDocument();
   });
 });
 

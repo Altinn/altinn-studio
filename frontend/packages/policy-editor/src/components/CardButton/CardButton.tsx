@@ -25,11 +25,10 @@ type CardButtonProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const CardButton = ({ buttonText, onClick }: CardButtonProps): React.ReactNode => {
-  // TODO - Translate
   return (
     <button className={classes.button} type='button' onClick={onClick}>
       <Paragraph size='small'>{buttonText}</Paragraph>
-      <PlusIcon title='Add rule' fontSize='1.4rem' />
+      <PlusIcon fontSize='1.4rem' />
     </button>
   );
 };

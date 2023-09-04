@@ -5,12 +5,19 @@ import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
 import { Button } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next'
 
-type ResourceTableProps = {
+export type ResourceTableProps = {
   /**
    * The list to display in the table
    */
   list: ResourceListItem[];
+  /**
+   * Function to be executed when clicking the edit resoruce
+   * @param id the id of the resource
+   * @returns void
+   */
+  onClickEditResource: (id: string) => void;
 };
 
 /**
@@ -18,17 +25,28 @@ type ResourceTableProps = {
  *    Table to display a list of all resources available
  *
  * @property {ResourceListItem[]}[list] - The list to display in the table
+ * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resoruce
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => {
+export const ResourceTable = ({ list, onClickEditResource }: ResourceTableProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
 
   /**
    * Displays a row for each resource in the list
    */
-  const displayRows = list.map((resource: ResourceListItem, key: number) => {
-    return <ResourceTableDataRow key={key} resource={resource} />;
+  const displayRows = list.map((resource: ResourceListItem) => {
+    return (
+      <ResourceTableDataRow
+        key={resource.identifier}
+        resource={resource}
+        onClickEditResource={() => {
+          onClickEditResource(resource.identifier)
+        }}
+      />
+    )
   });
 
   const handleSortTable = () => {
@@ -36,7 +54,6 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
     return list.reverse();
   };
 
-  // TODO - translate
   return (
     <table className={classes.table}>
       <tbody>
@@ -48,9 +65,9 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
               variant='quiet'
               icon={
                 isSortedByNewest ? (
-                  <CaretDownFillIcon title='Vis eldst først' />
+                  <CaretDownFillIcon />
                 ) : (
-                  <CaretUpFillIcon title='Vis nyest først' />
+                  <CaretUpFillIcon  />
                 )
               }
               onClick={handleSortTable}
@@ -58,13 +75,13 @@ export const ResourceTable = ({ list }: ResourceTableProps): React.ReactNode => 
               color='secondary'
               size='small'
             >
-              Sist endret
+              {t('resourceadm.dashboard_table_header_last_changed')}
             </Button>
           </th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>Tilgangsregler</th>
+          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>{t('resourceadm.dashboard_table_header_policy_rules')}</th>
           <th
             className={cn(classes.tableHeaderSmall, classes.tableHeader)}
-            aria-label='Rediger ressurs kolonne'
+            aria-label={t('resourceadm.dashboard_table_header_edit')}
           />
         </tr>
         {displayRows}

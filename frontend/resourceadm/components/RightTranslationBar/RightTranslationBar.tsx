@@ -4,8 +4,9 @@ import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next'
 
-type RightTranslationBarProps = {
+export type RightTranslationBarProps = {
   /**
    * The title of the selected inputfield
    */
@@ -70,6 +71,8 @@ export const RightTranslationBar = forwardRef<
     { title, usesTextArea = false, value, onLanguageChange, showErrors, onLeaveLastField, onBlur },
     ref
   ): React.ReactNode => {
+    const { t } = useTranslation();
+
     const handleChange = (lang: 'nn' | 'en', val: string) => {
       onLanguageChange({ ...value, [lang]: val });
     };
@@ -84,7 +87,7 @@ export const RightTranslationBar = forwardRef<
     };
 
     const displayNField = (lang: 'nn' | 'en', isLast: boolean) => {
-      const label = `${title} (${lang === 'en' ? 'Engelsk' : 'Nynorsk'})`;
+      const label = `${title} (${lang === 'en' ? t('language.en') : t('language.nn')})`;
 
       if (usesTextArea) {
         return (
@@ -117,15 +120,15 @@ export const RightTranslationBar = forwardRef<
     return (
       <div className={classes.wrapper}>
         <div className={classes.topWrapper}>
-          <GlobeIcon title='Oversettelse' fontSize='1.5rem' className={classes.icon} />
+          <GlobeIcon title={t('resourceadm.right_translation_bar_translation')} fontSize='1.5rem' className={classes.icon} />
           <Heading size='xsmall' level={2} className={classes.topText}>
-            Oversettelse
+            {t('resourceadm.right_translation_bar_title')}
           </Heading>
         </div>
         <div className={classes.bodyWrapper}>
           <Alert severity='info'>
             <Paragraph size='small'>
-              For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.
+              {t('resourceadm.right_translation_bar_alert')}
             </Paragraph>
           </Alert>
           <div className={classes.inputWrapper}>{displayNField('nn', false)}</div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
@@ -11,6 +11,8 @@ import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
+import { useTranslation } from 'react-i18next'
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
  * @component
@@ -21,6 +23,10 @@ import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 export const ResourceDashboardPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
+
+  const { t } = useTranslation();
+
+  const navigate = useNavigate();
 
   const [searchValue, setSearchValue] = useState('');
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
@@ -47,6 +53,9 @@ export const ResourceDashboardPage = (): React.ReactNode => {
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
+  const handleNavigateToResource = (id: string) => {
+    navigate(getResourcePageURL(selectedContext, repo, id, 'about'))
+  }
   /**
    * Display different content based on the loading state
    */
@@ -54,7 +63,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
+          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
         </div>
       );
     } else {
@@ -63,13 +72,13 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div style={{ width: '100%' }}>
             <Heading size='xsmall' level={2}>
-              {`Alle ressurser (${resourceListData?.length ?? 0})`}
+              {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </Heading>
           </div>
-          <ResourceTable list={filteredResourceList} />
+          <ResourceTable list={filteredResourceList} onClickEditResource={handleNavigateToResource} />
           {filteredResourceList.length === 0 && (
             <Paragraph size='small' className={classes.noResultText}>
-              Det finnes ingen ressursen som har navnet du søkte etter.
+              {t('resourceadm.dashboard_empty_list')}
             </Paragraph>
           )}
         </>
@@ -81,29 +90,29 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
-          {`${selectedContext}'s ressurser`}
+          {t('resourceadm.dashboard_header', { org: selectedContext })}
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button
             variant='quiet'
             color='secondary'
-            icon={<MigrationIcon title='Importer ressurs' />}
+            icon={<MigrationIcon />}
             iconPlacement='right'
             onClick={() => setImportModalOpen(true)}
             size='medium'
           >
-            <strong>Importer ressurs</strong>
+            <strong>{t('resourceadm.dashboard_import_resource')}</strong>
           </Button>
           <div className={classes.verticalDivider} />
           <Button
             variant='quiet'
             color='secondary'
-            icon={<PlusCircleIcon title='Opprett ny ressurs' />}
+            icon={<PlusCircleIcon />}
             iconPlacement='right'
             onClick={() => setNewResourceModalOpen(true)}
             size='medium'
           >
-            <strong>Opprett ny ressurs</strong>
+            <strong>{t('resourceadm.dashboard_create_resource')}</strong>
           </Button>
         </div>
       </div>

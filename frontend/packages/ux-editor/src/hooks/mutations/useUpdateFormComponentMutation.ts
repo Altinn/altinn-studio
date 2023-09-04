@@ -52,7 +52,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutN
         const containerIndex = parentContainerOrder.indexOf(id);
         parentContainerOrder[containerIndex] = newId;
       } else {
-        if (components[id].type === ComponentType.RadioButtons || components[id].type === ComponentType.Checkboxes) {
+        if (components[id]?.type === ComponentType.RadioButtons || components[id]?.type === ComponentType.Checkboxes) {
           delete components[id].options;
           delete components[id].optionsId;
         }

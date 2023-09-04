@@ -13,36 +13,29 @@ import { Switch } from 'resourceadm/components/Switch';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
-  ResourceThematic,
   SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
-  ResourceKeyword,
   ResourceSector,
 } from 'app-shared/types/ResourceAdm';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import {
-  convertResourceTypeToDisplayString,
   getMissingInputLanguageString,
-  getResourcePageTextfieldError
+  getResourcePageTextfieldError,
 } from 'resourceadm/utils/resourceUtils';
-
-/**
- * The resource type options to be used in the select
- */
-const resourceTypeOptions = [
-  { value: 'Standard', label: 'Standard' },
-  { value: 'System ressurs', label: 'System ressurs' },
-  { value: 'Maskinporten skjema', label: 'Maskinporten skjema' },
-];
+import {
+  mapKeywordStringToKeywordTypeArray,
+  mapKeywordsArrayToString,
+  resourceTypeMap,
+} from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Initial value for languages with empty fields
  */
 const emptyLangauges: SupportedLanguage = { nb: '', nn: '', en: '' };
 
-type AboutResourcePageProps = {
+export type AboutResourcePageProps = {
   /**
    * Flag to decide if all errors should be shown or not
    */
@@ -55,10 +48,6 @@ type AboutResourcePageProps = {
    * The list of possible sectors
    */
   sectorsData: ResourceSector[];
-  /**
-   * The list of possible thematic areas
-   */
-  thematicData: ResourceThematic[];
   /**
    * Function to be handled when saving the resource
    * @param r the resource
@@ -74,7 +63,6 @@ type AboutResourcePageProps = {
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {Resource}[resourceData] - The metadata for the resource
  * @property {ResourceSector[]}[sectorsData] - The list of possible sectors
- * @property {ResourceThematic[]}[thematicData] - The list of possible thematic areas
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  *
  * @returns {React.ReactNode} - The rendered component
@@ -83,24 +71,19 @@ export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   sectorsData,
-  thematicData,
   onSaveResource,
 }: AboutResourcePageProps): React.ReactNode => {
-  // TODO - translation
+  const { t } = useTranslation();
+
   const { resourceId } = useParams();
 
   /**
-   * ------------ Temporary functions -------------
-   * The first one maps keyword to string, and the second from string to keyword
-   *
-   * TODO - Find out how to handle it in the future
+   * Resource type options
    */
-  const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): string => {
-    return resourceKeywords.map((k) => k.word).join(', ');
-  };
-  const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
-    return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
-  };
+  const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
+    value: key,
+    label: value,
+  }));
 
   // States to store the different input values
   const [resourceType, setResourceType] = useState<ResourceTypeOption>(resourceData.resourceType);
@@ -119,7 +102,6 @@ export const AboutResourcePage = ({
       ? resourceData.sector.map((s) => sectorsData.find((sd) => sd.code === s).label['nb'])
       : []
   );
-  const [thematicArea, setThematicArea] = useState(resourceData.thematicArea ?? '');
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
     resourceData.rightDescription ?? emptyLangauges
   );
@@ -169,7 +151,6 @@ export const AboutResourcePage = ({
       homepage,
       isPublicService,
       sector: sectorToSave,
-      thematicArea,
       rightDescription,
     };
 
@@ -182,15 +163,9 @@ export const AboutResourcePage = ({
    *
    * @param type the selected string
    */
-  const handleChangeResourceType = (type: string) => {
-    // TODO - When implementing translations I think we should create an enum/map that makes the keys static regardless of the language itself.
-    const resourceTypeMap = {
-      "Standard": "Default",
-      "System ressurs": "Systemresource",
-      "Maskinporten skjema": "MaskinportenSchema",
-    };
-    setResourceType(resourceTypeMap[type]);
-    setHasResourceTypeError(!Object.values(resourceTypeMap).includes(type));
+  const handleChangeResourceType = (type: ResourceTypeOption) => {
+    setResourceType(type);
+    setHasResourceTypeError(!Object.keys(resourceTypeMap).includes(type));
   };
 
   /**
@@ -278,10 +253,10 @@ export const AboutResourcePage = ({
         <RightTranslationBar
           title={
             translationType === 'title'
-              ? 'Navn på tjenesten'
+              ? t('resourceadm.about_resource_translation_title')
               : translationType === 'description'
-              ? 'Beskrivelse'
-              : 'Delgasjonstekst'
+              ? t('resourceadm.about_resource_translation_description')
+              : t('resourceadm.about_resource_translation_right_description')
           }
           value={
             translationType === 'title'
@@ -308,63 +283,60 @@ export const AboutResourcePage = ({
     return (
       <>
         <Heading size='large' spacing level={1}>
-          Om ressursen
+          {t('resourceadm.about_resource_title')}
         </Heading>
-        <Label size='medium' spacing>
-          Ressurstype
+        <Label size='medium' spacing htmlFor='aboutResourceType'>
+          {t('resourceadm.about_resource_resource_type')}
         </Label>
         <Paragraph short size='small'>
-          Velg en ressurstype fra listen under.
+          {t('resourceadm.about_resource_resource_type_label')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Select
-            options={resourceTypeOptions}
+            options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
             onChange={handleChangeResourceType}
-            value={convertResourceTypeToDisplayString(resourceType)}
-            label='Ressurstype'
-            hideLabel
+            value={resourceType}
             onFocus={() => setTranslationType('none')}
             error={showAllErrors && hasResourceTypeError}
             onBlur={handleSaveResource}
+            inputId='aboutResourceType'
           />
           {showAllErrors &&
             hasResourceTypeError &&
-            displayWarningCard('Du mangler å legge til ressurstype.')}
+            displayWarningCard(t('resourceadm.about_resource_resource_type_error'))}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Navn på tjenesten (Bokmål)
+        <Label size='medium' spacing htmlFor='aboutNBTitle'>
+          {t('resourceadm.about_resource_resource_title_label')}
         </Label>
-        <Paragraph size='small'>
-          Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass
-          på at navnet er forståelig og gjenkjennbart.
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_resource_title_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={title['nb']}
             onChange={(e) => handleChangeTranslationValues({ ...title, nb: e.target.value })}
             onFocus={() => setTranslationType('title')}
-            aria-labelledby='resource-title'
             isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
             ref={titleFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-title'
-            label='Navn på tjenesten - Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på at navnet er forståelig og gjenkjennbart.'
+            id='aboutNBTitle'
           />
           {showAllErrors &&
             hasTitleError &&
-            displayWarningCard(getMissingInputLanguageString(title, 'tittel'))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                title,
+                t('resourceadm.about_resource_error_usage_string_title'),
+                t
+              )
+            )}
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Beskrivelse (Bokmål)
+        <Label size='medium' spacing htmlFor='aboutNBDescription'>
+          {t('resourceadm.about_resource_resource_description_label')}
         </Label>
         <Paragraph size='small'>
-          Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av
-          offentlige nettløsninger.
+          {t('resourceadm.about_resource_resource_description_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextArea
@@ -375,72 +347,59 @@ export const AboutResourcePage = ({
             }}
             onFocus={() => setTranslationType('description')}
             rows={5}
-            aria-labelledby='resource-description'
             isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
             ref={descriptionFieldRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-description'
-            label='Beskrivelse - Her må du beskrive tjenesten. Teksten kan bli synlig på flere områder på tvers av offentlige nettløsninger.'
+            id='aboutNBDescription'
           />
           {showAllErrors &&
             hasDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(description, 'beskrivelse'))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                description,
+                t('resourceadm.about_resource_error_usage_string_description'),
+                t
+              )
+            )}
         </div>
         {/* TODO - Find out if 'Tilgjengelig språk' should be inserted here */}
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Hjemmeside
+        <Label size='medium' spacing htmlFor='aboutHomepage'>
+          {t('resourceadm.about_resource_homepage_label')}
         </Label>
         <Paragraph short size='small'>
-          Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den.
+          {t('resourceadm.about_resource_homepage_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={homepage}
             onChange={(e) => setHomepage(e.target.value)}
-            aria-labelledby='resource-homepage'
             onFocus={() => setTranslationType('none')}
             ref={homePageRef}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-homepage'
-            label='Hjemmeside - Lenke til informasjon om hvor sluttbruker kan finne tjenesten og informasjon om den.'
+            id='aboutHomepage'
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Nøkkelord
+        <Label size='medium' spacing htmlFor='aboutKeywords'>
+          {t('resourceadm.about_resource_keywords_label')}
         </Label>
-        <Paragraph size='small'>
-          {
-            'Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
-          }
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_keywords_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
-            aria-labelledby='resource-keywords'
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
-          />
-          <ScreenReaderSpan
-            id='resource-keywords'
-            label='Nøkkelord - Legg til nøkkelord for ressursen, separer hvert ord med et komma ",". Eksempler er ord som er enkle å søke på.'
+            id='aboutKeywords'
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Sektor
+        <Label size='medium' spacing htmlFor='aboutSector'>
+          {t('resourceadm.about_resource_sector_label')}
         </Label>
-        <Paragraph size='small'>
-          Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere
-          industrier/sektorer.
-        </Paragraph>
+        <Paragraph size='small'>{t('resourceadm.about_resource_sector_text')}</Paragraph>
         <div className={classes.inputWrapper}>
           <Select
             multiple
@@ -448,65 +407,45 @@ export const AboutResourcePage = ({
             options={sectorsData.map((sd) => ({ value: sd.label['nb'], label: sd.label['nb'] }))}
             onChange={(e) => setSector(e)}
             value={sector}
-            label='Sektor - Velg hvilken sektor(er) tjenesten skal relateres til. En tjeneste kan relateres til flere industrier/sektorer.'
-            hideLabel
             onFocus={() => setTranslationType('none')}
             onBlur={handleSaveResource}
+            inputId='aboutSector'
           />
         </div>
         <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Tematisk område
+        <Label size='medium' spacing htmlFor='aboutRightDescription'>
+          {t('resourceadm.about_resource_rights_description_label')}
         </Label>
         <Paragraph size='small'>
-          Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk
-          område.
-        </Paragraph>
-        <div className={classes.inputWrapper}>
-          <Select
-            options={thematicData.map((td) => ({ value: td.uri, label: td.uri }))}
-            onChange={(e: string) => setThematicArea(e)}
-            value={thematicArea}
-            label='Tematisk område - Velg hvilket tematisk område tjenesten dekker. En tjeneste kan relateres til et tematisk område.'
-            hideLabel
-            onFocus={() => setTranslationType('none')}
-            onBlur={handleSaveResource}
-          />
-        </div>
-        <div className={classes.divider} />
-        <Label size='medium' spacing>
-          Delegasjonstekst
-        </Label>
-        <Paragraph size='small'>
-          Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker
-          av rettigheter kan utføre på vegne av den som han har fått rettighet for.
+          {t('resourceadm.about_resource_rights_description_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <TextField
             value={rightDescription['nb']}
             onChange={(e) => setRightDescription({ ...rightDescription, nb: e.target.value })}
-            aria-labelledby='resource-delegationtext'
             onFocus={() => setTranslationType('rightDescription')}
             ref={rightDescriptionRef}
             onKeyDown={handleTabKeyIntoRightBar}
             onBlur={handleSaveResource}
             isValid={!(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '')}
-          />
-          <ScreenReaderSpan
-            id='resource-delegationtext'
-            label='Delegasjonstekst - Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for'
+            id='aboutRightDescription'
           />
           {showAllErrors &&
             hasRightDescriptionError &&
-            displayWarningCard(getMissingInputLanguageString(rightDescription, 'delegasjonstekst'))}
+            displayWarningCard(
+              getMissingInputLanguageString(
+                rightDescription,
+                t('resourceadm.about_resource_error_usage_string_rights_description'),
+                t
+              )
+            )}
         </div>
         <div className={classes.divider} />
         <Label size='medium' spacing>
-          Vis i offentlige kataloger
+          {t('resourceadm.about_resource_public_service_label')}
         </Label>
         <Paragraph short size='small'>
-          Etter publisering blir ressursen tilgjengelig i kataloger, blant annet i altinn, på
-          norge.no og data.norge.no.
+          {t('resourceadm.about_resource_public_service_text')}
         </Paragraph>
         <div className={classes.inputWrapper}>
           <Switch
@@ -516,9 +455,13 @@ export const AboutResourcePage = ({
             ref={isPublicServiceRef}
             onBlur={handleSaveResource}
           />
-          <p
-            className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}
-          >{`Ressursen ${isPublicService ? 'skal' : 'skal ikke'} vises i offentlige kataloger.`}</p>
+          <p className={isPublicService ? classes.toggleTextActive : classes.toggleTextInactive}>
+            {t('resourceadm.about_resource_public_service_show_text', {
+              showText: isPublicService
+                ? t('resourceadm.about_resource_public_service_show')
+                : t('resourceadm.about_resource_public_service_dont_show'),
+            })}
+          </p>
         </div>
       </>
     );

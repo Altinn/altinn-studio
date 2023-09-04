@@ -14,6 +14,7 @@ import type {
   PolicyEditorUsage,
 } from '../../types';
 import { createNewPolicyResource } from '../../utils';
+import { useTranslation } from 'react-i18next';
 
 type ExpandablePolicyCardProps = {
   /**
@@ -103,6 +104,8 @@ export const ExpandablePolicyCard = ({
   savePolicy,
   usageType,
 }: ExpandablePolicyCardProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
   const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);
@@ -470,18 +473,18 @@ export const ExpandablePolicyCard = ({
    */
   const getRuleErrorText = (): string => {
     const arr: string[] = [];
-    if (hasResourceError) arr.push('sub-ressurs');
-    if (hasRightsError) arr.push('rettigheter');
-    if (hasSubjectsError) arr.push('roller');
+    if (hasResourceError) arr.push(t('policy_editor.policy_rule_missing_sub_resource'));
+    if (hasRightsError) arr.push(t('policy_editor.policy_rule_missing_actions'));
+    if (hasSubjectsError) arr.push(t('policy_editor.policy_rule_missing_subjects'));
 
     if (arr.length === 1) {
-      return `Regel ${policyRule.ruleId} mangler ${arr[0]}`;
+      return t('policy_editor.policy_rule_missing_1', { ruleId: policyRule.ruleId, missing: arr[0] });
     }
     if (arr.length === 2) {
-      return `Regel ${policyRule.ruleId} mangler ${arr[0]} og ${arr[1]}`;
+      return t('policy_editor.policy_rule_missing_2', { ruleId: policyRule.ruleId, missing1: arr[0], missing2: arr[1] });
     }
     if (arr.length === 3) {
-      return `Regel ${policyRule.ruleId} mangler ${arr[0]}, ${arr[1]} og ${arr[2]}`;
+      return t('policy_editor.policy_rule_missing_3', { ruleId: policyRule.ruleId, missing1: arr[0], missing2: arr[1], missing3: arr[2] });
     }
     return '';
   };
@@ -489,14 +492,14 @@ export const ExpandablePolicyCard = ({
   return (
     <div className={classes.cardWrapper}>
       <ExpandablePolicyElement
-        title={`Regel ${getPolicyRuleId()}`}
+        title={`${t('policy_editor.rule')} ${getPolicyRuleId()}`}
         isCard
         handleCloneElement={handleCloneRule}
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
         <Label className={classes.label} size='medium'>
-          Hvilken sub-ressurser skal regelen gjelde for?
+          {t('policy_editor.rule_card_sub_resource_title')}
         </Label>
         {displayResources}
         <div className={classes.addResourceButton}>
@@ -506,56 +509,55 @@ export const ExpandablePolicyCard = ({
             color='secondary'
             size='small'
             fullWidth
-            icon={<PlusIcon title='Legg til en innsnevring av sub-ressursen' fontSize='1.5rem' />}
+            icon={<PlusIcon title={t('policy_editor.rule_card_sub_resource_button')} fontSize='1.5rem' />}
           >
-            Legg til en sub-ressurs
+            {t('policy_editor.rule_card_sub_resource_button')}
           </Button>
         </div>
         {showErrors &&
           hasResourceError &&
-          displayWarningCard('Du må legge til minimum en sub-ressurs.')}
+          displayWarningCard(t('policy_editor.rule_card_sub_resource_error'))}
         <Label className={classes.label} size='medium'>
-          Hvilke rettigheter skal gis?
+          {t('policy_editor.rule_card_actions_title')}
         </Label>
         <div className={classes.dropdownWrapper}>
           <Select
             options={actionOptions}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
-            label={actionOptions.length === 0 ? 'Alle rettigheter er valgt' : 'Legg til rettighet'}
+            label={actionOptions.length === 0 ? t('policy_editor.rule_card_actions_select_all_selected') : t('policy_editor.rule_card_actions_select_add')}
             error={showErrors && hasRightsError}
           />
         </div>
         <div className={classes.chipWrapper}>{displayActions}</div>
-        {showErrors && hasRightsError && displayWarningCard('Du må velge minimum en rettighet.')}
+        {showErrors && hasRightsError && displayWarningCard(t('policy_editor.rule_card_actions_error'))}
         <Label className={classes.label} size='medium'>
-          Hvem skal ha disse rettighetene?
+          {t('policy_editor.rule_card_subjects_title')}
         </Label>
         <div className={classes.dropdownWrapper}>
           <Select
             options={subjectOptions}
             onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
             disabled={subjectOptions.length === 0}
-            label={subjectOptions.length === 0 ? 'Alle roller er valgt' : 'Legg til rolle'}
+            label={subjectOptions.length === 0 ? t('policy_editor.rule_card_subjects_select_all_selected') : t('policy_editor.rule_card_subjects_select_add')}
             error={showErrors && hasSubjectsError}
           />
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
-        {showErrors && hasSubjectsError && displayWarningCard('Du må velge minimum en rolle.')}
+        {showErrors && hasSubjectsError && displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
         <Label className={classes.label} size='medium'>
-          Legg til en beskrivelse av regelen
+          {t('policy_editor.rule_card_description_title')}
         </Label>
         <div className={classes.textAreaWrapper}>
           <TextArea
             resize='vertical'
-            placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
             aria-labelledby='ruleDescription'
             onBlur={() => savePolicy(rules)}
           />
-          <ScreenReaderSpan id='ruleDescription' label='Beskrivelse av regelen' />
+          <ScreenReaderSpan id='ruleDescription' label={t('policy_editor.rule_card_description_title')} />
         </div>
       </ExpandablePolicyElement>
       {showErrors && displayWarningCard(getRuleErrorText())}

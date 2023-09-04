@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Label, Alert } from '@digdir/design-system-react';
+import { Alert, Heading } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -22,6 +22,7 @@ import { SelectAuthLevel } from './components/SelectAuthLevel';
 import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
 import { deepCopy } from 'app-shared/pure';
+import { useTranslation } from 'react-i18next';
 
 type PolicyEditorProps = {
   /**
@@ -78,7 +79,7 @@ export const PolicyEditor = ({
   showAllErrors,
   usageType,
 }: PolicyEditorProps): React.ReactNode => {
-  // TODO - translation
+  const { t } = useTranslation();
 
   // TODO - Find out how this should be set. Issue: #10880
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource';
@@ -225,12 +226,20 @@ export const PolicyEditor = ({
     <div>
       <div className={classes.alertWrapper}>
         <Alert
-          iconTitle={`Du må ha minimum en regel for å publisere ${
-            usageType === 'app' ? 'appen' : 'ressursen'
-          }.`}
+          iconTitle={t('policy_editor.alert', {
+            usageType:
+              usageType === 'app'
+                ? t('policy_editor.alert_app')
+                : t('policy_editor.alert_resource'),
+          })}
           severity='info'
         >
-          Du må ha minimum en regel for å publisere {usageType === 'app' ? 'appen' : 'ressursen'}.
+          {t('policy_editor.alert', {
+            usageType:
+              usageType === 'app'
+                ? t('policy_editor.alert_app')
+                : t('policy_editor.alert_resource'),
+          })}
         </Alert>
       </div>
       <div className={classes.selectAuthLevelWrapper}>
@@ -238,24 +247,24 @@ export const PolicyEditor = ({
           <SelectAuthLevel
             value={requiredAuthLevel}
             setValue={(v) => setRequiredAuthLevel(v)}
-            label='Velg minimum påkrevd sikkerhetsnivå for bruker'
+            label={t('policy_editor.select_auth_level_label')}
             onBlur={() => handleSavePolicy(policyRules)}
           />
         </div>
       </div>
-      <Label size='medium' className={classes.label}>
-        Regler
-      </Label>
+      <Heading size='xxsmall' className={classes.label} level={2}>
+        {t('policy_editor.rules')}
+      </Heading>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
-        <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
+        <CardButton buttonText={t('policy_editor.card_button_text')} onClick={handleAddCardClick} />
       </div>
       <VerificationModal
         isOpen={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
-        text='Er du sikker på at du vil slette denne regelen?'
-        closeButtonText='Nei, gå tilbake'
-        actionButtonText='Ja, slett regel'
+        text={t('policy_editor.verification_modal_text')}
+        closeButtonText={t('policy_editor.verification_modal_action_button')}
+        actionButtonText={t('policy_editor.verification_modal_close_button')}
         onPerformAction={() => handleDeleteRule(ruleIdToDelete)}
       />
     </div>

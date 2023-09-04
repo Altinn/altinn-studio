@@ -4,6 +4,8 @@ import type { IUserState } from './sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from './test/testUtils';
+import * as testids from '../testing/testids';
+import { textMock } from '../testing/mocks/i18nMock';
 
 jest.mock('../language/src/nb.json', jest.fn());
 jest.mock('../language/src/en.json', jest.fn());
@@ -31,8 +33,9 @@ describe('App', () => {
         } as IUserState,
       },
     });
-    await screen.findByTestId('app-content-wrapper');
-    expect(screen.getByTestId('logout-warning')).toBeInTheDocument();
+    await screen.findByTestId(testids.appContentWrapper);
+    expect(screen.getByRole('button', { name: textMock('general.continue') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.sign_out') })).toBeInTheDocument();
   });
 
   it('should not present popover if session is over 10min', async () => {
@@ -47,7 +50,8 @@ describe('App', () => {
         } as IUserState,
       },
     });
-    await screen.findByTestId('app-content-wrapper');
-    expect(screen.queryByTestId('logout-warning')).not.toBeInTheDocument();
+    await screen.findByTestId(testids.appContentWrapper);
+    expect(screen.queryByRole('button', { name: textMock('general.continue') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: textMock('general.sign_out') })).not.toBeInTheDocument();
   });
 });

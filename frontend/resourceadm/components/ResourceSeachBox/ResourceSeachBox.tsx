@@ -1,8 +1,9 @@
 import React, { ChangeEvent } from 'react';
 import classes from './ResourceSeachBox.module.css';
 import { TextField } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next'
 
-type SearchBoxProps = {
+export type SearchBoxProps = {
   /**
    * Function to handle the change of value
    * @param value the value typed
@@ -20,14 +21,15 @@ type SearchBoxProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const SearchBox = ({ onChange }: SearchBoxProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
 
-  // TODO - translation
   return (
     <div className={classes.searchBox}>
-      <TextField onChange={handleChange} label='Søk etter en ressurs' />
+      <TextField onChange={handleChange} label={t('resourceadm.dashboard_searchbox')} />
     </div>
   );
 };

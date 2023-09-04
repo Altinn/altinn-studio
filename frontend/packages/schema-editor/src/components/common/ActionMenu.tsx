@@ -16,7 +16,6 @@ export interface IActionMenuItemProps {
   className?: string;
   icon: IconImage;
   text: string;
-  testId?: string;
 }
 
 export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProps) => (
@@ -35,8 +34,8 @@ export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProp
   </div>
 );
 
-const ActionMenuItem = ({ action, className, icon, text, testId }: IActionMenuItemProps) => (
-  <li className={cn(classes.item, className)} data-testid='menuitem-action-menu'>
+const ActionMenuItem = ({ action, className, icon, text }: IActionMenuItemProps) => (
+  <li className={cn(classes.item, className)}>
     <button
       className={classes.itemButton}
       name={text}
@@ -45,7 +44,6 @@ const ActionMenuItem = ({ action, className, icon, text, testId }: IActionMenuIt
         event.currentTarget.blur();
       }}
       role='menuitem'
-      data-testid={testId}
     >
       <Icon image={icon} className={classes.icon} />
       {text}

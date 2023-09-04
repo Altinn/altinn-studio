@@ -2,8 +2,9 @@ import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { useTranslation } from 'react-i18next'
 
-type ResourceDeployEnvCardProps = {
+export type ResourceDeployEnvCardProps = {
   /**
    * Flag for if deploy is possible or not
    */
@@ -40,7 +41,7 @@ export const ResourceDeployEnvCard = ({
   currentEnvVersion,
   newEnvVersion,
 }: ResourceDeployEnvCardProps): React.ReactNode => {
-  // TODO - Translation
+  const { t } = useTranslation();
 
   const handleOnClick = () => {
     console.log('Coming soon...');
@@ -52,16 +53,16 @@ export const ResourceDeployEnvCard = ({
         <strong>{envName}</strong>
       </Paragraph>
       <div className={classes.envWrapper}>
-        <Tag color='neutral' variant='outlined'>
-          <Paragraph size='small'>v{currentEnvVersion}</Paragraph>
+        <Tag color='neutral' variant='outlined' size='small'>
+          v{currentEnvVersion}
         </Tag>
         {newEnvVersion && (
           <>
             <div className={classes.arrowWrapper}>
-              <ArrowRightIcon title={`Ny versjon for ${envName}`} fontSize='1.5rem' />
+              <ArrowRightIcon title={t('resourceadm.deploy_card_arrow_icon', { env: envName })} fontSize='1.5rem' />
             </div>
-            <Tag color='success' variant='outlined'>
-              <Paragraph size='small'>v{newEnvVersion}</Paragraph>
+            <Tag color='success' variant='outlined' size='small'>
+              v{newEnvVersion}
             </Tag>
           </>
         )}
@@ -69,10 +70,10 @@ export const ResourceDeployEnvCard = ({
       <div className={classes.buttonWrapper}>
         <Button
           aria-disabled={!isDeployPossible}
-          onClick={isDeployPossible ? handleOnClick : undefined}
+          onClick={() => isDeployPossible ? handleOnClick() : undefined}
           size='small'
         >
-          Publiser til {envName}
+          {t('resourceadm.deploy_card_publish', { env: envName })}
         </Button>
       </div>
     </div>

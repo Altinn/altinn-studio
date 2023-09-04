@@ -29,8 +29,8 @@ export const TextResourceEdit = () => {
     <LegacyFieldSet
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id', { id: editId })}
-      className={classes.textBoxList}
     >
+      <div className={classes.textBoxList}>
       {languages.map((language) => (
         <TextBox
           key={language}
@@ -44,11 +44,12 @@ export const TextResourceEdit = () => {
         color='secondary'
         icon={<XMarkIcon />}
         onClick={() => setEditId(undefined)}
-        variant='outline'
+        variant='filled'
         size='small'
       >
         {t('general.close')}
       </Button>
+      </div>
     </LegacyFieldSet>
   );
 };

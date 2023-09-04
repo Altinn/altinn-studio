@@ -2,8 +2,9 @@ import React from 'react';
 import classes from './NavigationModal.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
+import { useTranslation } from 'react-i18next'
 
-type NavigationModalProps = {
+export type NavigationModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -41,21 +42,21 @@ export const NavigationModal = ({
   onNavigate,
   title,
 }: NavigationModalProps): React.ReactNode => {
-  // TODO - translation
+  const { t } = useTranslation();
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <Paragraph size='small'>
-        Noen felt på siden har manglende informasjon eller feil i utfylling. Du kan endre eller
-        fikse informasjonen når som helst før ressursen publiseres.
+        {t('resourceadm.resource_navigation_modal_text')}
       </Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
           <Button onClick={onClose} color='primary' variant='quiet' size='small'>
-            Bli på siden
+            {t('resourceadm.resource_navigation_modal_button_stay')}
           </Button>
         </div>
         <Button onClick={onNavigate} color='primary' size='small'>
-          Gå videre
+          {t('resourceadm.resource_navigation_modal_button_move_on')}
         </Button>
       </div>
     </Modal>

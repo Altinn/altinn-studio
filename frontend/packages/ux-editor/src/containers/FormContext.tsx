@@ -39,6 +39,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { org, app } = useParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
+  const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSetName);
   const prevSelectedLayoutNameRef = useRef(selectedLayoutName);
 
   const autoSaveTimeoutRef = useRef(undefined);
@@ -88,11 +89,9 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   }, [handleComponentSave, handleContainerSave]);
 
   const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {
-    if (updatedForm) {
-      dispatch(setCurrentEditId(undefined));
-      setFormId(updatedForm?.id);
-      setForm(updatedForm);
-    }  
+    dispatch(setCurrentEditId(undefined));
+    setFormId(updatedForm?.id);
+    setForm(updatedForm);
   }, [dispatch]);
 
   const handleDiscard = useCallback((): void => {
@@ -109,14 +108,16 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
 
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
-      if (prevSelectedLayoutNameRef.current === selectedLayoutName) return;
+      if (prevSelectedLayoutSetNameRef.current === selectedLayoutSetName &&
+        prevSelectedLayoutNameRef.current === selectedLayoutName) return;
       await handleSave();
       handleDiscard();
+      prevSelectedLayoutSetNameRef.current = selectedLayoutName;
       prevSelectedLayoutNameRef.current = selectedLayoutName;
     };
 
     autoSaveOnLayoutChange();
-  }, [handleDiscard, handleSave, selectedLayoutName]);
+  }, [handleDiscard, handleSave, selectedLayoutSetName, selectedLayoutName]);
 
   const value = useMemo(() => ({
     formId,

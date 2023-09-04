@@ -29,6 +29,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 import { PageSpinner } from 'app-shared/components';
+import * as testids from '../testing/testids';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -147,7 +148,6 @@ export function App() {
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <AltinnPopoverSimple
-        testId='logout-warning'
         anchorEl={sessionExpiredPopoverRef.current}
         open={remainingSessionMinutes < 11}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -163,7 +163,7 @@ export function App() {
       </AltinnPopoverSimple>
       <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
 
-      <div className={classes.contentWrapper} data-testid={'app-content-wrapper'}>
+      <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
         {repoStatus.hasMergeConflict ? (
           <MergeConflictWarning org={org} app={app} />
         ) : (

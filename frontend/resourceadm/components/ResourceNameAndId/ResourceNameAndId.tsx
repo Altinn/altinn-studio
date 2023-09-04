@@ -2,8 +2,9 @@ import React from 'react';
 import classes from './ResourceNameAndId.module.css';
 import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { useTranslation } from 'react-i18next'
 
-type ResourceNameAndIdProps = {
+export type ResourceNameAndIdProps = {
   /**
    * Flag to decide if the edit ID is open or not
    */
@@ -76,6 +77,8 @@ export const ResourceNameAndId = ({
   resourceIdExists,
   bothFieldsHaveSameValue,
 }: ResourceNameAndIdProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   /**
    * Replaces spaces and '.' with '-' so that the ID looks correct
    *
@@ -103,30 +106,23 @@ export const ResourceNameAndId = ({
     }
   };
 
-  return (
-    <>
-      <Paragraph size='small'>{text}</Paragraph>
-      <Label className={classes.label} size='small'>
-        Ressursnavn (Bokmål)
-      </Label>
-      <div className={classes.textfieldWrapper}>
-        <TextField
-          value={title}
-          onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label='Ressursnavn (Bokmål)'
-        />
-      </div>
-      <Label className={classes.label} size='small'>
-        Ressurs id
-      </Label>
-      <div className={classes.editFieldWrapper}>
-        {isEditOpen ? (
-          <>
+  /**
+   * Displays either the id input field or the id text
+   * @returns ReactNode
+   */
+  const DisplayIdTextOrInput = () => {
+    if (isEditOpen) {
+      return (
+        <>
+          <Label className={classes.label} size='small' htmlFor='resourceIdInputId' >
+            {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+          </Label>
+          <div className={classes.editFieldWrapper}>
             <div className={classes.textfieldWrapper}>
               <TextField
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
-                aria-label='Ressurs id'
+                id='resourceIdInputId'
                 isValid={!resourceIdExists}
               />
             </div>
@@ -136,45 +132,68 @@ export const ResourceNameAndId = ({
                   onClick={() => handleClickEditButton(false)}
                   variant='quiet'
                   color='danger'
-                  icon={<MultiplyIcon title='Slett ny ressurs id' />}
+                  icon={<MultiplyIcon title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')} />}
                   size='small'
                 />
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
                 variant='quiet'
-                icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
+                icon={<CheckmarkIcon title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')} />}
                 size='small'
               />
             </div>
-          </>
-        ) : (
-          <>
-            <div className={classes.idBox}>
-              <p className={classes.idText}>id</p>
-            </div>
-            <Paragraph size='small'>
-              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-              altinn.svv.<strong>{getIdToDisplay()}</strong>
-            </Paragraph>
-            <div className={classes.editButtonWrapper}>
-              <Button
-                onClick={() => handleClickEditButton(false)}
-                iconPlacement='right'
-                icon={<PencilWritingIcon title='Endre ressurs id' />}
-                variant='quiet'
-                color='primary'
-                size='small'
-              >
-                Rediger
-              </Button>
-            </div>
-          </>
-        )}
+          </div>
+        </>
+      )
+    }
+    return (
+      <>
+       <Paragraph className={classes.label} size='small' >
+          {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+        </Paragraph>
+        <div className={classes.editFieldWrapper}>
+          <div className={classes.idBox}>
+            <p className={classes.idText}>id</p>
+          </div>
+          <Paragraph size='small'>
+            {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
+            altinn.svv.<strong>{getIdToDisplay()}</strong>
+          </Paragraph>
+          <div className={classes.editButtonWrapper}>
+            <Button
+              onClick={() => handleClickEditButton(false)}
+              iconPlacement='right'
+              icon={<PencilWritingIcon />}
+              variant='quiet'
+              color='primary'
+              size='small'
+            >
+              {t('general.edit')}
+            </Button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Paragraph size='small'>{text}</Paragraph>
+      <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
+        {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
+      </Label>
+      <div className={classes.textfieldWrapper}>
+        <TextField
+          value={title}
+          onChange={(e) => handleEditTitle(e.target.value)}
+          id='resourceNameInputId'
+        />
       </div>
+      <DisplayIdTextOrInput />
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <ErrorMessage size='small'>Ressurs med valgt id eksisterer allerede.</ErrorMessage>
+          <ErrorMessage size='small'>{t('resourceadm.dashboard_resource_name_and_id_error')}</ErrorMessage>
         )}
       </div>
     </>

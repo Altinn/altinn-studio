@@ -3,6 +3,7 @@ import classes from './PolicyResourceFields.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { useTranslation } from 'react-i18next';
 
 type PolicyResourceFieldsProps = {
   /**
@@ -66,12 +67,13 @@ export const PolicyResourceFields = ({
   onChangeType,
   onBlur,
 }: PolicyResourceFieldsProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.inputWrapper}>
         <div className={classes.textfieldWrapper}>
           <TextField
-            placeholder='Type'
             value={valueType}
             label={!canEditTypeAndId && 'Type'}
             onChange={(e) => onChangeType(e.target.value)}
@@ -79,11 +81,10 @@ export const PolicyResourceFields = ({
             aria-labelledby='resourceType'
             onBlur={onBlur}
           />
-          <ScreenReaderSpan id='resourceType' label='Ressurstype' />
+          <ScreenReaderSpan id='resourceType' label={t('policy_editor.narrowing_list_field_type')} />
         </div>
         <div className={classes.textfieldWrapper}>
           <TextField
-            placeholder='Id'
             value={valueId}
             label={!canEditTypeAndId && 'Id'}
             onChange={(e) => onChangeId(e.target.value)}
@@ -91,14 +92,14 @@ export const PolicyResourceFields = ({
             aria-labelledby='resourceId'
             onBlur={onBlur}
           />
-          <ScreenReaderSpan id='resourceId' label='Ressurs id' />
+          <ScreenReaderSpan id='resourceId' label={t('policy_editor.narrowing_list_field_id')} />
         </div>
       </div>
       <div className={classes.buttonWrapper}>
         {canEditTypeAndId && (
           <Button
             variant='quiet'
-            icon={<MultiplyIcon title='Fjern ressursen' />}
+            icon={<MultiplyIcon title={t('policy_editor.narrowing_list_field_delete')} />}
             aria-disabled={!canEditTypeAndId}
             onClick={onRemove}
             color='danger'

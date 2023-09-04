@@ -5,7 +5,7 @@ import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { Dynamics } from './Dynamics';
+import { Expressions } from '../config/Expressions';
 import { Accordion } from '@digdir/design-system-react';
 import { FormContext } from '../../containers/FormContext';
 
@@ -15,7 +15,7 @@ export interface RightMenuProps {
 
 export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
-  const [showNewDynamics, setShowNewDynamics] = React.useState<boolean>(false);
+  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(false);
   const { formId } = useContext(FormContext);
   const formIdRef = React.useRef(formId);
 
@@ -37,7 +37,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
   };
 
   return (
-    <div className={cn(className, classes.rightMenu)} data-testid={'ux-editor.right-menu'}>
+    <div className={cn(className, classes.rightMenu)}>
       <Accordion color="subtle">
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>{t('right_menu.content')}</Accordion.Header>
@@ -49,9 +49,9 @@ export const RightMenu = ({ className }: RightMenuProps) => {
           <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>{t('right_menu.dynamics')}</Accordion.Header>
           <Accordion.Content>
           {
-            showNewDynamics ?
-            <Dynamics onShowNewDynamics={setShowNewDynamics} showNewDynamics={showNewDynamics}/> :
-            <ConditionalRendering onShowNewDynamics={setShowNewDynamics} showNewDynamics={showNewDynamics}/>
+            showNewExpressions ?
+            <Expressions onShowNewExpressions={setShowNewExpressions} showNewExpressions={showNewExpressions}/> :
+            <ConditionalRendering onShowNewExpressions={setShowNewExpressions} showNewExpressions={showNewExpressions}/>
           }
           </Accordion.Content>
         </Accordion.Item>

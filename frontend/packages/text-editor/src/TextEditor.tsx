@@ -81,7 +81,6 @@ export const TextEditor = ({
             variant='filled'
             color='primary'
             onClick={handleAddNewEntryClick}
-            data-testid='text-editor-btn-add'
             size='small'
           >
             {t('text_editor.new_text')}

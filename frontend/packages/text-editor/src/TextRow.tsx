@@ -64,7 +64,7 @@ export const TextRow = ({
   };
 
   return (
-    <TableRow data-testid={'lang-row'}>
+    <TableRow>
       <TableCell>
         {showButton && (
           <AltinnConfirmDialog

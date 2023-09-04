@@ -7,6 +7,7 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import * as testids from '../../../../../testing/testids';
 
 const user = userEvent.setup();
 
@@ -27,10 +28,10 @@ describe('XSDUpload', () => {
   it('should show file picker button', () => {
     render();
 
-    const button = screen.getByText(textMock('app_data_modelling.upload_xsd'));
+    const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
     expect(button).toBeInTheDocument();
 
-    const fileInput = screen.queryByTestId('FileSelector-input');
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
     expect(fileInput).toBeInTheDocument();
   });
 
@@ -45,7 +46,7 @@ describe('XSDUpload', () => {
       screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload'))
     ).not.toBeInTheDocument();
 
-    const fileInput = screen.getByTestId('FileSelector-input');
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
     await act(() => user.upload(fileInput, file));
 
@@ -64,7 +65,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId('FileSelector-input');
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
     await act(() => user.upload(fileInput, file));
 

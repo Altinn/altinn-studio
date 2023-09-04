@@ -251,6 +251,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             WriteTypeRestrictions(classBuilder, element.XsdValueType.Value, errorMessage);
         }
+
         private void WriteRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage, out bool hasRange)
         {
             hasRange = false;
@@ -269,17 +270,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[MaxLength(" + maxLengthRestriction.Value + errorMessage + ")]");
             }
 
-            if (element.Restrictions.TryGetValue("minInclusive", out var minInclusiveRestriction) && element.Restrictions.TryGetValue("maxInclusive", out var maxExclusiveRestriction))
+            WriteRangeRestriction(classBuilder, element, errorMessage, "minInclusive", "maxInclusive", out hasRange);
+            if (!hasRange)
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + minInclusiveRestriction.Value + ", " + maxExclusiveRestriction.Value + errorMessage + ")]");
-                hasRange = true;
+                WriteRangeRestriction(classBuilder, element, errorMessage, "minimum", "maximum", out hasRange);
             }
 
-            if (element.Restrictions.TryGetValue("minimum", out var minimumRestriction) && element.Restrictions.TryGetValue("maximum", out var maximumRestriction))
-            {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + minimumRestriction.Value + ", " + maximumRestriction.Value + errorMessage + ")]");
-                hasRange = true;
-            }
 
             if (element.Restrictions.TryGetValue("pattern", out var patternRestriction))
             {
@@ -296,31 +292,59 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     Indent(2) + $@"[RegularExpression(@""{regexString}""{errorMessage})]");
             }
         }
+
+        private void WriteRangeRestriction(StringBuilder classBuilder, ElementMetadata element, string errorMessage, string leftRestrictionName, string rightRestrictionName, out bool hasRange)
+        {
+            hasRange = false;
+            bool hasMinimum = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
+            bool hasMaximum = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
+
+            if (hasMinimum && hasMaximum)
+            {
+                classBuilder.AppendLine($"{Indent(2)}[Range({GetRangeValueAsString(element, minRestriction)}, {GetRangeValueAsString(element, maxRestriction)}{errorMessage})]");
+                hasRange = true;
+            }
+            else if (hasMinimum)
+            {
+                classBuilder.AppendLine($"{Indent(2)}[Range({GetRangeValueAsString(element, minRestriction)}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
+                hasRange = true;
+            }
+            else if (hasMaximum)
+            {
+                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {GetRangeValueAsString(element, maxRestriction)}{errorMessage})]");
+                hasRange = true;
+            }
+        }
+
+        private static string GetRangeValueAsString(ElementMetadata element, Restriction restriction)
+        {
+            string value = restriction?.Value ?? string.Empty;
+            bool isAlreadyDecimal = value.Contains('.') || value.Contains(',');
+            // Use decimal range value for all types except int and long
+            if (!isAlreadyDecimal && element.XsdValueType.HasValue && !new[]
+                {
+                    BaseValueType.Int, BaseValueType.Long
+                }.Contains(element.XsdValueType.Value))
+            {
+                value = $"{value}d";
+            }
+            return value;
+        }
+
         private void WriteTypeRestrictions(StringBuilder classBuilder, BaseValueType type, string errorMessage)
         {
 
             switch (type)
             {
                 case BaseValueType.Double:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
-                    break;
                 case BaseValueType.Int:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
-                    break;
                 case BaseValueType.Integer:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
-                    break;
+                case BaseValueType.Long:
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,-1" + errorMessage + ")]");
-                    break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,0" + errorMessage + ")]");
-                    break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(0,Double.MaxValue" + errorMessage + ")]");
-                    break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(1,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
                     classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
@@ -345,6 +369,34 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     break;
             }
         }
+
+        private static string LeftRangeLimit(BaseValueType type) => type switch
+        {
+            BaseValueType.Int => "Int32.MinValue",
+            BaseValueType.Integer => "Double.MinValue",
+            BaseValueType.NegativeInteger => "Double.MinValue",
+            BaseValueType.NonPositiveInteger => "Double.MinValue",
+            BaseValueType.NonNegativeInteger => "0",
+            BaseValueType.PositiveInteger => "1",
+            BaseValueType.Decimal => "Double.MinValue",
+            BaseValueType.Double => "Double.MinValue",
+            BaseValueType.Long => "Int64.MinValue",
+            _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
+        };
+
+        private static string RightRangeLimit(BaseValueType? type) => type switch
+        {
+            BaseValueType.Int => "Int32.MaxValue",
+            BaseValueType.Integer => "Double.MaxValue",
+            BaseValueType.NegativeInteger => "-1",
+            BaseValueType.NonPositiveInteger => "0",
+            BaseValueType.NonNegativeInteger => "Double.MaxValue",
+            BaseValueType.PositiveInteger => "Double.MaxValue",
+            BaseValueType.Decimal => "Double.MaxValue",
+            BaseValueType.Double => "Double.MaxValue",
+            BaseValueType.Long => "Int64.MaxValue",
+            _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
+        };
 
         private static (string DataType, bool IsValueType) GetPropertyType(BaseValueType? typeName)
         {
