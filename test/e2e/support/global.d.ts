@@ -89,10 +89,15 @@ declare global {
       isVisible(): Chainable<Element>;
 
       /**
-       * Instantiate statefull instance from ttd/stateless-app
+       * Instantiate stateful instance from ttd/stateless-app
        * @example cy.startStateFullFromStateless()
        */
-      startStateFullFromStateless(): Chainable<Element>;
+      startStatefulFromStateless(): Chainable<Element>;
+
+      /**
+       * Force moving to the next task in the process
+       */
+      moveProcessNext(): Chainable<Element>;
 
       /**
        * Get the current redux state

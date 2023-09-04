@@ -1,40 +1,40 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-
 const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
-  it('is possible to view simple receipt when auto delete is true', () => {
+  it('feedback task should work, and it should be possible to view simple receipt when auto delete is true', () => {
     cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
     cy.startAppInstance(appFrontend.apps.stateless);
     cy.wait('@getLayoutStateless');
-    cy.startStateFullFromStateless();
+    cy.startStatefulFromStateless();
     cy.intercept('PUT', '**/process/next*').as('nextProcess');
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
-    cy.url().then((url) => {
-      const maybeInstanceId = getInstanceIdRegExp().exec(url);
-      const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
-      const baseUrl =
-        Cypress.env('environment') === 'local'
-          ? Cypress.config().baseUrl || ''
-          : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}`;
-      const requestUrl = `${baseUrl}/ttd/${appFrontend.apps.stateless}/instances/${instanceId}/process/next`;
-      cy.getCookie('XSRF-TOKEN').then((xsrfToken) => {
-        cy.request({
-          method: 'PUT',
-          url: requestUrl,
-          headers: {
-            'X-XSRF-TOKEN': xsrfToken?.value,
-          },
-        })
-          .its('status')
-          .should('eq', 200);
-      });
-      cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
-      cy.snapshot('stateless:receipt');
-    });
+
+    cy.get('#firmanavn').type('Foo bar AS');
+    cy.get('#orgnr').type('12345678901');
+    cy.get(appFrontend.sendinButton).click();
+    cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
+
+    cy.get(appFrontend.feedback).should(
+      'contain.text',
+      'Du må flytte instansen til neste prosess med et API kall til process/next',
+    );
+    cy.get(appFrontend.feedback).should('contain.text', 'Firmanavn: Foo bar AS');
+    cy.get(appFrontend.feedback).should('contain.text', 'Org.nr: 12345678901');
+
+    const userFirstName = Cypress.env('defaultFirstName');
+    cy.get(appFrontend.feedback).should('contain.text', `Navn: ${userFirstName}`);
+    cy.get(appFrontend.feedback).should('contain.text', 'ID: 1364');
+
+    cy.snapshot('stateless:feedback');
+
+    cy.moveProcessNext();
+    cy.get(appFrontend.feedback).should('not.exist');
+
+    cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
+    cy.snapshot('stateless:receipt');
   });
 });

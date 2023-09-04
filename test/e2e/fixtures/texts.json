@@ -8,7 +8,6 @@
   "dateOfEffect": "Når vil du at navnendringen skal skje?",
   "downloadAttachment": "last ned",
   "errorReport": "Du må rette disse feilene før du kan gå videre",
-  "feedback": "Du må flytte instansen til neste prosess med et API kall til process/next",
   "goToRightPage": "Gå til riktig side i skjema",
   "infoMessage": "Dette er en infomelding",
   "missingRights": "Du mangler rettigheter for å se denne tjenesten",

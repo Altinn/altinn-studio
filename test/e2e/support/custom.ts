@@ -5,6 +5,7 @@ import type axe from 'axe-core';
 import type { Options as AxeOptions } from 'cypress-axe';
 
 import { breakpoints } from 'src/hooks/useIsMobile';
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { ILayouts } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -364,12 +365,37 @@ Cypress.Commands.add(
   },
 );
 
-Cypress.Commands.add('startStateFullFromStateless', () => {
+Cypress.Commands.add('startStatefulFromStateless', () => {
   cy.intercept('POST', '**/instances/create').as('createInstance');
-  cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
   cy.get(appFrontend.instantiationButton).click();
   cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
-  cy.wait('@getLayoutSettings');
+});
+
+Cypress.Commands.add('moveProcessNext', () => {
+  cy.url().then((url) => {
+    const maybeInstanceId = getInstanceIdRegExp().exec(url);
+    const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
+    const baseUrl =
+      Cypress.env('environment') === 'local'
+        ? Cypress.config().baseUrl || ''
+        : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}`;
+    const urlPath = url.replace(baseUrl, '');
+    const org = urlPath.split(/[/#]/)[1];
+    const app = urlPath.split(/[/#]/)[2];
+    const requestUrl = `${baseUrl}/${org}/${app}/instances/${instanceId}/process/next`;
+
+    cy.getCookie('XSRF-TOKEN').then((xsrfToken) => {
+      cy.request({
+        method: 'PUT',
+        url: requestUrl,
+        headers: {
+          'X-XSRF-TOKEN': xsrfToken?.value,
+        },
+      })
+        .its('status')
+        .should('eq', 200);
+    });
+  });
 });
 
 Cypress.Commands.add('getReduxState', (selector) =>
