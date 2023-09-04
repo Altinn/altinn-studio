@@ -75,10 +75,6 @@ export const AboutResourcePage = ({
 
   const { resourceId } = useParams();
 
-  //
-  // TODO - CHECK THAT THE TAB SEQUENCE IS CORRECT
-  //
-
   /**
    * Resource type options
    */

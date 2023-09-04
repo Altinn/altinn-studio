@@ -30,7 +30,9 @@ export interface ResourceContactPoint {
 }
 
 export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
+
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
+
 export type ResourceAvailableForTypeOption =
   | 'PrivatePerson'
   | 'LegalEntityEnterprise'

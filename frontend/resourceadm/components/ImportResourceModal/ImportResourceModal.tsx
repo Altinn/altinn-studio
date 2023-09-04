@@ -3,13 +3,9 @@ import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
+import { EnvironmentType, ServiceType } from 'resourceadm/types/global';
 
-// TODO MOVE to types folder when the types are 100% agreed on.
-type EnvironmentType = 'AT21' | 'AT22' | 'AT23' | 'AT24' | 'TT02' | 'PROD';
-interface ServiceType {
-  name: string;
-}
 const dummyServices: ServiceType[] = [
   { name: 'Service1' },
   { name: 'Service2' },
@@ -177,7 +173,11 @@ export const ImportResourceModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dashboard_import_modal_title')}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={t('resourceadm.dashboard_import_modal_title')}
+    >
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
