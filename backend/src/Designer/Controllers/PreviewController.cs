@@ -617,7 +617,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A List of form layouts as byte array</returns>
         [HttpGet]
         [Route("api/layouts/{layoutSetName}")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayoutsForStatefulApps(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
@@ -661,7 +661,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Rule handler as string or no content if not found</returns>
         [HttpGet]
         [Route("api/rulehandler/{layoutSetName}")]
-        public async Task<ActionResult<string>> GetRuleHandler(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> GetRuleHandlerStateful(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
@@ -710,7 +710,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Rule configuration as string or no content if not found</returns>
         [HttpGet]
         [Route("api/ruleconfiguration/{layoutSetName}")]
-        public async Task<ActionResult<string>> GetRuleConfiguration(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> GetRuleConfigurationStateful(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
