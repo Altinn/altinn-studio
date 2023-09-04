@@ -1,0 +1,26 @@
+name: Dotnet test docker
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  dotnet-format-check:
+    name: Dotnet Test
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:6.0.410-alpine3.18 # hardcode version until microsoft fixes issue in github runners
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Test
+        run: |
+           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m
