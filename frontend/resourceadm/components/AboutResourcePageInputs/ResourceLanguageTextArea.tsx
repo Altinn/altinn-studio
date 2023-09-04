@@ -1,4 +1,4 @@
-import React, { Ref } from 'react';
+import React, { forwardRef } from 'react';
 import classes from './AboutResourcePageInputs.module.css';
 import { Paragraph, Label, TextArea } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
@@ -36,10 +36,6 @@ type ResourceLanguageTextAreaProps = {
    */
   isValid: boolean;
   /**
-   * ref of the field
-   */
-  ref?: Ref<HTMLTextAreaElement>;
-  /**
    * Function to be executed on key down
    */
   onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
@@ -69,50 +65,58 @@ type ResourceLanguageTextAreaProps = {
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {string}[id] - The id of the field
  * @property {boolean}[isValid] - Flag for if the value is valid
- * @property {Ref<HTMLInputElement>}[ref] - ref of the field
- * @property {React.KeyboardEventHandler<HTMLInputElement>}[onKeyDown] - Function to be executed on key down
+ * @property {React.KeyboardEventHandler<HTMLTextAreaElement>}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
  * @property {string}[errorText] - The text to be shown
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceLanguageTextArea = ({
-  label,
-  description,
-  value,
-  onChangeValue,
-  onFocus,
-  id,
-  isValid,
-  ref,
-  onKeyDown,
-  onBlur,
-  showErrorMessage = false,
-  errorText,
-}: ResourceLanguageTextAreaProps): React.ReactNode => {
-  return (
-    <>
-      <div className={classes.divider} />
-      <Label size='medium' spacing htmlFor={id}>
-        {label}
-      </Label>
-      <Paragraph size='small'>{description}</Paragraph>
-      <div className={classes.inputWrapper}>
-        <TextArea
-          value={value}
-          resize='vertical'
-          onChange={(e) => onChangeValue(e.currentTarget.value)}
-          onFocus={onFocus}
-          rows={5}
-          id={id}
-          isValid={isValid}
-          ref={ref}
-          onKeyDown={onKeyDown}
-          onBlur={onBlur}
-        />
-        {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
-      </div>
-    </>
-  );
-};
+export const ResourceLanguageTextArea = forwardRef<
+  HTMLTextAreaElement,
+  ResourceLanguageTextAreaProps
+>(
+  (
+    {
+      label,
+      description,
+      value,
+      onChangeValue,
+      onFocus,
+      id,
+      isValid,
+      onKeyDown,
+      onBlur,
+      showErrorMessage = false,
+      errorText,
+    },
+    ref
+  ): React.ReactNode => {
+    return (
+      <>
+        <div className={classes.divider} />
+        <Label size='medium' spacing htmlFor={id}>
+          {label}
+        </Label>
+        <Paragraph size='small'>{description}</Paragraph>
+        <div className={classes.inputWrapper}>
+          <TextArea
+            value={value}
+            resize='vertical'
+            onChange={(e) => onChangeValue(e.currentTarget.value)}
+            onFocus={onFocus}
+            rows={5}
+            id={id}
+            isValid={isValid}
+            ref={ref}
+            onKeyDown={onKeyDown}
+            onBlur={onBlur}
+          />
+          {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
+        </div>
+      </>
+    );
+  }
+);
+
+ResourceLanguageTextArea.displayName = 'ResourceLanguageTextArea';

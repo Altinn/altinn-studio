@@ -1,4 +1,4 @@
-import React, { Ref, useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, forwardRef } from 'react';
 import classes from './AboutResourcePageInputs.module.css';
 import { TextField, Paragraph, Label } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
@@ -30,10 +30,6 @@ type ResourceTextFieldProps = {
    */
   isValid?: boolean;
   /**
-   * ref of the field
-   */
-  ref?: Ref<HTMLInputElement>;
-  /**
    * Function to be executed on key down
    */
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>, value: string) => void;
@@ -63,7 +59,6 @@ type ResourceTextFieldProps = {
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {string}[id] - The id of the field
  * @property {boolean}[isValid] - Flag for if the value is valid
- * @property {Ref<HTMLInputElement>}[ref] - ref of the field
  * @property {function}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
@@ -71,43 +66,49 @@ type ResourceTextFieldProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTextField = ({
-  label,
-  description,
-  value,
-  onFocus,
-  id,
-  isValid = true,
-  ref,
-  onKeyDown,
-  onBlur,
-  showErrorMessage = false,
-  errorText,
-}: ResourceTextFieldProps): React.ReactNode => {
-  const [val, setVal] = useState(value);
+export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldProps>(
+  (
+    {
+      label,
+      description,
+      value,
+      onFocus,
+      id,
+      isValid = true,
+      onKeyDown,
+      onBlur,
+      showErrorMessage = false,
+      errorText,
+    },
+    ref
+  ): React.ReactNode => {
+    const [val, setVal] = useState(value);
 
-  return (
-    <>
-      <div className={classes.divider} />
-      <Label size='medium' spacing htmlFor={id}>
-        {label}
-      </Label>
-      <Paragraph size='small'>{description}</Paragraph>
-      <div className={classes.inputWrapper}>
-        <TextField
-          value={val}
-          onChange={(e) => {
-            setVal(e.target.value);
-          }}
-          onFocus={onFocus}
-          id={id}
-          isValid={isValid}
-          ref={ref}
-          onKeyDown={(e) => (onKeyDown ? onKeyDown(e, val) : undefined)}
-          onBlur={() => onBlur(val)}
-        />
-      </div>
-      {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
-    </>
-  );
-};
+    return (
+      <>
+        <div className={classes.divider} />
+        <Label size='medium' spacing htmlFor={id}>
+          {label}
+        </Label>
+        <Paragraph size='small'>{description}</Paragraph>
+        <div className={classes.inputWrapper}>
+          <TextField
+            value={val}
+            onChange={(e) => {
+              setVal(e.target.value);
+            }}
+            onFocus={onFocus}
+            id={id}
+            isValid={isValid}
+            ref={ref}
+            onKeyDown={(e) => (onKeyDown ? onKeyDown(e, val) : undefined)}
+            onBlur={() => onBlur(val)}
+          />
+        </div>
+        {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
+      </>
+    );
+  }
+);
+
+ResourceTextField.displayName = 'ResourceTextField';

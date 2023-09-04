@@ -1,4 +1,4 @@
-import React, { Ref, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './AboutResourcePageInputs.module.css';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { Switch } from '../Switch';
@@ -36,10 +36,6 @@ type ResourceSwitchInputProps = {
    * The translation key to be put inside the translation function
    */
   toggleTextTranslationKey: string;
-  /**
-   * The ref of the field
-   */
-  ref?: Ref<HTMLInputElement>;
 };
 
 /**
@@ -53,7 +49,6 @@ type ResourceSwitchInputProps = {
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {string}[id] - The id of the field
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
- * @property {Ref<HTMLInputElement>}[ref] - ref of the field
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -65,7 +60,6 @@ export const ResourceSwitchInput = ({
   onBlur,
   id,
   toggleTextTranslationKey,
-  ref,
 }: ResourceSwitchInputProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -87,7 +81,6 @@ export const ResourceSwitchInput = ({
           onFocus={onFocus}
           onBlur={() => onBlur(isChecked)}
           id={id}
-          ref={ref}
         />
         <p className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}>
           {t(toggleTextTranslationKey, {

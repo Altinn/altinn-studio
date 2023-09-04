@@ -4,7 +4,7 @@ import { GlobeIcon } from '@navikt/aksel-icons';
 import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type RightTranslationBarProps = {
   /**
@@ -81,8 +81,13 @@ export const RightTranslationBar = forwardRef<
       e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
       if (e.key === 'Tab') {
-        e.preventDefault();
-        onLeaveLastField(e);
+        if (e.shiftKey) {
+          // TODO - Handle Tab backwards as well. Issue: #10989
+        } else {
+          e.preventDefault();
+          // Tab was pressed without Shift, perform custom behavior (onLeaveLastField)
+          onLeaveLastField(e);
+        }
       }
     };
 
@@ -99,7 +104,7 @@ export const RightTranslationBar = forwardRef<
             label={label}
             isValid={!(showErrors && value[lang] === '')}
             ref={!isLast ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
-            onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
+            onKeyDown={(e) => (isLast ? handleTabOutOfTranslationBar(e) : undefined)}
             onBlur={onBlur}
           />
         );
@@ -111,7 +116,7 @@ export const RightTranslationBar = forwardRef<
           label={label}
           isValid={!(showErrors && value[lang] === '')}
           ref={!isLast ? (ref as React.Ref<HTMLInputElement>) : undefined}
-          onKeyDown={isLast ? handleTabOutOfTranslationBar : undefined}
+          onKeyDown={(e) => (isLast ? handleTabOutOfTranslationBar(e) : undefined)}
           onBlur={onBlur}
         />
       );
@@ -120,16 +125,18 @@ export const RightTranslationBar = forwardRef<
     return (
       <div className={classes.wrapper}>
         <div className={classes.topWrapper}>
-          <GlobeIcon title={t('resourceadm.right_translation_bar_translation')} fontSize='1.5rem' className={classes.icon} />
+          <GlobeIcon
+            title={t('resourceadm.right_translation_bar_translation')}
+            fontSize='1.5rem'
+            className={classes.icon}
+          />
           <Heading size='xsmall' level={2} className={classes.topText}>
             {t('resourceadm.right_translation_bar_title')}
           </Heading>
         </div>
         <div className={classes.bodyWrapper}>
           <Alert severity='info'>
-            <Paragraph size='small'>
-              {t('resourceadm.right_translation_bar_alert')}
-            </Paragraph>
+            <Paragraph size='small'>{t('resourceadm.right_translation_bar_alert')}</Paragraph>
           </Alert>
           <div className={classes.inputWrapper}>{displayNField('nn', false)}</div>
           <div className={classes.inputWrapper}>{displayNField('en', true)}</div>

@@ -134,7 +134,7 @@ export const AboutResourcePage = ({
   const descriptionFieldRef = useRef(null);
   const homePageRef = useRef(null);
   const rightDescriptionRef = useRef(null);
-  const isVisibleRef = useRef(null);
+  const keywordsRef = useRef(null);
 
   /**
    * Function that saves the resource to backend
@@ -180,9 +180,13 @@ export const AboutResourcePage = ({
    */
   const handleTabKeyIntoRightBar = (e: any) => {
     if (e.key === 'Tab') {
-      e.preventDefault();
-      if (rightTranslationBarRef.current) {
-        rightTranslationBarRef.current.focus();
+      if (e.shiftKey) {
+        // TODO - Handle Tab backwards as well. Issue: #10989
+      } else {
+        e.preventDefault();
+        if (rightTranslationBarRef.current) {
+          rightTranslationBarRef.current.focus();
+        }
       }
     }
   };
@@ -209,9 +213,9 @@ export const AboutResourcePage = ({
         }
       }
       if (translationType === 'rightDescription') {
-        if (isVisibleRef.current) {
+        if (keywordsRef.current) {
           e.preventDefault();
-          isVisibleRef.current.focus(null);
+          keywordsRef.current.focus(null);
         }
       }
     }
@@ -331,17 +335,6 @@ export const AboutResourcePage = ({
           id='aboutHomepage'
           onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
         />
-        <ResourceTextField
-          label={t('resourceadm.about_resource_keywords_label')}
-          description={t('resourceadm.about_resource_keywords_text')}
-          value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
-          onFocus={() => setTranslationType('none')}
-          ref={homePageRef}
-          id='aboutKeywords'
-          onBlur={(val: string) =>
-            handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
-          }
-        />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_delegable_label')}
           description={t('resourceadm.about_resource_delegable_text')}
@@ -374,6 +367,17 @@ export const AboutResourcePage = ({
             t
           )}
         />
+        <ResourceTextField
+          label={t('resourceadm.about_resource_keywords_label')}
+          description={t('resourceadm.about_resource_keywords_text')}
+          value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
+          onFocus={() => setTranslationType('none')}
+          id='aboutKeywords'
+          ref={keywordsRef}
+          onBlur={(val: string) =>
+            handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
+          }
+        />
         <ResourceDropdown
           spacingTop
           label={t('resourceadm.about_resource_status_label')}
@@ -390,7 +394,7 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_self_identified_label')}
           description={t('resourceadm.about_resource_self_identified_text')}
           value={resourceData.selfIdentifiedUserEnabled ?? false}
-          onFocus={() => setTranslationType('none')} // TODO
+          onFocus={() => setTranslationType('none')}
           onBlur={(isChecked: boolean) =>
             handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
           }
@@ -401,7 +405,7 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_enterprise_label')}
           description={t('resourceadm.about_resource_enterprise_text')}
           value={resourceData.enterpriseUserEnabled ?? false}
-          onFocus={() => setTranslationType('none')} // TODO
+          onFocus={() => setTranslationType('none')}
           onBlur={(isChecked: boolean) =>
             handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
           }
@@ -412,7 +416,7 @@ export const AboutResourcePage = ({
           options={availableForOptions}
           legend={t('resourceadm.about_resource_available_for_legend')}
           description={t('resourceadm.about_resource_available_for_description')}
-          showErrors={showAllErrors} // TODO
+          showErrors={showAllErrors}
           onChange={(selected: ResourceAvailableForTypeOption[]) =>
             handleSave({ ...resourceData, availableForType: selected })
           }
@@ -424,17 +428,16 @@ export const AboutResourcePage = ({
           onLeaveTextFields={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
-          showErrors={showAllErrors} // TODO
+          showErrors={showAllErrors}
         />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_visible_label')}
           description={t('resourceadm.about_resource_visible_text')}
           value={resourceData.visible ?? false}
-          onFocus={() => setTranslationType('none')} // TODO
+          onFocus={() => setTranslationType('none')}
           onBlur={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           id='isVisibleSwitch'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
-          ref={isVisibleRef}
         />
       </>
     );

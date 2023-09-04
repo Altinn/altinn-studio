@@ -1,4 +1,4 @@
-import React, { Ref } from 'react';
+import React, { forwardRef } from 'react';
 import classes from './AboutResourcePageInputs.module.css';
 import { TextField, Paragraph, Label } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
@@ -36,10 +36,6 @@ type ResourceLanguageTextFieldProps = {
    */
   isValid: boolean;
   /**
-   * ref of the field
-   */
-  ref?: Ref<HTMLInputElement>;
-  /**
    * Function to be executed on key down
    */
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
@@ -69,7 +65,6 @@ type ResourceLanguageTextFieldProps = {
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {string}[id] - The id of the field
  * @property {boolean}[isValid] - Flag for if the value is valid
- * @property {Ref<HTMLInputElement>}[ref] - ref of the field
  * @property {React.KeyboardEventHandler<HTMLInputElement>}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
@@ -77,40 +72,49 @@ type ResourceLanguageTextFieldProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceLanguageTextField = ({
-  label,
-  description,
-  value,
-  onChangeValue,
-  onFocus,
-  id,
-  isValid,
-  ref,
-  onKeyDown,
-  onBlur,
-  showErrorMessage = false,
-  errorText,
-}: ResourceLanguageTextFieldProps): React.ReactNode => {
-  return (
-    <>
-      <div className={classes.divider} />
-      <Label size='medium' spacing htmlFor={id}>
-        {label}
-      </Label>
-      <Paragraph size='small'>{description}</Paragraph>
-      <div className={classes.inputWrapper}>
-        <TextField
-          value={value}
-          onChange={(e) => onChangeValue(e.target.value)}
-          onFocus={onFocus}
-          id={id}
-          isValid={isValid}
-          ref={ref}
-          onKeyDown={onKeyDown}
-          onBlur={onBlur}
-        />
-        {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
-      </div>
-    </>
-  );
-};
+export const ResourceLanguageTextField = forwardRef<
+  HTMLInputElement,
+  ResourceLanguageTextFieldProps
+>(
+  (
+    {
+      label,
+      description,
+      value,
+      onChangeValue,
+      onFocus,
+      id,
+      isValid,
+      onKeyDown,
+      onBlur,
+      showErrorMessage = false,
+      errorText,
+    },
+    ref
+  ): React.ReactNode => {
+    return (
+      <>
+        <div className={classes.divider} />
+        <Label size='medium' spacing htmlFor={id}>
+          {label}
+        </Label>
+        <Paragraph size='small'>{description}</Paragraph>
+        <div className={classes.inputWrapper}>
+          <TextField
+            value={value}
+            onChange={(e) => onChangeValue(e.target.value)}
+            onFocus={onFocus}
+            id={id}
+            isValid={isValid}
+            ref={ref}
+            onKeyDown={onKeyDown}
+            onBlur={onBlur}
+          />
+          {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
+        </div>
+      </>
+    );
+  }
+);
+
+ResourceLanguageTextField.displayName = 'ResourceLanguageTextField';
