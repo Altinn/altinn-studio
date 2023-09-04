@@ -110,12 +110,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Returns the content of a file path relative to the repository directory
         /// </summary>
         /// <param name="relativeFilePath">The relative path to the file.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation in cancelled</param>
         /// <returns>A string containing the file content</returns>
-        public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath)
+        public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath, CancellationToken cancellationToken = default)
         {
             string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+            cancellationToken.ThrowIfCancellationRequested();
 
             // In some weird cases these two alternate ways of reading a file sometimes works while the other fails.
             // Experienced in both 0678.xsd in ttd-datamodels and resource.en.json in hvem-er-hvem.
@@ -126,13 +128,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             try
             {
                 File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
+                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
             }
             catch (IOException)
             {
                 Thread.Sleep(1000);
                 File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
+                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
             }
         }
 
@@ -142,8 +144,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeFilePath">File to be created/updated.</param>
         /// <param name="text">Text content to be written to the file.</param>
         /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>
-        public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text, bool createDirectory = false)
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation in cancelled</param>
+        public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text, bool createDirectory = false, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
 
             string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
@@ -155,7 +159,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 CreateDirectory(absoluteFilePath);
             }
 
-            await WriteTextAsync(absoluteFilePath, text);
+            await WriteTextAsync(absoluteFilePath, text, cancellationToken);
         }
 
         /// <summary>
@@ -366,11 +370,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return sb.ToString();
         }
 
-        private static async Task WriteTextAsync(string absoluteFilePath, string text)
+        private static async Task WriteTextAsync(string absoluteFilePath, string text, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
             await using FileStream sourceStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
-            await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
+            await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
         }
 
         private static async Task WriteAsync(string absoluteFilePath, Stream stream)

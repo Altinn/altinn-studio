@@ -354,15 +354,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The mocked instance object</returns>
         [HttpGet]
         [Route("/designer/api/{org}/{app}/mock-instance-id")]
-        public async Task<ActionResult<string>> GetInstanceId(string org, string app)
+        public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, PartyId, layoutSetName);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, PartyId, layoutSetName, cancellationToken);
             return Ok(mockInstance.Id);
         }
 
@@ -373,24 +374,25 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="partyId">party id</param>
         /// <param name="instanceGuid">instance</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Json schema for datamodel for the current task</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
-        public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid)
+        public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            DataType dataType = await _previewService.GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
+            DataType dataType = await _previewService.GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
             // For apps that does not have a datamodel
             if (dataType == null)
             {
-                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
+                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
                 return Ok(mockInstance.Id);
             }
             string modelPath = $"/App/models/{dataType.Id}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
-            string formData = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
+            string formData = await _schemaModelService.GetSchema(org, app, developer, decodedPath, cancellationToken);
             return Ok(formData);
         }
 
@@ -401,12 +403,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="partyId"></param>
         /// <param name="instanceGuid"></param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Json schema for datamodel for the current data task in the process</returns>
         [HttpPut]
         [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
-        public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid)
+        public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
         {
-            return await GetFormData(org, app, partyId, instanceGuid);
+            return await GetFormData(org, app, partyId, instanceGuid, cancellationToken);
         }
 
         /// <summary>
@@ -454,12 +457,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The processState</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuId}/process")]
-        public async Task<ActionResult> Process(string org, string app, [FromRoute] int partyId)
+        public async Task<ActionResult> Process(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
             return Ok(mockInstance.Process);
         }
 
@@ -469,12 +472,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A mocked instance object</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuId}")]
-        public async Task<ActionResult<Instance>> InstanceForNextTask(string org, string app, [FromRoute] int partyId)
+        public async Task<ActionResult<Instance>> InstanceForNextTask(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
             return Ok(mockInstance);
         }
 
@@ -519,12 +522,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The processState object on the global mockInstance object</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuId}/process/next")]
-        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId)
+        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
             return Ok(mockInstance.Process);
         }
 
@@ -534,7 +537,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Process object where ended is set</returns>
         [HttpPut]
         [Route("instances/{partyId}/{instanceGuId}/process/next")]
-        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang)
+        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang, CancellationToken cancellationToken)
         {
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
@@ -544,7 +547,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return Ok(endProcess);
             }
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
             return Ok(mockInstance.Process);
         }
 
@@ -554,14 +557,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>Hardcoded to only serve norwegian bokmal resource file</remarks>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Single text resource file</returns>
         [HttpGet]
         [Route("api/v1/textresources")]
-        public async Task<ActionResult<Models.TextResource>> TextResources(string org, string app)
+        public async Task<ActionResult<Models.TextResource>> TextResources(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb", cancellationToken);
             return Ok(textResource);
         }
 
@@ -571,15 +575,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="datamodel">Datamodel used by the application</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>datamodel as json schema</returns>
         [HttpGet]
         [Route("api/jsonschema/{datamodel}")]
-        public async Task<ActionResult<string>> Datamodel(string org, string app, [FromRoute] string datamodel)
+        public async Task<ActionResult<string>> Datamodel(string org, string app, [FromRoute] string datamodel, CancellationToken cancellationToken)
         {
             string modelPath = $"/App/models/{datamodel}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string json = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
+            string json = await _schemaModelService.GetSchema(org, app, developer, decodedPath, cancellationToken);
             return Ok(json);
         }
 
@@ -588,14 +593,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Request form layout as byte array</returns>
         [HttpGet]
         [Route("api/resource/FormLayout.json")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
+            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null, cancellationToken);
             // return as byte array to imitate app backend
             byte[] formLayoutsContent = JsonSerializer.SerializeToUtf8Bytes(formLayouts);
             return new FileContentResult(formLayoutsContent, MimeTypeMap.GetMimeType(".json"));
@@ -607,14 +613,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of layout set to get layouts from</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A List of form layouts as byte array</returns>
         [HttpGet]
         [Route("api/layouts/{layoutSetName}")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, [FromRoute] string layoutSetName)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
+            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName, cancellationToken);
             // return as byte array to imitate app backend
             byte[] formLayoutsContent = JsonSerializer.SerializeToUtf8Bytes(formLayouts);
             return new FileContentResult(formLayoutsContent, MimeTypeMap.GetMimeType(".json"));
@@ -625,16 +632,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Rule handler as string or no content if not found</returns>
         [HttpGet]
         [Route("api/resource/RuleHandler.js")]
-        public async Task<ActionResult<string>> GetRuleHandler(string org, string app)
+        public async Task<ActionResult<string>> GetRuleHandler(string org, string app, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string ruleHandler = await altinnAppGitRepository.GetRuleHandler(null);
+                string ruleHandler = await altinnAppGitRepository.GetRuleHandler(null, cancellationToken);
                 return Ok(ruleHandler);
             }
             catch (FileNotFoundException)
@@ -649,16 +657,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of layout set to get rule handler from</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Rule handler as string or no content if not found</returns>
         [HttpGet]
         [Route("api/rulehandler/{layoutSetName}")]
-        public async Task<ActionResult<string>> GetRuleHandler(string org, string app, [FromRoute] string layoutSetName)
+        public async Task<ActionResult<string>> GetRuleHandler(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string ruleHandler = await altinnAppGitRepository.GetRuleHandler(layoutSetName);
+                string ruleHandler = await altinnAppGitRepository.GetRuleHandler(layoutSetName, cancellationToken);
                 return Ok(ruleHandler);
             }
             catch (FileNotFoundException)
@@ -672,16 +681,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Rule configuration as string or no content if not found</returns>
         [HttpGet]
         [Route("api/resource/RuleConfiguration.json")]
-        public async Task<ActionResult<string>> GetRuleConfiguration(string org, string app)
+        public async Task<ActionResult<string>> GetRuleConfiguration(string org, string app, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(null);
+                string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(null, cancellationToken);
                 return Ok(ruleConfig);
             }
             catch (FileNotFoundException)
@@ -696,16 +706,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of layout set to get rule config from</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Rule configuration as string or no content if not found</returns>
         [HttpGet]
         [Route("api/ruleconfiguration/{layoutSetName}")]
-        public async Task<ActionResult<string>> GetRuleConfiguration(string org, string app, [FromRoute] string layoutSetName)
+        public async Task<ActionResult<string>> GetRuleConfiguration(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(layoutSetName);
+                string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(layoutSetName, cancellationToken);
                 return Ok(ruleConfig);
             }
             catch (FileNotFoundException)
@@ -748,16 +759,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="optionListId">The id of the options list</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list if it exists, otherwise nothing</returns>
         [HttpGet]
         [Route("api/options/{optionListId}")]
-        public async Task<ActionResult<string>> GetOptions(string org, string app, string optionListId)
+        public async Task<ActionResult<string>> GetOptions(string org, string app, string optionListId, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptions(optionListId);
+                string options = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)
@@ -774,17 +786,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="optionListId">The id of the options list</param>
         /// <param name="language">The language for the options list</param>
         /// <param name="source">The source of the options list</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list if it exists, otherwise nothing</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/options/{optionListId}")]
-        public async Task<ActionResult<string>> GetOptionsForInstance(string org, string app, string optionListId, [FromQuery] string language, [FromQuery] string source)
+        public async Task<ActionResult<string>> GetOptionsForInstance(string org, string app, string optionListId, [FromQuery] string language, [FromQuery] string source, CancellationToken cancellationToken)
         {
             try
             {
                 // TODO: Need code to get dynamic options list based on language and source?
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptions(optionListId);
+                string options = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)
