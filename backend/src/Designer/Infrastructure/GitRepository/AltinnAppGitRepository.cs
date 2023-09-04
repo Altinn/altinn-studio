@@ -247,12 +247,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </remarks>
         public async Task<Designer.Models.TextResource> GetTextV1(string language, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
             if (!FileExistsByRelativePath(resourcePath))
             {
                 throw new NotFoundException("Text resource file not found.");
             }
-            cancellationToken.ThrowIfCancellationRequested();
             string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
             Designer.Models.TextResource textResource = JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
 

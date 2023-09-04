@@ -114,10 +114,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A string containing the file content</returns>
         public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
-            cancellationToken.ThrowIfCancellationRequested();
 
             // In some weird cases these two alternate ways of reading a file sometimes works while the other fails.
             // Experienced in both 0678.xsd in ttd-datamodels and resource.en.json in hvem-er-hvem.
