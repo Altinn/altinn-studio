@@ -13,46 +13,27 @@ on:
       - 'testdata/**'
   workflow_dispatch:
 
-# jobs:
-#   analyze:
-#     strategy:
-#       matrix:
-#         os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarily
-#     name: Run dotnet build and test
-#     runs-on: ${{ matrix.os}}
-#     env:
-#       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
-#     steps:
-#       - name: Setup .NET
-#         uses: actions/setup-dotnet@v3
-#         with:
-#           dotnet-version: |
-#             6.0.x
-#       - uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-#       - name: Build
-#         run: |
-#            dotnet build backend/Designer.sln -v m
-#       - name: Test
-#         run: |
-#            dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m --no-build
-
-
 jobs:
-  name: Run dotnet build and test
-  runs-on: ubuntu-latest
-  container:
-    image: mcr.microsoft.com/dotnet/sdk:6.0.413-alpine3.18
-  env:
-    DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
-  steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-    - name: Build
-      run: |
-          dotnet build backend/Designer.sln -v m
-    - name: Test
-      run: |
-          dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m --no-build
+  analyze:
+    strategy:
+      matrix:
+        os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarily
+    name: Run dotnet build and test
+    runs-on: ${{ matrix.os}}
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build
+        run: |
+           dotnet build backend/Designer.sln -v m
+      - name: Test
+        run: |
+           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m --no-build
