@@ -65,7 +65,7 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources";
 
-            using  HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
