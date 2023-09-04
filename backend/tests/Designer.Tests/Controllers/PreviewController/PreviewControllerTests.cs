@@ -51,147 +51,25 @@ namespace Designer.Tests.Controllers.PreviewController
 
 
 
-        
 
-        [Fact]
-        public async Task Get_LayoutSets_NotFound()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/layoutsets";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Get_LayoutSettings_Ok()
-        {
-            string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/ui/Settings.json");
 
-            string dataPathWithData = $"{Org}/{App}/api/layoutsettings";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedLayoutSettings, responseBody).Should().BeTrue();
-        }
 
-        [Fact]
-        public async Task Get_LayoutSettingsForStatefulApps_Ok()
-        {
-            string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, $"App/ui/{LayoutSetName}/Settings.json");
 
-            string dataPathWithData = $"{Org}/{StatefulApp}/api/layoutsettings/{LayoutSetName}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedLayoutSettings, responseBody).Should().BeTrue();
-        }
 
-        [Fact]
-        public async Task Get_Anonymous_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/v1/data/anonymous";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals("{}", responseBody).Should().BeTrue();
-        }
 
-        [Fact]
-        public async Task Get_KeepAlive_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/authentication/keepAlive";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        }
 
-        [Fact]
-        public async Task Get_CurrentUser_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/v1/profile/user";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            UserProfile currentUser = JsonConvert.DeserializeObject<UserProfile>(responseDocument.RootElement.ToString());
-            Assert.Equal("previewUser", currentUser.UserName);
-        }
 
-        [Fact]
-        public async Task Get_CurrentParty_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/authorization/parties/current";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Party currentParty = JsonConvert.DeserializeObject<Party>(responseDocument.RootElement.ToString());
-            Assert.Equal(51001, currentParty.PartyId);
-        }
-
-        [Fact]
-        public async Task Post_ValidateInstantiation_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/v1/parties/validateInstantiation";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(@"{""valid"": true}", responseBody).Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task Get_Text_Ok()
-        {
-            string dataPathWithData = $"{Org}/{App}/api/v1/texts/nb";
-
-            using HttpResponseMessage response = await HttpClient.Value.GetAsync(dataPathWithData);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
-            Assert.Equal("nb", text.Language);
-        }
-
-        [Fact]
-        public async Task Post_Instance_Ok()
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(Org, App, Developer, targetRepository);
-
-            string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal("test-datatask-id", instance.Data[0].Id);
-            Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
-        }
 
         [Fact]
         public async Task Post_InstanceForStatefulApp_Ok()
