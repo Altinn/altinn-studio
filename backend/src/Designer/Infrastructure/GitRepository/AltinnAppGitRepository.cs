@@ -76,9 +76,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public async Task<Application> GetApplicationMetadata(CancellationToken cancellationToken = default)
         {
-            string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             cancellationToken.ThrowIfCancellationRequested();
-            string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
+            string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath, cancellationToken);
             Application applicationMetaData = JsonSerializer.Deserialize<Application>(fileContent, _jsonOptions);
 
             return applicationMetaData;
@@ -253,7 +253,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundException("Text resource file not found.");
             }
             cancellationToken.ThrowIfCancellationRequested();
-            string fileContent = await ReadTextByRelativePathAsync(resourcePath);
+            string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
             Designer.Models.TextResource textResource = JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
 
             return textResource;
