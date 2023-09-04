@@ -50,10 +50,10 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"{_versionPrefix}/ttd/resources";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -65,10 +65,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using  HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
@@ -103,10 +103,10 @@ namespace Designer.Tests.Controllers
                     }
                 });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -117,14 +117,14 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/resourcelist";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new List<ServiceResource>());
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
@@ -138,7 +138,7 @@ namespace Designer.Tests.Controllers
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
             {
                 // Act
-                HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
                 string contenthtml = await res.Content.ReadAsStringAsync();
 
                 // Assert
@@ -165,7 +165,7 @@ namespace Designer.Tests.Controllers
                 _altinn2MetadataClientMock.Setup(r => r.GetXacmlPolicy(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(policy);
 
                 // Act
-                HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -197,7 +197,7 @@ namespace Designer.Tests.Controllers
                 _altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
 
                 // Act
-                HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -239,10 +239,10 @@ namespace Designer.Tests.Controllers
                         ResourceType = ResourceType.Default,
                     });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -277,10 +277,10 @@ namespace Designer.Tests.Controllers
                     }
                 });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -314,10 +314,10 @@ namespace Designer.Tests.Controllers
                         ResourceType = ResourceType.Default,
                     });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -331,10 +331,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
@@ -346,10 +346,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/ttd-resources";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
@@ -361,10 +361,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
@@ -375,7 +375,7 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/updateresource/resource1";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
 
             ServiceResource serviceResource = new ServiceResource
             {
@@ -399,7 +399,7 @@ namespace Designer.Tests.Controllers
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             _repositoryMock.VerifyAll();
@@ -411,7 +411,7 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/addresource";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ServiceResource serviceResource = new ServiceResource
             {
@@ -435,7 +435,7 @@ namespace Designer.Tests.Controllers
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             _repositoryMock.VerifyAll();
@@ -447,12 +447,12 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             _repositoryMock.VerifyAll();
@@ -464,12 +464,12 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             _repositoryMock.VerifyAll();
@@ -481,12 +481,12 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(true));
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             _repositoryMock.VerifyAll();
@@ -498,12 +498,12 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/validate/ttd-resources";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             _repositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(false));
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             _repositoryMock.VerifyAll();
@@ -516,10 +516,10 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/sectors";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string sectorscontent = await res.Content.ReadAsStringAsync();
             List<DataTheme> dataThemes = System.Text.Json.JsonSerializer.Deserialize<List<DataTheme>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
 
@@ -533,10 +533,10 @@ namespace Designer.Tests.Controllers
         {
             //Arrange
             string uri = $"{_versionPrefix}/ttd/resources/losterms";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             //Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string sectorscontent = await res.Content.ReadAsStringAsync();
             List<LosTerm> losTerms = System.Text.Json.JsonSerializer.Deserialize<List<LosTerm>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
 
