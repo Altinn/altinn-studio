@@ -18,23 +18,9 @@ export interface Resource {
   status?: ResourceStatusOption;
   selfIdentifiedUserEnabled?: boolean;
   enterpriseUserEnabled?: boolean;
-  availableForType: ResourceAvailableForTypeOption[];
+  availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
 }
-/*
-
-PÅKREVD - Fix for error validation
-- resourceType
-- title
-- description
-- visible
-- delegable
-- rightDescription - HVIS delegable=true
-- contactPoint
-- selfIdentifiedUserEnabled
-- enterpriseUserEnabled
-- availableForType
- */
 
 export interface ResourceContactPoint {
   category: string;

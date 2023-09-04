@@ -13,7 +13,7 @@ const emptyContactPoint: ResourceContactPoint = {
   contactPage: '',
 };
 
-type ResourceContactPointFieldsProps = {
+export type ResourceContactPointFieldsProps = {
   /**
    * The current contact point list
    */

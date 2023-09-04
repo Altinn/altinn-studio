@@ -4,39 +4,46 @@ import { AboutResourcePageProps, AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { Resource, ResourceSector, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
+import { Resource, ResourceContactPoint, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
 import {
   getMissingInputLanguageString,
   mapKeywordsArrayToString,
 } from 'resourceadm/utils/resourceUtils/resourceUtils';
 
+const mockContactPoint: ResourceContactPoint = {
+  category: 'test',
+  email: 'test@test.com',
+  telephone: '',
+  contactPage: '',
+};
 const mockResource1: Resource = {
   identifier: 'r1',
-  resourceType: 'Default',
+  resourceType: 'GenericAccessResource',
   title: { nb: 'ressurs 1', nn: 'res1', en: 'resource 1' },
   description: { nb: 'Beskrivelse av resource 1', nn: 'Mock', en: 'Description of test resource' },
   keywords: [
     { language: 'nb', word: 'Key1 ' },
     { language: 'nb', word: 'Key 2' },
   ],
-  isPublicService: false,
+  visible: false,
   resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Default' }],
   homepage: '',
+  delegable: true,
   rightDescription: { nb: '', nn: '', en: '' },
-  sector: [],
+  status: 'Completed',
+  selfIdentifiedUserEnabled: false,
+  enterpriseUserEnabled: false,
+  availableForType: ['Company'],
+  contactPoints: [mockContactPoint],
 };
 const mockResource2: Resource = {
   identifier: 'r2',
   resourceType: undefined,
   title: { nb: '', nn: '', en: '' },
   description: { nb: '', nn: '', en: '' },
+  delegable: true,
   rightDescription: { nb: '', nn: '', en: '' },
 };
-const mockSectors: ResourceSector[] = [
-  { code: 'Sec1', label: { nb: 'Sec1', nn: 'Sec1', en: 'Sec1' } },
-  { code: 'Sec2', label: { nb: 'Sec2', nn: 'Sec2', en: 'Sec2' } },
-  { code: 'Sec3', label: { nb: 'Sec3', nn: 'Sec3', en: 'Sec3' } },
-];
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource'
 );
@@ -60,7 +67,6 @@ describe('AboutResourcePage', () => {
   const defaultProps: AboutResourcePageProps = {
     showAllErrors: false,
     resourceData: mockResource1,
-    sectorsData: mockSectors,
     onSaveResource: mockOnSaveResource,
   };
 
@@ -171,6 +177,7 @@ describe('AboutResourcePage', () => {
     );
     expect(rightDescriptionInput).toHaveValue(mockResource1.rightDescription.nb);
 
+    await act(() => user.clear(rightDescriptionInput));
     await act(() => user.type(rightDescriptionInput, mockNewRightDescriptionInput));
 
     expect(
