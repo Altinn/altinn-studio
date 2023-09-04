@@ -293,10 +293,44 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingresourcetype");
             }
 
+            if (resource.AvailableForType == null || resource.AvailableForType.Count == 0)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
+            }
+
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingcontactpoints");
             }
+            else
+            {
+                for (int i = 0; i < resource.ContactPoints.Count; i++)
+                {
+                    var contactItem = resource.ContactPoints[i];
+
+                    if (string.IsNullOrWhiteSpace(contactItem.Category))
+                    {
+                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].Category", "resourceerror.missingcategory.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(contactItem.Email))
+                    {
+                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].Email", "resourceerror.missingemail.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(contactItem.Telephone))
+                    {
+                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].Telephone", "resourceerror.missingtelephone.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(contactItem.ContactPage))
+                    {
+                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].ContactPage", "resourceerror.missingcontactpage.");
+                    }
+                }
+            }
+
+
 
             ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
 
