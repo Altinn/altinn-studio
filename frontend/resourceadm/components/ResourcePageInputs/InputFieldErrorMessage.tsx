@@ -1,5 +1,5 @@
 import { ErrorMessage } from '@digdir/design-system-react';
-import classes from './AboutResourcePageInputs.module.css';
+import classes from './ResourcePageInputs.module.css';
 import React from 'react';
 
 type InputFieldErrorMessageProps = {

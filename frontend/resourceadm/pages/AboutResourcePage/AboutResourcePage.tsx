@@ -31,7 +31,7 @@ import {
   ResourceSwitchInput,
   ResourceTextField,
   ResourceDropdown,
-} from 'resourceadm/components/AboutResourcePageInputs';
+} from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
 
 /**

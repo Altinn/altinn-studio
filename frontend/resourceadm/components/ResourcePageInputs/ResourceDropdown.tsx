@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './AboutResourcePageInputs.module.css';
+import classes from './ResourcePageInputs.module.css';
 import { Label, Paragraph, Select } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 

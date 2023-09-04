@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextField } from '@digdir/design-system-react';
-import { InputFieldErrorMessage } from '../AboutResourcePageInputs/InputFieldErrorMessage';
+import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 
 type ResourceContactPointTextFieldProps = {
   /**

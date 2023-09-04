@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './AboutResourcePageInputs.module.css';
+import classes from './ResourcePageInputs.module.css';
 import { Checkbox, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';

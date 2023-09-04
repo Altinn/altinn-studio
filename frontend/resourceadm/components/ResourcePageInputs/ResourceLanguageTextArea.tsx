@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import classes from './AboutResourcePageInputs.module.css';
+import classes from './ResourcePageInputs.module.css';
 import { Paragraph, Label, TextArea } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 

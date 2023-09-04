@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './AboutResourcePageInputs.module.css';
+import classes from './ResourcePageInputs.module.css';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { Switch } from '../Switch';
 import { useTranslation } from 'react-i18next';
