@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         protected const string InstanceGuId = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         protected const string AttachmentGuId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         protected const string MockedReferrerUrl = "https://studio-mock-url.no";
-        protected readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
+        protected readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,

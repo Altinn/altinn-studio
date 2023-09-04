@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(expectedApplicationMetadata, _serializerOptions), _serializerOptions);
+            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(expectedApplicationMetadata, SerializerOptions), SerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
     }
