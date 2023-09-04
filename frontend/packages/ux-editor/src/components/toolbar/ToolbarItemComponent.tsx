@@ -10,7 +10,7 @@ export interface IToolbarItemProvidedProps {
   componentType: ComponentType;
   onClick: (type: ComponentType, event: MouseEvent) => void;
   thirdPartyLabel?: string;
-  icon: string;
+  icon?: string | React.ComponentType;
 }
 
 export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
@@ -18,7 +18,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
   return (
     <div className={classes.toolbarItem}>
       <div className={classes.componentIcon}>
-        <i className={props.icon} />
+       {props.icon &&  (<props.icon />)} 
       </div>
       <div className={classes.componentLabel}>
         {props.thirdPartyLabel == null

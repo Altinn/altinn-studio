@@ -5,9 +5,7 @@ import type {
   IFormLayoutOrder,
   IInternalLayout,
   IToolbarElement,
-  IWidget,
 } from '../types/global';
-import i18next from 'i18next';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
@@ -203,17 +201,6 @@ export function extractChildrenFromGroup(
     }
   });
 }
-
-export const mapWidgetToToolbarElement = (
-  widget: IWidget,
-  t: typeof i18next.t,
-): IToolbarElement => {
-  return {
-    label: t(widget.displayName),
-    icon: 'fa fa-3rd-party-alt',
-    type: widget.displayName,
-  };
-};
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(c: FormItemConfigs[T]): IToolbarElement => ({
   label: c.name,

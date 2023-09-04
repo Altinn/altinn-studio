@@ -86,4 +86,12 @@
 .formComponentTitle {
   margin-top: 0.6rem;
   color: #022F51;
+  align-items: center;
+  display: flex;
+  gap: .5rem;
+}
+
+.formComponentTitle .icon {
+  font-size: 2rem;
+  display: inline-flex;
 }

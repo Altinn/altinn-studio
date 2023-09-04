@@ -1,15 +1,13 @@
 import React from 'react';
-import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, Select } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
   SubExpression,
   expressionFunctionTexts,
-  Operator, Expression,
 } from '../../../types/Expressions';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import cn from 'classnames';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
 import { addDataSource, addDataSourceValue } from '../../../utils/expressionsUtils';
@@ -18,31 +16,26 @@ import { useText } from '../../../hooks';
 interface IExpressionContentProps {
   expressionAction: boolean;
   subExpression: SubExpression;
-  expression: Expression;
-  index: number;
-  onAddSubExpression: (expOp: string) => void;
   onUpdateSubExpression: (subExpression: SubExpression) => void;
-  onUpdateExpressionOperator: (expressionOp: Operator) => void;
   onRemoveSubExpression: (subExpression: SubExpression) => void;
 }
 
 export const SubExpressionContent = ({
-    expressionAction,
-    subExpression,
-    expression,
-    index,
-    onAddSubExpression,
-    onUpdateSubExpression,
-    onUpdateExpressionOperator,
-    onRemoveSubExpression,
+  expressionAction,
+  subExpression,
+  onUpdateSubExpression,
+  onRemoveSubExpression,
 }: IExpressionContentProps) => {
   const t = useText();
 
-  const showAddExpressionButton: boolean = index == expression.subExpressions.length - 1;
   const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(subExpression.function as ExpressionFunction);
 
   const addFunctionToSubExpression = (func: string) => {
-    subExpression.function = func as ExpressionFunction;
+    if (func === 'default') {
+      delete subExpression.function;
+    } else {
+      subExpression.function = func as ExpressionFunction;
+    }
     handleUpdateSubExpression();
   };
 
@@ -58,28 +51,25 @@ export const SubExpressionContent = ({
     handleUpdateSubExpression();
   };
 
-  const handleUpdateExpressionOperator = (operator: Operator) => {
-    onUpdateExpressionOperator(operator);
-  };
-
-  const handleAddSubExpression = (expressionOperator: Operator) => {
-    onAddSubExpression(expressionOperator);
-  };
-
   const handleUpdateSubExpression = () => {
     onUpdateSubExpression(subExpression);
   };
 
-  const handleRemoveSubExpression = () => {
-    onRemoveSubExpression(subExpression);
-  };
-
   return (
     <div>
-      <p>{t('right_menu.expressions_function_on_action')}</p>
+      <div className={classes.subExpressionTop}>
+        <p>{t('right_menu.expressions_function_on_action')}</p>
+        <Button
+          color='danger'
+          icon={<XMarkIcon />}
+          onClick={() => onRemoveSubExpression(subExpression)}
+          variant='quiet'
+          size='small'
+        />
+      </div>
       <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         onChange={(func: string) => addFunctionToSubExpression(func)}
-        options={[{ label: 'Velg oppsett...', value: 'default' }].concat(
+        options={[{ label: t('right_menu.expressions_function_select'), value: 'default' }].concat(
           Object.values(ExpressionFunction).map((func: string) => ({
             label: expressionFunctionTexts(t)[func],
             value: func,
@@ -88,20 +78,11 @@ export const SubExpressionContent = ({
         value={subExpression.function || 'default'}
       />
       {allowToSpecifyExpression && (
-        <>
-          <div className={classes.expression}>
-            <Button
-              className={classes.expressionDeleteButton}
-              color='danger'
-              icon={<XMarkIcon />}
-              onClick={handleRemoveSubExpression}
-              variant='quiet'
-              size='small'
-            />
+        <div className={classes.expression}>
             <div className={classes.expressionDetails}>
               <Select
                 onChange={(dataSource: string) => addDataSourceToExpression(dataSource, false)}
-                options={[{ label: 'Velg...', value: 'default' }].concat(
+                options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(
                   Object.values(DataSource).map((ds: string) => ({
                     label: expressionDataSourceTexts(t)[ds],
                     value: ds,
@@ -124,7 +105,7 @@ export const SubExpressionContent = ({
                 onChange={(compDataSource: string) =>
                   addDataSourceToExpression(compDataSource, true)
                 }
-                options={[{ label: 'Velg...', value: 'default' }].concat(
+                options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(
                   Object.values(DataSource).map((cds: string) => ({
                     label: expressionDataSourceTexts(t)[cds],
                     value: cds,
@@ -142,35 +123,6 @@ export const SubExpressionContent = ({
               )}
             </div>
           </div>
-          <div className={classes.addExpression}>
-            {showAddExpressionButton ? (
-                <Button
-                  variant='quiet'
-                  size='small'
-                  onClick={() => handleAddSubExpression(expression.operator || Operator.And)}
-                >
-                  <i
-                    className={cn('fa', classes.plusIcon, {
-                      'fa-circle-plus': showAddExpressionButton,
-                      'fa-circle-plus-outline': !showAddExpressionButton,
-                    })}
-                  />
-                  {t('right_menu.expressions_add_expression')}
-                </Button>
-              ) : (
-                <div className={classes.andOrToggleButtons}>
-                <ToggleButtonGroup
-                  items={[
-                    { label: 'Og', value: Operator.And },
-                    { label: 'Eller', value: Operator.Or }
-                  ]}
-                  onChange={(value) => handleUpdateExpressionOperator(value as Operator)}
-                  selectedValue={expression.operator || Operator.And}
-                />
-              </div>
-            )}
-          </div>
-        </>
       )}
     </div>
   );
