@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
         }
 
-        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policy = null)
+        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null)
         {
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             string publishResourceToResourceRegistryUrl;
@@ -76,11 +76,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _httpClientFactory.CreateClient("myHttpClient");
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
 
-            if (policy != null)
+            if (policyPath != null)
             {
                 MultipartFormDataContent content = new MultipartFormDataContent();
 
-                byte[] policyFileContentBytes = File.ReadAllBytes(policy);
+                byte[] policyFileContentBytes = File.ReadAllBytes(Path.Combine(policyPath));
+
                 ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
                 content.Add(fileContent, "policyFile", "policy.xml");
                 HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
@@ -99,11 +100,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
-            HttpResponseMessage putResponse = new HttpResponseMessage();
 
             if (getResourceResponse.IsSuccessStatusCode)
             {
-                putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+                HttpResponseMessage putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
                 return putResponse.IsSuccessStatusCode ? new StatusCodeResult(200) : new StatusCodeResult(400);
             }
 
