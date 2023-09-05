@@ -80,7 +80,7 @@ export const ResourceCheckboxGroup = ({
           {displayAvailableForCheckboxes()}
         </Checkbox.Group>
       </div>
-      {showErrors && (
+      {showErrors && value.length === 0 && (
         <InputFieldErrorMessage
           message={t('resourceadm.about_resource_available_for_error_message')}
         />
