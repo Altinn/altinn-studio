@@ -265,7 +265,6 @@ namespace Altinn.Studio.Designer.Controllers
             return linkServices;
         }
 
-
         private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
         {
             if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
@@ -306,31 +305,17 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 for (int i = 0; i < resource.ContactPoints.Count; i++)
                 {
-                    var contactItem = resource.ContactPoints[i];
+                    var categoryError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Category);
+                    var emailError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Email);
+                    var telephoneError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Telephone);
+                    var contactPageError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].ContactPage);
 
-                    if (string.IsNullOrWhiteSpace(contactItem.Category))
+                    if (categoryError || emailError || telephoneError || contactPageError)
                     {
-                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].Category", "resourceerror.missingcategory.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(contactItem.Email))
-                    {
-                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].Email", "resourceerror.missingemail.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(contactItem.Telephone))
-                    {
-                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].Telephone", "resourceerror.missingtelephone.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(contactItem.ContactPage))
-                    {
-                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}].ContactPage", "resourceerror.missingcontactpage.");
+                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}]", "resourceerror.missingcontactpoints.");
                     }
                 }
             }
-
-
 
             ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
 

@@ -185,7 +185,7 @@ describe('AboutResourcePage', () => {
     ).toHaveValue(`${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`);
   });
 
-  it('displays errors for the required fields when showAllErrors are true', () => {
+  it('displays errors for the required translation fields when showAllErrors are true', () => {
     render(<AboutResourcePage {...defaultProps} showAllErrors resourceData={mockResource2} />);
 
     expect(

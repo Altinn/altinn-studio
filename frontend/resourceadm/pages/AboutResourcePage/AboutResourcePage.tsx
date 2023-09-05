@@ -146,6 +146,11 @@ export const AboutResourcePage = ({
     handleSave(editedResourceObject);
   };
 
+  /**
+   * Saves the resource object passed in
+   *
+   * @param res the resource to save
+   */
   const handleSave = (res: Resource) => {
     onSaveResource(res);
   };
@@ -217,6 +222,11 @@ export const AboutResourcePage = ({
     }
   };
 
+  /**
+   * Adds another contact point to the list
+   *
+   * @param contactPoints the list of contact points to add
+   */
   const handleClickAddContactPoint = (contactPoints: ResourceContactPoint[]) => {
     handleSave({
       ...resourceData,

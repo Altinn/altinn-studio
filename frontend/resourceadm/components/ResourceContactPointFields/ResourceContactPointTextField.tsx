@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TextField } from '@digdir/design-system-react';
-import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 
 type ResourceContactPointTextFieldProps = {
   /**
@@ -12,19 +11,21 @@ type ResourceContactPointTextFieldProps = {
    */
   value: string;
   /**
+   * Function to execute on change
+   * @param value the value typed
+   * @returns void
+   */
+  onChange: (value: string) => void;
+  /**
    * Function to be executed on blur
    * @param value the value of the field
    * @returns void
    */
-  onBlur: (value: string) => void;
+  onBlur: () => void;
   /**
-   * If the potential errors should be shown
+   * If the field is valid
    */
-  showErrors: boolean;
-  /**
-   * The message to be displayed on error
-   */
-  errorMessage: string;
+  isValid: boolean;
 };
 
 /**
@@ -33,31 +34,28 @@ type ResourceContactPointTextFieldProps = {
  *
  * @property {string}[label] - The label of the field
  * @property {string}[value] - The value in the field
+ * @property {function}[onChange] - Function to execute on change
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {boolean}[showErrors] - If the potential errors should be shown
- * @property {string}[errorMessage] - The message to be displayed on error
+ * @property {boolean}[isValid] - If the field is valid
  *
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceContactPointTextField = ({
   label,
   value,
+  onChange,
   onBlur,
-  showErrors,
-  errorMessage,
+  isValid,
 }: ResourceContactPointTextFieldProps): React.ReactNode => {
-  const [val, setVal] = useState(value);
-
   return (
     <div>
       <TextField
         label={label}
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        onBlur={() => onBlur(val)}
-        isValid={!(val === '' && showErrors)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => onBlur()}
+        isValid={isValid}
       />
-      {showErrors && val === '' && <InputFieldErrorMessage message={errorMessage} />}
     </div>
   );
 };

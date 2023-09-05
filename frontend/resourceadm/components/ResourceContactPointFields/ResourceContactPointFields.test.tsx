@@ -145,42 +145,20 @@ describe('ResourceContactPointFields', () => {
       />
     );
 
-    const categoryError = screen.getByText(
-      textMock('resourceadm.about_resource_contact_error_category')
-    );
-    const emailError = screen.getByText(textMock('resourceadm.about_resource_contact_error_email'));
-    const telephoneError = screen.getByText(
-      textMock('resourceadm.about_resource_contact_error_telephone')
-    );
-    const contactpageError = screen.getByText(
-      textMock('resourceadm.about_resource_contact_error_contactpage')
+    const contactPointError = screen.getByText(
+      textMock('resourceadm.about_resource_contact_point_error')
     );
 
-    expect(categoryError).toBeInTheDocument();
-    expect(emailError).toBeInTheDocument();
-    expect(telephoneError).toBeInTheDocument();
-    expect(contactpageError).toBeInTheDocument();
+    expect(contactPointError).toBeInTheDocument();
   });
 
   it('does not display error message when show error is false', () => {
     render(<ResourceContactPointFields {...defaultProps} />);
 
-    const categoryError = screen.queryByText(
-      textMock('resourceadm.about_resource_contact_error_category')
-    );
-    const emailError = screen.queryByText(
-      textMock('resourceadm.about_resource_contact_error_email')
-    );
-    const telephoneError = screen.queryByText(
-      textMock('resourceadm.about_resource_contact_error_telephone')
-    );
-    const contactpageError = screen.queryByText(
-      textMock('resourceadm.about_resource_contact_error_contactpage')
+    const contactPointError = screen.queryByText(
+      textMock('resourceadm.about_resource_contact_point_error')
     );
 
-    expect(categoryError).not.toBeInTheDocument();
-    expect(emailError).not.toBeInTheDocument();
-    expect(telephoneError).not.toBeInTheDocument();
-    expect(contactpageError).not.toBeInTheDocument();
+    expect(contactPointError).not.toBeInTheDocument();
   });
 });

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './ResourceContactPointFields.module.css';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
 import { Fieldset, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ResourceContactPointTextField } from './ResourceContactPointTextField';
+import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 
 type ResourceContactPointFieldsetProps = {
   /**
@@ -39,6 +40,14 @@ export const ResourceContactPointFieldset = ({
 }: ResourceContactPointFieldsetProps): React.ReactNode => {
   const { t } = useTranslation();
 
+  const [category, setCategory] = useState(contactPoint.category);
+  const [email, setEmail] = useState(contactPoint.email);
+  const [telephone, setTelephone] = useState(contactPoint.telephone);
+  const [contactPage, setContactPage] = useState(contactPoint.contactPage);
+
+  const isValid = category !== '' || email !== '' || telephone !== '' || contactPage !== '';
+  const hasError = !isValid && showErrors;
+
   return (
     <>
       <div className={classes.divider} />
@@ -51,41 +60,44 @@ export const ResourceContactPointFieldset = ({
         </Paragraph>
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_category')}
-          value={contactPoint.category}
-          onBlur={(value: string) => {
-            onLeaveTextFields({ ...contactPoint, category: value });
+          value={category}
+          onChange={(value: string) => setCategory(value)}
+          onBlur={() => {
+            onLeaveTextFields({ ...contactPoint, category });
           }}
-          showErrors={showErrors}
-          errorMessage={t('resourceadm.about_resource_contact_error_category')}
+          isValid={!hasError}
         />
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_email')}
-          value={contactPoint.email}
-          onBlur={(value: string) => {
-            onLeaveTextFields({ ...contactPoint, email: value });
+          value={email}
+          onChange={(value: string) => setEmail(value)}
+          onBlur={() => {
+            onLeaveTextFields({ ...contactPoint, email });
           }}
-          showErrors={showErrors}
-          errorMessage={t('resourceadm.about_resource_contact_error_email')}
+          isValid={!hasError}
         />
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_telephone')}
-          value={contactPoint.telephone}
-          onBlur={(value: string) => {
-            onLeaveTextFields({ ...contactPoint, telephone: value });
+          value={telephone}
+          onChange={(value: string) => setTelephone(value)}
+          onBlur={() => {
+            onLeaveTextFields({ ...contactPoint, telephone });
           }}
-          showErrors={showErrors}
-          errorMessage={t('resourceadm.about_resource_contact_error_telephone')}
+          isValid={!hasError}
         />
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_contactpage')}
-          value={contactPoint.contactPage}
-          onBlur={(value: string) => {
-            onLeaveTextFields({ ...contactPoint, contactPage: value });
+          value={contactPage}
+          onChange={(value: string) => setContactPage(value)}
+          onBlur={() => {
+            onLeaveTextFields({ ...contactPoint, contactPage });
           }}
-          showErrors={showErrors}
-          errorMessage={t('resourceadm.about_resource_contact_error_contactpage')}
+          isValid={!hasError}
         />
       </Fieldset>
+      {hasError && (
+        <InputFieldErrorMessage message={t('resourceadm.about_resource_contact_point_error')} />
+      )}
     </>
   );
 };
