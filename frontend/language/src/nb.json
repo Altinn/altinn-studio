@@ -1206,6 +1206,7 @@
   "policy_editor.policy_rule_missing_sub_resource": "sub-ressurs",
   "policy_editor.policy_rule_missing_actions": "rettigheter",
   "policy_editor.policy_rule_missing_subjects": "roller",
+  "policy_editor.more": "Mer",
   "policy_editor.rule": "Regel",
   "policy_editor.rules": "Regler",
   "policy_editor.rule_card_sub_resource_title": "Hvilken sub-ressurser skal regelen gjelde for?",

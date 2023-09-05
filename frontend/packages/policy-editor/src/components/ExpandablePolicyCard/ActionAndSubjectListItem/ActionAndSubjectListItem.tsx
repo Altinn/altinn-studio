@@ -3,7 +3,7 @@ import classes from './ActionAndSubjectListItem.module.css';
 import { Chip } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
-type ActionAndSubjectListItemProps = {
+export type ActionAndSubjectListItemProps = {
   /**
    * The title to display
    */
@@ -37,7 +37,11 @@ export const ActionAndSubjectListItem = ({
 
   return (
     <div className={classes.wrapper}>
-      <Chip.Removable aria-label={`${t('general.delete')} ${title}`} size='small' onClick={onRemove}>
+      <Chip.Removable
+        aria-label={`${t('general.delete')} ${title}`}
+        size='small'
+        onClick={onRemove}
+      >
         {title}
       </Chip.Removable>
     </div>
