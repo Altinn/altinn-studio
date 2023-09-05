@@ -1048,6 +1048,7 @@
   "policy_editor.policy_rule_missing_sub_resource": "sub-resource",
   "policy_editor.policy_rule_missing_actions": "actions",
   "policy_editor.policy_rule_missing_subjects": "subjects",
+  "policy_editor.more": "More",
   "policy_editor.rule": "Rule",
   "policy_editor.rules": "Rules",
   "policy_editor.rule_card_sub_resource_title": "Which sub-resources should the rule apply to?",

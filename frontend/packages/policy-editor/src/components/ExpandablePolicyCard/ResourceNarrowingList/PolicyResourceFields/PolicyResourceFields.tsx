@@ -1,11 +1,11 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
+import { Button, Label, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useTranslation } from 'react-i18next';
+import { ScreenReaderLabel } from '../../../ScreenReaderLabel';
 
-type PolicyResourceFieldsProps = {
+export type PolicyResourceFieldsProps = {
   /**
    * Flag for if the fields are ediable or not
    */
@@ -40,6 +40,10 @@ type PolicyResourceFieldsProps = {
    * @returns
    */
   onBlur: () => void;
+  /**
+   * Unique id of the field
+   */
+  uniqueId: string;
 };
 
 /**
@@ -55,6 +59,7 @@ type PolicyResourceFieldsProps = {
  * @property {string}[valueType] - The value of the type field
  * @property {function}[onChangeType] - Function to be executed when the type value changes
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {string}[uniqueId] - Unique id of the field
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -66,6 +71,7 @@ export const PolicyResourceFields = ({
   onChangeId,
   onChangeType,
   onBlur,
+  uniqueId,
 }: PolicyResourceFieldsProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -73,26 +79,40 @@ export const PolicyResourceFields = ({
     <div className={classes.wrapper}>
       <div className={classes.inputWrapper}>
         <div className={classes.textfieldWrapper}>
+          {!canEditTypeAndId && (
+            <Label spacing size='small' as='p' className={classes.label}>
+              Type
+            </Label>
+          )}
           <TextField
             value={valueType}
-            label={!canEditTypeAndId && 'Type'}
             onChange={(e) => onChangeType(e.target.value)}
             readOnly={!canEditTypeAndId}
-            aria-labelledby='resourceType'
+            id={'resourceType' + uniqueId}
             onBlur={onBlur}
           />
-          <ScreenReaderSpan id='resourceType' label={t('policy_editor.narrowing_list_field_type')} />
+          <ScreenReaderLabel
+            htmlFor={'resourceType' + uniqueId}
+            label={t('policy_editor.narrowing_list_field_type')}
+          />
         </div>
         <div className={classes.textfieldWrapper}>
+          {!canEditTypeAndId && (
+            <Label spacing size='small' as='p' className={classes.label}>
+              Id
+            </Label>
+          )}
           <TextField
             value={valueId}
-            label={!canEditTypeAndId && 'Id'}
             onChange={(e) => onChangeId(e.target.value)}
             readOnly={!canEditTypeAndId}
-            aria-labelledby='resourceId'
+            id={'resourceId' + uniqueId}
             onBlur={onBlur}
           />
-          <ScreenReaderSpan id='resourceId' label={t('policy_editor.narrowing_list_field_id')} />
+          <ScreenReaderLabel
+            htmlFor={'resourceId' + uniqueId}
+            label={t('policy_editor.narrowing_list_field_id')}
+          />
         </div>
       </div>
       <div className={classes.buttonWrapper}>
