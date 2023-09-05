@@ -10,8 +10,6 @@ const mockResource1: PolicyRuleResource = { type: 'type1', id: 'id1' };
 const mockResource2: PolicyRuleResource = { type: 'type2', id: 'id2' };
 const mockResources: PolicyRuleResource[] = [mockResource1, mockResource2];
 
-const mockUniqueId: string = '-ruleId:1-subResource:1';
-
 const mockUsageType: PolicyEditorUsage = 'app';
 
 const mockNewText: string = 'test';
@@ -33,7 +31,6 @@ describe('ResourceNarrowingList', () => {
     handleCloneElement: mockHandleCloneElement,
     onBlur: mockOnBlur,
     usageType: mockUsageType,
-    uniqueId: mockUniqueId,
   };
 
   it('renders the list of resources', () => {

@@ -242,7 +242,6 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
         usageType={usageType}
-        uniqueId={`-ruleId:${policyRule.ruleId}-subResource:${i}`}
       />
     );
   });
