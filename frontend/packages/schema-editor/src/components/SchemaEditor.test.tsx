@@ -9,48 +9,39 @@ import {
   FieldType,
   Keyword,
   ObjectKind,
-  UiSchemaNodes,
   buildUiSchema,
   getNodeByPointer,
-  makePointer,
+  makePointer, UiSchemaNodes,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../test/renderWithProviders';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { renderWithProviders, RenderWithProvidersData } from '../../test/renderWithProviders';
 import { getSavedModel } from '../../test/test-utils';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { jsonMetadata1Mock } from '../../test/mocks/metadataMocks';
 import * as testids from '../../../../testing/testids'
+import { uiSchemaNodesMock } from '../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
 
-// Test data:
-const org = 'org';
-const app = 'app';
-const datamodelsMetadata = [jsonMetadata1Mock];
-const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
-
 // Mocks:
-const saveDatamodel = jest.fn();
+const save = jest.fn();
 
-const renderEditor = (customState?: Partial<SchemaState>) => {
+const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
   const mockInitialState: SchemaState = {
     name: 'test',
     selectedDefinitionNodeId: '',
     selectedPropertyNodeId: '',
     selectedEditorTab: 'properties',
   };
-  const customStateCopy = customState ?? {};
-  const state: SchemaState = {
-    ...mockInitialState,
-    ...customStateCopy,
-  };
-
   return renderWithProviders({
-    state,
-    appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel }
+    state: {
+      ...mockInitialState,
+      ...data.state,
+    },
+    appContextProps: {
+      data: uiSchemaNodesMock,
+      save,
+      ...data.appContextProps,
+    },
   })(<SchemaEditor/>);
 };
 
@@ -64,30 +55,24 @@ const clickOpenContextMenuButton = async () => {
   await act(() => user.click(buttons[0]));
 };
 
-const setSchema = (schema: JsonSchema): UiSchemaNodes => {
-  queryClientMock.setQueryData([QueryKey.DatamodelsMetadata, org, app], datamodelsMetadata);
-  const uiSchema = buildUiSchema(schema);
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
-  return uiSchema;
-};
-
 describe('SchemaEditor', () => {
   afterEach(jest.clearAllMocks);
+
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
-    const uiSchema = setSchema(dataMock);
-    renderEditor();
+    const uiSchema: UiSchemaNodes = buildUiSchema(dataMock);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickMenuItem(textMock('schema_editor.field'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
-    const uiSchema = setSchema(dataMock);
-    renderEditor();
+    const uiSchema = buildUiSchema(dataMock);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickMenuItem(textMock('schema_editor.reference'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
@@ -96,12 +81,12 @@ describe('SchemaEditor', () => {
       [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },
       [Keyword.Definitions]: {},
     };
-    const uiSchema = setSchema(jsonSchema);
-    renderEditor();
+    const uiSchema = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.add_field'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
@@ -110,12 +95,12 @@ describe('SchemaEditor', () => {
       [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },
       [Keyword.Definitions]: {},
     };
-    const uiSchema = setSchema(jsonSchema);
-    renderEditor();
+    const uiSchema = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.add_reference'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
@@ -128,8 +113,8 @@ describe('SchemaEditor', () => {
   });
 
   test('should trigger correct dispatch when deleting a specific node', async () => {
-    const uiSchema = setSchema(dataMock);
-    renderEditor();
+    const uiSchema = buildUiSchema(dataMock);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.delete'));
     const dialog = screen.getByRole('dialog');
@@ -138,8 +123,8 @@ describe('SchemaEditor', () => {
       name: textMock('schema_editor.datamodel_field_deletion_confirm'),
     });
     await act(() => user.click(confirmDeletButton));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length - 1);
   });
 
@@ -153,7 +138,7 @@ describe('SchemaEditor', () => {
       name: textMock('general.cancel'),
     });
     await act(() => user.click(cancelButton));
-    expect(saveDatamodel).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
     await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 
@@ -168,8 +153,8 @@ describe('SchemaEditor', () => {
         mockDefinition: { [Keyword.Type]: FieldType.Object },
       },
     };
-    setSchema(jsonSchema);
-    renderEditor();
+    const data = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -186,7 +171,7 @@ describe('SchemaEditor', () => {
         mockDefinition: { [Keyword.Type]: FieldType.Object },
       },
     };
-    const uiSchemaToTest = setSchema(jsonSchema);
+    const uiSchemaToTest = buildUiSchema(jsonSchema);
 
     /**
      * Important, the new model engine doesn't allow references to be unknown. While the old would use an empty string.
@@ -196,7 +181,7 @@ describe('SchemaEditor', () => {
     mockItem.reference = '';
     mockItem.objectKind = ObjectKind.Reference;
 
-    renderEditor();
+    renderEditor({ appContextProps: { data: uiSchemaToTest } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -215,8 +200,8 @@ describe('SchemaEditor', () => {
         mockDefinition: { [Keyword.Type]: FieldType.Integer },
       },
     };
-    setSchema(jsonSchema);
-    renderEditor();
+    const data = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -225,19 +210,19 @@ describe('SchemaEditor', () => {
   });
 
   test('should show menu with option field, reference, and combination when pressing add', async () => {
-    setSchema(dataMock);
-    renderEditor();
+    const data = buildUiSchema(dataMock);
+    renderEditor({ appContextProps: { data } });
     expect(screen.getByRole('menuitem', { name: textMock('schema_editor.field') })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: textMock('schema_editor.reference') })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: textMock('schema_editor.combination') })).toBeInTheDocument();
   });
 
   test('should trigger correct dispatch when adding combination to root', async () => {
-    const uiSchema = setSchema(dataMock);
-    renderEditor();
+    const uiSchema = buildUiSchema(dataMock);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickMenuItem(textMock('schema_editor.combination'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
@@ -246,12 +231,12 @@ describe('SchemaEditor', () => {
       [Keyword.Properties]: { mockItem: { type: FieldType.Object } },
       [Keyword.Definitions]: {},
     };
-    const uiSchema = setSchema(jsonSchema);
-    renderEditor();
+    const uiSchema = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data: uiSchema } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.add_combination'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(save).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(save);
     expect(updatedModel.length).toBe(uiSchema.length + 1);
   });
 
@@ -264,8 +249,8 @@ describe('SchemaEditor', () => {
       },
       [Keyword.Definitions]: {},
     };
-    setSchema(jsonSchema);
-    renderEditor();
+    const data = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -290,8 +275,8 @@ describe('SchemaEditor', () => {
         },
       },
     };
-    setSchema(jsonSchema);
-    renderEditor();
+    const data = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data } });
     const type = screen.getByTestId(testids.typeItem(`#/${Keyword.Definitions}/TestType`));
     await act(() => user.click(type));
     expect(screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))).toBeDefined();
@@ -313,8 +298,8 @@ describe('SchemaEditor', () => {
         },
       },
     };
-    setSchema(jsonSchema);
-    renderEditor();
+    const data = buildUiSchema(jsonSchema);
+    renderEditor({ appContextProps: { data } });
     const type = screen.getByTestId(testids.typeItem(`#/${Keyword.Definitions}/TestType`));
     await act(() => user.click(type));
     const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });

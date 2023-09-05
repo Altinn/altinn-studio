@@ -8,8 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypesInspector/TypeItem';
 import { useDispatch } from 'react-redux';
 import { setSelectedAndFocusedNode } from '../features/editor/schemaEditorSlice';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface TypesInspectorProps {
   schemaItems: UiSchemaNode[];
@@ -24,12 +23,11 @@ export const TypesInspector = ({
 }: TypesInspectorProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
-    mutate(
+    save(
       addRootItem(data, {
         name: 'name',
         location: makePointer(Keyword.Definitions),

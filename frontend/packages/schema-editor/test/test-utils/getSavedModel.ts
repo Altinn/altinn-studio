@@ -1,5 +1,4 @@
 import type { UiSchemaNodes } from '@altinn/schema-model';
-import { buildUiSchema } from '@altinn/schema-model';
 
 /**
  * Get the saved model from the saveDatamodel mock.
@@ -10,4 +9,4 @@ import { buildUiSchema } from '@altinn/schema-model';
 export const getSavedModel = (
   saveDatamodelMock: jest.Mock,
   callIndex: number = 0,
-): UiSchemaNodes => buildUiSchema(saveDatamodelMock.mock.calls[callIndex][3]);
+): UiSchemaNodes => saveDatamodelMock.mock.calls[callIndex][0];

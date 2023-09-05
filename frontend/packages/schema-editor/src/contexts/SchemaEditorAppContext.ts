@@ -1,7 +1,9 @@
 import { createContext } from 'react';
+import { UiSchemaNodes } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
-  modelPath: string;
+  data: UiSchemaNodes;
+  save: (datamodel: UiSchemaNodes) => void;
 }
 
 /**

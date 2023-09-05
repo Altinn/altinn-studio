@@ -12,10 +12,7 @@ import {
   getNodeByPointer,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { renderWithProviders } from '../../../test/renderWithProviders';
-import { SchemaState } from '@altinn/schema-editor/types';
+import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
@@ -71,22 +68,20 @@ const texts = {
   'schema_editor.datamodel_field_deletion_confirm': 'Confirm',
 };
 const defaultProps: ItemFieldsTabProps = { selectedItem };
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, state: Partial<SchemaState> = {}) => {
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
-  return renderWithProviders({
-    appContextProps: { modelPath },
-    state,
-    servicesContextProps: { saveDatamodel },
+const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, data: Partial<RenderWithProvidersData> = {}) =>
+  renderWithProviders({
+    ...data,
+    appContextProps: {
+      data: uiSchema,
+      save: saveDatamodel,
+      ...data.appContextProps
+    },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
-};
 
 describe('ItemFieldsTab', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
@@ -191,10 +186,8 @@ describe('ItemFieldsTab', () => {
     };
     const newUiSchema = [rootItem, newSelectedItem, ...childNodes, newChildNode];
     validateTestUiSchema(newUiSchema);
-    queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], newUiSchema);
     rerender({
-      appContextProps: { modelPath },
-      servicesContextProps: { saveDatamodel },
+      appContextProps: { data: newUiSchema, save: saveDatamodel },
     })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
     await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
@@ -211,10 +204,6 @@ describe('ItemFieldsTab', () => {
 
   test('Inputs are disabled if the selected item is a reference', async () => {
     const referencedNode = createNodeBase(Keyword.Definitions, 'testtype');
-    queryClientMock.setQueryData(
-      [QueryKey.Datamodel, org, app, modelPath],
-      [...uiSchema, referencedNode],
-    );
     renderItemFieldsTab(
       {
         selectedItem: {
@@ -223,6 +212,11 @@ describe('ItemFieldsTab', () => {
           reference: referencedNode.pointer,
         },
       },
+      {
+        appContextProps: {
+          data: [...uiSchema, referencedNode],
+        }
+      }
     );
     const textboxes = await screen.findAllByLabelText(textFieldName);
     textboxes.forEach((input) => expect(input).toBeDisabled());

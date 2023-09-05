@@ -16,9 +16,7 @@ import {
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/renderWithProviders';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { getSavedModel } from '../../test/test-utils';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const user = userEvent.setup();
 
@@ -45,9 +43,6 @@ const texts = {
   'schema_editor.minLength': 'Minimal lengde',
 };
 
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
@@ -56,18 +51,15 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
     selectedEditorTab: 'definitions',
   });
 
-  queryClientMock.setQueryData(
-    [QueryKey.Datamodel, org, app, modelPath],
-    uiSchemaMap,
-  )
-
   return renderWithProviders({
     state: {
       selectedDefinitionNodeId: selectedItem?.pointer,
       selectedEditorTab: 'definitions',
     },
-    appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel }
+    appContextProps: {
+      data: uiSchemaMap,
+      save: saveDatamodel,
+    },
   })(
     <Provider store={store}>
       <SchemaInspector selectedItem={selectedItem} />

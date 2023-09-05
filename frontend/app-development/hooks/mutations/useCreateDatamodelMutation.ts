@@ -3,7 +3,6 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useParams } from 'react-router-dom';
 import { CreateDatamodelPayload } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { buildUiSchema } from '@altinn/schema-model';
 
 export interface CreateDatamodelMutationArgs {
   name: string;
@@ -21,8 +20,7 @@ export const useCreateDatamodelMutation = () => {
         relativeDirectory: relativePath,
       };
       const schema = await createDatamodel(org, app, payload);
-      const uiSchema = buildUiSchema(schema);
-      queryClient.setQueryData([QueryKey.Datamodel, org, app, name], uiSchema);
+      queryClient.setQueryData([QueryKey.JsonSchema, org, app, name], schema);
       await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
     },
   })
