@@ -755,7 +755,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public List<ServiceResource> GetServiceResources(string org, string repository, string path = "")
         {
-            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, path);
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
             List<ServiceResource> serviceResourceList = new List<ServiceResource>();
             string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
