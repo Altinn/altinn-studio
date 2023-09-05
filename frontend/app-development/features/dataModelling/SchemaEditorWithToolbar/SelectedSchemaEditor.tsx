@@ -33,6 +33,6 @@ export const SelectedSchemaEditor = ({ modelPath, modelName }: SelectedSchemaEdi
       );
 
     case 'success':
-      return <SchemaEditorApp data={data} save={mutate} modelName={modelName} />;
+      return <SchemaEditorApp jsonSchema={data} save={mutate} modelName={modelName} />;
   }
 }

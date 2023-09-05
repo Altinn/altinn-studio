@@ -9,13 +9,13 @@ export const useSchemaMutation = (modelPath: string) => {
   const { org, app } = useParams<{ org: string; app: string }>();
   const { saveDatamodel } = useServicesContext();
   return useMutation({
-    mutationFn: (payload: JsonSchema) => saveDatamodel(org, app, modelPath, payload).then(() => payload),
-    onSuccess: async (payload: JsonSchema) => {
+    mutationFn: async (payload: JsonSchema) => {
+      await saveDatamodel(org, app, modelPath, payload);
       await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
       queryClient.setQueryData(
         [QueryKey.JsonSchema, org, app, modelPath],
         () => payload
       );
-    }
+    },
   });
 }

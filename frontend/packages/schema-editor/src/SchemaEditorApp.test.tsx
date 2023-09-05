@@ -6,7 +6,6 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { dataMock } from '@altinn/schema-editor/mockData';
-import { uiSchemaNodesMock } from '../test/mocks/uiSchemaMock';
 
 // Mocks:
 const schemaEditorTestId = 'schema-editor';
@@ -22,7 +21,7 @@ export const render = () => {
       client={createQueryClientMock()}
     >
       <PreviewConnectionContextProvider>
-        <SchemaEditorApp data={uiSchemaNodesMock} save={jest.fn()}/>
+        <SchemaEditorApp jsonSchema={dataMock} save={jest.fn()}/>
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
   );

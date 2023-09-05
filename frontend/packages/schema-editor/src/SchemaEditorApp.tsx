@@ -11,12 +11,12 @@ import { buildJsonSchema, buildUiSchema, UiSchemaNodes } from '@altinn/schema-mo
 
 export type SchemaEditorAppProps = {
   modelName?: string;
-  data: JsonSchema;
+  jsonSchema: JsonSchema;
   save: (schema: JsonSchema) => void;
 }
 
-export function SchemaEditorApp({ modelName, data, save }: SchemaEditorAppProps) {
-  const internalModel = useMemo(() => buildUiSchema(data), [data]);
+export function SchemaEditorApp({ modelName, jsonSchema, save }: SchemaEditorAppProps) {
+  const internalModel = useMemo(() => buildUiSchema(jsonSchema), [jsonSchema]);
   const saveInternalModel = useCallback((schema: UiSchemaNodes) => save(buildJsonSchema(schema)), [save]);
   return (
     <SchemaEditorAppContext.Provider value={{ data: internalModel, save: saveInternalModel }}>
