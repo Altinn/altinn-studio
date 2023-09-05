@@ -25,6 +25,6 @@
     "eslint:fix": "eslint \"src/**\" --fix",
     "prettier:check": "prettier -c src/**/*.js",
     "prettier:format": "prettier -w src/**/*.js",
-    "test:studio": "cypress run -b chrome -s 'src/integration/studio/*.js'"
+    "test:studio": "cypress run -s 'src/integration/studio/*.js'"
   }
 }
