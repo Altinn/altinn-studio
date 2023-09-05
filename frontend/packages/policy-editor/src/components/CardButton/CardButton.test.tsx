@@ -8,6 +8,8 @@ import userEvent from '@testing-library/user-event';
 const mockButtonText = textMock('policy_editor.card_button_text');
 
 describe('CardButton', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockOnClick = jest.fn();
 
   const defaultProps: CardButtonProps = {
@@ -22,6 +24,6 @@ describe('CardButton', () => {
     const buttonElement = screen.getByRole('button', { name: mockButtonText });
     await act(() => user.click(buttonElement));
 
-    expect(mockOnClick).toHaveBeenCalled();
+    expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 });

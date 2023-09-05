@@ -10,6 +10,8 @@ const mockTextChildren: string = 'Test Content';
 const mockChildren: React.ReactNode = <p>{mockTextChildren}</p>;
 
 describe('ExpandablePolicyElement', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockHandleRemoveElement = jest.fn();
   const mockHandleCloneElement = jest.fn();
 
@@ -77,7 +79,7 @@ describe('ExpandablePolicyElement', () => {
     const deleteOption = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(deleteOption));
 
-    expect(mockHandleRemoveElement).toHaveBeenCalled();
+    expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleCloneElement when the "Copy" option in the dropdown menu is clicked', async () => {
@@ -94,6 +96,6 @@ describe('ExpandablePolicyElement', () => {
     });
     await act(() => user.click(cloneOption));
 
-    expect(mockHandleCloneElement).toHaveBeenCalled();
+    expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
   });
 });

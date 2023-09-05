@@ -1,1 +1,0 @@
-export { ScreenReaderLabel } from './ScreenReaderLabel';
