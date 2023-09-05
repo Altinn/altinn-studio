@@ -1285,7 +1285,7 @@
   "resourceadm.about_resource_rights_description_label": "Delegasjonstekst",
   "resourceadm.about_resource_rights_description_text": "Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for.",
   "resourceadm.about_resource_visible_label": "Synlighet",
-  "resourceadm.about_resource_visible_text": "Etter publisering blir ressursen synlig poå Altinn.no",
+  "resourceadm.about_resource_visible_text": "Etter publisering blir ressursen synlig på Altinn.no.",
   "resourceadm.about_resource_visible_show_text": "Ressursen {{showText}} være synlig.",
   "resourceadm.about_resource_delegable_label": "Delegerbar",
   "resourceadm.about_resource_delegable_text": "Delegasjonstekst er påkrevd hvis ressursen er satt til å være delegerbar.",

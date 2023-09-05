@@ -1127,6 +1127,7 @@
   "resourceadm.about_resource_rights_description_label": "Rights description",
   "resourceadm.about_resource_rights_description_text": "The delegation text explains to the end user which rights are delegated and what the recipient of rights can perform on behalf of the person for whom he has been granted the right.",
   "resourceadm.about_resource_visible_label": "After the resource is publised, the resource will be visible on Altinn.no",
+  "resourceadm.about_resource_visible_text": "After publishing, the resource will be visible on Altinn.no.",
   "resourceadm.about_resource_visible_show_text": "The resource {{showText}} be visible.",
   "resourceadm.about_resource_delegable_label": "Delegable",
   "resourceadm.about_resource_delegable_text": "The rights description is mandatory if the resource is set to be delegable.",
