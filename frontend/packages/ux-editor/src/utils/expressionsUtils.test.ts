@@ -13,7 +13,7 @@ import {
   convertInternalExpressionToExternal,
   convertSubExpression, deleteExpressionAndAddDefaultIfEmpty, removeInvalidExpressions,
 } from './expressionsUtils';
-import {component1IdMock, component1Mock} from '../testing/layoutMock';
+import { component1IdMock, component1Mock } from '../testing/layoutMock';
 
 describe('expressionsUtils', () => {
   const componentId = 'some-component-id';
@@ -127,9 +127,6 @@ describe('expressionsUtils', () => {
   }
 
   describe('convertSubExpression', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
     it('converts first part of external subexpression in array format to internal subexpression where dataSource and dataSourceValue are set', () => {
       const extSubExpression: any = ['component', 'test-comp'];
       const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, false);
@@ -388,7 +385,7 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete];
-      const {form: updatedForm, expressions: updatedExpressions} = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
+      const { form: updatedForm, expressions: updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
       expect(updatedForm.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
@@ -398,7 +395,7 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const {form: updatedForm, expressions: updatedExpressions} = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
+      const { form: updatedForm, expressions: updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
       expect(updatedForm.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
@@ -409,7 +406,7 @@ describe('expressionsUtils', () => {
       const expression1 = { id: '1', property: ExpressionPropertyBase.Hidden };
       const expression2 = { id: '2' };
       const expression3 = { id: '3', complexExpression: 'some-complex-expression' };
-      const expression4 = { id: '4'};
+      const expression4 = { id: '4' };
       const oldExpressions = [expression1, expression2, expression3, expression4];
       const updatedExpressions = removeInvalidExpressions(oldExpressions);
 

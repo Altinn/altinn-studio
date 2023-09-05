@@ -28,15 +28,6 @@ const mockUseUpdateFormContainerMutation = useUpdateFormContainerMutation as jes
 mockUseUpdateFormContainerMutation.mockReturnValue({
   mutateAsync: mockUpdateFormContainer,
 } as unknown as UseMutationResult<{ currentId: string; newId: string }, unknown, UpdateFormContainerMutationArgs, unknown>);
-
-const mutate = jest.fn();
-jest.mock('../hooks/mutations/useUpdateFormComponentMutation', () => ({
-  useUpdateFormComponentMutation: () => ({
-    mutate
-  })
-}));
-expect(mutate).toHaveBeenCalledTimes()
-
 const mockUpdateFormComponent = jest.fn();
 const mockUseUpdateFormComponentMutation = useUpdateFormComponentMutation as jest.MockedFunction<
   typeof useUpdateFormComponentMutation

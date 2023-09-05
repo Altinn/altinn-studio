@@ -26,7 +26,7 @@ import {
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import {FormComponent} from "../../../types/FormComponent";
+import { FormComponent } from "../../../types/FormComponent";
 
 export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;
@@ -117,7 +117,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   };
 
   const deleteExpression = async (expression: Expression) => {
-    const {newForm, newExpressions} = await deleteExpressionAndAddDefaultIfEmpty(form, formId, expression, expressions, updateFormComponent);
+    const { newForm, newExpressions } = await deleteExpressionAndAddDefaultIfEmpty(form, formId, expression, expressions, updateFormComponent);
     await updateFormComponent({ updatedComponent: newForm as FormComponent, id: formId });
     if (newExpressions.length === 1 && !newExpressions[0].property) {
       // Set default expression as expression in edit mode if it has been added

@@ -106,21 +106,22 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
 };
 
 export function convertSubExpression(internalExpEl: SubExpression, externalExpEl: any, isComparable: boolean): SubExpression {
+  const newInternalExpEl = deepCopy(internalExpEl);
   if (Array.isArray(externalExpEl)) {
-    isComparable ? internalExpEl.comparableDataSource = externalExpEl[0] as DataSource : internalExpEl.dataSource = externalExpEl[0] as DataSource;
-    isComparable ? internalExpEl.comparableValue = externalExpEl[1] : internalExpEl.value = externalExpEl[1];
+    isComparable ? newInternalExpEl.comparableDataSource = externalExpEl[0] as DataSource : newInternalExpEl.dataSource = externalExpEl[0] as DataSource;
+    isComparable ? newInternalExpEl.comparableValue = externalExpEl[1] : newInternalExpEl.value = externalExpEl[1];
   } else if (!externalExpEl) {
-    isComparable ? internalExpEl.comparableDataSource = DataSource.Null : internalExpEl.dataSource = DataSource.Null;
-    isComparable ? internalExpEl.comparableValue = null : internalExpEl.value = null;
+    isComparable ? newInternalExpEl.comparableDataSource = DataSource.Null : newInternalExpEl.dataSource = DataSource.Null;
+    isComparable ? newInternalExpEl.comparableValue = null : newInternalExpEl.value = null;
   } else {
-    isComparable ? internalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : internalExpEl.dataSource = (typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
-    isComparable ? internalExpEl.comparableValue = externalExpEl : internalExpEl.value = externalExpEl;
+    isComparable ? newInternalExpEl.comparableDataSource = (typeof externalExpEl as DataSource) : newInternalExpEl.dataSource = (typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
+    isComparable ? newInternalExpEl.comparableValue = externalExpEl : newInternalExpEl.value = externalExpEl;
   }
-  return internalExpEl;
+  return newInternalExpEl;
 }
 
 export const convertAndAddExpressionToComponent = (form, formId, expression: Expression): FormComponent => {
-  let newFrom = deepCopy(form);
+  const newFrom = deepCopy(form);
   let newExpression = deepCopy(expression);
   if (complexExpressionIsSet(newExpression.complexExpression)) {
     const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
@@ -140,7 +141,7 @@ export const addExpressionIfLimitNotReached = (oldExpressions: Expression[], isE
 };
 
 export const deleteExpressionAndAddDefaultIfEmpty = (form, formId, expressionToDelete: Expression, oldExpressions: Expression[]): {form: FormComponent, expressions:Expression[]} => {
-  let newFrom = deepCopy(form);
+  const newFrom = deepCopy(form);
   const newExpressions = deepCopy(oldExpressions);
   let updatedExpressions = newExpressions;
   if (expressionToDelete.property) {
@@ -152,7 +153,7 @@ export const deleteExpressionAndAddDefaultIfEmpty = (form, formId, expressionToD
       updatedExpressions = [defaultExpression];
     }
   }
-  return {form: newFrom as FormComponent, expressions: updatedExpressions};
+  return { form: newFrom as FormComponent, expressions: updatedExpressions };
 };
 
 export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
