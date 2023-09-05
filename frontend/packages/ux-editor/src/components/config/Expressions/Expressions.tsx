@@ -117,18 +117,18 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   };
 
   const deleteExpression = async (expression: Expression) => {
-    const { newForm, newExpressions } = await deleteExpressionAndAddDefaultIfEmpty(form, formId, expression, expressions, updateFormComponent);
+    const { newForm, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(form, expression, expressions);
     await updateFormComponent({ updatedComponent: newForm as FormComponent, id: formId });
-    if (newExpressions.length === 1 && !newExpressions[0].property) {
+    if (updatedExpressions.length === 1 && !updatedExpressions[0].property) {
       // Set default expression as expression in edit mode if it has been added
-      setExpressionInEditModeId(newExpressions[0].id);
+      setExpressionInEditModeId(updatedExpressions[0].id);
     } else if (expressionInEditModeId !== expression.id) {
       setExpressionInEditModeId(expressionInEditModeId);
     } else {
       // Unset expression in edit mode if expression to delete was in edit mode
       setExpressionInEditModeId(undefined);
     }
-    setExpressions(newExpressions);
+    setExpressions(updatedExpressions);
   };
 
   const getProperties = (expression: Expression) => {

@@ -13,7 +13,7 @@ import { FormContainer } from '../../../types/FormContainer';
 import { Trans } from 'react-i18next';
 import classes from './ExpressionContent.module.css';
 import {
-  addAction,
+  addProperty,
   addSubExpressionToExpression,
   complexExpressionIsSet,
   removeSubExpressionAndAdaptParentProps,
@@ -68,8 +68,8 @@ export const ExpressionContent = ({
   );
   const propertiesList = onGetProperties(expression).availableProperties;
 
-  const addActionToExpression = (action: string) => {
-    const newExpression: Expression = addAction(expression, action);
+  const addPropertyToExpression = (property: string) => {
+    const newExpression: Expression = addProperty(expression, property);
     onUpdateExpression(newExpression);
   };
 
@@ -105,7 +105,7 @@ export const ExpressionContent = ({
           <div className={classes.topBar}>
             <p>
               <Trans
-                i18nKey={'right_menu.expressions_action_on_component'}
+                i18nKey={'right_menu.expressions_property_on_component'}
                 values={{ componentName: component.id }}
                 components={{ bold: <strong/> }}
               />
@@ -121,8 +121,8 @@ export const ExpressionContent = ({
             )}
           </div>
           <Select
-            onChange={(action) => addActionToExpression(action)}
-            options={[{ label: t('right_menu.expressions_action_select'), value: 'default' }].concat(propertiesList.map((property: string) => ({
+            onChange={property => addPropertyToExpression(property)}
+            options={[{ label: t('right_menu.expressions_property_select'), value: 'default' }].concat(propertiesList.map((property: string) => ({
               label: expressionPropertyTexts(t)[property],
               value: property
             })))}

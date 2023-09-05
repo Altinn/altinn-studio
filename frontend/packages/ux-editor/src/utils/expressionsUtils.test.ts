@@ -7,6 +7,7 @@ import {
   SubExpression
 } from '../types/Expressions';
 import {
+  addProperty,
   addExpressionIfLimitNotReached,
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
@@ -17,7 +18,7 @@ import {
   removeSubExpressionAndAdaptParentProps,
 } from './expressionsUtils';
 import { component1IdMock, component1Mock } from '../testing/layoutMock';
-import {deepCopy} from "app-shared/pure";
+import { deepCopy } from "app-shared/pure";
 
 describe('expressionsUtils', () => {
   const componentId = 'some-component-id';
@@ -228,6 +229,7 @@ describe('expressionsUtils', () => {
   describe('convertInternalExpressionToExternal', () => {
     it('converts internal expression with one subExpression', () => {
       const externalExpression = convertInternalExpressionToExternal(simpleInternalExpression);
+
       expect(externalExpression).toBeInstanceOf(Array);
       expect(externalExpression.length).toBe(3);
       expect(externalExpression[0]).toBe(ExpressionFunction.Equals);
@@ -239,6 +241,7 @@ describe('expressionsUtils', () => {
     });
     it('converts internal expression with multiple subExpressions and boolean-, null- and number-usage.', () => {
       const externalExpression = convertInternalExpressionToExternal(internalExpressionWithMultipleSubExpressions);
+
       expect(externalExpression).toBeInstanceOf(Array);
       expect(externalExpression.length).toBe(3);
       expect(externalExpression[0]).toBe(Operator.Or);
@@ -257,6 +260,7 @@ describe('expressionsUtils', () => {
     });
     it('converts most basic valid internal expression', () => {
       const externalExpression = convertInternalExpressionToExternal(baseInternalExpression);
+
       expect(externalExpression).toBeInstanceOf(Array);
       expect(externalExpression[0]).toBe(ExpressionFunction.Equals);
       expect(externalExpression[1]).toBe(nullValue);
@@ -264,6 +268,7 @@ describe('expressionsUtils', () => {
     });
     it('converts un-parsable internal complex expression to plain string', () => {
       const externalExpression = convertInternalExpressionToExternal(internalUnParsableComplexExpression);
+
       expect(typeof externalExpression).toBe('string');
       expect(externalExpression).toBe(unParsableComplexExpression);
     });
@@ -279,6 +284,7 @@ describe('expressionsUtils', () => {
         nullValue
       ];
       const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, externalExpression);
+
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(internalExpression.subExpressions.length).toBe(1);
@@ -295,6 +301,7 @@ describe('expressionsUtils', () => {
         numberValue
       ];
       const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, externalExpression);
+
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(internalExpression.subExpressions.length).toBe(1);
@@ -311,6 +318,7 @@ describe('expressionsUtils', () => {
         nullValue
       ];
       const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, externalExpression);
+
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.operator).toBe(undefined);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -322,8 +330,8 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(nullValue);
     });
     it('converts expression with multiple subExpressions to valid internal expression', () => {
-
       const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, parsableExternalExpression);
+
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.operator).toBe(Operator.And);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -346,6 +354,7 @@ describe('expressionsUtils', () => {
     });
     it('converts non-studio-friendly expression to internal complex expression', () => {
       const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, parsableNotStudioFriendlyComplexExpression);
+
       expect(internalExpression.complexExpression).toBe(parsableNotStudioFriendlyComplexExpression);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(internalExpression.operator).toBe(undefined);
@@ -353,6 +362,7 @@ describe('expressionsUtils', () => {
     });
     it('converts expression with multiple nested subExpressions to internal complex expression', () => {
       const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, parsableNotStudioFriendlyLongComplexExpression);
+
       expect(internalExpression.complexExpression).toBe(parsableNotStudioFriendlyLongComplexExpression);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(internalExpression.operator).toBe(undefined);
@@ -362,15 +372,18 @@ describe('expressionsUtils', () => {
   describe('convertAndAddExpressionToComponent', () => {
     it('converted expression is set on form component hidden property', async () => {
       const updatedComponent = convertAndAddExpressionToComponent(component1Mock, component1IdMock, internalExpressionWithMultipleSubExpressions);
+
       expect(updatedComponent.hidden).toStrictEqual(equivalentExternalExpressionWithMultipleSubExpressions);
     });
     it('converted and parsed complex expression is set as array on form component hidden property', () => {
       const updatedComponent = convertAndAddExpressionToComponent(component1Mock, component1IdMock, internalParsableComplexExpression);
+
       expect(updatedComponent.hidden).toStrictEqual(parsableExternalExpression);
       expect(updatedComponent.hidden).toBeInstanceOf(Array);
     });
     it('converted complex expression is set as string on form component hidden property', () => {
       const updatedComponent = convertAndAddExpressionToComponent(component1Mock, component1IdMock, internalUnParsableComplexExpression);
+
       expect(updatedComponent.hidden).toStrictEqual(unParsableComplexExpression);
       expect(typeof updatedComponent.hidden).toBe('string');
     });
@@ -379,11 +392,13 @@ describe('expressionsUtils', () => {
     it('should add a new expression if the limit is not reached', () => {
       const oldExpressions = [];
       const newExpressions = addExpressionIfLimitNotReached(oldExpressions, false);
+
       expect(newExpressions).toHaveLength(1);
     });
     it('should not add a new expression if the limit is reached', () => {
       const oldExpressions = [internalExpressionWithMultipleSubExpressions];
       const newExpressions = addExpressionIfLimitNotReached(oldExpressions, true);
+
       expect(newExpressions).toEqual(oldExpressions);
     });
   });
@@ -393,6 +408,7 @@ describe('expressionsUtils', () => {
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete];
       const { form: updatedForm, expressions: updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
+
       expect(updatedForm.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
@@ -403,6 +419,7 @@ describe('expressionsUtils', () => {
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
       const { form: updatedForm, expressions: updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
+
       expect(updatedForm.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
@@ -445,12 +462,38 @@ describe('expressionsUtils', () => {
     it('should have no subExpressions and clear operator and property when there is no subExpressions left', () => {
       const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
       internalExpressionCopy.subExpressions.pop();
-
       const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression1);
 
       expect(newExpression.operator).toBeUndefined();
       expect(newExpression.property).toBeUndefined();
       expect(newExpression.subExpressions).toBeUndefined();
+    });
+  });
+  describe('addProperty', () => {
+    it('should add an action to the expression when action is not "default"', () => {
+      const newExpression = addProperty(internalExpressionWithMultipleSubExpressions, ExpressionPropertyBase.Required);
+
+      expect(newExpression).toBeDefined();
+      expect(newExpression.operator).toBe(Operator.Or);
+      expect(newExpression.property).not.toBe(internalExpressionWithMultipleSubExpressions.property);
+      expect(newExpression.property).toBe(ExpressionPropertyBase.Required);
+      expect(newExpression.subExpressions).toHaveLength(2);
+      expect(newExpression.subExpressions[0].id).toBe(subExpression1.id);
+      expect(newExpression.subExpressions[1].id).toBe(subExpression2.id);
+    });
+    it('should return nothing when action is "default"', () => {
+      const propertyToAdd = 'default';
+      const newExpression = addProperty(internalExpressionWithMultipleSubExpressions, propertyToAdd);
+
+      expect(newExpression).toBeUndefined();
+    });
+    it('should create a new subExpression when there are no subExpressions', () => {
+      const newExpression = addProperty(baseInternalExpression, ExpressionPropertyBase.ReadOnly);
+
+      expect(newExpression).toBeDefined();
+      expect(newExpression.property).toBe(ExpressionPropertyBase.ReadOnly);
+      expect(newExpression.subExpressions).toHaveLength(1);
+      expect(newExpression.subExpressions[0]).toHaveProperty('id');
     });
   });
 });

@@ -140,20 +140,20 @@ export const addExpressionIfLimitNotReached = (oldExpressions: Expression[], isE
   return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
 };
 
-export const deleteExpressionAndAddDefaultIfEmpty = (form, formId, expressionToDelete: Expression, oldExpressions: Expression[]): {form: FormComponent, expressions:Expression[]} => {
-  const newFrom = deepCopy(form);
+export const deleteExpressionAndAddDefaultIfEmpty = (form, expressionToDelete: Expression, oldExpressions: Expression[]): {newForm: FormComponent, updatedExpressions:Expression[]} => {
+  const newForm = deepCopy(form);
   const newExpressions = deepCopy(oldExpressions);
   let updatedExpressions = newExpressions;
   if (expressionToDelete.property) {
     // TODO: What if the property was set to true or false before? Issue #10860
-    delete newFrom[expressionToDelete.property];
+    delete newForm[expressionToDelete.property];
     updatedExpressions = newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
     if (updatedExpressions.length === 0) {
       const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
       updatedExpressions = [defaultExpression];
     }
   }
-  return { form: newFrom as FormComponent, expressions: updatedExpressions };
+  return { newForm, updatedExpressions };
 };
 
 export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
@@ -161,12 +161,12 @@ export const removeInvalidExpressions = (oldExpressions: Expression[]): Expressi
   return newExpressions.filter(prevExpression => prevExpression.property || complexExpressionIsSet(prevExpression.complexExpression));
 };
 
-export const addAction = (oldExpression: Expression, action: string): Expression => {
-  if (action === 'default') {
+export const addProperty = (oldExpression: Expression, property: string): Expression => {
+  if (property === 'default') {
     return;
   }
   const newExpression = deepCopy(oldExpression);
-  newExpression.property = action as ExpressionPropertyBase;
+  newExpression.property = property as ExpressionPropertyBase;
   if (newExpression.subExpressions.length === 0) {
     const newSubExpression: SubExpression = { id: uuidv4() };
     newExpression.subExpressions.push(newSubExpression);
