@@ -90,7 +90,7 @@ describe('PolicyResourceFields', () => {
     expect(deleteButton).not.toBeInTheDocument();
   });
 
-  it.only('calls "onRemove" when delete button is clicked', async () => {
+  it('calls "onRemove" when delete button is clicked', async () => {
     const user = userEvent.setup();
     render(<PolicyResourceFields {...defaultProps} />);
 
