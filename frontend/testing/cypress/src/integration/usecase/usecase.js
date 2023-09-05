@@ -57,8 +57,10 @@ context(
 
       // Repos
       header.getProfileIcon().should('be.visible').click();
-      header.getOpenRepoLink().should('be.visible').click();
-      gitea.getRepositoryHeader().should('be.visible');
+      header.getOpenRepoLink().should('be.visible').invoke('attr', 'href').then(href => {
+        cy.visit(href);
+        gitea.getRepositoryHeader().should('be.visible');
+      });
     });
 
     // it('Gitea connection - Pull changes', () => {
