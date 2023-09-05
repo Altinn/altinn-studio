@@ -206,6 +206,8 @@ export const removeSubExpressionAndAdaptParentProps = (oldExpression: Expression
   if (updatedSubExpressions.length === 0) {
     delete newExpression.operator;
     delete newExpression.property;
+    delete newExpression.subExpressions;
+    return newExpression;
   } else if (updatedSubExpressions.length === 1) {
     delete newExpression.operator;
   }

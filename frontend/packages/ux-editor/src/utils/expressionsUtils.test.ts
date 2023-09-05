@@ -11,9 +11,13 @@ import {
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
   convertInternalExpressionToExternal,
-  convertSubExpression, deleteExpressionAndAddDefaultIfEmpty, removeInvalidExpressions,
+  convertSubExpression,
+  deleteExpressionAndAddDefaultIfEmpty,
+  removeInvalidExpressions,
+  removeSubExpressionAndAdaptParentProps,
 } from './expressionsUtils';
 import { component1IdMock, component1Mock } from '../testing/layoutMock';
+import {deepCopy} from "app-shared/pure";
 
 describe('expressionsUtils', () => {
   const componentId = 'some-component-id';
@@ -26,6 +30,30 @@ describe('expressionsUtils', () => {
     id: 'some-sub-exp-id',
     function: ExpressionFunction.Equals,
   }
+  const subExpression0: SubExpression = {
+    id: 'some-sub-exp-id-0',
+    function: ExpressionFunction.Equals,
+    dataSource: DataSource.Component,
+    value: componentId,
+    comparableDataSource: DataSource.String,
+    comparableValue: stringValue,
+  }
+  const subExpression1: SubExpression = {
+    id: 'some-sub-exp-id-1',
+    function: ExpressionFunction.Equals,
+    dataSource: DataSource.Null,
+    value: nullValue,
+    comparableDataSource: DataSource.Number,
+    comparableValue: numberValue,
+  }
+  const subExpression2: SubExpression = {
+    id: 'some-sub-exp-id-2',
+    function: ExpressionFunction.Equals,
+    dataSource: DataSource.Boolean,
+    value: booleanValue,
+    comparableDataSource: DataSource.Component,
+    comparableValue: componentId,
+  }
   const baseInternalExpression: Expression = {
     id: 'some-id-0',
     property: ExpressionPropertyBase.Hidden,
@@ -37,14 +65,7 @@ describe('expressionsUtils', () => {
     id: 'some-id-1',
     property: ExpressionPropertyBase.Hidden,
     subExpressions: [
-      {
-        id: 'some-sub-exp-id-0',
-        function: ExpressionFunction.Equals,
-        dataSource: DataSource.Component,
-        value: componentId,
-        comparableDataSource: DataSource.String,
-        comparableValue: stringValue,
-      }
+      subExpression0
     ]
   };
   const internalExpressionWithMultipleSubExpressions: Expression = {
@@ -52,22 +73,8 @@ describe('expressionsUtils', () => {
     property: ExpressionPropertyBase.Hidden,
     operator: Operator.Or,
     subExpressions: [
-      {
-        id: 'some-sub-exp-id-1',
-        function: ExpressionFunction.Equals,
-        dataSource: DataSource.Null,
-        value: nullValue,
-        comparableDataSource: DataSource.Number,
-        comparableValue: numberValue,
-      },
-      {
-        id: 'some-sub-exp-id-2',
-        function: ExpressionFunction.Equals,
-        dataSource: DataSource.Boolean,
-        value: booleanValue,
-        comparableDataSource: DataSource.Component,
-        comparableValue: componentId,
-      }
+      subExpression1,
+      subExpression2
     ]
   };
   const equivalentExternalExpressionWithMultipleSubExpressions = [
@@ -413,6 +420,37 @@ describe('expressionsUtils', () => {
       expect(updatedExpressions).toHaveLength(2);
       expect(updatedExpressions).toContainEqual(expression1);
       expect(updatedExpressions).toContainEqual(expression3);
+    });
+  });
+  describe('removeSubExpressionAndAdaptParentProps', () => {
+    it('should remove a subExpression and do nothing more with parent properties when there are more than 2 subExpressions to start with', () => {
+      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
+      internalExpressionCopy.subExpressions.push(subExpression0)
+      const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression0);
+
+      expect(newExpression.operator).toBe(Operator.Or);
+      expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
+      expect(newExpression.subExpressions).toHaveLength(2);
+      expect(newExpression.subExpressions).toStrictEqual(internalExpressionWithMultipleSubExpressions.subExpressions);
+    });
+    it('should remove a subExpression and clear operator when there is only one subExpression left', () => {
+      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
+      const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression1);
+
+      expect(newExpression.operator).toBeUndefined();
+      expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
+      expect(newExpression.subExpressions).toHaveLength(1);
+    });
+
+    it('should have no subExpressions and clear operator and property when there is no subExpressions left', () => {
+      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
+      internalExpressionCopy.subExpressions.pop();
+
+      const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression1);
+
+      expect(newExpression.operator).toBeUndefined();
+      expect(newExpression.property).toBeUndefined();
+      expect(newExpression.subExpressions).toBeUndefined();
     });
   });
 });
