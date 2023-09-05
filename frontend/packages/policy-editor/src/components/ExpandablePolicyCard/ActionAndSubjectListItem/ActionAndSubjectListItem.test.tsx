@@ -10,6 +10,8 @@ import { act } from 'react-dom/test-utils';
 const mockChipTitle: string = 'Test';
 
 describe('ActionAndSubjectListItem', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockOnRemove = jest.fn();
 
   const defaultProps: ActionAndSubjectListItemProps = {
@@ -24,6 +26,6 @@ describe('ActionAndSubjectListItem', () => {
     const chipElement = screen.getByText(mockChipTitle);
     await act(() => user.click(chipElement));
 
-    expect(mockOnRemove).toHaveBeenCalled();
+    expect(mockOnRemove).toHaveBeenCalledTimes(1);
   });
 });

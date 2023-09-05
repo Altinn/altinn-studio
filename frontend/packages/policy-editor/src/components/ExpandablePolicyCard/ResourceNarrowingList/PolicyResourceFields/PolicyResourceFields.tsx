@@ -3,7 +3,6 @@ import classes from './PolicyResourceFields.module.css';
 import { Button, Label, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-import { ScreenReaderLabel } from '../../../ScreenReaderLabel';
 
 export type PolicyResourceFieldsProps = {
   /**
@@ -90,10 +89,7 @@ export const PolicyResourceFields = ({
             readOnly={!canEditTypeAndId}
             id={'resourceType' + uniqueId}
             onBlur={onBlur}
-          />
-          <ScreenReaderLabel
-            htmlFor={'resourceType' + uniqueId}
-            label={t('policy_editor.narrowing_list_field_type')}
+            aria-label={t('policy_editor.narrowing_list_field_type')}
           />
         </div>
         <div className={classes.textfieldWrapper}>
@@ -108,10 +104,7 @@ export const PolicyResourceFields = ({
             readOnly={!canEditTypeAndId}
             id={'resourceId' + uniqueId}
             onBlur={onBlur}
-          />
-          <ScreenReaderLabel
-            htmlFor={'resourceId' + uniqueId}
-            label={t('policy_editor.narrowing_list_field_id')}
+            aria-label={t('policy_editor.narrowing_list_field_id')}
           />
         </div>
       </div>

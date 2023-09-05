@@ -6,6 +6,8 @@ import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 describe('DropdownMenu', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockHandleClickMoreIcon = jest.fn();
   const mockHandleCloseMenu = jest.fn();
   const mockHandleClone = jest.fn();
@@ -26,7 +28,7 @@ describe('DropdownMenu', () => {
     const menuButton = screen.getByRole('button', { name: textMock('policy_editor.more') });
     await act(() => user.click(menuButton));
 
-    expect(mockHandleClickMoreIcon).toHaveBeenCalled();
+    expect(mockHandleClickMoreIcon).toHaveBeenCalledTimes(1);
   });
 
   it('does not render the dropdown menu when isOpen is false', () => {
@@ -47,7 +49,7 @@ describe('DropdownMenu', () => {
     });
     await act(() => user.click(copyButton));
 
-    expect(mockHandleClone).toHaveBeenCalled();
+    expect(mockHandleClone).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleDelete when the "Delete" button is clicked', async () => {
@@ -59,6 +61,6 @@ describe('DropdownMenu', () => {
     });
     await act(() => user.click(deleteButton));
 
-    expect(mockHandleDelete).toHaveBeenCalled();
+    expect(mockHandleDelete).toHaveBeenCalledTimes(1);
   });
 });

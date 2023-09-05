@@ -11,6 +11,8 @@ const mockValudNewText = '45';
 const mockUniqueId: string = 'ruleId:1-subResource:1-fieldRow:1';
 
 describe('PolicyResourceFields', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockOnRemove = jest.fn();
   const mockOnChangeId = jest.fn();
   const mockOnChangeType = jest.fn();
@@ -77,7 +79,7 @@ describe('PolicyResourceFields', () => {
 
     await act(() => user.type(typeInput, mockValudNewText));
     await act(() => user.tab());
-    expect(mockOnBlur).toHaveBeenCalled();
+    expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 
   it('hides the delete button when "canEditTypeAndId" is false', () => {
@@ -102,6 +104,6 @@ describe('PolicyResourceFields', () => {
 
     await act(() => user.click(deleteButton));
 
-    expect(mockOnRemove).toHaveBeenCalled();
+    expect(mockOnRemove).toHaveBeenCalledTimes(1);
   });
 });
