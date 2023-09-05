@@ -3,7 +3,7 @@ class SupportedContextPadProvider {
     contextPad.registerProvider(this);
   }
 
-  public getContextPadEntries() {
+  getContextPadEntries() {
     return function (entries) {
       // Should not be able to replace the entry
       delete entries['replace'];
@@ -12,7 +12,9 @@ class SupportedContextPadProvider {
   }
 }
 
+SupportedContextPadProvider.$inject = ['contextPad'];
+
 export default {
-  __init__: ['SupportedContextPadProvider'],
-  SupportedContextPadProvider: ['type', SupportedContextPadProvider],
+  __init__: ['supportedContextPadProvider'],
+  supportedContextPadProvider: ['type', SupportedContextPadProvider],
 };

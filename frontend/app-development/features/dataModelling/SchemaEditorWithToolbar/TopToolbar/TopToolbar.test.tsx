@@ -3,7 +3,6 @@ import { TopToolbar, TopToolbarProps } from './TopToolbar';
 import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -11,6 +10,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
+import { buildJsonSchema } from '@altinn/schema-model';
+import { renderWithMockStore } from '../../../../test/mocks';
 
 const user = userEvent.setup();
 
@@ -48,16 +49,12 @@ const renderToolbar = (
   servicesContextProps: Partial<ServicesContextProps> = {},
 ) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchemaNodesMock);
-  return renderWithProviders({
-    servicesContextProps: {
-      generateModels,
-      getDatamodels,
-      getDatamodelsXsd,
-      ...servicesContextProps,
-    },
-    queryClient,
-  })(<TopToolbar {...defaultProps} {...props} />);
+  queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], buildJsonSchema(uiSchemaNodesMock));
+  return renderWithMockStore(
+    {},
+    { generateModels, getDatamodels, getDatamodelsXsd, ...servicesContextProps },
+    queryClient
+  )(<TopToolbar {...defaultProps} {...props} />);
 };
 
 // Mocks:
@@ -109,12 +106,12 @@ describe('TopToolbar', () => {
 
   it('Hides schema error popover when component is rerendered without schema error', async () => {
     const message = 'Error message';
-    const { rerender } = renderToolbar({}, {
+    const { renderResult: { rerender } } = renderToolbar({}, {
       generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
     });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     await act(() => user.click(screen.getByRole('button', { name: closeText })));
-    rerender()(<TopToolbar {...defaultProps} />);
+    rerender(<TopToolbar {...defaultProps} />);
     expect(screen.queryAllByRole('dialog')).toHaveLength(0);
   });
 

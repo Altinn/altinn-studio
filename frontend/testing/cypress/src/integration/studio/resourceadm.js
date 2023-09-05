@@ -1,51 +1,44 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as texts from "@altinn-studio/language/src/nb.json";
+import * as texts from '@altinn-studio/language/src/nb.json';
 
 // First Cypress tests of sub-repo Resourceadm: this is a work in progress
 
-context("Resourceadm", () => {
+context('Resourceadm', () => {
   before(() => {
-    cy.studiologin(Cypress.env("autoTestUser"), Cypress.env("autoTestUserPwd"));
-    // the login session will last throughout the tests
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
 
   beforeEach(() => {
-    cy.visit("/resourceadm/ttd/ttd-resources/"); // each test starts the same place
+    cy.visit('/resourceadm/ttd/ttd-resources/');
   });
 
-  it("is possible to visit Resourceadm main page", () => {
-    cy.url().should("include", "/ttd/ttd-resources"); // URL assertion of main page
+  it('is possible to visit Resourceadm main page', () => {
+    cy.url().should('include', '/ttd/ttd-resources');
   });
 
-  // The next 3 tests navigates through resourceadm error handling: work in progress
-  it("is possible to switch to all, and go to Dashboard via Error page", () => {
-    cy.switchSelectedContext("all"); // triggers Error page as Resourceadm requires
-    // both a valid, single organization and a complimentary org-resources repo, as in
-    // /ttd/ttd-resources/
-    cy.url().should("include", "/resourceadm/all");
-    cy.findByRole("link", {
-      name: texts["resource.back_to_dashboard"],
+  it('is possible to switch to all, and go to Dashboard via Error page', () => {
+    cy.switchSelectedContext('all');
+    cy.url().should('include', '/resourceadm/all');
+    cy.findByRole('link', {
+      name: texts['resourceadm.error_back_to_dashboard'],
     }).click();
-    cy.url().should("include", "/dashboard");
+    cy.url().should('include', '/dashboard');
   });
 
-  it("is possible to switch to self, and go to Dashboard via Error page", () => {
-    cy.switchSelectedContext("self"); // triggers Error page as Resourceadm requires
-    // both a valid, single organization and a complimentary org-resources repo, as in
-    // /ttd/ttd-resources/
-    cy.findByRole("link", {
-      name: texts["resource.back_to_dashboard"],
+  it('is possible to switch to self, and go to Dashboard via Error page', () => {
+    cy.switchSelectedContext('self');
+    cy.findByRole('link', {
+      name: texts['resourceadm.error_back_to_dashboard'],
     }).click();
-    cy.url().should("include", "/dashboard");
+    cy.url().should('include', '/dashboard');
   });
 
-  it("is possible to switch to all, and return via Redirect page", () => {
-    cy.switchSelectedContext("all"); // sets up for redirect test
-    cy.url().should("include", "/resourceadm/all");
-    cy.visit("/resourceadm/ttd/"); // tests Router redirect in case of correct org,
-    // but missing /org-resources/ segment in URL
-    cy.url().should("include", "/ttd/ttd-resources");
+  it('is possible to switch to all, and return via Redirect page', () => {
+    cy.switchSelectedContext('all');
+    cy.url().should('include', '/resourceadm/all');
+    cy.visit('/resourceadm/ttd/');
+    cy.url().should('include', '/ttd/ttd-resources');
   });
 });

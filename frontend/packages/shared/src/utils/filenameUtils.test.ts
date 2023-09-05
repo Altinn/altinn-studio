@@ -1,4 +1,4 @@
-import { removeExtension, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
+import { isXsdFile, removeExtension, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 
 describe('filenameUtils', () => {
   describe('removeExtension', () => {
@@ -27,6 +27,18 @@ describe('filenameUtils', () => {
 
     it('Returns entire input string if there is no .schema.json or .xsd extension', () => {
       expect(removeSchemaExtension('filename.xml')).toEqual('filename.xml');
+    });
+  });
+
+  describe('isXsdFile', () => {
+    it('Returns true if filename has an XSD extension', () => {
+      expect(isXsdFile('filename.xsd')).toBe(true);
+      expect(isXsdFile('filename.XSD')).toBe(true);
+    });
+
+    it('Returns false if filename does not have an XSD extension', () => {
+      expect(isXsdFile('filename.schema.json')).toBe(false);
+      expect(isXsdFile('filename')).toBe(false);
     });
   });
 });

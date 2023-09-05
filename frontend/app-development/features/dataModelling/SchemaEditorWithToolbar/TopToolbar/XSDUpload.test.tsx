@@ -4,10 +4,10 @@ import { XSDUpload } from './XSDUpload';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../testing/testids';
+import { renderWithMockStore } from '../../../../test/mocks';
 
 const user = userEvent.setup();
 
@@ -21,7 +21,7 @@ const clickUploadButton = async () => {
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
-  renderWithProviders({ queryClient })(<XSDUpload/>);
+  renderWithMockStore({}, {}, queryClient)(<XSDUpload/>);
 
 describe('XSDUpload', () => {
   afterEach(() => jest.restoreAllMocks());

@@ -6,8 +6,6 @@ import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { createNodeBase, Keyword, ObjectKind } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
 
 const user = userEvent.setup();
@@ -32,9 +30,6 @@ const rootNode = {
   children: [selectedNode, type1, type2].map((node) => node.pointer),
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedNode, type1, type2];
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 
 const defaultProps: IReferenceSelectionProps = {
   buttonText,
@@ -45,12 +40,10 @@ const defaultProps: IReferenceSelectionProps = {
   selectedNode,
 };
 
-const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) => {
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
-  return renderWithProviders({
-    appContextProps: { modelPath },
+const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) =>
+  renderWithProviders({
+    appContextProps: { data: uiSchema },
   })(<ReferenceSelectionComponent {...defaultProps} {...props} />);
-};
 
 describe('ReferenceSelectionComponent', () => {
   beforeEach(() => validateTestUiSchema(uiSchema));

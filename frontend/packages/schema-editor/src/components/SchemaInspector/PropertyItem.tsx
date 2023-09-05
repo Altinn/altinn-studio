@@ -7,11 +7,10 @@ import { IconImage } from '../common/Icon';
 import { getTypeOptions } from './helpers/options';
 import type { FieldType } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { NameField } from './NameField';
 import { AltinnConfirmDialog } from 'app-shared/components';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface IPropertyItemProps {
   fullPath: string;
@@ -34,14 +33,13 @@ export function PropertyItem({
   required,
   type,
 }: IPropertyItemProps) {
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const deleteHandler = () => onDeleteField?.(fullPath);
 
   const handleChangeNodeName = (newNodeName: string) => {
-    mutate(
+    save(
       setPropertyName(data, {
         path: fullPath,
         name: newNodeName,
@@ -50,7 +48,7 @@ export function PropertyItem({
   };
 
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
-    mutate(
+    save(
       setRequired(data, {
         path: fullPath,
         required: e.target.checked,

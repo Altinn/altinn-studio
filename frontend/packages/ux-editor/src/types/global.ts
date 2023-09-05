@@ -5,6 +5,7 @@ import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from './FormComponent';
 import { FormContainer } from './FormContainer';
+import React from 'react';
 
 export interface IFormDesignerNameSpace<T1, T2> {
   formDesigner: T1;
@@ -62,7 +63,7 @@ export interface IWidgetTexts {
 
 export interface IToolbarElement {
   label: string;
-  icon?: string;
+  icon?: React.ComponentType;
   type: ComponentType;
 }
 

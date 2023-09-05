@@ -2,13 +2,14 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
-import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
+import { QueryClient } from '@tanstack/react-query';
+import { renderWithMockStore } from '../../../../test/mocks';
 
 const user = userEvent.setup();
 
@@ -31,7 +32,7 @@ describe('SchemaSelect', () => {
   it('Renders empty select when there are no provided options', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], []);
-    render({}, { queryClient });
+    render({}, queryClient);
     expect(screen.getByRole('combobox')).toBeEmptyDOMElement();
   });
 
@@ -59,12 +60,11 @@ describe('SchemaSelect', () => {
 
 const render = (
   props: Partial<ISchemaSelectProps> = {},
-  data: RenderWithProvidersData = {},
+  queryClient?: QueryClient,
   ) => {
-  if (!data.queryClient) {
-    const queryClient = createQueryClientMock();
+  if (!queryClient) {
+    queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], metadata);
-    data.queryClient = queryClient;
   }
-  return renderWithProviders(data)(<SchemaSelect {...defaultProps} {...props} />);
+  return renderWithMockStore({}, {}, queryClient)(<SchemaSelect {...defaultProps} {...props} />);
 };

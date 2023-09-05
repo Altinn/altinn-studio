@@ -6,20 +6,12 @@ import { SchemaItem } from './SchemaItem';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { dataMock } from '../../mockData';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 
 const user = userEvent.setup();
-
-const uiSchema = buildUiSchema(dataMock);
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
-queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
 
 describe('SchemaItem', () => {
   describe('Delete confirmation dialog', () => {
@@ -132,8 +124,6 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
 
   return renderWithProviders({
     state: mockInitialState,
-    appContextProps: { modelPath },
-  })(<DndProvider backend={HTML5Backend}>
-      <SchemaItem {...allProps} />
-    </DndProvider>);
+    appContextProps: { data: buildUiSchema(dataMock) },
+  })(<DndProvider backend={HTML5Backend}><SchemaItem {...allProps} /></DndProvider>);
 };

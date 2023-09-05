@@ -1,11 +1,33 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from '../types/FormComponent';
+import {
+  FingerButtonIcon,
+  FileTextIcon,
+  PaperclipIcon,
+  CalendarIcon,
+  ChevronDownIcon,
+  TasklistIcon,
+  PinIcon,
+  ExclamationmarkIcon,
+  MenuHamburgerIcon,
+  ImageIcon,
+  TabsIcon,
+  TableIcon,
+  CaptionsIcon,
+  BulletListIcon,
+  BookmarkIcon,
+  ChevronDownDoubleIcon,
+  ThumbUpIcon,
+  LinkIcon,
+  PresentationIcon
+} from '@navikt/aksel-icons';
+import React, { RefAttributes, SVGProps } from 'react';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
-  icon?: string;
+  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> & RefAttributes<SVGSVGElement>;
 };
 
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
@@ -20,7 +42,7 @@ export const formItemConfigs: FormItemConfigs = {
       severity: 'info',
       propertyPath: 'definitions/alertComponent',
     },
-    icon: 'fa fa-circle-exclamation',
+    icon: ExclamationmarkIcon,
   },
   [ComponentType.Accordion]: {
     name: ComponentType.Accordion,
@@ -30,6 +52,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
     },
+    icon: ChevronDownIcon,
   },
   [ComponentType.AccordionGroup]: {
     name: ComponentType.AccordionGroup,
@@ -39,6 +62,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.AccordionGroup,
       propertyPath: 'definitions/accordionGroupComponent',
     },
+    icon: ChevronDownDoubleIcon,
   },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
@@ -47,7 +71,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.ActionButton,
     },
-    icon: 'fa fa-button',
+    icon: FingerButtonIcon,
   },
   [ComponentType.AddressComponent]: {
     name: ComponentType.AddressComponent,
@@ -59,7 +83,7 @@ export const formItemConfigs: FormItemConfigs = {
       simplified: true,
       propertyPath: 'definitions/addressComponent',
     },
-    icon: 'fa fa-address',
+    icon: PinIcon,
   },
   [ComponentType.AttachmentList]: {
     name: ComponentType.AttachmentList,
@@ -71,7 +95,7 @@ export const formItemConfigs: FormItemConfigs = {
       minNumberOfAttachments: 0,
       propertyPath: 'definitions/attachmentListComponent',
     },
-    icon: 'fa fa-attachment',
+    icon: PaperclipIcon,
   },
   [ComponentType.Button]: {
     name: ComponentType.Button,
@@ -79,10 +103,10 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.Button,
-      onClickAction: () => {},
+      onClickAction: () => { },
       propertyPath: 'definitions/actionButtonComponent',
     },
-    icon: 'fa fa-button',
+    icon: FingerButtonIcon,
   },
   [ComponentType.ButtonGroup]: {
     name: ComponentType.ButtonGroup,
@@ -92,7 +116,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.ButtonGroup,
       propertyPath: 'definitions/buttonGroupComponent',
     },
-    icon: 'fa fa-button',
+    icon: FingerButtonIcon,
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
@@ -104,7 +128,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: 'fa fa-checkbox',
+    icon: BulletListIcon,
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
@@ -129,7 +153,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/datepickerComponent',
     },
-    icon: 'fa fa-date',
+    icon: CalendarIcon,
   },
   [ComponentType.Dropdown]: {
     name: ComponentType.Dropdown,
@@ -142,7 +166,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: 'fa fa-drop-down',
+    icon: BulletListIcon,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
@@ -158,7 +182,7 @@ export const formItemConfigs: FormItemConfigs = {
       minNumberOfAttachments: 1,
       propertyPath: 'definitions/fileUploadComponent',
     },
-    icon: 'fa fa-attachment',
+    icon: PaperclipIcon,
   },
   [ComponentType.FileUploadWithTag]: {
     name: ComponentType.FileUploadWithTag,
@@ -175,7 +199,7 @@ export const formItemConfigs: FormItemConfigs = {
       optionsId: '',
       propertyPath: 'definitions/fileUploadWithTagComponent',
     },
-    icon: 'fa fa-attachment',
+    icon: PaperclipIcon,
   },
   [ComponentType.Grid]: {
     name: ComponentType.Grid,
@@ -186,7 +210,7 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/gridComponent',
       rows: [],
     },
-    icon: 'fa fa-group',
+    icon: TableIcon,
   },
   [ComponentType.Group]: {
     name: ComponentType.Group,
@@ -194,7 +218,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'CONTAINER',
       propertyPath: 'definitions/groupComponent',
     },
-    icon: 'fa fa-group',
+    icon: TabsIcon,
   },
   [ComponentType.Header]: {
     name: ComponentType.Header,
@@ -205,7 +229,7 @@ export const formItemConfigs: FormItemConfigs = {
       size: 'L',
       propertyPath: 'definitions/headerComponent',
     },
-    icon: 'fa fa-title',
+    icon: BookmarkIcon,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
@@ -215,7 +239,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.IFrame,
       sandbox: {},
     },
-    icon: 'fa fa-code-files',
+    icon: PresentationIcon,
   },
   [ComponentType.Image]: {
     name: ComponentType.Image,
@@ -230,7 +254,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       propertyPath: 'definitions/imageComponent',
     },
-    icon: 'fa fa-preview',
+    icon: ImageIcon,
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
@@ -242,7 +266,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/inputComponent',
     },
-    icon: 'fa fa-short-answer',
+    icon: CaptionsIcon,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
@@ -252,7 +276,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.InstanceInformation,
       propertyPath: 'definitions/instanceInformationComponent',
     },
-    icon: 'fa fa-info-circle',
+    icon: FileTextIcon,
   },
   [ComponentType.InstantiationButton]: {
     name: ComponentType.InstantiationButton,
@@ -261,7 +285,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.InstantiationButton,
     },
-    icon: 'fa fa-button',
+    icon: FingerButtonIcon,
   },
   [ComponentType.Likert]: {
     name: ComponentType.Likert,
@@ -272,7 +296,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: 'fa fa-checkbox',
+    icon: ThumbUpIcon,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
@@ -281,7 +305,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Link,
     },
-    icon: 'fa fa-code-files',
+    icon: LinkIcon,
   },
   [ComponentType.List]: {
     name: ComponentType.List,
@@ -291,7 +315,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.List,
       propertyPath: 'definitions/listComponent',
     },
-    icon: 'fa fa-list',
+    icon: TasklistIcon,
   },
   [ComponentType.Map]: {
     name: ComponentType.Map,
@@ -308,7 +332,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/mapComponent',
     },
-    icon: 'fa fa-address',
+    icon: PinIcon,
   },
   [ComponentType.MultipleSelect]: {
     name: ComponentType.MultipleSelect,
@@ -321,7 +345,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: 'fa fa-drop-down',
+    icon: BulletListIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
@@ -331,7 +355,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.NavigationBar,
       propertyPath: 'definitions/navigationBarComponent',
     },
-    icon: 'fa fa-page-navigation',
+    icon: MenuHamburgerIcon,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
@@ -339,10 +363,10 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.NavigationButtons,
-      onClickAction: () => {},
+      onClickAction: () => { },
       propertyPath: 'definitions/navigationButtonsComponent',
     },
-    icon: 'fa fa-button',
+    icon: FingerButtonIcon,
   },
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
@@ -354,7 +378,7 @@ export const formItemConfigs: FormItemConfigs = {
       showIcon: true,
       propertyPath: 'definitions/panelComponent',
     },
-    icon: 'fa fa-paragraph',
+    icon: FileTextIcon,
   },
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
@@ -363,7 +387,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Paragraph,
     },
-    icon: 'fa fa-paragraph',
+    icon: FileTextIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
@@ -372,7 +396,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.PrintButton,
     },
-    icon: 'fa fa-button',
+    icon: FingerButtonIcon,
   },
   [ComponentType.RadioButtons]: {
     name: ComponentType.RadioButtons,
@@ -384,7 +408,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: 'fa fa-radio-button',
+    icon: BulletListIcon,
   },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
@@ -394,7 +418,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Summary,
       propertyPath: 'definitions/summaryComponent',
     },
-    icon: 'fa fa-info-circle',
+    icon: FileTextIcon,
   },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
@@ -406,7 +430,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/textAreaComponent',
     },
-    icon: 'fa fa-long-answer',
+    icon: CaptionsIcon,
   },
 };
 

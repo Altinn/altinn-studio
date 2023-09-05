@@ -1,6 +1,6 @@
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { useSelector } from 'react-redux';
 import { SchemaAndReduxSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 /**
  * Hook that is used to access both the datamodel and the redux state.
@@ -10,7 +10,7 @@ import { SchemaAndReduxSelector } from '@altinn/schema-editor/selectors/schemaAn
  * @returns The result of the selector.
  */
 export const useSchemaAndReduxSelector = <R, S>(selector: SchemaAndReduxSelector<R, S>): S => {
-  const { data } = useDatamodelQuery();
+  const { data } = useSchemaEditorAppContext();
   const reduxSelectorResult = useSelector(selector.reduxSelector);
   return data ? selector.schemaSelector(reduxSelectorResult, data) : null;
 }

@@ -27,7 +27,6 @@ context('Repository', () => {
         cy.visit(href);
       });
     gitea.getRepositoryHeader().should('be.visible');
-    gitea.getDashboardLink().should('be.visible').click();
     gitea.getAltinnLogo().should('be.visible');
   });
 });

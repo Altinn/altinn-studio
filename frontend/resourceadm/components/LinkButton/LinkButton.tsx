@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './LinkButton.module.css';
 import { Link } from '@digdir/design-system-react';
 
-type LinkButtonProps = {
+export type LinkButtonProps = {
   /**
    * Function to handle the click of the link
    * @returns void

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
+import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
 import {
   convertMetadataListToOptions,
   findMetadataOptionByRelativeUrl,

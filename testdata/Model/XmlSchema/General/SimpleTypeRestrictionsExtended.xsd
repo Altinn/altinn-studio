@@ -18,6 +18,22 @@
         <xsd:element name="f5" type="numberRestrictionsFractional4" />
         <xsd:element name="f6" type="numberRestrictionsFractional5" />
         <xsd:element name="nonPrimitive" type="nestedStringRestrictions" />
+        <xsd:element name="intRangeWithoutLimits" type="intRangeWithoutLimits" />
+        <xsd:element name="intRangeWithLimits" type="intRangeWithLimits" />
+        <xsd:element name="intRangeLeftLimit" type="intRangeLeftLimit" />
+        <xsd:element name="intRangeRightLimit" type="intRangeRightLimit" />
+        <xsd:element name="integerRangeWithoutLimits" type="integerRangeWithoutLimits" />
+        <xsd:element name="integerRangeWithLimits" type="integerRangeWithLimits" />
+        <xsd:element name="integerRangeLeftLimit" type="integerRangeLeftLimit" />
+        <xsd:element name="integerRangeRightLimit" type="integerRangeRightLimit" />
+        <xsd:element name="longRangeWithoutLimits" type="longRangeWithoutLimits" />
+        <xsd:element name="longRangeWithLimits" type="longRangeWithLimits" />
+        <xsd:element name="longRangeLeftLimit" type="longRangeLeftLimit" />
+        <xsd:element name="longRangeRightLimit" type="longRangeRightLimit" />
+        <xsd:element name="decimalRangeWithoutLimits" type="decimalRangeWithoutLimits" />
+        <xsd:element name="decimalRangeWithLimits" type="decimalRangeWithLimits" />
+        <xsd:element name="decimalRangeLeftLimit" type="decimalRangeLeftLimit" />
+        <xsd:element name="decimalRangeRightLimit" type="decimalRangeRightLimit" />
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
@@ -102,4 +118,85 @@
       <xsd:pattern value="[0-9]+"/>
     </xsd:restriction>
   </xsd:simpleType>
+  <xsd:simpleType name="intRangeWithoutLimits">
+    <xsd:restriction base="xsd:int">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="intRangeWithLimits">
+    <xsd:restriction base="xsd:int">
+      <xsd:minInclusive value="-100" />
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="intRangeLeftLimit">
+    <xsd:restriction base="xsd:int">
+      <xsd:minInclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="intRangeRightLimit">
+    <xsd:restriction base="xsd:int">
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeWithoutLimits">
+    <xsd:restriction base="xsd:integer">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeWithLimits">
+    <xsd:restriction base="xsd:integer">
+      <xsd:minInclusive value="-100" />
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeLeftLimit">
+    <xsd:restriction base="xsd:integer">
+      <xsd:minInclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="integerRangeRightLimit">
+    <xsd:restriction base="xsd:integer">
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="longRangeWithoutLimits">
+    <xsd:restriction base="xsd:long">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="longRangeWithLimits">
+    <xsd:restriction base="xsd:long">
+      <xsd:minInclusive value="-100" />
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="longRangeLeftLimit">
+    <xsd:restriction base="xsd:long">
+      <xsd:minInclusive value="-100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="longRangeRightLimit">
+    <xsd:restriction base="xsd:long">
+      <xsd:maxInclusive value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeWithoutLimits">
+    <xsd:restriction base="xsd:decimal">
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeWithLimits">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:minInclusive value="-100.0" />
+      <xsd:maxInclusive value="100.0" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeLeftLimit">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:minInclusive value="-100.0" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalRangeRightLimit">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:maxInclusive value="100.0" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
 </xsd:schema>

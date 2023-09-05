@@ -10,6 +10,7 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
 import { rootStateMock } from './rootStateMock';
+import { QueryClient } from '@tanstack/react-query';
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
@@ -18,11 +19,11 @@ export const queriesMock: ServicesContextProps = {
 };
 
 export const renderWithMockStore =
-  (state: Partial<RootState> = {}, queries: Partial<ServicesContextProps> = {}) =>
+  (state: Partial<RootState> = {}, queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
   (component: ReactNode) => {
     const store = configureStore()({ ...rootStateMock, ...state });
     const renderResult = render(
-      <ServicesContextProvider {...queriesMock} {...queries}>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
           <Provider store={store}>
             <BrowserRouter>{component}</BrowserRouter>
@@ -30,16 +31,25 @@ export const renderWithMockStore =
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
     );
-    return { renderResult, store };
+    const rerender = (rerenderedComponent) => renderResult.rerender(
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+        <PreviewConnectionContextProvider>
+          <Provider store={store}>
+            <BrowserRouter>{rerenderedComponent}</BrowserRouter>
+          </Provider>
+        </PreviewConnectionContextProvider>
+      </ServicesContextProvider>
+    );
+    return { renderResult: { ...renderResult, rerender }, store };
   };
 
 export const renderHookWithMockStore =
-  (state: Partial<RootState> = {}, queries: Partial<ServicesContextProps> = {}) =>
+  (state: Partial<RootState> = {}, queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
   (hook: () => any) => {
     const store = configureStore()({ ...rootStateMock, ...state });
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <ServicesContextProvider {...queriesMock} {...queries}>
+        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
           <PreviewConnectionContextProvider>
             <Provider store={store}>{children}</Provider>
           </PreviewConnectionContextProvider>

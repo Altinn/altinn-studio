@@ -5,7 +5,7 @@ import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { Expressions } from './Expressions';
+import { Expressions } from '../config/Expressions';
 import { Accordion } from '@digdir/design-system-react';
 import { FormContext } from '../../containers/FormContext';
 

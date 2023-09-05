@@ -50,6 +50,10 @@ type ResourceNarrowingListProps = {
    * The usage type of the policy editor
    */
   usageType: PolicyEditorUsage;
+  /**
+   * Unique id of the field
+   */
+  uniqueId: string;
 };
 
 /**
@@ -65,6 +69,7 @@ type ResourceNarrowingListProps = {
  * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {PolicyEditorUsage}[usageType] - The usage type of the policy editor
+ * @property {string}[uniqueId] - Unique id of the field
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -77,6 +82,7 @@ export const ResourceNarrowingList = ({
   handleCloneElement,
   onBlur,
   usageType,
+  uniqueId,
 }: ResourceNarrowingListProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -94,6 +100,7 @@ export const ResourceNarrowingList = ({
         onChangeId={(s: string) => handleInputChange(i, 'id', s)}
         onChangeType={(s: string) => handleInputChange(i, 'type', s)}
         onBlur={onBlur}
+        uniqueId={`${uniqueId}-fieldRow:${i}`}
       />
     );
   });
@@ -122,7 +129,9 @@ export const ResourceNarrowingList = ({
             size='small'
             dashedBorder
             variant='outline'
-            icon={<PlusIcon title={t('policy_editor.narrowing_list_add_button')} fontSize='1.5rem' />}
+            icon={
+              <PlusIcon title={t('policy_editor.narrowing_list_add_button')} fontSize='1.5rem' />
+            }
           >
             {t('policy_editor.narrowing_list_add_button')}
           </Button>

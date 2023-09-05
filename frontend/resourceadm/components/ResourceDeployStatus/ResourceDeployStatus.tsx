@@ -5,7 +5,7 @@ import type { DeployError, NavigationBarPage } from 'resourceadm/types/global';
 import { Alert, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
 
-type ResourceDeployStatusProps = {
+export type ResourceDeployStatusProps = {
   /**
    * Title to display on the card
    */
@@ -52,11 +52,11 @@ export const ResourceDeployStatus = ({
   /**
    * Display the different errors based on the type of the error
    */
-  const displayErrors = () => {
+  const DisplayErrors = () => {
     if (typeof error === 'string') {
       return (
         <div className={classes.cardElement}>
-          <ArrowRightIcon title={error} fontSize='1.5rem' />
+          <ArrowRightIcon fontSize='1.5rem' />
           <Paragraph size='small' className={classes.text}>
             {error}
           </Paragraph>
@@ -81,17 +81,21 @@ export const ResourceDeployStatus = ({
     });
   };
 
-  const displayContent = () => {
+  const DisplayContent = () => {
     if (isSuccess) {
       return <p className={classes.text}>{title}</p>;
     }
     return (
       <>
         <p className={classes.title}>{title}</p>
-        {displayErrors()}
+        <DisplayErrors />
       </>
     );
   };
 
-  return <Alert severity={isSuccess ? 'success' : 'danger'}>{displayContent()}</Alert>;
+  return (
+    <Alert severity={isSuccess ? 'success' : 'danger'}>
+      <DisplayContent />
+    </Alert>
+  )
 };

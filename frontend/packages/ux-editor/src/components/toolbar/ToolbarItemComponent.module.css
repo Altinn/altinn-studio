@@ -6,11 +6,14 @@
   display: flex;
   padding: 8px;
   align-items: center;
+  gap: .5rem;
 }
 
 .componentIcon {
   min-width: 40px;
-  flex: 0 0 32px;
+  display: flex;
+  font-size: 2rem;
+  flex: 0 0 40;
 }
 
 .componentLabel {

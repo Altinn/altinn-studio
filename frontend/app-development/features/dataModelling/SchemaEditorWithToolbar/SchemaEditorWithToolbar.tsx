@@ -3,7 +3,7 @@ import { TopToolbar } from './TopToolbar';
 import { LandingPagePanel } from './LandingPagePanel';
 import React, { useState } from 'react';
 import { MetadataOption } from '../../../types/MetadataOption';
-import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
+import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
@@ -36,7 +36,7 @@ export const SchemaEditorWithToolbar = ({
             openCreateNew={() => setCreateNewOpen(true)}
           />
         )}
-        {modelPath && <SchemaEditorApp modelName={modelName} modelPath={modelPath}/>}
+        {modelPath && <SelectedSchemaEditor modelName={modelName} modelPath={modelPath}/>}
       </main>
     </div>
   );

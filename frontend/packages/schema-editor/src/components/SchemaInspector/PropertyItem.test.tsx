@@ -6,8 +6,6 @@ import { FieldType } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import {
   parentNodeMock,
   toggableNodeMock,
@@ -18,9 +16,6 @@ import { SchemaState } from '@altinn/schema-editor/types';
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
 const textDeleteField = 'Slett felt';
 const textConfirmDeleteDialog = 'Confirm';
@@ -74,21 +69,13 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 const renderPropertyItem = (
   props?: Partial<IPropertyItemProps>,
   state: Partial<SchemaState> = {}
-) => {
-  queryClientMock.setQueryData(
-    [QueryKey.Datamodel, org, app, modelPath],
-    uiSchemaNodesMock,
-  );
-
-  return renderWithProviders({
-    state: { ...defaultState, ...state },
-    appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel },
-  })(<PropertyItem {...defaultProps} {...props} />);
-};
+) => renderWithProviders({
+  state: { ...defaultState, ...state },
+  appContextProps: { data: uiSchemaNodesMock, save: saveDatamodel },
+})(<PropertyItem {...defaultProps} {...props} />);
 
 describe('PropertyItem', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(jest.clearAllMocks);
 
   test('Text input field appears', async () => {
     renderPropertyItem();
