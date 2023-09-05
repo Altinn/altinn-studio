@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CogIcon, EyeFillIcon } from '@navikt/aksel-icons';
-import { Button } from '@digdir/design-system-react';
+import { Alert, Button } from '@digdir/design-system-react';
 import { useBpmnViewer } from '../../hooks/useBpmnViewer';
 import { useBpmnEditor } from '../../hooks/useBpmnEditor';
 
@@ -11,6 +11,7 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
+import { Center } from 'app-shared/components/Center/Center';
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
@@ -43,8 +44,13 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
 
 // Below is helper components for Canvas.tsx
 const Viewer = (): JSX.Element => {
-  const { canvasRef } = useBpmnViewer();
-  return <div ref={canvasRef}></div>;
+  const { canvasRef, renderError } = useBpmnViewer();
+  return (
+  <>
+  {renderError && <Center><Alert className={classes.alert} severity='warning'>{renderError}</Alert></Center>}
+  <div ref={canvasRef}></div>;
+  </>
+  ) 
 };
 
 const Editor = (): JSX.Element => {

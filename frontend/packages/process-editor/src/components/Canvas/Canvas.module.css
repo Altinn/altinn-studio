@@ -10,3 +10,8 @@
   color: #ff0000;
   font-weight: 500;
 }
+
+.alert  {
+  width: 50%;
+  height: 10rem;
+}
