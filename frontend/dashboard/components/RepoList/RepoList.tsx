@@ -115,7 +115,6 @@ export const RepoList = ({
 
         return [
           <GridActionsCellItem
-            data-testid='gridActionsCellItem'
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}

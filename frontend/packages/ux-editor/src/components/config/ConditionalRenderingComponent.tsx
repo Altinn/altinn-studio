@@ -269,7 +269,7 @@ class ConditionalRendering extends React.Component<
         overlayClassName={classes.reactModalOverlay}
       >
         <div className={classes.modalHeader}>
-          <i className={classes.configConditionalIcon}> <Buldings2Icon/></i>
+          <Buldings2Icon  className={classes.configConditionalIcon}/>
           <h1 className={classes.modalHeaderTitle}>
             {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
           </h1>
@@ -396,7 +396,7 @@ class ConditionalRendering extends React.Component<
                         className={classes.deleteFieldButton}
                         onClick={this.removeFieldMapping.bind(null, key)}
                       >
-                        <i className={classes.exitIcon}><XMarkOctagonFillIcon/></i>
+                        <XMarkOctagonFillIcon className={classes.exitIcon}/>
                       </button>
                     </div>
                   );

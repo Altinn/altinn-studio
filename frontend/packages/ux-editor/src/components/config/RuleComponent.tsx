@@ -123,7 +123,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
         overlayClassName={classes.reactModalOverlay}
       >
         <div className={classes.modalHeader}>
-        <i className={classes.configRulesIcon}> <Buldings2Icon/></i>
+          <Buldings2Icon className={classes.configRulesIcon} />
           <h1 className={classes.modalHeaderTitle}>
             <span>{this.props.t('ux_editor.modal_configure_rules_header')}</span>
           </h1>

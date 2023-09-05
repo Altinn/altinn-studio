@@ -24,7 +24,7 @@ export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemPr
       data-testid={testids.typeItem(uiSchemaNode.pointer)}
     >
       <div>
-        <i className={classes.typeIcon}> <FileJsonIcon/> </i>
+      <FileJsonIcon className={classes.typeIcon}/> 
       </div>
       <span className={classes.typeName}>
         {getNameFromPointer({ pointer: uiSchemaNode.pointer })}

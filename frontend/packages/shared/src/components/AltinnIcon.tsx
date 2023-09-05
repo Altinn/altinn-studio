@@ -21,9 +21,9 @@ export function AltinnIconComponent(props: IAltinnIconComponentProvidedProps) {
     ...(props.margin && { margin: props.margin }),
     ...(props.padding && { padding: props.padding }),
   };
-  return (<i style={Object.keys(style).length ? style : undefined} >
+  return (<span style={Object.keys(style).length ? style : undefined} >
             { <props.iconClass/> } 
-          </i>);
+          </span>);
 }
 
 export default AltinnIconComponent;
