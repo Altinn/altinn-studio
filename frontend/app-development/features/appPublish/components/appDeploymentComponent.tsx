@@ -117,7 +117,7 @@ export const AppDeploymentComponent = ({
           {!deployPermission && (
             <div className={classes.deployStatusGridContainer}>
               <div className={classes.deploySpinnerGridItem}>
-            <AltinnIcon     iconClass={InformationSquareFillIcon} iconColor='#000' iconSize='3.6rem' />
+                <InformationSquareFillIcon/> 
               </div>
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
