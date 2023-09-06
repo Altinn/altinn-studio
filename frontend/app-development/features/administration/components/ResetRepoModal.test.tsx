@@ -101,11 +101,11 @@ describe('ResetRepoModal', () => {
     expect(resetRepoChanges).toHaveBeenCalled();
   });
 
-  it('renders the close button after reset is completed', async () => {
+  it('renders the sucess message after reset is completed', async () => {
     render();
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
     await act(() => user.type(repoNameInput, mockRepoName));
     await act(() => user.click(screen.getByRole('button', { name: resetModalButton })));
-    expect(await screen.findByText('general.close')).toBeInTheDocument();
+    expect(await screen.findByText('administration.reset_repo_completed')).toBeInTheDocument();
   });
 });
