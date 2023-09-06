@@ -18,8 +18,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
   const handleGenerateButtonClick = () => {
     mutate(data, {
       onSuccess: () => {
-        const messageKey = 'schema_editor.datamodel_generation_success_message';
-        toast.success(t(messageKey), { toastId: messageKey });
+        toast.success(t('schema_editor.datamodel_generation_success_message'));
       },
     });
   };

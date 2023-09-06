@@ -49,7 +49,7 @@ const renderToolbar = (
   props: Partial<TopToolbarProps> = {},
   servicesContextProps: Partial<ServicesContextProps> = {},
 ) => {
-  const TopToolbarWithData = () => {
+  const TopToolbarWithInitData = () => {
     const queryClient = useQueryClient();
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], buildJsonSchema(uiSchemaNodesMock));
     return <TopToolbar {...defaultProps} {...props} />;
@@ -58,7 +58,7 @@ const renderToolbar = (
   return renderWithMockStore(
     {},
     { generateModels, ...servicesContextProps },
-  )(<TopToolbarWithData />);
+  )(<TopToolbarWithInitData />);
 };
 
 // Mocks:

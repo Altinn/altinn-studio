@@ -90,23 +90,21 @@ export const AppDeploymentComponent = ({
 
   useEffect(() => {
     if (deployPermission && latestDeploy && deployedVersionNotReachable) {
-      const errorMessageKey = 'app_deploy_messages.unable_to_list_deploys';
       toast.error(() => (
-        <Trans i18nKey={errorMessageKey}>
+        <Trans i18nKey='app_deploy_messages.unable_to_list_deploys'>
           <Link inverted href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
         </Trans>
-      ), { toastId: errorMessageKey });
+      ));
     }
   }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
 
   useEffect(() => {
     if (deployPermission && (deployFailed || mutation.isError)) {
-      const errorMessageKey = 'app_deploy_messages.technical_error_1';
       toast.error(() => (
-        <Trans i18nKey={errorMessageKey}>
+        <Trans i18nKey='app_deploy_messages.technical_error_1'>
           <Link inverted href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
         </Trans>
-      ), { toastId: errorMessageKey });
+      ));
     }
   }, [deployPermission, deployFailed, mutation.isError]);
 
