@@ -18,7 +18,6 @@ import {
   BulletListIcon,
   BookmarkIcon,
   ChevronDownDoubleIcon,
-  ThumbUpIcon,
   LinkIcon,
   PresentationIcon,
   InformationSquareIcon
