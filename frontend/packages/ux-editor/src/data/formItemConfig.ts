@@ -20,7 +20,8 @@ import {
   ChevronDownDoubleIcon,
   ThumbUpIcon,
   LinkIcon,
-  PresentationIcon
+  PresentationIcon,
+  InformationSquareIcon
 } from '@navikt/aksel-icons';
 import React, { RefAttributes, SVGProps } from 'react';
 
@@ -166,7 +167,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: BulletListIcon,
+    icon: ChevronDownIcon,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
@@ -276,7 +277,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.InstanceInformation,
       propertyPath: 'definitions/instanceInformationComponent',
     },
-    icon: FileTextIcon,
+    icon: InformationSquareIcon,
   },
   [ComponentType.InstantiationButton]: {
     name: ComponentType.InstantiationButton,
@@ -296,7 +297,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: ThumbUpIcon,
+    icon: BulletListIcon,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
@@ -345,7 +346,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: BulletListIcon,
+    icon: ChevronDownIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
