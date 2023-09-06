@@ -176,8 +176,10 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
           btnMethod: forceRepoStatusCheck,
         });
         setHasMergeConflict(true);
-        return;
+      } else {
+        handleSyncModalClose();
       }
+      return;
     }
 
     const { data: result } = await fetchPullData();
