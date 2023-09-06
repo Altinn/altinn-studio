@@ -27,7 +27,7 @@ export const SimpleExpression = ({
   const t = useText();
   return (
     <>
-      {expression.subExpressions.map((subExp: SubExpression, index: number) => (
+      {expression.subExpressions?.map((subExp: SubExpression, index: number) => (
         <div key={subExp.id}>
           <Divider/>
           <SubExpressionContent

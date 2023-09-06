@@ -3,7 +3,7 @@ import {
   Expression, SubExpression,
   ExpressionFunction,
   ExpressionPropertyBase,
-  ExpressionPropertyForGroup, isDataSourceWithDropDown,
+  ExpressionPropertyForGroup,
   Operator
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,7 +42,7 @@ export const convertInternalExpressionToExternal = (expression: Expression): any
     }
     expressions.push(expressionObject);
   });
-  return  expression.operator ? [expression.operator].concat(expressions) : expressions[0];
+  return expression.operator ? [expression.operator].concat(expressions) : expressions[0];
 };
 
 export const isStudioFriendlyExpression = (expression: any): boolean => {
@@ -61,8 +61,7 @@ export const isStudioFriendlyExpression = (expression: any): boolean => {
       if (!isStudioFriendlySubExpression(expression[i])) return false;
     }
     return true;
-  }
-  else {
+  } else {
     return isStudioFriendlySubExpression(expression);
   }
 };
@@ -86,7 +85,7 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
     const subExp: SubExpression = {
       id: uuidv4(),
       function: expression[0] as ExpressionFunction,
-    }
+    };
     const updatedExpAddingValue = convertSubExpression(subExp, expression[1], false);
     convertedExpression.subExpressions.push(convertSubExpression(updatedExpAddingValue, expression[2], true));
     return convertedExpression;
@@ -98,7 +97,7 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
           function: expEl[0] as ExpressionFunction, // might need an error handling if function is invalid
         }
         const updatedExpAddingValue = convertSubExpression(exp, expEl[1], false);
-      convertedExpression.subExpressions.push(convertSubExpression(updatedExpAddingValue, expEl[2], true));
+        convertedExpression.subExpressions.push(convertSubExpression(updatedExpAddingValue, expEl[2], true));
       }
     );
     return convertedExpression;
@@ -107,10 +106,11 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
 
 export function convertSubExpression(internalExpEl: SubExpression, externalExpEl: any, isComparable: boolean): SubExpression {
   const newInternalExpEl = deepCopy(internalExpEl);
+  debugger;
   if (Array.isArray(externalExpEl)) {
     isComparable ? newInternalExpEl.comparableDataSource = externalExpEl[0] as DataSource : newInternalExpEl.dataSource = externalExpEl[0] as DataSource;
     isComparable ? newInternalExpEl.comparableValue = externalExpEl[1] : newInternalExpEl.value = externalExpEl[1];
-  } else if (!externalExpEl) {
+  } else if (externalExpEl === null) {
     isComparable ? newInternalExpEl.comparableDataSource = DataSource.Null : newInternalExpEl.dataSource = DataSource.Null;
     isComparable ? newInternalExpEl.comparableValue = null : newInternalExpEl.value = null;
   } else {
@@ -140,20 +140,20 @@ export const addExpressionIfLimitNotReached = (oldExpressions: Expression[], isE
   return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
 };
 
-export const deleteExpressionAndAddDefaultIfEmpty = (form, expressionToDelete: Expression, oldExpressions: Expression[]): {newForm: FormComponent, updatedExpressions:Expression[]} => {
-  const newForm = deepCopy(form);
-  const newExpressions = deepCopy(oldExpressions);
-  let updatedExpressions = newExpressions;
+export const deleteExpressionAndAddDefaultIfEmpty = (form, expressionToDelete: Expression, oldExpressions: Expression[]): { updatedComponent: FormComponent, updatedExpressions: Expression[] } => {
+  const formCopy = deepCopy(form);
+  const expressionsCopy = deepCopy(oldExpressions);
+  let newExpressions = expressionsCopy;
   if (expressionToDelete.property) {
     // TODO: What if the property was set to true or false before? Issue #10860
-    delete newForm[expressionToDelete.property];
-    updatedExpressions = newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
-    if (updatedExpressions.length === 0) {
-      const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
-      updatedExpressions = [defaultExpression];
+    delete formCopy[expressionToDelete.property];
+    newExpressions = expressionsCopy.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
+    if (newExpressions.length === 0) {
+      const defaultExpression: Expression = { id: uuidv4() };
+      newExpressions = [defaultExpression];
     }
   }
-  return { newForm, updatedExpressions };
+  return { updatedComponent: formCopy, updatedExpressions: newExpressions };
 };
 
 export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
@@ -167,9 +167,9 @@ export const addProperty = (oldExpression: Expression, property: string): Expres
   }
   const newExpression = deepCopy(oldExpression);
   newExpression.property = property as ExpressionPropertyBase;
-  if (newExpression.subExpressions.length === 0) {
+  if (!newExpression.subExpressions) {
     const newSubExpression: SubExpression = { id: uuidv4() };
-    newExpression.subExpressions.push(newSubExpression);
+    newExpression.subExpressions = [newSubExpression];
   }
   return newExpression;
 };
@@ -215,24 +215,20 @@ export const removeSubExpressionAndAdaptParentProps = (oldExpression: Expression
   return newExpression;
 };
 
-export const addDataSource = (expEl: SubExpression, dataSource: string, isComparable: boolean ) => {
+export const addDataSource = (expEl: SubExpression, dataSource: string, isComparable: boolean) => {
   const newExpEl = deepCopy(expEl);
   if (dataSource === 'default') {
     isComparable ? delete newExpEl.comparableDataSource : delete newExpEl.dataSource;
     isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
-  }
-  else {
-    if (isComparable ? newExpEl.comparableDataSource !== dataSource : newExpEl.dataSource !== dataSource) {
-      if (isDataSourceWithDropDown(dataSource as DataSource)) {
-        isComparable ? newExpEl.comparableValue = 'default' : newExpEl.value = 'default';
-      }
-      else {
-        isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
-      }
-    }
-    isComparable ? newExpEl.comparableDataSource = dataSource as DataSource : newExpEl.dataSource = dataSource as DataSource;
-    if (dataSource === DataSource.Null) {
-      isComparable ? newExpEl.comparableValue = null : newExpEl.value = null;
+  } else if (isComparable ? newExpEl.comparableDataSource === dataSource : newExpEl.dataSource === dataSource) {
+    isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+  } else {
+    // If none of the above statements applies - set datasource and adapt value accordingly
+    isComparable ? newExpEl.comparableDataSource = dataSource : newExpEl.dataSource = dataSource;
+    if (dataSource === DataSource.Boolean) {
+      isComparable ? newExpEl.comparableValue = true : newExpEl.value = true;
+    } else {
+      isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
     }
   }
   return newExpEl;
@@ -244,13 +240,23 @@ export const addDataSourceValue = (expEl: SubExpression, dataSourceValue: string
   if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
     isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
   } else if (isComparable ? expEl.comparableDataSource === DataSource.Boolean : expEl.dataSource === DataSource.Boolean) {
-    isComparable ? newExpEl.comparableValue = dataSourceValue === 'true'  : newExpEl.value = dataSourceValue === 'true' ;
+    isComparable ? newExpEl.comparableValue = dataSourceValue === 'true' : newExpEl.value = dataSourceValue === 'true';
   } else if (isComparable ? expEl.comparableDataSource === DataSource.Number : expEl.dataSource === DataSource.Number) {
-    isComparable ? newExpEl.comparableValue = parseFloat(dataSourceValue)  : newExpEl.value = parseFloat(dataSourceValue);
+    isComparable ? newExpEl.comparableValue = parseFloat(dataSourceValue) : newExpEl.value = parseFloat(dataSourceValue);
   } else {
     isComparable ? newExpEl.comparableValue = dataSourceValue : newExpEl.value = dataSourceValue;
   }
   return newExpEl;
+};
+
+export const stringifyValueForDisplay = (dataSourceValue: string | boolean | number | undefined | null): string => {
+  if (dataSourceValue === null || dataSourceValue === undefined) {
+    return 'null';
+  }
+  else if (typeof dataSourceValue === 'boolean') {
+    return dataSourceValue ? 'true' : 'false';
+  }
+  return dataSourceValue.toString();
 };
 
 export const tryParseExpression = (oldExpression: Expression, complexExpression: string) => {

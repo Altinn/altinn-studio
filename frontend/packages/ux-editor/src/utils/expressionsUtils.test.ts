@@ -16,6 +16,10 @@ import {
   deleteExpressionAndAddDefaultIfEmpty,
   removeInvalidExpressions,
   removeSubExpressionAndAdaptParentProps,
+  addDataSource,
+  addDataSourceValue,
+  tryParseExpression,
+  stringifyValueForDisplay,
 } from './expressionsUtils';
 import { component1IdMock, component1Mock } from '../testing/layoutMock';
 import { deepCopy } from "app-shared/pure";
@@ -118,6 +122,7 @@ describe('expressionsUtils', () => {
     ]
   ];
   const unParsableComplexExpression = '["equals, [datamodel, test, true]';
+  const parsableComplexExpression = '["equals", ["datamodel", "test"], true]';
   const parsableNotStudioFriendlyComplexExpression = ["dataModel", "some-field"];
   const parsableNotStudioFriendlyLongComplexExpression = ["and",
     ["equals", ["equals", ["dataModel", "some-field"], "true"], "true"],
@@ -217,7 +222,7 @@ describe('expressionsUtils', () => {
       expect(convertedSubExpression.comparableValue).toBe(undefined);
     });
     it('converts comparable part of external subexpression as boolean to internal subexpression where compDataSource and compDataSourceValue are set', () => {
-      const extSubExpression: any = true;
+      const extSubExpression: any = false;
       const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, true);
 
       expect(convertedSubExpression.dataSource).toBe(undefined);
@@ -407,9 +412,9 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete];
-      const { newForm, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
+      const { updatedComponent, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
 
-      expect(newForm.hidden).toBeUndefined();
+      expect(updatedComponent.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
     });
@@ -418,9 +423,9 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const { newForm, updatedExpressions }  = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
+      const { updatedComponent, updatedExpressions }  = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
 
-      expect(newForm.hidden).toBeUndefined();
+      expect(updatedComponent.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
     });
@@ -494,6 +499,150 @@ describe('expressionsUtils', () => {
       expect(newExpression.property).toBe(ExpressionPropertyBase.ReadOnly);
       expect(newExpression.subExpressions).toHaveLength(1);
       expect(newExpression.subExpressions[0]).toHaveProperty('id');
+    });
+  });
+  describe('addDataSource', () => {
+    it('should remove comparableValue and comparableDataSource when dataSource is "default" and isComparable is true', () => {
+      const newExpEl = addDataSource(subExpression0, 'default', true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBeUndefined();
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBeUndefined();
+    });
+    it('should remove value and dataSource when dataSource is "default" and isComparable is false', () => {
+      const newExpEl = addDataSource(subExpression0, 'default', false);
+
+      expect(newExpEl.dataSource).toBeUndefined();
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBeUndefined();
+      expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
+    });
+    it('should remove comparableValue when comparableDataSource has not changed and isComparable is true', () => {
+      const newExpEl = addDataSource(subExpression0, subExpression0.comparableDataSource, true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBeUndefined();
+    });
+    it('should remove value when dataSource has not changed and isComparable is false', () => {
+      const newExpEl = addDataSource(subExpression0, subExpression0.dataSource, false);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBeUndefined();
+      expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
+    });
+    it('should set comparableValue to true when dataSource is DataSource.Boolean and isComparable is true', () => {
+      const newExpEl = addDataSource(subExpression0, DataSource.Boolean, true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(DataSource.Boolean);
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBe(true);
+    });
+    it('should set value to true when dataSource is DataSource.Boolean and isComparable is false', () => {
+      const newExpEl = addDataSource(subExpression0, DataSource.Boolean, false);
+
+      expect(newExpEl.dataSource).toBe(DataSource.Boolean);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBe(true);
+      expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
+    });
+    it('should remove value when dataSource is set to something else than it was, but not Boolean or DropDown', () => {
+      const newExpEl = addDataSource(subExpression0, DataSource.Number, false);
+
+      expect(newExpEl.dataSource).toBe(DataSource.Number);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBeUndefined();
+      expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
+    });
+  });
+  describe('addDataSourceValue', () => {
+    it('should remove comparableValue when dataSourceValue is "default"', () => {
+      const newExpEl = addDataSourceValue(subExpression0, 'default', true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBeUndefined();
+    });
+    it('should set comparableValue to boolean type true when dataSource is DataSource.Boolean and dataSourceValue is "true"', () => {
+      subExpression0.comparableDataSource = DataSource.Boolean;
+      const newExpEl = addDataSourceValue(subExpression0, 'true', true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBe(true);
+    });
+    it('should set comparableValue to boolean type false when dataSource is DataSource.Boolean and dataSourceValue is "false"', () => {
+      subExpression0.comparableDataSource = DataSource.Boolean;
+      const newExpEl = addDataSourceValue(subExpression0, 'false', true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(DataSource.Boolean);
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBe(false);
+    });
+    it('should set comparableValue to the parsed float when dataSource is DataSource.Number', () => {
+      subExpression0.dataSource = DataSource.Number;
+      const newExpEl = addDataSourceValue(subExpression0, '123.45', false);
+
+      expect(newExpEl.dataSource).toBe(DataSource.Number);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBe(123.45);
+      expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
+    });
+    it('should set comparableValue to the string value when dataSource is not DataSource.Boolean or DataSource.Number and dataSourceValue is not null', () => {
+      subExpression0.comparableDataSource = DataSource.String;
+      const newExpEl = addDataSourceValue(subExpression0, 'NewValue', true);
+
+      expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
+      expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newExpEl.value).toBe(subExpression0.value);
+      expect(newExpEl.comparableValue).toBe('NewValue');
+    });
+  });
+  describe('tryParseExpression', () => {
+    it('should parse valid JSON complexExpression', () => {
+      const newExpression = tryParseExpression(baseInternalExpression, parsableComplexExpression);
+      const parsedComplexExpression = JSON.parse(parsableComplexExpression);
+
+      expect(newExpression.complexExpression).toStrictEqual(parsedComplexExpression);
+    });
+    it('should handle invalid JSON complexExpression and keep it as a string', () => {
+      const newExpression = tryParseExpression(baseInternalExpression, unParsableComplexExpression);
+
+      expect(newExpression.complexExpression).toStrictEqual(unParsableComplexExpression);
+    });
+  });
+  describe('stringifyValueForDisplay', () => {
+    it('should return "null" for null value', () => {
+      const result = stringifyValueForDisplay(null);
+      expect(result).toBe('null');
+    });
+    it('should return "null" for undefined value', () => {
+      const result = stringifyValueForDisplay(undefined);
+      expect(result).toBe('null');
+    });
+    it('should return "true" for true boolean value', () => {
+      const result = stringifyValueForDisplay(true);
+      expect(result).toBe('true');
+    });
+    it('should return "false" for false boolean value', () => {
+      const result = stringifyValueForDisplay(false);
+      expect(result).toBe('false');
+    });
+    it('should return string representation for string value', () => {
+      const result = stringifyValueForDisplay(stringValue);
+      expect(result).toBe(stringValue);
+    });
+    it('should return string representation for numeric value', () => {
+      const result = stringifyValueForDisplay(numberValue);
+      expect
+      (result).toBe('1024');
     });
   });
 });

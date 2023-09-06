@@ -26,7 +26,6 @@ import {
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { FormComponent } from "../../../types/FormComponent";
 
 export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;
@@ -70,14 +69,14 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
         propertiesWithExpressions?.filter(property => typeof form[property] !== 'boolean')?.map(property => convertExternalExpressionToInternal(property, form[property]));
       // Check if there was no existing expressions
       if (potentialConvertedExternalExpressions?.length === 0) {
-        const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
+        const defaultExpression: Expression = { id: uuidv4() };
         setExpressionInEditModeId(defaultExpression.id);
         setExpressions([defaultExpression]);
       } else {
         setExpressions(potentialConvertedExternalExpressions);
       }
     }
-  }, [form])
+  }, [form, propertiesWithExpressions])
 
   const successfullyAddedExpressionIdRef = useRef('default');
   const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;
@@ -117,8 +116,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   };
 
   const deleteExpression = async (expression: Expression) => {
-    const { newForm, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(form, expression, expressions);
-    await updateFormComponent({ updatedComponent: newForm as FormComponent, id: formId });
+    const { updatedComponent, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(form, expression, expressions);
+    await updateFormComponent({ updatedComponent, id: formId });
     if (updatedExpressions.length === 1 && !updatedExpressions[0].property) {
       // Set default expression as expression in edit mode if it has been added
       setExpressionInEditModeId(updatedExpressions[0].id);

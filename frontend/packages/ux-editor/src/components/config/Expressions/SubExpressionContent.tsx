@@ -36,29 +36,25 @@ export const SubExpressionContent = ({
     } else {
       subExpression.function = func as ExpressionFunction;
     }
-    handleUpdateSubExpression();
+    onUpdateSubExpression(subExpression);
   };
 
   const addDataSourceToExpression = (dataSource: string, isComparable: boolean ) => {
     const newSubExpression = addDataSource(subExpression, dataSource, isComparable);
     subExpression = { ...newSubExpression };
-    handleUpdateSubExpression();
+    onUpdateSubExpression(subExpression);
   };
 
   const addDataSourceValueToExpression = (dataSourceValue: string, isComparable: boolean) => {
     const newSubExpression = addDataSourceValue(subExpression, dataSourceValue, isComparable);
     subExpression = { ...newSubExpression };
-    handleUpdateSubExpression();
-  };
-
-  const handleUpdateSubExpression = () => {
     onUpdateSubExpression(subExpression);
   };
 
   return (
     <div>
       <div className={classes.subExpressionTop}>
-        <p>{t('right_menu.expressions_function_on_action')}</p>
+        <p>{t('right_menu.expressions_function_on_property')}</p>
         <Button
           color='danger'
           icon={<XMarkIcon />}
