@@ -2,7 +2,6 @@ const getDeleteRepositoryModal = () => cy.get('#delete-repo-modal');
 
 export const gitea = {
   getAltinnLogo: () => cy.findByAltText(/altinn(|-| )logo/i),
-  getConfirmDeletionButton: () => getDeleteRepositoryModal().findByRole('button', { name: /confirm deletion/i }),
   getDeleteButton: () => cy.findByRole('button', { name: /delete this repository/i }),
   getDeleteRepositoryModal,
   getDeleteRepositoryNameField: () => cy.get('#delete-repo-modal #repo_name'),
