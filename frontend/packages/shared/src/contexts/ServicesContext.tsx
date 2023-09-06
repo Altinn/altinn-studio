@@ -14,8 +14,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
 import { AxiosError } from 'axios';
-import { Trans, useTranslation } from 'react-i18next';
-import { Link } from '@digdir/design-system-react';
+import {  useTranslation } from 'react-i18next';
 import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -46,12 +45,7 @@ const handleError = (
     return;
 
   toast.error(
-    () => (
-      <Trans
-        i18nKey={'general.error_message'}
-        components={{ a: <Link inverted={true}>Slack</Link> }}
-      />
-    ),
+    () => t('general.error_message'),
     { toastId: 'default' }
   );
 };
