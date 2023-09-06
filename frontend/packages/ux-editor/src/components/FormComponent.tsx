@@ -31,7 +31,7 @@ export interface IFormComponentProps {
   handleDiscard: () => void;
   handleEdit: (component: IFormComponent) => void;
   handleSave: () => Promise<void>;
-  debounceSave: () => void;
+  debounceSave: (id?: string, updatedForm?: IFormComponent) => Promise<void>;
   id: string;
   isEditMode: boolean;
 }
@@ -114,7 +114,7 @@ export const FormComponent = memo(function FormComponent({
               component={component}
               handleComponentChange={async (updatedComponent) => {
                 handleEdit(updatedComponent);
-                debounceSave();
+                debounceSave(id, updatedComponent);
               }}
               layoutName={selectedLayout}
             />

@@ -99,7 +99,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     handleEdit(undefined);
   }, [handleEdit]);
 
-  const debounceSave = useCallback(async (id: string = formIdRef.current, updatedForm: FormContainer | FormComponent = formRef.current): Promise<void> => {
+  const debounceSave = useCallback(async (id: string, updatedForm: FormContainer | FormComponent): Promise<void> => {
     clearTimeout(autoSaveTimeoutRef.current);
     autoSaveTimeoutRef.current = setTimeout(async () => {
       await handleSave(id, updatedForm);
