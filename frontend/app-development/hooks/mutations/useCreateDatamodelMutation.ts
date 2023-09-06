@@ -21,7 +21,10 @@ export const useCreateDatamodelMutation = () => {
       };
       const schema = await createDatamodel(org, app, payload);
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, name], schema);
-      await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
+      await Promise.all([
+        queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
+        queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
+      ]);
     },
   })
 }

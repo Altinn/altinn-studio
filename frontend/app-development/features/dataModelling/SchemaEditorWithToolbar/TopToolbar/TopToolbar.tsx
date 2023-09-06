@@ -12,11 +12,12 @@ import {
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
   createPathOption?: boolean;
+  datamodels: DatamodelMetadata[];
   selectedOption?: MetadataOption;
   setCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
@@ -25,18 +26,18 @@ export interface TopToolbarProps {
 export function TopToolbar({
   createNewOpen,
   createPathOption,
+  datamodels,
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
-  const { data: metadataItems  } = useDatamodelsMetadataQuery();
   const { mutate: createDatamodel } = useCreateDatamodelMutation();
-  const prevMetadataItems = usePrevious(metadataItems);
+  const prevDatamodels = usePrevious(datamodels);
 
   useEffect(() => {
-    setSelectedOption(computeSelectedOption(selectedOption, metadataItems, prevMetadataItems));
+    setSelectedOption(computeSelectedOption(selectedOption, datamodels, prevDatamodels));
   });
 
   const handleCreateSchema = (model: CreateDatamodelMutationArgs) => {
@@ -47,6 +48,7 @@ export function TopToolbar({
   return (
     <section className={classes.toolbar} role='toolbar'>
       <CreateNewWrapper
+        datamodels={datamodels}
         disabled={false}
         createNewOpen={createNewOpen}
         setCreateNewOpen={setCreateNewOpen}
@@ -55,6 +57,7 @@ export function TopToolbar({
       />
       <XSDUpload disabled={false}/>
       <SchemaSelect
+        datamodels={datamodels}
         disabled={false}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}

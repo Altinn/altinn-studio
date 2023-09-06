@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Button, ErrorMessage, TextField, Popover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
   createNewOpen: boolean;
   createPathOption?: boolean;
+  datamodels: DatamodelMetadata[];
   setCreateNewOpen: (open: boolean) => void;
   handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
 }
@@ -17,6 +18,7 @@ export function CreateNewWrapper({
   disabled,
   createPathOption,
   createNewOpen,
+  datamodels,
   setCreateNewOpen,
   handleCreateSchema,
 }: CreateNewWrapperProps) {
@@ -24,9 +26,8 @@ export function CreateNewWrapper({
   const [newModelName, setNewModelName] = useState('');
   const [nameError, setNameError] = useState('');
   const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
-  const { data: metadata } = useDatamodelsMetadataQuery();
 
-  const modelNames = extractModelNamesFromMetadataList(metadata);
+  const modelNames = extractModelNamesFromMetadataList(datamodels);
 
   const relativePath = createPathOption ? '' : undefined;
 

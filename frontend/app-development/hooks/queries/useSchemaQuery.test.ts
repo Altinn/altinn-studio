@@ -12,7 +12,7 @@ const addXsdFromRepo = jest.fn().mockImplementation(() => Promise.resolve({}));
 const org = 'org';
 const app = 'app';
 
-describe('useDatamodelsMetadataQuery', () => {
+describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls getDatamodel with correct arguments when Json Schema', async () => {

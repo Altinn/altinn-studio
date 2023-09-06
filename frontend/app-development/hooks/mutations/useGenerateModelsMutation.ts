@@ -11,6 +11,9 @@ export const useGenerateModelsMutation = (modelPath: string): UseMutationResult<
   const { generateModels } = useServicesContext();
   return useMutation({
     mutationFn: (payload: JsonSchema) => generateModels(org, app, modelPath, payload),
-    onSuccess: () => queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
+      queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
+    ]),
   });
 }

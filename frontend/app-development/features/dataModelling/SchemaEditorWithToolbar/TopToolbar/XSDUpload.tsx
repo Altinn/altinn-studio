@@ -45,7 +45,10 @@ export const XSDUpload = ({
         }
       })
       .finally(async () => {
-        await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
+        await Promise.all([
+          queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
+          queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
+        ]);
         setUploading(false);
       });
   };
