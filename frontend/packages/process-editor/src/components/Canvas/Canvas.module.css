@@ -13,5 +13,9 @@
 
 .alert  {
   width: 50%;
-  height: 10rem;
+  margin: 20px;
+  max-height: 150px;
+}
+.paragraph {
+  margin-top: 8px;
 }

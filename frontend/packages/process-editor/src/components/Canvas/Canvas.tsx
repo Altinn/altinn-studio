@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { CogIcon, EyeFillIcon } from '@navikt/aksel-icons';
 import { Alert, Button } from '@digdir/design-system-react';
 import { useBpmnViewer } from '../../hooks/useBpmnViewer';
@@ -11,7 +11,8 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
-import { Center } from 'app-shared/components/Center/Center';
+import { Heading, Paragraph,  Link } from '@digdir/design-system-react';
+
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
@@ -41,16 +42,27 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
   );
 };
 
-
 // Below is helper components for Canvas.tsx
 const Viewer = (): JSX.Element => {
-  const { canvasRef, renderError } = useBpmnViewer();
+  const { t } = useTranslation();
+  const { canvasRef, renderNoDiagramError, renderNoProcessError } = useBpmnViewer();
   return (
   <>
-  {renderError && <Center><Alert className={classes.alert} severity='warning'>{renderError}</Alert></Center>}
-  <div ref={canvasRef}></div>;
+  {(renderNoDiagramError || renderNoProcessError) && ( 
+  <Alert severity="warning"className={classes.alert} >
+    <Heading size='small'>
+      {renderNoDiagramError && (t("process_editor.not_found_diagram_heading"))}  
+      {renderNoProcessError && (t("process_editor.not_found_process_heading"))}
+    </Heading>
+    <Paragraph className={classes.paragraph}> 
+      {renderNoDiagramError && (<Trans i18nKey={'process_editor.not_found_diagram_error_message'} components={{ a: <Link>BPNM-verktøyet</Link> }}/>)}  
+      {renderNoProcessError && (t("process_editor.not_found_process_error_message"))}
+    </Paragraph>
+  </Alert>
+  )}
+  <div ref={canvasRef}></div>
   </>
-  ) 
+  );
 };
 
 const Editor = (): JSX.Element => {

@@ -7,14 +7,16 @@ import { useTranslation } from 'react-i18next';
 
 type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
-  renderError: string | null;
+  renderNoDiagramError: boolean;
+  renderNoProcessError: boolean;
 };
 
 export const useBpmnViewer = (): UseBpmnViewerResult => {
   const { t } = useTranslation();
   const { bpmnXml } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const [renderError, setRenderError] = useState<string | null>(null);
+  const [renderNoDiagramError, setRenderNoDiagramError] = useState(false);
+  const [renderNoProcessError, setRenderNoProcessError] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -24,15 +26,18 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
 
     const viewer = new BpmnJS({ container: canvasRef.current });
 
+
     const initializeViewer = async () => {
       try {
         await viewer.importXML(bpmnXml);
       } catch (exception) {
         if (exception.message === 'no diagram to display') {
-          setRenderError(t('process_editor.not_found_diagram_error_message'));
+          setRenderNoDiagramError(true);
+          return renderNoDiagramError
         } else {
           if (exception.message === 'no process or collaboration to display') {
-            setRenderError(t('process_editor.not_found_process_error_message'));
+            setRenderNoProcessError(true);
+            return renderNoProcessError
           }
           return;
         }
@@ -40,7 +45,7 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
     };
 
     initializeViewer();
-  }, [bpmnXml, t]);
+  }, [bpmnXml, renderNoDiagramError, renderNoProcessError, t]);
 
-  return { canvasRef, renderError };
+  return { canvasRef, renderNoDiagramError, renderNoProcessError };
 };
