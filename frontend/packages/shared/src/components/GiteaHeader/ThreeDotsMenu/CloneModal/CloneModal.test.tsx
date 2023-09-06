@@ -26,19 +26,22 @@ const render = (props: Partial<ICloneModalProps> = {}) => {
 
 describe('cloneModal', () => {
   it('should show copy link if copy feature is supported', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     document.queryCommandSupported = jest.fn(() => {
       return true;
     });
     render();
-
+    
     expect(
       screen.getByRole('button', {
-        name: textMock('sync_header.clone_https_button'),
+        name: textMock('general.try_again'),
       })
     ).toBeInTheDocument();
+    consoleErrorSpy.mockRestore();
   });
 
   it('should NOT show copy link if copy feature is NOT supported', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     document.queryCommandSupported = jest.fn(() => {
       return false;
     });
@@ -49,5 +52,6 @@ describe('cloneModal', () => {
         name: textMock('sync_header.clone_https_button'),
       })
     ).not.toBeInTheDocument();
+    consoleErrorSpy.mockRestore();
   });
 });

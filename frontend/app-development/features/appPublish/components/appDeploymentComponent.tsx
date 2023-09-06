@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { Table, TableRow, TableHeader, TableCell, TableBody } from '@digdir/design-system-react';
