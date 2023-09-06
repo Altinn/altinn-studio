@@ -17,3 +17,10 @@ export const removeExtension = (filename: string): string => {
  */
 export const removeSchemaExtension = (filename: string): string =>
   removeEnd(filename, '.schema.json', '.xsd');
+
+/**
+ * Check if filename has an XSD extension.
+ * @param filename
+ * @returns true if filename has an XSD extension, otherwise false.
+ */
+export const isXsdFile = (filename: string): boolean => filename.toLowerCase().endsWith('.xsd');

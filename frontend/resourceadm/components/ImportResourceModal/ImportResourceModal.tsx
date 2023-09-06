@@ -24,7 +24,7 @@ const dummyServices: ServiceType[] = [
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
-type ImportResourceModalProps = {
+export type ImportResourceModalProps = {
   /**
    * Boolean for if the modal is open
    */
@@ -134,7 +134,7 @@ export const ImportResourceModal = ({
             options={dummyServices.map((s) => ({ value: s.name, label: s.name }))}
             onChange={handleSelectService}
             value={selectedService}
-            label={t('resourceadm.dahboard_import_modal_select_service')}
+            label={t('resourceadm.dashboard_import_modal_select_service')}
           />
         </div>
       );
@@ -155,7 +155,7 @@ export const ImportResourceModal = ({
           <ResourceNameAndId
             isEditOpen={editIdFieldOpen}
             title={title}
-            text={t('resourceadm.dahboard_import_modal_resource_and_id_text')}
+            text={t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
             id={id}
             handleEditTitle={handleEditTitle}
             handleIdInput={handleIDInput}
@@ -177,13 +177,13 @@ export const ImportResourceModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dahboard_import_modal_title')}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dashboard_import_modal_title')}>
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
           onChange={(e: EnvironmentType) => setSelectedEnv(e)}
           value={selectedEnv}
-          label={t('resourceadm.dahboard_import_modal_resource_name_and_id_text')}
+          label={t('resourceadm.dashboard_import_modal_select_env')}
         />
       </div>
       {displayService()}
@@ -195,7 +195,7 @@ export const ImportResourceModal = ({
         {selectedEnv && selectedService && (
           <div className={classes.importButton}>
             <Button onClick={handleImportResource} color='primary' size='small'>
-              {t('resourceadm.dahboard_import_modal_import_button')}
+              {t('resourceadm.dashboard_import_modal_import_button')}
             </Button>
           </div>
         )}

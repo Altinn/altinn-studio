@@ -4,6 +4,10 @@
 <head>
   <title>@ViewBag.Title</title>
   <link rel="shortcut icon" href="/designer/img/favicon.ico"/>
+  <script type="text/javascript">
+    var instrumentationKey = "@ViewBag.InstrumentationKey"
+    window.instrumentationKey = instrumentationKey;
+  </script>
 </head>
 <body>
 <div id="root" class="media-body flex-column d-flex"></div>

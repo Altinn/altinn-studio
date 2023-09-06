@@ -6,6 +6,7 @@ import * as texts from "@altinn-studio/language/src/nb.json";
 import { administration } from "../../selectors/administration";
 import { deploy } from "../../selectors/deploy";
 import { designer } from "../../selectors/designer";
+import { gitea } from "../../selectors/gitea";
 import { header } from '../../selectors/header';
 import { preview } from "../../selectors/preview";
 import { textEditor } from "../../selectors/textEditor";
@@ -56,15 +57,10 @@ context(
 
       // Repos
       header.getProfileIcon().should('be.visible').click();
-      header.getOpenRepoLink()
-        .should('be.visible')
-        .invoke('attr', 'href')
-        .then((href) => {
-          cy.visit(href);
-          cy.get('.repo-header').should('be.visible');
-          cy.get('a[href="/repos/"]').should('be.visible').click();
-          cy.get('img[alt="Altinn logo"]').should('be.visible');
-        });
+      header.getOpenRepoLink().should('be.visible').invoke('attr', 'href').then(href => {
+        cy.visit(href);
+        gitea.getRepositoryHeader().should('be.visible');
+      });
     });
 
     // it('Gitea connection - Pull changes', () => {

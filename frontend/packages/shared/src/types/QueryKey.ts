@@ -3,7 +3,6 @@ export enum QueryKey {
   AppReleases = 'AppReleases',
   BranchStatus = 'BranchStatus',
   CurrentUser = 'CurrentUser',
-  Datamodel = 'Datamodel',
   DatamodelMetadata = 'DatamodelMetadata',
   DatamodelsMetadata = 'DatamodelsMetadata',
   DatamodelsXsd = 'DatamodelsXsd',

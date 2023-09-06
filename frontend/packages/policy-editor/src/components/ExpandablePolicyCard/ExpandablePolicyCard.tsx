@@ -242,6 +242,7 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
         usageType={usageType}
+        uniqueId={`-ruleId:${policyRule.ruleId}-subResource:${i}`}
       />
     );
   });
@@ -478,13 +479,25 @@ export const ExpandablePolicyCard = ({
     if (hasSubjectsError) arr.push(t('policy_editor.policy_rule_missing_subjects'));
 
     if (arr.length === 1) {
-      return t('policy_editor.policy_rule_missing_1', { ruleId: policyRule.ruleId, missing: arr[0] });
+      return t('policy_editor.policy_rule_missing_1', {
+        ruleId: policyRule.ruleId,
+        missing: arr[0],
+      });
     }
     if (arr.length === 2) {
-      return t('policy_editor.policy_rule_missing_2', { ruleId: policyRule.ruleId, missing1: arr[0], missing2: arr[1] });
+      return t('policy_editor.policy_rule_missing_2', {
+        ruleId: policyRule.ruleId,
+        missing1: arr[0],
+        missing2: arr[1],
+      });
     }
     if (arr.length === 3) {
-      return t('policy_editor.policy_rule_missing_3', { ruleId: policyRule.ruleId, missing1: arr[0], missing2: arr[1], missing3: arr[2] });
+      return t('policy_editor.policy_rule_missing_3', {
+        ruleId: policyRule.ruleId,
+        missing1: arr[0],
+        missing2: arr[1],
+        missing3: arr[2],
+      });
     }
     return '';
   };
@@ -509,7 +522,12 @@ export const ExpandablePolicyCard = ({
             color='secondary'
             size='small'
             fullWidth
-            icon={<PlusIcon title={t('policy_editor.rule_card_sub_resource_button')} fontSize='1.5rem' />}
+            icon={
+              <PlusIcon
+                title={t('policy_editor.rule_card_sub_resource_button')}
+                fontSize='1.5rem'
+              />
+            }
           >
             {t('policy_editor.rule_card_sub_resource_button')}
           </Button>
@@ -525,12 +543,18 @@ export const ExpandablePolicyCard = ({
             options={actionOptions}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
-            label={actionOptions.length === 0 ? t('policy_editor.rule_card_actions_select_all_selected') : t('policy_editor.rule_card_actions_select_add')}
+            label={
+              actionOptions.length === 0
+                ? t('policy_editor.rule_card_actions_select_all_selected')
+                : t('policy_editor.rule_card_actions_select_add')
+            }
             error={showErrors && hasRightsError}
           />
         </div>
         <div className={classes.chipWrapper}>{displayActions}</div>
-        {showErrors && hasRightsError && displayWarningCard(t('policy_editor.rule_card_actions_error'))}
+        {showErrors &&
+          hasRightsError &&
+          displayWarningCard(t('policy_editor.rule_card_actions_error'))}
         <Label className={classes.label} size='medium'>
           {t('policy_editor.rule_card_subjects_title')}
         </Label>
@@ -539,12 +563,18 @@ export const ExpandablePolicyCard = ({
             options={subjectOptions}
             onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
             disabled={subjectOptions.length === 0}
-            label={subjectOptions.length === 0 ? t('policy_editor.rule_card_subjects_select_all_selected') : t('policy_editor.rule_card_subjects_select_add')}
+            label={
+              subjectOptions.length === 0
+                ? t('policy_editor.rule_card_subjects_select_all_selected')
+                : t('policy_editor.rule_card_subjects_select_add')
+            }
             error={showErrors && hasSubjectsError}
           />
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
-        {showErrors && hasSubjectsError && displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
+        {showErrors &&
+          hasSubjectsError &&
+          displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
         <Label className={classes.label} size='medium'>
           {t('policy_editor.rule_card_description_title')}
         </Label>
@@ -557,7 +587,10 @@ export const ExpandablePolicyCard = ({
             aria-labelledby='ruleDescription'
             onBlur={() => savePolicy(rules)}
           />
-          <ScreenReaderSpan id='ruleDescription' label={t('policy_editor.rule_card_description_title')} />
+          <ScreenReaderSpan
+            id='ruleDescription'
+            label={t('policy_editor.rule_card_description_title')}
+          />
         </div>
       </ExpandablePolicyElement>
       {showErrors && displayWarningCard(getRuleErrorText())}

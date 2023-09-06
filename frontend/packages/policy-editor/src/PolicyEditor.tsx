@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Label, Alert } from '@digdir/design-system-react';
+import { Alert, Heading } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -226,10 +226,20 @@ export const PolicyEditor = ({
     <div>
       <div className={classes.alertWrapper}>
         <Alert
-          iconTitle={t('policy_editor.alert', { usageType: usageType === 'app' ? t('policy_editor.alert_app') : t('policy_editor.alert_resource') })}
+          iconTitle={t('policy_editor.alert', {
+            usageType:
+              usageType === 'app'
+                ? t('policy_editor.alert_app')
+                : t('policy_editor.alert_resource'),
+          })}
           severity='info'
         >
-          {t('policy_editor.alert', { usageType: usageType === 'app' ? t('policy_editor.alert_app') : t('policy_editor.alert_resource') })}
+          {t('policy_editor.alert', {
+            usageType:
+              usageType === 'app'
+                ? t('policy_editor.alert_app')
+                : t('policy_editor.alert_resource'),
+          })}
         </Alert>
       </div>
       <div className={classes.selectAuthLevelWrapper}>
@@ -242,9 +252,9 @@ export const PolicyEditor = ({
           />
         </div>
       </div>
-      <Label size='medium' className={classes.label}>
+      <Heading size='xxsmall' className={classes.label} level={2}>
         {t('policy_editor.rules')}
-      </Label>
+      </Heading>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText={t('policy_editor.card_button_text')} onClick={handleAddCardClick} />

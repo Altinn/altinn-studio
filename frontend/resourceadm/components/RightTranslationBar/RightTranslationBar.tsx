@@ -6,7 +6,7 @@ import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next'
 
-type RightTranslationBarProps = {
+export type RightTranslationBarProps = {
   /**
    * The title of the selected inputfield
    */

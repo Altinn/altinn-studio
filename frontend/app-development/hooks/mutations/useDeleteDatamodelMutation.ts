@@ -10,7 +10,7 @@ export const useDeleteDatamodelMutation = () => {
   return useMutation({
     mutationFn: async (modelPath: string) => {
       await deleteDatamodel(org, app, modelPath);
-      queryClient.setQueryData([QueryKey.Datamodel, org, app, modelPath], undefined);
+      queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], undefined);
       await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
     },
   })

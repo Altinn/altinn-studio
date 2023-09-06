@@ -3,7 +3,7 @@ import classes from './ResourceSeachBox.module.css';
 import { TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next'
 
-type SearchBoxProps = {
+export type SearchBoxProps = {
   /**
    * Function to handle the change of value
    * @param value the value typed

@@ -4,17 +4,12 @@ import type { ItemRestrictionsProps } from './ItemRestrictions';
 import { ItemRestrictions } from './ItemRestrictions';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { fieldNode1Mock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
 
 // Test data:
 const defaultProps: ItemRestrictionsProps = { schemaNode: fieldNode1Mock };
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
 
 describe('ItemRestrictions', () => {
@@ -33,10 +28,7 @@ describe('ItemRestrictions', () => {
   });
 });
 
-const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) => {
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchemaNodesMock);
-  return renderWithProviders({
-    appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel },
+const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>
+  renderWithProviders({
+    appContextProps: { data: uiSchemaNodesMock, save: saveDatamodel },
   })(<ItemRestrictions {...defaultProps} {...props} />);
-};

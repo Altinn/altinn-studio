@@ -4,10 +4,11 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { datamodel1NameMock, jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import { renderWithMockStore } from '../../../../test/mocks';
+import { QueryClient } from '@tanstack/react-query';
 
 const user = userEvent.setup();
 
@@ -112,7 +113,7 @@ describe('CreateNewWrapper', () => {
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
       const queryClient = createQueryClientMock();
       queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], [jsonMetadata1Mock]);
-      render({ createNewOpen: true }, { queryClient });
+      render({ createNewOpen: true }, queryClient);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
@@ -134,7 +135,7 @@ describe('CreateNewWrapper', () => {
       });
       const queryClient = createQueryClientMock();
       queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], [jsonMetadata1Mock]);
-      render({ createNewOpen: true }, { queryClient });
+      render({ createNewOpen: true }, queryClient);
 
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
@@ -149,12 +150,11 @@ describe('CreateNewWrapper', () => {
 
 const render = (
   props: Partial<CreateNewWrapperProps> = {},
-  data: Partial<RenderWithProvidersData> = {},
+  queryClient?: QueryClient,
 ) => {
-  if (!data.queryClient) {
-    const queryClient = createQueryClientMock();
+  if (!queryClient) {
+    queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], []);
-    data.queryClient = queryClient;
   }
-  return renderWithProviders(data)(<CreateNewWrapper {...defaultProps} {...props}/>);
+  return renderWithMockStore({}, {}, queryClient)(<CreateNewWrapper {...defaultProps} {...props}/>);
 };

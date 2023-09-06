@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import classes from './Switch.module.css';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 type SwitchProps = {
   /**
@@ -36,7 +36,7 @@ type SwitchProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-// TODO - replace with Design system chip. Issue: #10892
+// TODO - replace with Design system Switch. Issue: #10892
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
   ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
     const { t } = useTranslation();

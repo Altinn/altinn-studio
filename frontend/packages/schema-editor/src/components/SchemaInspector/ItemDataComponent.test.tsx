@@ -12,17 +12,12 @@ import {
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { getSavedModel } from '../../../test/test-utils';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
 const defaultNode: UiSchemaNode = parentNodeMock;
 const defaultState: Partial<SchemaState> = {
@@ -35,15 +30,12 @@ const renderItemDataComponent = (
   state: Partial<SchemaState> = {}
 ) => {
 
-  queryClientMock.setQueryData(
-    [QueryKey.Datamodel, org, app, modelPath],
-    uiSchemaNodesMock,
-  );
-
   return renderWithProviders({
     state: { ...defaultState, ...state },
-    appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel },
+    appContextProps: {
+      data: uiSchemaNodesMock,
+      save: saveDatamodel,
+    },
   })(<ItemDataComponent schemaNode={{ ...defaultNode, ...schemaNode }}/>);
 };
 

@@ -25,13 +25,13 @@ import {
   setSelectedAndFocusedNode,
   setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { deleteNode } from '@altinn/schema-model';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
 import { LinkIcon, BulletListIcon, TabsIcon, ArrowUpIcon, TrashIcon,ArrowDownIcon } from '@navikt/aksel-icons';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -56,8 +56,7 @@ export const SchemaItemLabel = ({
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   // Simple wrapper to avoid repeating ourselves...
@@ -73,10 +72,10 @@ export const SchemaItemLabel = ({
     dispatch(navigateToType({ pointer: selectedNode.reference }));
   });
   const handleConvertToReference = wrapper(() => {
-    mutate(promoteProperty(data, selectedNode.pointer));
+    save(promoteProperty(data, selectedNode.pointer));
   });
   const handleConvertToField = wrapper(() => {
-    mutate(promoteProperty(data, selectedNode.pointer));
+    save(promoteProperty(data, selectedNode.pointer));
   });
   const handleCloseContextMenu = wrapper(() => undefined);
 
@@ -97,14 +96,14 @@ export const SchemaItemLabel = ({
     };
     const { pointer } = selectedNode;
     selectedNode.objectKind === ObjectKind.Combination
-      ? mutate(
+      ? save(
           addCombinationItem(data, {
             pointer,
             props,
             callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
           })
         )
-      : mutate(
+      : save(
           addProperty(data, {
             pointer,
             props,
@@ -114,7 +113,7 @@ export const SchemaItemLabel = ({
   });
 
   const handleDeleteClick = () => {
-    mutate(deleteNode(data, selectedNode.pointer));
+    save(deleteNode(data, selectedNode.pointer));
     dispatch(removeSelection(selectedNode.pointer));
   };
 

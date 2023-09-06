@@ -50,7 +50,6 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
   const hasMoreExpressions: boolean = Object.values(Operator).includes(expression[0] as Operator);
   const convertedExpression: Expression = {
     id: uuidv4(),
-    editMode: false,
     property: booleanValue as ExpressionPropertyBase | ExpressionPropertyForGroup,
     subExpressions: [],
   };
@@ -99,11 +98,50 @@ function convertSubExpression(internalExpEl: SubExpression, externalExpEl: any, 
   return internalExpEl;
 }
 
+export const saveExpression = async (form, formId, expression: Expression, updateFormComponent) => {
+  let newExpression = deepCopy(expression);
+  if (complexExpressionIsSet(newExpression.complexExpression)) {
+    const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
+    newExpression = { ...parsedExpression };
+  }
+  if (newExpression.property) {
+    // TODO: What if expression is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
+    form[newExpression.property] = convertExpressionToExternalFormat(newExpression);
+    await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
+  }
+};
+
+export const addExpressionIfLimitNotReached = (oldExpressions: Expression[], isExpressionLimitReached: boolean): Expression[] => {
+  const newExpressions = deepCopy(oldExpressions);
+  const newExpression: Expression = { id: uuidv4(), subExpressions: [] };
+  return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
+};
+
+export const deleteExpressionAndAddDefaultIfEmpty = async (form, formId, expressionToDelete: Expression, oldExpressions: Expression[], updateFormComponent): Promise<Expression[]> => {
+  const newExpressions = deepCopy(oldExpressions);
+  if (expressionToDelete.property) {
+    // TODO: What if the property was set to true or false before? Issue #10860
+    delete form[expressionToDelete.property];
+    await updateFormComponent({ updatedComponent: form as FormComponent, id: formId });
+  }
+  let updatedExpressions = newExpressions.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
+  if (updatedExpressions.length === 0) {
+    const defaultExpression: Expression = { id: uuidv4(), subExpressions: [] };
+    updatedExpressions = [defaultExpression];
+  }
+  return updatedExpressions;
+};
+
+export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
+  const newExpressions = deepCopy(oldExpressions);
+  return newExpressions.filter(prevExpression => prevExpression.property || complexExpressionIsSet(prevExpression.complexExpression));
+};
+
 export const addAction = (oldExpression: Expression, action: string): Expression => {
   if (action === 'default') {
     return;
   }
-  const newExpression = deepCopy(oldExpression)
+  const newExpression = deepCopy(oldExpression);
   newExpression.property = action as ExpressionPropertyBase;
   if (newExpression.subExpressions.length === 0) {
     const newSubExpression: SubExpression = { id: uuidv4() };
@@ -112,7 +150,7 @@ export const addAction = (oldExpression: Expression, action: string): Expression
   return newExpression;
 };
 
-export const addExpression = (oldExpression: Expression, operator: Operator): Expression => {
+export const addSubExpressionToExpression = (oldExpression: Expression, operator: Operator): Expression => {
   const newExpression = deepCopy(oldExpression);
   const newSubExpression: SubExpression = { id: uuidv4() };
   newExpression.subExpressions.push(newSubExpression);
@@ -138,12 +176,16 @@ export const updateComplexExpression = (oldExpression: Expression, complexExpres
   return newExpression;
 };
 
-export const removeSubExpressionAndAddDefaultIfEmpty = (oldExpression: Expression, subExpression: SubExpression) => {
+export const removeSubExpressionAndAdaptParentProps = (oldExpression: Expression, subExpression: SubExpression) => {
   const newExpression = deepCopy(oldExpression);
   const updatedSubExpressions = newExpression.subExpressions.filter((expEl: SubExpression) => expEl.id !== subExpression.id);
-  // Add default if the last expression was deleted
-  const newSubExpression: SubExpression = { id: uuidv4() };
-  newExpression.subExpressions = newExpression.subExpressions.length < 2 ? [newSubExpression] : updatedSubExpressions;
+  if (updatedSubExpressions.length === 0) {
+    delete newExpression.operator;
+    delete newExpression.property;
+  } else if (updatedSubExpressions.length === 1) {
+    delete newExpression.operator;
+  }
+  newExpression.subExpressions = updatedSubExpressions;
   return newExpression;
 };
 
@@ -181,7 +223,7 @@ export const addDataSourceValue = (expEl: SubExpression, dataSourceValue: string
   return newExpEl;
 };
 
-export const tryParseString = (oldExpression: Expression, complexExpression: string) => {
+export const tryParseExpression = (oldExpression: Expression, complexExpression: string) => {
   // TODO: Try format expression for better readability
   const newExpression = deepCopy(oldExpression);
   try {

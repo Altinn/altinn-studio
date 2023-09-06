@@ -33,7 +33,7 @@ const ServicesContext = createContext<ServicesContextProps>(null);
 const handleError = (
   error: AxiosError,
   t: (key: string) => string,
-  meta: QueryMeta | MutationMeta,
+  meta: QueryMeta | MutationMeta
 ): void => {
   // TODO : log axios errors
   // TODO : handle messages from API
@@ -45,9 +45,15 @@ const handleError = (
   )
     return;
 
-  toast.error(() => (
-    <Trans i18nKey={'general.error_message'} components={{ a: <Link inverted={true}>Slack</Link> }}/>
-  ), { toastId: 'default' });
+  toast.error(
+    () => (
+      <Trans
+        i18nKey={'general.error_message'}
+        components={{ a: <Link inverted={true}>Slack</Link> }}
+      />
+    ),
+    { toastId: 'default' }
+  );
 };
 
 export const ServicesContextProvider = ({
@@ -59,15 +65,18 @@ export const ServicesContextProvider = ({
   const { t } = useTranslation();
 
   const [queryClient] = useState(
-    () => client || new QueryClient({
-      ...clientConfig,
-      queryCache: new QueryCache({
-        onError: (error: AxiosError, query) => handleError(error, t, query.options?.meta),
-      }),
-      mutationCache: new MutationCache({
-        onError: (error: AxiosError, variables, context, mutation) => handleError(error, t, mutation.options?.meta),
-      }),
-    })
+    () =>
+      client ||
+      new QueryClient({
+        ...clientConfig,
+        queryCache: new QueryCache({
+          onError: (error: AxiosError, query) => handleError(error, t, query.options?.meta),
+        }),
+        mutationCache: new MutationCache({
+          onError: (error: AxiosError, variables, context, mutation) =>
+            handleError(error, t, mutation.options?.meta),
+        }),
+      })
   );
 
   return (
@@ -77,12 +86,7 @@ export const ServicesContextProvider = ({
         // TODO : log rendering errors
       }}
     >
-      <ToastContainer
-        position='top-center'
-        autoClose={5000}
-        theme='colored'
-        transition={Slide}
-      />
+      <ToastContainer position='top-center' autoClose={5000} theme='colored' transition={Slide} />
       <QueryClientProvider client={queryClient}>
         <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />
