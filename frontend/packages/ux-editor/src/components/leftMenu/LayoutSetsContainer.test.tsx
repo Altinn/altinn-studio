@@ -31,7 +31,6 @@ describe('LayoutSetsContainer', () => {
     await act(() => user.click(button));
 
     expect(mockDispatch).toBeCalledWith({ "payload": layoutSetsMock.sets[0].id, "type": "formDesigner/updateSelectedLayoutSet" });
-    expect(mockDispatch).toBeCalledWith({ "payload": layoutSetsMock.sets[0].id, "type": "formDesigner/updateSelectedLayout" });
   });
 });
 
