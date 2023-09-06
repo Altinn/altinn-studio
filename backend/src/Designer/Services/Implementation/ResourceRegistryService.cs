@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string getResourceRegistryUrl;
             string fullWritePolicyToResourceRegistryUrl;
 
-            if (env == null || string.IsNullOrEmpty(env))
+            if (string.IsNullOrEmpty(env))
             {
                 return new StatusCodeResult(400);
             }
@@ -119,6 +119,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             HttpResponseMessage response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+
+            return GetPublishResponse(response);
+        }
+
+        private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
+        {
+            return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
+        }
+
+        private StatusCodeResult GetPublishResponse(HttpResponseMessage response)
+        {
             if (response.StatusCode == HttpStatusCode.Created)
             {
                 return new StatusCodeResult(201);
@@ -131,11 +142,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return new StatusCodeResult(400);
             }
-        }
-
-        private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
-        {
-            return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
         }
     }
 }

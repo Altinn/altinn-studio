@@ -266,7 +266,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
 
-        private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
+        private ValidationProblemDetails ValidateResource(ServiceResource resource)
         {
             if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
             {
