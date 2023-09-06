@@ -407,9 +407,9 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete];
-      const { form: updatedForm, expressions: updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
+      const { newForm, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
 
-      expect(updatedForm.hidden).toBeUndefined();
+      expect(newForm.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
     });
@@ -418,9 +418,9 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const { form: updatedForm, expressions: updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, component1IdMock, expressionToDelete, oldExpressions);
+      const { newForm, updatedExpressions }  = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
 
-      expect(updatedForm.hidden).toBeUndefined();
+      expect(newForm.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
     });

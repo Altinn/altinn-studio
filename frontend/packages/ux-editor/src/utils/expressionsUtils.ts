@@ -243,6 +243,10 @@ export const addDataSourceValue = (expEl: SubExpression, dataSourceValue: string
   // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
   if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
     isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
+  } else if (isComparable ? expEl.comparableDataSource === DataSource.Boolean : expEl.dataSource === DataSource.Boolean) {
+    isComparable ? newExpEl.comparableValue = dataSourceValue === 'true'  : newExpEl.value = dataSourceValue === 'true' ;
+  } else if (isComparable ? expEl.comparableDataSource === DataSource.Number : expEl.dataSource === DataSource.Number) {
+    isComparable ? newExpEl.comparableValue = parseFloat(dataSourceValue)  : newExpEl.value = parseFloat(dataSourceValue);
   } else {
     isComparable ? newExpEl.comparableValue = dataSourceValue : newExpEl.value = dataSourceValue;
   }

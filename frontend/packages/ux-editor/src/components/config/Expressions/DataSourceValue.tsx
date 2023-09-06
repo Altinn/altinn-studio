@@ -57,14 +57,19 @@ export const DataSourceValue = ({
       return (<Select
         onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue, isComparableValue)}
         options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
-        value={isComparableValue ? subExpression.comparableValue : subExpression.value || 'default'}
+        value={(isComparableValue ? subExpression.comparableValue : subExpression.value || 'default') as string}
       />);
     case DataSource.String:
+      return (<TextField
+        onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
+        value={(isComparableValue ? subExpression.comparableValue : subExpression.value || '') as string}
+      />);
     case DataSource.Number:
       return (<TextField
         formatting={currentDataSource === DataSource.Number ? { number: {} } : {}}
+        inputMode='numeric'
         onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
-        value={isComparableValue ? subExpression.comparableValue : subExpression.value || ''}
+        value={(isComparableValue ? subExpression.comparableValue : subExpression.value) as string}
       />);
     case DataSource.Boolean:
       return (<ToggleButtonGroup
@@ -73,7 +78,7 @@ export const DataSourceValue = ({
           { label: 'False', value: 'false' }
         ]}
         onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
-        selectedValue={isComparableValue ? subExpression.comparableValue : subExpression.value || 'true'}
+        selectedValue={(isComparableValue ? subExpression.comparableValue : subExpression.value || 'true') as string}
       />);
     case DataSource.Null:
       return (<div></div>);
