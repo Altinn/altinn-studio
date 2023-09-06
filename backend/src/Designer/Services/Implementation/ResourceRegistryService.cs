@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -60,7 +61,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             else
             {
                 publishResourceToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
-                getResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}{serviceResource.Identifier}";
+                getResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}/{serviceResource.Identifier}";
 
                 if (!_platformSettings.ResourceRegistryDefaultBaseUrl.Contains("localhost") && _platformSettings.ResourceRegistryDefaultBaseUrl.Contains("platform"))
                 {
@@ -79,22 +80,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (policyPath != null)
             {
                 MultipartFormDataContent content = new MultipartFormDataContent();
+                HttpResponseMessage writePolicyResponse = new HttpResponseMessage();
 
-                byte[] policyFileContentBytes = File.ReadAllBytes(Path.Combine(policyPath));
-
-                ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
-                content.Add(fileContent, "policyFile", "policy.xml");
-                HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
-
-                if (writePolicyResponse.IsSuccessStatusCode)
+                if (ResourceAdminHelper.ValidFilePath(policyPath))
                 {
-                    Console.WriteLine("Policy written successfully!");
+                    byte[] policyFileContentBytes = File.ReadAllBytes(Path.Combine(policyPath));
+
+                    ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
+                    content.Add(fileContent, "policyFile", "policy.xml");
+                    writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
+
+                    if (writePolicyResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("Policy written successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
+                        string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
+                        Console.WriteLine($"Response content: {responseContent}");
+                        return new StatusCodeResult(400);
+                    }
                 }
                 else
                 {
-                    Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
-                    string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Response content: {responseContent}");
+                    Console.WriteLine($"Invalid filepath for policyfile. Path: {policyPath}");
                     return new StatusCodeResult(400);
                 }
             }
@@ -103,7 +113,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (getResourceResponse.IsSuccessStatusCode)
             {
-                HttpResponseMessage putResponse = await _httpClient.PutAsync(string.Format("{0}/{1}", publishResourceToResourceRegistryUrl, serviceResource.Identifier), new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+                string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
+                HttpResponseMessage putResponse = await _httpClient.PutAsync(putRequest, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
                 return putResponse.IsSuccessStatusCode ? new StatusCodeResult(200) : new StatusCodeResult(400);
             }
 
