@@ -4,14 +4,14 @@ namespace Altinn.Studio.Designer.Configuration
 {
     public class MaskinportenClientSettings : MaskinportenSettings
     {
-        public string Environment { get; set; }
+        public new string Environment { get; set; }
 
-        public string ClientId { get; set; }
+        public new string ClientId { get; set; }
 
-        public string Scope { get; set; }
+        public new string Scope { get; set; }
 
-        public string EncodedJwk { get; set; }
+        public new string EncodedJwk { get; set; }
 
-        public bool ExhangeToAltinnToken { get; set; }
+        public new bool ExhangeToAltinnToken { get; set; }
     }
 }

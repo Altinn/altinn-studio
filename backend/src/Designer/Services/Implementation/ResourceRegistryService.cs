@@ -80,7 +80,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (policyPath != null)
             {
                 MultipartFormDataContent content = new MultipartFormDataContent();
-                HttpResponseMessage writePolicyResponse = new HttpResponseMessage();
 
                 if (ResourceAdminHelper.ValidFilePath(policyPath))
                 {
@@ -88,7 +87,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
                     content.Add(fileContent, "policyFile", "policy.xml");
-                    writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
+                    HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
 
                     if (writePolicyResponse.IsSuccessStatusCode)
                     {
