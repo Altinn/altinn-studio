@@ -167,7 +167,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             onClick={(event) => onMenuItemClick(event, 'up')}
             disabled={disableUp || invalid}
             text={t('left_menu.page_menu_up')}
-            iconClass= {ArrowUpIcon}
+            iconClass={ArrowUpIcon}
             id='move-page-up-button'
           />
         )}

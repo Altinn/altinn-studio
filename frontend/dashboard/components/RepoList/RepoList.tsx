@@ -120,9 +120,9 @@ export const RepoList = ({
             onClick={handleToggleFav}
             label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
             icon={ repo.user_has_starred 
-                ? (<StarFillIcon name ="star-fill-icon" className={cn(classes.favoriteIcon)} /> )
-                : ( <StarIcon name="star-icon" className={cn(classes.dropdownIcon)} /> )}
-          />,
+                ? <StarFillIcon name="star-fill-icon" className={classes.favoriteIcon} />
+                : <StarIcon name="star-icon" className={classes.dropdownIcon} />}
+          />
         ];
       },
     };
@@ -188,7 +188,7 @@ export const RepoList = ({
             />,
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<PencilIcon  aria-label="pencile_Icon" className={cn(classes.linkIcon, classes.editLink)} />}
+              icon={<PencilIcon  title="pencile_Icon" className={cn(classes.linkIcon, classes.editLink)} />}
               key={`dashboard.edit_app${params.row.id}`}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
@@ -200,19 +200,19 @@ export const RepoList = ({
                 className={cn(classes.actionLink, classes.repoLink)}
               >
                 <span>{t(editTextKey)}</span>
-                <PencilIcon className={cn(classes.linkIcon)} />
+                <PencilIcon className={classes.linkIcon} />
               </a>
               ,
             </GridActionsCellItem>,
             <GridActionsCellItem
-              icon={<FilesIcon className={cn(classes.dropdownIcon)} />}
+              icon={<FilesIcon className={classes.dropdownIcon} />}
               key={`dashboard.make_copy${params.row.id}`}
               label={t('dashboard.make_copy')}
               onClick={() => setCopyCurrentRepoName(repoFullName)}
               showInMenu
             />,
             <GridActionsCellItem
-              icon={<ExternalLinkIcon className={cn( classes.dropdownIcon)} />}
+              icon={<ExternalLinkIcon className={classes.dropdownIcon} />}
               key={`dashboard.open_in_new${params.row.id}`}
               label={t('dashboard.open_in_new')}
               onClick={() => window.open(editUrl, '_blank')}

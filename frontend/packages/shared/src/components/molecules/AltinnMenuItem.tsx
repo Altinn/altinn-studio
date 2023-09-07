@@ -25,7 +25,7 @@ function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElemen
       classes={{ root: classes.menu }}
     >
       <ListItemIcon classes={{ root: classes.icon }}>
-        {IconComponent && <IconComponent />}    
+        {IconComponent && <IconComponent />}  
       </ListItemIcon>
       <ListItemText disableTypography={true}>
         <Typography variant='caption'>{text}</Typography>

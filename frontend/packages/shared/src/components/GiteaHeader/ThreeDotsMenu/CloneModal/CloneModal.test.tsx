@@ -34,7 +34,7 @@ describe('cloneModal', () => {
     
     expect(
       screen.getByRole('button', {
-        name: textMock('general.try_again'),
+        name: textMock('sync_header.clone_https_button'),
       })
     ).toBeInTheDocument();
     consoleErrorSpy.mockRestore();
