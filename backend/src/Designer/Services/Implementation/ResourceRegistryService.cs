@@ -87,7 +87,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     try
                     {
-                        policyFileContentBytes = File.ReadAllBytes(policyPath);
+                        string canonicalPolicyPath = Path.GetFullPath(policyPath);
+
+                        if (canonicalPolicyPath.EndsWith(".xml"))
+                        {
+                            policyFileContentBytes = File.ReadAllBytes(policyPath);
+                        }
+                        else
+                        {
+                            return new StatusCodeResult(400);
+                        }
                     }
                     catch (Exception)
                     {
