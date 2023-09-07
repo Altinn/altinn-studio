@@ -7,14 +7,14 @@ import { ServiceAdministration } from './ServiceAdministration';
 import { SideMenuContent } from './SideMenuContent';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppSelector } from '../../../hooks';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function AdministrationComponent() {
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const repositoryType = getRepositoryType(org, app);
 
   return (

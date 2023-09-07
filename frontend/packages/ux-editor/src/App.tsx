@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
-import { useParams } from 'react-router-dom';
 import { useText } from './hooks';
 import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
@@ -12,6 +11,7 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 /**
  * This is the main React component responsible for controlling
@@ -22,7 +22,7 @@ import { typedLocalStorage } from 'app-shared/utils/webStorage';
 export function App() {
   const dispatch = useDispatch();
   const t = useText();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetInPreviewFromLocalStorage = typedLocalStorage.getItem<string>('layoutSet' + app);
   const selectedLayoutSetInPreview = selectedLayoutSetInPreviewFromLocalStorage !== '' ? selectedLayoutSetInPreviewFromLocalStorage : null;

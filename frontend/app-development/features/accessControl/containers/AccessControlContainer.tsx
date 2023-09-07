@@ -6,8 +6,8 @@ import { Checkbox } from '@digdir/design-system-react';
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/hooks';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
@@ -26,7 +26,7 @@ export enum PartyTypes {
 export function AccessControlContainer() {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
 
   const [partyTypesAllowed, setPartyTypesAllowed] = useState<IPartyTypesAllowed>({
     bankruptcyEstate: false,

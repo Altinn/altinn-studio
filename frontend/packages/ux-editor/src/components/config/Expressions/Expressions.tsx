@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -25,6 +24,7 @@ import { useUpdateFormComponentMutation } from '../../../hooks/mutations/useUpda
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;
@@ -33,7 +33,7 @@ export type ExpressionsProps = {
 
 export const Expressions = ({ onShowNewExpressions, showNewExpressions }: ExpressionsProps) => {
   const { formId, form } = useContext(FormContext);
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const { mutate: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSetName);

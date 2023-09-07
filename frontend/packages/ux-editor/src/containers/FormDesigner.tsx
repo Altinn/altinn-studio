@@ -9,7 +9,7 @@ import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { FormContextProvider } from './FormContext';
 import { deepCopy } from 'app-shared/pure';
 import { useText } from '../hooks';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
@@ -21,6 +21,7 @@ import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -29,7 +30,7 @@ export interface FormDesignerProps {
 
 export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);

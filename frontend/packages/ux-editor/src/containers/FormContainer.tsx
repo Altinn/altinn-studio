@@ -1,5 +1,4 @@
 import React, { useCallback, useState, ReactNode } from 'react';
-import { useParams } from 'react-router-dom';
 import cn from 'classnames';
 import '../styles/index.css';
 import classes from './FormContainer.module.css';
@@ -9,6 +8,7 @@ import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
 import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
 import { useSelector } from 'react-redux';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IFormContainerProps {
   children: ReactNode;
@@ -33,7 +33,7 @@ export const FormContainer = ({
   isBaseContainer,
   isEditMode,
 } : IFormContainerProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app, selectedLayoutSetName);

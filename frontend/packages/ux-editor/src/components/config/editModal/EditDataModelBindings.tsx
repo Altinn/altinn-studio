@@ -5,7 +5,7 @@ import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
-import { useParams } from 'react-router-dom';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -23,7 +23,7 @@ export const EditDataModelBindings = ({
   renderOptions,
   helpText,
 }: EditDataModelBindingsProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data } = useDatamodelMetadataQuery(org, app);
   const t = useText();
 

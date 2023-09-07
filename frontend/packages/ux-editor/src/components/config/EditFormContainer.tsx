@@ -15,7 +15,6 @@ import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useText } from '../../hooks';
-import { useParams } from 'react-router-dom';
 import { useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -27,6 +26,7 @@ import {
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { FormField } from '../FormField';
 import { FormContainer } from '../../types/FormContainer';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -41,7 +41,7 @@ export const EditFormContainer = ({
 }: IEditFormContainerProps) => {
   const t = useText();
 
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
 
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);

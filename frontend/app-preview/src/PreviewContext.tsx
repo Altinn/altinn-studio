@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 
 import axios from 'axios';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 interface PreviewContextProps {
   isReady: boolean;
   data: any;
@@ -10,7 +10,7 @@ interface PreviewContextProps {
 const Context = createContext<Partial<PreviewContextProps>>({});
 
 export const PreviewContext = (props: any) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [isReady, setIsReady] = useState<boolean>(false);
   const [data, setData] = useState<undefined>();
   useEffect(() => {

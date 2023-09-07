@@ -5,7 +5,6 @@ import { DeployDropdown } from './deploy/DeployDropdown';
 import { Table, TableRow, TableHeader, TableCell, TableBody, Link } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
-import { useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 
 import type {
@@ -13,6 +12,7 @@ import type {
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import { toast } from 'react-toastify';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export type ImageOption = {
   value: string;
@@ -53,7 +53,7 @@ export const AppDeploymentComponent = ({
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
   const startDeploy = () =>
     mutation.mutate({
