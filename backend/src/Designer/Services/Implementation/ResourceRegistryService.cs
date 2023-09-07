@@ -83,7 +83,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 if (ResourceAdminHelper.ValidFilePath(policyPath))
                 {
-                    byte[] policyFileContentBytes = File.ReadAllBytes(policyPath);
+                    byte[] policyFileContentBytes;
+
+                    try
+                    {
+                        policyFileContentBytes = File.ReadAllBytes(policyPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        Console.WriteLine($"Error while reading policy from path {policyPath}");
+                        return new StatusCodeResult(400);
+                    }
 
                     ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
                     content.Add(fileContent, "policyFile", "policy.xml");
