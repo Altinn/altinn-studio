@@ -33,6 +33,7 @@ const setSelectedOption = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: TopToolbarProps = {
   createNewOpen: false,
+  datamodels: [jsonMetadata1Mock],
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
@@ -40,8 +41,6 @@ const defaultProps: TopToolbarProps = {
 const org = 'org';
 const app = 'app';
 const generateModels = jest.fn().mockImplementation(() => Promise.resolve());
-const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
-const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
 const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 const renderToolbar = (
@@ -52,7 +51,7 @@ const renderToolbar = (
   queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], buildJsonSchema(uiSchemaNodesMock));
   return renderWithMockStore(
     {},
-    { generateModels, getDatamodels, getDatamodelsXsd, ...servicesContextProps },
+    { generateModels, ...servicesContextProps },
     queryClient
   )(<TopToolbar {...defaultProps} {...props} />);
 };

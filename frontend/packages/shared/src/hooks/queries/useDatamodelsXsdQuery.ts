@@ -1,11 +1,12 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import { AxiosError } from 'axios';
 
-export const useDatamodelsXsdQuery = (owner, app): UseQueryResult<DatamodelMetadata[]> => {
+export const useDatamodelsXsdQuery = (owner, app): UseQueryResult<DatamodelMetadataXsd[], AxiosError> => {
   const { getDatamodelsXsd } = useServicesContext();
-  return useQuery<DatamodelMetadata[]>(
+  return useQuery<DatamodelMetadataXsd[], AxiosError>(
     [QueryKey.DatamodelsXsd, owner, app],
     () => getDatamodelsXsd(owner, app),
   );

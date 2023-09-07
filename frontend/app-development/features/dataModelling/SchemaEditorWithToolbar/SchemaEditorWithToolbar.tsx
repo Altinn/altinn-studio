@@ -4,15 +4,16 @@ import { LandingPagePanel } from './LandingPagePanel';
 import React, { useState } from 'react';
 import { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
-  displayLandingPage?: boolean;
+  datamodels: DatamodelMetadata[];
 }
 
 export const SchemaEditorWithToolbar = ({
   createPathOption,
-  displayLandingPage
+  datamodels,
 }: SchemaEditorWithToolbarProps) => {
 
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
@@ -26,12 +27,13 @@ export const SchemaEditorWithToolbar = ({
       <TopToolbar
         createNewOpen={createNewOpen}
         createPathOption={createPathOption}
+        datamodels={datamodels}
         selectedOption={selectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
       />
       <main className={classes.main}>
-        {displayLandingPage && (
+        {!datamodels.length && (
           <LandingPagePanel
             openCreateNew={() => setCreateNewOpen(true)}
           />
