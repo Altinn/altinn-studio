@@ -51,6 +51,5 @@ describe('SchemaSelect', () => {
   });
 });
 
-const render = (props: Partial<ISchemaSelectProps> = {}) => {
-  return renderRtl(<SchemaSelect {...defaultProps} {...props} />);
-};
+const render = (props: Partial<ISchemaSelectProps> = {}) =>
+  renderRtl(<SchemaSelect {...defaultProps} {...props} />);

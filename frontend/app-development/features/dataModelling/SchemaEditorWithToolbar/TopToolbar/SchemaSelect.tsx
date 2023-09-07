@@ -23,7 +23,7 @@ export const SchemaSelect = ({
   setSelectedOption
 }: ISchemaSelectProps) => {
 
-  const options = datamodels ? convertMetadataListToOptions(datamodels) : [];
+  const options = convertMetadataListToOptions(datamodels);
   const optionGroups = groupMetadataOptions(options);
   const handleChange = (repositoyUrl: string) =>
     setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoyUrl));
