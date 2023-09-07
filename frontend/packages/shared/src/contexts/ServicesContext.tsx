@@ -17,6 +17,7 @@ import { AxiosError } from 'axios';
 import type { i18n } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
+import { ApiError } from 'app-shared/types/api/ApiError';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
@@ -29,10 +30,6 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 };
 
 const ServicesContext = createContext<ServicesContextProps>(null);
-
-interface ApiError {
-  errorCode: string,
-}
 
 const handleError = (
   error: AxiosError<ApiError>,
@@ -49,8 +46,9 @@ const handleError = (
   )
     return;
 
-  if (error?.response?.data?.errorCode) {
-    const errorMessageKey = `api_errors.${error?.response?.data?.errorCode}`;
+    const errorCode = error?.response?.data?.errorCode;
+    if (errorCode) {
+      const errorMessageKey = `api_errors.${errorCode}`;
 
     if (i18n.exists(errorMessageKey)) {
       toast.error(t(errorMessageKey), { toastId: errorMessageKey });

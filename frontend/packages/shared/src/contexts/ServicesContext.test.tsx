@@ -4,6 +4,7 @@ import { ServicesContextProvider } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const texts = {
   'api_errors.DM_01': 'DM_01 error message',
@@ -31,13 +32,7 @@ const wrapper = ({ children }) => (
 describe('ServicesContext', () => {
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const { result } = renderHook(() => useQuery(['fetchData'],() => Promise.reject({
-      response: {
-        data: {
-          errorCode: 'DM_01',
-        }
-      }
-    }), { retry: false }), { wrapper });
+    const { result } = renderHook(() => useQuery<string, string>(['fetchData'],() => Promise.reject(createApiErrorMock('DM_01')), { retry: false }), { wrapper });
 
     await waitFor(() => result.current.isError);
 
@@ -47,13 +42,7 @@ describe('ServicesContext', () => {
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const { result } = renderHook(() => useQuery(['fetchData'],() => Promise.reject({
-      response: {
-        data: {
-          errorCode: 'DM_02',
-        }
-      }
-    }), { retry: false }), { wrapper });
+    const { result } = renderHook(() => useQuery(['fetchData'],() => Promise.reject(createApiErrorMock('DM_02')), { retry: false }), { wrapper });
 
     await waitFor(() => result.current.isError);
 
