@@ -13,8 +13,8 @@ import type {
   PolicySubject,
   PolicyEditorUsage,
 } from '../../types';
+import { createNewPolicyResource } from '../../utils';
 import {
-  createNewPolicyResource,
   getActionOptions,
   getPolicyRuleIdString,
   getSubjectOptions,
@@ -22,7 +22,7 @@ import {
 } from '../../utils/ExpandablePolicyCardUtils';
 import { useTranslation } from 'react-i18next';
 
-type ExpandablePolicyCardProps = {
+export type ExpandablePolicyCardProps = {
   /**
    * The rule to display in the card
    */
@@ -395,7 +395,9 @@ export const ExpandablePolicyCard = ({
   const displayWarningCard = (text: string) => {
     return (
       <div className={classes.warningCardWrapper}>
-        <ErrorMessage size='small'>{text}</ErrorMessage>
+        <ErrorMessage as='p' size='small'>
+          {text}
+        </ErrorMessage>
       </div>
     );
   };
@@ -449,7 +451,7 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_sub_resource_title')}
         </Label>
         {displayResources}
@@ -473,7 +475,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasResourceError &&
           displayWarningCard(t('policy_editor.rule_card_sub_resource_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_actions_title')}
         </Label>
         <div className={classes.dropdownWrapper}>
@@ -493,7 +495,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasRightsError &&
           displayWarningCard(t('policy_editor.rule_card_actions_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_subjects_title')}
         </Label>
         <div className={classes.dropdownWrapper}>
@@ -513,7 +515,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasSubjectsError &&
           displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_description_title')}
         </Label>
         <div className={classes.textAreaWrapper}>

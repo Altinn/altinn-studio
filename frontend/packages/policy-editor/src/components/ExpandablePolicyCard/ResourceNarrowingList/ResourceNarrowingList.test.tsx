@@ -15,6 +15,8 @@ const mockUsageType: PolicyEditorUsage = 'app';
 const mockNewText: string = 'test';
 
 describe('ResourceNarrowingList', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockHandleInputChange = jest.fn();
   const mockHandleRemoveResource = jest.fn();
   const mockHandleClickAddResource = jest.fn();
@@ -89,7 +91,7 @@ describe('ResourceNarrowingList', () => {
 
     await act(() => user.click(deleteResourceButton));
 
-    expect(mockHandleRemoveResource).toHaveBeenCalled();
+    expect(mockHandleRemoveResource).toHaveBeenCalledTimes(1);
   });
 
   it('calls "handleClickAddResource" when add button is clicked', async () => {
@@ -102,7 +104,7 @@ describe('ResourceNarrowingList', () => {
 
     await act(() => user.click(addResourceButton));
 
-    expect(mockHandleClickAddResource).toHaveBeenCalled();
+    expect(mockHandleClickAddResource).toHaveBeenCalledTimes(1);
   });
 
   it('calls "handleRemoveElement" when remove element button is clicked', async () => {
@@ -119,7 +121,7 @@ describe('ResourceNarrowingList', () => {
     });
     await act(() => user.click(deleteElementButton));
 
-    expect(mockHandleRemoveElement).toHaveBeenCalled();
+    expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
   });
 
   it('calls "handleCloneElement" when clone element button is clicked', async () => {
@@ -136,7 +138,7 @@ describe('ResourceNarrowingList', () => {
     });
     await act(() => user.click(cloneElementButton));
 
-    expect(mockHandleCloneElement).toHaveBeenCalled();
+    expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
   });
 
   it('calls "onBlur" when a textfield is left', async () => {
@@ -149,6 +151,6 @@ describe('ResourceNarrowingList', () => {
 
     await act(() => user.type(typeInput, mockNewText));
     await act(() => user.tab());
-    expect(mockOnBlur).toHaveBeenCalled();
+    expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 });
