@@ -89,9 +89,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         policyFileContentBytes = File.ReadAllBytes(policyPath);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Console.WriteLine(ex);
                         Console.WriteLine($"Error while reading policy from path {policyPath}");
                         return new StatusCodeResult(400);
                     }
