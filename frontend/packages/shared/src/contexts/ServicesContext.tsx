@@ -46,9 +46,9 @@ const handleError = (
   )
     return;
 
-    const errorCode = error?.response?.data?.errorCode;
-    if (errorCode) {
-      const errorMessageKey = `api_errors.${errorCode}`;
+  const errorCode = error?.response?.data?.errorCode;
+  if (errorCode) {
+    const errorMessageKey = `api_errors.${errorCode}`;
 
     if (i18n.exists(errorMessageKey)) {
       toast.error(t(errorMessageKey), { toastId: errorMessageKey });
