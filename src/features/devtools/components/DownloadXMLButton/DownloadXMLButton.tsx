@@ -36,7 +36,12 @@ export const DownloadXMLButton = () => {
     if (instance?.id && dataElementId && acceptedFiles.length) {
       const data = await acceptedFiles[0].text();
       const dataUrl = getFetchFormDataUrl(instance?.id, dataElementId);
-      await axios.put(dataUrl, data, { headers: { 'Content-Type': 'application/xml' } });
+      await axios.put(dataUrl, data, { headers: { 'Content-Type': 'application/xml' } }).catch((error) => {
+        // 303 is expected when using ProcessDataWrite and can be ignored
+        if (error.response?.status !== 303) {
+          throw error;
+        }
+      });
       dispatch(FormDataActions.fetch({ url: dataUrl }));
     }
   };

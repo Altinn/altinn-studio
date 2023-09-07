@@ -38,8 +38,8 @@ export function parseErrorArgs(args: any[]): string {
   return args
     .map((arg) => {
       if (isAxiosError(arg)) {
-        return `Request failed, check the server logs for more details. ${arg.config?.method?.toUpperCase()} '${arg
-          .config?.url}': ${arg.message}`;
+        return `Message: ${arg.message}\nRequest: ${arg.config?.method?.toUpperCase()} '${arg.config
+          ?.url}'\nResponse: ${arg.response?.data}`;
       }
       if (arg instanceof Error) {
         return `${arg.name}: ${arg.message}`;

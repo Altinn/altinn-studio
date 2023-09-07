@@ -17,6 +17,7 @@
 }
 
 .errorIcon {
+  z-index: 1000;
   cursor: pointer;
   position: absolute;
   top: -10px;
