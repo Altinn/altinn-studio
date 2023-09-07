@@ -14,7 +14,7 @@ const app = 'app';
 describe('useDatamodelsJsonQuery', () => {
   it('Calls getDatamodels with correct arguments and returns the data', async () => {
     const datamodels: DatamodelMetadataJson[] = [jsonMetadataMock];
-    const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve(datamodels));
+    const getDatamodelsJson = jest.fn().mockImplementation(() => Promise.resolve(datamodels));
     const client = createQueryClientMock();
 
     const { result } = renderHook(
@@ -22,7 +22,7 @@ describe('useDatamodelsJsonQuery', () => {
       { wrapper: ({ children }) => (
         <ServicesContextProvider {...{
           ...queriesMock,
-          getDatamodels,
+          getDatamodelsJson,
           client,
         }}>
           {children}
@@ -31,7 +31,7 @@ describe('useDatamodelsJsonQuery', () => {
     );
 
     await waitFor(() => result.current.isLoading);
-    expect(getDatamodels).toHaveBeenCalledWith(org, app);
+    expect(getDatamodelsJson).toHaveBeenCalledWith(org, app);
     await waitFor(() => result.current.isSuccess);
     expect(result.current.data).toEqual(datamodels);
   });

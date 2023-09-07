@@ -29,14 +29,14 @@ const app = 'app';
 
 // Mocks:
 const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getDatamodels = jest.fn().mockImplementation(() => Promise.resolve([]));
+const getDatamodelsJson = jest.fn().mockImplementation(() => Promise.resolve([]));
 const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
 
 const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = createQueryClientMock()) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getDatamodel,
-    getDatamodels,
+    getDatamodelsJson,
     getDatamodelsXsd,
     ...queries,
   };
@@ -53,7 +53,7 @@ describe('DataModelling', () => {
 
   it('fetches models on mount', () => {
     render();
-    expect(getDatamodels).toHaveBeenCalledTimes(1);
+    expect(getDatamodelsJson).toHaveBeenCalledTimes(1);
     expect(getDatamodelsXsd).toHaveBeenCalledTimes(1);
   });
 
@@ -73,14 +73,14 @@ describe('DataModelling', () => {
   });
 
   it('does not show start dialog when there are models present', async () => {
-    getDatamodels.mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
+    getDatamodelsJson.mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
     render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).not.toBeInTheDocument();
   });
 
   it.each([
-    'getDatamodels',
+    'getDatamodelsJson',
     'getDatamodelsXsd'
   ])('shows an error message if an error occured on the %s query', async (queryName) => {
     const errorMessage = 'error-message-test';

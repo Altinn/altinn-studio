@@ -38,7 +38,7 @@ export function TopToolbar({
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, datamodels, prevDatamodels));
-  });
+  }, [selectedOption, datamodels, prevDatamodels, setSelectedOption]);
 
   const handleCreateSchema = (model: CreateDatamodelMutationArgs) => {
     createDatamodel(model);

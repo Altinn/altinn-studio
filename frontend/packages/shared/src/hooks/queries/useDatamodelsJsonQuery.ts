@@ -5,9 +5,9 @@ import { DatamodelMetadataJson } from 'app-shared/types/DatamodelMetadata';
 import { AxiosError } from 'axios';
 
 export const useDatamodelsJsonQuery = (owner, app): UseQueryResult<DatamodelMetadataJson[], AxiosError> => {
-  const { getDatamodels } = useServicesContext();
+  const { getDatamodelsJson } = useServicesContext();
   return useQuery<DatamodelMetadataJson[], AxiosError>(
     [QueryKey.DatamodelsJson, owner, app],
-    () => getDatamodels(owner, app),
+    () => getDatamodelsJson(owner, app),
   );
 };
