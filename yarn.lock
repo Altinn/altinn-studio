@@ -1714,23 +1714,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.23.3":
-  version: 0.23.3
-  resolution: "@digdir/design-system-react@npm:0.23.3"
+"@digdir/design-system-react@npm:0.24.0":
+  version: 0.24.0
+  resolution: "@digdir/design-system-react@npm:0.24.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.4.2
+    "@digdir/design-system-tokens": ^0.5.0
     "@floating-ui/react": 0.24.1
     "@navikt/aksel-icons": ^3.2.4
     react-number-format: 5.2.2
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 3ea878b0284b6e45769afb9fe4e29bb0ad4e575265080b67bfcb4612db16d9dbe0017c5bffac853c82f8eab4841e74dcca5d776efaddeaf2a7c70b22e8cf81be
+  checksum: 7dc13e6dc9d30ae4a0e9c29f891ad578899879c5f9ff2bc8afeaf5d16fb9e7853bdfce8160ffd218cf525da8d3cb9196d8b0cbc2c54c09b269f44c3ea0dbb6bf
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.4.2, @digdir/design-system-tokens@npm:^0.4.2":
+"@digdir/design-system-tokens@npm:0.4.2":
   version: 0.4.2
   resolution: "@digdir/design-system-tokens@npm:0.4.2"
   checksum: e75d52501d183eb7a78d92b9403909ec1c00c4ef19bd1fcf0677c1cc3a7b918a48b5d460377bc7ead331a101b817b4a08093b8e394187dec7e181512934f5d04
@@ -1741,6 +1741,13 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@digdir/design-system-tokens@npm:0.5.0"
+  checksum: f73f90d2d8d9343cf14f614fe6c2f846ded87938d36d1308d04470a32050db53bb0b352319e9daf5643601f26c16074d1e01d31d86c01e3bc24e3eb67ef3c6ed
   languageName: node
   linkType: hard
 
@@ -5297,7 +5304,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.23.3
+    "@digdir/design-system-react": 0.24.0
     "@digdir/design-system-tokens": 0.4.2
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
