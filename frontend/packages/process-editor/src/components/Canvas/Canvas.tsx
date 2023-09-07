@@ -49,16 +49,18 @@ const Viewer = (): JSX.Element => {
   return (
   <>
   {(renderNoDiagramError || renderNoProcessError) && ( 
-  <Alert severity="warning"className={classes.alert} >
+  <div className={classes.alert} >
+   <Alert severity="warning"  >
     <Heading size='small'>
       {renderNoDiagramError && (t("process_editor.not_found_diagram_heading"))}  
       {renderNoProcessError && (t("process_editor.not_found_process_heading"))}
     </Heading>
     <Paragraph className={classes.paragraph}> 
-      {renderNoDiagramError && (<Trans i18nKey={'process_editor.not_found_diagram_error_message'} components={{ a: <Link>BPNM-verktøyet</Link> }}/>)}  
-      {renderNoProcessError && (t("process_editor.not_found_process_error_message"))}
+      {renderNoDiagramError && (<Trans i18nKey={'process_editor.not_found_diagram_error_message'} components={{ a: <Link>her</Link> }}/>)}  
+      {renderNoProcessError && (<Trans i18nKey= {"process_editor.not_found_process_error_message"} components={{ a: <Link>her</Link> }}/>)}
     </Paragraph>
-  </Alert>
+   </Alert>
+  </div>
   )}
   <div ref={canvasRef}></div>
   </>
