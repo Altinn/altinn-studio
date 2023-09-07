@@ -78,7 +78,7 @@
     "core-js": "^3.29.1",
     "cross-env": "7.0.3",
     "css-loader": "6.8.1",
-    "cypress": "12.17.4",
+    "cypress": "13.1.0",
     "cypress-axe": "1.4.0",
     "cypress-plugin-tab": "1.0.5",
     "cypress-wait-until": "^2.0.0",
