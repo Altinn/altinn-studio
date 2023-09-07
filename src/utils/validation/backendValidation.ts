@@ -99,6 +99,7 @@ export function mapValidationIssues(
   resolvedNodes: LayoutPages,
   langTools: IUseLanguage,
   filterHidden: false | IsHiddenOptions = { respectTracks: true },
+  filterSources: boolean = true,
 ): IValidationObject[] {
   if (!resolvedNodes) {
     return [];
@@ -114,7 +115,7 @@ export function mapValidationIssues(
 
   const validationOutputs: IValidationObject[] = [];
   for (const issue of issues) {
-    if (shouldExcludeValidationIssue(issue)) {
+    if (filterSources && shouldExcludeValidationIssue(issue)) {
       continue;
     }
 

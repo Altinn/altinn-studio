@@ -74,6 +74,7 @@ function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages) {
     false, // Do not filter anything. When we're submitting, all validation messages should be displayed, even if
     // they're for hidden pages, etc, because the instance will be in a broken state if we just carry on submitting
     // when the server tells us we're not allowed to.
+    false, // Do not filter sources. We want to show all validation messages for the same reason as above.
   );
   const validationResult = createValidationResult(validationObjects);
   yield put(ValidationActions.updateValidations({ validationResult, merge: false }));
