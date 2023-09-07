@@ -167,7 +167,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             onClick={(event) => onMenuItemClick(event, 'up')}
             disabled={disableUp || invalid}
             text={t('left_menu.page_menu_up')}
-            iconClass={ArrowUpIcon}
+            icon={ArrowUpIcon}
             id='move-page-up-button'
           />
         )}
@@ -176,14 +176,14 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             onClick={(event) => onMenuItemClick(event, 'down')}
             disabled={disableDown || invalid}
             text={t('left_menu.page_menu_down')}
-            iconClass={ArrowDownIcon}
+            icon={ArrowDownIcon}
             id='move-page-down-button'
           />
         )}
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'edit')}
           text={t('left_menu.page_menu_edit')}
-          iconClass={PencilIcon}
+          icon={PencilIcon}
           id='edit-page-button'
           disabled={invalid}
         />
@@ -203,7 +203,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             <AltinnMenuItem
               onClick={(event) => onMenuItemClick(event, 'delete')}
               text={t('left_menu.page_menu_delete')}
-              iconClass={TrashIcon}
+              icon={TrashIcon}
               id='delete-page-button'
             />
           }
