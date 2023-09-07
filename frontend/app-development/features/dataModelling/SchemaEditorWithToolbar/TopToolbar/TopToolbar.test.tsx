@@ -5,13 +5,13 @@ import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithMockStore } from '../../../../test/mocks';
+import { useQueryClient } from '@tanstack/react-query';
 
 const user = userEvent.setup();
 
@@ -19,11 +19,13 @@ const user = userEvent.setup();
 const closeText = 'Close';
 const editText = 'Edit';
 const generateText = 'Generate';
-const savedText = 'Saved';
+const generalErrorMessage = 'Something went wrong';
+const dataModelGenerationSuccessMessage = 'Success';
 const savingText = 'Saving';
 const texts = {
+  'general.error_message': generalErrorMessage,
   'general.close': closeText,
-  'general.saved': savedText,
+  'schema_editor.datamodel_generation_success_message': dataModelGenerationSuccessMessage,
   'general.saving': savingText,
   'schema_editor.edit_mode': editText,
   'schema_editor.generate_model_files': generateText,
@@ -47,17 +49,28 @@ const renderToolbar = (
   props: Partial<TopToolbarProps> = {},
   servicesContextProps: Partial<ServicesContextProps> = {},
 ) => {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], buildJsonSchema(uiSchemaNodesMock));
+  const TopToolbarWithInitData = () => {
+    const queryClient = useQueryClient();
+    queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], buildJsonSchema(uiSchemaNodesMock));
+    return <TopToolbar {...defaultProps} {...props} />;
+  };
+
   return renderWithMockStore(
     {},
     { generateModels, ...servicesContextProps },
-    queryClient
-  )(<TopToolbar {...defaultProps} {...props} />);
+  )(<TopToolbarWithInitData />);
 };
 
 // Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    ...mockUseTranslation(texts),
+    i18n: {
+      exists: (key: string) => texts[key] !== undefined,
+    },
+  }),
+  Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
+}));
 
 describe('TopToolbar', () => {
   afterEach(jest.clearAllMocks);
@@ -84,34 +97,11 @@ describe('TopToolbar', () => {
   });
 
   it('Shows error message when the "generate" button is clicked and a schema error is provided', async () => {
-    const message = 'Error message';
     renderToolbar({}, {
-      generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
+      generateModels: jest.fn().mockImplementation(() => Promise.reject()),
     });
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(message);
-  });
-
-  it('Hides schema error popover when the "close" button is clicked', async () => {
-    const message = 'Error message';
-    renderToolbar({}, {
-      generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
-    });
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
-    await act(() => user.click(screen.getByRole('button', { name: closeText })));
-    expect(screen.queryAllByRole('dialog')).toHaveLength(0);
-  });
-
-  it('Hides schema error popover when component is rerendered without schema error', async () => {
-    const message = 'Error message';
-    const { renderResult: { rerender } } = renderToolbar({}, {
-      generateModels: jest.fn().mockImplementation(() => Promise.reject({ message })),
-    });
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
-    await act(() => user.click(screen.getByRole('button', { name: closeText })));
-    rerender(<TopToolbar {...defaultProps} />);
-    expect(screen.queryAllByRole('dialog')).toHaveLength(0);
+    expect(await screen.findByRole('alert')).toHaveTextContent(generalErrorMessage);
   });
 
   it('Hides spinner while not loading', () => {
@@ -119,9 +109,9 @@ describe('TopToolbar', () => {
     expect(screen.queryAllByTitle(savingText)).toHaveLength(0);
   });
 
-  it('Shows "saved" message when the "generate" button is clicked and there is no error', async () => {
-    renderToolbar({}, { generateModels });
+  it('Shows success message when the "generate" button is clicked and there is no error', async () => {
+    renderToolbar({});
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
-    expect(screen.getByRole('dialog')).toHaveTextContent(savedText);
+    expect(await screen.findByRole('alert')).toHaveTextContent(dataModelGenerationSuccessMessage);
   });
 });

@@ -11,6 +11,7 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
 import { rootStateMock } from './rootStateMock';
 import { QueryClient } from '@tanstack/react-query';
+import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
@@ -23,7 +24,7 @@ export const renderWithMockStore =
   (component: ReactNode) => {
     const store = configureStore()({ ...rootStateMock, ...state });
     const renderResult = render(
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient} clientConfig={queryClientConfigMock}>
         <PreviewConnectionContextProvider>
           <Provider store={store}>
             <BrowserRouter>{component}</BrowserRouter>
@@ -32,7 +33,7 @@ export const renderWithMockStore =
       </ServicesContextProvider>
     );
     const rerender = (rerenderedComponent) => renderResult.rerender(
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient} clientConfig={queryClientConfigMock}>
         <PreviewConnectionContextProvider>
           <Provider store={store}>
             <BrowserRouter>{rerenderedComponent}</BrowserRouter>
@@ -49,7 +50,7 @@ export const renderHookWithMockStore =
     const store = configureStore()({ ...rootStateMock, ...state });
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient} clientConfig={queryClientConfigMock}>
           <PreviewConnectionContextProvider>
             <Provider store={store}>{children}</Provider>
           </PreviewConnectionContextProvider>

@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
 import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-import { Table, TableRow, TableHeader, TableCell, TableBody } from '@digdir/design-system-react';
+import { Table, TableRow, TableHeader, TableCell, TableBody, Link } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useParams } from 'react-router-dom';
@@ -13,6 +12,7 @@ import type {
   ICreateAppDeploymentErrors,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
+import { toast } from 'react-toastify';
 
 export type ImageOption = {
   value: string;
@@ -54,7 +54,7 @@ export const AppDeploymentComponent = ({
   const { t } = useTranslation();
 
   const { org, app } = useParams();
-  const mutation = useCreateDeploymentMutation(org, app);
+  const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
   const startDeploy = () =>
     mutation.mutate({
       tagName: selectedImageTag,
@@ -87,6 +87,26 @@ export const AppDeploymentComponent = ({
   const deployedVersionNotReachable =
     latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
   const noAppDeployed = !latestDeploy || deployInProgress;
+
+  useEffect(() => {
+    if (deployPermission && latestDeploy && deployedVersionNotReachable) {
+      toast.error(() => (
+        <Trans i18nKey='app_deploy_messages.unable_to_list_deploys'>
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
+        </Trans>
+      ));
+    }
+  }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
+
+  useEffect(() => {
+    if (deployPermission && (deployFailed || mutation.isError)) {
+      toast.error(() => (
+        <Trans i18nKey='app_deploy_messages.technical_error_1'>
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
+        </Trans>
+      ));
+    }
+  }, [deployPermission, deployFailed, mutation.isError]);
 
   return (
     <div className={classes.mainContainer}>
@@ -136,20 +156,6 @@ export const AppDeploymentComponent = ({
           )}
           {deployInProgress && (
             <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
-          )}
-          {deployPermission && latestDeploy && deployedVersionNotReachable && (
-            <Panel variant={PanelVariant.Error}>
-              <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
-                <a href='mailto:tjenesteeier@altinn.no' />
-              </Trans>
-            </Panel>
-          )}
-          {deployPermission && (deployFailed || mutation.isError) && (
-            <Panel variant={PanelVariant.Error}>
-              <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
-                <a href='mailto:tjenesteeier@altinn.no' />
-              </Trans>
-            </Panel>
           )}
         </div>
         <div className={classes.deploymentListGrid}>
