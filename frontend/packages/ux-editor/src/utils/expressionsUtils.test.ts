@@ -1,6 +1,5 @@
 import {
   DataSource,
-  Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
   Operator,
@@ -19,125 +18,30 @@ import {
   addDataSource,
   addDataSourceValue,
   tryParseExpression,
-  stringifyValueForDisplay,
+  stringifyValueForDisplay, deleteExpressionFromComponent,
 } from './expressionsUtils';
-import { component1IdMock, component1Mock } from '../testing/layoutMock';
-import { deepCopy } from "app-shared/pure";
+import { component1Mock } from '../testing/layoutMock';
+import {
+  baseInternalExpression,
+  baseInternalSubExpression,
+  booleanValue,
+  componentId,
+  datamodelField, equivalentExternalExpressionWithMultipleSubExpressions,
+  internalExpressionWithMultipleSubExpressions, internalParsableComplexExpression,
+  internalUnParsableComplexExpression,
+  nullValue,
+  numberValue, parsableComplexExpression,
+  parsableExternalExpression,
+  parsableNotStudioFriendlyComplexExpression,
+  parsableNotStudioFriendlyLongComplexExpression,
+  simpleInternalExpression,
+  stringValue, subExpression0, subExpression1, subExpression2,
+  unParsableComplexExpression
+
+} from '../testing/expressionMocks';
+import { deepCopy } from 'app-shared/pure';
 
 describe('expressionsUtils', () => {
-  const componentId = 'some-component-id';
-  const datamodelField = 'some-data-model-field';
-  const stringValue = 'some-string-value';
-  const numberValue = 1024;
-  const nullValue = null;
-  const booleanValue = true;
-  const baseInternalSubExpression: SubExpression = {
-    id: 'some-sub-exp-id',
-    function: ExpressionFunction.Equals,
-  }
-  const subExpression0: SubExpression = {
-    id: 'some-sub-exp-id-0',
-    function: ExpressionFunction.Equals,
-    dataSource: DataSource.Component,
-    value: componentId,
-    comparableDataSource: DataSource.String,
-    comparableValue: stringValue,
-  }
-  const subExpression1: SubExpression = {
-    id: 'some-sub-exp-id-1',
-    function: ExpressionFunction.Equals,
-    dataSource: DataSource.Null,
-    value: nullValue,
-    comparableDataSource: DataSource.Number,
-    comparableValue: numberValue,
-  }
-  const subExpression2: SubExpression = {
-    id: 'some-sub-exp-id-2',
-    function: ExpressionFunction.Equals,
-    dataSource: DataSource.Boolean,
-    value: booleanValue,
-    comparableDataSource: DataSource.Component,
-    comparableValue: componentId,
-  }
-  const baseInternalExpression: Expression = {
-    id: 'some-id-0',
-    property: ExpressionPropertyBase.Hidden,
-    subExpressions: [
-      baseInternalSubExpression
-    ]
-  }
-  const simpleInternalExpression: Expression = {
-    id: 'some-id-1',
-    property: ExpressionPropertyBase.Hidden,
-    subExpressions: [
-      subExpression0
-    ]
-  };
-  const internalExpressionWithMultipleSubExpressions: Expression = {
-    id: 'some-id-2',
-    property: ExpressionPropertyBase.Hidden,
-    operator: Operator.Or,
-    subExpressions: [
-      subExpression1,
-      subExpression2
-    ]
-  };
-  const equivalentExternalExpressionWithMultipleSubExpressions = [
-    'or', [
-      'equals',
-      nullValue,
-      numberValue
-    ],
-    [
-      'equals',
-      booleanValue,
-      [
-        DataSource.Component,
-        componentId
-      ]
-    ]
-  ]
-  const parsableExternalExpression = [
-    'and',
-    [
-      'equals',
-      stringValue,
-      nullValue
-    ],
-    [
-      'equals',
-      numberValue,
-      booleanValue
-    ],
-    [
-      'not',
-      [
-        DataSource.Component,
-        componentId
-      ],
-      [
-        DataSource.DataModel,
-        datamodelField
-      ]
-    ]
-  ];
-  const unParsableComplexExpression = '["equals, [datamodel, test, true]';
-  const parsableComplexExpression = '["equals", ["datamodel", "test"], true]';
-  const parsableNotStudioFriendlyComplexExpression = ["dataModel", "some-field"];
-  const parsableNotStudioFriendlyLongComplexExpression = ["and",
-    ["equals", ["equals", ["dataModel", "some-field"], "true"], "true"],
-    ["equals", ["dataModel", "some-field"], "true"]
-  ];
-  const internalUnParsableComplexExpression: Expression = {
-    id: 'some-id-4',
-    property: ExpressionPropertyBase.Hidden,
-    complexExpression: unParsableComplexExpression,
-  }
-  const internalParsableComplexExpression: Expression = {
-    id: 'some-id-5',
-    property: ExpressionPropertyBase.Hidden,
-    complexExpression: parsableExternalExpression,
-  }
 
   describe('convertSubExpression', () => {
     it('converts first part of external subexpression in array format to internal subexpression where dataSource and dataSourceValue are set', () => {
@@ -376,21 +280,28 @@ describe('expressionsUtils', () => {
   });
   describe('convertAndAddExpressionToComponent', () => {
     it('converted expression is set on form component hidden property', async () => {
-      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, component1IdMock, internalExpressionWithMultipleSubExpressions);
+      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, internalExpressionWithMultipleSubExpressions);
 
       expect(updatedComponent.hidden).toStrictEqual(equivalentExternalExpressionWithMultipleSubExpressions);
     });
     it('converted and parsed complex expression is set as array on form component hidden property', () => {
-      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, component1IdMock, internalParsableComplexExpression);
+      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, internalParsableComplexExpression);
 
       expect(updatedComponent.hidden).toStrictEqual(parsableExternalExpression);
       expect(updatedComponent.hidden).toBeInstanceOf(Array);
     });
     it('converted complex expression is set as string on form component hidden property', () => {
-      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, component1IdMock, internalUnParsableComplexExpression);
+      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, internalUnParsableComplexExpression);
 
       expect(updatedComponent.hidden).toStrictEqual(unParsableComplexExpression);
       expect(typeof updatedComponent.hidden).toBe('string');
+    });
+  });
+  describe('deleteExpressionFromComponent', () => {
+    it('should delete the property on the form component connected to the expression', () => {
+      const newExpressions = deleteExpressionFromComponent(component1Mock, internalExpressionWithMultipleSubExpressions);
+
+      expect(newExpressions.hidden).toBeUndefined();
     });
   });
   describe('addExpressionIfLimitNotReached', () => {
@@ -412,9 +323,8 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete];
-      const { updatedComponent, updatedExpressions } = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
+      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(expressionToDelete, oldExpressions);
 
-      expect(updatedComponent.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
     });
@@ -423,9 +333,8 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const { updatedComponent, updatedExpressions }  = deleteExpressionAndAddDefaultIfEmpty(component1Mock, expressionToDelete, oldExpressions);
+      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(expressionToDelete, oldExpressions);
 
-      expect(updatedComponent.hidden).toBeUndefined();
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
     });

@@ -8,15 +8,12 @@ import {
 } from '../../../types/Expressions';
 import { Button, Select } from '@digdir/design-system-react';
 import { CheckmarkIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
-import { FormComponent } from '../../../types/FormComponent';
-import { FormContainer } from '../../../types/FormContainer';
 import { Trans } from 'react-i18next';
 import classes from './ExpressionContent.module.css';
 import {
   addProperty,
   addSubExpressionToExpression,
   complexExpressionIsSet,
-  removeSubExpressionAndAdaptParentProps,
   updateComplexExpression,
   updateExpression,
   updateOperator
@@ -26,8 +23,8 @@ import { ComplexExpression } from './ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
 
-interface ExpressionContentProps {
-  component: FormComponent | FormContainer;
+export interface ExpressionContentProps {
+  componentName: string;
   expression: Expression;
   onGetProperties: (expression: Expression) => { availableProperties: string[], expressionProperties: string[] };
   showRemoveExpressionButton: boolean;
@@ -36,11 +33,12 @@ interface ExpressionContentProps {
   expressionInEditModeId: string;
   onUpdateExpression: (newExpression: Expression) => void;
   onRemoveExpression: (expression: Expression) => void;
+  onRemoveSubExpression: (subExpression: SubExpression) => void;
   onEditExpression: (expression: Expression) => void;
 }
 
 export const ExpressionContent = ({
-  component,
+  componentName,
   expression,
   onGetProperties,
   showRemoveExpressionButton,
@@ -49,6 +47,7 @@ export const ExpressionContent = ({
   expressionInEditModeId,
   onUpdateExpression,
   onRemoveExpression,
+  onRemoveSubExpression,
   onEditExpression,
 }: ExpressionContentProps) => {
   const t = useText();
@@ -93,11 +92,6 @@ export const ExpressionContent = ({
     onUpdateExpression(newExpression);
   };
 
-  const removeSubExpression = (subExpression: SubExpression) => {
-    const newExpression: Expression = removeSubExpressionAndAdaptParentProps(expression, subExpression);
-    onUpdateExpression(newExpression);
-  };
-
   return (
     <>
       {expressionInEditMode ? (
@@ -106,7 +100,7 @@ export const ExpressionContent = ({
             <p>
               <Trans
                 i18nKey={'right_menu.expressions_property_on_component'}
-                values={{ componentName: component.id }}
+                values={{ componentName: componentName }}
                 components={{ bold: <strong/> }}
               />
             </p>
@@ -121,6 +115,8 @@ export const ExpressionContent = ({
             )}
           </div>
           <Select
+            label={t('right_menu.expressions_property')}
+            hideLabel={true}
             onChange={property => addPropertyToExpression(property)}
             options={[{ label: t('right_menu.expressions_property_select'), value: 'default' }].concat(propertiesList.map((property: string) => ({
               label: expressionPropertyTexts(t)[property],
@@ -140,7 +136,7 @@ export const ExpressionContent = ({
               onAddSubExpression={(expressionOp: Operator) => addSubExpression(expressionOp)}
               onUpdateSubExpression={(index: number, subExpression: SubExpression) => updateSubExpression(index, subExpression)}
               onUpdateExpressionOperator={(expressionOp: Operator) => updateExpressionOperator(expressionOp)}
-              onRemoveSubExpression={(subExp: SubExpression) => removeSubExpression(subExp)}
+              onRemoveSubExpression={(subExp: SubExpression) => onRemoveSubExpression(subExp)}
             />
           )}
           {allowToSaveExpression && (
@@ -159,7 +155,7 @@ export const ExpressionContent = ({
             <span>
               <Trans
                 i18nKey={expressionInPreviewPropertyTexts(t)[expression.property]}
-                values={{ componentName: component.id }}
+                values={{ componentName: componentName }}
                 components={{ bold: <strong/> }}
               />
             </span>

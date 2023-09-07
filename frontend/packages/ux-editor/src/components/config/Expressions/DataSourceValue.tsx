@@ -1,8 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Select, SingleSelectOption, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
-import { IFormLayouts } from '../../../types/global';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
@@ -11,7 +10,7 @@ import { getComponentIds, getDataModelElementNames } from '../../../utils/expres
 import { useText } from '../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-interface DataSourceValueProps {
+export interface DataSourceValueProps {
   subExpression: SubExpression;
   currentDataSource: DataSource;
   specifyDataSourceValue: (dataSourceValue: string, isComparable: boolean) => void;
@@ -26,19 +25,19 @@ export const DataSourceValue = ({
 }: DataSourceValueProps) => {
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  // TODO: Show spinner when isLoading
   const datamodelQuery = useDatamodelMetadataQuery(org, app);
-  const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const t = useText();
 
   const dataModelElementsData = datamodelQuery?.data ?? [];
-  const formLayoutsData = formLayoutsQuery?.data ?? [];
   const currentValue = isComparableValue ? subExpression.comparableValue : subExpression.value;
   const selectedValueForDisplayIfBoolean = currentValue ? 'true' : 'false';
 
-  const getCorrespondingDataSourceValues = (dataSource: DataSource) => {
+  const getCorrespondingDataSourceValues = (dataSource: DataSource): SingleSelectOption[] => {
     switch (dataSource) {
       case DataSource.Component:
-        return getComponentIds(formLayoutsData as IFormLayouts);
+        return getComponentIds(formLayoutsData);
       case DataSource.DataModel:
         return getDataModelElementNames(dataModelElementsData as DatamodelFieldElement[]);
       case DataSource.InstanceContext:
@@ -57,6 +56,8 @@ export const DataSourceValue = ({
     case DataSource.InstanceContext:
     case DataSource.ApplicationSettings:
       return (<Select
+        label={isComparableValue ? t('right_menu.expressions_data_source_comparable_value') : t('right_menu.expressions_data_source_value')}
+        hideLabel={true}
         onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue, isComparableValue)}
         options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
         value={currentValue  as string || 'default'}
@@ -76,14 +77,12 @@ export const DataSourceValue = ({
     case DataSource.Boolean:
       return (<ToggleButtonGroup
         items={[
-          { label: 'True', value: 'true' },
-          { label: 'False', value: 'false' }
+          { label: t('general.true'), value: 'true' },
+          { label: t('general.false'), value: 'false' }
         ]}
         onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
         selectedValue={selectedValueForDisplayIfBoolean}
       />);
-    case DataSource.Null:
-      return (<div></div>);
     default:
       return null;
   }

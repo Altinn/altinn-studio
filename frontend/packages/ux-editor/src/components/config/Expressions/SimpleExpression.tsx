@@ -31,7 +31,7 @@ export const SimpleExpression = ({
         <div key={subExp.id}>
           <Divider/>
           <SubExpressionContent
-            expressionAction={allowToSpecifyExpression}
+            expressionPropertyIsSet={allowToSpecifyExpression}
             subExpression={subExp}
             onUpdateSubExpression={(subExpression: SubExpression) => onUpdateSubExpression(index, subExpression)}
             onRemoveSubExpression={() => onRemoveSubExpression(subExp)}
@@ -50,8 +50,8 @@ export const SimpleExpression = ({
               <div className={classes.andOrToggleButtons}>
                 <ToggleButtonGroup
                   items={[
-                    { label: 'Og', value: Operator.And },
-                    { label: 'Eller', value: Operator.Or }
+                    { label: t('right_menu.expressions_operator_and'), value: Operator.And },
+                    { label: t('right_menu.expressions_operator_or'), value: Operator.Or }
                   ]}
                   onChange={(value) => onUpdateExpressionOperator(value as Operator)}
                   selectedValue={expression.operator || Operator.And}

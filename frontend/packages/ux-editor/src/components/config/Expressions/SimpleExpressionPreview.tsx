@@ -33,7 +33,9 @@ export const SimpleExpressionPreview = ({ expression }: SimpleExpressionPreviewP
             <span>{stringifyValueForDisplay(subExp.comparableValue)}</span>
           </p>
           {index !== expression.subExpressions.length - 1 && (
-            <center className={classes.bold}>{expression.operator === Operator.And ? 'Og' : 'Eller'}</center>
+            <center className={classes.bold}>
+              {expression.operator === Operator.And ? t('right_menu.expressions_operator_and') : t('right_menu.expressions_operator_or')}
+            </center>
           )}
         </div>
         )

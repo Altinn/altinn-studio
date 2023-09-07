@@ -4,13 +4,15 @@ import {
   ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
-  Operator
+  Operator, getExpressionPropertiesBasedOnComponentType, ExpressionProperty
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
 import { deepCopy } from 'app-shared/pure';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { IFormLayouts } from '../types/global';
+import { IFormLayouts, LayoutItemType } from '../types/global';
 import { FormComponent } from '../types/FormComponent';
+import { SingleSelectOption } from '@digdir/design-system-react';
+import { FormContainer } from "../types/FormContainer";
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -106,7 +108,6 @@ export const convertExternalExpressionToInternal = (booleanValue: string, expres
 
 export function convertSubExpression(internalExpEl: SubExpression, externalExpEl: any, isComparable: boolean): SubExpression {
   const newInternalExpEl = deepCopy(internalExpEl);
-  debugger;
   if (Array.isArray(externalExpEl)) {
     isComparable ? newInternalExpEl.comparableDataSource = externalExpEl[0] as DataSource : newInternalExpEl.dataSource = externalExpEl[0] as DataSource;
     isComparable ? newInternalExpEl.comparableValue = externalExpEl[1] : newInternalExpEl.value = externalExpEl[1];
@@ -120,7 +121,7 @@ export function convertSubExpression(internalExpEl: SubExpression, externalExpEl
   return newInternalExpEl;
 }
 
-export const convertAndAddExpressionToComponent = (form, formId, expression: Expression): FormComponent => {
+export const convertAndAddExpressionToComponent = (form, expression: Expression): FormComponent => {
   const newFrom = deepCopy(form);
   let newExpression = deepCopy(expression);
   if (complexExpressionIsSet(newExpression.complexExpression)) {
@@ -134,26 +135,33 @@ export const convertAndAddExpressionToComponent = (form, formId, expression: Exp
   }
 };
 
+export const deleteExpressionFromComponent = (form, expression: Expression): FormComponent => {
+  const newForm = deepCopy(form);
+  const expressionToDelete = deepCopy(expression);
+  if (expressionToDelete.property) {
+    // TODO: What if the property was set to true or false before? Issue #10860
+    delete newForm[expressionToDelete.property];
+  }
+  return newForm;
+};
+
 export const addExpressionIfLimitNotReached = (oldExpressions: Expression[], isExpressionLimitReached: boolean): Expression[] => {
   const newExpressions = deepCopy(oldExpressions);
-  const newExpression: Expression = { id: uuidv4(), subExpressions: [] };
+  const newExpression: Expression = { id: uuidv4() };
   return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
 };
 
-export const deleteExpressionAndAddDefaultIfEmpty = (form, expressionToDelete: Expression, oldExpressions: Expression[]): { updatedComponent: FormComponent, updatedExpressions: Expression[] } => {
-  const formCopy = deepCopy(form);
+export const deleteExpressionAndAddDefaultIfEmpty = (expressionToDelete: Expression, oldExpressions: Expression[]): Expression[] => {
   const expressionsCopy = deepCopy(oldExpressions);
   let newExpressions = expressionsCopy;
   if (expressionToDelete.property) {
-    // TODO: What if the property was set to true or false before? Issue #10860
-    delete formCopy[expressionToDelete.property];
     newExpressions = expressionsCopy.filter(prevExpression => prevExpression.id !== expressionToDelete.id);
     if (newExpressions.length === 0) {
       const defaultExpression: Expression = { id: uuidv4() };
       newExpressions = [defaultExpression];
     }
   }
-  return { updatedComponent: formCopy, updatedExpressions: newExpressions };
+  return newExpressions;
 };
 
 export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
@@ -200,7 +208,7 @@ export const updateComplexExpression = (oldExpression: Expression, complexExpres
   return newExpression;
 };
 
-export const removeSubExpressionAndAdaptParentProps = (oldExpression: Expression, subExpression: SubExpression) => {
+export const removeSubExpressionAndAdaptParentProps = (oldExpression: Expression, subExpression: SubExpression): Expression => {
   const newExpression = deepCopy(oldExpression);
   const updatedSubExpressions = newExpression.subExpressions.filter((expEl: SubExpression) => expEl.id !== subExpression.id);
   if (updatedSubExpressions.length === 0) {
@@ -275,8 +283,14 @@ export const complexExpressionIsSet = (complexExpression: string) => {
   return complexExpression !== undefined && complexExpression !== null;
 };
 
+export const getAllComponentPropertiesThatCanHaveExpressions = (form: FormComponent | FormContainer): (ExpressionProperty)[] | undefined  => {
+  const expressionProperties = getExpressionPropertiesBasedOnComponentType(form.itemType as LayoutItemType);
+  return Object.keys(form).filter(property => expressionProperties?.includes(property as ExpressionProperty))
+    .map(property => property as ExpressionProperty);
+};
+
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
-export const getDataModelElementNames = (dataModelElements: DatamodelFieldElement[]) => {
+export const getDataModelElementNames = (dataModelElements: DatamodelFieldElement[]): SingleSelectOption[] => {
   return dataModelElements
     .filter(element => element.dataBindingName)
     .map((element) => ({
@@ -285,7 +299,7 @@ export const getDataModelElementNames = (dataModelElements: DatamodelFieldElemen
     }))
 };
 
-export const getComponentIds = (formLayouts: IFormLayouts) => {
+export const getComponentIds = (formLayouts: IFormLayouts): SingleSelectOption[] => {
   // TODO: Make sure all components from the layout set are included, also those inside groups. Issue #10855
   const components = Object.values(formLayouts).flatMap(layout => Object.values(layout.components));
   // TODO: Make sure there are not duplicate component ids. Related issue: 10857
