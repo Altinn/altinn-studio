@@ -101,7 +101,7 @@ describe('ResetRepoModal', () => {
     expect(resetRepoChanges).toHaveBeenCalled();
   });
 
-  it('renders the sucess message after reset is completed', async () => {
+  it('renders the success message after reset is completed', async () => {
     render();
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
     await act(() => user.type(repoNameInput, mockRepoName));

@@ -33,7 +33,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const repoResetMutation = useResetRepositoryMutation(props.org, props.repositoryName);
   const onResetWrapper = () => {
     setCanDelete(false);
-    repoResetMutation.mutate(null, {
+    repoResetMutation.mutate(undefined, {
       onSuccess: () => {
         onCloseWrapper();
         toast.success(t('administration.reset_repo_completed'));
