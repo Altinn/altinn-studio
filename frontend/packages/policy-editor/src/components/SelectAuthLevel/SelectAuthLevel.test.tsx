@@ -11,6 +11,8 @@ const mockInitialAuthLevelLabel: string = authlevelOptions[0].label;
 const mockLabel: string = textMock('policy_editor.select_auth_level_label');
 
 describe('SelectAuthLevel', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockSetValue = jest.fn();
   const mockOnBlur = jest.fn();
 

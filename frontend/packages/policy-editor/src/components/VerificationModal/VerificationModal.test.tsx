@@ -10,6 +10,8 @@ const mockCloseButtonText: string = 'Close';
 const mockActionButtonText: string = 'Confirm';
 
 describe('VerificationModal', () => {
+  afterEach(jest.clearAllMocks);
+
   const mockOnClose = jest.fn();
   const mockOnPerformAction = jest.fn();
 
