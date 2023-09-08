@@ -1,5 +1,9 @@
 import { useParams } from 'react-router-dom';
-import type { StudioUrlParams } from 'app-shared/types/StudioUrlParams';
+
+interface StudioUrlParams {
+  org: string;
+  app: string;
+}
 
 /**
  * Retrieves the org and app names from the URL.
