@@ -1,0 +1,32 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/validation/validation.schema.v1.json",
+  "validations": {
+    "root.alder": [
+      {
+        "message": "Kandidater under 18 år må ha foresattes skriftlige samtykke",
+        "severity": "warnings",
+        "condition": [
+          "and",
+          ["greaterThanEq", ["dataModel", ["argv", 0]], 15],
+          ["lessThan", ["dataModel", ["argv", 0]], 18]
+        ]
+      }
+    ],
+    "root.telefonnummer": [
+      {
+        "message": "Telefonnummer må starte med '9'",
+        "condition": ["not", ["startsWith", ["dataModel", ["argv", 0]], "9"]]
+      }
+    ],
+    "root.epost": [
+      {
+        "message": "E-post må slutte med '@altinn.no'",
+        "condition": [
+          "not",
+          ["endsWith", ["dataModel", ["argv", 0]], "@altinn.no"]
+        ]
+      }
+    ]
+  },
+  "definitions": {}
+}

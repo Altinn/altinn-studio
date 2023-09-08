@@ -53,6 +53,7 @@
           "title": "CV.alder.title"
         },
         "autocomplete": "off",
+        "triggers": ["validation"],
         "formatting": {
           "number": {
             "allowNegative": false,
@@ -72,6 +73,7 @@
         },
         "required": true,
         "optionsId": "kjønn",
+        "triggers": ["validation"],
         "textResourceBindings": {
           "title": "CV.kj.title"
         },
@@ -90,6 +92,7 @@
         "textResourceBindings": {
           "title": "CV.e-post.title"
         },
+        "triggers": ["validation"],
         "autocomplete": "email",
         "grid": {
           "xs": 12,
@@ -107,6 +110,7 @@
           "title": "CV.telefon.title"
         },
         "autocomplete": "tel",
+        "triggers": ["validation"],
         "formatting": {
           "number": {
             "format": "+47 ### ## ###"
