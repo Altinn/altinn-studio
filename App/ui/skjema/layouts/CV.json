@@ -53,7 +53,9 @@
           "title": "CV.alder.title"
         },
         "autocomplete": "off",
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "formatting": {
           "number": {
             "allowNegative": false,
@@ -73,7 +75,9 @@
         },
         "required": true,
         "optionsId": "kjønn",
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "textResourceBindings": {
           "title": "CV.kj.title"
         },
@@ -92,7 +96,9 @@
         "textResourceBindings": {
           "title": "CV.e-post.title"
         },
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "autocomplete": "email",
         "grid": {
           "xs": 12,
@@ -110,7 +116,9 @@
           "title": "CV.telefon.title"
         },
         "autocomplete": "tel",
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "formatting": {
           "number": {
             "format": "+47 ### ## ###"
@@ -234,8 +242,13 @@
       {
         "id": "prosjekter",
         "type": "Group",
-        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
-        "tableHeaders": ["prosjekt-tittel"],
+        "children": [
+          "prosjekt-tittel",
+          "prosjekt-beskrivelse"
+        ],
+        "tableHeaders": [
+          "prosjekt-tittel"
+        ],
         "maxCount": 99,
         "dataModelBindings": {
           "group": "root.arbeidserfaring.prosjekter"
@@ -267,10 +280,25 @@
         }
       },
       {
+        "id": "button-group",
+        "type": "ButtonGroup"
+      },
+      {
         "id": "send-inn",
         "type": "Button",
         "textResourceBindings": {
           "title": "CV.Button-U7p0KF.title"
+        }
+      },
+      {
+        "id": "nav",
+        "type": "NavigationButtons",
+        "componentType": "NavigationButtons",
+        "dataModelBindings": {},
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "CV.nav.next",
+          "back": "CV.nav.back"
         }
       }
     ]

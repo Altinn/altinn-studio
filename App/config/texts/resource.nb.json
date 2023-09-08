@@ -80,6 +80,42 @@
     {
       "id": "CV.tittel.title",
       "value": "CV for Altinn"
+    },
+    {
+      "id": "Skjul_felter.tittel.title",
+      "value": "Skjul felter"
+    },
+    {
+      "id": "Skjul_felter.send-inn2.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Skjul_felter.skjul-felter.title",
+      "value": "Skjul enkelt-felter"
+    },
+    {
+      "id": "Skjul_felter.skjul-arbeid.title",
+      "value": "Skjul rad basert på stilling"
+    },
+    {
+      "id": "Skjul_felter.skjul-prosjekt.title",
+      "value": "Skjul nøstet rad basert på prosjekt-tittel"
+    },
+    {
+      "id": "CV.nav.next",
+      "value": "Neste"
+    },
+    {
+      "id": "CV.nav.back",
+      "value": "Forrige"
+    },
+    {
+      "id": "Skjul_felter.nav2.next",
+      "value": "Neste"
+    },
+    {
+      "id": "Skjul_felter.nav2.back",
+      "value": "Forrige"
     }
   ]
 }

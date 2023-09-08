@@ -2,7 +2,8 @@
   "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
     "order": [
-      "CV"
+      "CV",
+      "Skjul_felter"
     ]
   }
 }

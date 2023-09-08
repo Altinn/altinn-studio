@@ -95,6 +95,15 @@
         },
         "kjønn": {
           "type": "string"
+        },
+        "SF_skjul-felter": {
+          "type": "string"
+        },
+        "SF_skjul-arbeidsgiver": {
+          "type": "string"
+        },
+        "SF_skjul-prosjekt": {
+          "type": "string"
         }
       },
       "required": [

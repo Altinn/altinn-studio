@@ -65,6 +65,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("kjønn")]
     public string kjønn { get; set; }
 
+    [XmlElement("SF_skjul-felter", Order = 9)]
+    [JsonProperty("SF_skjul-felter")]
+    [JsonPropertyName("SF_skjul-felter")]
+    public string SF_skjulfelter { get; set; }
+
+    [XmlElement("SF_skjul-arbeidsgiver", Order = 10)]
+    [JsonProperty("SF_skjul-arbeidsgiver")]
+    [JsonPropertyName("SF_skjul-arbeidsgiver")]
+    public string SF_skjularbeidsgiver { get; set; }
+
+    [XmlElement("SF_skjul-prosjekt", Order = 11)]
+    [JsonProperty("SF_skjul-prosjekt")]
+    [JsonPropertyName("SF_skjul-prosjekt")]
+    public string SF_skjulprosjekt { get; set; }
+
   }
 
   public class arbeidserfaring

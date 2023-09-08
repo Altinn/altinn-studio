@@ -1,0 +1,71 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "tittel",
+        "type": "Header",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "Skjul_felter.tittel.title"
+        }
+      },
+      {
+        "id": "skjul-felter",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_skjul-felter"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "Skjul_felter.skjul-felter.title"
+        },
+        "options": []
+      },
+      {
+        "id": "skjul-arbeid",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_skjul-arbeidsgiver"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "Skjul_felter.skjul-arbeid.title"
+        }
+      },
+      {
+        "id": "skjul-prosjekt",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_skjul-prosjekt"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "Skjul_felter.skjul-prosjekt.title"
+        }
+      },
+      {
+        "id": "button-group2",
+        "type": "ButtonGroup"
+      },
+      {
+        "id": "nav2",
+        "type": "NavigationButtons",
+        "componentType": "NavigationButtons",
+        "dataModelBindings": {},
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Skjul_felter.nav2.next",
+          "back": "Skjul_felter.nav2.back"
+        }
+      },
+      {
+        "id": "send-inn2",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Skjul_felter.send-inn2.title"
+        }
+      }
+    ]
+  }
+}
