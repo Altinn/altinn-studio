@@ -31,7 +31,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("etternavn")]
     public string etternavn { get; set; }
 
-    [Range(1d, 76d)]
+    [Range(15d, 76d)]
     [XmlElement("alder", Order = 3)]
     [JsonProperty("alder")]
     [JsonPropertyName("alder")]
