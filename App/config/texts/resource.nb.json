@@ -4,6 +4,34 @@
     {
       "id": "appName",
       "value": "expression-validation"
+    },
+    {
+      "id": "CV.fornavn.title",
+      "value": "Fornavn"
+    },
+    {
+      "id": "CV.etternav.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "CV.alder.title",
+      "value": "Alder"
+    },
+    {
+      "id": "CV.e-post.title",
+      "value": "E-post"
+    },
+    {
+      "id": "CV.telefon.title",
+      "value": "Telefonnummer"
+    },
+    {
+      "id": "CV.bosted.title",
+      "value": "Bosted"
+    },
+    {
+      "id": "CV.kj.title",
+      "value": "Kjønn"
     }
   ]
 }

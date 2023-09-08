@@ -1,0 +1,91 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "fornavn",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.fornavn"
+        },
+        "required": true,
+        "autocomplete": "given-name",
+        "textResourceBindings": {
+          "title": "CV.fornavn.title"
+        }
+      },
+      {
+        "id": "etternav",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.etternavn"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.etternav.title"
+        },
+        "autocomplete": "family-name"
+      },
+      {
+        "id": "alder",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.alder"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.alder.title"
+        },
+        "autocomplete": "off"
+      },
+      {
+        "id": "e-post",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.epost"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.e-post.title"
+        },
+        "autocomplete": "email"
+      },
+      {
+        "id": "telefon",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.telefonnummer"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.telefon.title"
+        },
+        "autocomplete": "tel"
+      },
+      {
+        "id": "bosted",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "root.bosted"
+        },
+        "optionsId": "",
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.bosted.title"
+        }
+      },
+      {
+        "id": "kjonn",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.kjønn"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.kj.title"
+        },
+        "autocomplete": "sex"
+      }
+    ]
+  }
+}

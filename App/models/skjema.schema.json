@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/bjosttveit/expression-validation/App/models/skjema.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "skjema",
+  "type": "object",
+  "properties": {
+    "root": {
+      "type": "object",
+      "properties": {
+        "fornavn": {
+          "type": "string"
+        },
+        "etternavn": {
+          "type": "string"
+        },
+        "alder": {
+          "type": "integer",
+          "maximum": 76,
+          "minimum": 1
+        },
+        "arbeidserfaring": {
+          "type": "array",
+          "maxItems": 99,
+          "minItems": 0,
+          "items": {
+            "type": "object",
+            "properties": {
+              "arbeidsgiver": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "til": {
+                "type": "string"
+              },
+              "stilling": {
+                "type": "string"
+              },
+              "beskrivelse": {
+                "type": "string"
+              },
+              "prosjekter": {
+                "type": "array",
+                "maxItems": 99,
+                "minItems": 0,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tittel": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "beskrivelse": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "tittel",
+                    "beskrivelse"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "epost": {
+          "type": "string",
+          "format": "idn-email"
+        },
+        "telefonnummer": {
+          "type": "integer"
+        },
+        "bosted": {
+          "type": "string"
+        },
+        "kjønn": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "fornavn",
+        "etternavn",
+        "alder",
+        "epost",
+        "telefonnummer",
+        "bosted",
+        "kjønn"
+      ]
+    }
+  }
+}
