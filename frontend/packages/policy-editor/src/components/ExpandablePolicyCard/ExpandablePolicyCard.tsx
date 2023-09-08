@@ -188,7 +188,6 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
         usageType={usageType}
-        uniqueId={`-ruleId:${policyRule.ruleId}-subResource:${i}`}
       />
     );
   });
@@ -421,35 +420,23 @@ export const ExpandablePolicyCard = ({
 
     if (arr.length === 1) {
       return t('policy_editor.policy_rule_missing_1', {
-
         ruleId: policyRule.ruleId,
-
         missing: arr[0],
-     ,
       });
     }
     if (arr.length === 2) {
       return t('policy_editor.policy_rule_missing_2', {
-
         ruleId: policyRule.ruleId,
-
         missing1: arr[0],
-
         missing2: arr[1],
-     ,
       });
     }
     if (arr.length === 3) {
       return t('policy_editor.policy_rule_missing_3', {
-
         ruleId: policyRule.ruleId,
-
         missing1: arr[0],
-
         missing2: arr[1],
-
         missing3: arr[2],
-     ,
       });
     }
     return '';
@@ -476,15 +463,10 @@ export const ExpandablePolicyCard = ({
             size='small'
             fullWidth
             icon={
-
               <PlusIcon
-
                 title={t('policy_editor.rule_card_sub_resource_button')}
-
                 fontSize='1.5rem'
-
               />
-
             }
           >
             {t('policy_editor.rule_card_sub_resource_button')}
@@ -502,13 +484,9 @@ export const ExpandablePolicyCard = ({
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
             label={
-
               actionOptions.length === 0
-
                 ? t('policy_editor.rule_card_actions_select_all_selected')
-
                 : t('policy_editor.rule_card_actions_select_add')
-
             }
             error={showErrors && hasRightsError}
           />
@@ -535,9 +513,7 @@ export const ExpandablePolicyCard = ({
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
         {showErrors &&
-
           hasSubjectsError &&
-
           displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
         <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_description_title')}
@@ -552,11 +528,8 @@ export const ExpandablePolicyCard = ({
             onBlur={() => savePolicy(rules)}
           />
           <ScreenReaderSpan
-
             id='ruleDescription'
-
             label={t('policy_editor.rule_card_description_title')}
-
           />
         </div>
       </ExpandablePolicyElement>
