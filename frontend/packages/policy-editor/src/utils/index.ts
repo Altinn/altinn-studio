@@ -52,12 +52,8 @@ export const mapPolicySubjectToSubjectTitle = (
  */
 export const mapResourceFromBackendToResource = (resource: string): PolicyRuleResource => {
   const resourceArr = resource.split(':');
-  console.log('rarrrr', resourceArr);
   const id: string = resourceArr.pop();
   const type: string = resourceArr.join(':');
-
-  console.log('id', id);
-  console.log('type', type);
 
   return {
     type: type,

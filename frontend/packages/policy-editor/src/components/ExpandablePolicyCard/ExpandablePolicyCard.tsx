@@ -5,7 +5,6 @@ import classes from './ExpandablePolicyCard.module.css';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import type {
   PolicyAction,
   PolicyRuleCard,
@@ -495,7 +494,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasRightsError &&
           displayWarningCard(t('policy_editor.rule_card_actions_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_subjects_title')}
         </Label>
         <div className={classes.dropdownWrapper}>
@@ -524,12 +523,8 @@ export const ExpandablePolicyCard = ({
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
-            aria-labelledby='ruleDescription'
+            aria-label='ruleDescription'
             onBlur={() => savePolicy(rules)}
-          />
-          <ScreenReaderSpan
-            id='ruleDescription'
-            label={t('policy_editor.rule_card_description_title')}
           />
         </div>
       </ExpandablePolicyElement>
