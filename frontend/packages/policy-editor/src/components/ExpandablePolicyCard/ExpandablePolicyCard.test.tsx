@@ -4,87 +4,21 @@ import userEvent from '@testing-library/user-event';
 import { ExpandablePolicyCard, ExpandablePolicyCardProps } from './ExpandablePolicyCard';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { PolicyEditorUsage } from '../../types';
 import {
-  PolicyAction,
-  PolicyEditorUsage,
-  PolicyRuleCard,
-  PolicyRuleResource,
-  PolicySubject,
-} from '../../types';
-
-const mockResourecId: string = 'resource-1';
-const mockResourceType: string = 'urn:test';
-
-const mockRuleId1: string = 'r1';
-const mockRuleId2: string = 'r2';
-
-const mockActionTitle1: string = 'Action 1';
-const mockActionTitle2: string = 'Action 2';
-const mockActionTitle3: string = 'Action 3';
-
-const mockSubjectTitle1: string = 'Subject 1';
-const mockSubjectTitle2: string = 'Subject 2';
-const mockSubjectTitle3: string = 'Subject 3';
-
-const mockResource11: PolicyRuleResource = { type: mockResourceType, id: mockResourecId };
-const mockResource12: PolicyRuleResource = { type: 'urn:test.1.2', id: '1.2' };
-const mockResource21: PolicyRuleResource = { type: 'urn:test.2.1', id: '2.1' };
-const mockResource1: PolicyRuleResource[] = [mockResource11, mockResource12];
-const mockResource2: PolicyRuleResource[] = [mockResource21];
-const mockPolicyResources: PolicyRuleResource[][] = [mockResource1, mockResource2];
-
-const mockPolicyRule1: PolicyRuleCard = {
-  ruleId: mockRuleId1,
-  description: '',
-  subject: [mockSubjectTitle1, mockSubjectTitle3],
-  actions: [mockActionTitle1, mockActionTitle2],
-  resources: mockPolicyResources,
-};
-const mockPolicyRule2: PolicyRuleCard = {
-  ruleId: mockRuleId2,
-  description: '',
-  subject: [],
-  actions: [],
-  resources: [[]],
-};
-const mockPolicyRules: PolicyRuleCard[] = [mockPolicyRule1, mockPolicyRule2];
-
-const mockAction1: PolicyAction = {
-  actionId: 'a1',
-  actionTitle: mockActionTitle1,
-  actionDescription: null,
-};
-const mockAction2: PolicyAction = {
-  actionId: 'a2',
-  actionTitle: mockActionTitle2,
-  actionDescription: null,
-};
-const mockAction3: PolicyAction = {
-  actionId: 'a3',
-  actionTitle: mockActionTitle3,
-  actionDescription: null,
-};
-const mockActions: PolicyAction[] = [mockAction1, mockAction2, mockAction3];
-
-const mockSubject1: PolicySubject = {
-  subjectId: 's1',
-  subjectSource: 'Subject1',
-  subjectTitle: mockSubjectTitle1,
-  subjectDescription: '',
-};
-const mockSubject2: PolicySubject = {
-  subjectId: 'a2',
-  subjectSource: 'Subject2',
-  subjectTitle: mockSubjectTitle2,
-  subjectDescription: '',
-};
-const mockSubject3: PolicySubject = {
-  subjectId: 'a3',
-  subjectSource: 'Subject3',
-  subjectTitle: mockSubjectTitle3,
-  subjectDescription: '',
-};
-const mockSubjects: PolicySubject[] = [mockSubject1, mockSubject2, mockSubject3];
+  mockActionTitle1,
+  mockActionTitle2,
+  mockActionTitle3,
+  mockActions,
+  mockPolicyRuleCard1,
+  mockPolicyRuleCards,
+  mockResourceType1,
+  mockResourecId1,
+  mockSubjectTitle1,
+  mockSubjectTitle2,
+  mockSubjectTitle3,
+  mockSubjects,
+} from '../../data-mocks';
 
 const mockUsageType: PolicyEditorUsage = 'app';
 
@@ -97,13 +31,13 @@ describe('ExpandablePolicyCard', () => {
   const mockSavePolicy = jest.fn();
 
   const defaultProps: ExpandablePolicyCardProps = {
-    policyRule: mockPolicyRule1,
+    policyRule: mockPolicyRuleCard1,
     actions: mockActions,
     subjects: mockSubjects,
-    rules: mockPolicyRules,
+    rules: mockPolicyRuleCards,
     setPolicyRules: mockSetPolicyRules,
-    resourceId: mockResourecId,
-    resourceType: mockResourceType,
+    resourceId: mockResourecId1,
+    resourceType: mockResourceType1,
     handleCloneRule: mockHandleCloneRule,
     handleDeleteRule: mockHandleDeleteRule,
     showErrors: false,
@@ -263,7 +197,7 @@ describe('ExpandablePolicyCard', () => {
     const [descriptionField] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_description_title')
     );
-    expect(descriptionField).toHaveValue(mockPolicyRule1.description);
+    expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
     await act(() => user.type(descriptionField, '1'));
 
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
@@ -301,7 +235,7 @@ describe('ExpandablePolicyCard', () => {
     const [descriptionField] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_description_title')
     );
-    expect(descriptionField).toHaveValue(mockPolicyRule1.description);
+    expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
     await act(() => user.type(descriptionField, newWord));
     await act(() => user.tab());
 
