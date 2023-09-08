@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { Select, TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
-import { useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
 import { ErrorMessage, Button } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
 
   const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Helpers
@@ -26,5 +27,23 @@ namespace Altinn.Studio.Designer.Helpers
                 return false;
             }
         }
+
+        public static bool ValidFilePath(string input)
+        {
+            char[] illegalFileNameCharacters = GetInvalidFileNameChars();
+            if (illegalFileNameCharacters.Any(ic => input.Any(i => ic == i)) || input == "..")
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public static char[] GetInvalidFileNameChars() => new char[]
+        {
+            '\"', '<', '>', '|', '*', '?'
+        };
     }
 }

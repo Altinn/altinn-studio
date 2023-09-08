@@ -1,6 +1,5 @@
 import React, { ChangeEvent, KeyboardEvent, useEffect, useState, useRef, MouseEvent } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
 import { Button, TextField } from '@digdir/design-system-react';
@@ -8,9 +7,10 @@ import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const ConfigureLayoutSetPanel = () => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
   const configureLayoutSetMutation = useConfigureLayoutSetMutation(org, app);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);

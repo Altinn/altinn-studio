@@ -75,7 +75,7 @@ describe('AppDeploymentComponent', () => {
     expect(screen.getByText('test')).toBeInTheDocument();
   });
 
-  it('should render error message if latest deploy failed', () => {
+  it('should render error message if latest deploy failed', async () => {
     const deployHistory: IDeployment[] = [
       {
         app: 'test-app',
@@ -96,7 +96,7 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ deployHistory });
-    expect(screen.getByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
   });
 
   it('should should render error message if latest deploy succeeded but app is not reachable', () => {
@@ -184,7 +184,6 @@ describe('AppDeploymentComponent', () => {
     const queries: Partial<ServicesContextProps> = {
       createDeployment: jest.fn().mockRejectedValue(new Error('test error')),
     };
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     render({ imageOptions }, queries);
     expect(screen.getByText(textMock('app_deploy_messages.choose_version'))).toBeInTheDocument();
     const dropdown = screen.getByRole('combobox');
@@ -197,7 +196,6 @@ describe('AppDeploymentComponent', () => {
       )
     );
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.yes') })));
-    expect(mockConsoleError).toHaveBeenCalled();
-    expect(screen.getByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
   });
 });

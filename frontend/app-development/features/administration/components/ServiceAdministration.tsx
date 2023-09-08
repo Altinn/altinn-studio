@@ -6,14 +6,14 @@ import { HandleServiceInformationActions } from '../handleServiceInformationSlic
 import { MainContent } from './MainContent';
 import { serviceConfigPath } from 'app-shared/api/paths';
 import { useAppDispatch, useAppSelector } from '../../../hooks';
-import { useParams } from 'react-router-dom';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface ServiceAdministrationProps {
   repository: Repository;
 }
 
 export function ServiceAdministration({ repository }: ServiceAdministrationProps) {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector(
     (state) => state.serviceInformation.serviceDescriptionObj.description

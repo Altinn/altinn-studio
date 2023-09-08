@@ -6,7 +6,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Schema;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -22,7 +21,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using static Altinn.Studio.Designer.Infrastructure.GitRepository.AltinnAppGitRepository;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -41,6 +39,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly ITextsService _textsService;
+        private readonly IResourceRegistry _resourceRegistryService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -54,6 +53,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
         /// <param name="textsService">The service for handling texts</param>
+        /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         public RepositorySI(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
@@ -63,7 +63,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
-            ITextsService textsService)
+            ITextsService textsService,
+            IResourceRegistry resourceRegistryService)
         {
             _settings = repositorySettings;
             _generalSettings = generalSettings;
@@ -74,6 +75,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
             _textsService = textsService;
+            _resourceRegistryService = resourceRegistryService;
         }
 
         /// <summary>
@@ -753,7 +755,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public List<ServiceResource> GetServiceResources(string org, string repository, string path = "")
         {
-            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, path);
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
             List<ServiceResource> serviceResourceList = new List<ServiceResource>();
             string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
@@ -841,8 +843,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
         {
-            List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository);
+            List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository, identifier);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
+        }
+
+        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
+        {
+            ServiceResource resource = GetServiceResourceById(org, repository, id);
+            return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
         }
 
         public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)
@@ -1024,7 +1032,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return policy;
         }
 
-        private string GetPolicyPath(string org, string repo, string resourceId)
+        public string GetPolicyPath(string org, string repo, string resourceId)
         {
             string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
