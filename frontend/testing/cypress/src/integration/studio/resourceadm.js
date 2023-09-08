@@ -49,7 +49,9 @@ context('Resourceadm', () => {
     cy.findByRole('heading', {
       name: texts['resourceadm.dashboard_create_resource'],
     });
-    cy.get('#resourceNameInputId').type('cy-ny-ressurs1');
+    cy.findByRole('textbox', {
+      name: texts['resourceadm.dashboard_resource_name_and_id_resource_name'],
+    }).type('cy-ny-ressurs1');
     cy.findByRole('button', {
       name: texts['resourceadm.dashboard_create_modal_create_button'],
     }).click();
