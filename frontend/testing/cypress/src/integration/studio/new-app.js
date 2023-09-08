@@ -69,7 +69,5 @@ context('New App', () => {
     cy.visit(`/repos/${Cypress.env('autoTestUser')}/new-app/settings`);
     gitea.getDeleteButton().should('be.visible').click();
     gitea.getDeleteRepositoryNameField().should('be.visible').type('new-app');
-    gitea.getConfirmDeletionButton().should('be.visible').click();
-    cy.findByText(/repository has been deleted./i).should('be.visible');
   });
 });

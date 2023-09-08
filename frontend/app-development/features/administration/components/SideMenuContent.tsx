@@ -6,10 +6,10 @@ import { RepositoryType } from 'app-shared/types/global';
 import { ResetRepoModal } from './ResetRepoModal';
 import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Repository } from 'app-shared/types/Repository';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 interface ISideMenuContent {
   service: Repository;
@@ -18,7 +18,7 @@ interface ISideMenuContent {
 }
 
 export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
   const { data: repoStatus } = useRepoStatusQuery(org, app);

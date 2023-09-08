@@ -14,8 +14,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './TypesPanel.module.css';
 import { ActionMenu } from '../common/ActionMenu';
 import { IconImage } from '../common/Icon';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type TypesPanelProps = {
   expandedDefNodes: string[];
@@ -30,8 +29,7 @@ export const TypesPanel = ({
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
   const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
     setExpandedDefNodes(nodeIds);
 
@@ -46,14 +44,14 @@ export const TypesPanel = ({
     newNode.reference = objectKind === ObjectKind.Reference ? '' : undefined;
     const { pointer } = uiSchemaNode;
     uiSchemaNode.objectKind === ObjectKind.Combination
-      ? mutate(
+      ? save(
         addCombinationItem(data, {
           pointer,
           props: newNode,
           callback: (newPointer) => dispatch(setSelectedNode(newPointer))
         })
       )
-      : mutate(
+      : save(
         addProperty(data, {
           pointer,
           props: newNode,

@@ -1,7 +1,7 @@
-import { renderHookWithProviders } from '../../../packages/schema-editor/test/renderHookWithProviders';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useSchemaQuery } from './useSchemaQuery';
+import { renderHookWithMockStore } from '../../test/mocks';
 
 // Test data:
 const jsonModelPathWithSlash = '/App/models/model.schema.json';
@@ -12,17 +12,15 @@ const addXsdFromRepo = jest.fn().mockImplementation(() => Promise.resolve({}));
 const org = 'org';
 const app = 'app';
 
-describe('useDatamodelsMetadataQuery', () => {
+describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls getDatamodel with correct arguments when Json Schema', async () => {
-    const { result } = renderHookWithProviders({
-      queryClient: createQueryClientMock(),
-      servicesContextProps: {
-        getDatamodel,
-        addXsdFromRepo,
-      },
-    })(() => useSchemaQuery(jsonModelPathWithSlash));
+    const { renderHookResult: { result } } = renderHookWithMockStore(
+      {},
+      { getDatamodel, addXsdFromRepo },
+      createQueryClientMock(),
+    )(() => useSchemaQuery(jsonModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(getDatamodel).toHaveBeenCalledTimes(1);
     expect(getDatamodel).toHaveBeenCalledWith(org, app, jsonModelPathWithSlash);
@@ -30,13 +28,11 @@ describe('useDatamodelsMetadataQuery', () => {
   });
 
   it('Calls addXsdFromRepo with correct arguments when XSD', async () => {
-    const { result } = renderHookWithProviders({
-      queryClient: createQueryClientMock(),
-      servicesContextProps: {
-        getDatamodel,
-        addXsdFromRepo,
-      },
-    })(() => useSchemaQuery(xsdModelPathWithSlash));
+    const { renderHookResult: { result } } = renderHookWithMockStore(
+      {},
+      { getDatamodel, addXsdFromRepo },
+      createQueryClientMock(),
+    )(() => useSchemaQuery(xsdModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(addXsdFromRepo).toHaveBeenCalledTimes(1);
     expect(addXsdFromRepo).toHaveBeenCalledWith(org, app, xsdModelPath);

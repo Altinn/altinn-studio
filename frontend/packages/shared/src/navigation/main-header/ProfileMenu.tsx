@@ -4,9 +4,9 @@ import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api/paths';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -15,7 +15,7 @@ export interface IProfileMenuComponentProps {
 
 export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
   const [anchorEl, setAnchorEl] = useState<null | Element>(null);
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const handleClick = (event: any) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
   const { t } = useTranslation();

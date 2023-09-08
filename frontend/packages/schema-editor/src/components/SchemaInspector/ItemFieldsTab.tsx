@@ -10,9 +10,8 @@ import { usePrevious } from 'app-shared/hooks/usePrevious';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { getFieldNodesSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
@@ -21,8 +20,7 @@ export interface ItemFieldsTabProps {
 export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const readonly = selectedItem.reference !== undefined;
   const dispatch = useDispatch();
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
 
   const fieldNodes = getFieldNodesSelector(selectedItem)(data);
 
@@ -39,15 +37,15 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes, fieldNodes]);
 
-  const onChangeType = (path: string, type: FieldType) => mutate(setType(data, { path, type }));
+  const onChangeType = (path: string, type: FieldType) => save(setType(data, { path, type }));
 
   const onDeleteObjectClick = (path: string) => {
-    mutate(deleteNode(data, path));
+    save(deleteNode(data, path));
     dispatch(removeSelection(path));
   };
 
   const dispatchAddProperty = () =>
-    mutate(addProperty(data, { pointer: selectedItem.pointer, props: {} }));
+    save(addProperty(data, { pointer: selectedItem.pointer, props: {} }));
 
   const onAddPropertyClicked = (event: BaseSyntheticEvent) => {
     event.preventDefault();

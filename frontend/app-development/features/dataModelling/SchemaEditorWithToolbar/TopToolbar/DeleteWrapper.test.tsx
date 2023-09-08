@@ -3,11 +3,12 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DeleteWrapper, DeleteWrapperProps } from './DeleteWrapper';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
+import { renderWithMockStore } from '../../../../test/mocks';
+import { QueryClient } from '@tanstack/react-query';
 
 const user = userEvent.setup();
 
@@ -35,14 +36,13 @@ jest.mock(
 
 const render = (
   props: Partial<DeleteWrapperProps> = {},
-  data: Partial<RenderWithProvidersData> = {}
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const queryClient = createQueryClientMock();
   queryClient.setQueryData(
     [QueryKey.DatamodelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock]
   );
-  return renderWithProviders(data)(<DeleteWrapper {...defaultProps} {...props}/>)
+  return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props}/>)
 };
 
 describe('DeleteWrapper', () => {

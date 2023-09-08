@@ -20,7 +20,7 @@ const renderWithMockServices = (
   user?: User
 ) => {
   render(
-    <MockServicesContextWrapper customServices={services}>
+    <MockServicesContextWrapper client={null} customServices={services}>
       <CreateService
         organizations={organizations || []}
         user={
@@ -130,7 +130,7 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  test('should show generic error message that app already exists when trying to create an app and something unknown went wrong', async () => {
+  test('should show generic error message when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
     const org: IGiteaOrganisation = {
       avatar_url: '',
@@ -152,7 +152,7 @@ describe('CreateService', () => {
     await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.error_when_creating_app')
+      textMock('general.error_message')
     );
     expect(emptyFieldErrors.length).toBe(1);
   });

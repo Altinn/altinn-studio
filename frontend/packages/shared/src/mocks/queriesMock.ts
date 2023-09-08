@@ -27,7 +27,7 @@ export const queriesMock: ServicesContextProps = {
   getComponentsCommonDefsSchema: jest.fn().mockResolvedValue(commonDefsComponentSchema),
   getDatamodel: jest.fn(),
   getDatamodelMetadata: jest.fn(),
-  getDatamodels: jest.fn(),
+  getDatamodelsJson: jest.fn(),
   getDatamodelsXsd: jest.fn(),
   getDeployPermissions: jest.fn(),
   getDeployments: jest.fn(),

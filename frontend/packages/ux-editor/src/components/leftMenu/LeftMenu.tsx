@@ -8,7 +8,7 @@ import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
 import { deepCopy } from 'app-shared/pure';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import cn from 'classnames';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
@@ -21,13 +21,14 @@ import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { ConfigureLayoutSetPanel } from "./ConfigureLayoutSetPanel";
 import { Accordion } from '@digdir/design-system-react';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface LeftMenuProps {
   className?: string;
 }
 
 export const LeftMenu = ({ className }: LeftMenuProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);

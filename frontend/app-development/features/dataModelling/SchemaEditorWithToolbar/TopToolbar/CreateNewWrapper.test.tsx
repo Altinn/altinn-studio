@@ -1,23 +1,19 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, render as renderRtl, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { datamodel1NameMock, jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const handleCreateSchema = jest.fn();
 const setCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
   createNewOpen: false,
+  datamodels: [],
   disabled: false,
   handleCreateSchema,
   setCreateNewOpen,
@@ -110,9 +106,7 @@ describe('CreateNewWrapper', () => {
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
       const newModelName = datamodel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], [jsonMetadata1Mock]);
-      render({ createNewOpen: true }, { queryClient });
+      render({ createNewOpen: true, datamodels: [jsonMetadata1Mock] });
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
@@ -132,9 +126,7 @@ describe('CreateNewWrapper', () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], [jsonMetadata1Mock]);
-      render({ createNewOpen: true }, { queryClient });
+      render({ createNewOpen: true, datamodels: [jsonMetadata1Mock] });
 
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
@@ -147,14 +139,5 @@ describe('CreateNewWrapper', () => {
   });
 });
 
-const render = (
-  props: Partial<CreateNewWrapperProps> = {},
-  data: Partial<RenderWithProvidersData> = {},
-) => {
-  if (!data.queryClient) {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], []);
-    data.queryClient = queryClient;
-  }
-  return renderWithProviders(data)(<CreateNewWrapper {...defaultProps} {...props}/>);
-};
+const render = (props: Partial<CreateNewWrapperProps> = {}) =>
+  renderRtl(<CreateNewWrapper {...defaultProps} {...props}/>);

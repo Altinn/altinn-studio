@@ -8,8 +8,8 @@ import type {
 } from "@altinn/policy-editor";
 import { Heading, Spinner } from "@digdir/design-system-react";
 import { useAppPolicyQuery } from "app-development/hooks/queries";
-import { useParams } from "react-router-dom";
 import { useAppPolicyMutation } from "app-development/hooks/mutations";
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 /**
  * The different actions a policy can have. TODO - Find out if there should be more.
@@ -61,7 +61,7 @@ const subjectData: PolicySubject[] = [
 ];
 
 export const PolicyEditor = () => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
 
   // Get the data
   const { data: policyData, isLoading: policyLoading } = useAppPolicyQuery(

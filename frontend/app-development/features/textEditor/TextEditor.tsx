@@ -3,7 +3,7 @@ import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PageSpinner } from 'app-shared/components';
 import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
 import {
@@ -12,9 +12,10 @@ import {
   useTextIdMutation,
   useUpsertTextResourceMutation,
 } from '../../hooks/mutations';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const TextEditor = () => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
 
   const selectedLanguagesStorageKey = `${org}:${app}:selectedLanguages`;

@@ -7,8 +7,6 @@ import { SchemaState } from '@altinn/schema-editor/types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
@@ -47,9 +45,6 @@ const defaultSchemaState: Partial<SchemaState> = {
   selectedDefinitionNodeId: defaultPath,
   selectedEditorTab: 'definitions',
 };
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
 
 describe('CustomProperties', () => {
@@ -149,11 +144,8 @@ describe('CustomProperties', () => {
   });
 });
 
-const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = {}) => {
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
-  return renderWithProviders({
-    servicesContextProps: { saveDatamodel },
-    appContextProps: { modelPath },
+const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = {}) =>
+  renderWithProviders({
+    appContextProps: { data: uiSchema, save: saveDatamodel },
     state: { ...defaultSchemaState, ...schemaState },
   })(<CustomProperties path={path} />);
-};

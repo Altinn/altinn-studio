@@ -2,10 +2,11 @@ import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
 import { useBpmnMutation } from 'app-development/hooks/mutations';
 import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { toast } from 'react-toastify';
 
 export const ProcessEditor = () => {
-  const { org, app } = useParams<{ org: string; app: string }>();
+  const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
 
   const bpmnMutation = useBpmnMutation(org, app);
@@ -15,12 +16,7 @@ export const ProcessEditor = () => {
       { bpmnXml: xml },
       {
         onSuccess: () => {
-          // TODO show success toast when issue #10735 is resolved
-          alert('Bpmn saved successfully');
-        },
-        onError: () => {
-          // TODO show error toast when issue #10735 is resolved
-          alert('Failed to save bpmn');
+          toast.success('Bpmn saved successfully');
         },
       }
     );

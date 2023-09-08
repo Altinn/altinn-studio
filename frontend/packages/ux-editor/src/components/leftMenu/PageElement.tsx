@@ -8,7 +8,7 @@ import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
@@ -19,6 +19,7 @@ import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { firstAvailableLayout } from '../../utils/formLayoutsUtils';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IPageElementProps {
   name: string;
@@ -31,7 +32,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const selectedLayout = searchParams.get('layout');
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
   const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);

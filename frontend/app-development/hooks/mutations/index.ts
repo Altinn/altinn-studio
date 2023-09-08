@@ -1,4 +1,6 @@
 export { useAddLanguageMutation } from './useAddLanguageMutation';
+export { useAppPolicyMutation } from './useAppPolicyMutation';
+export { useBpmnMutation } from './useBpmnMutation';
 export { useCreateDatamodelMutation } from './useCreateDatamodelMutation';
 export { useCreateDeploymentMutation } from './useCreateDeploymentMutation';
 export { useCreateReleaseMutation } from './useCreateReleaseMutation';
@@ -7,8 +9,7 @@ export { useDeleteDatamodelMutation } from './useDeleteDatamodelMutation';
 export { useDeleteLanguageMutation } from './useDeleteLanguageMutation';
 export { useGenerateModelsMutation } from './useGenerateModelsMutation';
 export { useRepoPushMutation } from './useRepoPushMutation';
+export { useSchemaMutation } from './useSchemaMutation';
 export { useTextIdMutation } from './useTextIdMutation';
 export { useUpsertTextResourceMutation } from './useUpsertTextResourceMutation';
 export { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations/useUpsertTextResourcesMutation';
-export { useBpmnMutation } from './useBpmnMutation';
-export { useAppPolicyMutation } from './useAppPolicyMutation';

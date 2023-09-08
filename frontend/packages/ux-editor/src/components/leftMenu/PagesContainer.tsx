@@ -3,14 +3,15 @@ import { useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
 import { PageElement } from './PageElement';
 import type { IAppState } from '../../types/global';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useText } from '../../hooks';
 import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function PagesContainer() {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const t = useText();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
