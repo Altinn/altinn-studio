@@ -3,6 +3,14 @@
   "data": {
     "layout": [
       {
+        "id": "tittel",
+        "type": "Header",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "CV.tittel.title"
+        }
+      },
+      {
         "id": "fornavn",
         "type": "Input",
         "dataModelBindings": {
@@ -85,6 +93,130 @@
           "title": "CV.kj.title"
         },
         "autocomplete": "sex"
+      },
+      {
+        "id": "Group-wF8pm3",
+        "type": "Group",
+        "children": [
+          "arbeidsgiver",
+          "dato-fra",
+          "dato-til",
+          "erfaring-stilling",
+          "erfaring-beskrivelse",
+          "prosjekter"
+        ],
+        "maxCount": 99,
+        "dataModelBindings": {
+          "group": "root.arbeidserfaring"
+        },
+        "textResourceBindings": {
+          "add_button": "Bmpt8A21FceR"
+        }
+      },
+      {
+        "id": "arbeidsgiver",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.arbeidsgiver"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.arbeidsgiver.title"
+        }
+      },
+      {
+        "id": "dato-fra",
+        "type": "Datepicker",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.fra"
+        },
+        "minDate": "1900-01-01T12:00:00.000Z",
+        "maxDate": "2100-01-01T12:00:00.000Z",
+        "timeStamp": false,
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.dato-fra.title"
+        }
+      },
+      {
+        "id": "dato-til",
+        "type": "Datepicker",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.til"
+        },
+        "minDate": "1900-01-01T12:00:00.000Z",
+        "maxDate": "2100-01-01T12:00:00.000Z",
+        "timeStamp": false,
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.dato-til.title"
+        }
+      },
+      {
+        "id": "erfaring-stilling",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.stilling"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.stilling.title"
+        }
+      },
+      {
+        "id": "erfaring-beskrivelse",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.beskrivelse"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "CV.erfaring-beskrivelse.title"
+        }
+      },
+      {
+        "id": "prosjekter",
+        "type": "Group",
+        "children": [
+          "prosjekt-tittel",
+          "prosjekt-beskrivelse"
+        ],
+        "maxCount": 99,
+        "dataModelBindings": {
+          "group": "root.arbeidserfaring.prosjekter"
+        },
+        "textResourceBindings": {
+          "add_button": "tsnLc5YNPHLJ"
+        }
+      },
+      {
+        "id": "prosjekt-tittel",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.prosjekter.tittel"
+        },
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.prosjekt-tittel.title"
+        }
+      },
+      {
+        "id": "prosjekt-beskrivelse",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.prosjekter.beskrivelse"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "CV.prosjekt-beskrivelse.title"
+        }
+      },
+      {
+        "id": "send-inn",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "CV.Button-U7p0KF.title"
+        }
       }
     ]
   }

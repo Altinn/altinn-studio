@@ -70,12 +70,17 @@
                     }
                   },
                   "required": [
-                    "tittel",
-                    "beskrivelse"
+                    "tittel"
                   ]
                 }
               }
-            }
+            },
+            "required": [
+              "arbeidsgiver",
+              "fra",
+              "til",
+              "stilling"
+            ]
           }
         },
         "epost": {

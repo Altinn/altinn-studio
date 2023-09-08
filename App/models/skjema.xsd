@@ -17,16 +17,16 @@
               <xs:element minOccurs="0" maxOccurs="99" name="arbeidserfaring">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element minOccurs="0" name="arbeidsgiver" type="xs:string" />
-                    <xs:element minOccurs="0" name="fra" type="xs:string" />
-                    <xs:element minOccurs="0" name="til" type="xs:string" />
-                    <xs:element minOccurs="0" name="stilling" type="xs:string" />
+                    <xs:element name="arbeidsgiver" type="xs:string" />
+                    <xs:element name="fra" type="xs:string" />
+                    <xs:element name="til" type="xs:string" />
+                    <xs:element name="stilling" type="xs:string" />
                     <xs:element minOccurs="0" name="beskrivelse" type="xs:string" />
                     <xs:element minOccurs="0" maxOccurs="99" name="prosjekter">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="tittel" type="xs:string" />
-                          <xs:element name="beskrivelse" type="xs:string" />
+                          <xs:element minOccurs="0" name="beskrivelse" type="xs:string" />
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>

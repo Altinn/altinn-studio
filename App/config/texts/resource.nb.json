@@ -32,6 +32,50 @@
     {
       "id": "CV.kj.title",
       "value": "Kjønn"
+    },
+    {
+      "id": "Bmpt8A21FceR",
+      "value": "arbeidserfaring"
+    },
+    {
+      "id": "CV.arbeidsgiver.title",
+      "value": "Arbeidsgiver"
+    },
+    {
+      "id": "CV.dato-fra.title",
+      "value": "Fra"
+    },
+    {
+      "id": "CV.dato-til.title",
+      "value": "Til"
+    },
+    {
+      "id": "CV.stilling.title",
+      "value": "Stilling"
+    },
+    {
+      "id": "CV.erfaring-beskrivelse.title",
+      "value": "Beskrivelse"
+    },
+    {
+      "id": "tsnLc5YNPHLJ",
+      "value": "prosjekt"
+    },
+    {
+      "id": "CV.prosjekt-tittel.title",
+      "value": "Tittel"
+    },
+    {
+      "id": "CV.prosjekt-beskrivelse.title",
+      "value": "Beskrivelse"
+    },
+    {
+      "id": "CV.Button-U7p0KF.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "CV.tittel.title",
+      "value": "CV for Altinn"
     }
   ]
 }
