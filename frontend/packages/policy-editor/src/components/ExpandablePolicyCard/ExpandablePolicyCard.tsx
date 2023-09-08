@@ -523,7 +523,7 @@ export const ExpandablePolicyCard = ({
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
-            aria-label='ruleDescription'
+            aria-label={t('policy_editor.rule_card_description_title')}
             onBlur={() => savePolicy(rules)}
           />
         </div>
