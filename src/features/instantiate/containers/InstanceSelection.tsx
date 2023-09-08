@@ -60,10 +60,6 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
   }
   const paginatedInstances = instances.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
 
-  const openInstance = (instanceId: string) => {
-    window.location.href = getInstanceUiUrl(instanceId);
-  };
-
   function handleRowsPerPageChanged(newRowsPerPage: number) {
     setRowsPerPage(newRowsPerPage);
     if (instances.length < currentPage * newRowsPerPage) {
@@ -104,7 +100,8 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                     color='secondary'
                     icon={<EditIcon />}
                     iconPlacement='right'
-                    onClick={() => openInstance(instance.id)}
+                    onClick={(ev) => openInstance(instance.id, ev)}
+                    onMouseDown={(ev) => openInstance(instance.id, ev)}
                     aria-label={`${langAsString('instance_selection.continue')}`}
                   />
                 </div>
@@ -160,14 +157,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                     color='secondary'
                     icon={<EditIcon />}
                     iconPlacement='right'
-                    onClick={() => openInstance(instance.id)}
-                    onMouseDown={(ev) => {
-                      // Open new tab on middle mouse click
-                      if (ev.button === 1 || ev.ctrlKey) {
-                        ev.preventDefault();
-                        openInTab(getInstanceUiUrl(instance.id));
-                      }
-                    }}
+                    onClick={(ev) => openInstance(instance.id, ev)}
                   >
                     {lang('instance_selection.continue')}
                   </Button>
@@ -238,12 +228,35 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
  * This works much like window.open, but respects the browser settings for opening
  * new tabs (if they should open in the background or not)
  */
-const openInTab = (url: string) => {
+const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
   const link = document.createElement('a');
   link.href = url;
-  link.dispatchEvent(
-    new MouseEvent('click', {
-      ctrlKey: true,
-    }),
-  );
+  const options: MouseEventInit = {
+    button: originalEvent.button,
+    buttons: originalEvent.buttons,
+    ctrlKey: originalEvent.ctrlKey,
+    metaKey: originalEvent.metaKey,
+    shiftKey: originalEvent.shiftKey,
+  };
+  const newEvent = new MouseEvent(originalEvent.type, options);
+  link.dispatchEvent(newEvent);
+};
+
+/**
+ * Opens the instance in a new tab if the user holds down ctrl or meta (cmd) while clicking, otherwise
+ * behaves like a normal link.
+ */
+const openInstance = (instanceId: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  if (originalEvent.ctrlKey || originalEvent.metaKey || originalEvent.button === 1) {
+    originalEvent.stopPropagation();
+    originalEvent.preventDefault();
+    openInTab(getInstanceUiUrl(instanceId), originalEvent);
+    return;
+  }
+
+  if (originalEvent.type !== 'click') {
+    return;
+  }
+
+  window.location.href = getInstanceUiUrl(instanceId);
 };
