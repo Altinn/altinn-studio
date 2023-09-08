@@ -3,11 +3,11 @@
   "resources": [
     {
       "id": "appName",
-      "value": "expression-validation"
+      "value": "Expression validation test"
     },
     {
       "id": "appOwner",
-      "value": "Altinn"
+      "value": "Altinn Testavdeling"
     },
     {
       "id": "CV.fornavn.title",
