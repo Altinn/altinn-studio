@@ -4,7 +4,6 @@ import { Typography } from '@mui/material';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
 import type { IRuleModelFieldElement } from '../../types/global';
-import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useFormLayouts } from '../../hooks';
@@ -19,6 +18,7 @@ import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
 import { addConditionalRenderingConnection, deleteConditionalRenderingConnection } from '../../utils/ruleConfigUtils';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -27,7 +27,7 @@ export interface IConditionalRenderingModalProps {
 }
 
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);

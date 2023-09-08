@@ -4,12 +4,12 @@ import type { ChangeEvent } from 'react';
 import { TextField, TextArea, Button } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
-import { useParams } from 'react-router-dom';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function CreateReleaseComponent() {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);

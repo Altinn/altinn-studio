@@ -4,9 +4,9 @@ import axios from 'axios';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { datamodelsUploadPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IXSDUploadProps {
   disabled?: boolean;
@@ -18,7 +18,7 @@ export const XSDUpload = ({
   submitButtonRenderer,
 }: IXSDUploadProps) => {
   const { t } = useTranslation();
-  const { org, app } = useParams<{ org: string; app: string }>();
+  const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
 
   const [uploading, setUploading] = React.useState(false);

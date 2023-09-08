@@ -3,7 +3,6 @@ import Modal from 'react-modal';
 import { Typography } from '@mui/material';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
-import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
@@ -12,6 +11,7 @@ import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -20,7 +20,7 @@ export interface IRuleModalProps {
 }
 
 export function RuleModal(props: IRuleModalProps) {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);

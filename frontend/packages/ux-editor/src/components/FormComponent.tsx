@@ -20,10 +20,10 @@ import {
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
 import { useTextResourcesSelector } from '../hooks';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { AltinnConfirmDialog } from 'app-shared/components';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -47,7 +47,7 @@ export const FormComponent = memo(function FormComponent({
   isEditMode,
 }: IFormComponentProps) {
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
 
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
