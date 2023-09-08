@@ -2,13 +2,13 @@ import React from 'react';
 import { Select } from '@digdir/design-system-react';
 import type { RequiredAuthLevel } from '../../types';
 
-const authlevelOptions = [
+export const authlevelOptions = [
   { value: '0', label: '0 - Selvidentifisert bruker Altinn(brukervavn/passord)' },
   { value: '3', label: '3 - MinID' },
   { value: '4', label: '4 - BankID, Buypass' },
 ];
 
-type SelectAuthLevelProps = {
+export type SelectAuthLevelProps = {
   /**
    * The value selected
    */
