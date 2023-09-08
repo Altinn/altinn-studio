@@ -29,7 +29,7 @@ export const DevToolsLogs = () => {
   const clearLogs = () => dispatch(DevToolsActions.logsClear());
   const toggleShow = (level: string) => setShowLevels({ ...showLevels, [level]: !showLevels[level] });
   const saveLogs = () => {
-    const data = logs.map((log) => `${log.index + 1}. - ${log.level.toUpperCase()}: ${log.message}`).join('\n\n');
+    const data = logs.map((log) => `${log.index}. - ${log.level.toUpperCase()}: ${log.message}`).join('\n\n');
     const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -93,7 +93,7 @@ export const DevToolsLogs = () => {
       <div className={classes.logContainer}>
         {filteredLogs.map((log) => (
           <div key={log.index}>
-            <span>{log.index + 1}.</span>
+            <span>{log.index}.</span>
             <pre style={{ color: colorMap[log.level] }}>
               {log.message.split('\n').map((line) => (
                 <>
