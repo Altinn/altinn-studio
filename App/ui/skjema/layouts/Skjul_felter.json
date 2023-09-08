@@ -16,11 +16,41 @@
         "dataModelBindings": {
           "simpleBinding": "root.SF_skjul-felter"
         },
+        "layout": "row",
         "required": false,
         "textResourceBindings": {
           "title": "Skjul_felter.skjul-felter.title"
         },
-        "options": []
+        "options": [
+          {
+            "value": "fornavn",
+            "label": "Fornavn"
+          },
+          {
+            "value": "etternavn",
+            "label": "Etternavn"
+          },
+          {
+            "value": "alder",
+            "label": "Alder"
+          },
+          {
+            "value": "kjonn",
+            "label": "Kjønn"
+          },
+          {
+            "value": "epost",
+            "label": "E-post"
+          },
+          {
+            "value": "telefon",
+            "label": "Telefon"
+          },
+          {
+            "value": "bosted",
+            "label": "Bosted"
+          }
+        ]
       },
       {
         "id": "skjul-arbeid",
@@ -31,6 +61,10 @@
         "required": false,
         "textResourceBindings": {
           "title": "Skjul_felter.skjul-arbeid.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
@@ -42,11 +76,16 @@
         "required": false,
         "textResourceBindings": {
           "title": "Skjul_felter.skjul-prosjekt.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
         "id": "button-group2",
-        "type": "ButtonGroup"
+        "type": "ButtonGroup",
+        "children": ["nav2", "send-inn2"]
       },
       {
         "id": "nav2",

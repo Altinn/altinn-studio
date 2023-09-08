@@ -13,6 +13,11 @@
       {
         "id": "fornavn",
         "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "fornavn"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.fornavn"
         },
@@ -29,6 +34,11 @@
       {
         "id": "etternavn",
         "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "etternavn"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.etternavn"
         },
@@ -45,6 +55,11 @@
       {
         "id": "alder",
         "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "alder"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.alder"
         },
@@ -53,9 +68,7 @@
           "title": "CV.alder.title"
         },
         "autocomplete": "off",
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "formatting": {
           "number": {
             "allowNegative": false,
@@ -70,14 +83,17 @@
       {
         "id": "kjonn",
         "type": "Dropdown",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "kjonn"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.kjønn"
         },
         "required": true,
         "optionsId": "kjønn",
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "textResourceBindings": {
           "title": "CV.kj.title"
         },
@@ -89,6 +105,11 @@
       {
         "id": "e-post",
         "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "epost"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.epost"
         },
@@ -96,9 +117,7 @@
         "textResourceBindings": {
           "title": "CV.e-post.title"
         },
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "autocomplete": "email",
         "grid": {
           "xs": 12,
@@ -108,6 +127,11 @@
       {
         "id": "telefon",
         "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "telefon"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.telefonnummer"
         },
@@ -116,9 +140,7 @@
           "title": "CV.telefon.title"
         },
         "autocomplete": "tel",
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "formatting": {
           "number": {
             "format": "+47 ### ## ###"
@@ -132,6 +154,11 @@
       {
         "id": "bosted",
         "type": "Dropdown",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "bosted"
+        ],
         "dataModelBindings": {
           "simpleBinding": "root.bosted"
         },
@@ -161,6 +188,12 @@
           "erfaring-stilling",
           "dato-fra",
           "dato-til"
+        ],
+        "triggers": ["validateRow"],
+        "hiddenRow": [
+          "equals",
+          ["dataModel", "root.arbeidserfaring.stilling"],
+          ["dataModel", "root.SF_skjul-arbeidsgiver"]
         ],
         "maxCount": 99,
         "dataModelBindings": {
@@ -242,12 +275,13 @@
       {
         "id": "prosjekter",
         "type": "Group",
-        "children": [
-          "prosjekt-tittel",
-          "prosjekt-beskrivelse"
-        ],
-        "tableHeaders": [
-          "prosjekt-tittel"
+        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
+        "tableHeaders": ["prosjekt-tittel"],
+        "triggers": ["validateRow"],
+        "hiddenRow": [
+          "equals",
+          ["dataModel", "root.arbeidserfaring.prosjekter.tittel"],
+          ["dataModel", "root.SF_skjul-prosjekt"]
         ],
         "maxCount": 99,
         "dataModelBindings": {
@@ -281,14 +315,8 @@
       },
       {
         "id": "button-group",
-        "type": "ButtonGroup"
-      },
-      {
-        "id": "send-inn",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "CV.Button-U7p0KF.title"
-        }
+        "type": "ButtonGroup",
+        "children": ["nav", "send-inn"]
       },
       {
         "id": "nav",
@@ -299,6 +327,13 @@
         "textResourceBindings": {
           "next": "CV.nav.next",
           "back": "CV.nav.back"
+        }
+      },
+      {
+        "id": "send-inn",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "CV.Button-U7p0KF.title"
         }
       }
     ]

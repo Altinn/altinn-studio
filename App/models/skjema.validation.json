@@ -26,6 +26,18 @@
           ["endsWith", ["dataModel", ["argv", 0]], "@altinn.no"]
         ]
       }
+    ],
+    "root.arbeidserfaring.beskrivelse": [
+      {
+        "message": "Beskrivelse kan ikke være flink",
+        "condition": ["equals", ["dataModel", ["argv", 0]], "flink"]
+      }
+    ],
+    "root.arbeidserfaring.prosjekter.beskrivelse": [
+      {
+        "message": "Beskrivelse kan ikke være kult",
+        "condition": ["equals", ["dataModel", ["argv", 0]], "kult"]
+      }
     ]
   },
   "definitions": {}
