@@ -3,16 +3,17 @@ import { useSelector } from 'react-redux';
 import { Button } from '@digdir/design-system-react';
 import { PageElement } from './PageElement';
 import { deepCopy } from 'app-shared/pure';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import classes from './ReceiptPageElement.module.css';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useTranslation } from 'react-i18next';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function ReceiptPageElement() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);

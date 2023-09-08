@@ -18,15 +18,15 @@ import { DragDropListItem } from '../components/dragAndDrop/DragDropListItem';
 import { ConnectDragSource } from 'react-dnd';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface DesignViewProps {
   className?: string;
 }
 
 export const DesignView = ({ className }: DesignViewProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const layoutName = useSelector(selectedLayoutNameSelector);

@@ -1,13 +1,13 @@
 import React from 'react';
 import classes from './OldDynamicsInfo.module.css';
 import { ExternalLinkIcon } from '@navikt/aksel-icons';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
-  const { app, org } = useParams();
+  const { app, org } = useStudioUrlParams();
   const dynamicLocation = `App/ui/RuleHandler.js`;
   return (
     <div>

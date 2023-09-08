@@ -1,5 +1,4 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Select, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
@@ -10,6 +9,7 @@ import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery'
 import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -24,7 +24,7 @@ export const DataSourceValue = ({
   specifyDataSourceValue,
   isComparableValue,
 }: DataSourceValueProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const datamodelQuery = useDatamodelMetadataQuery(org, app);
   const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);

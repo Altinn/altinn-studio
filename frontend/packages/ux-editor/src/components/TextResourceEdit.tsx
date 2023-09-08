@@ -6,16 +6,16 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import { useTextResourcesSelector } from '../hooks';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
   const editId = useSelector(getCurrentEditId);
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   const languages: string[] = useTextResourcesSelector<string[]>(getAllLanguages);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -62,7 +62,7 @@ export interface TextBoxProps {
 }
 
 const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
   const textResourceValue = textResource?.value || '';

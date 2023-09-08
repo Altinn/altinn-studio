@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { useParams } from 'react-router-dom';
 import { CreateDatamodelPayload } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface CreateDatamodelMutationArgs {
   name: string;
@@ -11,7 +11,7 @@ export interface CreateDatamodelMutationArgs {
 
 export const useCreateDatamodelMutation = () => {
   const { createDatamodel } = useServicesContext();
-  const { org, app } = useParams<{ org: string; app: string }>();
+  const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ name, relativePath }: CreateDatamodelMutationArgs) => {
@@ -21,7 +21,10 @@ export const useCreateDatamodelMutation = () => {
       };
       const schema = await createDatamodel(org, app, payload);
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, name], schema);
-      await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
+      await Promise.all([
+        queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
+        queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
+      ]);
     },
   })
 }
