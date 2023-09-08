@@ -20,10 +20,14 @@
         "autocomplete": "given-name",
         "textResourceBindings": {
           "title": "CV.fornavn.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
-        "id": "etternav",
+        "id": "etternavn",
         "type": "Input",
         "dataModelBindings": {
           "simpleBinding": "root.etternavn"
@@ -32,7 +36,11 @@
         "textResourceBindings": {
           "title": "CV.etternav.title"
         },
-        "autocomplete": "family-name"
+        "autocomplete": "family-name",
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
       },
       {
         "id": "alder",
@@ -44,7 +52,33 @@
         "textResourceBindings": {
           "title": "CV.alder.title"
         },
-        "autocomplete": "off"
+        "autocomplete": "off",
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "kjonn",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "root.kjønn"
+        },
+        "required": true,
+        "optionsId": "kjønn",
+        "textResourceBindings": {
+          "title": "CV.kj.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
       },
       {
         "id": "e-post",
@@ -56,7 +90,11 @@
         "textResourceBindings": {
           "title": "CV.e-post.title"
         },
-        "autocomplete": "email"
+        "autocomplete": "email",
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
       },
       {
         "id": "telefon",
@@ -68,7 +106,16 @@
         "textResourceBindings": {
           "title": "CV.telefon.title"
         },
-        "autocomplete": "tel"
+        "autocomplete": "tel",
+        "formatting": {
+          "number": {
+            "format": "+47 ### ## ###"
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
       },
       {
         "id": "bosted",
@@ -76,23 +123,15 @@
         "dataModelBindings": {
           "simpleBinding": "root.bosted"
         },
-        "optionsId": "",
+        "optionsId": "kommuner",
         "required": true,
         "textResourceBindings": {
           "title": "CV.bosted.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
-      },
-      {
-        "id": "kjonn",
-        "type": "Input",
-        "dataModelBindings": {
-          "simpleBinding": "root.kjønn"
-        },
-        "required": true,
-        "textResourceBindings": {
-          "title": "CV.kj.title"
-        },
-        "autocomplete": "sex"
       },
       {
         "id": "Group-wF8pm3",
@@ -104,6 +143,12 @@
           "erfaring-stilling",
           "erfaring-beskrivelse",
           "prosjekter"
+        ],
+        "tableHeaders": [
+          "arbeidsgiver",
+          "erfaring-stilling",
+          "dato-fra",
+          "dato-til"
         ],
         "maxCount": 99,
         "dataModelBindings": {
@@ -136,6 +181,10 @@
         "required": true,
         "textResourceBindings": {
           "title": "CV.dato-fra.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
@@ -150,6 +199,10 @@
         "required": true,
         "textResourceBindings": {
           "title": "CV.dato-til.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
@@ -165,7 +218,7 @@
       },
       {
         "id": "erfaring-beskrivelse",
-        "type": "Input",
+        "type": "TextArea",
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.beskrivelse"
         },
@@ -177,10 +230,8 @@
       {
         "id": "prosjekter",
         "type": "Group",
-        "children": [
-          "prosjekt-tittel",
-          "prosjekt-beskrivelse"
-        ],
+        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
+        "tableHeaders": ["prosjekt-tittel"],
         "maxCount": 99,
         "dataModelBindings": {
           "group": "root.arbeidserfaring.prosjekter"
@@ -202,7 +253,7 @@
       },
       {
         "id": "prosjekt-beskrivelse",
-        "type": "Input",
+        "type": "TextArea",
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.prosjekter.beskrivelse"
         },

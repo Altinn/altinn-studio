@@ -6,6 +6,10 @@
       "value": "expression-validation"
     },
     {
+      "id": "appOwner",
+      "value": "Altinn"
+    },
+    {
       "id": "CV.fornavn.title",
       "value": "Fornavn"
     },
