@@ -24,15 +24,19 @@ jest.mock('react-i18next', () => ({
 }));
 
 const wrapper = ({ children }) => (
-  <ServicesContextProvider {...queriesMock}>
-    {children}
-  </ServicesContextProvider>
+  <ServicesContextProvider {...queriesMock}>{children}</ServicesContextProvider>
 );
 
 describe('ServicesContext', () => {
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const { result } = renderHook(() => useQuery<string, string>(['fetchData'],() => Promise.reject(createApiErrorMock('DM_01')), { retry: false }), { wrapper });
+    const { result } = renderHook(
+      () =>
+        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(500, 'DM_01')), {
+          retry: false,
+        }),
+      { wrapper }
+    );
 
     await waitFor(() => result.current.isError);
 
@@ -42,7 +46,13 @@ describe('ServicesContext', () => {
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const { result } = renderHook(() => useQuery(['fetchData'],() => Promise.reject(createApiErrorMock('DM_02')), { retry: false }), { wrapper });
+    const { result } = renderHook(
+      () =>
+        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(500, 'DM_02')), {
+          retry: false,
+        }),
+      { wrapper }
+    );
 
     await waitFor(() => result.current.isError);
 
@@ -52,7 +62,10 @@ describe('ServicesContext', () => {
 
   it('displays a default error message if an API call fails', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const { result } = renderHook(() => useQuery(['fetchData'],() => Promise.reject(), { retry: false }), { wrapper });
+    const { result } = renderHook(
+      () => useQuery(['fetchData'], () => Promise.reject(), { retry: false }),
+      { wrapper }
+    );
 
     await waitFor(() => result.current.isError);
 
@@ -63,7 +76,9 @@ describe('ServicesContext', () => {
   it('displays a default error message if a component throws an error while rendering', () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
-    const ErrorComponent = () => { throw new Error('Intentional render error'); };
+    const ErrorComponent = () => {
+      throw new Error('Intentional render error');
+    };
     render(<ErrorComponent />, { wrapper });
 
     expect(screen.getByText(texts['general.error_message'])).toBeInTheDocument();
