@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -19,9 +18,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers
+namespace Designer.Tests.Controllers.ReleasesController
 {
-    public class ReleasesControllerTests : ApiTestsBase<ReleasesController, ReleasesControllerTests>
+    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ReleasesController, GetTests>
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;
@@ -30,7 +29,7 @@ namespace Designer.Tests.Controllers
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
-        public ReleasesControllerTests(WebApplicationFactory<ReleasesController> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ReleasesController> factory) : base(factory)
         {
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
