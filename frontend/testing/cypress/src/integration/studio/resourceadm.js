@@ -167,8 +167,8 @@ context('Resourceadm', () => {
       name: texts['resourceadm.deploy_title'],
     });
 
-    // Note: cy.findByRole('button') will not work while Error-module is visible
-    cy.get('button').contains('Om ressursen').click();
+    // Fix-me: cy.findByRole('button') will not work while Error-module is visible
+    cy.get('button').contains(texts['resourceadm.left_nav_bar_about']).click();
     cy.url().should('include', '/about');
   });
 });
