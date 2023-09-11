@@ -457,7 +457,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <returns>An array with the name of all layout files under the specific layoutset</returns>
-        public string[] GetLayoutNames( string layoutSetName)
+        public string[] GetLayoutNames(string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
             if (!DirectoryExistsByRelativePath(layoutSetPath) && AppUsesLayoutSets())
@@ -548,7 +548,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public async Task SaveLayout( string layoutSetName, string layoutFileName, JsonNode layout, CancellationToken cancellationToken = default)
+        public async Task SaveLayout(string layoutSetName, string layoutFileName, JsonNode layout, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
@@ -782,7 +782,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
-        private static string GetPathToJsonTextsFile( string fileName)
+        private static string GetPathToJsonTextsFile(string fileName)
         {
             return fileName.IsNullOrEmpty() ?
                 Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) :
@@ -795,7 +795,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutSet( string layoutSetName)
+        private static string GetPathToLayoutSet(string layoutSetName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME) :
@@ -803,7 +803,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutFile( string layoutSetName, string fileName)
+        private static string GetPathToLayoutFile(string layoutSetName, string fileName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName) :
@@ -811,7 +811,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutSettings( string layoutSetName)
+        private static string GetPathToLayoutSettings(string layoutSetName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME) :
