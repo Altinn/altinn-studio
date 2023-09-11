@@ -60,7 +60,7 @@ export type ExpandablePolicyElementProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const ExpandablePolicyElement = ({
-  title: cardTitle,
+  title,
   children,
   isCard = true,
   handleRemoveElement,
@@ -113,7 +113,7 @@ export const ExpandablePolicyElement = ({
           onBlur={() => setIsButtonFocused(false)}
         >
           <Label as='p' size='small'>
-            {cardTitle}
+            {title}
           </Label>
           {isOpen ? (
             <ChevronUpIcon

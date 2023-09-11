@@ -39,10 +39,6 @@ export type PolicyResourceFieldsProps = {
    * @returns
    */
   onBlur: () => void;
-  /**
-   * Unique id of the field
-   */
-  uniqueId: string;
 };
 
 /**
@@ -58,7 +54,6 @@ export type PolicyResourceFieldsProps = {
  * @property {string}[valueType] - The value of the type field
  * @property {function}[onChangeType] - Function to be executed when the type value changes
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {string}[uniqueId] - Unique id of the field
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -70,7 +65,6 @@ export const PolicyResourceFields = ({
   onChangeId,
   onChangeType,
   onBlur,
-  uniqueId,
 }: PolicyResourceFieldsProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -87,7 +81,6 @@ export const PolicyResourceFields = ({
             value={valueType}
             onChange={(e) => onChangeType(e.target.value)}
             readOnly={!canEditTypeAndId}
-            id={'resourceType' + uniqueId}
             onBlur={onBlur}
             aria-label={t('policy_editor.narrowing_list_field_type')}
           />
@@ -102,7 +95,6 @@ export const PolicyResourceFields = ({
             value={valueId}
             onChange={(e) => onChangeId(e.target.value)}
             readOnly={!canEditTypeAndId}
-            id={'resourceId' + uniqueId}
             onBlur={onBlur}
             aria-label={t('policy_editor.narrowing_list_field_id')}
           />

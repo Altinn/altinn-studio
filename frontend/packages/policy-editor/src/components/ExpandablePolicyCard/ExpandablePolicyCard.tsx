@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { Button, TextArea, Label, ErrorMessage, Select } from '@digdir/design-system-react';
+import React, { useState, useId } from 'react';
+import {
+  Button,
+  TextArea,
+  Label,
+  ErrorMessage,
+  Select,
+  Paragraph,
+} from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import type {
   PolicyAction,
   PolicyRuleCard,
@@ -14,9 +20,15 @@ import type {
   PolicyEditorUsage,
 } from '../../types';
 import { createNewPolicyResource } from '../../utils';
+import {
+  getActionOptions,
+  getPolicyRuleIdString,
+  getSubjectOptions,
+  getUpdatedRules,
+} from '../../utils/ExpandablePolicyCardUtils';
 import { useTranslation } from 'react-i18next';
 
-type ExpandablePolicyCardProps = {
+export type ExpandablePolicyCardProps = {
   /**
    * The rule to display in the card
    */
@@ -106,70 +118,13 @@ export const ExpandablePolicyCard = ({
 }: ExpandablePolicyCardProps): React.ReactNode => {
   const { t } = useTranslation();
 
+  const uniqueId = useId();
+
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
   const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);
-
-  /**
-   * Function to update the fields inside the rule object in the rule array.
-   * This function has to be called every time an element inside the card is
-   * changing so that the parent component knows that the child element is changed.
-   * It also updates the complete list of policy rules.
-   *
-   * @param d the description
-   * @param s the selected subjectTitle array
-   * @param a the selected actions array
-   * @param r the selected resources array
-   * @param saveOnUpdate flag to decide if the policy should be saved on update
-   */
-  const updateRules = (
-    d: string,
-    s: string[],
-    a: string[],
-    r: PolicyRuleResource[][],
-    saveOnUpdate: boolean
-  ) => {
-    const updatedRules = [...rules];
-    const ruleIndex = rules.findIndex((rule) => rule.ruleId === policyRule.ruleId);
-
-    updatedRules[ruleIndex] = {
-      ...updatedRules[ruleIndex],
-      description: d,
-      subject: s,
-      actions: a,
-      resources: r,
-    };
-
-    setPolicyRules(updatedRules);
-    saveOnUpdate && savePolicy(updatedRules);
-  };
-
-  /**
-   * Maps the subject objects to option objects for display in the select component
-   */
-  const getSubjectOptions = () => {
-    return subjects
-      .filter((s) => !policyRule.subject.includes(s.subjectTitle))
-      .map((s) => ({ value: s.subjectTitle, label: s.subjectTitle }));
-  };
-  const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions());
-
-  /**
-   * Maps the action objects to option objects for display in the select component
-   */
-  const getActionOptions = () => {
-    return actions
-      .filter((a) => !policyRule.actions.includes(a.actionTitle))
-      .map((a) => ({ value: a.actionTitle, label: a.actionTitle }));
-  };
-  const [actionOptions, setActionOptions] = useState(getActionOptions());
-
-  /**
-   * Gets the id of the policy
-   */
-  const getPolicyRuleId = () => {
-    return policyRule.ruleId.toString();
-  };
+  const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions(subjects, policyRule));
+  const [actionOptions, setActionOptions] = useState(getActionOptions(actions, policyRule));
 
   /**
    * Handles the changes in the input fields inside the resource blocks
@@ -190,13 +145,13 @@ export const ExpandablePolicyCard = ({
       ...updatedResources[ruleIndex][index],
       [field]: value,
     };
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      policyRule.actions,
-      updatedResources,
-      false
+
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      rules
     );
+    setPolicyRules(updatedRules);
   };
 
   /**
@@ -211,14 +166,13 @@ export const ExpandablePolicyCard = ({
     );
 
     const updatedResources = [...policyRule.resources, newResource];
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      policyRule.actions,
-      updatedResources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      rules
     );
-
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
     setHasResourceError(false);
   };
 
@@ -242,7 +196,6 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
         usageType={usageType}
-        uniqueId={`-ruleId:${policyRule.ruleId}-subResource:${i}`}
       />
     );
   });
@@ -258,13 +211,13 @@ export const ExpandablePolicyCard = ({
     const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex].push(newResource);
 
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      policyRule.actions,
-      updatedResources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      rules
     );
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
   };
 
   /**
@@ -273,13 +226,13 @@ export const ExpandablePolicyCard = ({
   const handleRemoveNarrowingResource = (index: number, ruleIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources[ruleIndex].splice(index, 1);
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      policyRule.actions,
-      updatedResources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      rules
     );
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
   };
 
   /**
@@ -300,14 +253,13 @@ export const ExpandablePolicyCard = ({
     // Add to options list
     setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
 
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      updatedActions,
-      policyRule.resources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, actions: updatedActions },
+      policyRule.ruleId,
+      rules
     );
-
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
     setHasRightsErrors(updatedActions.length === 0);
   };
 
@@ -330,15 +282,13 @@ export const ExpandablePolicyCard = ({
 
     // Add to options list
     setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
-
-    updateRules(
-      policyRule.description,
-      updatedSubjects,
-      policyRule.actions,
-      policyRule.resources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, subject: updatedSubjects },
+      policyRule.ruleId,
+      rules
     );
-
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
     setHasSubjectsError(updatedSubjects.length === 0);
   };
 
@@ -359,15 +309,13 @@ export const ExpandablePolicyCard = ({
     setSubjectOptions(updatedOptions);
 
     const updatedSubjectTitles = [...policyRule.subject, clickedOption];
-
-    updateRules(
-      policyRule.description,
-      updatedSubjectTitles,
-      policyRule.actions,
-      policyRule.resources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, subject: updatedSubjectTitles },
+      policyRule.ruleId,
+      rules
     );
-
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
     setHasSubjectsError(false);
   };
 
@@ -388,15 +336,13 @@ export const ExpandablePolicyCard = ({
     setActionOptions(updatedOptions);
 
     const updatedActionTitles = [...policyRule.actions, clickedOption];
-
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      updatedActionTitles,
-      policyRule.resources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, actions: updatedActionTitles },
+      policyRule.ruleId,
+      rules
     );
-
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
     setHasRightsErrors(false);
   };
 
@@ -404,7 +350,8 @@ export const ExpandablePolicyCard = ({
    * Updates the description of the rule
    */
   const handleChangeDescription = (description: string) => {
-    updateRules(description, policyRule.subject, policyRule.actions, policyRule.resources, false);
+    const updatedRules = getUpdatedRules({ ...policyRule, description }, policyRule.ruleId, rules);
+    setPolicyRules(updatedRules);
   };
 
   /**
@@ -421,13 +368,13 @@ export const ExpandablePolicyCard = ({
     );
 
     const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      policyRule.actions,
-      updatedResources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      rules
     );
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
   };
 
   /**
@@ -438,14 +385,13 @@ export const ExpandablePolicyCard = ({
   const handleDeleteResourceGroup = (resourceIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources.splice(resourceIndex, 1);
-    updateRules(
-      policyRule.description,
-      policyRule.subject,
-      policyRule.actions,
-      updatedResources,
-      true
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      rules
     );
-
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
     setHasResourceError(updatedResources.length === 0);
   };
 
@@ -457,7 +403,9 @@ export const ExpandablePolicyCard = ({
   const displayWarningCard = (text: string) => {
     return (
       <div className={classes.warningCardWrapper}>
-        <ErrorMessage size='small'>{text}</ErrorMessage>
+        <ErrorMessage as='p' size='small'>
+          {text}
+        </ErrorMessage>
       </div>
     );
   };
@@ -505,13 +453,13 @@ export const ExpandablePolicyCard = ({
   return (
     <div className={classes.cardWrapper}>
       <ExpandablePolicyElement
-        title={`${t('policy_editor.rule')} ${getPolicyRuleId()}`}
+        title={`${t('policy_editor.rule')} ${getPolicyRuleIdString(policyRule)}`}
         isCard
         handleCloneElement={handleCloneRule}
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='medium'>
           {t('policy_editor.rule_card_sub_resource_title')}
         </Label>
         {displayResources}
@@ -522,12 +470,7 @@ export const ExpandablePolicyCard = ({
             color='secondary'
             size='small'
             fullWidth
-            icon={
-              <PlusIcon
-                title={t('policy_editor.rule_card_sub_resource_button')}
-                fontSize='1.5rem'
-              />
-            }
+            icon={<PlusIcon fontSize='1.5rem' />}
           >
             {t('policy_editor.rule_card_sub_resource_button')}
           </Button>
@@ -535,47 +478,49 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasResourceError &&
           displayWarningCard(t('policy_editor.rule_card_sub_resource_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label className={classes.label} size='medium' htmlFor={`selectAction-${uniqueId}`}>
           {t('policy_editor.rule_card_actions_title')}
         </Label>
+        <Paragraph size='small' className={classes.inputParagraph}>
+          {actionOptions.length === 0
+            ? t('policy_editor.rule_card_actions_select_all_selected')
+            : t('policy_editor.rule_card_actions_select_add')}
+        </Paragraph>
         <div className={classes.dropdownWrapper}>
           <Select
             options={actionOptions}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
-            label={
-              actionOptions.length === 0
-                ? t('policy_editor.rule_card_actions_select_all_selected')
-                : t('policy_editor.rule_card_actions_select_add')
-            }
             error={showErrors && hasRightsError}
+            inputId={`selectAction-${uniqueId}`}
           />
         </div>
         <div className={classes.chipWrapper}>{displayActions}</div>
         {showErrors &&
           hasRightsError &&
           displayWarningCard(t('policy_editor.rule_card_actions_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label className={classes.label} size='medium' htmlFor={`selectSubject-${uniqueId}`}>
           {t('policy_editor.rule_card_subjects_title')}
         </Label>
+        <Paragraph size='small' className={classes.inputParagraph}>
+          {subjectOptions.length === 0
+            ? t('policy_editor.rule_card_subjects_select_all_selected')
+            : t('policy_editor.rule_card_subjects_select_add')}
+        </Paragraph>
         <div className={classes.dropdownWrapper}>
           <Select
             options={subjectOptions}
             onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
             disabled={subjectOptions.length === 0}
-            label={
-              subjectOptions.length === 0
-                ? t('policy_editor.rule_card_subjects_select_all_selected')
-                : t('policy_editor.rule_card_subjects_select_add')
-            }
             error={showErrors && hasSubjectsError}
+            inputId={`selectSubject-${uniqueId}`}
           />
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
         {showErrors &&
           hasSubjectsError &&
           displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
-        <Label className={classes.label} size='medium'>
+        <Label className={classes.label} size='medium' htmlFor={`description-${uniqueId}`}>
           {t('policy_editor.rule_card_description_title')}
         </Label>
         <div className={classes.textAreaWrapper}>
@@ -584,12 +529,8 @@ export const ExpandablePolicyCard = ({
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
-            aria-labelledby='ruleDescription'
             onBlur={() => savePolicy(rules)}
-          />
-          <ScreenReaderSpan
-            id='ruleDescription'
-            label={t('policy_editor.rule_card_description_title')}
+            id={`description-${uniqueId}`}
           />
         </div>
       </ExpandablePolicyElement>

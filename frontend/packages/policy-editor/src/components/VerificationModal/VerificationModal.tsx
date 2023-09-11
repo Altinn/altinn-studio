@@ -16,7 +16,7 @@ const modalStyles = {
   },
 };
 
-type VerificationModalProps = {
+export type VerificationModalProps = {
   /**
    * Boolean for if the modal is open or not
    */

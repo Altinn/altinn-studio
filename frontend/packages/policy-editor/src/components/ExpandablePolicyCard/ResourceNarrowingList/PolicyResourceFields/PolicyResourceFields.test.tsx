@@ -8,7 +8,6 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 const mockValueId: string = 'Test123';
 const mockValueType: string = '123Test';
 const mockValudNewText = '45';
-const mockUniqueId: string = 'ruleId:1-subResource:1-fieldRow:1';
 
 describe('PolicyResourceFields', () => {
   afterEach(jest.clearAllMocks);
@@ -26,7 +25,6 @@ describe('PolicyResourceFields', () => {
     valueType: mockValueType,
     onChangeType: mockOnChangeType,
     onBlur: mockOnBlur,
-    uniqueId: mockUniqueId,
   };
 
   it('sets text fields to readonly when "canEditTypeAndId" is false', () => {
