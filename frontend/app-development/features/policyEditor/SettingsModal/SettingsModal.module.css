@@ -1,0 +1,11 @@
+.headingWrapper {
+  display: flex;
+  align-items: center;
+  padding-block: 10px;
+  padding-inline: 20px;
+  border-bottom: 0.5px solid var(--fds-semantic-border-neutral-divider);
+}
+
+.headingWrapper > :first-child {
+  margin-right: 10px;
+}
