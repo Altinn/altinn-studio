@@ -21,4 +21,4 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test
         run: |
-           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v n
+           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v n --blame-hang-timeout 1min
