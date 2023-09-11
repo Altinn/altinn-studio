@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { Select } from '@digdir/design-system-react';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import { useParams } from 'react-router-dom';
 import { FormField } from '../FormField';
 import { Option } from 'packages/text-editor/src/types';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -29,7 +29,7 @@ export const SelectDataModelComponent = ({
   helpText,
   propertyPath,
 }: ISelectDataModelProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data } = useDatamodelMetadataQuery(org, app);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
 

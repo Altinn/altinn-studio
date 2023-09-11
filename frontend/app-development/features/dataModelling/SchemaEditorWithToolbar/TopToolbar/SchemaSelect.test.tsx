@@ -1,25 +1,21 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { render as renderRtl, screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
-import { renderWithProviders, RenderWithProvidersData } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const metadata: DatamodelMetadata[] = [jsonMetadata1Mock, jsonMetadata2Mock];
 const jsonOption1 = convertMetadataToOption(jsonMetadata1Mock);
 const jsonOption2 = convertMetadataToOption(jsonMetadata2Mock);
 const setSelectedOption = jest.fn();
 const defaultProps: ISchemaSelectProps = {
+  datamodels: metadata,
   disabled: false,
   selectedOption: jsonOption1,
   setSelectedOption,
@@ -29,9 +25,7 @@ describe('SchemaSelect', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders empty select when there are no provided options', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], []);
-    render({}, { queryClient });
+    render({ datamodels: [] });
     expect(screen.getByRole('combobox')).toBeEmptyDOMElement();
   });
 
@@ -57,14 +51,5 @@ describe('SchemaSelect', () => {
   });
 });
 
-const render = (
-  props: Partial<ISchemaSelectProps> = {},
-  data: RenderWithProvidersData = {},
-  ) => {
-  if (!data.queryClient) {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.DatamodelsMetadata, org, app], metadata);
-    data.queryClient = queryClient;
-  }
-  return renderWithProviders(data)(<SchemaSelect {...defaultProps} {...props} />);
-};
+const render = (props: Partial<ISchemaSelectProps> = {}) =>
+  renderRtl(<SchemaSelect {...defaultProps} {...props} />);

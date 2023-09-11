@@ -5,7 +5,7 @@ import { DropdownMenu } from './DropdownMenu';
 import { Label } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
-type ExpandablePolicyElementProps = {
+export type ExpandablePolicyElementProps = {
   /**
    * The title to display on the element.
    */
@@ -60,7 +60,7 @@ type ExpandablePolicyElementProps = {
  * @returns {React.ReactNode} - The rendered component
  */
 export const ExpandablePolicyElement = ({
-  title: cardTitle,
+  title,
   children,
   isCard = true,
   handleRemoveElement,
@@ -112,11 +112,19 @@ export const ExpandablePolicyElement = ({
           onFocus={() => setIsButtonFocused(true)}
           onBlur={() => setIsButtonFocused(false)}
         >
-          <Label size='small'>{cardTitle}</Label>
+          <Label as='p' size='small'>
+            {title}
+          </Label>
           {isOpen ? (
-            <ChevronUpIcon title={t('policy_editor.expandable_card_close_icon')} fontSize='1.8rem' />
+            <ChevronUpIcon
+              title={t('policy_editor.expandable_card_close_icon')}
+              fontSize='1.8rem'
+            />
           ) : (
-            <ChevronDownIcon title={t('policy_editor.expandable_card_open_icon')} fontSize='1.8rem' />
+            <ChevronDownIcon
+              title={t('policy_editor.expandable_card_open_icon')}
+              fontSize='1.8rem'
+            />
           )}
         </button>
         <DropdownMenu

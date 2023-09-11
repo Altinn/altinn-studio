@@ -4,12 +4,17 @@ import { XSDUpload } from './XSDUpload';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../../packages/schema-editor/test/renderWithProviders';
 import { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../testing/testids';
+import { renderWithMockStore } from '../../../../test/mocks';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const user = userEvent.setup();
+
+// Test data:
+const org = 'org';
+const app = 'app';
 
 // Mocks:
 jest.mock('axios');
@@ -21,10 +26,11 @@ const clickUploadButton = async () => {
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
-  renderWithProviders({ queryClient })(<XSDUpload/>);
+  renderWithMockStore({}, {}, queryClient)(<XSDUpload/>);
 
 describe('XSDUpload', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(jest.restoreAllMocks);
+
   it('should show file picker button', () => {
     render();
 
@@ -55,7 +61,7 @@ describe('XSDUpload', () => {
     ).toBeInTheDocument();
   });
 
-  it('Invalidates metadata query when upload is successful', async () => {
+  it('Invalidates metadata queries when upload is successful', async () => {
     mockedAxios.post.mockImplementation(() => Promise.resolve({ status: 200 }));
     const filename = 'hello';
     const file = new File([filename], `${filename}.xsd`, { type: 'text/xml' });
@@ -69,6 +75,8 @@ describe('XSDUpload', () => {
 
     await act(() => user.upload(fileInput, file));
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith([QueryKey.DatamodelsJson, org, app]);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith([QueryKey.DatamodelsXsd, org, app]);
   });
 });

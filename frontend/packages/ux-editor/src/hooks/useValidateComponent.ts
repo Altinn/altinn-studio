@@ -2,7 +2,7 @@ import { areItemsUnique } from 'app-shared/utils/arrayUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 import { useOptionListIdsQuery } from './queries/useOptionListIdsQuery';
-import { useParams } from 'react-router-dom';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export enum ErrorCode {
   NoOptions = 'NoOptions',
@@ -41,7 +41,7 @@ const validateOptionGroup = (component: FormCheckboxesComponent | FormRadioButto
 }
 
 export const useValidateComponent = (component: FormComponent): ComponentValidationResult => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
 
   switch (component.type) {

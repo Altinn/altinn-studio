@@ -159,7 +159,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await waitFor(() => expect(commitAndPushChanges).toHaveBeenCalledTimes(1));
   });
 
-  it('should should call repoPull when commitAndPush is rejected', async () => {
+  it('should call repoPull when commitAndPush is rejected', async () => {
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
     const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
@@ -182,10 +182,10 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     );
     await waitFor(() => expect(mockCommitAndPushChanges).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockConsoleError).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
   });
 
-  it('should should show mergeconflict message when commitAndPush is rejected and repoPull returns mergeconflict status', async () => {
+  it('should show mergeconflict message when commitAndPush is rejected and repoPull returns mergeconflict status', async () => {
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
     const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
     const mockRepoPull = jest

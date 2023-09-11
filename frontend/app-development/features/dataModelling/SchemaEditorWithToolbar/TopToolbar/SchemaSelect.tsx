@@ -1,5 +1,4 @@
 import React from 'react';
-import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
 import {
   convertMetadataListToOptions,
   findMetadataOptionByRelativeUrl,
@@ -8,17 +7,23 @@ import {
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/design-system-react';
 import classes from './SchemaSelect.module.css';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export interface ISchemaSelectProps {
+  datamodels: DatamodelMetadata[];
   disabled: boolean;
   selectedOption: MetadataOption | null;
   setSelectedOption: (option: MetadataOption) => void;
 }
 
-export const SchemaSelect = ({ disabled, selectedOption, setSelectedOption }: ISchemaSelectProps) => {
-  const { data: metadataItems } = useDatamodelsMetadataQuery();
+export const SchemaSelect = ({
+  datamodels,
+  disabled,
+  selectedOption,
+  setSelectedOption
+}: ISchemaSelectProps) => {
 
-  const options = metadataItems ? convertMetadataListToOptions(metadataItems) : [];
+  const options = convertMetadataListToOptions(datamodels);
   const optionGroups = groupMetadataOptions(options);
   const handleChange = (repositoyUrl: string) =>
     setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoyUrl));

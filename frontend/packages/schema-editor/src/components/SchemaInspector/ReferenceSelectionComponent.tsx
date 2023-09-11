@@ -4,7 +4,7 @@ import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { getRootNodes, Keyword } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 import { Select } from '@digdir/design-system-react';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface IReferenceSelectionProps {
   buttonText: string;
@@ -23,7 +23,7 @@ export function ReferenceSelectionComponent({
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-  const { data } = useDatamodelQuery();
+  const { data } = useSchemaEditorAppContext();
   const definitions: UiSchemaNode[] = getRootNodes(data, true);
   const selectId = getDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
   const emptyOption = { label: emptyOptionLabel, value: '' };

@@ -4,7 +4,7 @@ import { Button, Paragraph } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
-interface DropdownMenuProps {
+export type DropdownMenuProps = {
   /**
    * Boolean for if the menu is open or not
    */
@@ -33,7 +33,7 @@ interface DropdownMenuProps {
    * Optional flag for if there is an error or not
    */
   isError?: boolean;
-}
+};
 
 /**
  * @component
@@ -136,7 +136,7 @@ export const DropdownMenu = ({
   return (
     <div className={classes.dropdownContainer} ref={dropdownRef}>
       <Button
-        icon={<MenuElipsisVerticalIcon title='More' fontSize='1.8rem' />}
+        icon={<MenuElipsisVerticalIcon title={t('policy_editor.more')} fontSize='1.8rem' />}
         onClick={handleClickMoreIcon}
         onKeyDown={() => {}}
         variant='quiet'
@@ -152,7 +152,7 @@ export const DropdownMenu = ({
             onClick={handleClone}
             ref={firstMenuItemRef}
           >
-            <TabsIcon title={t('policy_editor.expandable_card_dropdown_copy')} fontSize='1.3rem' />
+            <TabsIcon fontSize='1.3rem' />
             <Paragraph short size='xsmall' className={classes.dropdownItemText}>
               {t('policy_editor.expandable_card_dropdown_copy')}
             </Paragraph>
@@ -163,7 +163,7 @@ export const DropdownMenu = ({
             onClick={handleDelete}
             ref={lastMenuItemRef}
           >
-            <TrashIcon title={t('general.delete')} fontSize='1.3rem' />
+            <TrashIcon fontSize='1.3rem' />
             <Paragraph short size='xsmall' className={classes.dropdownItemText}>
               {t('general.delete')}
             </Paragraph>

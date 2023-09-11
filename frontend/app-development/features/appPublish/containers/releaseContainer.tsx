@@ -10,17 +10,17 @@ import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery } from '../../../hooks';
-import { useParams } from 'react-router-dom';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { AltinnSpinner } from 'app-shared/components';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 

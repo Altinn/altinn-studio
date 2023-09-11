@@ -9,7 +9,6 @@ import { Button } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
 import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import {
   UiSchemaNode,
   UiSchemaNodes,
@@ -27,6 +26,7 @@ import {
   rootChildrenSelector,
   rootNodesSelector,
 } from '@altinn/schema-editor/selectors/schemaSelectors';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface SchemaEditorProps {
   modelName?: string;
@@ -34,7 +34,7 @@ export interface SchemaEditorProps {
 
 export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const dispatch = useDispatch();
-  const { data } = useDatamodelQuery();
+  const { data } = useSchemaEditorAppContext();
 
   useEffect(() => {
     if (modelName) {

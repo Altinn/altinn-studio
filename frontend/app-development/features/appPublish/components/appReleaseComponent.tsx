@@ -3,11 +3,11 @@ import classes from './appReleaseComponent.module.css';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
 import { Build, BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { AppRelease } from 'app-shared/types/AppRelease';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 interface IAppReleaseComponent {
   release: AppRelease;
@@ -43,7 +43,7 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
     }
     return release.body;
   }
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   return (
     <div className={classes.releaseWrapper}>
       <div className={classes.releaseRow}>

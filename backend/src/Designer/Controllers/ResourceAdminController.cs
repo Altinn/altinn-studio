@@ -265,7 +265,7 @@ namespace Altinn.Studio.Designer.Controllers
             return linkServices;
         }
 
-        private ValidationProblemDetails ValidateResource(ServiceResource resource, bool strictMode = false)
+        private ValidationProblemDetails ValidateResource(ServiceResource resource)
         {
             if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
             {
@@ -320,6 +320,14 @@ namespace Altinn.Studio.Designer.Controllers
             ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
 
             return details;
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
+        public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
+        {
+            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
+            return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
         }
     }
 }

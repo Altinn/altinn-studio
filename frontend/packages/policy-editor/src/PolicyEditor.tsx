@@ -24,7 +24,7 @@ import { CardButton } from './components/CardButton';
 import { deepCopy } from 'app-shared/pure';
 import { useTranslation } from 'react-i18next';
 
-type PolicyEditorProps = {
+export type PolicyEditorProps = {
   /**
    * The policy to edit
    */
@@ -225,15 +225,7 @@ export const PolicyEditor = ({
   return (
     <div>
       <div className={classes.alertWrapper}>
-        <Alert
-          iconTitle={t('policy_editor.alert', {
-            usageType:
-              usageType === 'app'
-                ? t('policy_editor.alert_app')
-                : t('policy_editor.alert_resource'),
-          })}
-          severity='info'
-        >
+        <Alert severity='info'>
           {t('policy_editor.alert', {
             usageType:
               usageType === 'app'

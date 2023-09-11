@@ -20,8 +20,7 @@ import { Divider } from 'app-shared/primitives';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -45,23 +44,22 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     restrictions,
     fieldType,
   } = schemaNode;
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
 
   const [enumError, setEnumError] = useState<string>(null);
 
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
     if (checked !== isRequired) {
-      mutate(setRequired(data, { path: pointer, required: checked }));
+      save(setRequired(data, { path: pointer, required: checked }));
     }
   };
 
   const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
-    mutate(setRestriction(data, { path, key, value }));
+    save(setRestriction(data, { path, key, value }));
 
   const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
-    mutate(setRestrictions(data, { path, restrictions: changedRestrictions }));
+    save(setRestrictions(data, { path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     if (value === oldValue) return;
@@ -70,14 +68,14 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       setEnumError(value);
     } else {
       setEnumError(null);
-      mutate(addEnumValue(data, { path: pointer, value, oldValue }));
+      save(addEnumValue(data, { path: pointer, value, oldValue }));
     }
   };
 
   const onDeleteEnumClick = (path: string, value: string) =>
-    mutate(deleteEnumValue(data, { path, value }));
+    save(deleteEnumValue(data, { path, value }));
 
-  const dispatchAddEnum = () => mutate(addEnumValue(data, { path: pointer, value: 'value' }));
+  const dispatchAddEnum = () => save(addEnumValue(data, { path: pointer, value: 'value' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
