@@ -1,6 +1,8 @@
 import type {
   SupportedLanguageKey,
   ResourceTypeOption,
+  ResourceStatusOption,
+  ResourceAvailableForTypeOption,
   ResourceKeyword,
 } from 'app-shared/types/ResourceAdm';
 import { SupportedLanguage } from 'resourceadm/types/global';
@@ -9,9 +11,30 @@ import { SupportedLanguage } from 'resourceadm/types/global';
  * The map of resource type
  */
 export const resourceTypeMap: Record<ResourceTypeOption, string> = {
-  Default: 'resourceadm.about_resource_resource_type_default',
+  GenericAccessResource: 'resourceadm.about_resource_resource_type_generic_access_resource',
   Systemresource: 'resourceadm.about_resource_resource_type_system_resource',
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
+};
+
+/**
+ * The map of resource status
+ */
+export const resourceStatusMap: Record<ResourceStatusOption, string> = {
+  Completed: 'resourceadm.about_resource_status_completed',
+  Deprecated: 'resourceadm.about_resource_status_deprecated',
+  UnderDevelopment: 'resourceadm.about_resource_status_under_development',
+  Withdrawn: 'resourceadm.about_resource_status_withdrawn',
+};
+
+/**
+ * The map of resource status
+ */
+export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string> = {
+  PrivatePerson: 'resourceadm.about_resource_available_for_type_private',
+  LegalEntityEnterprise: 'resourceadm.about_resource_available_for_type_legal',
+  Company: 'resourceadm.about_resource_available_for_type_company',
+  BankruptcyEstate: 'resourceadm.about_resource_available_for_type_bankruptcy',
+  SelfRegisteredUser: 'resourceadm.about_resource_available_for_type_self_registered',
 };
 
 /**
