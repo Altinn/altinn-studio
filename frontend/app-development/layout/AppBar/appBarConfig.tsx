@@ -56,7 +56,7 @@ export const menu: TopBarMenuItem[] = [
     key: TopBarMenu.PolicyEditor,
     link: '/:org/:app/policy-editor',
     repositoryTypes: [RepositoryType.App],
-    // featureFlagName: "policyEditor",
+    featureFlagName: 'policyEditor',
   },
 ];
 
