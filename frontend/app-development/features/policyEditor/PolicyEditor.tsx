@@ -70,11 +70,7 @@ export const PolicyEditor = () => {
    * Saves the policy to backend
    */
   const handleSavePolicy = (policy: Policy) => {
-    updateAppPolicyMutation(policy, {
-      onSuccess: () => {
-        console.log('success');
-      },
-    });
+    updateAppPolicyMutation(policy);
   };
 
   if (policyLoading) {

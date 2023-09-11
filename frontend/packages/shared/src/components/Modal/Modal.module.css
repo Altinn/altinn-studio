@@ -1,15 +1,20 @@
 .modal {
-  max-width: 80%;
-  min-width: 320px;
+  --modal-min-size: 320px;
+  --modal-max-size: 80%;
+  --modal-position: 50%;
+  --modal-translate: calc(var(--modal-position) * -1);
+
+  max-width: var(--modal-max-size);
+  min-width: var(--modal-min-size);
   width: max-content;
-  max-height: 80%;
-  min-height: 320px;
+  max-height: var(--modal-max-size);
+  min-height: var(--modal-min-size);
   height: max-content;
   border-radius: 20px;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: var(--modal-position);
+  left: var(--modal-position);
+  transform: translate(var(--modal-translate), var(--modal-translate));
   padding: 0;
   padding-top: 20px;
   border: solid 1px var(--fds-semantic-border-neutral-subtle);

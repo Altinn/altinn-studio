@@ -6,7 +6,7 @@ import { CogIcon } from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
 
 /**
- * Displays the settings modal. It displays the content inside the Modal component.
+ * Displays the settings modal.
  *
  * @returns {React.ReactNode}
  */
@@ -25,7 +25,7 @@ export const SettingsModal = (): React.ReactNode => {
         title={
           <div className={classes.headingWrapper}>
             <CogIcon fontSize='2rem' />
-            <Heading level={2} size='small'>
+            <Heading level={1} size='small'>
               {t('settings_modal.heading')}
             </Heading>
           </div>
