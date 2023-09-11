@@ -71,14 +71,15 @@ describe('ResourceNarrowingList', () => {
 
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
     await act(() => user.type(idInput, mockNewText));
+    expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
+
+    mockHandleInputChange.mockClear();
 
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type')
     );
     await act(() => user.type(typeInput, mockNewText));
-
-    const numberOfTimes: number = mockNewText.length * 2; // Length of word for id field and length of word for type field
-    expect(mockHandleInputChange).toHaveBeenCalledTimes(numberOfTimes);
+    expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
   });
 
   it('calls "handleRemoveResource" when remove resource button is clicked', async () => {

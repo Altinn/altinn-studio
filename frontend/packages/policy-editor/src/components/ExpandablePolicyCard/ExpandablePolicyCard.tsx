@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { Button, TextArea, Label, ErrorMessage, Select } from '@digdir/design-system-react';
+import React, { useState, useId } from 'react';
+import {
+  Button,
+  TextArea,
+  Label,
+  ErrorMessage,
+  Select,
+  Paragraph,
+} from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
@@ -110,6 +117,8 @@ export const ExpandablePolicyCard = ({
   usageType,
 }: ExpandablePolicyCardProps): React.ReactNode => {
   const { t } = useTranslation();
+
+  const uniqueId = useId();
 
   const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
@@ -461,12 +470,7 @@ export const ExpandablePolicyCard = ({
             color='secondary'
             size='small'
             fullWidth
-            icon={
-              <PlusIcon
-                title={t('policy_editor.rule_card_sub_resource_button')}
-                fontSize='1.5rem'
-              />
-            }
+            icon={<PlusIcon fontSize='1.5rem' />}
           >
             {t('policy_editor.rule_card_sub_resource_button')}
           </Button>
@@ -474,47 +478,49 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasResourceError &&
           displayWarningCard(t('policy_editor.rule_card_sub_resource_error'))}
-        <Label as='p' className={classes.label} size='medium'>
+        <Label className={classes.label} size='medium' htmlFor={`selectAction-${uniqueId}`}>
           {t('policy_editor.rule_card_actions_title')}
         </Label>
+        <Paragraph size='small' className={classes.inputParagraph}>
+          {actionOptions.length === 0
+            ? t('policy_editor.rule_card_actions_select_all_selected')
+            : t('policy_editor.rule_card_actions_select_add')}
+        </Paragraph>
         <div className={classes.dropdownWrapper}>
           <Select
             options={actionOptions}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
-            label={
-              actionOptions.length === 0
-                ? t('policy_editor.rule_card_actions_select_all_selected')
-                : t('policy_editor.rule_card_actions_select_add')
-            }
             error={showErrors && hasRightsError}
+            inputId={`selectAction-${uniqueId}`}
           />
         </div>
         <div className={classes.chipWrapper}>{displayActions}</div>
         {showErrors &&
           hasRightsError &&
           displayWarningCard(t('policy_editor.rule_card_actions_error'))}
-        <Label as='p' className={classes.label} size='medium'>
+        <Label className={classes.label} size='medium' htmlFor={`selectSubject-${uniqueId}`}>
           {t('policy_editor.rule_card_subjects_title')}
         </Label>
+        <Paragraph size='small' className={classes.inputParagraph}>
+          {subjectOptions.length === 0
+            ? t('policy_editor.rule_card_subjects_select_all_selected')
+            : t('policy_editor.rule_card_subjects_select_add')}
+        </Paragraph>
         <div className={classes.dropdownWrapper}>
           <Select
             options={subjectOptions}
             onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
             disabled={subjectOptions.length === 0}
-            label={
-              subjectOptions.length === 0
-                ? t('policy_editor.rule_card_subjects_select_all_selected')
-                : t('policy_editor.rule_card_subjects_select_add')
-            }
             error={showErrors && hasSubjectsError}
+            inputId={`selectSubject-${uniqueId}`}
           />
         </div>
         <div className={classes.chipWrapper}>{displaySubjects}</div>
         {showErrors &&
           hasSubjectsError &&
           displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
-        <Label as='p' className={classes.label} size='medium'>
+        <Label className={classes.label} size='medium' htmlFor={`description-${uniqueId}`}>
           {t('policy_editor.rule_card_description_title')}
         </Label>
         <div className={classes.textAreaWrapper}>
@@ -523,8 +529,8 @@ export const ExpandablePolicyCard = ({
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
-            aria-label={t('policy_editor.rule_card_description_title')}
             onBlur={() => savePolicy(rules)}
+            id={`description-${uniqueId}`}
           />
         </div>
       </ExpandablePolicyElement>

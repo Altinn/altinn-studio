@@ -85,9 +85,12 @@ describe('ExpandablePolicyCard', () => {
     const newWord: string = 'test';
 
     await act(() => user.type(typeInput, newWord));
-    await act(() => user.type(idInput, newWord));
+    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
 
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length * 2);
+    mockSetPolicyRules.mockClear();
+
+    await act(() => user.type(idInput, newWord));
+    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
   });
 
   it('displays the selected actions as Chips', async () => {
