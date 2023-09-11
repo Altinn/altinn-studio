@@ -68,19 +68,10 @@
                     "beskrivelse": {
                       "type": "string"
                     }
-                  },
-                  "required": [
-                    "tittel"
-                  ]
+                  }
                 }
               }
-            },
-            "required": [
-              "arbeidsgiver",
-              "fra",
-              "til",
-              "stilling"
-            ]
+            }
           }
         },
         "epost": {
@@ -105,16 +96,7 @@
         "SF_skjul-prosjekt": {
           "type": "string"
         }
-      },
-      "required": [
-        "fornavn",
-        "etternavn",
-        "alder",
-        "epost",
-        "telefonnummer",
-        "bosted",
-        "kjønn"
-      ]
+      }
     }
   }
 }

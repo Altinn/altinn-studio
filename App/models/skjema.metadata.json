@@ -62,14 +62,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "fornavn",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/fornavn",
-      "DisplayString": "skjema.root.fornavn : [1..1] String"
+      "DisplayString": "skjema.root.fornavn : [0..1] String"
     },
     "skjema.root.etternavn": {
       "ID": "skjema.root.etternavn",
@@ -84,14 +84,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "etternavn",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/etternavn",
-      "DisplayString": "skjema.root.etternavn : [1..1] String"
+      "DisplayString": "skjema.root.etternavn : [0..1] String"
     },
     "skjema.root.alder": {
       "ID": "skjema.root.alder",
@@ -113,14 +113,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "alder",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/alder",
-      "DisplayString": "skjema.root.alder : [1..1] Integer"
+      "DisplayString": "skjema.root.alder : [0..1] Integer"
     },
     "skjema.root.arbeidserfaring": {
       "ID": "skjema.root.arbeidserfaring",
@@ -337,14 +337,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "epost",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/epost",
-      "DisplayString": "skjema.root.epost : [1..1] String"
+      "DisplayString": "skjema.root.epost : [0..1] String"
     },
     "skjema.root.telefonnummer": {
       "ID": "skjema.root.telefonnummer",
@@ -359,14 +359,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "telefonnummer",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/telefonnummer",
-      "DisplayString": "skjema.root.telefonnummer : [1..1] Integer"
+      "DisplayString": "skjema.root.telefonnummer : [0..1] Integer"
     },
     "skjema.root.bosted": {
       "ID": "skjema.root.bosted",
@@ -381,14 +381,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "bosted",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/bosted",
-      "DisplayString": "skjema.root.bosted : [1..1] String"
+      "DisplayString": "skjema.root.bosted : [0..1] String"
     },
     "skjema.root.kjønn": {
       "ID": "skjema.root.kjønn",
@@ -403,14 +403,14 @@
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
-      "MinOccurs": 1,
+      "MinOccurs": 0,
       "XName": "kjønn",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/kjønn",
-      "DisplayString": "skjema.root.kjønn : [1..1] String"
+      "DisplayString": "skjema.root.kjønn : [0..1] String"
     },
     "skjema.root.SF_skjulfelter": {
       "ID": "skjema.root.SF_skjulfelter",

@@ -35,7 +35,6 @@ namespace Altinn.App.Models
     [XmlElement("alder", Order = 3)]
     [JsonProperty("alder")]
     [JsonPropertyName("alder")]
-    [Required]
     public decimal? alder { get; set; }
 
     [XmlElement("arbeidserfaring", Order = 4)]
@@ -52,7 +51,6 @@ namespace Altinn.App.Models
     [XmlElement("telefonnummer", Order = 6)]
     [JsonProperty("telefonnummer")]
     [JsonPropertyName("telefonnummer")]
-    [Required]
     public decimal? telefonnummer { get; set; }
 
     [XmlElement("bosted", Order = 7)]

@@ -11,21 +11,21 @@
         <xs:element minOccurs="0" name="root">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="fornavn" type="xs:string" />
-              <xs:element name="etternavn" type="xs:string" />
-              <xs:element name="alder" type="xs:long" />
+              <xs:element minOccurs="0" name="fornavn" type="xs:string" />
+              <xs:element minOccurs="0" name="etternavn" type="xs:string" />
+              <xs:element minOccurs="0" name="alder" type="xs:long" />
               <xs:element minOccurs="0" maxOccurs="99" name="arbeidserfaring">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="arbeidsgiver" type="xs:string" />
-                    <xs:element name="fra" type="xs:string" />
-                    <xs:element name="til" type="xs:string" />
-                    <xs:element name="stilling" type="xs:string" />
+                    <xs:element minOccurs="0" name="arbeidsgiver" type="xs:string" />
+                    <xs:element minOccurs="0" name="fra" type="xs:string" />
+                    <xs:element minOccurs="0" name="til" type="xs:string" />
+                    <xs:element minOccurs="0" name="stilling" type="xs:string" />
                     <xs:element minOccurs="0" name="beskrivelse" type="xs:string" />
                     <xs:element minOccurs="0" maxOccurs="99" name="prosjekter">
                       <xs:complexType>
                         <xs:sequence>
-                          <xs:element name="tittel" type="xs:string" />
+                          <xs:element minOccurs="0" name="tittel" type="xs:string" />
                           <xs:element minOccurs="0" name="beskrivelse" type="xs:string" />
                         </xs:sequence>
                       </xs:complexType>
@@ -33,10 +33,10 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
-              <xs:element name="epost" type="xs:string" />
-              <xs:element name="telefonnummer" type="xs:long" />
-              <xs:element name="bosted" type="xs:string" />
-              <xs:element name="kjønn" type="xs:string" />
+              <xs:element minOccurs="0" name="epost" type="xs:string" />
+              <xs:element minOccurs="0" name="telefonnummer" type="xs:long" />
+              <xs:element minOccurs="0" name="bosted" type="xs:string" />
+              <xs:element minOccurs="0" name="kjønn" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-felter" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-arbeidsgiver" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-prosjekt" type="xs:string" />
