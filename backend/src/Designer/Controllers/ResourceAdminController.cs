@@ -265,7 +265,6 @@ namespace Altinn.Studio.Designer.Controllers
             return linkServices;
         }
 
-
         private ValidationProblemDetails ValidateResource(ServiceResource resource)
         {
             if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.Title))
@@ -293,9 +292,29 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingresourcetype");
             }
 
+            if (resource.AvailableForType == null || resource.AvailableForType.Count == 0)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
+            }
+
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingcontactpoints");
+            }
+            else
+            {
+                for (int i = 0; i < resource.ContactPoints.Count; i++)
+                {
+                    var categoryError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Category);
+                    var emailError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Email);
+                    var telephoneError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Telephone);
+                    var contactPageError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].ContactPage);
+
+                    if (categoryError || emailError || telephoneError || contactPageError)
+                    {
+                        ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}]", "resourceerror.missingcontactpoints.");
+                    }
+                }
             }
 
             ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);

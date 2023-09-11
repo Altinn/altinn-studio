@@ -7,7 +7,6 @@ import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
-  useResourceSectorsQuery,
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
@@ -69,7 +68,6 @@ export const ResourcePage = (): React.ReactNode => {
     refetch: refetchResource,
     isLoading: resourceLoading,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
-  const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
@@ -190,7 +188,7 @@ export const ResourcePage = (): React.ReactNode => {
       </div>
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' &&
-          (resourceLoading || sectorsLoading ? (
+          (resourceLoading ? (
             <div className={classes.spinnerWrapper}>
               <Spinner
                 size='3xLarge'
@@ -202,7 +200,6 @@ export const ResourcePage = (): React.ReactNode => {
             <AboutResourcePage
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
-              sectorsData={sectorsData}
               onSaveResource={(r: Resource) => {
                 editResource(r, {
                   onSuccess: () => {

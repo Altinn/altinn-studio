@@ -4,7 +4,7 @@ import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { Resource, ResourceSector } from 'app-shared/types/ResourceAdm';
+import { Resource } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
@@ -13,14 +13,13 @@ import { QueryClient } from '@tanstack/react-query';
 
 const mockResource1: Resource = {
   identifier: 'r1',
-  resourceType: 'Default',
   title: { nb: 'ressurs 1', nn: 'res1', en: 'resource 1' },
   description: { nb: 'Beskrivelse av resource 1', nn: 'Mock', en: 'Description of test resource' },
   keywords: [
     { language: 'nb', word: 'Key1 ' },
     { language: 'nb', word: 'Key 2' },
   ],
-  isPublicService: false,
+  visible: false,
   resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Default' }],
 };
 
@@ -31,16 +30,9 @@ const mockResource2: Resource = {
 
 const mockSelectedContext: string = 'test';
 
-const mockSectors: ResourceSector[] = [
-  { code: 'Sec1', label: { nb: 'Sec1', nn: 'Sec1', en: 'Sec1' } },
-  { code: 'Sec2', label: { nb: 'Sec2', nn: 'Sec2', en: 'Sec2' } },
-  { code: 'Sec3', label: { nb: 'Sec3', nn: 'Sec3', en: 'Sec3' } },
-];
-
 const getValidatePolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getValidateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getResource = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getResourceSectors = jest.fn().mockImplementation(() => Promise.resolve({}));
 const updateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
@@ -70,11 +62,6 @@ describe('ResourcePage', () => {
     expect(getResource).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches sectors on mount', () => {
-    render();
-    expect(getResourceSectors).toHaveBeenCalledTimes(1);
-  });
-
   it('displays left navigation bar on mount', () => {
     render();
     expect(
@@ -102,7 +89,6 @@ describe('ResourcePage', () => {
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
     getResource.mockImplementation(() => Promise.resolve(mockResource1));
-    getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
     render();
     await waitForElementToBeRemoved(() =>
@@ -116,7 +102,6 @@ describe('ResourcePage', () => {
 
   it('does not display migrate tab in left navigation bar when resource reference is not in resource', async () => {
     getResource.mockImplementation(() => Promise.resolve(mockResource2));
-    getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
     render();
     await waitForElementToBeRemoved(() =>
@@ -131,7 +116,6 @@ describe('ResourcePage', () => {
   it('opens navigation modal when resource has errors', async () => {
     const user = userEvent.setup();
     getResource.mockImplementation(() => Promise.resolve(mockResource2));
-    getResourceSectors.mockImplementation(() => Promise.resolve(mockSectors));
 
     render();
     await waitForElementToBeRemoved(() =>
@@ -168,7 +152,6 @@ const render = (
     getValidatePolicy,
     getValidateResource,
     getResource,
-    getResourceSectors,
     updateResource,
     ...queries,
   };
