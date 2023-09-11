@@ -173,7 +173,7 @@
         }
       },
       {
-        "id": "Group-wF8pm3",
+        "id": "arbeidserfaring",
         "type": "Group",
         "children": [
           "arbeidsgiver",
@@ -200,7 +200,7 @@
           "group": "root.arbeidserfaring"
         },
         "textResourceBindings": {
-          "add_button": "Bmpt8A21FceR"
+          "add_button": "arbeidserfaring.add_button"
         }
       },
       {
