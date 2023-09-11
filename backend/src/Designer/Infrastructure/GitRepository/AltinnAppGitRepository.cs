@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
-using JetBrains.Annotations;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -458,7 +457,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <returns>An array with the name of all layout files under the specific layoutset</returns>
-        public string[] GetLayoutNames([CanBeNull] string layoutSetName)
+        public string[] GetLayoutNames( string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
             if (!DirectoryExistsByRelativePath(layoutSetPath) && AppUsesLayoutSets())
@@ -548,11 +547,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
-        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, JsonNode layout)
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public async Task SaveLayout( string layoutSetName, string layoutFileName, JsonNode layout, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
             string serializedLayout = layout.ToJsonString(_jsonOptions);
-            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true);
+            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true, cancellationToken);
         }
 
         public void UpdateFormLayoutName(string layoutSetName, string layoutFileName, string newFileName)
@@ -781,7 +782,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
-        private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
+        private static string GetPathToJsonTextsFile( string fileName)
         {
             return fileName.IsNullOrEmpty() ?
                 Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) :
@@ -794,7 +795,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutSet([CanBeNull] string layoutSetName)
+        private static string GetPathToLayoutSet( string layoutSetName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME) :
@@ -802,7 +803,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutFile([CanBeNull] string layoutSetName, string fileName)
+        private static string GetPathToLayoutFile( string layoutSetName, string fileName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName) :
@@ -810,7 +811,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutSettings([CanBeNull] string layoutSetName)
+        private static string GetPathToLayoutSettings( string layoutSetName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME) :
