@@ -30,15 +30,15 @@ describe('cloneModal', () => {
       return true;
     });
     render();
-    
+
     expect(
       screen.getByRole('button', {
         name: textMock('sync_header.clone_https_button'),
       })
-    ).toBeInTheDocument(); 
+    ).toBeInTheDocument();
   });
 
-  it('should NOT show copy link if copy feature is NOT supported', () => { 
+  it('should NOT show copy link if copy feature is NOT supported', () => {
     document.queryCommandSupported = jest.fn(() => {
       return false;
     });
