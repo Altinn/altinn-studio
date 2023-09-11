@@ -13,6 +13,8 @@
     <Compile Remove="Implementation\AppBaseTests.cs" />
     <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <Watch Include="LayoutExpressions/**/*.json" />
+    <Content Include="Models/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Watch Include="Models/**/*.json" />
     <Watch Include="**/*.cs" />
     <Content Update="Implementation\TestData\AppMetadata\default.applicationmetadata.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -6,6 +6,8 @@ using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Expressions;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
 
 namespace Altinn.App.Core.Models.Layout;
 /// <summary>
@@ -87,8 +89,9 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             throw new JsonException();
         }
 
-        var components = new List<BaseComponent>();
-        var componentLookup = new Dictionary<string, BaseComponent>();
+        List<BaseComponent>? componentListFlat = null;
+        Dictionary<string, BaseComponent>? componentLookup = null;
+        Dictionary<string, GroupComponent>? childToGroupMapping = null;
 
         // Hidden is the only property that cascades.
         Expression? hidden = null;
@@ -111,7 +114,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             switch (propertyName.ToLowerInvariant())
             {
                 case "layout":
-                    ReadLayout(ref reader, components, componentLookup, options);
+                    (componentListFlat, componentLookup, childToGroupMapping) = ReadLayout(ref reader, options);
                     break;
                 case "hidden":
                     hidden = ExpressionConverter.ReadNotNull(ref reader, options);
@@ -129,38 +132,87 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             }
         }
 
-        return new PageComponent(pageName, components, componentLookup, hidden, required, readOnly, additionalProperties);
+        if (componentListFlat is null || componentLookup is null || childToGroupMapping is null)
+        {
+            throw new JsonException("Missing property \"layout\" on layout page");
+        }
+
+        var layout = processLayout(componentListFlat, componentLookup, childToGroupMapping);
+
+        return new PageComponent(pageName, layout, componentLookup, hidden, required, readOnly, additionalProperties);
     }
 
-    private void ReadLayout(ref Utf8JsonReader reader, List<BaseComponent> components, Dictionary<string, BaseComponent> componentLookup, JsonSerializerOptions options)
+    private (List<BaseComponent>, Dictionary<string, BaseComponent>, Dictionary<string, GroupComponent>) ReadLayout(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartArray)
         {
             throw new JsonException();
         }
 
+        var componentListFlat = new List<BaseComponent>();
+        var componentLookup = new Dictionary<string, BaseComponent>();
+        var childToGroupMapping = new Dictionary<string, GroupComponent>();
+
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
             var component = ReadComponent(ref reader, options)!;
-            // Add new component to both collections
-            components.Add(component);
-            AddChildrenToLookup(component, componentLookup);
+
+            // Add component to the collections
+            componentListFlat.Add(component);
+            AddToComponentLookup(component, componentLookup);
+            if (component is GroupComponent groupComponent)
+            {
+                AddChildrenToMapping(groupComponent, groupComponent.ChildIDs, childToGroupMapping);
+            }
         }
+
+        return (componentListFlat, componentLookup, childToGroupMapping);
     }
 
-    private static void AddChildrenToLookup(BaseComponent component, Dictionary<string, BaseComponent> componentLookup)
+    private static List<BaseComponent> processLayout(List<BaseComponent> componentListFlat, Dictionary<string, BaseComponent> componentLookup, Dictionary<string, GroupComponent> childToGroupMapping)
+    {
+        var layout = new List<BaseComponent>();
+        foreach (var component in componentListFlat)
+        {
+            if (component is GroupComponent groupComponent)
+            {
+                var children = groupComponent.ChildIDs.Select(id => componentLookup[id]).ToList();
+                children.ForEach(c => groupComponent.AddChild(c));
+            }
+
+            if (!childToGroupMapping.ContainsKey(component.Id))
+            {
+                layout.Add(component);
+            }
+        }
+        return layout;
+    }
+
+    private static void AddToComponentLookup(BaseComponent component, Dictionary<string, BaseComponent> componentLookup)
     {
         if (componentLookup.ContainsKey(component.Id))
         {
             throw new JsonException($"Duplicate key \"{component.Id}\" detected on page \"{component.PageId}\"");
         }
         componentLookup[component.Id] = component;
-        if (component is GroupComponent groupComponent)
+    }
+
+    private static readonly Regex MultiPageIndexRegex = new Regex(@"^(\d+:)?([^\s:]+)$", RegexOptions.None, TimeSpan.FromSeconds(1));
+    private static string GetIdWithoutMultiPageIndex(string id)
+    {
+        var match = MultiPageIndexRegex.Match(id);
+        return match.Groups[2].Value;
+    }
+
+    private static void AddChildrenToMapping(GroupComponent component, IEnumerable<string> children, Dictionary<string, GroupComponent> childToGroupMapping)
+    {
+        foreach (var childId in children)
         {
-            foreach (var child in groupComponent.Children)
+            if (childToGroupMapping.TryGetValue(childId, out var existingMapping))
             {
-                AddChildrenToLookup(child, componentLookup);
+                throw new JsonException($"Component \"{component.Id}\" tried to claim \"{childId}\" as a child, but that child is already claimed by \"{existingMapping.Id}\"");
             }
+            childToGroupMapping[childId] = component;
         }
     }
 
@@ -217,7 +269,10 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 // case "textresourcebindings":
                 //     break;
                 case "children":
-                    children = JsonSerializer.Deserialize<List<string>>(ref reader, options);
+                    children = JsonSerializer.Deserialize<List<string>>(ref reader, options)?.Select(GetIdWithoutMultiPageIndex).ToList();
+                    break;
+                case "rows":
+                    children = GridConfig.ReadGridChildren(ref reader, options);
                     break;
                 case "maxcount":
                     maxCount = reader.GetInt32();
@@ -265,7 +320,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             case "group":
                 ThrowJsonExceptionIfNull(children, "Component with \"type\": \"Group\" requires a \"children\" property");
 
-                var childComponents = ReadChildren(ref reader, id, children, options);
                 if (maxCount > 1)
                 {
                     if (!(dataModelBindings?.ContainsKey("group") ?? false))
@@ -273,12 +327,17 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                         throw new JsonException($"A group id:\"{id}\" with maxCount: {maxCount} does not have a \"group\" dataModelBinding");
                     }
 
-                    return new RepeatingGroupComponent(id, type, dataModelBindings, childComponents, maxCount, hidden, required, readOnly, additionalProperties);
+                    var repComponent = new RepeatingGroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, maxCount, hidden, required, readOnly, additionalProperties);
+                    return repComponent;
                 }
                 else
                 {
-                    return new GroupComponent(id, type, dataModelBindings, childComponents, hidden, required, readOnly, additionalProperties);
+                    var groupComponent = new GroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, hidden, required, readOnly, additionalProperties);
+                    return groupComponent;
                 }
+            case "grid":
+                var gridComponent = new GridComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, hidden, required, readOnly, additionalProperties);
+                return gridComponent;
             case "summary":
                 ValidateSummary(componentRef, pageRef);
                 return new SummaryComponent(id, type, hidden, componentRef, pageRef, additionalProperties);
@@ -286,7 +345,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             case "radiobuttons":
             case "dropdown":
                 ValidateOptions(optionId, literalOptions, optionsSource, secure);
-
                 return new OptionsComponent(id, type, dataModelBindings, hidden, required, readOnly, optionId, literalOptions, optionsSource, secure, additionalProperties);
         }
 
@@ -339,27 +397,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         {
             throw new JsonException(message ?? $"\"{propertyName}\" property of component should not be null");
         }
-    }
-
-
-    private List<BaseComponent> ReadChildren(ref Utf8JsonReader reader, string parentId, List<string> childIds, JsonSerializerOptions options)
-    {
-        var ret = new List<BaseComponent>();
-        foreach (var childId in childIds)
-        {
-            reader.Read();
-            if (reader.TokenType != JsonTokenType.StartObject)
-            {
-                throw new JsonException($"Invalid Group component \"{parentId}\". No components found after group component");
-            }
-            var component = ReadComponent(ref reader, options)!;
-            if (component.Id != childId)
-            {
-                throw new JsonException($"Invalid Group component \"{parentId}\". The next component has id \"{component.Id}\" instead of \"{childId}\"");
-            }
-            ret.Add(component);
-        }
-        return ret;
     }
 
     /// <inheritdoc />
