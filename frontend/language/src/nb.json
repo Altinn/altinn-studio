@@ -691,7 +691,6 @@
   "resourceadm.about_resource_visible_label": " Synlighet",
   "resourceadm.about_resource_visible_show_text": "Ressursen {{showText}} være synlig.",
   "resourceadm.about_resource_visible_text": "Etter publisering blir ressursen synlig på Altinn.no..",
-
   "resourceadm.dashboard_create_modal_create_button": "Opprett ressurs",
   "resourceadm.dashboard_create_modal_resource_name_and_id_text": "Velg navn og id for ressursen. Språkstøtte på navn kan legges til på neste side. Id er foreslått basert på navnet du skriver og kan redigeres om du ønsker en annen. Navn kan endres senere, mens id kan ikke endres.",
   "resourceadm.dashboard_create_modal_title": "Opprett ny ressurs",
