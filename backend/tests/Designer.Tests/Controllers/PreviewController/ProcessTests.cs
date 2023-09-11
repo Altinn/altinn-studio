@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -11,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class ProcessTests : PreviewControllerTestsBase<Process>
+    public class ProcessTests : PreviewControllerTestsBase<ProcessTests>
     {
 
         public ProcessTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
