@@ -24,7 +24,7 @@ export const SettingsModal = (): React.ReactNode => {
         onClose={() => setIsOpen(false)}
         title={
           <div className={classes.headingWrapper}>
-            <CogIcon fontSize='2rem' />
+            <CogIcon className={classes.icon} />
             <Heading level={1} size='small'>
               {t('settings_modal.heading')}
             </Heading>

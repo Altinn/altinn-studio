@@ -8,3 +8,7 @@
 .headingWrapper > :first-child {
   margin-right: 10px;
 }
+
+.icon {
+  font-size: 2rem;
+}
