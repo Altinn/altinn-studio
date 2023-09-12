@@ -81,7 +81,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             }
 
             Assert.Equal(StatusCodes.Status400BadRequest, (int)validationDetails.Status);
-            Assert.Equal(1, validationDetails.Errors.Count);
+            Assert.Single(validationDetails.Errors);
         }
 
 
@@ -124,7 +124,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             }
 
             Assert.Equal(StatusCodes.Status400BadRequest, (int)validationDetails.Status);
-            Assert.Equal(1, validationDetails.Errors.Count);
+            Assert.Single(validationDetails.Errors);
         }
     }
 }
