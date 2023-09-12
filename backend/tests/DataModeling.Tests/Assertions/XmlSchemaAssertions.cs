@@ -571,7 +571,7 @@ namespace DataModeling.Tests.Assertions
 
             if (actualFacets.Count > 0)
             {
-                throw ContainsException.ForCollectionItemNotFound(actualFacets.First().Value!, string.Join(',',expected
+                throw ContainsException.ForCollectionItemNotFound(actualFacets.First().Value!, string.Join(',', expected
                     .Cast<XmlSchemaFacet>()
                     .ToList().Select(x => x.Value)));
             }
