@@ -1,0 +1,14 @@
+.headingWrapper {
+  display: flex;
+  align-items: center;
+  padding-block: 10px;
+  padding-inline: 20px;
+}
+
+.headingWrapper > :first-child {
+  margin-right: 10px;
+}
+
+.icon {
+  font-size: 2rem;
+}
