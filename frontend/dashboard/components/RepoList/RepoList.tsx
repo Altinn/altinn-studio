@@ -19,6 +19,14 @@ import classes from './RepoList.module.css';
 import { User } from 'app-shared/types/User';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
 import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
+import {
+  PencilIcon,
+  FilesIcon,
+  ExternalLinkIcon,
+  StarIcon,
+  StarFillIcon
+} from '@navikt/aksel-icons';
+
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -111,15 +119,10 @@ export const RepoList = ({
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
             label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
-            icon={
-              <i
-                className={cn(classes.favoriteIcon, {
-                  'fa fa-fav-filled': repo.user_has_starred,
-                  'fa fa-fav-outline': !repo.user_has_starred,
-                })}
-              />
-            }
-          />,
+            icon={ repo.user_has_starred 
+                ? <StarFillIcon name="star-fill-icon" className={classes.favoriteIcon} />
+                : <StarIcon name="star-icon" className={classes.dropdownIcon} />}
+          />
         ];
       },
     };
@@ -185,7 +188,7 @@ export const RepoList = ({
             />,
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
+              icon={<PencilIcon  title={t("dashboard.edit_app_icon")} className={cn(classes.linkIcon, classes.editLink)} />}
               key={`dashboard.edit_app${params.row.id}`}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
@@ -197,19 +200,19 @@ export const RepoList = ({
                 className={cn(classes.actionLink, classes.repoLink)}
               >
                 <span>{t(editTextKey)}</span>
-                <i className={cn('fa fa-edit', classes.linkIcon)} />
+                <PencilIcon className={classes.linkIcon} />
               </a>
               ,
             </GridActionsCellItem>,
             <GridActionsCellItem
-              icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
+              icon={<FilesIcon className={classes.dropdownIcon} />}
               key={`dashboard.make_copy${params.row.id}`}
               label={t('dashboard.make_copy')}
               onClick={() => setCopyCurrentRepoName(repoFullName)}
               showInMenu
             />,
             <GridActionsCellItem
-              icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
+              icon={<ExternalLinkIcon className={classes.dropdownIcon} />}
               key={`dashboard.open_in_new${params.row.id}`}
               label={t('dashboard.open_in_new')}
               onClick={() => window.open(editUrl, '_blank')}
