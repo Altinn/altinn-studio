@@ -1,0 +1,16 @@
+.icon {
+  font-size: 1.8rem;
+}
+
+.backButton {
+  border-bottom: 2px solid var(--fds-semantic-border-neutral-divider);
+}
+
+.backButton:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.buttonText {
+  color: inherit;
+  margin-left: 10px;
+}
