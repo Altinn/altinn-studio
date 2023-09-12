@@ -8,12 +8,14 @@ export type LeftNavigationBarProps = {
   tabs: LeftNavigationTab[];
   upperTab?: 'backButton' | 'searchField' | undefined;
   onClickUpperTabBackButton?: () => void;
+  backButtonText?: string;
 };
 
 export const LeftNavigationBar = ({
   tabs,
   upperTab = undefined,
-  onClickUpperTabBackButton = () => {},
+  onClickUpperTabBackButton,
+  backButtonText = '',
 }: LeftNavigationBarProps): ReactNode => {
   const [newTabIdClicked, setNewTabIdClicked] = useState<number | null>(null);
 
@@ -26,11 +28,12 @@ export const LeftNavigationBar = ({
   };
 
   const displayUpperTab = () => {
-    if (upperTab === 'backButton') {
+    if (upperTab === 'backButton' && onClickUpperTabBackButton && backButtonText) {
       return (
         <GoBackButton
           navElementClassName={classes.navigationElement}
           onClickBackButton={onClickUpperTabBackButton}
+          backButtonText={backButtonText}
         />
       );
     }

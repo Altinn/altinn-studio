@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -20,6 +19,47 @@ import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import {
+  GavelSoundBlockIcon,
+  InformationSquareIcon,
+  MigrationIcon,
+  UploadIcon,
+} from '@navikt/aksel-icons';
+import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
+// import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
+
+const leftNavigationTabs: LeftNavigationTab[] = [
+  {
+    icon: <InformationSquareIcon className={classes.icon} />,
+    tabName: 'resourceadm.left_nav_bar_about',
+    tabId: 0,
+    onClick: () => {},
+    isActiveTab: false,
+  },
+  {
+    icon: <GavelSoundBlockIcon className={classes.icon} />,
+    tabName: 'resourceadm.left_nav_bar_policy',
+    tabId: 1,
+    onClick: () => {},
+    isActiveTab: false,
+  },
+  {
+    icon: <UploadIcon className={classes.icon} />,
+    tabName: 'resourceadm.left_nav_bar_deploy',
+    tabId: 2,
+    onClick: () => {},
+    isActiveTab: false,
+  },
+];
+
+const migrationTab: LeftNavigationTab = {
+  icon: <MigrationIcon className={classes.icon} />,
+  tabName: 'resourceadm.left_nav_bar_migrate',
+  tabId: 3,
+  onClick: () => {},
+  isActiveTab: false,
+};
 
 /**
  * @component
@@ -88,6 +128,12 @@ export const ResourcePage = (): React.ReactNode => {
   useEffect(() => {
     setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
+
+  const getPageByIndex = (tabId: number): NavigationBarPage => {
+    if (tabId === 0) return 'about';
+    if (tabId === 1) return 'policy';
+    if (tabId === 2) return 'deploy';
+  };
 
   /**
    * Navigates to the selected page
@@ -176,14 +222,40 @@ export const ResourcePage = (): React.ReactNode => {
     return false;
   };
 
+  const getIsActiveTab = (tabId: number) => {
+    if (currentPage === 'about' && tabId === 0) return true;
+    if (currentPage === 'policy' && tabId === 1) return true;
+    if (currentPage === 'deploy' && tabId === 2) return true;
+    return false;
+  };
+
+  const getTabs = () => {
+    if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
+      leftNavigationTabs.push(migrationTab);
+    }
+    const tabs = leftNavigationTabs.map((tab: LeftNavigationTab) => ({
+      ...tab,
+      onClick: (tabId: number) => navigateToPage(getPageByIndex(tabId)),
+      isActiveTab: getIsActiveTab(tab.tabId),
+    }));
+
+    return tabs;
+  };
+
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
-        <LeftNavigationBar
+        {/*<LeftNavigationBar
           currentPage={currentPage}
           navigateToPage={navigateToPage}
           goBack={goBack}
           showMigrate={getShowMigrate()}
+        />*/}
+        <LeftNavigationBar
+          upperTab='backButton'
+          tabs={getTabs()}
+          onClickUpperTabBackButton={goBack}
+          backButtonText={t('resourceadm.left_nav_bar_back')}
         />
       </div>
       <div className={classes.resourcePageWrapper}>

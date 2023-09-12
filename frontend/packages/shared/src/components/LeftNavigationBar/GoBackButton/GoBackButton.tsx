@@ -3,16 +3,18 @@ import classes from './GoBackButton.module.css';
 import cn from 'classnames';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { Paragraph } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
 
 export type GoBackButtonProps = {
   navElementClassName: string;
   onClickBackButton: () => void;
+  backButtonText: string;
 };
 
-export const GoBackButton = ({ navElementClassName, onClickBackButton }: GoBackButtonProps) => {
-  const { t } = useTranslation();
-
+export const GoBackButton = ({
+  navElementClassName,
+  onClickBackButton,
+  backButtonText,
+}: GoBackButtonProps) => {
   return (
     <button
       className={cn(navElementClassName, classes.backButton)}
@@ -21,7 +23,7 @@ export const GoBackButton = ({ navElementClassName, onClickBackButton }: GoBackB
     >
       <ArrowLeftIcon className={classes.icon} />
       <Paragraph size='small' short className={classes.buttonText}>
-        {t('left_navigation_bar.back_button')}
+        {backButtonText}
       </Paragraph>
     </button>
   );
