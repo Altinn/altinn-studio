@@ -223,21 +223,33 @@ export const ResourcePage = (): React.ReactNode => {
   };
 
   /**
-   * Adds the onClick and isActive to the tabs. If the resource should
-   * show the migration page, the migration tab is added  as well.
+   * Gets the tabs to display. If showMigrate is true, the migration tab
+   * is added, otherwise it displays the three initial tabs.
+   *
+   * @returns the tabs to display in the LeftNavigationBar
    */
-  const getTabs = () => {
+  const getTabs = (): LeftNavigationTab[] => {
     if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
-      leftNavigationTabs.push(migrationTab);
+      return mapTabToIncludeMissingValues([...leftNavigationTabs, migrationTab]);
+    } else {
+      return mapTabToIncludeMissingValues(leftNavigationTabs);
     }
-    const tabs = leftNavigationTabs.map((tab: LeftNavigationTab) => ({
+  };
+
+  /**
+   * Adds the onClick, isActive, and maps the tabName for each tab.
+   *
+   * @param tabs the tabs to map
+   *
+   * @return the mapped tabs
+   */
+  const mapTabToIncludeMissingValues = (tabs: LeftNavigationTab[]): LeftNavigationTab[] => {
+    return tabs.map((tab: LeftNavigationTab) => ({
       ...tab,
       onClick: (tabId: number) => navigateToPage(getPageByIndex(tabId)),
       isActiveTab: getIsActiveTab(currentPage, tab.tabId),
       tabName: t(tab.tabName),
     }));
-
-    return tabs;
   };
 
   return (
