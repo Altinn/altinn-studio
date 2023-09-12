@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "node ./copy-files-to-dist.js",
+    "sort": "node ./sort-keys.js",
     "test": "jest"
   }
 }
