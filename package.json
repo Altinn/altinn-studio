@@ -81,7 +81,8 @@
     "whatwg-fetch": "3.6.18"
   },
   "lint-staged": {
-    "*{js,jsx,tsx,ts,css,md}": "yarn prettier -w"
+    "*{js,jsx,tsx,ts,css,md}": "yarn prettier -w",
+    "./frontend/language/src/*.json": "yarn run sort-texts"
   },
   "packageManager": "yarn@3.6.3",
   "private": true,
