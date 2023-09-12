@@ -29,7 +29,9 @@ import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { deleteNode } from '@altinn/schema-model';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
+import { LinkIcon, BulletListIcon, TabsIcon, ArrowUpIcon, TrashIcon,ArrowDownIcon } from '@navikt/aksel-icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -175,7 +177,7 @@ export const SchemaItemLabel = ({
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={t('schema_editor.add_reference')}
-            iconClass='fa fa-datamodel-ref'
+            icon={LinkIcon}    
           />
         )}
         {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
@@ -185,7 +187,7 @@ export const SchemaItemLabel = ({
             key='add_field'
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
             text={t('schema_editor.add_field')}
-            iconClass='fa fa-datamodel-properties'
+            icon={BulletListIcon}
           />
         )}
         {capabilties.includes(Capabilites.CanHaveCombinationAdded) && (
@@ -195,7 +197,7 @@ export const SchemaItemLabel = ({
             key='add_combination'
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
             text={t('schema_editor.add_combination')}
-            iconClass='fa fa-group'
+            icon={TabsIcon}
           />
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToReference) && (
@@ -205,7 +207,7 @@ export const SchemaItemLabel = ({
             key='convert-node-to-reference'
             onClick={handleConvertToReference}
             text={t('schema_editor.promote')}
-            iconClass='fa fa-arrowup'
+            icon={ArrowUpIcon}
           />
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToField) && (
@@ -215,7 +217,7 @@ export const SchemaItemLabel = ({
             key='convert-node-to-field'
             onClick={handleConvertToField}
             text={t('schema_editor.convert_to_field')}
-            iconClass='fa fa-arrowdown'
+            icon={ArrowDownIcon}
             disabled={true}
           />
         )}
@@ -242,7 +244,7 @@ export const SchemaItemLabel = ({
                   setIsConfirmDeleteDialogOpen((prevState) => !prevState);
                 }}
                 text={hasReferredNodes ? t('schema_editor.in_use_error') : t('schema_editor.delete')}
-                iconClass='fa fa-trash'
+                icon={TrashIcon}
                 disabled={hasReferredNodes}
               />
             }

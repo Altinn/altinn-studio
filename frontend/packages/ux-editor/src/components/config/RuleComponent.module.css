@@ -31,6 +31,10 @@
   font-weight: normal;
 }
 
+.configRulesIcon {
+  font-size: 2.25em;
+}
+
 .modalBodyContent {
   padding: 30px;
 }

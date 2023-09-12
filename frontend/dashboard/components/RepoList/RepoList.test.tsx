@@ -1,11 +1,12 @@
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, screen, render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { starredRepoMock } from '../../data-mocks/starredRepoMock';
 import { IRepoListProps, RepoList } from './RepoList';
 import { IRepository } from 'app-shared/types/global';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -53,5 +54,16 @@ describe('RepoList', () => {
     expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,
     });
+  });
+
+  test("Should render GridActionsCellItem", () => {
+   renderWithMockServices({
+      isLoading: false,
+      isServerSort: true,
+      rowCount: 5,
+    });
+    const gridActionsCellItem = within(screen.getByRole('menuitem', 
+    { name: textMock('dashboard.unstar') })).getByRole('img');
+    expect(gridActionsCellItem).toBeInTheDocument();
   });
 });
