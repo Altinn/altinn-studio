@@ -234,6 +234,7 @@ export const ResourcePage = (): React.ReactNode => {
       ...tab,
       onClick: (tabId: number) => navigateToPage(getPageByIndex(tabId)),
       isActiveTab: getIsActiveTab(currentPage, tab.tabId),
+      tabName: t(tab.tabName),
     }));
 
     return tabs;

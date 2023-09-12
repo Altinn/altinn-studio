@@ -5,12 +5,44 @@ import { GoBackButton } from './GoBackButton';
 import { Tab } from './Tab';
 
 export type LeftNavigationBarProps = {
+  /**
+   * List of navigation tabs
+   */
   tabs: LeftNavigationTab[];
+  /**
+   * The upper tab
+   */
   upperTab?: 'backButton' | 'searchField' | undefined;
+  /**
+   * Function to be executed on click upper tab back button
+   * @returns void
+   */
   onClickUpperTabBackButton?: () => void;
+  /**
+   * The text on the back button
+   */
   backButtonText?: string;
 };
 
+/**
+ * @component
+ *    Displays a navigation bar component to the left of the parent component.
+ *
+ * @example
+ *    <LeftNavigationBar
+ *        tabs={listOfTabsOfTypeLeftNavigationTab}
+ *        upperTab='backButton'
+ *        onClickUpperTabBackButton={goBack}
+ *        backButtonText={t('resourceadm.left_nav_bar_back')}
+ *    />
+ *
+ * @property {LeftNavigationBar[]}[tabs] - List of navigation tabs
+ * @property {'backButton' | 'searchField' | undefined}[upperTab] - The upper tab
+ * @property {function}[onClickUpperTabBackButton] - Function to be executed on click upper tab back button
+ * @property {string}[backButtonText] - The text on the back button
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const LeftNavigationBar = ({
   tabs,
   upperTab = undefined,

@@ -2,7 +2,6 @@ import React, { ReactNode } from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
-import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/design-system-react';
 
 export type TabProps = {
@@ -20,8 +19,6 @@ export const Tab = ({
   onBlur,
   onClick,
 }: TabProps): ReactNode => {
-  const { t } = useTranslation();
-
   return (
     <button
       className={cn(
@@ -34,7 +31,7 @@ export const Tab = ({
     >
       {tab.icon}
       <Paragraph size='small' short className={classes.buttonText}>
-        {t(tab.tabName)}
+        {tab.tabName}
       </Paragraph>
     </button>
   );
