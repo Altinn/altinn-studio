@@ -90,6 +90,7 @@
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "npm run lint --fix",
     "setup": "husky install && node development/setup.js",
+    "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",
     "start-app-preview": "yarn workspace app-preview start",
     "start-dashboard": "yarn workspace dashboard start",
