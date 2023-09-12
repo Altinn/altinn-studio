@@ -113,7 +113,7 @@ describe('ExpandablePolicyCard', () => {
 
     // Open the select
     const [actionSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_actions_select_add')
+      textMock('policy_editor.rule_card_actions_title')
     );
     await act(() => user.click(actionSelect));
 
@@ -137,7 +137,7 @@ describe('ExpandablePolicyCard', () => {
     ).not.toBeInTheDocument();
 
     // Expect the label with all selected to be present
-    const [inputAllSelected] = screen.getAllByLabelText(
+    const [inputAllSelected] = screen.getAllByText(
       textMock('policy_editor.rule_card_actions_select_all_selected')
     );
     expect(inputAllSelected).toBeInTheDocument();
@@ -163,7 +163,7 @@ describe('ExpandablePolicyCard', () => {
 
     // Open the select
     const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_select_add')
+      textMock('policy_editor.rule_card_subjects_title')
     );
     await act(() => user.click(subjectSelect));
 
@@ -187,7 +187,7 @@ describe('ExpandablePolicyCard', () => {
     ).not.toBeInTheDocument();
 
     // Expect the label with all selected to be present
-    const [inputAllSelected] = screen.getAllByLabelText(
+    const [inputAllSelected] = screen.getAllByText(
       textMock('policy_editor.rule_card_subjects_select_all_selected')
     );
     expect(inputAllSelected).toBeInTheDocument();
@@ -222,14 +222,14 @@ describe('ExpandablePolicyCard', () => {
     await act(() => user.tab());
 
     const [actionSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_actions_select_add')
+      textMock('policy_editor.rule_card_actions_title')
     );
     await act(() => user.click(actionSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockActionTitle3 })));
     await act(() => user.tab());
 
     const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_select_add')
+      textMock('policy_editor.rule_card_subjects_title')
     );
     await act(() => user.click(subjectSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockSubjectTitle2 })));
