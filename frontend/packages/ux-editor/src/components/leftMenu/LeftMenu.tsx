@@ -12,16 +12,20 @@ import { useSearchParams } from 'react-router-dom';
 import cn from 'classnames';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import {
+  selectedLayoutNameSelector,
+  selectedLayoutSetSelector,
+} from '../../selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { useLayoutSetsQuery } from "../../hooks/queries/useLayoutSetsQuery";
-import { LayoutSetsContainer } from "./LayoutSetsContainer";
+import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
+import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { ConfigureLayoutSetPanel } from "./ConfigureLayoutSetPanel";
+import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
 import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface LeftMenuProps {
   className?: string;
@@ -61,44 +65,33 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
 
   return (
     <div className={cn(className, classes.rightMenu)}>
-      <Accordion color="subtle">
-      {
-        true && (
+      <Accordion color='subtle'>
+        {shouldDisplayFeature('configureLayoutSet') && (
           <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
             <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
             <Accordion.Content>
-              {
-                layoutSetNames ? (
-                  <>
-                    <LayoutSetsContainer/>
-                    <div className={classes.addButton}>
-                      <Button
-                        icon={<PlusIcon/>}
-                        onClick={handleAddLayoutSet}
-                        size='small'
-                      >
-                        {t('left_menu.layout_sets_add')}
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <ConfigureLayoutSetPanel />
-                )
-              }
+              {layoutSetNames ? (
+                <>
+                  <LayoutSetsContainer />
+                  <div className={classes.addButton}>
+                    <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
+                      {t('left_menu.layout_sets_add')}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <ConfigureLayoutSetPanel />
+              )}
             </Accordion.Content>
           </Accordion.Item>
         )}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>
-            <PagesContainer/>
-            <ReceiptPageElement/>
+            <PagesContainer />
+            <ReceiptPageElement />
             <div className={classes.addButton}>
-              <Button
-                icon={<PlusIcon/>}
-                onClick={handleAddPage}
-                size='small'
-              >
+              <Button icon={<PlusIcon />} onClick={handleAddPage} size='small'>
                 {t('left_menu.pages_add')}
               </Button>
             </div>
@@ -107,7 +100,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
           <Accordion.Content>
-            {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+            {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>

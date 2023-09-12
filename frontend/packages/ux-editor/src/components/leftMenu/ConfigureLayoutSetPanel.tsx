@@ -30,11 +30,11 @@ export const ConfigureLayoutSetPanel = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const configPanelRef = useRef<HTMLDivElement>(null);
 
-  const handleConfigureLayoutSet = (): void => {
+  const handleConfigureLayoutSet = async (): Promise<void> => {
     if (layoutSetName === '') {
       setErrorMessage(t('left_menu.pages_error_empty'));
     } else {
-      configureLayoutSetMutation.mutate({ layoutSetName });
+      await configureLayoutSetMutation.mutateAsync({ layoutSetName });
     }
   };
 
