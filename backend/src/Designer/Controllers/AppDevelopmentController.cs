@@ -74,7 +74,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
@@ -228,7 +228,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName)
+        public async Task<IActionResult> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName)
         {
             try
             {
@@ -260,7 +260,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-sets")]
-        public async Task<ActionResult<JsonNode>> GetLayoutSets(string org, string app)
+        public async Task<IActionResult> GetLayoutSets(string org, string app)
         {
             try
             {
@@ -288,7 +288,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-sets")]
-        public async Task<ActionResult<LayoutSets>> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName)
+        public async Task<IActionResult> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName)
         {
             try
             {
