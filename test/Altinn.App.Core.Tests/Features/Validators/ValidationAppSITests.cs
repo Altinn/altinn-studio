@@ -101,10 +101,10 @@ public class ValidationAppSITests
         var appResourcesMock = new Mock<IAppResources>();
         var appMetadataMock = new Mock<IAppMetadata>();
         var objectModelValidatorMock = new Mock<IObjectModelValidator>();
-        var layoutEvaluatorStateInitializer = new LayoutEvaluatorStateInitializer(appResourcesMock.Object, Options.Create(new Configuration.FrontEndSettings()));
+        var layoutEvaluatorStateInitializer = new LayoutEvaluatorStateInitializer(appResourcesMock.Object, Microsoft.Extensions.Options.Options.Create(new Configuration.FrontEndSettings()));
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        var generalSettings = Options.Create(new Configuration.GeneralSettings());
-        var appSettings = Options.Create(new Configuration.AppSettings());
+        var generalSettings = Microsoft.Extensions.Options.Options.Create(new Configuration.GeneralSettings());
+        var appSettings = Microsoft.Extensions.Options.Options.Create(new Configuration.AppSettings());
 
         var validationAppSI = new ValidationAppSI(
             loggerMock.Object,

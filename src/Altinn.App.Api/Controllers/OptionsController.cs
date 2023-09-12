@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -46,6 +47,8 @@ namespace Altinn.App.Api.Controllers
                 return NotFound();
             }
 
+            HttpContext.Response.Headers.Add("Altinn-DownstreamParameters", appOptions.Parameters.ToNameValueString(','));
+
             return Ok(appOptions.Options);
         }
 
@@ -84,6 +87,8 @@ namespace Altinn.App.Api.Controllers
             {
                 return NotFound();
             }
+
+            HttpContext.Response.Headers.Add("Altinn-DownstreamParameters", appOptions.Parameters.ToNameValueString(','));
 
             return Ok(appOptions.Options);
         }

@@ -31,7 +31,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string org = "tdd";
             string app = "contributer-restriction";
             HttpClient client = GetRootedClient(org, app);
- 
+
             Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
             TestData.DeleteInstance(org, app, 1337, guid);
             TestData.PrepareInstance(org, app, 1337, guid);
@@ -53,6 +53,44 @@ namespace Altinn.App.Api.Tests.Controllers
             TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+        
+        [Fact]
+        public async Task CreateDataElement_ZeroBytes_BinaryPdf_AnalyserShouldReturnBadRequest()
+        {
+            OverrideServicesForThisTest = (services) =>
+            {
+                services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+                services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
+            };
+
+            // Setup test data
+            string org = "tdd";
+            string app = "contributer-restriction";
+            HttpClient client = GetRootedClient(org, app);
+ 
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestData.DeleteInstance(org, app, 1337, guid);
+            TestData.PrepareInstance(org, app, 1337, guid);
+
+            // Setup the request
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            ByteArrayContent fileContent = await CreateBinaryContent(org, app, "zero.pdf", "application/pdf");
+            string url = $"/{org}/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = fileContent
+            };
+
+            // This is where it happens
+            HttpResponseMessage response = await client.SendAsync(request);
+
+            // Cleanup testdata
+            TestData.DeleteInstanceAndData(org, app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("Invalid data provided. Error: The file is zero bytes.",response.Content.ReadAsStringAsync().Result);
         }
 
         [Fact]
@@ -161,7 +199,7 @@ namespace Altinn.App.Api.Tests.Controllers
             {
                 ValidationIssue error = new()
                 {
-                    Source = "File",
+                    Source = ValidationIssueSources.File,
                     Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                     Severity = ValidationIssueSeverity.Error,
                     Description = $"The {fileMimeTypeResult?.Filename + " "}file does not appear to be of the allowed content type according to the configuration for data type {dataType.Id}. Allowed content types are {string.Join(", ", dataType.AllowedContentTypes)}"

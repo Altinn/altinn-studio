@@ -52,5 +52,11 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonIgnore]
         [Newtonsoft.Json.JsonIgnore]
         public AppIdentifier AppIdentifier { get; private set; }
+
+        /// <summary>
+        /// Configure options for setting organisation logo
+        /// </summary>
+        [JsonProperty(PropertyName = "logo")]
+        public Logo? Logo { get; set; }
     }
 }
