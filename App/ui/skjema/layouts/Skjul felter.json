@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav-bar2",
+        "type": "NavigationBar"
+      },
+      {
         "id": "tittel",
         "type": "Header",
         "size": "L",

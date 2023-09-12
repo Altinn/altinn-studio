@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav-bar",
+        "type": "NavigationBar"
+      },
+      {
         "id": "tittel",
         "type": "Header",
         "size": "L",
@@ -15,10 +19,7 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "fornavn"
         ],
         "dataModelBindings": {
@@ -39,10 +40,7 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "etternavn"
         ],
         "dataModelBindings": {
@@ -63,10 +61,7 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "alder"
         ],
         "dataModelBindings": {
@@ -77,9 +72,7 @@
           "title": "CV.alder.title"
         },
         "autocomplete": "off",
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "formatting": {
           "number": {
             "allowNegative": false,
@@ -96,10 +89,7 @@
         "type": "Dropdown",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "kjonn"
         ],
         "dataModelBindings": {
@@ -107,9 +97,7 @@
         },
         "required": true,
         "optionsId": "kjønn",
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "textResourceBindings": {
           "title": "CV.kj.title"
         },
@@ -123,10 +111,7 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "epost"
         ],
         "dataModelBindings": {
@@ -136,9 +121,7 @@
         "textResourceBindings": {
           "title": "CV.e-post.title"
         },
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "autocomplete": "email",
         "grid": {
           "xs": 12,
@@ -150,10 +133,7 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "telefon"
         ],
         "dataModelBindings": {
@@ -164,9 +144,7 @@
           "title": "CV.telefon.title"
         },
         "autocomplete": "tel",
-        "triggers": [
-          "validation"
-        ],
+        "triggers": ["validation"],
         "formatting": {
           "number": {
             "format": "+47 ### ## ###"
@@ -182,10 +160,7 @@
         "type": "Dropdown",
         "hidden": [
           "commaContains",
-          [
-            "dataModel",
-            "root.SF_skjul-felter"
-          ],
+          ["dataModel", "root.SF_skjul-felter"],
           "bosted"
         ],
         "dataModelBindings": {
@@ -218,18 +193,18 @@
           "dato-fra",
           "dato-til"
         ],
-        "triggers": [
-          "validateRow"
-        ],
+        "triggers": ["validateRow"],
         "hiddenRow": [
-          "equals",
+          "and",
           [
-            "dataModel",
-            "root.arbeidserfaring.stilling"
+            "equals",
+            ["dataModel", "root.arbeidserfaring.stilling"],
+            ["dataModel", "root.SF_skjul-arbeidsgiver"]
           ],
           [
-            "dataModel",
-            "root.SF_skjul-arbeidsgiver"
+            "greaterThan",
+            ["stringLength", ["dataModel", "root.SF_skjul-arbeidsgiver"]],
+            0
           ]
         ],
         "maxCount": 99,
@@ -312,25 +287,20 @@
       {
         "id": "prosjekter",
         "type": "Group",
-        "children": [
-          "prosjekt-tittel",
-          "prosjekt-beskrivelse"
-        ],
-        "tableHeaders": [
-          "prosjekt-tittel"
-        ],
-        "triggers": [
-          "validateRow"
-        ],
+        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
+        "tableHeaders": ["prosjekt-tittel"],
+        "triggers": ["validateRow"],
         "hiddenRow": [
-          "equals",
+          "and",
           [
-            "dataModel",
-            "root.arbeidserfaring.prosjekter.tittel"
+            "equals",
+            ["dataModel", "root.arbeidserfaring.prosjekter.tittel"],
+            ["dataModel", "root.SF_skjul-prosjekt"]
           ],
           [
-            "dataModel",
-            "root.SF_skjul-prosjekt"
+            "greaterThan",
+            ["stringLength", ["dataModel", "root.SF_skjul-prosjekt"]],
+            0
           ]
         ],
         "maxCount": 99,
@@ -366,10 +336,7 @@
       {
         "id": "button-group",
         "type": "ButtonGroup",
-        "children": [
-          "nav",
-          "send-inn"
-        ]
+        "children": ["nav", "send-inn"]
       },
       {
         "id": "nav",
@@ -377,6 +344,7 @@
         "componentType": "NavigationButtons",
         "dataModelBindings": {},
         "showBackButton": true,
+        "triggers": ["validatePage"],
         "textResourceBindings": {
           "next": "CV.nav.next",
           "back": "CV.nav.back"
