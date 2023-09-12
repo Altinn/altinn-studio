@@ -62,10 +62,6 @@
   gap: 16px;
   justify-content: flex-end;
   flex: 3;
-  --component-button-quiet-primary-color-background-default: none;
-  --component-button-quiet-primary-color-border-default: none;
-  --component-button-quiet-primary-color-border-hover: #004e95;
-  --component-button-quiet-primary-color-text-default: #ffffff;
 }
 
 /* Overriding this style because it is hardcoded in the design system */
