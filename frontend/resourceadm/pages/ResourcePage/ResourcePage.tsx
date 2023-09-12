@@ -27,7 +27,7 @@ import {
   UploadIcon,
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-// import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
+import { getIsActiveTab } from 'resourceadm/utils/resourceUtils';
 
 const leftNavigationTabs: LeftNavigationTab[] = [
   {
@@ -222,13 +222,10 @@ export const ResourcePage = (): React.ReactNode => {
     return false;
   };
 
-  const getIsActiveTab = (tabId: number) => {
-    if (currentPage === 'about' && tabId === 0) return true;
-    if (currentPage === 'policy' && tabId === 1) return true;
-    if (currentPage === 'deploy' && tabId === 2) return true;
-    return false;
-  };
-
+  /**
+   * Adds the onClick and isActive to the tabs. If the resource should
+   * show the migration page, the migration tab is added  as well.
+   */
   const getTabs = () => {
     if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
       leftNavigationTabs.push(migrationTab);
@@ -236,7 +233,7 @@ export const ResourcePage = (): React.ReactNode => {
     const tabs = leftNavigationTabs.map((tab: LeftNavigationTab) => ({
       ...tab,
       onClick: (tabId: number) => navigateToPage(getPageByIndex(tabId)),
-      isActiveTab: getIsActiveTab(tab.tabId),
+      isActiveTab: getIsActiveTab(currentPage, tab.tabId),
     }));
 
     return tabs;
@@ -245,12 +242,6 @@ export const ResourcePage = (): React.ReactNode => {
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
-        {/*<LeftNavigationBar
-          currentPage={currentPage}
-          navigateToPage={navigateToPage}
-          goBack={goBack}
-          showMigrate={getShowMigrate()}
-        />*/}
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}

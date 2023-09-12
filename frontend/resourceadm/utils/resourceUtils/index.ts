@@ -2,5 +2,6 @@ export {
   getResourcePageTextfieldError,
   convertResourceTypeToDisplayString,
   mapLanguageKeyToLanguageText,
-  getMissingInputLanguageString
-} from './resourceUtils'
+  getMissingInputLanguageString,
+  getIsActiveTab,
+} from './resourceUtils';

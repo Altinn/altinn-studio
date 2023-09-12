@@ -5,7 +5,7 @@ import type {
   ResourceAvailableForTypeOption,
   ResourceKeyword,
 } from 'app-shared/types/ResourceAdm';
-import { SupportedLanguage } from 'resourceadm/types/global';
+import { NavigationBarPage, SupportedLanguage } from 'resourceadm/types/global';
 
 /**
  * The map of resource type
@@ -132,4 +132,20 @@ export const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): s
 };
 export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
   return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
+};
+
+/**
+ * Gets the status for if a tab is active or not based on the
+ * current page and the tabs id.
+ *
+ * @param currentPage the currently selected tab
+ * @param tabId the id of the tab to check
+ *
+ * @returns if the tab is active or not
+ */
+export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: number): boolean => {
+  if (currentPage === 'about' && tabId === 0) return true;
+  if (currentPage === 'policy' && tabId === 1) return true;
+  if (currentPage === 'deploy' && tabId === 2) return true;
+  return false;
 };
