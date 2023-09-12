@@ -1,4 +1,5 @@
 import React from 'react';
+import { shallowEqual } from 'react-redux';
 
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
@@ -9,13 +10,14 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
-import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
+import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations } from 'src/types';
+import { getNextView } from 'src/utils/formLayout';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutNavigation } from 'src/layout/common.generated';
-import type { INavigationConfig } from 'src/types';
+import type { IRuntimeState } from 'src/types';
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
@@ -28,29 +30,20 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
 
   const keepScrollPos = useAppSelector((state) => state.formLayout.uiConfig.keepScrollPos);
 
-  const [disableBack, setDisableBack] = React.useState<boolean>(false);
-  const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const orderedLayoutKeys = useAppSelector(selectLayoutOrder);
   const returnToView = useAppSelector((state) => state.formLayout.uiConfig.returnToView);
   const pageTriggers = useAppSelector((state) => state.formLayout.uiConfig.pageTriggers);
-  const { next, previous } = useAppSelector((state) =>
-    getNavigationConfigForCurrentView(
-      state.formLayout.uiConfig.navigationConfig,
-      state.formLayout.uiConfig.currentView,
-    ),
-  );
+  const { next, previous } = useAppSelector((state) => getNavigationConfigForCurrentView(state), shallowEqual);
   const activeTriggers = triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
 
   const parentIsPage = node.parent instanceof LayoutPage;
 
-  React.useEffect(() => {
-    const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
-    setDisableBack(!!returnToView || (!previous && currentViewIndex === 0));
-    setDisableNext(!returnToView && !next && currentViewIndex === (orderedLayoutKeys?.length || 0) - 1);
-  }, [currentView, orderedLayoutKeys, next, previous, returnToView]);
+  const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
+  const disableBack = !!returnToView || (!previous && currentViewIndex === 0);
+  const disableNext = !returnToView && !next && currentViewIndex === (orderedLayoutKeys?.length || 0) - 1;
 
   const onClickPrevious = () => {
     const goToView = previous || (orderedLayoutKeys && orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) - 1]);
@@ -145,14 +138,14 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   );
 }
 
-function getNavigationConfigForCurrentView(
-  navigationConfig: INavigationConfig | undefined,
-  currentView: string,
-): ILayoutNavigation {
-  const out = navigationConfig && navigationConfig[currentView];
-  if (out) {
-    return out;
-  }
+function getNavigationConfigForCurrentView(state: IRuntimeState): ILayoutNavigation {
+  const currentView = state.formLayout.uiConfig.currentView;
+  const navConfig =
+    state.formLayout.uiConfig.navigationConfig && state.formLayout.uiConfig.navigationConfig[currentView];
+  const order = getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks);
 
-  return {};
+  return {
+    previous: getNextView(navConfig, order, currentView, true),
+    next: getNextView(navConfig, order, currentView),
+  };
 }
