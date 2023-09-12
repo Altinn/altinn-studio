@@ -227,7 +227,7 @@ export const formLayoutSlice = () => {
           },
         }),
         updateRepeatingGroupsEditIndex: mkAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>({
-          takeLatest: updateRepeatingGroupEditIndexSaga,
+          takeEvery: updateRepeatingGroupEditIndexSaga,
           reducer: (state, action) => {
             const { group } = action.payload;
             if (state.uiConfig.repeatingGroups && state.uiConfig.repeatingGroups[group]) {
