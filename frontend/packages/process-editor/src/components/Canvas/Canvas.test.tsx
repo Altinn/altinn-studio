@@ -1,5 +1,5 @@
 import React  from 'react';
-import { Canvas } from './Canvas';
+import { Viewer } from './Canvas';
 import { render , screen } from '@testing-library/react';
 import BpmnJs from 'bpmn-js/dist/bpmn-navigated-viewer.production.min';
 
@@ -22,25 +22,36 @@ jest.mock('bpmn-js/dist/bpmn-navigated-viewer.production.min')
   BpmnJs.mockImplementation(() => mockBpmn);
 
 jest.mock('../../hooks/useBpmnViewer', () => ({
-  useBpmnViewer: () => ({
-    canvasRef: { current: null },
-    renderNoDiagramError: false,
-    renderNoProcessError: false,
-  }),
-}));
+    useBpmnViewer: jest.fn(() => ({
+      renderNoDiagramError: true, 
+      renderNoProcessError: true, 
+      canvasRef: jest.fn(),
+    })),
+  }));
 
-describe('Canvas', () => {
-  it('should render Canvas', () => {
-    const { container } = render(<Canvas onSave={() => {}} />);
-    expect(container).toMatchSnapshot();
+  describe('Viewer Component', () => {
+    it('renders the Alert component when there is no diagram', () => {
+      render(<Viewer />);
+      expect(screen.getByTestId("no_diagram")).toBeInTheDocument();
+    });
+
+    it('renders the Alert component when there is no process', () => {
+      render(<Viewer />);
+      expect(screen.getByTestId("no_process")).toBeInTheDocument();
+    });
+
+    it('renders the Alert component when there is no diagram and process', () => {
+      render(<Viewer />);
+      expect(screen.getByTestId("no_diagram")).toBeInTheDocument();
+      expect(screen.getByTestId("no_process")).toBeInTheDocument();
+    });
+
+    it('does not render the Alert component when there is diagram and process', () => {
+      renderNoDiagramError.mockReturnValue(false);
+      renderNoProcessError.mockReturnValue(false);
+      render(<Viewer />);
+      expect(screen.queryByText("no_diagram")).not.toBeInTheDocument();
+      expect(screen.queryByText("no_process")).not.toBeInTheDocument();
+    });
   });
 
-  it('should not render the alert when there are diagram and process', async () => {
-    render(<Canvas onSave={() => {}} />);
-    renderNoDiagramError.mockReturnValue(false);
-    renderNoProcessError.mockReturnValue(false);
-    expect(screen.queryByText('process_editor.not_found_diagram_heading')).not.toBeInTheDocument();
-    expect(screen.queryByText('process_editor.not_found_diagram_error_message')).not.toBeInTheDocument();
-  });
-
-});

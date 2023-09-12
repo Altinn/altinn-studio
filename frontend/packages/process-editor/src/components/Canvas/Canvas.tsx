@@ -43,7 +43,7 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
 };
 
 // Below is helper components for Canvas.tsx
-const Viewer = (): JSX.Element => {
+export const Viewer = (): JSX.Element => {
   const { t } = useTranslation();
   const { canvasRef, renderNoDiagramError, renderNoProcessError } = useBpmnViewer();
   return (
@@ -51,11 +51,11 @@ const Viewer = (): JSX.Element => {
   {(renderNoDiagramError || renderNoProcessError) && ( 
   <div className={classes.alert} >
    <Alert severity="warning">
-    <Heading size='small'>
+    <Heading size='small' data-testid={"no_diagram"}>
       {renderNoDiagramError && (t("process_editor.not_found_diagram_heading"))}  
       {renderNoProcessError && (t("process_editor.not_found_process_heading"))}
     </Heading>
-    <Paragraph className={classes.paragraph}> 
+    <Paragraph className={classes.paragraph} data-testid={"no_process"}> 
       {renderNoDiagramError && (<Trans i18nKey={'process_editor.not_found_diagram_error_message'} components={{ a: <Link>her</Link> }}/>)}  
       {renderNoProcessError && (<Trans i18nKey={"process_editor.not_found_process_error_message"} components={{ a: <Link>her</Link> }}/>)}
     </Paragraph>

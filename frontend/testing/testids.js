@@ -11,3 +11,5 @@ export const searchReposField = 'repos-search-field';
 export const typeItem = pointer => `type-item-${pointer}`;
 export const userMenuItem = 'user-menu-item';
 export const versionControlHeader = 'version-control-header';
+export const NoDiagramErrorMessage = 'no_diagram';
+export const NoProcessErrorMessage = 'no_process';
