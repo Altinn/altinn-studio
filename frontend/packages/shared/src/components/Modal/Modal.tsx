@@ -59,7 +59,6 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps): ReactNo
     <ReactModal
       isOpen={isOpen}
       onRequestClose={onClose}
-      ariaHideApp={false}
       className={classes.modal}
       overlayClassName={classes.modalOverlay}
     >
