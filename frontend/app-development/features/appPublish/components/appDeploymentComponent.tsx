@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import { Table, TableRow, TableHeader, TableCell, TableBody, Link } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useTranslation, Trans } from 'react-i18next';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 
 import type {
   ICreateAppDeploymentErrors,
@@ -136,7 +137,7 @@ export const AppDeploymentComponent = ({
           {!deployPermission && (
             <div className={classes.deployStatusGridContainer}>
               <div className={classes.deploySpinnerGridItem}>
-                <AltinnIcon iconClass='fa fa-info-circle' iconColor='#000' iconSize='3.6rem' />
+                <InformationSquareFillIcon/> 
               </div>
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
