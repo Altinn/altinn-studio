@@ -40,6 +40,36 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "Vedlegg",
+      "allowedContentTypes": [
+        "application/pdf",
+        "image/png",
+        "image/jpeg"
+      ],
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 10,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "vedlegg-cv",
+      "allowedContentTypes": [],
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 10,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {

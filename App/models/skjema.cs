@@ -78,6 +78,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("SF_skjul-prosjekt")]
     public string SF_skjulprosjekt { get; set; }
 
+    [XmlElement("vedlegg", Order = 12)]
+    [JsonProperty("vedlegg")]
+    [JsonPropertyName("vedlegg")]
+    public List<string> vedlegg { get; set; }
+
   }
 
   public class arbeidserfaring
@@ -111,6 +116,11 @@ namespace Altinn.App.Models
     [JsonProperty("prosjekter")]
     [JsonPropertyName("prosjekter")]
     public List<prosjekter> prosjekter { get; set; }
+
+    [XmlElement("vedlegg", Order = 7)]
+    [JsonProperty("vedlegg")]
+    [JsonPropertyName("vedlegg")]
+    public List<string> vedlegg { get; set; }
 
   }
 

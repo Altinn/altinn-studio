@@ -70,6 +70,12 @@
                     }
                   }
                 }
+              },
+              "vedlegg": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -95,6 +101,12 @@
         },
         "SF_skjul-prosjekt": {
           "type": "string"
+        },
+        "vedlegg": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }

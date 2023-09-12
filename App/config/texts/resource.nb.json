@@ -116,6 +116,30 @@
     {
       "id": "Skjul_felter.nav2.back",
       "value": "Forrige"
+    },
+    {
+      "id": "CV.Vedlegg.title",
+      "value": "Vedlegg"
+    },
+    {
+      "id": "CV.Vedlegg.description",
+      "value": "Last opp sertifiseringer og kursbevis du har tatt iløpet av ansettelsestiden"
+    },
+    {
+      "id": "CV.Vedlegg.tagTitle",
+      "value": "Dokumenttype"
+    },
+    {
+      "id": "CV.vedlegg-cv.title",
+      "value": "Vedlegg"
+    },
+    {
+      "id": "CV.vedlegg-cv.description",
+      "value": "Last opp søknadsbrev, motivasjonsbrev, og vitnemål"
+    },
+    {
+      "id": "CV.vedlegg-cv.tagTitle",
+      "value": "Dokumenttype"
     }
   ]
 }

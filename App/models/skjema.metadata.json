@@ -324,6 +324,28 @@
       "JsonSchemaPointer": "/properties/root/properties/arbeidserfaring/properties/prosjekter/properties/beskrivelse",
       "DisplayString": "skjema.root.arbeidserfaring.prosjekter.beskrivelse : [0..1] String"
     },
+    "skjema.root.arbeidserfaring.vedlegg": {
+      "ID": "skjema.root.arbeidserfaring.vedlegg",
+      "ParentElement": "skjema.root.arbeidserfaring",
+      "TypeName": "vedlegg",
+      "Name": "vedlegg",
+      "DataBindingName": "root.arbeidserfaring.vedlegg",
+      "XPath": "/skjema/root/arbeidserfaring/vedlegg",
+      "Restrictions": {},
+      "Type": 0,
+      "XsdValueType": 0,
+      "Texts": {},
+      "CustomProperties": {},
+      "MaxOccurs": 99999,
+      "MinOccurs": 0,
+      "XName": "vedlegg",
+      "IsTagContent": false,
+      "FixedValue": null,
+      "IsReadOnly": false,
+      "XmlSchemaXPath": null,
+      "JsonSchemaPointer": "/properties/root/properties/arbeidserfaring/properties/vedlegg",
+      "DisplayString": "skjema.root.arbeidserfaring.vedlegg : [0..99999] Array"
+    },
     "skjema.root.epost": {
       "ID": "skjema.root.epost",
       "ParentElement": "skjema.root",
@@ -477,6 +499,28 @@
       "XmlSchemaXPath": null,
       "JsonSchemaPointer": "/properties/root/properties/SF_skjul-prosjekt",
       "DisplayString": "skjema.root.SF_skjulprosjekt : [0..1] String"
+    },
+    "skjema.root.vedlegg": {
+      "ID": "skjema.root.vedlegg",
+      "ParentElement": "skjema.root",
+      "TypeName": "vedlegg",
+      "Name": "vedlegg",
+      "DataBindingName": "root.vedlegg",
+      "XPath": "/skjema/root/vedlegg",
+      "Restrictions": {},
+      "Type": 0,
+      "XsdValueType": 0,
+      "Texts": {},
+      "CustomProperties": {},
+      "MaxOccurs": 99999,
+      "MinOccurs": 0,
+      "XName": "vedlegg",
+      "IsTagContent": false,
+      "FixedValue": null,
+      "IsReadOnly": false,
+      "XmlSchemaXPath": null,
+      "JsonSchemaPointer": "/properties/root/properties/vedlegg",
+      "DisplayString": "skjema.root.vedlegg : [0..99999] Array"
     }
   }
 }

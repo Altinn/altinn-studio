@@ -30,6 +30,7 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="vedlegg" type="xs:string" />
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -40,6 +41,7 @@
               <xs:element minOccurs="0" name="SF_skjul-felter" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-arbeidsgiver" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-prosjekt" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="vedlegg" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

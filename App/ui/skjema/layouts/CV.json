@@ -19,7 +19,10 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "fornavn"
         ],
         "dataModelBindings": {
@@ -40,7 +43,10 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "etternavn"
         ],
         "dataModelBindings": {
@@ -61,7 +67,10 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "alder"
         ],
         "dataModelBindings": {
@@ -72,7 +81,9 @@
           "title": "CV.alder.title"
         },
         "autocomplete": "off",
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "formatting": {
           "number": {
             "allowNegative": false,
@@ -89,7 +100,10 @@
         "type": "Dropdown",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "kjonn"
         ],
         "dataModelBindings": {
@@ -97,7 +111,9 @@
         },
         "required": true,
         "optionsId": "kjønn",
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "textResourceBindings": {
           "title": "CV.kj.title"
         },
@@ -111,7 +127,10 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "epost"
         ],
         "dataModelBindings": {
@@ -121,7 +140,9 @@
         "textResourceBindings": {
           "title": "CV.e-post.title"
         },
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "autocomplete": "email",
         "grid": {
           "xs": 12,
@@ -133,7 +154,10 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "telefon"
         ],
         "dataModelBindings": {
@@ -144,7 +168,9 @@
           "title": "CV.telefon.title"
         },
         "autocomplete": "tel",
-        "triggers": ["validation"],
+        "triggers": [
+          "validation"
+        ],
         "formatting": {
           "number": {
             "format": "+47 ### ## ###"
@@ -160,7 +186,10 @@
         "type": "Dropdown",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "bosted"
         ],
         "dataModelBindings": {
@@ -177,6 +206,23 @@
         }
       },
       {
+        "id": "vedlegg-cv",
+        "type": "FileUploadWithTag",
+        "description": "",
+        "displayMode": "list",
+        "hasCustomFileEndings": false,
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 10,
+        "minNumberOfAttachments": 0,
+        "optionsId": "applicationdocs",
+        "textResourceBindings": {
+          "title": "CV.vedlegg-cv.title",
+          "description": "CV.vedlegg-cv.description",
+          "tagTitle": "CV.vedlegg-cv.tagTitle"
+        },
+        "required": false
+      },
+      {
         "id": "arbeidserfaring",
         "type": "Group",
         "children": [
@@ -185,6 +231,7 @@
           "dato-til",
           "erfaring-stilling",
           "erfaring-beskrivelse",
+          "Vedlegg",
           "prosjekter"
         ],
         "tableHeaders": [
@@ -193,17 +240,31 @@
           "dato-fra",
           "dato-til"
         ],
-        "triggers": ["validateRow"],
+        "triggers": [
+          "validateRow"
+        ],
         "hiddenRow": [
           "and",
           [
             "equals",
-            ["dataModel", "root.arbeidserfaring.stilling"],
-            ["dataModel", "root.SF_skjul-arbeidsgiver"]
+            [
+              "dataModel",
+              "root.arbeidserfaring.stilling"
+            ],
+            [
+              "dataModel",
+              "root.SF_skjul-arbeidsgiver"
+            ]
           ],
           [
             "greaterThan",
-            ["stringLength", ["dataModel", "root.SF_skjul-arbeidsgiver"]],
+            [
+              "stringLength",
+              [
+                "dataModel",
+                "root.SF_skjul-arbeidsgiver"
+              ]
+            ],
             0
           ]
         ],
@@ -285,21 +346,58 @@
         }
       },
       {
+        "id": "Vedlegg",
+        "type": "FileUploadWithTag",
+        "description": "",
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 10,
+        "minNumberOfAttachments": 0,
+        "optionsId": "cert",
+        "textResourceBindings": {
+          "title": "CV.Vedlegg.title",
+          "description": "CV.Vedlegg.description",
+          "tagTitle": "CV.Vedlegg.tagTitle"
+        },
+        "validFileEndings": ".pdf, .png, .jpg",
+        "required": false
+      },
+      {
         "id": "prosjekter",
         "type": "Group",
-        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
-        "tableHeaders": ["prosjekt-tittel"],
-        "triggers": ["validateRow"],
+        "children": [
+          "prosjekt-tittel",
+          "prosjekt-beskrivelse"
+        ],
+        "tableHeaders": [
+          "prosjekt-tittel"
+        ],
+        "triggers": [
+          "validateRow"
+        ],
         "hiddenRow": [
           "and",
           [
             "equals",
-            ["dataModel", "root.arbeidserfaring.prosjekter.tittel"],
-            ["dataModel", "root.SF_skjul-prosjekt"]
+            [
+              "dataModel",
+              "root.arbeidserfaring.prosjekter.tittel"
+            ],
+            [
+              "dataModel",
+              "root.SF_skjul-prosjekt"
+            ]
           ],
           [
             "greaterThan",
-            ["stringLength", ["dataModel", "root.SF_skjul-prosjekt"]],
+            [
+              "stringLength",
+              [
+                "dataModel",
+                "root.SF_skjul-prosjekt"
+              ]
+            ],
             0
           ]
         ],
@@ -336,7 +434,10 @@
       {
         "id": "button-group",
         "type": "ButtonGroup",
-        "children": ["nav", "send-inn"]
+        "children": [
+          "nav",
+          "send-inn"
+        ]
       },
       {
         "id": "nav",
@@ -344,7 +445,9 @@
         "componentType": "NavigationButtons",
         "dataModelBindings": {},
         "showBackButton": true,
-        "triggers": ["validatePage"],
+        "triggers": [
+          "validatePage"
+        ],
         "textResourceBindings": {
           "next": "CV.nav.next",
           "back": "CV.nav.back"
