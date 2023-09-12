@@ -1,8 +1,9 @@
 .modal {
   --modal-min-size: 320px;
-  --modal-max-size: 80%;
+  --modal-max-size: 80vh;
   --modal-position: 50%;
   --modal-translate: calc(var(--modal-position) * -1);
+  --heading-height: 60px;
 
   max-width: var(--modal-max-size);
   min-width: var(--modal-min-size);
@@ -32,10 +33,19 @@
 
 .headingWrapper {
   border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  height: var(--heading-height);
+  position: sticky;
+  top: 0;
+  background-color: var(--fds-semantic-background-default);
+}
+
+.contentWrapper {
+  max-height: calc(var(--modal-max-size) - var(--heading-height));
+  overflow-y: auto;
 }
 
 .closeButtonWrapper {
   position: absolute;
-  top: 0.5rem;
+  top: -0.5rem;
   right: 0.5rem;
 }
