@@ -3,8 +3,7 @@
 
 /* Font */
 :root {
-  font-family: 'Altinn-DIN', sans-serif; /* Remove in v4 */
-  /* font-family: 'Inter', sans-serif; */ /* Uncomment in v4 */
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: normal;
   line-height: 1.5;
@@ -12,15 +11,14 @@
   color: var(--semantic-text-neutral-default);
 }
 
-/* Uncomment in v4 */
-/* @supports (font-variation-settings: normal) { */
-/*   :root { */
-/*     font-family: 'Inter var', sans-serif; */
-/*   } */
-/*   * { */
-/*     font-feature-settings: 'cv05'; */
-/*   } */
-/* } */
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: 'Inter var', sans-serif;
+  }
+  * {
+    font-feature-settings: 'cv05';
+  }
+}
 
 /* Override design system variables */
 * {
