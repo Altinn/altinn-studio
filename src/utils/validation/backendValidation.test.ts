@@ -32,18 +32,6 @@ describe('backendValidation', () => {
         expected: false,
       },
       {
-        /* Legacy required validation issue, remove in v4 assuming a minimum backend version is required */
-        props: [
-          {
-            code: 'required',
-            severity: 1,
-            description: 'skjema.navn is required in component with id navn',
-            field: 'skjema.navn',
-          } as BackendValidationIssue,
-        ],
-        expected: true,
-      },
-      {
         props: [
           {
             code: 'required',

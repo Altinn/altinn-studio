@@ -29,21 +29,6 @@ export enum ValidationIssueSources {
  * We need to ignore these to prevent duplicate errors.
  */
 export function shouldExcludeValidationIssue(issue: BackendValidationIssue): boolean {
-  /*
-   * Legacy required validation detection
-   * Remove this condition in v4, assuming that a minimum backend version is required.
-   */
-  if (issue.code == 'required' && issue.code != issue.description) {
-    // Ignore required validations from backend. They will be duplicated by frontend running the same logic.
-    // verify that code != description because user validations always have code == description
-    // and we don't want issues in case someone wants to set additional required validations in backend
-    // and uses "required" as a key.
-
-    // Using "required" as key will likeliy be OK in the future, if we manage to inteligently deduplicate
-    // errors with a shared code. (eg, only display one error with code "required" per component)
-    return true;
-  }
-
   if (issue.source === ValidationIssueSources.Required) {
     // Required validations are handled by the frontend.
     return true;
