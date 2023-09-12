@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
         run: |
-           dotnet build backend/Designer.sln -v m
+           dotnet build backend/Designer.sln -v m -nodereuse:false
       - name: Test
         run: |
-           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v n --no-build --blame-hang-timeout 150sec
+           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v n --no-build -nodereuse:false
