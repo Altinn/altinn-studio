@@ -38,7 +38,7 @@
           "$ref": "#/definitions/excludeFromPdf"
         },
         "triggers": {
-          "$ref": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json#/definitions/triggers",
+          "$ref": "layout.schema.v1.json#/definitions/TriggerList",
           "title": "Triggers",
           "description": "Triggers that apply for all navigation components across all pages. Can be overrided at the component level."
         },
