@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { RightMenu } from '../components/rightMenu/RightMenu';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -17,38 +15,45 @@ import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { ErrorPage } from '../components/ErrorPage';
 import { PageSpinner } from 'app-shared/components';
-import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 
 export interface FormDesignerProps {
   selectedLayout: string;
   selectedLayoutSet: string | undefined;
 }
 
-export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesignerProps): JSX.Element => {
+export const FormDesigner = ({
+  selectedLayout,
+  selectedLayoutSet,
+}: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
+    org,
+    app,
+    selectedLayoutSet
+  );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-  const layoutOrder = useMemo(() => formLayouts?.[selectedLayout]?.order || {}, [formLayouts, selectedLayout]);
+  const layoutOrder = useMemo(
+    () => formLayouts?.[selectedLayout]?.order || {},
+    [formLayouts, selectedLayout]
+  );
   const t = useText();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const formLayoutIsReady =
-    instanceId &&
-    formLayouts &&
-    formLayoutSettings &&
-    ruleModel &&
-    isRuleConfigFetched;
+    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -56,13 +61,13 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
 
     const createErrorMessage = (resource: string): { title: string; message: string } => ({
       title: `${defaultTitle} ${resource}`,
-      message: defaultMessage
+      message: defaultMessage,
     });
 
     if (layoutFetchedError) {
       return createErrorMessage(t('general.layout'));
     }
-  }
+  };
 
   /**
    * Set the correct selected layout based on url parameters
@@ -78,7 +83,6 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);
-
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -96,12 +100,12 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message}/>;
+    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {
     return (
-      <DndProvider backend={HTML5Backend}>
+      <DragAndDrop.Provider rootId={BASE_CONTAINER_ID}>
         <div className={classes.root}>
           <div className={classes.container}>
             <LeftMenu className={classes.leftContent + ' ' + classes.item} />
@@ -111,7 +115,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
             </FormContextProvider>
           </div>
         </div>
-      </DndProvider>
+      </DragAndDrop.Provider>
     );
   }
   return <PageSpinner />;
