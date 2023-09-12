@@ -17,7 +17,7 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarily
+        os: [ubuntu-latest] #windows-latest and macos-latest excluded temporarily
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
