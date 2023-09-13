@@ -12,7 +12,7 @@ export type LeftNavigationBarProps = {
   /**
    * The upper tab
    */
-  upperTab?: 'backButton' | 'searchField' | undefined;
+  upperTab?: 'backButton' | undefined;
   /**
    * Function to be executed on click upper tab back button
    * @returns void
@@ -63,15 +63,11 @@ export const LeftNavigationBar = ({
     if (upperTab === 'backButton' && onClickUpperTabBackButton && backButtonText) {
       return (
         <GoBackButton
-          navElementClassName={classes.navigationElement}
-          onClickBackButton={onClickUpperTabBackButton}
-          backButtonText={backButtonText}
+          className={classes.navigationElement}
+          onClick={onClickUpperTabBackButton}
+          text={backButtonText}
         />
       );
-    }
-    if (upperTab === 'searchField') {
-      // TODO - Add Search field component. Issue: #11058.
-      return <div>TODO - search field</div>;
     }
     return null;
   };

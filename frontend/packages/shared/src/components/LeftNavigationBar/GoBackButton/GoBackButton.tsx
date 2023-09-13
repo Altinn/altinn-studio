@@ -8,16 +8,16 @@ export type GoBackButtonProps = {
   /**
    * Classname for navigation element
    */
-  navElementClassName: string;
+  className?: string;
   /**
    * Function to be executed when clicking the back button
    * @returns void
    */
-  onClickBackButton: () => void;
+  onClick: () => void;
   /**
    * Text on the back button
    */
-  backButtonText: string;
+  text: string;
 };
 
 /**
@@ -26,31 +26,23 @@ export type GoBackButtonProps = {
  *
  * @example
  *      <GoBackButton
- *        navElementClassName={classes.navigationElement}
- *        onClickBackButton={onClickUpperTabBackButton}
- *        backButtonText={backButtonText}
+ *        className={classes.navigationElement}
+ *        onClick={onClickUpperTabBackButton}
+ *        text={backButtonText}
  *      />
  *
- * @property {string}[navElementClassName] - Classname for navigation element
- * @property {function}[onClickBackButton] - Function to be executed when clicking the back button
- * @property {string}[backButtonText] - Text on the back button
+ * @property {string}[className] - Classname for navigation element
+ * @property {function}[onClick] - Function to be executed when clicking the back button
+ * @property {string}[text] - Text on the back button
  *
  * @returns {ReactNode} - The rendered component
  */
-export const GoBackButton = ({
-  navElementClassName,
-  onClickBackButton,
-  backButtonText,
-}: GoBackButtonProps): ReactNode => {
+export const GoBackButton = ({ className, onClick, text }: GoBackButtonProps): ReactNode => {
   return (
-    <button
-      className={cn(navElementClassName, classes.backButton)}
-      type='button'
-      onClick={onClickBackButton}
-    >
+    <button className={cn(className, classes.backButton)} type='button' onClick={onClick}>
       <ArrowLeftIcon className={classes.icon} />
       <Paragraph size='small' short className={classes.buttonText}>
-        {backButtonText}
+        {text}
       </Paragraph>
     </button>
   );

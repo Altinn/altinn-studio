@@ -12,9 +12,9 @@ describe('GoBackButton', () => {
   const mockOnClickBackButton = jest.fn();
 
   const defaultProps: GoBackButtonProps = {
-    navElementClassName: '.navigationElement',
-    onClickBackButton: mockOnClickBackButton,
-    backButtonText: mockBackButtonText,
+    className: '.navigationElement',
+    onClick: mockOnClickBackButton,
+    text: mockBackButtonText,
   };
 
   it('calls the "onClickBackButton" function when the button is clicked', async () => {
