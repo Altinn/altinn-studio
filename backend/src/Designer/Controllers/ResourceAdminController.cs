@@ -307,8 +307,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {
-            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-            return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+            if (repository == $"{org}-resources")
+            {
+                string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
+                return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+            }
+            else
+            {
+                Console.WriteLine("Invalid repository for resource");
+                return new StatusCodeResult(400);
+            }
         }
     }
 }
