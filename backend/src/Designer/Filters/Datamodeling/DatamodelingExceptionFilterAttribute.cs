@@ -24,22 +24,22 @@ namespace Altinn.Studio.Designer.Filters.Datamodeling
 
             if (context.Exception is CsharpGenerationException)
             {
-                context.Result = new ObjectResult(new ApiError(DatamodelingErrorCodes.CsharpGenerationError, context.Exception.Message, DateTime.UtcNow)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DatamodelingErrorCodes.CsharpGenerationError,HttpStatusCode.InternalServerError )) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
             if (context.Exception is XmlSchemaConvertException)
             {
-                context.Result = new ObjectResult(new ApiError(DatamodelingErrorCodes.XmlSchemaConvertError, context.Exception.Message, DateTime.UtcNow)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DatamodelingErrorCodes.XmlSchemaConvertError,HttpStatusCode.InternalServerError )) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
             if (context.Exception is JsonSchemaConvertException)
             {
-                context.Result = new ObjectResult(new ApiError(DatamodelingErrorCodes.JsonSchemaConvertError, context.Exception.Message, DateTime.UtcNow)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DatamodelingErrorCodes.JsonSchemaConvertError,HttpStatusCode.InternalServerError )) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
             if (context.Exception is MetamodelConvertException)
             {
-                context.Result = new ObjectResult(new ApiError(DatamodelingErrorCodes.ModelMetadataConvertError, context.Exception.Message, DateTime.UtcNow)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DatamodelingErrorCodes.ModelMetadataConvertError,HttpStatusCode.InternalServerError )) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
         }
     }

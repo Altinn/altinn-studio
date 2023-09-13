@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using Altinn.Studio.Designer.Models;
 using LibGit2Sharp;
@@ -21,7 +22,7 @@ namespace Altinn.Studio.Designer.Filters.Git
 
             if (context.Exception is NonFastForwardException)
             {
-                context.Result = new ObjectResult(new ApiError(GitErrorCodes.NonFastForwardError, context.Exception.Message, DateTime.UtcNow)) { StatusCode = (int)HttpStatusCode.Conflict };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.NonFastForwardError,HttpStatusCode.Conflict )) { StatusCode = (int)HttpStatusCode.Conflict };
             }
 
         }
