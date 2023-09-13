@@ -1,4 +1,5 @@
 import {
+  createNavigationTab,
   getIsActiveTab,
   getMissingInputLanguageString,
   getResourcePageTextfieldError,
@@ -6,6 +7,9 @@ import {
 } from './resourceUtils';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import { TestFlaskIcon } from '@navikt/aksel-icons';
+import React from 'react';
 
 describe('getResourcePageTextfieldError', () => {
   it('returns false when the field have valid data', () => {
@@ -85,17 +89,39 @@ describe('getMissingInputLanguageString', () => {
     expect(result).toEqual(missingInputLanguageStringTestMock);
   });
 
-  describe('leftNavigationBarUtils', () => {
-    describe('getIsActiveTab', () => {
-      it('returns true when current page and tab id mathces', () => {
-        const isActive = getIsActiveTab('about', 0);
-        expect(isActive).toBeTruthy();
-      });
+  describe('getIsActiveTab', () => {
+    it('returns true when current page and tab id mathces', () => {
+      const isActive = getIsActiveTab('about', 'about');
+      expect(isActive).toBeTruthy();
+    });
 
-      it('returns false when current page and tab id does not match', () => {
-        const isActive = getIsActiveTab('about', 1);
-        expect(isActive).toBeFalsy();
-      });
+    it('returns false when current page and tab id does not match', () => {
+      const isActive = getIsActiveTab('about', 'policy');
+      expect(isActive).toBeFalsy();
+    });
+  });
+
+  describe('createNavigationTab', () => {
+    const mockOnClick = jest.fn();
+
+    const mockTo: string = '/about';
+
+    const mockTab: LeftNavigationTab = {
+      icon: <TestFlaskIcon />,
+      tabName: 'resourceadm.left_nav_bar_about',
+      tabId: 'about',
+      action: {
+        type: 'link',
+        onClick: mockOnClick,
+        to: mockTo,
+      },
+      isActiveTab: true,
+    };
+
+    it('creates a new tab when the function is called', () => {
+      const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
+
+      expect(newTab).toEqual(mockTab);
     });
   });
 });
