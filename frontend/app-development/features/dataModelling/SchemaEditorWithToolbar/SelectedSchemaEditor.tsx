@@ -14,7 +14,7 @@ export interface SelectedSchemaEditorProps {
 
 export const SelectedSchemaEditor = ({ modelPath, modelName }: SelectedSchemaEditorProps) => {
   const { data, status, error } = useSchemaQuery(modelPath);
-  const { mutate } = useSchemaMutation(modelPath);
+  const { mutate } = useSchemaMutation();
   const { t } = useTranslation();
 
   switch (status) {
@@ -33,6 +33,13 @@ export const SelectedSchemaEditor = ({ modelPath, modelName }: SelectedSchemaEdi
       );
 
     case 'success':
-      return <SchemaEditorApp jsonSchema={data} save={mutate} modelName={modelName} />;
+      return (
+        <SchemaEditorApp
+          jsonSchema={data}
+          save={mutate}
+          modelName={modelName}
+          modelPath={modelPath}
+        />
+      );
   }
-}
+};

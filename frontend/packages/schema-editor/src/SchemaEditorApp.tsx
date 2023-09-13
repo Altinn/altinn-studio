@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
 import { SchemaEditor } from './components/SchemaEditor';
@@ -8,20 +8,62 @@ import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, UiSchemaNodes } from '@altinn/schema-model';
+import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 
 export type SchemaEditorAppProps = {
+  modelPath?: string;
   modelName?: string;
   jsonSchema: JsonSchema;
-  save: (schema: JsonSchema) => void;
-}
+  save: (args: { modelPath: string; schema: JsonSchema }) => void;
+};
 
-export function SchemaEditorApp({ modelName, jsonSchema, save }: SchemaEditorAppProps) {
-  const internalModel = useMemo(() => buildUiSchema(jsonSchema), [jsonSchema]);
-  const saveInternalModel = useCallback((schema: UiSchemaNodes) => save(buildJsonSchema(schema)), [save]);
+export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: SchemaEditorAppProps) {
+  const autoSaveTimeoutRef = useRef(undefined);
+  const [model, setModel] = useState(() => buildUiSchema(jsonSchema));
+  const prevModelPathRef = useRef(modelPath);
+  const prevModelRef = useRef(model);
+
+  const saveInternalModel = useCallback(
+    (newModel: UiSchemaNodes, saveAfterMs: number = AUTOSAVE_DEBOUNCE_INTERVAL) => {
+      prevModelRef.current = newModel;
+      setModel(newModel);
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = setTimeout(async () => {
+        clearTimeout(autoSaveTimeoutRef.current);
+        save({ modelPath, schema: buildJsonSchema(newModel) });
+      }, saveAfterMs);
+    },
+    [modelPath, save]
+  );
+
+  useEffect(() => {
+    const autoSaveOnModelChange = async () => {
+      if (prevModelPathRef.current === modelPath) return;
+
+      clearTimeout(autoSaveTimeoutRef.current);
+      save({ modelPath: prevModelPathRef.current, schema: buildJsonSchema(prevModelRef.current) });
+
+      prevModelPathRef.current = modelPath;
+    };
+
+    autoSaveOnModelChange();
+  }, [modelPath, save]);
+
+  useEffect(() => {
+    const newModel = buildUiSchema(jsonSchema);
+    prevModelRef.current = newModel;
+    setModel(newModel);
+  }, [jsonSchema]);
+
+  const value = useMemo(
+    () => ({ data: model, save: saveInternalModel }),
+    [model, saveInternalModel]
+  );
+
   return (
-    <SchemaEditorAppContext.Provider value={{ data: internalModel, save: saveInternalModel }}>
+    <SchemaEditorAppContext.Provider value={value}>
       <Provider store={store}>
-        <SchemaEditor modelName={modelName}/>
+        <SchemaEditor modelName={modelName} />
       </Provider>
     </SchemaEditorAppContext.Provider>
   );
