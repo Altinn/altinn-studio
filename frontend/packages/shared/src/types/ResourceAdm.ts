@@ -10,15 +10,35 @@ export interface Resource {
   description?: SupportedLanguageKey<string>;
   keywords?: ResourceKeyword[]; // TODO - Does this need to be changed? Issue: #10883
   homepage?: string;
-  isPublicService?: boolean;
-  sector?: string[];
-  thematicArea?: string;
+  visible?: boolean;
+  delegable?: boolean;
   rightDescription?: SupportedLanguageKey<string>;
   version?: Version;
   resourceReferences?: ResourceReference[];
+  status?: ResourceStatusOption;
+  selfIdentifiedUserEnabled?: boolean;
+  enterpriseUserEnabled?: boolean;
+  availableForType?: ResourceAvailableForTypeOption[];
+  contactPoints?: ResourceContactPoint[];
 }
 
-export type ResourceTypeOption = 'Default' | 'Systemresource' | 'MaskinportenSchema';
+export interface ResourceContactPoint {
+  category: string;
+  email: string;
+  telephone: string;
+  contactPage: string;
+}
+
+export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
+
+export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
+
+export type ResourceAvailableForTypeOption =
+  | 'PrivatePerson'
+  | 'LegalEntityEnterprise'
+  | 'Company'
+  | 'BankruptcyEstate'
+  | 'SelfRegisteredUser';
 
 export interface ResourceKeyword {
   language: 'nb' | 'nn' | 'en';
@@ -28,15 +48,6 @@ export interface ResourceKeyword {
 export interface Version {
   version: string;
   environment: string;
-}
-
-export interface ResourceSector {
-  code: string;
-  label: SupportedLanguageKey<string>;
-}
-
-export interface ResourceThematic {
-  uri: string;
 }
 
 export interface ResourceListItem {

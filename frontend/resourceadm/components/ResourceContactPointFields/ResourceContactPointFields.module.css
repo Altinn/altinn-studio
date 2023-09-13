@@ -1,0 +1,13 @@
+.divider {
+  margin-top: 30px;
+}
+
+.fieldset {
+  width: 500px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.buttonWrapper {
+  margin-top: 10px;
+}

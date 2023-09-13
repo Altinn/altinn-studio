@@ -1,0 +1,25 @@
+.divider {
+  margin-top: 30px;
+}
+
+.inputWrapper {
+  width: 500px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.warningCardWrapper {
+  margin-top: 5px;
+}
+
+.toggleTextActive {
+  color: var(--fds-semantic-text-success-default);
+}
+
+.toggleTextInactive {
+  color: var(--fds-semantic-text-neutral-subtle);
+}
+
+.checkboxParagraph {
+  margin-left: 0.5rem;
+}
