@@ -31,6 +31,7 @@ export type LeftNavigationBarProps = {
  *    <LeftNavigationBar
  *        tabs={listOfTabsOfTypeLeftNavigationTab}
  *        upperTab='backButton'
+ *        backButtonHref='./someUrl'
  *        backButtonText={t('resourceadm.left_nav_bar_back')}
  *    />
  *
@@ -49,6 +50,9 @@ export const LeftNavigationBar = ({
 }: LeftNavigationBarProps): ReactNode => {
   const [newTabIdClicked, setNewTabIdClicked] = useState<string | null>(null);
 
+  /**
+   * Function to be executed when the tab is clicked
+   */
   const handleClick = (tabId: string) => {
     const tabClicked = tabs.find((tab: LeftNavigationTab) => tab.tabId === tabId);
     if (tabClicked && !tabClicked.isActiveTab) {
@@ -57,6 +61,10 @@ export const LeftNavigationBar = ({
     }
   };
 
+  /**
+   * Dispalys the uppermost tab if there is one
+   * @returns
+   */
   const displayUpperTab = () => {
     if (upperTab === 'backButton' && backButtonHref && backButtonText) {
       return (
@@ -70,6 +78,9 @@ export const LeftNavigationBar = ({
     return null;
   };
 
+  /**
+   * Displays all the tabs
+   */
   const displayTabs = tabs.map((tab: LeftNavigationTab) => (
     <Tab
       tab={tab}
