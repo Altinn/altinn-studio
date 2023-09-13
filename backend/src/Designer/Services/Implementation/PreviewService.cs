@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -24,12 +25,13 @@ public class PreviewService : IPreviewService
     }
 
     /// <inherit />
-    public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId, string layoutSetName)
+    public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId, string layoutSetName, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-        Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
-        DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
-        string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName);
+        Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+        DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
+        string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         Instance instance = new()
@@ -58,18 +60,13 @@ public class PreviewService : IPreviewService
         return instance;
     }
 
-    /// <summary>
-    /// Gets the datatype from application metadata that corresponds to the current data task in the process based on the current layout set name
-    /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="app">Repository</param>
-    /// <param name="developer">Username of developer</param>
-    /// <param name="layoutSetName">LayoutSetName to get dataType for</param>
-    public async Task<DataType> GetDataTypeForLayoutSetName(string org, string app, string developer, string layoutSetName)
+    /// <inheritdoc />
+    public async Task<DataType> GetDataTypeForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-        string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName);
-        Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+        string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
+        Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         if (applicationMetadata.DataTypes is { Count: > 0 })
         {
             DataType dataType = applicationMetadata.DataTypes.Find(element => !string.IsNullOrEmpty(element.AppLogic?.ClassRef) && element.TaskId == task);
@@ -85,14 +82,16 @@ public class PreviewService : IPreviewService
     /// <param name="app">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="layoutSetName">LayoutSetName to get dataType for</param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName)
+    private async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         string task = "Task_1";
         if (!string.IsNullOrEmpty(layoutSetName))
         {
-            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             task = layoutSets?.Sets?.Find(element => element.Id == layoutSetName).Tasks[0];
         }
         return task;

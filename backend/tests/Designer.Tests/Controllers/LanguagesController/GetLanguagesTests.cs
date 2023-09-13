@@ -1,32 +1,20 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Designer.Tests.Controllers
+namespace Designer.Tests.Controllers.LanguagesController
 {
-    public class LanguagesControllerTests : ApiTestsBase<LanguagesController, LanguagesControllerTests>
+    public class GetLanguagesTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.LanguagesController, GetLanguagesTests>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public LanguagesControllerTests(WebApplicationFactory<LanguagesController> factory) : base(factory)
+        public GetLanguagesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.LanguagesController> factory) : base(factory)
         {
-        }
-
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
         }
 
         [Fact]
@@ -36,12 +24,11 @@ namespace Designer.Tests.Controllers
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseDocument.RootElement.ToString());
 
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(new List<string> { "nb", "nn" }, responseList);
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using PolicyAdmin.Models;
@@ -19,16 +20,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             _client = client;
         }
 
-        public async Task<EuroVocTerms> GetEuroVocTerms()
+        public async Task<EuroVocTerms> GetEuroVocTerms(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string url = "https://data.norge.no/reference-data/eu/eurovocs";
 
             EuroVocTerms eurovoc;
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync(url);
-                string content = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string content = await response.Content.ReadAsStringAsync(cancellationToken);
                 eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, DataNorgeSerilizerOptions);
                 return eurovoc;
             }
@@ -38,16 +40,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             }
         }
 
-        public async Task<LosTerms> GetLosTerms()
+        public async Task<LosTerms> GetLosTerms(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string url = "https://data.norge.no/reference-data/los/themes-and-words";
 
             LosTerms losTerms;
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync(url);
-                string content = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string content = await response.Content.ReadAsStringAsync(cancellationToken);
                 losTerms = System.Text.Json.JsonSerializer.Deserialize<LosTerms>(content, DataNorgeSerilizerOptions);
                 return losTerms;
             }
@@ -57,16 +60,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             }
         }
 
-        public async Task<DataThemesContainer> GetSectors()
+        public async Task<DataThemesContainer> GetSectors(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string url = "https://data.norge.no/reference-data/eu/data-themes";
 
             DataThemesContainer dataThemes;
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync(url);
-                string sectorscontent = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string sectorscontent = await response.Content.ReadAsStringAsync(cancellationToken);
                 dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, DataNorgeSerilizerOptions);
                 return dataThemes;
             }
