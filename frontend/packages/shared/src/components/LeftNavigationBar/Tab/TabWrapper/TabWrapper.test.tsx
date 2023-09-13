@@ -84,6 +84,26 @@ describe('TabWrapper', () => {
     await act(() => user.click(buttonWrapper));
     expect(mockButtonAction.onClick).toHaveBeenCalledTimes(1);
   });
+
+  it('executes the onBlur when the wrapper is tabbed through and type is button', async () => {
+    const user = userEvent.setup();
+    render({ ...defaultProps, action: mockButtonAction });
+
+    const buttonWrapper = screen.getByRole('button', { name: mockTabName });
+    await act(() => user.click(buttonWrapper));
+    await act(() => user.tab());
+    expect(mockOnBlur).toHaveBeenCalledTimes(1);
+  });
+
+  it('executes the onBlur when the wrapper is tabbed through and type is link', async () => {
+    const user = userEvent.setup();
+    render({ ...defaultProps });
+
+    const linkWrapper = screen.getByRole('link', { name: mockTabName });
+    await act(() => user.click(linkWrapper));
+    await act(() => user.tab());
+    expect(mockOnBlur).toHaveBeenCalledTimes(1);
+  });
 });
 
 const render = (props: TabWrapperProps) => {
