@@ -41,7 +41,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
     <PackageReference Include="HtmlAgilityPack" />
     <PackageReference Include="Microsoft.DiaSymReader.Native" />
-    <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Scrutor" />
