@@ -21,6 +21,7 @@ import { ApiError } from 'app-shared/types/api/ApiError';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
@@ -36,9 +37,14 @@ const handleError = (
   t: (key: string) => string,
   i18n: i18n,
   meta: QueryMeta | MutationMeta,
+  logout: () => Promise<void>
 ): void => {
   // TODO : log axios errors
-  // TODO : logout user when session is expired
+
+  if (error?.response?.status === 401) {
+    logout().then(() => window.location.assign(userLogoutAfterPath()));
+    return;
+  }
 
   if (
     meta?.hideDefaultError === true ||
@@ -56,10 +62,7 @@ const handleError = (
     }
   }
 
-  toast.error(
-    () => t('general.error_message'),
-    { toastId: 'default' }
-  );
+  toast.error(() => t('general.error_message'), { toastId: 'default' });
 };
 
 export const ServicesContextProvider = ({
@@ -76,11 +79,11 @@ export const ServicesContextProvider = ({
       new QueryClient({
         ...clientConfig,
         queryCache: new QueryCache({
-          onError: (error: AxiosError<ApiError>, query) => handleError(error, t, i18n, query.options?.meta),
+          onError: (error: AxiosError<ApiError>, query) => handleError(error, t, i18n, query.options?.meta, queries.logout),
         }),
         mutationCache: new MutationCache({
           onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
-            handleError(error, t, i18n, mutation.options?.meta),
+            handleError(error, t, i18n, mutation.options?.meta, queries.logout),
         }),
       })
   );
