@@ -798,7 +798,7 @@
   "right_menu.expressions_function_less_than_eq": "er mindre enn eller lik",
   "right_menu.expressions_function_not": "ikke er",
   "right_menu.expressions_function_not_equals": "ikke er lik",
-  "right_menu.expressions_function_on_property": "Velg et oppsettet",
+  "right_menu.expressions_function_on_property": "Velg et oppsett",
   "right_menu.expressions_function_select": "Velg oppsett …",
   "right_menu.expressions_group_property_preview_show_add_button": "Vis Legg-til-knapp for <bold>{{componentName}}</bold> dersom",
   "right_menu.expressions_group_property_preview_show_delete_button": "Vis Slett-knapp for <bold>{{componentName}}</bold> dersom",
