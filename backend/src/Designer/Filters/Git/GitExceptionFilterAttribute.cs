@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Filters.Git
 
             if (context.Exception is NonFastForwardException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.NonFastForwardError,HttpStatusCode.Conflict )) { StatusCode = (int)HttpStatusCode.Conflict };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.NonFastForwardError, HttpStatusCode.Conflict)) { StatusCode = (int)HttpStatusCode.Conflict };
             }
 
         }
