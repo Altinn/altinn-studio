@@ -1,5 +1,5 @@
 import classes from './RightMenu.module.css';
-import React, { useContext, useEffect }  from 'react';
+import React, { useEffect }  from 'react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { Expressions } from '../config/Expressions';
 import { Accordion } from '@digdir/design-system-react';
-import { FormContext } from '../../containers/FormContext';
+import { useFormContext } from '../../containers/FormContext';
 
 export interface RightMenuProps {
   className?: string;
@@ -16,7 +16,7 @@ export interface RightMenuProps {
 export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
   const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(false);
-  const { formId } = useContext(FormContext);
+  const { formId } = useFormContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);

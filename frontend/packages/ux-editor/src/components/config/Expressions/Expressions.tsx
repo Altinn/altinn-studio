@@ -1,10 +1,9 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
-import { FormContext } from '../../../containers/FormContext';
 import {
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
@@ -25,6 +24,7 @@ import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../../
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useFormContext } from '../../../containers/FormContext';
 
 export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;
@@ -32,7 +32,7 @@ export type ExpressionsProps = {
 };
 
 export const Expressions = ({ onShowNewExpressions, showNewExpressions }: ExpressionsProps) => {
-  const { formId, form } = useContext(FormContext);
+  const { formId, form } = useFormContext();
   const { org, app } = useStudioUrlParams();
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
