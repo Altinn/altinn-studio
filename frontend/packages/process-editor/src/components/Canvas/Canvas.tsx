@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { CogIcon, EyeFillIcon } from '@navikt/aksel-icons';
 import { Alert, Button } from '@digdir/design-system-react';
 import { useBpmnViewer } from '../../hooks/useBpmnViewer';
@@ -11,7 +11,7 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
-import { Heading, Paragraph,  Link } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/design-system-react';
 
 
 export type CanvasProps = {
@@ -45,22 +45,41 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
 // Below is helper components for Canvas.tsx
 export const Viewer = (): JSX.Element => {
   const { t } = useTranslation();
-  const { canvasRef, renderNoDiagramError, renderNoProcessError } = useBpmnViewer();
+  const { canvasRef, bpmnViewerError } = useBpmnViewer();
+  const getErrorMessage = (): { heading: string; body: string } | null => {
+    if (bpmnViewerError === 'noDiagram') {
+      return {
+        heading: t('process_editor.not_found_diagram_heading'),
+        body: t('process_editor.not_found_diagram_error_message'),
+      };
+    }
+    if (bpmnViewerError === 'noProcess') {
+      return {
+        heading: t('process_editor.not_found_process_heading'),
+        body: t('process_editor.not_found_process_error_message'),
+      };
+    }
+    if(bpmnViewerError === "unknown"){
+      return {
+        heading: t('process_editor.unknown_heading_error_message'),
+        body: t('process_editor.unknown_paragraph_error_message'),
+      }
+    }
+    return null;
+  };
+
+  const errorToDisplay = getErrorMessage();
   return (
   <>
-  {(renderNoDiagramError || renderNoProcessError) && ( 
-  <div className={classes.alert} >
-   <Alert severity="warning">
-    <Heading size='small' data-testid={"no_diagram"}>
-      {renderNoDiagramError && (t("process_editor.not_found_diagram_heading"))}  
-      {renderNoProcessError && (t("process_editor.not_found_process_heading"))}
-    </Heading>
-    <Paragraph className={classes.paragraph} data-testid={"no_process"}> 
-      {renderNoDiagramError && (<Trans i18nKey={'process_editor.not_found_diagram_error_message'} components={{ a: <Link>her</Link> }}/>)}  
-      {renderNoProcessError && (<Trans i18nKey={"process_editor.not_found_process_error_message"} components={{ a: <Link>her</Link> }}/>)}
-    </Paragraph>
-   </Alert>
-  </div>
+  {errorToDisplay && ( 
+   <div className={classes.alertContainer}>
+    <Alert severity='warning'>
+      <Heading size='small' spacing>
+        {errorToDisplay.heading}
+      </Heading>
+      <Paragraph>{errorToDisplay.body}</Paragraph>
+    </Alert>
+   </div>
   )}
   <div ref={canvasRef}></div>
   </>

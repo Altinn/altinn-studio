@@ -5,18 +5,23 @@ import { useTranslation } from 'react-i18next';
 
 // Wrapper around bpmn-js to Reactify it
 
+type BpmnViewerError = 'noDiagram' | 'noProcess' | 'unknown';
+
+const bpmnViewerErrorMap: Record<string, BpmnViewerError> = {
+  'no diagram to display': 'noDiagram',
+  'no process or collaboration to display': 'noProcess',
+};
+
 type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
-  renderNoDiagramError: boolean;
-  renderNoProcessError: boolean;
+  bpmnViewerError: BpmnViewerError | undefined;
 };
 
 export const useBpmnViewer = (): UseBpmnViewerResult => {
   const { t } = useTranslation();
   const { bpmnXml } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const [renderNoDiagramError, setRenderNoDiagramError] = useState(false);
-  const [renderNoProcessError, setRenderNoProcessError] = useState(false);
+  const [bpmnViewerError, setBpmnViewerError] = useState<BpmnViewerError | undefined>(undefined);
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -26,26 +31,16 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
 
     const viewer = new BpmnJS({ container: canvasRef.current });
 
-
     const initializeViewer = async () => {
       try {
         await viewer.importXML(bpmnXml);
       } catch (exception) {
-        if (exception.message === 'no diagram to display') {
-          setRenderNoDiagramError(true);
-          return renderNoDiagramError
-        } else {
-          if (exception.message === 'no process or collaboration to display') {
-            setRenderNoProcessError(true);
-            return renderNoProcessError
-          }
-          return;
-        }
+        setBpmnViewerError(bpmnViewerErrorMap[exception.message] || 'unknown');
       }
     };
 
     initializeViewer();
-  }, [bpmnXml, renderNoDiagramError, renderNoProcessError, t]);
+  }, [bpmnXml, t]);
 
-  return { canvasRef, renderNoDiagramError, renderNoProcessError };
+  return { canvasRef, bpmnViewerError };
 };
