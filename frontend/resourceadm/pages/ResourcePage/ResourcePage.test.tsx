@@ -65,13 +65,13 @@ describe('ResourcePage', () => {
   it('displays left navigation bar on mount', () => {
     render();
     expect(
-      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_about') })
+      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_about') })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_policy') })
+      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_policy') })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_deploy') })
+      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_deploy') })
     ).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })
+      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_migration') })
     ).toBeInTheDocument();
   });
 
@@ -109,7 +109,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('button', { name: textMock('resourceadm.left_nav_bar_migrate') })
+      screen.queryByRole('link', { name: textMock('resourceadm.left_nav_bar_migrate') })
     ).not.toBeInTheDocument();
   });
 
@@ -129,7 +129,7 @@ describe('ResourcePage', () => {
       })
     ).not.toBeInTheDocument();
 
-    const policyButton = screen.getByRole('button', {
+    const policyButton = screen.getByRole('link', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });
     await act(() => user.click(policyButton));

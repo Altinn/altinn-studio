@@ -748,7 +748,7 @@
   "resourceadm.left_nav_bar_back": "Tilbake til dashbord",
   "resourceadm.left_nav_bar_back_icon": "Tilbake til dashbord",
   "resourceadm.left_nav_bar_deploy": "Publiser",
-  "resourceadm.left_nav_bar_migrate": "Migrer",
+  "resourceadm.left_nav_bar_migration": "Migrer",
   "resourceadm.left_nav_bar_policy": "Tilgangsregler",
   "resourceadm.policy_editor_spinner": "Laster inn tilgangsregler",
   "resourceadm.policy_editor_title": "Tilgangsregler",

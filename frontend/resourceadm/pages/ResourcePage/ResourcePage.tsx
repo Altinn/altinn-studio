@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
@@ -27,8 +27,7 @@ import {
   UploadIcon,
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { getIsActiveTab } from 'resourceadm/utils/resourceUtils';
-import { createNavigationTab } from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
 
 /**
  * @component
@@ -152,13 +151,6 @@ export const ResourcePage = (): React.ReactNode => {
   };
 
   /**
-   * Takes the user back to where they came from
-   */
-  const goBack = () => {
-    navigate(getResourceDashboardURL(selectedContext, repo));
-  };
-
-  /**
    * Handles the navigation to a page that has erros. This is used from the deploy
    * page when information is displayed about errors on the policy or the resource page.
    *
@@ -242,8 +234,7 @@ export const ResourcePage = (): React.ReactNode => {
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
-          // onClickUpperTabBackButton={goBack}
-          backButtonHref={`/resourceadm${getResourceDashboardURL(selectedContext, repo)}`}
+          backButtonHref={`${getResourceDashboardURL(selectedContext, repo)}`}
           backButtonText={t('resourceadm.left_nav_bar_back')}
         />
       </div>

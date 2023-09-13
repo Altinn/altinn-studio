@@ -149,7 +149,17 @@ export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): b
   return currentPage === tabId;
 };
 
-// getIsActiveTab(currentPage, tab.tabId),
+/**
+ * Creates a new navigation tab to be used in the LeftNavigationBar
+ *
+ * @param icon the icon to display
+ * @param tabId the id of the tab
+ * @param onClick function to be executed on click
+ * @param currentPage the current selected page
+ * @param to where to navigate to
+ *
+ * @returns a LeftNavigationTab
+ */
 export const createNavigationTab = (
   icon: ReactNode,
   tabId: string,
