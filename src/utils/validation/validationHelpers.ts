@@ -15,10 +15,10 @@ import type {
   ValidationSeverity,
 } from 'src/utils/validation/types';
 
-export function validationContextFromState(state: IRuntimeState): IValidationContext {
+export function validationContextFromState(state: IRuntimeState, node: LayoutNode | undefined): IValidationContext {
   return {
     formData: state.formData.formData,
-    langTools: staticUseLanguageFromState(state),
+    langTools: staticUseLanguageFromState(state, node),
     attachments: state.attachments.attachments,
     application: state.applicationMetadata.applicationMetadata,
     instance: state.instanceData.instance,

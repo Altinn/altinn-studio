@@ -64,7 +64,7 @@ interface GridRowProps {
 }
 
 export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: GridRowProps) {
-  const { lang } = useLanguage();
+  const { lang } = useLanguage(node);
 
   return isGridRowHidden(row) ? null : (
     <InternalRow

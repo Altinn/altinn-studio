@@ -1,14 +1,7 @@
-import {
-  getOptionLookupKey,
-  getOptionLookupKeys,
-  removeGroupOptionsByIndex,
-  setupSourceOptions,
-} from 'src/utils/options';
-import type { IFormData } from 'src/features/formData';
-import type { IMapping, IOptionSource } from 'src/layout/common.generated';
+import { getOptionLookupKey, getOptionLookupKeys, removeGroupOptionsByIndex } from 'src/utils/options';
+import type { IMapping } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { IOptions, IRepeatingGroups } from 'src/types';
-import type { IDataSources, ITextResource } from 'src/types/shared';
 
 describe('utils > options', () => {
   describe('getOptionLookupKey', () => {
@@ -187,68 +180,6 @@ describe('utils > options', () => {
       });
 
       expect(result).toEqual(expected);
-    });
-  });
-
-  describe('setupSourceOptions', () => {
-    it('should setup correct set of options', () => {
-      const source: IOptionSource = {
-        group: 'someGroup',
-        label: 'dropdown.label',
-        value: 'someGroup[{0}].fieldUsedAsValue',
-      };
-      const relevantTextResourceLabel: ITextResource = {
-        id: 'dropdown.label',
-        value: '{0}',
-        unparsedValue: '{0}',
-        variables: [
-          {
-            key: 'someGroup[{0}].fieldUsedAsLabel',
-            dataSource: 'dataModel.default',
-          },
-        ],
-      };
-      const relevantFormData: IFormData = {
-        'someGroup[0].fieldUsedAsValue': 'Value 1',
-        'someGroup[0].fieldUsedAsLabel': 'Label 1',
-        'someGroup[1].fieldUsedAsValue': 'Value 2',
-        'someGroup[1].fieldUsedAsLabel': 'Label 2',
-        'someGroup[2].fieldUsedAsValue': 'Value 3',
-        'someGroup[2].fieldUsedAsLabel': 'Label 3',
-      };
-      const repeatingGroups: IRepeatingGroups = {
-        someGroup: {
-          index: 2,
-          dataModelBinding: 'someGroup',
-        },
-      };
-
-      const dataSources: IDataSources = {
-        dataModel: relevantFormData,
-      };
-
-      const options = setupSourceOptions({
-        source,
-        relevantTextResources: { label: relevantTextResourceLabel },
-        relevantFormData,
-        repeatingGroups,
-        dataSources,
-      });
-
-      if (!options) {
-        throw new Error('Options not found');
-      }
-
-      expect(options.length).toBe(3);
-
-      expect(options[0].label).toBe('Label 1');
-      expect(options[0].value).toBe('Value 1');
-
-      expect(options[1].label).toBe('Label 2');
-      expect(options[1].value).toBe('Value 2');
-
-      expect(options[2].label).toBe('Label 3');
-      expect(options[2].value).toBe('Value 3');
     });
   });
 

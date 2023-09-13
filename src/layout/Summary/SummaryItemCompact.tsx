@@ -10,7 +10,7 @@ export interface ICompactSummaryItem {
 }
 
 export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
-  const { lang } = useLanguage();
+  const { lang } = useLanguage(targetNode);
   const textBindings = 'textResourceBindings' in targetNode.item ? targetNode.item.textResourceBindings : undefined;
   const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;

@@ -9,7 +9,7 @@ import type {
   ILayout,
   ILayouts,
 } from 'src/layout/layout';
-import type { IRepeatingGroups, ITextResource } from 'src/types';
+import type { IRepeatingGroups } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type UnprocessedItem<T extends CompTypes = CompTypes> = CompExternalExact<T>;
@@ -389,39 +389,6 @@ export abstract class ComponentHierarchyGenerator<Type extends CompTypes> {
   abstract stage1(generator: HierarchyGenerator, item: UnprocessedItem<Type>): void;
   abstract stage2(ctx: HierarchyContext): ChildFactory<Type>;
   abstract childrenFromNode(node: LayoutNode<Type>, onlyInRowIndex?: number): LayoutNode[];
-
-  protected textResourceHasRepeatingGroupVariable(textKey: string | undefined, textResources: ITextResource[]) {
-    const textResource = textResources.find((text) => text.id === textKey);
-    return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
-  }
-
-  /**
-   * @see rewriteTextResourceBindings
-   * @see replaceTextResourcesSaga
-   * @see replaceTextResourceParams
-   */
-  rewriteTextBindings(node: LayoutNode<Type>, textResources: ITextResource[]) {
-    if (!('textResourceBindings' in node.item) || !node.item.textResourceBindings || node.rowIndex === undefined) {
-      return;
-    }
-
-    if (node.parent instanceof LayoutPage || !(node.parent.parent instanceof LayoutPage)) {
-      // This only works in row items on the first level (not for nested repeating groups)
-      return;
-    }
-
-    const rewrittenItems = { ...node.item.textResourceBindings };
-    if (textResources && node.item.textResourceBindings) {
-      for (const key of Object.keys(node.item.textResourceBindings)) {
-        const textKey = node.item.textResourceBindings[key];
-        if (this.textResourceHasRepeatingGroupVariable(textKey, textResources)) {
-          rewrittenItems[key] = `${textKey}-${node.rowIndex}`;
-        }
-      }
-    }
-
-    node.item.textResourceBindings = { ...rewrittenItems };
-  }
 }
 
 /**

@@ -5,6 +5,7 @@ import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayoutSets } from 'src/types';
 import type { IInstance } from 'src/types/shared';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
 
 /**
@@ -19,6 +20,8 @@ export type IValidationContext = {
   layoutSets: ILayoutSets | null;
   schemas: IJsonSchemas;
 };
+
+export type ValidationContextGenerator = (node: LayoutNode | undefined) => IValidationContext;
 
 /**
  * IValidationObject is an intermediate format that contains the information necessary to build validations for the redux store.

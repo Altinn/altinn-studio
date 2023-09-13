@@ -59,7 +59,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
   const overrideFormData = { [field]: data?.length ? data : undefined };
 
   if (implementsAnyValidation(node.def)) {
-    const validationObjects = node.runValidations(validationContextFromState(state), {
+    const validationObjects = node.runValidations((node) => validationContextFromState(state, node), {
       overrideFormData,
       skipEmptyFieldValidation: true,
     });

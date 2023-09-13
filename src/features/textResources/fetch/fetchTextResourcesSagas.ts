@@ -27,11 +27,6 @@ export function* fetchTextResources(): SagaIterator {
       }
     }
 
-    resource.resources.forEach((res) => {
-      if (res.variables != null) {
-        res.unparsedValue = res.value;
-      }
-    });
     yield put(
       TextResourcesActions.fetchFulfilled({
         language: resource.language,

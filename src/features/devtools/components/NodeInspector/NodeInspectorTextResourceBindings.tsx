@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function NodeInspectorTextResourceBindings({ node, textResourceBindings }: Props) {
-  const textResources = useAppSelector((state) => state.textResources.resources);
+  const textResources = useAppSelector((state) => state.textResources.resourceMap);
   const { langAsString } = useLanguage();
 
   let actualTextResourceBindings = textResourceBindings || {};
@@ -44,7 +44,7 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
           </div>
         )}
         {Object.keys(actualTextResourceBindings).map((key) => {
-          const inResources = textResources.find((resource) => resource.id === actualTextResourceBindings[key]);
+          const inResources = textResources[actualTextResourceBindings[key]];
           const value = actualTextResourceBindings[key];
           const isExpression = canBeExpression(value, true);
 

@@ -10,7 +10,7 @@ import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelec
 import type { IFormData } from 'src/features/formData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { IOptions, IRepeatingGroups } from 'src/types';
+import type { IOptions } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class MultipleSelect extends MultipleSelectDef {
@@ -22,7 +22,6 @@ export class MultipleSelect extends MultipleSelectDef {
     node: LayoutNode<'MultipleSelect'>,
     formData: IFormData,
     langTools: IUseLanguage,
-    repeatingGroups: IRepeatingGroups | null,
     options: IOptions,
   ): { [key: string]: string } {
     if (!node.item.dataModelBindings?.simpleBinding) {
@@ -30,20 +29,19 @@ export class MultipleSelect extends MultipleSelectDef {
     }
 
     const value = formData[node.item.dataModelBindings.simpleBinding] || '';
-    const optionList = getOptionList(node.item, langTools.textResources, formData, repeatingGroups, options);
+    const optionList = getOptionList(node.item, options, langTools, node, formData);
     return getCommaSeparatedOptionsToText(value, optionList, langTools);
   }
 
-  getDisplayData(node: LayoutNode<'MultipleSelect'>, { formData, langTools, uiConfig, options }): string {
-    return Object.values(this.getSummaryData(node, formData, langTools, uiConfig.repeatingGroups, options)).join(', ');
+  getDisplayData(node: LayoutNode<'MultipleSelect'>, { formData, langTools, options }): string {
+    return Object.values(this.getSummaryData(node, formData, langTools, options)).join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'MultipleSelect'>): JSX.Element | null {
     const formData = useAppSelector((state) => state.formData.formData);
     const langTools = useLanguage();
-    const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
     const options = useAppSelector((state) => state.optionState.options);
-    const summaryData = this.getSummaryData(targetNode, formData, langTools, repeatingGroups, options);
+    const summaryData = this.getSummaryData(targetNode, formData, langTools, options);
     return <MultipleChoiceSummary formData={summaryData} />;
   }
 }

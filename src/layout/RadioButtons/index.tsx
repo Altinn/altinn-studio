@@ -14,14 +14,11 @@ export class RadioButtons extends RadioButtonsDef {
     return <RadioButtonContainerComponent {...props} />;
   }
 
-  getDisplayData(
-    node: LayoutNode<'RadioButtons'>,
-    { formData, langTools, uiConfig, options }: DisplayDataProps,
-  ): string {
+  getDisplayData(node: LayoutNode<'RadioButtons'>, { formData, langTools, options }: DisplayDataProps): string {
     const value = node.item.dataModelBindings?.simpleBinding
       ? formData[node.item.dataModelBindings.simpleBinding] || ''
       : '';
-    const optionList = getOptionList(node.item, langTools.textResources, formData, uiConfig.repeatingGroups, options);
+    const optionList = getOptionList(node.item, options, langTools, node, formData);
     return getSelectedValueToText(value, langTools, optionList) || '';
   }
 

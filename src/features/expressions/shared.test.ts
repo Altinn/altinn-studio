@@ -5,6 +5,7 @@ import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
+import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
@@ -80,7 +81,7 @@ describe('Expressions shared function tests', () => {
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
           langTools: staticUseLanguageForTests({
-            textResources: textResources || [],
+            textResources: textResources ? resourcesAsMap(textResources) : {},
             profileLanguage: profileSettings?.language,
           }),
         };

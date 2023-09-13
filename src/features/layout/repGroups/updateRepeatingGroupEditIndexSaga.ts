@@ -35,7 +35,7 @@ export function* updateRepeatingGroupEditIndexSaga({
     if (validate && groupNode?.isType('Group') && typeof rowIndex === 'number' && rowIndex > -1) {
       const frontendValidationObjects = groupNode.def.runGroupValidations(
         groupNode,
-        validationContextFromState(state),
+        (node) => validationContextFromState(state, node),
         validate === Triggers.ValidateRow ? rowIndex : undefined,
       );
 

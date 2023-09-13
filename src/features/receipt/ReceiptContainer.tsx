@@ -14,6 +14,7 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { getAppReceiver } from 'src/language/sharedLanguage';
+import { layoutsSelector } from 'src/selectors/layout';
 import { getAttachmentGroupings, getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -77,7 +78,7 @@ export const ReceiptContainer = () => {
   const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const instance = useAppSelector((state) => state.instanceData.instance);
   const parties = useAppSelector((state) => state.party.parties);
-  const layouts = useAppSelector((state) => Object.keys(state.formLayout.layouts || {}));
+  const layouts = useAppSelector(layoutsSelector);
   const langTools = useLanguage();
   const { lang } = langTools;
 

@@ -233,11 +233,8 @@ export interface IValidated {
 }
 
 export interface ITextResource {
-  id: string;
   value: string;
-  unparsedValue?: string;
   variables?: IVariable[];
-  repeating?: boolean;
 }
 
 export interface IVariable {
@@ -251,10 +248,6 @@ export interface IAttachmentGrouping {
 
 export interface IDataSource {
   [key: string]: any;
-}
-
-export interface IDataSources {
-  [key: string]: IDataSource | null;
 }
 
 export interface IApplicationSettings {

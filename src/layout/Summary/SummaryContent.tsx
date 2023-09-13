@@ -24,7 +24,7 @@ export function SummaryContent({
   overrides,
   RenderSummary,
 }: SummaryContentProps) {
-  const { lang, langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage(targetNode);
   const display = overrides?.display || summaryNode.item.display;
   const readOnlyComponent = 'readOnly' in targetNode.item && targetNode.item.readOnly === true;
   const hasValidationMessages = targetNode.hasValidationMessages();

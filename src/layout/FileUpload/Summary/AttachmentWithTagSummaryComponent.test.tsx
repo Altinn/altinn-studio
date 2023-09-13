@@ -53,24 +53,20 @@ describe('AttachmentWithTagSummaryComponent', () => {
     textResources: {
       language: 'nb',
       error: null,
-      resources: [
-        {
-          id: 'a',
+      resourceMap: {
+        a: {
           value: 'the a',
         },
-        {
-          id: 'b',
+        b: {
           value: 'the b',
         },
-        {
-          id: 'c',
+        c: {
           value: 'the c',
         },
-        {
-          id: 'ba option value',
+        'ba option value': {
           value: 'the result',
         },
-      ],
+      },
     },
     optionState: {
       error: null,

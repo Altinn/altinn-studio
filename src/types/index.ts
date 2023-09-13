@@ -106,13 +106,6 @@ export interface ISimpleInstance {
   lastChangedBy: string;
 }
 
-export interface ITextResource {
-  id: string;
-  value: string;
-  unparsedValue?: string;
-  variables?: IVariable[];
-}
-
 export interface IHiddenLayoutsExternal {
   [layoutKey: string]: ExprValToActualOrExpr<ExprVal.Boolean> | undefined;
 }
@@ -166,11 +159,6 @@ export interface ITracks {
    * List of expressions containing logic used to show/hide certain layouts.
    */
   hiddenExpr: IHiddenLayoutsExternal;
-}
-
-export interface IVariable {
-  dataSource: string;
-  key: string;
 }
 
 export enum ProcessTaskType {

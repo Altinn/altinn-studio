@@ -16,7 +16,7 @@ function runGetSchemaValidationErrors(formData: IFormData, schema: object) {
   const dataTypeId = uuid(); // Validators object is stored as a singleton, so we need a unique id for each dataType
 
   const attachments = {};
-  const langTools = staticUseLanguageForTests({ textResources: [], language: {} });
+  const langTools = staticUseLanguageForTests({ language: {} });
   const application: IApplicationMetadata = {
     dataTypes: [
       {

@@ -42,7 +42,7 @@ export function* submitFormSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
-    const validationObjects = resolvedNodes.runValidations(validationContextFromState(state));
+    const validationObjects = resolvedNodes.runValidations((node) => validationContextFromState(state, node));
     const validationResult = createValidationResult(validationObjects);
     if (containsErrors(validationObjects)) {
       yield put(ValidationActions.updateValidations({ validationResult, merge: false }));

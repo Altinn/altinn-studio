@@ -19,7 +19,7 @@ export function MultipleSelectComponent({
   overrideDisplay,
 }: IMultipleSelectProps) {
   const { options, optionsId, mapping, queryParameters, source, id, readOnly, textResourceBindings } = node.item;
-  const apiOptions = useGetOptions({ optionsId, mapping, queryParameters, source });
+  const apiOptions = useGetOptions({ optionsId, mapping, queryParameters, source, node });
   const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding);
   const { langAsString } = useLanguage();
 

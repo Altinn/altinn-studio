@@ -4,7 +4,7 @@ import type { IUiConfig } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
+import type { IValidationObject, ValidationContextGenerator } from 'src/utils/validation/types';
 
 /**
  * The layout page is a class containing an entire page/form layout, with all components/nodes within it. It
@@ -137,8 +137,8 @@ export class LayoutPage implements LayoutObject {
   /**
    * Runs frontend validations for all nodes in the layout, and returns an array of IValidationObject.
    */
-  public runValidations(validationContext: IValidationContext): IValidationObject[] {
-    return runValidationOnNodes(this.allChildren, validationContext);
+  public runValidations(validationCtxGenerator: ValidationContextGenerator): IValidationObject[] {
+    return runValidationOnNodes(this.allChildren, validationCtxGenerator);
   }
 
   public isHiddenViaTracks(uiConfig: IUiConfig): boolean {

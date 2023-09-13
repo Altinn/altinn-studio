@@ -1,10 +1,12 @@
 import type { ErrorObject } from 'ajv';
 
+import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { isOneOfError } from 'src/utils/validation/schemaValidation';
 import * as validation from 'src/utils/validation/validation';
+import type { TextResourceMap } from 'src/features/textResources';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { IRepeatingGroups, ITextResource } from 'src/types';
+import type { IRepeatingGroups } from 'src/types';
 import type { ILayoutValidations, IValidations } from 'src/utils/validation/types';
 
 // Mock dateformat
@@ -23,7 +25,7 @@ describe('utils > validation', () => {
   let mockInvalidTypes: any;
   let mockFormValidationResult: any;
   let mockLanguage: any;
-  let mockTextResources: ITextResource[];
+  let mockTextResources: TextResourceMap;
   let mockLangTools: IUseLanguage;
 
   beforeEach(() => {
@@ -54,7 +56,7 @@ describe('utils > validation', () => {
       },
     };
 
-    mockTextResources = [
+    mockTextResources = resourcesAsMap([
       {
         id: 'c1Title',
         value: 'component_1',
@@ -97,7 +99,7 @@ describe('utils > validation', () => {
         id: 'custom_error',
         value: 'This is a custom error message',
       },
-    ];
+    ]);
 
     mockComponent4 = {
       type: 'Input',

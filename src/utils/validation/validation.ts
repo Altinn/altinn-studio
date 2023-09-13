@@ -17,10 +17,10 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
   IComponentValidations,
   ILayoutValidations,
-  IValidationContext,
   IValidationObject,
   IValidationResult,
   IValidations,
+  ValidationContextGenerator,
 } from 'src/utils/validation/types';
 
 export interface IValidationOptions {
@@ -35,9 +35,10 @@ export interface IValidationOptions {
  */
 export function runValidationOnNodes(
   nodes: LayoutNode[],
-  validationContext: IValidationContext,
+  ctxGenerator: ValidationContextGenerator,
   options?: IValidationOptions,
 ): IValidationObject[] {
+  const basicContext = ctxGenerator(undefined);
   const nodesToValidate = nodes.filter(
     (node) =>
       implementsAnyValidation(node.def) &&
@@ -49,20 +50,20 @@ export function runValidationOnNodes(
     return [];
   }
 
-  const schemaErrors = getSchemaValidationErrors(validationContext, options?.overrideFormData);
+  const schemaErrors = getSchemaValidationErrors(basicContext, options?.overrideFormData);
   const validations: IValidationObject[] = [];
   for (const node of nodesToValidate) {
     const nodeValidations: IValidationObject[] = [];
 
     if (implementsEmptyFieldValidation(node.def) && !options?.skipEmptyFieldValidation) {
       nodeValidations.push(
-        ...node.def.runEmptyFieldValidation(node as any, validationContext, options?.overrideFormData),
+        ...node.def.runEmptyFieldValidation(node as any, ctxGenerator(node), options?.overrideFormData),
       );
     }
 
     if (implementsComponentValidation(node.def) && !options?.skipComponentValidation) {
       nodeValidations.push(
-        ...node.def.runComponentValidation(node as any, validationContext, options?.overrideFormData),
+        ...node.def.runComponentValidation(node as any, ctxGenerator(node), options?.overrideFormData),
       );
     }
 

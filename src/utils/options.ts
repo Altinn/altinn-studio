@@ -1,4 +1,3 @@
-import { replaceTextResourceParams } from 'src/language/sharedLanguage';
 import {
   getBaseGroupDataModelBindingFromKeyWithIndexIndicators,
   getGroupDataModelBinding,
@@ -7,11 +6,9 @@ import {
   replaceIndexIndicatorsWithIndexes,
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/formData';
-import type { IOptionResources } from 'src/hooks/useGetOptions';
 import type { IMapping, IOption, IOptionSource } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { IOptions, IOptionsMetaData, IRepeatingGroups } from 'src/types';
-import type { IDataSources } from 'src/types/shared';
 
 export function getOptionLookupKey({ id, mapping, fixedQueryParameters }: IOptionsMetaData) {
   if (!mapping && !fixedQueryParameters) {
@@ -76,14 +73,6 @@ export function getOptionLookupKeys({
   };
 }
 
-/**
- * @deprecated Move this functionality to the node hierarchy?
- */
-export function replaceOptionDataField(formData: IFormData, valueString: string, index: number) {
-  const indexedValueString = valueString.replace('{0}', index.toString());
-  return formData[indexedValueString];
-}
-
 export function getRelevantFormDataForOptionSource(formData: IFormData, source: IOptionSource) {
   const relevantFormData: IFormData = {};
 
@@ -98,55 +87,6 @@ export function getRelevantFormDataForOptionSource(formData: IFormData, source: 
   });
 
   return relevantFormData;
-}
-
-interface ISetupSourceOptionsParams {
-  source: IOptionSource;
-  relevantTextResources: IOptionResources;
-  relevantFormData: IFormData;
-  repeatingGroups: IRepeatingGroups | null;
-  dataSources: IDataSources;
-}
-
-/**
- * @deprecated Move this functionality to the node hierarchy?
- */
-export function setupSourceOptions({
-  source,
-  relevantTextResources,
-  relevantFormData,
-  repeatingGroups,
-  dataSources,
-}: ISetupSourceOptionsParams) {
-  const replacedOptionLabels = relevantTextResources.label
-    ? replaceTextResourceParams([relevantTextResources.label], dataSources, repeatingGroups)
-    : [];
-  const replacedOptionDescriptions = relevantTextResources.description
-    ? replaceTextResourceParams([relevantTextResources.description], dataSources, repeatingGroups)
-    : [];
-  const replacedOptionLabelsHelpTexts = relevantTextResources.helpText
-    ? replaceTextResourceParams([relevantTextResources.helpText], dataSources, repeatingGroups)
-    : [];
-
-  const repGroup = Object.values(repeatingGroups || {}).find((group) => group.dataModelBinding === source.group);
-
-  if (!repGroup) {
-    return undefined;
-  }
-
-  const options: IOption[] = [];
-  for (let i = 0; i <= repGroup.index; i++) {
-    if (typeof replacedOptionLabels[i + 1]?.value !== 'undefined') {
-      const option: IOption = {
-        value: replaceOptionDataField(relevantFormData, source.value, i),
-        label: replacedOptionLabels[i + 1].value,
-        description: replacedOptionDescriptions[i + 1]?.value,
-        helpText: replacedOptionLabelsHelpTexts[i + 1]?.value,
-      };
-      options.push(option);
-    }
-  }
-  return options;
 }
 
 interface IRemoveGroupOptionsByIndexParams {

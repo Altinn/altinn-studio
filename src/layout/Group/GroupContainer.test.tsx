@@ -14,6 +14,7 @@ import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IUpdateRepeatingGroupsEditIndex } from 'src/features/layout/formLayoutTypes';
+import type { ITextResourcesState } from 'src/features/textResources';
 import type { CompGroupRepeatingExternal } from 'src/layout/Group/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 
@@ -111,14 +112,16 @@ function render({ container = mockContainer }: IRender = {}) {
     },
   } as any;
 
-  const mockTextResources = {
-    resources: [
-      { id: 'option.label', value: 'Value to be shown' },
-      { id: 'button.open', value: 'New open text' },
-      { id: 'button.close', value: 'New close text' },
-      { id: 'button.save', value: 'New save text' },
-    ],
-  } as any;
+  const mockTextResources: ITextResourcesState = {
+    language: 'en',
+    error: null,
+    resourceMap: {
+      'option.label': { value: 'Value to be shown' },
+      'button.open': { value: 'New open text' },
+      'button.close': { value: 'New close text' },
+      'button.save': { value: 'New save text' },
+    },
+  };
 
   const preloadedState = getInitialStateMock({
     formLayout: mockLayout,

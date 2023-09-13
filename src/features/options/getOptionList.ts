@@ -1,14 +1,17 @@
-import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
+import { getSourceOptions } from 'src/hooks/useSourceOptions';
+import { getOptionLookupKey } from 'src/utils/options';
 import type { IFormData } from 'src/features/formData';
+import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IOption, ISelectionComponent } from 'src/layout/common.generated';
-import type { IOptions, IRepeatingGroups, ITextResource } from 'src/types';
+import type { IOptions } from 'src/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function getOptionList(
   component: ISelectionComponent,
-  textResources: ITextResource[],
-  formData: IFormData,
-  repeatingGroups: IRepeatingGroups | null,
   options: IOptions,
+  langTools: IUseLanguage,
+  node: LayoutNode,
+  formData: IFormData,
 ): IOption[] {
   if (component.options) {
     return component.options;
@@ -21,21 +24,14 @@ export function getOptionList(
     return options[key]?.options || [];
   }
   if (component.source) {
-    const relevantTextResourceLabel = textResources.find(
-      (resourceLabel) => resourceLabel.id === component.source?.label,
-    );
-    const reduxOptions =
-      relevantTextResourceLabel &&
-      setupSourceOptions({
+    return (
+      getSourceOptions({
         source: component.source,
-        relevantTextResources: { label: relevantTextResourceLabel },
-        relevantFormData: getRelevantFormDataForOptionSource(formData, component.source),
-        repeatingGroups,
-        dataSources: {
-          dataModel: formData,
-        },
-      });
-    return reduxOptions || [];
+        langTools,
+        node,
+        formData,
+      }) || []
+    );
   }
 
   return [];

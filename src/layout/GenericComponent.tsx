@@ -110,7 +110,7 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
   const GetFocusSelector = makeGetFocus();
   const hasValidationMessages = node.hasValidationMessages('any');
   const hidden = node.isHidden();
-  const { lang, langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage(node);
 
   const formData = node.getFormData();
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
@@ -145,8 +145,9 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
       grid: item.grid,
       id,
       baseComponentId: item.baseComponentId,
+      node,
     }),
-    [item.baseComponentId, item.grid, id],
+    [item.baseComponentId, item.grid, id, node],
   );
 
   React.useLayoutEffect(() => {

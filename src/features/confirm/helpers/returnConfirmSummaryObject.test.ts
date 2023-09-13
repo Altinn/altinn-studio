@@ -85,7 +85,7 @@ describe('returnConfirmSummaryObject', () => {
 
   it('should return custom value for confirm.sender if key is supplied in text resources', () => {
     const result = returnConfirmSummaryObject({
-      langTools: staticUseLanguageForTests({ textResources: [{ id: 'confirm.sender', value: 'Some custom value' }] }),
+      langTools: staticUseLanguageForTests({ textResources: { 'confirm.sender': { value: 'Some custom value' } } }),
       instanceOwnerParty: {
         partyId: '50001',
         name: 'Ola Privatperson',

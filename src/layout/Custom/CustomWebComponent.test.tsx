@@ -4,8 +4,8 @@ import { screen } from '@testing-library/react';
 
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
+import type { TextResourceMap } from 'src/features/textResources';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
-import type { ITextResource } from 'src/types/shared';
 
 const jsonAttributeValue = { customKey: 'customValue' };
 
@@ -38,12 +38,11 @@ describe('CustomWebComponent', () => {
   });
 
   const render = ({ component }: Partial<RenderGenericComponentTestProps<'Custom'>> = {}) => {
-    const resources = [
-      {
-        id: 'title',
+    const resourceMap = {
+      title: {
         value: 'Title',
       },
-    ] as ITextResource[];
+    } as TextResourceMap;
 
     renderGenericComponentTest({
       type: 'Custom',
@@ -68,7 +67,7 @@ describe('CustomWebComponent', () => {
       manipulateState: (state) => {
         state.textResources = {
           language: 'nb',
-          resources,
+          resourceMap,
           error: null,
         };
       },

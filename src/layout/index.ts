@@ -9,11 +9,16 @@ import type { IGrid } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
-import type { IOptions, IRuntimeState, IUiConfig } from 'src/types';
+import type { IOptions, IRuntimeState } from 'src/types';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
-import type { IComponentValidations, IValidationContext, IValidationObject } from 'src/utils/validation/types';
+import type {
+  IComponentValidations,
+  IValidationContext,
+  IValidationObject,
+  ValidationContextGenerator,
+} from 'src/utils/validation/types';
 
 export type CompClassMap = {
   [K in keyof typeof ComponentConfigs]: (typeof ComponentConfigs)[K]['def'];
@@ -62,12 +67,14 @@ export interface IFormComponentContext {
   grid?: IGrid;
   id?: string;
   baseComponentId?: string;
+  node?: LayoutNode;
 }
 
 export const FormComponentContext = createContext<IFormComponentContext>({
   grid: undefined,
   id: undefined,
   baseComponentId: undefined,
+  node: undefined,
 });
 
 export function getLayoutComponentObject<T extends keyof CompClassMap>(type: T): CompClassMap[T] {
@@ -132,7 +139,7 @@ export function implementsSchemaValidation<Type extends CompTypes>(
 export interface GroupValidation {
   runGroupValidations: (
     node: LayoutNode,
-    validationContext: IValidationContext,
+    validationCtxGenerator: ValidationContextGenerator,
     onlyInRowIndex?: number,
   ) => IValidationObject[];
 }
@@ -147,7 +154,6 @@ export interface DisplayDataProps {
   formData: IFormData;
   attachments: IAttachments;
   options: IOptions;
-  uiConfig: IUiConfig;
   langTools: IUseLanguage;
 }
 
@@ -167,7 +173,6 @@ function getDisplayDataPropsFromState(state: IRuntimeState): DisplayDataProps {
     formData: state.formData.formData,
     attachments: state.attachments.attachments,
     options: state.optionState.options,
-    uiConfig: state.formLayout.uiConfig,
     langTools: staticUseLanguageFromState(state),
   };
 }

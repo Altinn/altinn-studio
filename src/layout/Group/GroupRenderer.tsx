@@ -16,8 +16,7 @@ export function GroupRenderer({ node }: GroupRendererProps) {
     return <RepeatingGroupsLikertContainer node={node} />;
   }
 
-  const isRepeatingGroup = node.isRepGroup();
-  if (isRepeatingGroup) {
+  if (node.isRepGroup()) {
     return (
       <RepeatingGroupsFocusProvider>
         <GroupContainer

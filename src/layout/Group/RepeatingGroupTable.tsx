@@ -12,11 +12,11 @@ import { nodesFromGridRows } from 'src/layout/Grid/tools';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/layout/Group/RepeatingGroupTableRow';
+import { RepeatingGroupTableTitle } from 'src/layout/Group/RepeatingGroupTableTitle';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { GridRowsInternal, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
 import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
-import type { ITextResourceBindings } from 'src/layout/layout';
 
 export interface IRepeatingGroupTableProps {
   node: LayoutNodeForGroup<CompGroupRepeatingInternal>;
@@ -30,20 +30,6 @@ export interface IRepeatingGroupTableProps {
   filteredIndexes?: number[] | null;
   rowsBefore?: GridRowsInternal;
   rowsAfter?: GridRowsInternal;
-}
-
-function getTableTitle(textResourceBindings: ITextResourceBindings) {
-  if (!textResourceBindings) {
-    return '';
-  }
-
-  if ('tableTitle' in textResourceBindings && textResourceBindings.tableTitle) {
-    return textResourceBindings?.tableTitle;
-  }
-  if ('title' in textResourceBindings && textResourceBindings.title) {
-    return textResourceBindings?.title;
-  }
-  return '';
 }
 
 export function RepeatingGroupTable({
@@ -222,12 +208,10 @@ export function RepeatingGroupTable({
                   className={classes.tableCellFormatting}
                   style={getColumnStylesRepeatingGroups(n, columnSettings)}
                 >
-                  <span
-                    className={classes.contentFormatting}
-                    style={getColumnStylesRepeatingGroups(n, columnSettings)}
-                  >
-                    {lang(getTableTitle('textResourceBindings' in n.item ? n.item.textResourceBindings : {}))}
-                  </span>
+                  <RepeatingGroupTableTitle
+                    node={n}
+                    columnSettings={columnSettings}
+                  />
                 </TableCell>
               ))}
               {displayEditColumn && (

@@ -12,20 +12,18 @@ import {
   TextResourceSelector,
 } from 'src/features/queue/infoTask/infoTaskQueueSaga';
 import { QueueActions } from 'src/features/queue/queueSlice';
-import { TextResourcesActions } from 'src/features/textResources/textResourcesSlice';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ITextResource } from 'src/types';
+import type { TextResourceMap } from 'src/features/textResources';
 
 describe('infoTaskQueueSaga', () => {
-  let textResources: ITextResource[];
+  let textResources: TextResourceMap;
 
   beforeAll(() => {
-    textResources = [
-      {
-        id: 'text1',
+    textResources = {
+      text1: {
         value: 'some text',
       },
-    ];
+    };
   });
 
   it('startInitialInfoTaskQueueSaga, text resources with no variables', () =>
@@ -41,10 +39,9 @@ describe('infoTaskQueueSaga', () => {
       .run());
 
   it('startInitialInfoTaskQueueSaga, text resources with variables should load form data', () => {
-    const textsWithVariables = [
+    const textsWithVariables = {
       ...textResources,
-      {
-        id: 'someTextWithVariable',
+      someTextWithVariable: {
         value: '{0}',
         variables: [
           {
@@ -53,7 +50,7 @@ describe('infoTaskQueueSaga', () => {
           },
         ],
       },
-    ];
+    };
     const applicationMetadata: IApplicationMetadata = {
       ...applicationMetadataMock,
       dataTypes: [
@@ -76,7 +73,6 @@ describe('infoTaskQueueSaga', () => {
       .put(IsLoadingActions.startDataTaskIsLoading())
       .put(QueueActions.startInitialInfoTaskQueueFulfilled())
       .put(FormDataActions.fetchFulfilled({ formData: {} }))
-      .put(TextResourcesActions.replace())
       .put(IsLoadingActions.finishDataTaskIsLoading())
       .run();
   });

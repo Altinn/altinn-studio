@@ -132,10 +132,10 @@ describe('formComponentUtils', () => {
   });
 
   describe('getFieldName', () => {
-    const textResources = [
-      { id: 'title', value: 'Component name' },
-      { id: 'short', value: 'name' },
-    ];
+    const textResources = {
+      title: { value: 'Component name' },
+      short: { value: 'name' },
+    };
     const mockLanguage = {
       form_filler: {
         error_required: 'Du må fylle ut {0}',

@@ -14,13 +14,13 @@ export class Dropdown extends DropdownDef {
     return <DropdownComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'Dropdown'>, { formData, langTools, options, uiConfig }: DisplayDataProps): string {
+  getDisplayData(node: LayoutNode<'Dropdown'>, { formData, langTools, options }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
     const value = formData[node.item.dataModelBindings.simpleBinding] || '';
-    const optionList = getOptionList(node.item, langTools.textResources, formData, uiConfig.repeatingGroups, options);
+    const optionList = getOptionList(node.item, options, langTools, node, formData);
     return getSelectedValueToText(value, langTools, optionList) || '';
   }
 

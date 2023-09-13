@@ -5,28 +5,31 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
+import { mapAsResources } from 'src/features/textResources/resourcesAsMap';
 import { TextResourcesActions } from 'src/features/textResources/textResourcesSlice';
 import { convertModelToDataBinding } from 'src/utils/databindings';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getFetchFormDataUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { IRuntimeState, ITextResource } from 'src/types';
+import type { TextResourceMap } from 'src/features/textResources';
+import type { IRuntimeState } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
 export const ApplicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
-export const TextResourceSelector = (state: IRuntimeState) => state.textResources.resources;
+export const TextResourceSelector = (state: IRuntimeState) => state.textResources.resourceMap;
 export const InstanceDataSelector = (state: IRuntimeState) => state.instanceData.instance;
 
 export function* startInitialInfoTaskQueueSaga(): SagaIterator {
   const appMetadata: IApplicationMetadata = yield select(ApplicationMetadataSelector);
-  const textResources: ITextResource[] = yield select(TextResourceSelector);
+  const textResourceMap: TextResourceMap = yield select(TextResourceSelector);
   const instance: IInstance = yield select(InstanceDataSelector);
 
   yield put(IsLoadingActions.startDataTaskIsLoading());
 
-  const textResourcesWithVariables = textResources.filter(
+  const textResourcesWithVariables = mapAsResources(textResourceMap).filter(
     (resource) => resource.variables && resource.variables.length > 0,
   );
+
   if (textResourcesWithVariables && textResourcesWithVariables.length > 0) {
     const dataElements: string[] = [];
     textResourcesWithVariables.forEach((resource) => {
@@ -55,7 +58,6 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
     }
 
     yield put(FormDataActions.fetchFulfilled({ formData }));
-    yield put(TextResourcesActions.replace());
   }
 
   yield put(QueueActions.startInitialInfoTaskQueueFulfilled());

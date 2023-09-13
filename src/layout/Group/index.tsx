@@ -15,7 +15,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
+import type { IValidationContext, IValidationObject, ValidationContextGenerator } from 'src/utils/validation/types';
 
 export class Group extends GroupDef implements GroupValidation, ComponentValidation {
   private _hierarchyGenerator = new GroupHierarchyGenerator();
@@ -89,10 +89,10 @@ export class Group extends GroupDef implements GroupValidation, ComponentValidat
 
   runGroupValidations(
     node: LayoutNode<'Group'>,
-    validationContext: IValidationContext,
+    validationCtxGenerator: ValidationContextGenerator,
     onlyInRowIndex?: number,
   ): IValidationObject[] {
-    return runValidationOnNodes(node.flat(true, onlyInRowIndex), validationContext);
+    return runValidationOnNodes(node.flat(true, onlyInRowIndex), validationCtxGenerator);
   }
 
   makeNode(

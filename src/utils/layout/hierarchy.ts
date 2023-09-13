@@ -10,7 +10,7 @@ import { buildAuthContext } from 'src/utils/authContext';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { CompInternal, HierarchyDataSources, ILayouts } from 'src/layout/layout';
-import type { IRepeatingGroups, IRuntimeState, ITextResource } from 'src/types';
+import type { IRepeatingGroups, IRuntimeState } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 /**
@@ -90,22 +90,6 @@ function resolvedNodesInLayouts(
   return unresolved as unknown as LayoutPages;
 }
 
-/**
- * This updates the textResourceBindings for each node to match the new one made in replaceTextResourcesSaga.
- * It must be run _after_ resolving expressions, as that may decide to use other text resource bindings.
- *
- * @see replaceTextResourcesSaga
- * @see replaceTextResourceParams
- * @ßee getVariableTextKeysForRepeatingGroupComponent
- */
-function rewriteTextResourceBindings(collection: LayoutPages, textResources: ITextResource[]) {
-  for (const layout of Object.values(collection.all())) {
-    for (const node of layout.flat(true)) {
-      node.def.hierarchyGenerator().rewriteTextBindings(node as any, textResources);
-    }
-  }
-}
-
 export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources {
   return {
     formData: state.formData.formData,
@@ -129,16 +113,12 @@ function innerResolvedLayoutsFromState(
   currentView: string | undefined,
   repeatingGroups: IRepeatingGroups | null,
   dataSources: HierarchyDataSources,
-  textResources: ITextResource[],
 ): LayoutPages | undefined {
   if (!layouts || !currentView || !repeatingGroups) {
     return undefined;
   }
 
-  const resolved = resolvedNodesInLayouts(layouts, currentView, repeatingGroups, dataSources);
-  rewriteTextResourceBindings(resolved, textResources);
-
-  return resolved;
+  return resolvedNodesInLayouts(layouts, currentView, repeatingGroups, dataSources);
 }
 
 export function resolvedLayoutsFromState(state: IRuntimeState) {
@@ -147,7 +127,6 @@ export function resolvedLayoutsFromState(state: IRuntimeState) {
     state.formLayout.uiConfig.currentView,
     state.formLayout.uiConfig.repeatingGroups,
     dataSourcesFromState(state),
-    state.textResources.resources,
   );
 }
 
@@ -168,7 +147,6 @@ function useResolvedExpressions() {
   const layouts = useAppSelector((state) => state.formLayout.layouts);
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
-  const textResources = useAppSelector((state) => state.textResources.resources);
   const devTools = useAppSelector((state) => state.devTools);
   const langTools = useLanguage();
 
@@ -202,8 +180,8 @@ function useResolvedExpressions() {
   );
 
   return useMemo(
-    () => innerResolvedLayoutsFromState(layouts, currentView, repeatingGroups, dataSources, textResources),
-    [layouts, currentView, repeatingGroups, dataSources, textResources],
+    () => innerResolvedLayoutsFromState(layouts, currentView, repeatingGroups, dataSources),
+    [layouts, currentView, repeatingGroups, dataSources],
   );
 }
 

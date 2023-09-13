@@ -1,5 +1,5 @@
 import { getLayoutComponentObject } from 'src/layout';
-import { DataBinding } from 'src/utils/databindings/DataBinding';
+import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { runValidationOnNodes } from 'src/utils/validation/validation';
 import type { CompClassMap } from 'src/layout';
@@ -20,8 +20,8 @@ import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type {
   IComponentBindingValidation,
   IComponentValidations,
-  IValidationContext,
   IValidationObject,
+  ValidationContextGenerator,
   ValidationKeyOrAny,
 } from 'src/utils/validation/types';
 import type { IValidationOptions } from 'src/utils/validation/validation';
@@ -253,34 +253,13 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
       return dataModel;
     }
 
-    const ourBinding = new DataBinding(firstBinding);
-    const theirBinding = new DataBinding(dataModel);
-    const lastIdx = ourBinding.parts.length - 1;
-
-    for (const ours of ourBinding.parts) {
-      const theirs = theirBinding.at(ours.parentIndex);
-
-      if (ours.base !== theirs?.base) {
-        break;
-      }
-
-      const arrayIndex =
-        ours.parentIndex === lastIdx && this.isType('Group') && this.isRepGroup() ? rowIndex : ours.arrayIndex;
-
-      if (arrayIndex === undefined) {
-        continue;
-      }
-
-      if (theirs.hasArrayIndex()) {
-        // Stop early. We cannot add our row index here, because it makes no sense when an earlier group
-        // index changed.we cannot possibly
-        break;
-      }
-
-      theirs.arrayIndex = arrayIndex;
-    }
-
-    return theirBinding.toString();
+    const currentLocationIsRepGroup = this.isType('Group') && this.isRepGroup();
+    return transposeDataBinding({
+      subject: dataModel,
+      currentLocation: firstBinding,
+      rowIndex,
+      currentLocationIsRepGroup,
+    });
   }
 
   /**
@@ -408,8 +387,11 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
   /**
    * Runs frontend validations for this node and returns an array of IValidationObject
    */
-  runValidations(validationContext: IValidationContext, options?: IValidationOptions): IValidationObject[] {
-    return runValidationOnNodes([this as LayoutNode], validationContext, options);
+  runValidations(
+    validationCtxGenerator: ValidationContextGenerator,
+    options?: IValidationOptions,
+  ): IValidationObject[] {
+    return runValidationOnNodes([this as LayoutNode], validationCtxGenerator, options);
   }
 }
 

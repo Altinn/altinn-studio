@@ -27,7 +27,7 @@ export function DropdownComponent({ node, formData, handleDataChange, isValid, o
     textResourceBindings,
   } = node.item;
   const { langAsString } = useLanguage();
-  const options = (useGetOptions({ optionsId, mapping, queryParameters, source }) || staticOptions)?.filter(
+  const options = (useGetOptions({ optionsId, mapping, queryParameters, source, node }) || staticOptions)?.filter(
     duplicateOptionFilter,
   );
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });

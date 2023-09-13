@@ -103,20 +103,17 @@ describe('SummaryGroupComponent', () => {
       textResources: {
         error: null,
         language: 'nb',
-        resources: [
-          {
-            id: 'mockGroupTitle',
+        resourceMap: {
+          mockGroupTitle: {
             value: 'Mock group',
           },
-          {
-            id: 'mockField1',
+          mockField1: {
             value: 'Mock field 1',
           },
-          {
-            id: 'mockField2',
+          mockField2: {
             value: 'Mock field 2',
           },
-        ],
+        },
       },
     });
     mockStore = createStore(initialState);
