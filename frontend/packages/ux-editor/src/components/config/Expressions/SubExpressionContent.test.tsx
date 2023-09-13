@@ -1,15 +1,15 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SubExpressionContent, SubExpressionContentProps } from "./SubExpressionContent";
+import { SubExpressionContent, SubExpressionContentProps } from './SubExpressionContent';
 import { subExpression0 } from '../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { formDesignerMock, renderWithMockStore } from '../../../testing/mocks';
-import { textMock } from "../../../../../../testing/mocks/i18nMock";
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from "app-shared/types/QueryKey";
-import { layout1NameMock, layoutMock } from "../../../testing/layoutMock";
-import { IFormLayouts } from "../../../types/global";
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { IFormLayouts } from '../../../types/global';
 
 const user = userEvent.setup();
 const org = 'org';

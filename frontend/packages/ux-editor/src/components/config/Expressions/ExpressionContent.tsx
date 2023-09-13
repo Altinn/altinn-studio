@@ -106,6 +106,7 @@ export const ExpressionContent = ({
             </p>
             {showRemoveExpressionButton && (
               <Button
+                aria-label={t('right_menu.expression_delete')}
                 color='danger'
                 icon={<TrashIcon/>}
                 onClick={() => onRemoveExpression(expression)}
@@ -174,6 +175,7 @@ export const ExpressionContent = ({
           </div>
           <div>
             <Button
+              aria-label={t('right_menu.expression_delete')}
               color='danger'
               icon={<TrashIcon/>}
               onClick={() => onRemoveExpression(expression)}
@@ -181,6 +183,7 @@ export const ExpressionContent = ({
               size='small'
             />
             <Button
+              aria-label={t('right_menu.expression_edit')}
               icon={<PencilIcon/>}
               onClick={() => onEditExpression(expression)}
               variant='quiet'

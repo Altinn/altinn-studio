@@ -3,8 +3,8 @@ import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
-import { SimpleExpressionPreview, SimpleExpressionPreviewProps } from "./SimpleExpressionPreview";
-import { textMock } from "../../../../../../testing/mocks/i18nMock";
+import { SimpleExpressionPreview, SimpleExpressionPreviewProps } from './SimpleExpressionPreview';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 describe('SimpleExpressionPreview', () => {
   beforeEach(() => {

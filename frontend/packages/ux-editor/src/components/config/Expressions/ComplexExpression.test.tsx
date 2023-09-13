@@ -3,8 +3,8 @@ import { screen } from '@testing-library/react';
 import { internalParsableComplexExpression } from '../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
-import { ComplexExpression, ComplexExpressionProps } from "./ComplexExpression";
-import { stringifyData } from "../../../utils/jsonUtils";
+import { ComplexExpression, ComplexExpressionProps } from './ComplexExpression';
+import { stringifyData } from '../../../utils/jsonUtils';
 
 describe('ComplexExpression', () => {
   beforeEach(() => {

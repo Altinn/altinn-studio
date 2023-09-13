@@ -16,7 +16,7 @@ import {
   appDataMock,
   renderWithMockStore,
   renderHookWithMockStore,
-  textResourcesMock,
+  textResourcesMock, FormContextProviderMock,
 } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
@@ -24,16 +24,6 @@ const user = userEvent.setup();
 
 // Test data:
 const textResourceEditTestId = 'text-resource-edit';
-
-const FormContextProviderMock = {
-  formId: null,
-  form: null,
-  handleDiscard: jest.fn(),
-  handleEdit: jest.fn(),
-  handleUpdate: jest.fn(),
-  handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
-  debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
-};
 
 // Mocks:
 jest.mock('../TextResourceEdit', () => ({

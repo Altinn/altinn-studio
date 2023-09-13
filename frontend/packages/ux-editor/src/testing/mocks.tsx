@@ -60,6 +60,16 @@ export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
 
+export const FormContextProviderMock = {
+  formId: null,
+  form: null,
+  handleDiscard: jest.fn(),
+  handleEdit: jest.fn(),
+  handleUpdate: jest.fn(),
+  handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
+  debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
+};
+
 export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),

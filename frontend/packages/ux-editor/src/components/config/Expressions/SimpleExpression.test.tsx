@@ -7,8 +7,8 @@ import { SimpleExpression, SimpleExpressionProps } from './SimpleExpression';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { IFormLayouts } from "../../../types/global";
-import { layout1NameMock, layoutMock } from "../../../testing/layoutMock";
+import { IFormLayouts } from '../../../types/global';
+import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 
 const org = 'org';
 const app = 'app';

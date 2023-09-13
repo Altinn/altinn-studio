@@ -5,7 +5,7 @@ import { DataSource } from '../../../types/Expressions';
 import { subExpression0 } from '../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
-import { textMock } from "../../../../../../testing/mocks/i18nMock";
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 describe('DataSourceValue', () => {
   beforeEach(() => {

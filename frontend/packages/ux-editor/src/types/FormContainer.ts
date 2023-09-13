@@ -9,4 +9,8 @@ export interface FormContainer {
   tableHeaders?: string[];
   textResourceBindings?: ITextResourceBindings;
   propertyPath?: string;
+  [id: string]: any;
+  edit?: {
+    [id: string]: any;
+  }
 }

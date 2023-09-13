@@ -53,7 +53,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutN
           delete components[id].options;
           delete components[id].optionsId;
         }
-        components[id] = updatedComponent
+        components[id] = updatedComponent;
       }
 
       return saveLayout(updatedLayout).then(async (data) => {

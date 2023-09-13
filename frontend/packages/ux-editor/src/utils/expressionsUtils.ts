@@ -4,7 +4,7 @@ import {
   ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
-  Operator, getExpressionPropertiesBasedOnComponentType, ExpressionProperty
+  Operator, getExpressionPropertiesBasedOnComponentType
 } from '../types/Expressions';
 import { v4 as uuidv4 } from 'uuid';
 import { deepCopy } from 'app-shared/pure';
@@ -12,7 +12,7 @@ import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { IFormLayouts, LayoutItemType } from '../types/global';
 import { FormComponent } from '../types/FormComponent';
 import { SingleSelectOption } from '@digdir/design-system-react';
-import { FormContainer } from "../types/FormContainer";
+import { FormContainer } from '../types/FormContainer';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -121,21 +121,29 @@ export function convertSubExpression(internalExpEl: SubExpression, externalExpEl
   return newInternalExpEl;
 }
 
-export const convertAndAddExpressionToComponent = (form, expression: Expression): FormComponent => {
-  const newFrom = deepCopy(form);
+export const convertAndAddExpressionToComponent = (form, expression: Expression): FormComponent | FormContainer => {
+  const newForm = deepCopy(form);
   let newExpression = deepCopy(expression);
   if (complexExpressionIsSet(newExpression.complexExpression)) {
     const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
     newExpression = { ...parsedExpression };
   }
-  if (newExpression.property) {
+  if (!newExpression.subExpressions && !newExpression.complexExpression) {
+    delete newForm[newExpression.property]
+  } else if (newExpression.property) {
     // TODO: What if expression is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
-    newFrom[newExpression.property] = convertInternalExpressionToExternal(newExpression);
-    return newFrom;
+    if (form.itemType === LayoutItemType.Container) {
+      const editPropertyForGroup = newExpression.property.split('edit.')[1];
+      newForm['edit'][editPropertyForGroup] = convertInternalExpressionToExternal(newExpression);
+    } else {
+      newForm[newExpression.property] = convertInternalExpressionToExternal(newExpression);
+    }
+
   }
+  return newForm;
 };
 
-export const deleteExpressionFromComponent = (form, expression: Expression): FormComponent => {
+export const deleteExpressionFromComponent = (form, expression: Expression): FormComponent | FormContainer => {
   const newForm = deepCopy(form);
   const expressionToDelete = deepCopy(expression);
   if (expressionToDelete.property) {
@@ -283,10 +291,30 @@ export const complexExpressionIsSet = (complexExpression: string) => {
   return complexExpression !== undefined && complexExpression !== null;
 };
 
-export const getAllComponentPropertiesThatCanHaveExpressions = (form: FormComponent | FormContainer): (ExpressionProperty)[] | undefined  => {
+export const getAllComponentPropertiesThatCanHaveExpressions = (form: FormComponent | FormContainer): { generalProperties: ExpressionPropertyBase[], propertiesForGroup: ExpressionPropertyForGroup[] } | undefined  => {
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(form.itemType as LayoutItemType);
-  return Object.keys(form).filter(property => expressionProperties?.includes(property as ExpressionProperty))
-    .map(property => property as ExpressionProperty);
+  let editPropertiesForGroup = [];
+  if (form['edit']) {
+    editPropertiesForGroup = Object.keys(form['edit']).map(property => ('edit.' + property) as ExpressionPropertyForGroup);
+  }
+  const generalFormPropertiesThatCouldHaveExpressions = Object.keys(form).filter(property => expressionProperties?.includes(property as ExpressionPropertyBase)).map(property => property as ExpressionPropertyBase);
+  return { generalProperties: generalFormPropertiesThatCouldHaveExpressions, propertiesForGroup: editPropertiesForGroup };
+};
+
+export const getAllConvertedExpressions = (form: FormComponent | FormContainer) => {
+  const { generalProperties, propertiesForGroup } = getAllComponentPropertiesThatCanHaveExpressions(form);
+  const potentialConvertedExternalExpressionsForGroupProperties = propertiesForGroup.map(property => {
+    const editPropertyForGroup = property.split('edit.')[1];
+    const value = form['edit'][editPropertyForGroup];
+    if (typeof value !== 'boolean') {
+      return convertExternalExpressionToInternal(property, value);
+    }
+  })
+  const potentialConvertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
+    ?.filter(property => typeof form[property] !== 'boolean')
+    ?.map(property => convertExternalExpressionToInternal(property, form[property]));
+
+  return potentialConvertedExternalExpressionsForGroupProperties.concat(potentialConvertedExternalExpressionsForGeneralProperties);
 };
 
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855

@@ -770,6 +770,8 @@
   "right_menu.dynamics_edit": "Rediger dynamikk",
   "right_menu.dynamics_edit_comment": "Denne lenken åpnes i Gitea",
   "right_menu.dynamics_link": "Mer info",
+  "right_menu.expression_delete": "Slett uttrykk",
+  "right_menu.expression_edit": "Rediger uttrykk",
   "right_menu.expression_successfully_added_text": "Lagt til",
   "right_menu.expressions_add": "Lag en ny logikkregel",
   "right_menu.expressions_add_expression": "Utvid regelen",
