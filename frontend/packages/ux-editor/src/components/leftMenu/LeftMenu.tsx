@@ -26,6 +26,7 @@ import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
 import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
 export interface LeftMenuProps {
   className?: string;
@@ -37,6 +38,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const { data: instanceId } = useInstanceIdQuery(org, app);
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
@@ -55,6 +57,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
     }
     addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
     setSearchParams({ ...deepCopy(searchParams), layout: name });
+    localStorage.setItem(instanceId, name)
     dispatch(FormLayoutActions.updateSelectedLayout(name));
   }
 

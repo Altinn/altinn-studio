@@ -16,7 +16,7 @@ export function LayoutSetsContainer() {
 
   const onLayoutSetClick = (set: string) => {
     dispatch(FormLayoutActions.updateSelectedLayoutSet(set));
-    typedLocalStorage.setItem<string>('layoutSet' + app, set);
+    typedLocalStorage.setItem<string>('layoutSet/' + app, set);
   };
 
   return (

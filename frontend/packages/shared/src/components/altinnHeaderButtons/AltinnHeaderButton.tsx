@@ -23,7 +23,7 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
   const handlePopoverClose = () => {
     setAnchorEl(null);
   };
-
+  
   return (
     <Button
       className={action.headerButtonsClasses}

@@ -20,6 +20,7 @@ import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { firstAvailableLayout } from '../../utils/formLayoutsUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useInstanceIdQuery } from "app-shared/hooks/queries";
 
 export interface IPageElementProps {
   name: string;
@@ -33,6 +34,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
+  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
   const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
@@ -57,6 +59,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       alert(`${name}: ${t('left_menu.pages.invalid_page_data')}`);
     } else if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout(name));
+      localStorage.setItem(instanceId, name);
       setSearchParams({ ...deepCopy(searchParams), layout: name });
     }
   };
