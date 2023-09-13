@@ -1,3 +1,4 @@
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type {
   SupportedLanguageKey,
   ResourceTypeOption,
@@ -5,6 +6,7 @@ import type {
   ResourceAvailableForTypeOption,
   ResourceKeyword,
 } from 'app-shared/types/ResourceAdm';
+import { ReactNode } from 'react';
 import { NavigationBarPage, SupportedLanguage } from 'resourceadm/types/global';
 
 /**
@@ -143,9 +145,27 @@ export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): Resou
  *
  * @returns if the tab is active or not
  */
-export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: number): boolean => {
-  if (currentPage === 'about' && tabId === 0) return true;
-  if (currentPage === 'policy' && tabId === 1) return true;
-  if (currentPage === 'deploy' && tabId === 2) return true;
-  return false;
+export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): boolean => {
+  return currentPage === tabId;
+};
+
+// getIsActiveTab(currentPage, tab.tabId),
+export const createNavigationTab = (
+  icon: ReactNode,
+  tabId: string,
+  onClick: (tabId: string) => void,
+  currentPage: NavigationBarPage,
+  to: string
+): LeftNavigationTab => {
+  return {
+    icon,
+    tabName: `resourceadm.left_nav_bar_${tabId}`,
+    tabId,
+    action: {
+      type: 'link',
+      onClick,
+      to,
+    },
+    isActiveTab: getIsActiveTab(currentPage, tabId),
+  };
 };

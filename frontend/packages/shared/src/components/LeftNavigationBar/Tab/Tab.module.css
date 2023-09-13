@@ -26,6 +26,6 @@
 }
 
 .buttonText {
-  color: inherit;
+  color: var(--fds-semantic-text-neutral-default);
   margin-left: 10px;
 }

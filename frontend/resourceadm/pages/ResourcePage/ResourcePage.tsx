@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
@@ -28,38 +28,7 @@ import {
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { getIsActiveTab } from 'resourceadm/utils/resourceUtils';
-
-const leftNavigationTabs: LeftNavigationTab[] = [
-  {
-    icon: <InformationSquareIcon className={classes.icon} />,
-    tabName: 'resourceadm.left_nav_bar_about',
-    tabId: 0,
-    onClick: () => {},
-    isActiveTab: false,
-  },
-  {
-    icon: <GavelSoundBlockIcon className={classes.icon} />,
-    tabName: 'resourceadm.left_nav_bar_policy',
-    tabId: 1,
-    onClick: () => {},
-    isActiveTab: false,
-  },
-  {
-    icon: <UploadIcon className={classes.icon} />,
-    tabName: 'resourceadm.left_nav_bar_deploy',
-    tabId: 2,
-    onClick: () => {},
-    isActiveTab: false,
-  },
-];
-
-const migrationTab: LeftNavigationTab = {
-  icon: <MigrationIcon className={classes.icon} />,
-  tabName: 'resourceadm.left_nav_bar_migrate',
-  tabId: 3,
-  onClick: () => {},
-  isActiveTab: false,
-};
+import { createNavigationTab } from 'resourceadm/utils/resourceUtils/resourceUtils';
 
 /**
  * @component
@@ -128,12 +97,6 @@ export const ResourcePage = (): React.ReactNode => {
   useEffect(() => {
     setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
-
-  const getPageByIndex = (tabId: number): NavigationBarPage => {
-    if (tabId === 0) return 'about';
-    if (tabId === 1) return 'policy';
-    if (tabId === 2) return 'deploy';
-  };
 
   /**
    * Navigates to the selected page
@@ -222,6 +185,43 @@ export const ResourcePage = (): React.ReactNode => {
     return false;
   };
 
+  const aboutPageId = 'about';
+  const policyPageId = 'policy';
+  const deployPageId = 'deploy';
+  const migrationPageId = 'migration';
+
+  const leftNavigationTabs: LeftNavigationTab[] = [
+    createNavigationTab(
+      <InformationSquareIcon className={classes.icon} />,
+      aboutPageId,
+      () => navigateToPage(aboutPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'about')
+    ),
+    createNavigationTab(
+      <GavelSoundBlockIcon className={classes.icon} />,
+      policyPageId,
+      () => navigateToPage(policyPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'policy')
+    ),
+    createNavigationTab(
+      <UploadIcon className={classes.icon} />,
+      deployPageId,
+      () => navigateToPage(deployPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'deploy')
+    ),
+  ];
+
+  const migrationTab: LeftNavigationTab = createNavigationTab(
+    <MigrationIcon className={classes.icon} />,
+    migrationPageId,
+    () => navigateToPage(migrationPageId),
+    currentPage,
+    getResourcePageURL(selectedContext, repo, resourceId, 'migration')
+  );
+
   /**
    * Gets the tabs to display. If showMigrate is true, the migration tab
    * is added, otherwise it displays the three initial tabs.
@@ -230,26 +230,10 @@ export const ResourcePage = (): React.ReactNode => {
    */
   const getTabs = (): LeftNavigationTab[] => {
     if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
-      return mapTabToIncludeMissingValues([...leftNavigationTabs, migrationTab]);
+      return [...leftNavigationTabs, migrationTab];
     } else {
-      return mapTabToIncludeMissingValues(leftNavigationTabs);
+      return leftNavigationTabs;
     }
-  };
-
-  /**
-   * Adds the onClick, isActive, and maps the tabName for each tab.
-   *
-   * @param tabs the tabs to map
-   *
-   * @return the mapped tabs
-   */
-  const mapTabToIncludeMissingValues = (tabs: LeftNavigationTab[]): LeftNavigationTab[] => {
-    return tabs.map((tab: LeftNavigationTab) => ({
-      ...tab,
-      onClick: (tabId: number) => navigateToPage(getPageByIndex(tabId)),
-      isActiveTab: getIsActiveTab(currentPage, tab.tabId),
-      tabName: t(tab.tabName),
-    }));
   };
 
   return (
@@ -258,7 +242,8 @@ export const ResourcePage = (): React.ReactNode => {
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
-          onClickUpperTabBackButton={goBack}
+          // onClickUpperTabBackButton={goBack}
+          backButtonHref={`/resourceadm${getResourceDashboardURL(selectedContext, repo)}`}
           backButtonText={t('resourceadm.left_nav_bar_back')}
         />
       </div>

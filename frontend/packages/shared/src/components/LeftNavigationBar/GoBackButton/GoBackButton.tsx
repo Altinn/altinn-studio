@@ -3,6 +3,7 @@ import classes from './GoBackButton.module.css';
 import cn from 'classnames';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { Paragraph } from '@digdir/design-system-react';
+import { NavLink } from 'react-router-dom';
 
 export type GoBackButtonProps = {
   /**
@@ -10,14 +11,13 @@ export type GoBackButtonProps = {
    */
   className?: string;
   /**
-   * Function to be executed when clicking the back button
-   * @returns void
-   */
-  onClick: () => void;
-  /**
    * Text on the back button
    */
   text: string;
+  /**
+   * Where to navigate to
+   */
+  to: string;
 };
 
 /**
@@ -27,23 +27,23 @@ export type GoBackButtonProps = {
  * @example
  *      <GoBackButton
  *        className={classes.navigationElement}
- *        onClick={onClickUpperTabBackButton}
  *        text={backButtonText}
+ *        to={someUrl}
  *      />
  *
  * @property {string}[className] - Classname for navigation element
- * @property {function}[onClick] - Function to be executed when clicking the back button
  * @property {string}[text] - Text on the back button
+ * @property {string}[to] - Where to navigate to
  *
  * @returns {ReactNode} - The rendered component
  */
-export const GoBackButton = ({ className, onClick, text }: GoBackButtonProps): ReactNode => {
+export const GoBackButton = ({ className, text, to }: GoBackButtonProps): ReactNode => {
   return (
-    <button className={cn(className, classes.backButton)} type='button' onClick={onClick}>
+    <NavLink className={cn(className, classes.backButton)} to={to}>
       <ArrowLeftIcon className={classes.icon} />
       <Paragraph size='small' short className={classes.buttonText}>
         {text}
       </Paragraph>
-    </button>
+    </NavLink>
   );
 };

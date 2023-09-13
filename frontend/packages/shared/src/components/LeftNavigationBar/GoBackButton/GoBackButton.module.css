@@ -1,5 +1,6 @@
 .icon {
   font-size: 1.8rem;
+  color: var(--fds-semantic-text-neutral-default);
 }
 
 .backButton {
@@ -11,6 +12,6 @@
 }
 
 .buttonText {
-  color: inherit;
+  color: var(--fds-semantic-text-neutral-default);
   margin-left: 10px;
 }

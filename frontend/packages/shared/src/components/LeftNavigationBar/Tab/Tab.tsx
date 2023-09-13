@@ -1,8 +1,10 @@
 import React, { ReactNode } from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
 import { Paragraph } from '@digdir/design-system-react';
+import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export type TabProps = {
   /**
@@ -16,16 +18,12 @@ export type TabProps = {
   /**
    * Id of the new tab clicked
    */
-  newTabIdClicked: number;
+  newTabIdClicked: string;
   /**
    * Function to execute on blur
    * @returns void
    */
   onBlur: () => void;
-  /**
-   * Function to execute on click
-   * @returns void
-   */
   onClick: () => void;
 };
 
@@ -59,21 +57,62 @@ export const Tab = ({
   newTabIdClicked,
   onBlur,
   onClick,
+  ...rest
 }: TabProps): ReactNode => {
+  const { t } = useTranslation();
+
   return (
-    <button
+    <Wrapper
       className={cn(
         tab.isActiveTab && classes.selected,
         newTabIdClicked === tab.tabId ? classes.newPage : navElementClassName
       )}
       onClick={onClick}
       onBlur={onBlur}
-      type='button'
+      action={tab.action}
+      tabId={tab.tabId}
     >
       {tab.icon}
-      <Paragraph size='small' short className={classes.buttonText}>
-        {tab.tabName}
+      <Paragraph as='span' size='small' short className={classes.buttonText}>
+        {t(tab.tabName)}
       </Paragraph>
-    </button>
+    </Wrapper>
   );
+};
+
+type WrapperProps = {
+  className: string;
+  onBlur: () => void;
+  onClick: () => void;
+  action: TabAction;
+  children: ReactNode;
+  tabId: string;
+};
+const Wrapper = ({ className, onBlur, onClick, action, children, tabId }: WrapperProps) => {
+  switch (action.type) {
+    case 'link': {
+      return (
+        <NavLink
+          className={className}
+          to={action.to}
+          onBlur={onBlur}
+          onClick={(e) => {
+            if (action.onClick) {
+              e.preventDefault();
+              action.onClick(tabId);
+            }
+          }}
+        >
+          {children}
+        </NavLink>
+      );
+    }
+    case 'button': {
+      return (
+        <button className={className} onClick={onClick} onBlur={onBlur} type='button'>
+          {children}
+        </button>
+      );
+    }
+  }
 };

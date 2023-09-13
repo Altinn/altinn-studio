@@ -14,10 +14,9 @@ export type LeftNavigationBarProps = {
    */
   upperTab?: 'backButton' | undefined;
   /**
-   * Function to be executed on click upper tab back button
-   * @returns void
+   * Href for the back button
    */
-  onClickUpperTabBackButton?: () => void;
+  backButtonHref?: string;
   /**
    * The text on the back button
    */
@@ -32,13 +31,12 @@ export type LeftNavigationBarProps = {
  *    <LeftNavigationBar
  *        tabs={listOfTabsOfTypeLeftNavigationTab}
  *        upperTab='backButton'
- *        onClickUpperTabBackButton={goBack}
  *        backButtonText={t('resourceadm.left_nav_bar_back')}
  *    />
  *
  * @property {LeftNavigationBar[]}[tabs] - List of navigation tabs
- * @property {'backButton' | 'searchField' | undefined}[upperTab] - The upper tab
- * @property {function}[onClickUpperTabBackButton] - Function to be executed on click upper tab back button
+ * @property {'backButton' | undefined}[upperTab] - The upper tab
+ * @property {string}[backButtonHref] - Href for the back button
  * @property {string}[backButtonText] - The text on the back button
  *
  * @returns {ReactNode} - The rendered component
@@ -46,25 +44,25 @@ export type LeftNavigationBarProps = {
 export const LeftNavigationBar = ({
   tabs,
   upperTab = undefined,
-  onClickUpperTabBackButton,
+  backButtonHref,
   backButtonText = '',
 }: LeftNavigationBarProps): ReactNode => {
-  const [newTabIdClicked, setNewTabIdClicked] = useState<number | null>(null);
+  const [newTabIdClicked, setNewTabIdClicked] = useState<string | null>(null);
 
-  const handleClick = (tabId: number) => {
+  const handleClick = (tabId: string) => {
     const tabClicked = tabs.find((tab: LeftNavigationTab) => tab.tabId === tabId);
     if (tabClicked && !tabClicked.isActiveTab) {
       setNewTabIdClicked(tabId);
-      tabClicked.onClick(tabId);
+      tabClicked.action.onClick(tabId);
     }
   };
 
   const displayUpperTab = () => {
-    if (upperTab === 'backButton' && onClickUpperTabBackButton && backButtonText) {
+    if (upperTab === 'backButton' && backButtonHref && backButtonText) {
       return (
         <GoBackButton
           className={classes.navigationElement}
-          onClick={onClickUpperTabBackButton}
+          to={backButtonHref}
           text={backButtonText}
         />
       );
@@ -75,10 +73,10 @@ export const LeftNavigationBar = ({
   const displayTabs = tabs.map((tab: LeftNavigationTab) => (
     <Tab
       tab={tab}
+      onClick={() => handleClick(tab.tabId)}
       key={tab.tabId}
       navElementClassName={classes.navigationElement}
       onBlur={() => setNewTabIdClicked(null)}
-      onClick={() => handleClick(tab.tabId)}
       newTabIdClicked={newTabIdClicked}
     />
   ));

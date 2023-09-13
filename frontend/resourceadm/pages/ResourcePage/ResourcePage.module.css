@@ -17,5 +17,6 @@
 }
 
 .icon {
+  color: var(--fds-semantic-text-neutral-default);
   font-size: 1.8rem;
 }
