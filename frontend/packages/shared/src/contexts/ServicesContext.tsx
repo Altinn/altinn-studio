@@ -41,7 +41,7 @@ const handleError = (
 ): void => {
   // TODO : log axios errors
 
-  if (error?.response?.status === 401 || error?.response?.status === 403) {
+  if (error?.response?.status === 401) {
     logout().then(() => window.location.assign(userLogoutAfterPath()));
     return;
   }

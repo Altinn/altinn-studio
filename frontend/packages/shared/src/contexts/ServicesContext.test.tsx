@@ -42,26 +42,24 @@ describe('ServicesContext', () => {
   it('logs the user out when the session is invalid or expired', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
-    [401, 403].forEach(async (status) => {
-      const logout = jest.fn().mockImplementation(() => Promise.resolve());
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
 
-      const { result } = renderHook(
-        () =>
-          useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(status)), {
-            retry: false,
-          }),
-        {
-          wrapper: ({ children }) => {
-            return wrapper({ children, queries: { logout } });
-          },
-        }
-      );
+    const { result } = renderHook(
+      () =>
+        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(401)), {
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      }
+    );
 
-      await waitFor(() => result.current.isError);
+    await waitFor(() => result.current.isError);
 
-      expect(logout).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError).toHaveBeenCalled();
-    });
+    expect(logout).toHaveBeenCalledTimes(1);
+    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
