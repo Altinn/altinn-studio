@@ -9,10 +9,10 @@ export const useSchemaMutation = () => {
   const { org, app } = useStudioUrlParams();
   const { saveDatamodel } = useServicesContext();
   return useMutation({
-    mutationFn: async (args: { modelPath: string; schema: JsonSchema }) => {
-      const { modelPath, schema } = args;
-      await saveDatamodel(org, app, modelPath, schema);
-      queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => schema);
+    mutationFn: async (args: { modelPath: string; model: JsonSchema }) => {
+      const { modelPath, model } = args;
+      await saveDatamodel(org, app, modelPath, model);
+      queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => model);
     },
   });
 };

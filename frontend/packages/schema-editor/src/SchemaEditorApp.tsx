@@ -14,7 +14,7 @@ export type SchemaEditorAppProps = {
   modelPath?: string;
   modelName?: string;
   jsonSchema: JsonSchema;
-  save: (args: { modelPath: string; schema: JsonSchema }) => void;
+  save: (args: { modelPath: string; model: JsonSchema }) => void;
 };
 
 export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: SchemaEditorAppProps) {
@@ -30,7 +30,7 @@ export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: Sche
       clearTimeout(autoSaveTimeoutRef.current);
       autoSaveTimeoutRef.current = setTimeout(async () => {
         clearTimeout(autoSaveTimeoutRef.current);
-        save({ modelPath, schema: buildJsonSchema(newModel) });
+        save({ modelPath, model: buildJsonSchema(newModel) });
       }, saveAfterMs);
     },
     [modelPath, save]
@@ -41,7 +41,7 @@ export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: Sche
       if (prevModelPathRef.current === modelPath) return;
 
       clearTimeout(autoSaveTimeoutRef.current);
-      save({ modelPath: prevModelPathRef.current, schema: buildJsonSchema(prevModelRef.current) });
+      save({ modelPath: prevModelPathRef.current, model: buildJsonSchema(prevModelRef.current) });
 
       prevModelPathRef.current = modelPath;
     };
