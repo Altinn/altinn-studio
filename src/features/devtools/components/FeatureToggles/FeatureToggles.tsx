@@ -31,66 +31,72 @@ export function FeatureToggles() {
     [featureMap, overrides],
   );
 
+  const featureToggles = Object.values(featureMap);
+
   return (
     <SplitView
       direction={'row'}
       minContent
     >
       <div className={classes.list}>
-        {Object.values(featureMap).map(({ title, defaultValue, description, key, value, source, links }) => (
-          <>
-            <div
-              key={`${key}-checkbox`}
-              className={classes.itemCheckbox}
-            >
-              <Checkbox
-                disabled={source === 'window'}
-                checked={overrides[key] ?? value}
-                id={`${key}-checkbox`}
-                onChange={(ev) => setFeature(key, ev.target.checked)}
-                value='nothing'
-              />
-            </div>
-            <label
-              key={`${key}-content`}
-              htmlFor={`${key}-checkbox`}
-              className={classes.itemContent}
-            >
-              <Heading
-                spacing={true}
-                size={'small'}
-                level={4}
+        {featureToggles?.length ? (
+          featureToggles.map(({ title, defaultValue, description, key, value, source, links }) => (
+            <>
+              <div
+                key={`${key}-checkbox`}
+                className={classes.itemCheckbox}
               >
-                {getParsedLanguageFromText(title)}
-              </Heading>
-              <Label size={'xsmall'}>Nøkkel: {key}</Label>
-              <br />
-              <Label size={'xsmall'}>
-                Verdi: {JSON.stringify(value)} / Standardverdi: {JSON.stringify(defaultValue)}
-              </Label>
-              <br />
-              <Label size={'xsmall'}>Kilde: {sourceMap[source]}</Label>
-              <Paragraph>
-                {getParsedLanguageFromText(description)}
-                {links && links.length && (
-                  <ul className={classes.linkList}>
-                    {links.map((url) => (
-                      <li key={url}>
-                        <a
-                          href={url}
-                          target={'_blank'}
-                          rel='noreferrer'
-                        >
-                          {url}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Paragraph>
-            </label>
-          </>
-        ))}
+                <Checkbox
+                  disabled={source === 'window'}
+                  checked={overrides[key] ?? value}
+                  id={`${key}-checkbox`}
+                  onChange={(ev) => setFeature(key, ev.target.checked)}
+                  value='nothing'
+                />
+              </div>
+              <label
+                key={`${key}-content`}
+                htmlFor={`${key}-checkbox`}
+                className={classes.itemContent}
+              >
+                <Heading
+                  spacing={true}
+                  size={'small'}
+                  level={4}
+                >
+                  {getParsedLanguageFromText(title)}
+                </Heading>
+                <Label size={'xsmall'}>Nøkkel: {key}</Label>
+                <br />
+                <Label size={'xsmall'}>
+                  Verdi: {JSON.stringify(value)} / Standardverdi: {JSON.stringify(defaultValue)}
+                </Label>
+                <br />
+                <Label size={'xsmall'}>Kilde: {sourceMap[source]}</Label>
+                <Paragraph>
+                  {getParsedLanguageFromText(description)}
+                  {links && links.length && (
+                    <ul className={classes.linkList}>
+                      {links.map((url) => (
+                        <li key={url}>
+                          <a
+                            href={url}
+                            target={'_blank'}
+                            rel='noreferrer'
+                          >
+                            {url}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Paragraph>
+              </label>
+            </>
+          ))
+        ) : (
+          <p style={{ gridColumn: 'span 2' }}>Ingen beta-funksjoner er tilgjengelig</p>
+        )}
         <div className={classes.button}>
           <Button
             size='small'

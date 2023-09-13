@@ -1,22 +1,17 @@
-export const FeatureToggles = {
-  doNotPromptForPartyPreference: {
-    defaultValue: false,
-    title: 'Spør om aktør hver gang',
-    description:
-      'Aktiver denne innstillingen for å alltid bli spurt om aktør når du starter en ny instans, med ' +
-      'mindre du har valgt bort å bli spurt om aktør i Altinn-profilen. Frem til og med versjon 3 av app-frontend ' +
-      'er standardinnstillingen at du ikke blir spurt om aktør - men fra versjon 4 vil alle brukere bli ' +
-      'spurt om aktør hver gang med mindre de har deaktivert dette i profilen (med andre ord, app-frontend vil ' +
-      'respektere denne innstillingen i profilen fra versjon 4).',
-    links: [
-      'https://github.com/Altinn/app-frontend-react/issues/268',
-      'https://github.com/Altinn/app-frontend-react/pull/1204',
-    ],
-  },
+/* IFeatureToggles = string is a placeholder for an empty type. Replace string with a union type of new feature-toggles. Ex. 'feature1' | 'feature2' */
+export type IFeatureToggles = string;
+export type IFeatureToggleConf = {
+  [feature in IFeatureToggles]: {
+    defaultValue: boolean;
+    title: string;
+    description: string;
+    links: string[];
+  };
 };
 
+export const FeatureToggles: IFeatureToggleConf = {};
+
 export type FeatureToggleSource = 'window' | 'cookie' | 'default';
-export type IFeatureToggles = keyof typeof FeatureToggles;
 export type IFeatureTogglesOptionalMap = { [key in IFeatureToggles]?: boolean };
 export type IFeatureTogglesMap = { [key in IFeatureToggles]: boolean };
 export type FeatureValue = { value: boolean; source: FeatureToggleSource };
@@ -60,6 +55,4 @@ export function getAugmentedFeatures(): AugmentedFeatureToggles {
   return augmentedFeatures;
 }
 
-export const featureToggleValues: IFeatureTogglesMap = {
-  doNotPromptForPartyPreference: getFeature('doNotPromptForPartyPreference').value,
-};
+export const featureToggleValues: IFeatureTogglesMap = {};

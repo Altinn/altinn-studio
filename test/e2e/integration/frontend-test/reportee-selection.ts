@@ -50,15 +50,6 @@ const fakeParty = {
 };
 
 describe('doNotPromptForParty doNotPromptForPartyPreference', () => {
-  beforeEach(() => {
-    // Enable feature toggle on the window object
-    cy.on('window:before:load', (win) => {
-      win.featureToggles = {
-        doNotPromptForPartyPreference: true,
-      };
-    });
-  });
-
   [true, false].forEach((doNotPromptForParty) => {
     it(`${
       doNotPromptForParty ? 'Does not prompt' : 'Prompts'

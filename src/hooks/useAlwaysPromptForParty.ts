@@ -1,4 +1,3 @@
-import { featureToggleValues } from 'src/features/toggles';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
 
@@ -10,10 +9,6 @@ export function useAlwaysPromptForParty(): boolean | null {
 
   if (!profile.partyId || parties === null) {
     return null;
-  }
-
-  if (!featureToggleValues.doNotPromptForPartyPreference) {
-    return false;
   }
 
   if (applicationMetadata?.promptForParty === 'never') {
