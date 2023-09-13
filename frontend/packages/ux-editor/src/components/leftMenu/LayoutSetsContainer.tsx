@@ -1,14 +1,14 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { Button } from '@digdir/design-system-react';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function LayoutSetsContainer() {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const dispatch = useDispatch();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);

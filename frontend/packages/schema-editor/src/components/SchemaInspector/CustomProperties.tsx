@@ -17,10 +17,9 @@ import {
 import { TrashIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
 import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
 import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -29,13 +28,12 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { data, save } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const { custom } = useSchemaAndReduxSelector(selectedItemSelector);
 
   function changeProperties(properties: KeyValuePairs) {
-    mutate(setCustomProperties(data, { path, properties }));
+    save(setCustomProperties(data, { path, properties }));
   }
 
   function handlePropertyChange<T>(key: string, value: T) {

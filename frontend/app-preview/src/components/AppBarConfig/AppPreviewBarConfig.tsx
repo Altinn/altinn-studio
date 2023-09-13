@@ -1,6 +1,6 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { editorPath } from 'app-shared/api/paths';
 import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
@@ -11,6 +11,7 @@ import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/queries/useLayoutSetsQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -58,7 +59,7 @@ export const SubPreviewMenuLeftContent = ({
   handleChangeLayoutSet,
 }: AppPreviewSubMenuProps) => {
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   return (
@@ -99,13 +100,13 @@ export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (
     <div className={classes.rightSubHeaderButtons}>
-      <Button icon={<ArrowCirclepathIcon />} variant='quiet' size='small'>
+      <Button icon={<ArrowCirclepathIcon />} variant='quiet' size='small' color="inverted">
         {t('preview.subheader.restart')}
       </Button>
-      <Button icon={<EyeIcon />} variant='quiet' size='small'>
+      <Button icon={<EyeIcon />} variant='quiet' size='small' color="inverted">
         {t('preview.subheader.showas')}
       </Button>
-      <Button icon={<LinkIcon />} variant='quiet' size='small'>
+      <Button icon={<LinkIcon />} variant='quiet' size='small' color="inverted">
         {t('preview.subheader.sharelink')}
       </Button>
     </div>

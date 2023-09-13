@@ -4,11 +4,11 @@ import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
 import { Button, TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
-import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
+import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
@@ -19,6 +19,7 @@ import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { firstAvailableLayout } from '../../utils/formLayoutsUtils';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IPageElementProps {
   name: string;
@@ -31,7 +32,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const selectedLayout = searchParams.get('layout');
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
   const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
@@ -167,7 +168,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             onClick={(event) => onMenuItemClick(event, 'up')}
             disabled={disableUp || invalid}
             text={t('left_menu.page_menu_up')}
-            iconClass='fa fa-arrowup'
+            icon={ArrowUpIcon}
             id='move-page-up-button'
           />
         )}
@@ -176,14 +177,14 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             onClick={(event) => onMenuItemClick(event, 'down')}
             disabled={disableDown || invalid}
             text={t('left_menu.page_menu_down')}
-            iconClass='fa fa-arrowdown'
+            icon={ArrowDownIcon}
             id='move-page-down-button'
           />
         )}
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'edit')}
           text={t('left_menu.page_menu_edit')}
-          iconClass='fa fa-write'
+          icon={PencilIcon}
           id='edit-page-button'
           disabled={invalid}
         />
@@ -203,7 +204,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             <AltinnMenuItem
               onClick={(event) => onMenuItemClick(event, 'delete')}
               text={t('left_menu.page_menu_delete')}
-              iconClass='fa fa-trash'
+              icon={TrashIcon}
               id='delete-page-button'
             />
           }

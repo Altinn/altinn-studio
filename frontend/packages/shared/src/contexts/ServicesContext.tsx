@@ -14,9 +14,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
 import { AxiosError } from 'axios';
-import { Trans, useTranslation } from 'react-i18next';
-import { Link } from '@digdir/design-system-react';
+import type { i18n } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
+import { ApiError } from 'app-shared/types/api/ApiError';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
@@ -31,12 +32,12 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 const ServicesContext = createContext<ServicesContextProps>(null);
 
 const handleError = (
-  error: AxiosError,
+  error: AxiosError<ApiError>,
   t: (key: string) => string,
-  meta: QueryMeta | MutationMeta
+  i18n: i18n,
+  meta: QueryMeta | MutationMeta,
 ): void => {
   // TODO : log axios errors
-  // TODO : handle messages from API
   // TODO : logout user when session is expired
 
   if (
@@ -45,13 +46,18 @@ const handleError = (
   )
     return;
 
+  const errorCode = error?.response?.data?.errorCode;
+  if (errorCode) {
+    const errorMessageKey = `api_errors.${errorCode}`;
+
+    if (i18n.exists(errorMessageKey)) {
+      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
+      return;
+    }
+  }
+
   toast.error(
-    () => (
-      <Trans
-        i18nKey={'general.error_message'}
-        components={{ a: <Link inverted={true}>Slack</Link> }}
-      />
-    ),
+    () => t('general.error_message'),
     { toastId: 'default' }
   );
 };
@@ -62,7 +68,7 @@ export const ServicesContextProvider = ({
   clientConfig,
   ...queries
 }: ServicesContextProviderProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [queryClient] = useState(
     () =>
@@ -70,11 +76,11 @@ export const ServicesContextProvider = ({
       new QueryClient({
         ...clientConfig,
         queryCache: new QueryCache({
-          onError: (error: AxiosError, query) => handleError(error, t, query.options?.meta),
+          onError: (error: AxiosError<ApiError>, query) => handleError(error, t, i18n, query.options?.meta),
         }),
         mutationCache: new MutationCache({
-          onError: (error: AxiosError, variables, context, mutation) =>
-            handleError(error, t, mutation.options?.meta),
+          onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
+            handleError(error, t, i18n, mutation.options?.meta),
         }),
       })
   );
@@ -86,7 +92,7 @@ export const ServicesContextProvider = ({
         // TODO : log rendering errors
       }}
     >
-      <ToastContainer position='top-center' autoClose={5000} theme='colored' transition={Slide} />
+      <ToastContainer position='top-center' theme='colored' transition={Slide} draggable={false} />
       <QueryClientProvider client={queryClient}>
         <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
@@ -23,8 +24,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             _logger = logger;
         }
 
-        public async Task<List<ActionOption>> GetActionOptions()
+        public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
             string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
 
@@ -32,8 +34,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync(url);
-                string actionOptionsString = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string actionOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
                 actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(actionOptionsString);
                 return actionOptions;
             }
@@ -44,16 +46,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
         }
 
-        public async Task<List<SubjectOption>> GetSubjectOptions()
+        public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
 
             List<SubjectOption> subjectOptions;
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync(url);
-                string subjectOptionsString = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
 
                 subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString);
                 return subjectOptions;

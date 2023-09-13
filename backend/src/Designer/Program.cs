@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
@@ -10,6 +11,8 @@ using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -170,13 +173,24 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 {
     logger.LogInformation($"// Program.cs // ConfigureServices // Attempting to configure services.");
 
+    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
+
     services.Configure<KestrelServerOptions>(options =>
     {
         options.AllowSynchronousIO = true;
     });
 
+    services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
+    var maskinPortenClientName = "MaskinportenClient";
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
+    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+
+    var maskinportenSettings = new MaskinportenClientSettings();
+    configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
+
+    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
+
     services.RegisterServiceImplementations(configuration);
-    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
 
     services.AddHttpContextAccessor();
     services.AddMemoryCache();

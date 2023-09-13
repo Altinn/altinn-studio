@@ -3,12 +3,12 @@ import { Popover } from '@mui/material';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { useParams } from 'react-router-dom';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface ICloneModalProps {
   anchorEl: Element;
@@ -16,7 +16,7 @@ export interface ICloneModalProps {
 }
 
 export const CloneModal = (props: ICloneModalProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
   const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;

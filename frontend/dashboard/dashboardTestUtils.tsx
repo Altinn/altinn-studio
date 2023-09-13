@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { IRepository } from 'app-shared/types/global';
-import React, { useMemo, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import {
   ServicesContextProps,
@@ -9,32 +9,19 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AddRepoParams, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import { queryClientConfigMock, createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 export type MockServicesContextWrapperProps = {
   children: ReactNode;
   customServices?: Partial<ServicesContextProps>;
+  client?: QueryClient;
 };
 
 export const MockServicesContextWrapper = ({
   children,
   customServices,
+  client = createQueryClientMock(),
 }: MockServicesContextWrapperProps) => {
-  const client = useMemo(
-    () =>
-      new QueryClient({
-        logger: {
-          log: () => {},
-          warn: () => {},
-          error: () => {},
-        },
-        defaultOptions: {
-          mutations: { retry: false },
-          queries: { retry: false, staleTime: Infinity },
-        },
-      }),
-    []
-  );
-
   const queries: ServicesContextProviderProps = {
     ...queriesMock,
     getUser: () => Promise.resolve({ avatar_url: null, email: '', full_name: '', id: null, login: null }),
@@ -48,6 +35,7 @@ export const MockServicesContextWrapper = ({
     unsetStarredRepo: () => Promise.resolve(),
     ...customServices,
     client,
+    clientConfig: queryClientConfigMock
   };
 
   return (

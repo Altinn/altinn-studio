@@ -1,10 +1,10 @@
 import type {
   PolicyAction,
+  PolicyEditorUsage,
   PolicyRule,
   PolicyRuleCard,
   PolicyRuleResource,
   PolicySubject,
-  PolicyEditorUsage,
 } from '../types';
 
 /**
@@ -23,7 +23,7 @@ export const emptyPolicyRule: PolicyRuleCard = {
  * "subjectID:subjectResource" to the title of the subject.
  *
  * @param subjectOptions the possible subjects to select from
- * @param policySubjects the already selected sujects
+ * @param policySubjects the already selected subjects
  *
  * @returns a mapped string[] with subject titles
  */
@@ -61,7 +61,16 @@ export const mapResourceFromBackendToResource = (resource: string): PolicyRuleRe
   };
 };
 
-const mapPolicyActionsToActionTitle = (
+/**
+ * Maps the list of policy action strings from backend (the id) to the
+ * title of the Action which should be displayed
+ *
+ * @param actionOptions the possible actions to select from
+ * @param actionIds the list of IDs of the already selected actions
+ *
+ * @returns a mapped string[] with action titles
+ */
+export const mapPolicyActionsToActionTitle = (
   actionOptions: PolicyAction[],
   actionIds: string[]
 ): string[] => {
@@ -91,12 +100,13 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
     );
 
     const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions);
+    const subjectTitles = mapPolicySubjectToSubjectTitle(subjectOptions, r.subject);
 
     return {
       ruleId: id,
       actions: actionTitles,
       description: r.description,
-      subject: mapPolicySubjectToSubjectTitle(subjectOptions, r.subject),
+      subject: subjectTitles,
       resources: mappedResources,
     };
   });

@@ -3,7 +3,7 @@ import classes from './CardButton.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Paragraph } from '@digdir/design-system-react';
 
-type CardButtonProps = {
+export type CardButtonProps = {
   /**
    * The text to display on the button
    */

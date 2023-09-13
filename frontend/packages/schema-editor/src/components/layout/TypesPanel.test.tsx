@@ -7,8 +7,6 @@ import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 
 const typesText = 'Typer';
 const texts = {
@@ -21,11 +19,7 @@ const texts = {
   'schema_editor.reference': 'Referanse',
   'schema_editor.types': typesText,
 };
-const uiSchema = buildUiSchema(dataMock);
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
-queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
+
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
@@ -56,7 +50,7 @@ const render = (props?: Partial<TypesPanelProps>) => {
   };
   return renderWithProviders({
     state: mockInitialState,
-    appContextProps: { modelPath },
+    appContextProps: { data: buildUiSchema(dataMock) },
   })(<TypesPanel {...defaultProps} {...props} />);
 };
 

@@ -1,16 +1,26 @@
-import React, { ChangeEvent, KeyboardEvent, useEffect, useState, useRef, MouseEvent } from 'react';
+import React, {
+  ChangeEvent,
+  KeyboardEvent,
+  useEffect,
+  useState,
+  useRef,
+  MouseEvent,
+  useCallback,
+  useId,
+} from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
-import { Button, TextField } from '@digdir/design-system-react';
+import { Button, Paragraph, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const ConfigureLayoutSetPanel = () => {
-  const { org, app } = useParams();
+  const inputLayoutSetNameId = useId();
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
   const configureLayoutSetMutation = useConfigureLayoutSetMutation(org, app);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -20,39 +30,45 @@ export const ConfigureLayoutSetPanel = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const configPanelRef = useRef<HTMLDivElement>(null);
 
-  function handleConfigureLayoutSet() {
+  const handleConfigureLayoutSet = async (): Promise<void> => {
     if (layoutSetName === '') {
       setErrorMessage(t('left_menu.pages_error_empty'));
     } else {
-      configureLayoutSetMutation.mutate({ layoutSetName });
+      await configureLayoutSetMutation.mutateAsync({ layoutSetName });
     }
-  }
-
-  const handlePopoverOpen = (event: MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-    setPopoverOpen(true);
   };
 
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-    setPopoverOpen(false);
+  const handleTogglePopOver = (event?: MouseEvent<HTMLElement>): void => {
+    setAnchorEl(event ? event.currentTarget : null);
+    setPopoverOpen(!!event);
   };
 
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+    const shouldSave = event.key === 'Enter';
+    if (shouldSave) {
       handleConfigureLayoutSet();
       setEditLayoutSetName(false);
-    } else if (event.key === 'Escape') {
-      setEditLayoutSetName(false);
-      setLayoutSetName('');
+      return;
+    }
+
+    const shouldCancel = event.key === 'Escape';
+    if (shouldCancel) {
+      closePanelAndResetLayoutSetName();
     }
   };
 
-  const handleClickOutside = (event: Event) => {
-    if (configPanelRef.current && !configPanelRef.current.contains(event.target as Node)) {
-      setEditLayoutSetName(false);
-      setLayoutSetName('');
+  const handleClickOutside = useCallback((event: Event): void => {
+    const target = event.target as HTMLElement;
+
+    // If the click is outside the configPanelRef, close the panel and reset the layoutSetName
+    if (!configPanelRef.current?.contains(target)) {
+      closePanelAndResetLayoutSetName();
     }
+  }, []);
+
+  const closePanelAndResetLayoutSetName = (): void => {
+    setEditLayoutSetName(false);
+    setLayoutSetName('');
   };
 
   useEffect(() => {
@@ -60,50 +76,75 @@ export const ConfigureLayoutSetPanel = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [handleClickOutside]);
 
-  const handleConfigureLayoutSetButtonClick = () => {
-    setEditLayoutSetName(!editLayoutSetName);
+  const toggleConfigureLayoutSetName = (): void => {
+    setEditLayoutSetName((prevEditLayoutSetName) => !prevEditLayoutSetName);
   };
 
-  const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleOnNameChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void => {
+    // The Regex below replaces all illegal characters with a dash
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
-    if (!newNameCandidate) {
-      setErrorMessage(t('left_menu.pages_error_empty'));
-    } else if (newNameCandidate.length >= 30) {
-      setErrorMessage(t('left_menu.pages_error_length'));
-    } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
-      setErrorMessage(t('left_menu.pages_error_format'));
-    } else {
-      setErrorMessage('');
-      setLayoutSetName(newNameCandidate);
+
+    const error = validateLayoutSetName(newNameCandidate);
+
+    if (error) {
+      setErrorMessage(error);
+      return;
     }
+
+    setErrorMessage('');
+    setLayoutSetName(newNameCandidate);
+  };
+
+  const validateLayoutSetName = (newLayoutSetName?: string): string | null => {
+    if (!newLayoutSetName) {
+      return t('left_menu.pages_error_empty');
+    }
+
+    if (newLayoutSetName.length >= 30) {
+      return t('left_menu.pages_error_length');
+    }
+
+    if (!validateLayoutNameAndLayoutSetName(newLayoutSetName)) {
+      return t('left_menu.pages_error_format');
+    }
+    return null;
   };
 
   return (
     <div ref={configPanelRef} className={classes.configureLayoutSet}>
       {editLayoutSetName ? (
         <div className={classes.configureLayoutSetName}>
-          <span>{t('left_menu.configure_layout_sets_name')}</span>
+          <label className={classes.label} htmlFor={inputLayoutSetNameId}>
+            {t('left_menu.configure_layout_sets_name')}
+          </label>
           <TextField
+            id={inputLayoutSetNameId}
             onKeyDown={handleKeyPress}
-            onChange={handleOnChange}
+            onChange={handleOnNameChange}
             defaultValue={layoutSetName}
             isValid={!errorMessage}
+            aria-describedby={errorMessage && 'configure-layout-set-name-error'}
+            aria-invalid={!!errorMessage}
           />
-          <div className={classes.errorMessage}>{errorMessage}</div>
+          {errorMessage && (
+            <Paragraph id='configure-layout-set-name-error' as='span' size='small'>
+              {errorMessage}
+            </Paragraph>
+          )}
         </div>
       ) : (
         <Button
           className={classes.configureLayoutSetButton}
           variant='quiet'
-          onClick={handleConfigureLayoutSetButtonClick}
+          onClick={toggleConfigureLayoutSetName}
           size='small'
         >
           {t('left_menu.configure_layout_sets')}
         </Button>
       )}
-      <div aria-haspopup='true' onMouseEnter={handlePopoverOpen}>
+      <div aria-haspopup='true' onMouseEnter={handleTogglePopOver}>
         <InformationIcon className={classes.informationButton} />
       </div>
       {popoverOpen && (
@@ -113,7 +154,11 @@ export const ConfigureLayoutSetPanel = () => {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
-          <div className={classes.configureLayoutSetInfo} onMouseLeave={handlePopoverClose}>
+          <Paragraph
+            size='small'
+            className={classes.configureLayoutSetInfo}
+            onMouseLeave={() => handleTogglePopOver()}
+          >
             <Trans i18nKey={'left_menu.configure_layout_sets_info'}>
               <a
                 href={altinnDocsUrl('app/development/ux/pages/layout-sets/')}
@@ -121,7 +166,7 @@ export const ConfigureLayoutSetPanel = () => {
                 rel='noopener noreferrer'
               />
             </Trans>
-          </div>
+          </Paragraph>
         </Popover>
       )}
     </div>

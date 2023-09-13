@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Filters;
@@ -68,11 +69,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of the layoutset to get layouts for</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName)
+        public async Task<IActionResult> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
@@ -82,7 +84,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName, cancellationToken);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -103,11 +105,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
         /// <param name="layoutName">The name of the form layout to be saved.</param>
         /// /// <param name="formLayout">The content to be saved to the layout</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout, CancellationToken cancellationToken)
         {
             try
             {
@@ -117,7 +120,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                await _appDevelopmentService.SaveFormLayout(org, app, developer, layoutSetName, layoutName, formLayout);
+                await _appDevelopmentService.SaveFormLayout(org, app, developer, layoutSetName, layoutName, formLayout, cancellationToken);
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -225,7 +228,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName)
+        public async Task<IActionResult> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName)
         {
             try
             {
@@ -257,7 +260,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-sets")]
-        public async Task<ActionResult<JsonNode>> GetLayoutSets(string org, string app)
+        public async Task<IActionResult> GetLayoutSets(string org, string app)
         {
             try
             {
@@ -285,7 +288,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-sets")]
-        public async Task<ActionResult<LayoutSets>> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName)
+        public async Task<IActionResult> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName)
         {
             try
             {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -26,8 +27,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
+        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
@@ -35,13 +37,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
+            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName, cancellationToken);
             return formLayouts;
         }
 
         /// <inheritdoc />
-        public async Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, JsonNode formLayout)
+        public async Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, JsonNode formLayout, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
@@ -50,7 +53,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout);
+            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout, cancellationToken);
         }
 
         /// <inheritdoc />

@@ -18,3 +18,7 @@
 .buttonWrapper {
   width: 32px;
 }
+
+.label {
+  margin-bottom: 0.5rem;
+}

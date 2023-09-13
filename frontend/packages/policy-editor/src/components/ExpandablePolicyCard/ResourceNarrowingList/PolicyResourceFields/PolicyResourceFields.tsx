@@ -1,11 +1,10 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
+import { Button, Label, TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { useTranslation } from 'react-i18next';
 
-type PolicyResourceFieldsProps = {
+export type PolicyResourceFieldsProps = {
   /**
    * Flag for if the fields are ediable or not
    */
@@ -73,26 +72,32 @@ export const PolicyResourceFields = ({
     <div className={classes.wrapper}>
       <div className={classes.inputWrapper}>
         <div className={classes.textfieldWrapper}>
+          {!canEditTypeAndId && (
+            <Label spacing size='small' as='p' className={classes.label}>
+              Type
+            </Label>
+          )}
           <TextField
             value={valueType}
-            label={!canEditTypeAndId && 'Type'}
             onChange={(e) => onChangeType(e.target.value)}
             readOnly={!canEditTypeAndId}
-            aria-labelledby='resourceType'
             onBlur={onBlur}
+            aria-label={t('policy_editor.narrowing_list_field_type')}
           />
-          <ScreenReaderSpan id='resourceType' label={t('policy_editor.narrowing_list_field_type')} />
         </div>
         <div className={classes.textfieldWrapper}>
+          {!canEditTypeAndId && (
+            <Label spacing size='small' as='p' className={classes.label}>
+              Id
+            </Label>
+          )}
           <TextField
             value={valueId}
-            label={!canEditTypeAndId && 'Id'}
             onChange={(e) => onChangeId(e.target.value)}
             readOnly={!canEditTypeAndId}
-            aria-labelledby='resourceId'
             onBlur={onBlur}
+            aria-label={t('policy_editor.narrowing_list_field_id')}
           />
-          <ScreenReaderSpan id='resourceId' label={t('policy_editor.narrowing_list_field_id')} />
         </div>
       </div>
       <div className={classes.buttonWrapper}>

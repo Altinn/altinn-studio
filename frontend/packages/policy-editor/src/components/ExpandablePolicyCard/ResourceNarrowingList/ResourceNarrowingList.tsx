@@ -7,7 +7,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import type { PolicyEditorUsage, PolicyRuleResource } from '../../../types';
 import { useTranslation } from 'react-i18next';
 
-type ResourceNarrowingListProps = {
+export type ResourceNarrowingListProps = {
   /**
    * The list of policy resources to display
    */
@@ -122,7 +122,7 @@ export const ResourceNarrowingList = ({
             size='small'
             dashedBorder
             variant='outline'
-            icon={<PlusIcon title={t('policy_editor.narrowing_list_add_button')} fontSize='1.5rem' />}
+            icon={<PlusIcon fontSize='1.5rem' />}
           >
             {t('policy_editor.narrowing_list_add_button')}
           </Button>

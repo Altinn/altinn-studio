@@ -19,10 +19,12 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.5" />
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.0.0" />
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
     <PackageReference Include="Altinn.Platform.Models" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageReference Include="CompilerAttributes" />
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />
@@ -65,6 +67,7 @@
     <Watch Remove="Configuration\ResourceRegistryEnvironmentSettings.cs" />
     <Watch Remove="Configuration\ResourceRegistryIntegrationSettings.cs" />
     <Watch Remove="Controllers\PolicyController.cs" />
+    <Watch Remove="Configuration\MaskinportenClientSettings.cs" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />
     <Watch Remove="Controllers\ResourceAdmController.cs" />
     <Watch Remove="Controllers\ResourceAdminController.cs" />
@@ -104,6 +107,7 @@
     <Watch Remove="Services\Implementation\ResourceRegistryAdminService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
+    <Watch Remove="Services\Interfaces\IResourceRegistry.cs" />
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistryAdmin.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />

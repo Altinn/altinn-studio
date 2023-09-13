@@ -54,6 +54,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
+            services.AddTransient<IResourceRegistry, ResourceRegistryService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterUserRequestSynchronization(configuration);
 

@@ -33,7 +33,7 @@ The commands should be run in an order that makes sure the tests are intact on t
 2. Tests on different solutions of studio
 
 ```cmd
-    yarn run test:studio -e environment=local
+    yarn run test:all -e environment=local
 ```
 
 3. Cleanup: after all the tests

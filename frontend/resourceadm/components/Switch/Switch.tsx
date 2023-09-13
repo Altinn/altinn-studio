@@ -23,6 +23,10 @@ type SwitchProps = {
    * @returns void
    */
   onBlur: () => void;
+  /**
+   * The id of the component
+   */
+  id: string;
 };
 
 /**
@@ -33,12 +37,13 @@ type SwitchProps = {
  * @property {boolean}[isChecked] - Flag for if the switch is chekced or not
  * @property {function}[onFocus] - Function to be executed on focus
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {string}[id] - The id of the component
  *
  * @returns {React.ReactNode} - The rendered component
  */
 // TODO - replace with Design system Switch. Issue: #10892
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
-  ({ onToggle, isChecked, onFocus, onBlur }, ref): React.ReactNode => {
+  ({ onToggle, isChecked, onFocus, onBlur, id }, ref): React.ReactNode => {
     const { t } = useTranslation();
 
     const handleToggle = () => {
@@ -50,18 +55,18 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       <div className={classes.switch}>
         <input
           type='checkbox'
-          id='toggleSwitch'
+          id={id}
           className={classes.checkbox}
           checked={isChecked}
           onChange={handleToggle}
-          aria-label='toggleSwitch'
+          aria-label={id}
           onFocus={onFocus}
           onBlur={onBlur}
           ref={ref}
         />
         <label
           aria-label={t('resourceadm.switch_toggle')}
-          htmlFor='toggleSwitch'
+          htmlFor={id}
           className={classes.slider}
         ></label>
       </div>

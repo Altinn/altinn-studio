@@ -4,7 +4,6 @@ import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnConte
 import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
 import { BuildResult } from 'app-shared/types/Build';
 import { useAppSelector } from '../../../hooks';
-import { useParams } from 'react-router-dom';
 import {
   useOrgListQuery,
   useEnvironmentsQuery,
@@ -18,9 +17,10 @@ import {
 } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const DeployContainerComponent = () => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const createAppDeploymentErrors: any = useAppSelector(
     (state) => state.appDeployments.createAppDeploymentErrors
   );
