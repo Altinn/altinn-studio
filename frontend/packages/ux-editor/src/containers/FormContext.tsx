@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, createContext, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, createContext, useRef, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
@@ -29,6 +29,14 @@ export const FormContext = createContext<FormContext>({
   handleSave: undefined,
   debounceSave: undefined,
 });
+
+export const useFormContext = function () {
+  const context = useContext(FormContext);
+  if (context === undefined) {
+    throw new Error('useFormContext must be used within a FormContextProvider.');
+  }
+  return context;
+};
 
 type FormContextProviderProps = {
   children: React.ReactNode;
@@ -99,7 +107,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     handleEdit(undefined);
   }, [handleEdit]);
 
-  const debounceSave = useCallback(async (id: string = formIdRef.current, updatedForm: FormContainer | FormComponent = formRef.current): Promise<void> => {
+  const debounceSave = useCallback(async (id: string, updatedForm: FormContainer | FormComponent): Promise<void> => {
     clearTimeout(autoSaveTimeoutRef.current);
     autoSaveTimeoutRef.current = setTimeout(async () => {
       await handleSave(id, updatedForm);
