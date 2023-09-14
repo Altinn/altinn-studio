@@ -7,7 +7,7 @@ import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type NewResourceModalProps = {
   /**
@@ -126,7 +126,12 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={t('resourceadm.dashboard_create_modal_title')}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={t('resourceadm.dashboard_create_modal_title')}
+    >
+      <div className={classes.divider} />
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
@@ -145,7 +150,9 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
           </Button>
         </div>
         <Button
-          onClick={() => !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined}
+          onClick={() =>
+            !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
+          }
           color='primary'
           aria-disabled={id.length === 0 || title.length === 0}
           size='small'
