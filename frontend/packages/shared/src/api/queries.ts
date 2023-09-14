@@ -16,7 +16,6 @@ import {
   optionListIdsPath,
   orgsListPath,
   processEditorPath,
-  publishResourcePath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
@@ -104,7 +103,6 @@ export const getResourceList = (org: string) => get<ResourceListItem[]>(resource
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
-export const getPublishResource = (org: string, repo: string, id: string, env: string) => get(publishResourcePath(org, repo, id, env))
 
 // ProcessEditor
 export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));

@@ -12,7 +12,8 @@ import {
 } from 'resourceadm/hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
-import { usePublishResource } from 'resourceadm/hooks/queries/usePublishResource';
+import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
+import { toast } from 'react-toastify';
 
 type DeployResourcePageProps = {
   /**
@@ -64,17 +65,28 @@ export const DeployResourcePage = ({
   const { data: validateResourceData, isLoading: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
 
-  const [envClicked, setEnvClicked] = useState<'tt02' | 'prod' | ''>('');
   // Query function fo rpublishing a resource
   const {
-    data: publishData,
-    isLoading: loadingPublishData,
-    refetch: refetchPublishData,
-  } = usePublishResource(selectedContext, repo, resourceId, envClicked);
+    mutate: publishResource,
+    isLoading: loadingPublish,
+    isSuccess: publishSuccess,
+    isError: publishError,
+  } = usePublishResourceMutation(selectedContext, repo, resourceId);
 
-  const handlePublish = async (env: 'tt02' | 'prod') => {
-    setEnvClicked(env);
-    refetchPublishData();
+  const handlePublish = (env: 'tt02' | 'prod') => {
+    /*publishResource(env, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.resource_published_success'));
+      },
+      onError: () => {
+        toast.error(t('resourceadm.resource_published_error'));
+      },
+    });*/
+    publishResource(env);
+
+    console.log(loadingPublish);
+    console.log(publishSuccess);
+    console.log(publishError);
   };
 
   /**
