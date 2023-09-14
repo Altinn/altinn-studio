@@ -231,8 +231,10 @@ export const ResourcePage = (): React.ReactNode => {
   /**
    * Saves the resource
    */
-  const handleSaveResource = (r: Resource) => {
+  const handleSaveResource = async (r: Resource) => {
     editResource(r);
+    await refetch();
+    await refetchResource();
   };
 
   return (

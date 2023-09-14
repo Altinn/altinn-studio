@@ -39,6 +39,7 @@ export const DeployResourcePage = ({
   resourceVersionText,
   onSaveVersion,
 }: DeployResourcePageProps): React.ReactNode => {
+  console.log(resourceVersionText);
   const { t } = useTranslation();
 
   const { selectedContext, resourceId } = useParams();
@@ -101,11 +102,11 @@ export const DeployResourcePage = ({
   }, [validatePolicyData, validatePolicyLoading]);
 
   // TODO -  might need to adjust this in future
-  useEffect(() => {
+  /*useEffect(() => {
     if (!versionLoading) {
       setNewVersionText(versionData.resourceVersion ?? '');
     }
-  }, [versionData, versionLoading]);
+  }, [versionData, versionLoading]);*/
 
   /**
    * Constantly check the repostatus to see if we are behind or ahead of master
@@ -126,12 +127,11 @@ export const DeployResourcePage = ({
    * @returns danger or success
    */
   const getStatusCardType = (): 'danger' | 'success' => {
-    // TODO - Add check for if version is correct
     if (
       validateResourceData.status !== 200 ||
       hasPolicyError !== 'none' ||
       !isLocalRepoInSync ||
-      versionData.resourceVersion === null
+      resourceVersionText === ''
     )
       return 'danger';
     return 'success';
@@ -167,7 +167,7 @@ export const DeployResourcePage = ({
         });
       }
       return errorList;
-    } else if (versionData.resourceVersion === null) {
+    } else if (resourceVersionText === '') {
       return t('resourceadm.deploy_status_card_error_version');
     } else if (!isLocalRepoInSync) {
       return t('resourceadm.deploy_status_card_error_repo');
@@ -214,8 +214,8 @@ export const DeployResourcePage = ({
       validateResourceData.status === 200 &&
       !policyError &&
       isLocalRepoInSync &&
-      versionData.resourceVersion !== null &&
-      envVersion !== versionData.resourceVersion
+      resourceVersionText !== '' &&
+      envVersion !== resourceVersionText
     ) {
       return true;
     }
@@ -224,8 +224,8 @@ export const DeployResourcePage = ({
       validateResourceData.status === 200 &&
       !policyError &&
       isLocalRepoInSync &&
-      versionData.resourceVersion !== null &&
-      envVersion !== versionData.resourceVersion
+      resourceVersionText !== '' &&
+      envVersion !== resourceVersionText
     ) {
       return true;
     }
@@ -292,9 +292,7 @@ export const DeployResourcePage = ({
                 envName={t('resourceadm.deploy_test_env')}
                 currentEnvVersion={versionInTest}
                 newEnvVersion={
-                  versionData.resourceVersion !== versionInTest
-                    ? versionData.resourceVersion
-                    : undefined
+                  resourceVersionText !== versionInTest ? resourceVersionText : undefined
                 }
                 onClick={() => handlePublish('tt02')}
               />
@@ -303,9 +301,7 @@ export const DeployResourcePage = ({
                 envName={t('resourceadm.deploy_prod_env')}
                 currentEnvVersion={versionInProd}
                 newEnvVersion={
-                  versionData.resourceVersion !== versionInProd
-                    ? versionData.resourceVersion
-                    : undefined
+                  resourceVersionText !== versionInProd ? resourceVersionText : undefined
                 }
                 onClick={() => handlePublish('prod')}
               />
