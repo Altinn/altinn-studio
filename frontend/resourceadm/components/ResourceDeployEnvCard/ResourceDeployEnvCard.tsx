@@ -21,6 +21,7 @@ export type ResourceDeployEnvCardProps = {
    * The new version the resource will deploy to
    */
   newEnvVersion?: string;
+  onClick: () => void;
 };
 
 /**
@@ -40,12 +41,9 @@ export const ResourceDeployEnvCard = ({
   envName,
   currentEnvVersion,
   newEnvVersion,
+  onClick,
 }: ResourceDeployEnvCardProps): React.ReactNode => {
   const { t } = useTranslation();
-
-  const handleOnClick = () => {
-    console.log('Coming soon...');
-  };
 
   return (
     <div className={classes.cardWrapper}>
@@ -73,7 +71,7 @@ export const ResourceDeployEnvCard = ({
       <div className={classes.buttonWrapper}>
         <Button
           aria-disabled={!isDeployPossible}
-          onClick={() => (isDeployPossible ? handleOnClick() : undefined)}
+          onClick={() => (isDeployPossible ? onClick() : undefined)}
           size='small'
         >
           {t('resourceadm.deploy_card_publish', { env: envName })}

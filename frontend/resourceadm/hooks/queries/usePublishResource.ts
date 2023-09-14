@@ -28,6 +28,7 @@ export const usePublishResource = (
         console.log(data);
         return data;
       },
+      enabled: false,
     }
   );
 };

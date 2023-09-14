@@ -64,13 +64,18 @@ export const DeployResourcePage = ({
   const { data: validateResourceData, isLoading: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
 
-  // Mutation function fo rpublishing a resource
-  const { mutate: publishData, isLoading: loadingPublishData } = usePublishResource(
-    selectedContext,
-    repo,
-    resourceId,
-    ''
-  );
+  const [envClicked, setEnvClicked] = useState<'tt02' | 'prod' | ''>('');
+  // Query function fo rpublishing a resource
+  const {
+    data: publishData,
+    isLoading: loadingPublishData,
+    refetch: refetchPublishData,
+  } = usePublishResource(selectedContext, repo, resourceId, envClicked);
+
+  const handlePublish = async (env: 'tt02' | 'prod') => {
+    setEnvClicked(env);
+    refetchPublishData();
+  };
 
   /**
    * Set the value for policy error
@@ -279,6 +284,7 @@ export const DeployResourcePage = ({
                     ? versionData.resourceVersion
                     : undefined
                 }
+                onClick={() => handlePublish('tt02')}
               />
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('prod', versionInProd)}
@@ -289,6 +295,7 @@ export const DeployResourcePage = ({
                     ? versionData.resourceVersion
                     : undefined
                 }
+                onClick={() => handlePublish('prod')}
               />
             </div>
           </div>
