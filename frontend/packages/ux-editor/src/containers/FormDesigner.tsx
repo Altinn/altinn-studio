@@ -7,7 +7,6 @@ import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { FormContextProvider } from './FormContext';
-import { deepCopy } from 'app-shared/pure';
 import { useText } from '../hooks';
 import { useSearchParams } from 'react-router-dom';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
@@ -22,7 +21,7 @@ import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string ) => {
+const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
   if (instanceId) {
     // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
     localStorage.setItem(instanceId, layoutName);
@@ -40,27 +39,33 @@ export interface FormDesignerProps {
   selectedLayoutSet: string | undefined;
 }
 
-export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesignerProps): JSX.Element => {
+export const FormDesigner = ({
+  selectedLayout,
+  selectedLayoutSet,
+}: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
+    org,
+    app,
+    selectedLayoutSet
+  );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-  const layoutOrder = useMemo(() => formLayouts?.[selectedLayout]?.order || {}, [formLayouts, selectedLayout]);
+  const layoutOrder = useMemo(
+    () => formLayouts?.[selectedLayout]?.order || {},
+    [formLayouts, selectedLayout]
+  );
   const t = useText();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const formLayoutIsReady =
-    instanceId &&
-    formLayouts &&
-    formLayoutSettings &&
-    ruleModel &&
-    isRuleConfigFetched;
+    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -68,46 +73,56 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
 
     const createErrorMessage = (resource: string): { title: string; message: string } => ({
       title: `${defaultTitle} ${resource}`,
-      message: defaultMessage
+      message: defaultMessage,
     });
 
     if (layoutFetchedError) {
       return createErrorMessage(t('general.layout'));
     }
-  }
+  };
 
   /**
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    
     const firstLayoutPage = layoutPagesOrder?.[0];
     if (!firstLayoutPage) return;
 
     const localStorageLayout = getSelectedLayoutInLocalStorage(instanceId);
     const searchParamsLayout = searchParams.get('layout');
 
-    const selectFirstLayoutPage = () => {
-      setSearchParams({ ...deepCopy(searchParams), layout: firstLayoutPage });
+    const updateLayoutInSearchParams = (layout: string) => {
+      setSearchParams((prevParams) => ({ ...prevParams, layout }));
     };
-    
+
     const isValidLayout = (layoutName: string): boolean => {
       const isExistingLayout = layoutPagesOrder?.includes(layoutName);
       const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-      return (isExistingLayout || isReceipt);
+      return isExistingLayout || isReceipt;
     };
+
+    if (isValidLayout(searchParamsLayout)) {
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
+      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
+      return;
+    }
 
     if (isValidLayout(localStorageLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(localStorageLayout));
-      setSearchParams({ ...deepCopy(searchParams), layout: localStorageLayout });
-    } else if (isValidLayout(searchParamsLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-    } else {
-      selectFirstLayoutPage();
+      updateLayoutInSearchParams(localStorageLayout);
+      return;
     }
-  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams, selectedLayout, setSearchParams]);
 
+    updateLayoutInSearchParams(firstLayoutPage);
+  }, [
+    dispatch,
+    formLayoutSettings?.receiptLayoutName,
+    instanceId,
+    layoutPagesOrder,
+    searchParams,
+    selectedLayout,
+    setSearchParams,
+  ]);
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -125,7 +140,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message}/>;
+    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {
