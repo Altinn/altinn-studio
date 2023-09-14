@@ -31,8 +31,9 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <param name="atDate">The date the classification should be valid</param>
     /// <param name="level">The hierarchy level for classifications with multiple levels. Defaults to empty string, ie. all levels.</param>
     /// <param name="variant">The name of the variant to use instead of the original code list specified.</param>
+    /// <param name="selectCodes">selectCodes is used to limit the result to codes that match the pattern given by selectCodes.</param>
     /// <returns></returns>
-    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language="nb", DateOnly? atDate = null, string level = "", string variant = "")
+    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "", string selectCodes = "")
     {
         string selectLanguage = $"language={language}";
 
@@ -46,13 +47,16 @@ public class ClassificationsHttpClient : IClassificationsClient
         // Variants are referenced by name
         string selectVariant = variant.IsNullOrEmpty() ? string.Empty : $"&variantName={variant}";
 
+        //SelectCodes
+        string selectedCodes = selectCodes.IsNullOrEmpty() ? string.Empty : $"&selectCodes={selectCodes}";
+
         // Start of url differs depending on if we are getting codes or variants
         string url = $"{classificationId}/codesAt";
         if (!variant.IsNullOrEmpty())
         {
             url = $"{classificationId}/variantAt";
         }
-        string query = BuildQuery(selectLanguage, selectDate, selectLevel, selectVariant);
+        string query = BuildQuery(selectLanguage, selectDate, selectLevel, selectVariant, selectedCodes);
 
         var response = await _httpClient.GetAsync($"{url}{query}");
 
@@ -65,7 +69,7 @@ public class ClassificationsHttpClient : IClassificationsClient
         // If we get a 404 we try to get the codes in the fallback language (nb)
         else if (response.StatusCode == HttpStatusCode.NotFound && language != "nb")
         {
-            string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant);
+            string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant,selectedCodes);
             var fallbackResponse = await _httpClient.GetAsync($"{url}{fallbackQuery}");
             if (fallbackResponse.IsSuccessStatusCode)
             {
@@ -78,8 +82,8 @@ public class ClassificationsHttpClient : IClassificationsClient
         return new ClassificationCodes();
     }
 
-    private static string BuildQuery(string selectLanguage, string selectDate, string selectLevel, string selectVariant)
+    private static string BuildQuery(string selectLanguage, string selectDate, string selectLevel, string selectVariant, string selectCodes)
     {
-        return $"?{selectLanguage}{selectDate}{selectLevel}{selectVariant}";
+        return $"?{selectLanguage}{selectDate}{selectLevel}{selectVariant}{selectCodes}";
     }
 }

@@ -33,15 +33,15 @@ namespace Altinn.Codelists.SSB.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "")
+        public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "", string selectCodes = "")
         {
-            var cacheKey = GetCacheKey(classificationId, language, atDate, level, variant);
+            var cacheKey = GetCacheKey(classificationId, language, atDate, level, variant, selectCodes);
 
             var codes = await _memoryCache.GetOrCreateAsync(cacheKey, async cacheEntry =>
             {
                 var cacheEntryOptions = _getCacheEntryOptions.Invoke();
                 cacheEntry.SetOptions(cacheEntryOptions);
-                var data = await _classificationsClient.GetClassificationCodes(classificationId, language, atDate, level, variant);
+                var data = await _classificationsClient.GetClassificationCodes(classificationId, language, atDate, level, variant, selectCodes);
 
                 if (data is null)
                 {
@@ -55,9 +55,9 @@ namespace Altinn.Codelists.SSB.Clients
             return codes ?? new ClassificationCodes() { Codes = new List<ClassificationCode>() };
         }
 
-        private static string GetCacheKey(int classificationId, string language, DateOnly? atDate, string level, string variant)
+        private static string GetCacheKey(int classificationId, string language, DateOnly? atDate, string level, string variant, string selectCodes)
         {
-            return $"{classificationId}_{language}_{atDate?.ToString("yyyy-MM-dd")}_{level}_{variant}";
+            return $"{classificationId}_{language}_{atDate?.ToString("yyyy-MM-dd")}_{level}_{variant}_{selectCodes}";
         }
 
         // Expires the cache entry at midnight, to get potential new or removed entries.
