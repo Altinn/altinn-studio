@@ -20,8 +20,20 @@ import { PageSpinner } from 'app-shared/components';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+
+const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string ) => {
+  if (instanceId) {
+    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
+    localStorage.setItem(instanceId, layoutName);
+  }
+};
+
+const getSelectedLayoutInLocalStorage = (instanceId: string): string => {
+  if (instanceId) {
+    return localStorage.getItem(instanceId);
+  }
+};
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -68,16 +80,33 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
-      setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
-      dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
-    } else if (searchParams.has('layout')) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
-      // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-      if (instanceId) typedLocalStorage.setItem(instanceId, selectedLayout);
+    
+    const firstLayoutPage = layoutPagesOrder?.[0];
+    if (!firstLayoutPage) return;
+
+    const localStorageLayout = getSelectedLayoutInLocalStorage(instanceId);
+    const searchParamsLayout = searchParams.get('layout');
+
+    const selectFirstLayoutPage = () => {
+      setSearchParams({ ...deepCopy(searchParams), layout: firstLayoutPage });
+    };
+    
+    const isValidLayout = (layoutName: string): boolean => {
+      const isExistingLayout = layoutPagesOrder?.includes(layoutName);
+      const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
+      return (isExistingLayout || isReceipt);
+    };
+
+    if (isValidLayout(localStorageLayout)) {
+      dispatch(FormLayoutActions.updateSelectedLayout(localStorageLayout));
+      setSearchParams({ ...deepCopy(searchParams), layout: localStorageLayout });
+    } else if (isValidLayout(searchParamsLayout)) {
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
+      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
+    } else {
+      selectFirstLayoutPage();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, layoutPagesOrder, selectedLayout, org, app, instanceId]);
+  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams, selectedLayout, setSearchParams]);
 
 
   useEffect((): void => {

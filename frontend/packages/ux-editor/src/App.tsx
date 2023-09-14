@@ -24,7 +24,7 @@ export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
   const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const selectedLayoutSetInPreviewFromLocalStorage = typedLocalStorage.getItem<string>('layoutSet' + app);
+  const selectedLayoutSetInPreviewFromLocalStorage = typedLocalStorage.getItem<string>('layoutSet/' + app);
   const selectedLayoutSetInPreview = selectedLayoutSetInPreviewFromLocalStorage !== '' ? selectedLayoutSetInPreviewFromLocalStorage : null;
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -62,14 +62,14 @@ export function App() {
     if (selectedLayoutSet === null && layoutSets){
       // Only set layout set if layout sets exists and there is no layout set selected yet
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSets.sets[0].id));
-      typedLocalStorage.setItem<string>('layoutSet' + app, layoutSets.sets[0].id);
+      typedLocalStorage.setItem<string>('layoutSet/' + app, layoutSets.sets[0].id);
     }
   }, [dispatch, selectedLayoutSet, layoutSets, app]);
 
   useEffect(() => {
     const layoutSetInEditor = selectedLayoutSetInPreview ?? selectedLayoutSet;
     if (layoutSets && layoutSetInEditor !== null && layoutSetInEditor !== '' && layoutSetInEditor !== ""){
-      typedLocalStorage.setItem<string>('layoutSet' + app, layoutSetInEditor);
+      typedLocalStorage.setItem<string>('layoutSet/' + app, layoutSetInEditor);
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetInEditor));
     }
   }, [dispatch, selectedLayoutSet, layoutSets, selectedLayoutSetInPreview, app]);

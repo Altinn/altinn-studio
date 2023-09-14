@@ -16,10 +16,7 @@ export function LayoutSetsContainer() {
 
   const onLayoutSetClick = (set: string) => {
     dispatch(FormLayoutActions.updateSelectedLayoutSet(set));
-    dispatch(FormLayoutActions.updateSelectedLayout(set)); // to edit configs for particular set
-    typedLocalStorage.setItem<string>('layoutSet' + app, set);
-    // add field in state saying if selectedEditorLevel is 'layout' or 'layoutset'
-    // check above state in ux-editor and render layoutset-config if level === 'layoutset'
+    typedLocalStorage.setItem<string>('layoutSet/' + app, set);
   };
 
   return (
