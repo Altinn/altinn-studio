@@ -67,27 +67,14 @@ export const DeployResourcePage = ({
     useValidateResourceQuery(selectedContext, repo, resourceId);
 
   // Query function fo rpublishing a resource
-  const {
-    mutate: publishResource,
-    isLoading: loadingPublish,
-    isSuccess: publishSuccess,
-    isError: publishError,
-  } = usePublishResourceMutation(selectedContext, repo, resourceId);
+  const { mutate: publishResource } = usePublishResourceMutation(selectedContext, repo, resourceId);
 
   const handlePublish = (env: 'tt02' | 'prod') => {
-    /*publishResource(env, {
+    publishResource(env, {
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success'));
       },
-      onError: () => {
-        toast.error(t('resourceadm.resource_published_error'));
-      },
-    });*/
-    publishResource(env);
-
-    console.log(loadingPublish);
-    console.log(publishSuccess);
-    console.log(publishError);
+    });
   };
 
   /**
