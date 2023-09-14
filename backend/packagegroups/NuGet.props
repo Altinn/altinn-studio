@@ -7,7 +7,8 @@
   </ItemGroup>
 
   <ItemGroup Label="Shared nuget packages">
-    <PackageReference Update="JsonSchema.Net" Version="5.1.3" />
+    <PackageReference Update="JsonSchema.Net" Version="5.2.4" />
+    <PackageReference Update="Json.More.Net" Version="1.9.0" />
     <PackageReference Update="CompilerAttributes" Version="1.1.2" />
     <PackageReference Update="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Update="JWTCookieAuthentication" Version="3.0.1" />
@@ -18,15 +19,14 @@
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.19" />
+    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.21" />
     <PackageReference Update="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Update="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Update="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
-    <PackageReference Update="HtmlAgilityPack" Version="1.11.48" />
+    <PackageReference Update="HtmlAgilityPack" Version="1.11.53" />
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Update="Markdig" Version="0.31.0" />
-    <PackageReference Update="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.13" />
+    <PackageReference Update="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
     <PackageReference Update="Yuniql.AspNetCore" Version="1.2.25" />
@@ -35,22 +35,21 @@
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">
-    <PackageReference Update="FluentAssertions" Version="6.11.0" />
+    <PackageReference Update="FluentAssertions" Version="6.12.0" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.21" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.7.2" />
     <!-- Do not upgrade Moq version from 4.18.4 -->
-    <PackageReference Update="Moq" Version="4.18.4" />
+    <PackageReference Update="Moq" Version="4.20.69" />
     <PackageReference Update="xunit" Version="2.5.0" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.5.0" />
     <PackageReference Update="coverlet.collector" Version="3.2.0" />
-    <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.2" />
+    <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.5" />
     <PackageReference Update="Fare" Version="2.2.1" />
-    <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.2" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.6.0" />
-    <PackageReference Update="Testcontainers" Version="3.1.0" />
-    <PackageReference Update="Testcontainers.PostgreSql" Version="3.1.0" />
-    <PackageReference Update="Polly" Version="7.2.3" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.7.0" />
+    <PackageReference Update="Testcontainers" Version="3.5.0" />
+    <PackageReference Update="Testcontainers.PostgreSql" Version="3.5.0" />
+    <PackageReference Update="Polly" Version="7.2.4" />
   </ItemGroup>
 </Project>
