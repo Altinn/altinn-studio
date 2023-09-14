@@ -12,3 +12,7 @@ p,
 h2 {
   margin: 0;
 }
+
+.spaceTop {
+  margin-top: 20px;
+}

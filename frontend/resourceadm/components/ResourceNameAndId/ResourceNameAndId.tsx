@@ -48,9 +48,9 @@ export type ResourceNameAndIdProps = {
    */
   bothFieldsHaveSameValue: boolean;
   /**
-   * If there should be space on top of the component
+   * Additional classes
    */
-  spacingTop?: boolean;
+  className?: string;
 };
 
 /**
@@ -67,7 +67,7 @@ export type ResourceNameAndIdProps = {
  * @property {function}[handleClickEditButton] - Function to be executed when edit button is clicked
  * @property {boolean}[resourceIdExists] - Flag for id the ID already exists
  * @property {boolean}[bothFieldsHaveSameValue] - Flag for if ID and title has same display value
- * @property {boolean}[spacingTop] - Additional classes
+ * @property {string}[className] - Additional classes
  *
  * @returns {React.ReactNode} - If there should be space on top of the component
  */
@@ -81,7 +81,7 @@ export const ResourceNameAndId = ({
   handleClickEditButton,
   resourceIdExists,
   bothFieldsHaveSameValue,
-  spacingTop,
+  className,
 }: ResourceNameAndIdProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -192,10 +192,8 @@ export const ResourceNameAndId = ({
   };
 
   return (
-    <>
-      <Paragraph size='small' className={spacingTop && classes.spaceTop}>
-        {text}
-      </Paragraph>
+    <div className={className}>
+      <Paragraph size='small'>{text}</Paragraph>
       <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
         {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
       </Label>
@@ -214,6 +212,6 @@ export const ResourceNameAndId = ({
           </ErrorMessage>
         )}
       </div>
-    </>
+    </div>
   );
 };
