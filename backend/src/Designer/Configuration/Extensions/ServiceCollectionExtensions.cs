@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
         }
 
         public static IServiceCollection ConfigureResourceRegistryIntegrationSettings(
-this IServiceCollection services, IConfigurationSection section)
+        this IServiceCollection services, IConfigurationSection section)
         {
             IEnumerable<IConfigurationSection> resourceRegistrySettingSections = section.GetChildren();
 
@@ -53,6 +53,22 @@ this IServiceCollection services, IConfigurationSection section)
                 settingSection.Bind(rris);
                 rris.environment = settingSection.Key;
                 services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.environment.ToLower(), rris));
+            }
+
+            return services;
+        }
+
+        public static IServiceCollection ConfigureMaskinportenIntegrationSettings(
+        this IServiceCollection services, IConfigurationSection section)
+        {
+            IEnumerable<IConfigurationSection> maskinportenIntegrationSettingSections = section.GetChildren();
+
+            foreach (IConfigurationSection settingSection in maskinportenIntegrationSettingSections)
+            {
+                MaskinportenClientSettings integrationSettings = new MaskinportenClientSettings();
+                settingSection.Bind(integrationSettings);
+                integrationSettings.Environment = settingSection.Key;
+                services.Configure<ResourceRegistryMaskinportenIntegrationSettings>(x => x.Add(integrationSettings.Environment.ToLower(), integrationSettings));
             }
 
             return services;

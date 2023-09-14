@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
