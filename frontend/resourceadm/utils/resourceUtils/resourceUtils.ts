@@ -1,3 +1,4 @@
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type {
   SupportedLanguageKey,
   ResourceTypeOption,
@@ -5,7 +6,8 @@ import type {
   ResourceAvailableForTypeOption,
   ResourceKeyword,
 } from 'app-shared/types/ResourceAdm';
-import { SupportedLanguage } from 'resourceadm/types/global';
+import { ReactNode } from 'react';
+import { NavigationBarPage, SupportedLanguage } from 'resourceadm/types/global';
 
 /**
  * The map of resource type
@@ -132,4 +134,48 @@ export const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): s
 };
 export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
   return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
+};
+
+/**
+ * Gets the status for if a tab is active or not based on the
+ * current page and the tabs id.
+ *
+ * @param currentPage the currently selected tab
+ * @param tabId the id of the tab to check
+ *
+ * @returns if the tab is active or not
+ */
+export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): boolean => {
+  return currentPage === tabId;
+};
+
+/**
+ * Creates a new navigation tab to be used in the LeftNavigationBar
+ *
+ * @param icon the icon to display
+ * @param tabId the id of the tab
+ * @param onClick function to be executed on click
+ * @param currentPage the current selected page
+ * @param to where to navigate to
+ *
+ * @returns a LeftNavigationTab
+ */
+export const createNavigationTab = (
+  icon: ReactNode,
+  tabId: string,
+  onClick: (tabId: string) => void,
+  currentPage: NavigationBarPage,
+  to: string
+): LeftNavigationTab => {
+  return {
+    icon,
+    tabName: `resourceadm.left_nav_bar_${tabId}`,
+    tabId,
+    action: {
+      type: 'link',
+      onClick,
+      to,
+    },
+    isActiveTab: getIsActiveTab(currentPage, tabId),
+  };
 };
