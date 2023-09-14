@@ -141,7 +141,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
         handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
         resourceIdExists={resourceIdExists}
         bothFieldsHaveSameValue={bothFieldsHaveSameValue}
-        spacingTop
+        className={classes.spaceTop}
       />
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
