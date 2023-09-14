@@ -29,7 +29,7 @@ describe('VerificationModal', () => {
 
     const modalHeader = screen.getByRole('heading', {
       name: textMock('policy_editor.verification_modal_heading'),
-      level: 2,
+      level: 1,
     });
 
     expect(modalHeader).toBeInTheDocument();

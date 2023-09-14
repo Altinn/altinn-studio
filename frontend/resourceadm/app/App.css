@@ -19,3 +19,7 @@ a {
   background: darkgray;
   border-radius: 5px;
 }
+
+:root {
+  --overlay-gradient: rgba(30, 174, 247, 0.3);
+}
