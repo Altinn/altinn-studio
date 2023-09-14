@@ -318,7 +318,7 @@ namespace Altinn.Studio.Designer.Controllers
             return details;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {
