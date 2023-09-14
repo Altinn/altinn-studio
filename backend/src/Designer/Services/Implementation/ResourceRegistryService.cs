@@ -131,7 +131,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
                 HttpResponseMessage putResponse = await _httpClient.PutAsync(putRequest, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
-                return putResponse.IsSuccessStatusCode ? new StatusCodeResult(200) : new StatusCodeResult(400);
+                return putResponse.IsSuccessStatusCode ? new StatusCodeResult(201) : new StatusCodeResult(400);
             }
 
             HttpResponseMessage response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
