@@ -168,7 +168,7 @@ describe('PolicyEditor', () => {
 
     const modalTitle = screen.queryByRole('heading', {
       name: textMock('policy_editor.verification_modal_heading'),
-      level: 2,
+      level: 1,
     });
     expect(modalTitle).not.toBeInTheDocument();
 
