@@ -131,7 +131,6 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
       onClose={handleClose}
       title={t('resourceadm.dashboard_create_modal_title')}
     >
-      <div className={classes.divider} />
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}
         title={title}
@@ -142,6 +141,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
         handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
         resourceIdExists={resourceIdExists}
         bothFieldsHaveSameValue={bothFieldsHaveSameValue}
+        spacingTop
       />
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>

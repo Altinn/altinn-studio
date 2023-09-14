@@ -47,3 +47,7 @@
   align-items: center;
   height: 40px;
 }
+
+.spaceTop {
+  margin-top: 20px;
+}
