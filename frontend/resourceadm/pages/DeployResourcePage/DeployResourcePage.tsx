@@ -12,6 +12,7 @@ import {
 } from 'resourceadm/hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
+import { usePublishResource } from 'resourceadm/hooks/queries/usePublishResource';
 
 type DeployResourcePageProps = {
   /**
@@ -62,6 +63,14 @@ export const DeployResourcePage = ({
   );
   const { data: validateResourceData, isLoading: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
+
+  // Mutation function fo rpublishing a resource
+  const { mutate: publishData, isLoading: loadingPublishData } = usePublishResource(
+    selectedContext,
+    repo,
+    resourceId,
+    ''
+  );
 
   /**
    * Set the value for policy error

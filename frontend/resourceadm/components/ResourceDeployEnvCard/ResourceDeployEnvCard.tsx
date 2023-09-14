@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type ResourceDeployEnvCardProps = {
   /**
@@ -59,7 +59,10 @@ export const ResourceDeployEnvCard = ({
         {newEnvVersion && (
           <>
             <div className={classes.arrowWrapper}>
-              <ArrowRightIcon title={t('resourceadm.deploy_card_arrow_icon', { env: envName })} fontSize='1.5rem' />
+              <ArrowRightIcon
+                title={t('resourceadm.deploy_card_arrow_icon', { env: envName })}
+                fontSize='1.5rem'
+              />
             </div>
             <Tag color='success' variant='outlined' size='small'>
               v{newEnvVersion}
@@ -70,7 +73,7 @@ export const ResourceDeployEnvCard = ({
       <div className={classes.buttonWrapper}>
         <Button
           aria-disabled={!isDeployPossible}
-          onClick={() => isDeployPossible ? handleOnClick() : undefined}
+          onClick={() => (isDeployPossible ? handleOnClick() : undefined)}
           size='small'
         >
           {t('resourceadm.deploy_card_publish', { env: envName })}
