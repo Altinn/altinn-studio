@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './NavigationModal.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type NavigationModalProps = {
   /**
@@ -46,7 +46,7 @@ export const NavigationModal = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <Paragraph size='small'>
+      <Paragraph size='small' className={classes.text}>
         {t('resourceadm.resource_navigation_modal_text')}
       </Paragraph>
       <div className={classes.buttonWrapper}>

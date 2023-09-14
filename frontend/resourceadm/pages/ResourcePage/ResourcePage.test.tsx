@@ -125,7 +125,7 @@ describe('ResourcePage', () => {
     expect(
       screen.queryByRole('heading', {
         name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 2,
+        level: 1,
       })
     ).not.toBeInTheDocument();
 
@@ -137,7 +137,7 @@ describe('ResourcePage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 2,
+        level: 1,
       })
     ).toBeInTheDocument();
   });

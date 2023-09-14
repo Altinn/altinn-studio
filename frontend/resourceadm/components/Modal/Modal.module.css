@@ -1,4 +1,12 @@
-.contentDivider {
-  border: solid 1px #D6D6D6;
-  margin-block: 25px;
+.headingWrapper {
+  display: flex;
+  align-items: center;
+  padding-block: 10px;
+  padding-inline: 32px;
+}
+
+.content {
+  min-width: 600px;
+  padding-inline: 32px;
+  padding-bottom: 32px;
 }
