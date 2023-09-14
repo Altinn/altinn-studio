@@ -80,6 +80,7 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
+    debugger;
     
     const firstLayoutPage = layoutPagesOrder?.[0];
     if (!firstLayoutPage) return;
@@ -98,8 +99,9 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
     };
 
     if (isValidLayout(localStorageLayout)) {
+      const urlParams = new URLSearchParams(window.location.search);
       dispatch(FormLayoutActions.updateSelectedLayout(localStorageLayout));
-      setSearchParams({ ...deepCopy(searchParams), layout: localStorageLayout });
+      setSearchParams({ ...deepCopy(urlParams), layout: localStorageLayout });
     } else if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
