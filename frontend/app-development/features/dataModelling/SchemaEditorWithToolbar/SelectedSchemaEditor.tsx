@@ -6,13 +6,19 @@ import { Center } from 'app-shared/components/Center';
 import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export interface SelectedSchemaEditorProps {
+  datamodels: DatamodelMetadata[];
   modelPath: string;
   modelName: string;
 }
 
-export const SelectedSchemaEditor = ({ modelPath, modelName }: SelectedSchemaEditorProps) => {
+export const SelectedSchemaEditor = ({
+  datamodels,
+  modelPath,
+  modelName,
+}: SelectedSchemaEditorProps) => {
   const { data, status, error } = useSchemaQuery(modelPath);
   const { mutate } = useSchemaMutation();
   const { t } = useTranslation();
@@ -35,6 +41,7 @@ export const SelectedSchemaEditor = ({ modelPath, modelName }: SelectedSchemaEdi
     case 'success':
       return (
         <SchemaEditorApp
+          datamodels={datamodels}
           jsonSchema={data}
           save={mutate}
           modelName={modelName}

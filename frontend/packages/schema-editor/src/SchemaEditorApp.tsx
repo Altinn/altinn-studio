@@ -9,15 +9,23 @@ import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEdi
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, UiSchemaNodes } from '@altinn/schema-model';
 import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export type SchemaEditorAppProps = {
+  datamodels: DatamodelMetadata[];
   modelPath?: string;
   modelName?: string;
   jsonSchema: JsonSchema;
   save: (args: { modelPath: string; model: JsonSchema }) => void;
 };
 
-export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: SchemaEditorAppProps) {
+export function SchemaEditorApp({
+  datamodels,
+  modelPath,
+  modelName,
+  jsonSchema,
+  save,
+}: SchemaEditorAppProps) {
   const autoSaveTimeoutRef = useRef(undefined);
   const [model, setModel] = useState(() => buildUiSchema(jsonSchema));
   const prevModelPathRef = useRef(modelPath);
@@ -40,6 +48,11 @@ export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: Sche
     const autoSaveOnModelChange = async () => {
       if (prevModelPathRef.current === modelPath) return;
 
+      const isExistingModel = datamodels.some(
+        (item) => item.repositoryRelativeUrl === prevModelPathRef.current
+      );
+      if (!isExistingModel) return;
+
       clearTimeout(autoSaveTimeoutRef.current);
       save({ modelPath: prevModelPathRef.current, model: buildJsonSchema(prevModelRef.current) });
 
@@ -47,7 +60,7 @@ export function SchemaEditorApp({ modelPath, modelName, jsonSchema, save }: Sche
     };
 
     autoSaveOnModelChange();
-  }, [modelPath, save]);
+  }, [datamodels, modelPath, save]);
 
   useEffect(() => {
     const newModel = buildUiSchema(jsonSchema);
