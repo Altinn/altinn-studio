@@ -66,6 +66,7 @@
     <Watch Remove="Configuration\CacheSettings.cs" />
     <Watch Remove="Configuration\ResourceRegistryEnvironmentSettings.cs" />
     <Watch Remove="Configuration\ResourceRegistryIntegrationSettings.cs" />
+    <Watch Remove="Configuration\ResourceRegistryMaskinportenIntegrationSettings.cs" />
     <Watch Remove="Controllers\PolicyController.cs" />
     <Watch Remove="Configuration\MaskinportenClientSettings.cs" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />

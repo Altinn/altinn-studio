@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -22,27 +23,33 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IMaskinportenService _maskinPortenService;
         private readonly IClientDefinition _maskinportenClientDefinition;
         private readonly PlatformSettings _platformSettings;
+        private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
+        private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
 
         public ResourceRegistryService()
         {
 
         }
 
-        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings)
+        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings)
         {
             _httpClient = httpClient;
             _httpClientFactory = httpClientFactory;
             _maskinPortenService = maskinportenService;
             _maskinportenClientDefinition = maskinPortenClientDefinition;
             _platformSettings = platformSettings;
+            _resourceRegistrySettings = resourceRegistryEnvironment.Value;
+            _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
         }
 
         public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null)
         {
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             string publishResourceToResourceRegistryUrl;
             string getResourceRegistryUrl;
             string fullWritePolicyToResourceRegistryUrl;
+
 
             if (string.IsNullOrEmpty(env))
             {
@@ -52,24 +59,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                publishResourceToResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}";
+                publishResourceToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}";
                 getResourceRegistryUrl = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
                 tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
-
-                fullWritePolicyToResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryEnvBaseUrl, env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
+                fullWritePolicyToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
             else
             {
                 publishResourceToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
                 getResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}/{serviceResource.Identifier}";
-
-                if (!_platformSettings.ResourceRegistryDefaultBaseUrl.Contains("localhost") && _platformSettings.ResourceRegistryDefaultBaseUrl.Contains("platform"))
-                {
-                    string[] splittedBaseUrl = _platformSettings.ResourceRegistryDefaultBaseUrl.Split('.');
-                    env = splittedBaseUrl[1];
-                    tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
-                }
-
                 fullWritePolicyToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
 
@@ -160,6 +158,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return new StatusCodeResult(400);
             }
+        }
+
+        private string GetResourceRegistryBaseUrl(string env)
+        {
+            if (!_resourceRegistrySettings.TryGetValue(env, out ResourceRegistryEnvironmentSettings envSettings))
+            {
+                throw new ArgumentException($"Invalid environment. Missing environment config for {env}");
+            }
+
+            return envSettings.ResourceRegistryEnvBaseUrl;
+        }
+
+        private MaskinportenClientSettings GetMaskinportenIntegrationSettings(string env)
+        {
+            string maskinportenEnvironment = env == "prod" ? "prod" : "test";
+            if (!_maskinportenIntegrationSettings.TryGetValue(maskinportenEnvironment, out MaskinportenClientSettings maskinportenClientSettings))
+            {
+                throw new ArgumentException($"Invalid environment. Missing Maskinporten config for {env}");
+            }
+
+            return maskinportenClientSettings;
         }
     }
 }
