@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './ResourceNameAndId.module.css';
 import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type ResourceNameAndIdProps = {
   /**
@@ -47,6 +47,10 @@ export type ResourceNameAndIdProps = {
    * Flag for if ID and title has same display value
    */
   bothFieldsHaveSameValue: boolean;
+  /**
+   * If there should be space on top of the component
+   */
+  spacingTop?: boolean;
 };
 
 /**
@@ -63,8 +67,9 @@ export type ResourceNameAndIdProps = {
  * @property {function}[handleClickEditButton] - Function to be executed when edit button is clicked
  * @property {boolean}[resourceIdExists] - Flag for id the ID already exists
  * @property {boolean}[bothFieldsHaveSameValue] - Flag for if ID and title has same display value
+ * @property {boolean}[spacingTop] - Additional classes
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.ReactNode} - If there should be space on top of the component
  */
 export const ResourceNameAndId = ({
   isEditOpen,
@@ -76,6 +81,7 @@ export const ResourceNameAndId = ({
   handleClickEditButton,
   resourceIdExists,
   bothFieldsHaveSameValue,
+  spacingTop,
 }: ResourceNameAndIdProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -110,11 +116,11 @@ export const ResourceNameAndId = ({
    * Displays either the id input field or the id text
    * @returns ReactNode
    */
-  const DisplayIdTextOrInput = () => {
+  const displayIdTextOrInput = () => {
     if (isEditOpen) {
       return (
         <>
-          <Label className={classes.label} size='small' htmlFor='resourceIdInputId' >
+          <Label className={classes.label} size='small' htmlFor='resourceIdInputId'>
             {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
           </Label>
           <div className={classes.editFieldWrapper}>
@@ -132,24 +138,32 @@ export const ResourceNameAndId = ({
                   onClick={() => handleClickEditButton(false)}
                   variant='quiet'
                   color='danger'
-                  icon={<MultiplyIcon title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')} />}
+                  icon={
+                    <MultiplyIcon
+                      title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
+                    />
+                  }
                   size='small'
                 />
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
                 variant='quiet'
-                icon={<CheckmarkIcon title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')} />}
+                icon={
+                  <CheckmarkIcon
+                    title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
+                  />
+                }
                 size='small'
               />
             </div>
           </div>
         </>
-      )
+      );
     }
     return (
       <>
-       <Paragraph className={classes.label} size='small' >
+        <Paragraph className={classes.label} size='small'>
           {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
         </Paragraph>
         <div className={classes.editFieldWrapper}>
@@ -174,12 +188,14 @@ export const ResourceNameAndId = ({
           </div>
         </div>
       </>
-    )
-  }
+    );
+  };
 
   return (
     <>
-      <Paragraph size='small'>{text}</Paragraph>
+      <Paragraph size='small' className={spacingTop && classes.spaceTop}>
+        {text}
+      </Paragraph>
       <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
         {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
       </Label>
@@ -190,10 +206,12 @@ export const ResourceNameAndId = ({
           id='resourceNameInputId'
         />
       </div>
-      <DisplayIdTextOrInput />
+      {displayIdTextOrInput()}
       <div className={classes.resourceIdError}>
         {resourceIdExists && (
-          <ErrorMessage size='small'>{t('resourceadm.dashboard_resource_name_and_id_error')}</ErrorMessage>
+          <ErrorMessage size='small'>
+            {t('resourceadm.dashboard_resource_name_and_id_error')}
+          </ErrorMessage>
         )}
       </div>
     </>
