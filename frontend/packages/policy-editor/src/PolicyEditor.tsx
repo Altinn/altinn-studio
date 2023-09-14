@@ -255,8 +255,8 @@ export const PolicyEditor = ({
         isOpen={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
         text={t('policy_editor.verification_modal_text')}
-        closeButtonText={t('policy_editor.verification_modal_action_button')}
-        actionButtonText={t('policy_editor.verification_modal_close_button')}
+        closeButtonText={t('policy_editor.verification_modal_close_button')}
+        actionButtonText={t('policy_editor.verification_modal_action_button')}
         onPerformAction={() => handleDeleteRule(ruleIdToDelete)}
       />
     </div>

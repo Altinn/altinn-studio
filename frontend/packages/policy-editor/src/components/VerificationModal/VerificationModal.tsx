@@ -1,20 +1,8 @@
 import React from 'react';
 import classes from './VerificationModal.module.css';
-import Modal from 'react-modal';
 import { Button, Heading, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-
-const modalStyles = {
-  content: {
-    width: '450px',
-    height: 'fit-content',
-    margin: 'auto',
-    padding: '32px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
+import { Modal } from 'app-shared/components/Modal';
 
 export type VerificationModalProps = {
   /**
@@ -72,25 +60,27 @@ export const VerificationModal = ({
   return (
     <Modal
       isOpen={isOpen}
-      onRequestClose={onClose}
-      contentLabel='Verification Modal'
-      style={modalStyles}
-      ariaHideApp={false}
+      onClose={onClose}
+      title={
+        <div className={classes.headingWrapper}>
+          <Heading size='xsmall' spacing level={1}>
+            {t('policy_editor.verification_modal_heading')}
+          </Heading>
+        </div>
+      }
     >
-      <Heading size='xsmall' spacing level={2}>
-        {t('policy_editor.verification_modal_heading')}
-      </Heading>
-      <div className={classes.contentDivider} />
-      <Paragraph size='small'>{text}</Paragraph>
-      <div className={classes.buttonWrapper}>
-        <div className={classes.closeButtonWrapper}>
-          <Button onClick={onClose} variant='quiet' size='small'>
-            {closeButtonText}
+      <div className={classes.content}>
+        <Paragraph size='small'>{text}</Paragraph>
+        <div className={classes.buttonWrapper}>
+          <div className={classes.closeButtonWrapper}>
+            <Button onClick={onClose} variant='quiet' size='small'>
+              {closeButtonText}
+            </Button>
+          </div>
+          <Button onClick={onPerformAction} color='primary' size='small'>
+            {actionButtonText}
           </Button>
         </div>
-        <Button onClick={onPerformAction} color='primary' size='small'>
-          {actionButtonText}
-        </Button>
       </div>
     </Modal>
   );
