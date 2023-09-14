@@ -288,11 +288,6 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
             }
 
-            if (resource.ResourceType == null)
-            {
-                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingresourcetype");
-            }
-
             if (resource.AvailableForType == null || resource.AvailableForType.Count == 0)
             {
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
@@ -300,7 +295,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
-                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingcontactpoints");
+                ModelState.AddModelError($"{resource.Identifier}.contactPoint", "resourceerror.missingcontactpoints");
             }
             else
             {
@@ -311,7 +306,7 @@ namespace Altinn.Studio.Designer.Controllers
                     var telephoneError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Telephone);
                     var contactPageError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].ContactPage);
 
-                    if (categoryError || emailError || telephoneError || contactPageError)
+                    if (categoryError && emailError && telephoneError && contactPageError)
                     {
                         ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}]", "resourceerror.missingcontactpoints.");
                     }
