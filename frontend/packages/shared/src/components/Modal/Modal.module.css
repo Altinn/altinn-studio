@@ -1,5 +1,6 @@
 .modal {
   --modal-min-size: 320px;
+  --modal-min-height: 100px;
   --modal-max-size: 80vh;
   --modal-position: 50%;
   --modal-translate: calc(var(--modal-position) * -1);
@@ -9,7 +10,7 @@
   min-width: var(--modal-min-size);
   width: max-content;
   max-height: var(--modal-max-size);
-  min-height: var(--modal-min-size);
+  min-height: var(--modal-min-height);
   height: max-content;
   border-radius: 20px;
   position: absolute;
