@@ -65,8 +65,8 @@ describe('LeftNavigationBar', () => {
   const defaultProps: LeftNavigationBarProps = {
     tabs: mockTabs,
     upperTab: 'backButton',
-    backButtonHref: mockBackButtonHref,
-    backButtonText: mockBackButtonText,
+    backLink: mockBackButtonHref,
+    backLinkText: mockBackButtonText,
   };
 
   it('calls the onClick function when a tab is clicked and action type is button', async () => {

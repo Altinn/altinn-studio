@@ -234,8 +234,8 @@ export const ResourcePage = (): React.ReactNode => {
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
-          backButtonHref={`${getResourceDashboardURL(selectedContext, repo)}`}
-          backButtonText={t('resourceadm.left_nav_bar_back')}
+          backLink={`${getResourceDashboardURL(selectedContext, repo)}`}
+          backLinkText={t('resourceadm.left_nav_bar_back')}
         />
       </div>
       <div className={classes.resourcePageWrapper}>

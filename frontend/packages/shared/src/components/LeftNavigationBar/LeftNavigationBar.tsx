@@ -14,13 +14,13 @@ export type LeftNavigationBarProps = {
    */
   upperTab?: 'backButton' | undefined;
   /**
-   * Href for the back button
+   * Href for the back link
    */
-  backButtonHref?: string;
+  backLink?: string;
   /**
-   * The text on the back button
+   * The text on the back link
    */
-  backButtonText?: string;
+  backLinkText?: string;
 };
 
 /**
@@ -31,22 +31,22 @@ export type LeftNavigationBarProps = {
  *    <LeftNavigationBar
  *        tabs={listOfTabsOfTypeLeftNavigationTab}
  *        upperTab='backButton'
- *        backButtonHref='./someUrl'
- *        backButtonText={t('resourceadm.left_nav_bar_back')}
+ *        backLink='./someUrl'
+ *        backLinkText={t('resourceadm.left_nav_bar_back')}
  *    />
  *
  * @property {LeftNavigationBar[]}[tabs] - List of navigation tabs
  * @property {'backButton' | undefined}[upperTab] - The upper tab
- * @property {string}[backButtonHref] - Href for the back button
- * @property {string}[backButtonText] - The text on the back button
+ * @property {string}[backLink] - Href for the back link
+ * @property {string}[backLinkText] - The text on the back link
  *
  * @returns {ReactNode} - The rendered component
  */
 export const LeftNavigationBar = ({
   tabs,
   upperTab = undefined,
-  backButtonHref,
-  backButtonText = '',
+  backLink,
+  backLinkText = '',
 }: LeftNavigationBarProps): ReactNode => {
   const [newTabIdClicked, setNewTabIdClicked] = useState<string | null>(null);
 
@@ -66,13 +66,9 @@ export const LeftNavigationBar = ({
    * @returns
    */
   const displayUpperTab = () => {
-    if (upperTab === 'backButton' && backButtonHref && backButtonText) {
+    if (upperTab === 'backButton' && backLink && backLinkText) {
       return (
-        <GoBackButton
-          className={classes.navigationElement}
-          to={backButtonHref}
-          text={backButtonText}
-        />
+        <GoBackButton className={classes.navigationElement} to={backLink} text={backLinkText} />
       );
     }
     return null;
