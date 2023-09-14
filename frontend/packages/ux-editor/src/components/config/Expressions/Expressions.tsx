@@ -24,6 +24,7 @@ import { deepCopy } from 'app-shared/pure';
 import { LayoutItemType } from '../../../types/global';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
+import { FormContext } from '../../../containers/FormContext';
 
 export type ExpressionsProps = {
   onShowNewExpressions: (value: boolean) => void;

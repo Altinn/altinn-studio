@@ -1,7 +1,9 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { FormContextProviderMock, formDesignerMock, renderWithMockStore } from '../../../testing/mocks';
+import { renderWithMockStore } from '../../../testing/mocks';
+import { formDesignerMock } from '../../../testing/stateMocks';
+import { formContextProviderMock } from '../../../testing/formContextMocks';
 import { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
@@ -74,6 +76,23 @@ describe('Expressions', () => {
     const expressionLimitAlert = screen.queryByText(textMock('right_menu.expressions_expressions_limit_reached_alert'));
     expect(expressionLimitAlert).toBeInTheDocument();
   });
+  it('renders no existing expressions when component fields are boolean', () => {
+    const componentWithoutExpressions: FormComponent = {
+      id: 'some-id',
+      type: ComponentType.Input,
+      itemType: 'COMPONENT',
+      hidden: true,
+      required: false,
+      readOnly: true,
+    }
+    render({
+      component: componentWithoutExpressions
+    });
+
+    const defaultExpressionSelectProperty = screen.getByRole('combobox', { name: textMock('right_menu.expressions_property') });
+    expect(defaultExpressionSelectProperty).toBeInTheDocument();
+    expect(defaultExpressionSelectProperty).toHaveValue(textMock('right_menu.expressions_property_select'));
+  });
 });
 
 const componentWithExpression: FormComponent = {
@@ -97,7 +116,7 @@ const render = ({ props = {}, queries = {}, component = componentWithExpression 
   return renderWithMockStore({}, queries, queryClient)(
     <FormContext.Provider
       value={{
-        ...FormContextProviderMock,
+        ...formContextProviderMock,
         form: component,
         formId: component.id,
         ...props,

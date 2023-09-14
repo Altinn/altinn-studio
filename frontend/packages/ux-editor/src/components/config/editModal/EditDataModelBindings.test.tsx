@@ -1,7 +1,8 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 
-import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { renderWithMockStore } from '../../../testing/mocks';
+import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';

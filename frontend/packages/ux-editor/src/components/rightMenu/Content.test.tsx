@@ -12,12 +12,9 @@ import {
 } from '../../testing/layoutMock';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
-import {
-  appDataMock,
-  renderWithMockStore,
-  renderHookWithMockStore,
-  textResourcesMock, FormContextProviderMock,
-} from '../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
+import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
+import { formContextProviderMock } from '../../testing/formContextMocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
 const user = userEvent.setup();
@@ -57,8 +54,8 @@ describe('ContentTab', () => {
       const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
       await act(() => user.type(idInput, 'test'));
 
-      expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
-      expect(FormContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
+      expect(formContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
+      expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -80,8 +77,8 @@ describe('ContentTab', () => {
       const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id'));
       await act(() => user.type(idInput, 'test'));
 
-      expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
-      expect(FormContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
+      expect(formContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
+      expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
     });
   });
 });
@@ -107,7 +104,7 @@ const render = async ({ props = {}, editId }: { props: Partial<FormContext>; edi
   return renderWithMockStore({ appData })(
     <FormContext.Provider
       value={{
-        ...FormContextProviderMock,
+        ...formContextProviderMock,
         ...props,
       }}
     >

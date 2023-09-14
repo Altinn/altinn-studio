@@ -7,7 +7,8 @@ import {
   subExpression0
 } from '../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { formDesignerMock, renderWithMockStore } from '../../../testing/mocks';
+import { renderWithMockStore } from '../../../testing/mocks';
+import { formDesignerMock } from '../../../testing/stateMocks';
 import { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import { ExpressionContent, ExpressionContentProps } from './ExpressionContent';
