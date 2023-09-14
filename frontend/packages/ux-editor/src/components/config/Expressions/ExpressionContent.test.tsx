@@ -48,7 +48,7 @@ describe('ExpressionContent', () => {
   it('does not show save button when expression is in previewMode', () => {
     render({
       props: {
-        expressionInEditModeId: undefined,
+        expressionInEditMode: false,
       }
     });
 
@@ -75,7 +75,7 @@ describe('ExpressionContent', () => {
   it('renders the complex expression in preview mode when complex expression is set and the expressions id is not in editMode', () => {
     render({
       props: {
-        expressionInEditModeId: undefined,
+        expressionInEditMode: false,
         expression: {
           ...internalUnParsableComplexExpression,
           id: simpleInternalExpression.id
@@ -144,8 +144,8 @@ describe('ExpressionContent', () => {
   it('shows successfullyAdded check mark when conditions imply for a simple expression', () => {
     render({
       props: {
-        expressionInEditModeId: undefined,
-        successfullyAddedExpressionId: simpleInternalExpression.id
+        expressionInEditMode: false,
+        successfullyAddedExpression: true
       }
     });
     const successfullyAddedExpressionButton = screen.getByText(textMock('right_menu.expression_successfully_added_text'));
@@ -154,8 +154,8 @@ describe('ExpressionContent', () => {
   it('does not show successfullyAdded check mark when successfullyAddedExpressionId is not the id of expression', () => {
     render({
       props: {
-        expressionInEditModeId: undefined,
-        successfullyAddedExpressionId: undefined
+        expressionInEditMode: false,
+        successfullyAddedExpression: false
       }
     });
     const successfullyAddedExpressionButton = screen.queryByText(textMock('right_menu.expression_successfully_added_text'));
@@ -168,8 +168,8 @@ describe('ExpressionContent', () => {
           ...internalUnParsableComplexExpression,
           id: simpleInternalExpression.id
         },
-        expressionInEditModeId: undefined,
-        successfullyAddedExpressionId: simpleInternalExpression.id
+        expressionInEditMode: false,
+        successfullyAddedExpression: true,
       }
     });
     const successfullyAddedExpressionButton = screen.getByText(textMock('right_menu.expression_successfully_added_text'));
@@ -186,6 +186,7 @@ describe('ExpressionContent', () => {
     const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
     await act(() => user.click(saveExpressionButton));
     expect(mockOnSaveExpression).toHaveBeenCalledWith(simpleInternalExpression);
+    expect(mockOnSaveExpression).toHaveBeenCalledTimes(1);
   });
   it('calls onRemoveExpression when deleteExpression button is clicked in editMode', async () => {
     const user = userEvent.setup();
@@ -198,32 +199,35 @@ describe('ExpressionContent', () => {
     const deleteExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
     await act(() => user.click(deleteExpressionButton));
     expect(mockOnRemoveExpression).toHaveBeenCalledWith(simpleInternalExpression);
+    expect(mockOnRemoveExpression).toHaveBeenCalledTimes(1);
   });
   it('calls onRemoveExpression when deleteExpression button is clicked in previewMode', async () => {
     const user = userEvent.setup();
     const mockOnRemoveExpression = jest.fn();
     render({
       props: {
-        expressionInEditModeId: undefined,
+        expressionInEditMode: false,
         onRemoveExpression: mockOnRemoveExpression
       }
     });
     const deleteExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
     await act(() => user.click(deleteExpressionButton));
     expect(mockOnRemoveExpression).toHaveBeenCalledWith(simpleInternalExpression);
+    expect(mockOnRemoveExpression).toHaveBeenCalledTimes(1);
   });
   it('calls onEditExpression when editExpression button is clicked in previewMode', async () => {
     const user = userEvent.setup();
     const mockOnEditExpression = jest.fn();
     render({
       props: {
-        expressionInEditModeId: undefined,
+        expressionInEditMode: false,
         onEditExpression: mockOnEditExpression
       }
     });
     const editExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expression_edit') });
     await act(() => user.click(editExpressionButton));
     expect(mockOnEditExpression).toHaveBeenCalledWith(simpleInternalExpression);
+    expect(mockOnEditExpression).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -241,8 +245,8 @@ const render = ({ props = {}, queries = {}, }: {
     onGetProperties: mockOnGetProperties,
     showRemoveExpressionButton: true,
     onSaveExpression: jest.fn(),
-    successfullyAddedExpressionId: undefined,
-    expressionInEditModeId: simpleInternalExpression.id,
+    successfullyAddedExpression: false,
+    expressionInEditMode: true,
     onUpdateExpression: jest.fn(),
     onRemoveExpression: jest.fn(),
     onRemoveSubExpression: jest.fn(),

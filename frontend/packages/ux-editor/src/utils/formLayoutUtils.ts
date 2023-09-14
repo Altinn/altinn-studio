@@ -328,7 +328,7 @@ export const updateContainer = (
     ...oldLayout,
     containers: {
       ...oldLayout.containers,
-      [newId]: { ...updatedContainer }
+      [newId]: updatedContainer
     }
   };
 }

@@ -29,8 +29,8 @@ export interface ExpressionContentProps {
   onGetProperties: (expression: Expression) => { availableProperties: string[], expressionProperties: string[] };
   showRemoveExpressionButton: boolean;
   onSaveExpression: (expression: Expression) => void;
-  successfullyAddedExpressionId: string;
-  expressionInEditModeId: string;
+  successfullyAddedExpression: boolean;
+  expressionInEditMode: boolean;
   onUpdateExpression: (newExpression: Expression) => void;
   onRemoveExpression: (expression: Expression) => void;
   onRemoveSubExpression: (subExpression: SubExpression) => void;
@@ -43,17 +43,15 @@ export const ExpressionContent = ({
   onGetProperties,
   showRemoveExpressionButton,
   onSaveExpression,
-  successfullyAddedExpressionId,
-  expressionInEditModeId,
+  successfullyAddedExpression,
+  expressionInEditMode,
   onUpdateExpression,
   onRemoveExpression,
   onRemoveSubExpression,
   onEditExpression,
 }: ExpressionContentProps) => {
   const t = useText();
-
-  const expressionInEditMode = expression.id === expressionInEditModeId;
-  const successfullyAddedMark = expression.id === successfullyAddedExpressionId;
+  
   const allowToSpecifyExpression = Object.values(onGetProperties(expression).expressionProperties).includes(expression.property);
   const allowToSaveExpression = (
     expression.subExpressions?.filter(subExp => !subExp.function)?.length === 0
@@ -118,7 +116,7 @@ export const ExpressionContent = ({
           <Select
             label={t('right_menu.expressions_property')}
             hideLabel={true}
-            onChange={property => addPropertyToExpression(property)}
+            onChange={addPropertyToExpression}
             options={[{ label: t('right_menu.expressions_property_select'), value: 'default' }].concat(propertiesList.map((property: string) => ({
               label: expressionPropertyTexts(t)[property],
               value: property
@@ -167,7 +165,7 @@ export const ExpressionContent = ({
                 expression={expression}
               />
             )}
-            {successfullyAddedMark && (
+            {successfullyAddedExpression && (
               <div className={classes.checkMark}>
                 <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.expression_successfully_added_text')}
               </div>
@@ -175,7 +173,7 @@ export const ExpressionContent = ({
           </div>
           <div>
             <Button
-              aria-label={t('right_menu.expression_delete')}
+              title={t('right_menu.expression_delete')}
               color='danger'
               icon={<TrashIcon/>}
               onClick={() => onRemoveExpression(expression)}
@@ -183,7 +181,7 @@ export const ExpressionContent = ({
               size='small'
             />
             <Button
-              aria-label={t('right_menu.expression_edit')}
+              title={t('right_menu.expression_edit')}
               icon={<PencilIcon/>}
               onClick={() => onEditExpression(expression)}
               variant='quiet'

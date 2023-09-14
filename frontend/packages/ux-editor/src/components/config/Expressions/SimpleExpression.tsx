@@ -28,7 +28,7 @@ export const SimpleExpression = ({
   return (
     <>
       {expression.subExpressions?.map((subExp: SubExpression, index: number) => (
-        <div key={subExp.id}>
+        <React.Fragment key={subExp.id}>
           <Divider/>
           <SubExpressionContent
             expressionPropertyIsSet={allowToSpecifyExpression}
@@ -59,7 +59,7 @@ export const SimpleExpression = ({
               </div>
             )}
           </div>
-        </div>
+        </React.Fragment>
         )
       )}
     </>

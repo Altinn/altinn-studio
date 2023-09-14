@@ -53,7 +53,6 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
 
   const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
-    console.log(updatedComponent)
     handleUpdate(updatedComponent);
     await handleSave(formId, updatedComponent);
   }
@@ -132,21 +131,21 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   return (
     <div className={classes.root}>
       {Object.values(expressions).map((expression: Expression, index: number) => (
-        <div key={expression.id}>
+        <React.Fragment key={expression.id}>
           <ExpressionContent
             componentName={form.id}
             expression={expression}
             onGetProperties={() => getProperties(expression)}
             showRemoveExpressionButton={showRemoveExpressionButton}
             onSaveExpression={() => saveExpressionAndSetCheckMark(expression)}
-            successfullyAddedExpressionId={successfullyAddedExpressionIdRef.current}
-            expressionInEditModeId={expressionInEditModeId}
-            onUpdateExpression={(newExpression) => updateExpression(index, newExpression)}
+            successfullyAddedExpression={expression.id === successfullyAddedExpressionIdRef.current}
+            expressionInEditMode={expression.id === expressionInEditModeId}
+            onUpdateExpression={newExpression => updateExpression(index, newExpression)}
             onRemoveExpression={() => deleteExpression(expression)}
             onRemoveSubExpression={(subExpression) => deleteSubExpression(index, subExpression, expression)}
             onEditExpression={() => editExpression(expression)}
           />
-        </div>
+        </React.Fragment>
       ))}
       {isExpressionLimitReached ? (
         <Alert className={classes.expressionsAlert}>
@@ -154,7 +153,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
         </Alert>
       ) : (
         <Button
-          aria-label={t('right_menu.expressions_add')}
+          title={t('right_menu.expressions_add')}
           color='primary'
           fullWidth
           icon={<PlusIcon />}

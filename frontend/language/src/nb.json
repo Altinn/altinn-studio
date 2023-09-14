@@ -810,7 +810,7 @@
   "right_menu.expressions_group_property_show_save_button": "Vis Lagre-knapp dersom",
   "right_menu.expressions_operator_and": "Og",
   "right_menu.expressions_operator_or": "Eller",
-  "right_menu.expressions_property": "KomponentFeltMedUttrykk",
+  "right_menu.expressions_property": "Komponentfelt med uttrykk",
   "right_menu.expressions_property_hidden": "Skjul felt dersom",
   "right_menu.expressions_property_on_component": "Velg hva som skal skje med <bold>{{componentName}}</bold>",
   "right_menu.expressions_property_preview_hidden": "Skjul <bold>{{componentName}}</bold> hvis",
