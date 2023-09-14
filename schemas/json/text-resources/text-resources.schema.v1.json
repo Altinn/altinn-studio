@@ -88,6 +88,11 @@
             { "$ref": "#/definitions/dataSource-instanceContext" },
             { "$ref": "#/definitions/dataSource-applicationSettings" }
           ]
+        },
+        "defaultValue": {
+          "type": "string",
+          "title": "Default value of a variable",
+          "description": "The default value that you want to display if there is no value in the data model for the variable."
         }
       },
       "required": [

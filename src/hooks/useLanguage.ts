@@ -295,6 +295,16 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
       value = applicationSettings && variable.key in applicationSettings ? applicationSettings[variable.key] : value;
     }
 
+    if (value === variable.key) {
+      /*
+       By returning value if variable.defaultValue is null, we ensure
+       that we are returning the dataModel path string instead of blank
+       value. If app developers want to return blank value, they should
+       set defaultValue to a blank space.
+      */
+      value = variable.defaultValue || value;
+    }
+
     out = out.replaceAll(`{${idx}}`, value);
   }
 

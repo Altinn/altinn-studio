@@ -240,6 +240,7 @@ export interface ITextResource {
 export interface IVariable {
   key: string;
   dataSource: string;
+  defaultValue?: string;
 }
 
 export interface IAttachmentGrouping {
