@@ -228,6 +228,13 @@ export const ResourcePage = (): React.ReactNode => {
     }
   };
 
+  /**
+   * Saves the resource
+   */
+  const handleSaveResource = (r: Resource) => {
+    editResource(r);
+  };
+
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
@@ -238,37 +245,41 @@ export const ResourcePage = (): React.ReactNode => {
           backLinkText={t('resourceadm.left_nav_bar_back')}
         />
       </div>
-      <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' &&
-          (resourceLoading ? (
-            <div className={classes.spinnerWrapper}>
-              <Spinner
-                size='3xLarge'
-                variant='interaction'
-                title={t('resourceadm.about_resource_spinner')}
-              />
-            </div>
-          ) : (
+      {resourceLoading ? (
+        <div className={classes.spinnerWrapper}>
+          <Spinner
+            size='3xLarge'
+            variant='interaction'
+            title={t('resourceadm.about_resource_spinner')}
+          />
+        </div>
+      ) : (
+        <div className={classes.resourcePageWrapper}>
+          {currentPage === 'about' && (
             <AboutResourcePage
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
-              onSaveResource={(r: Resource) => {
-                editResource(r, {
-                  onSuccess: () => {
-                    console.log('success');
-                  },
-                });
-              }}
+              onSaveResource={handleSaveResource}
             />
-          ))}
-        {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
-        {currentPage === 'deploy' && (
-          <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
-        )}
-        {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
-          <MigrationPage navigateToPageWithError={navigateToPageWithError} />
-        )}
-      </div>
+          )}
+          {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
+          {currentPage === 'deploy' && (
+            <DeployResourcePage
+              navigateToPageWithError={navigateToPageWithError}
+              resourceVersionText={resourceData?.version ?? ''}
+              onSaveVersion={(version: string) =>
+                handleSaveResource({
+                  ...resourceData,
+                  version,
+                })
+              }
+            />
+          )}
+          {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
+            <MigrationPage navigateToPageWithError={navigateToPageWithError} />
+          )}
+        </div>
+      )}
       {hasMergeConflict && (
         <MergeConflictModal
           isOpen={hasMergeConflict}

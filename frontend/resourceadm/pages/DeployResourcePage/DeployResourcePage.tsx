@@ -2,15 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import {
-  TextField,
-  Button,
-  Spinner,
-  Heading,
-  Label,
-  Paragraph,
-  Link,
-} from '@digdir/design-system-react';
+import { TextField, Spinner, Heading, Label, Paragraph, Link } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
 import {
@@ -18,9 +10,8 @@ import {
   useValidatePolicyQuery,
   useValidateResourceQuery,
 } from 'resourceadm/hooks/queries';
-import { UploadIcon } from '@navikt/aksel-icons';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { useTranslation, Trans } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next';
 
 type DeployResourcePageProps = {
   /**
@@ -29,6 +20,8 @@ type DeployResourcePageProps = {
    * @returns void
    */
   navigateToPageWithError: (page: NavigationBarPage) => void;
+  resourceVersionText: string;
+  onSaveVersion: (version: string) => void;
 };
 
 /**
@@ -41,6 +34,8 @@ type DeployResourcePageProps = {
  */
 export const DeployResourcePage = ({
   navigateToPageWithError,
+  resourceVersionText,
+  onSaveVersion,
 }: DeployResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -51,7 +46,7 @@ export const DeployResourcePage = ({
   const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
     'none'
   );
-  const [newVersionText, setNewVersionText] = useState('');
+  const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
@@ -125,7 +120,9 @@ export const DeployResourcePage = ({
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors
-            ? t('resourceadm.deploy_status_card_error_resource_page', { num: validateResourceData.errors.length })
+            ? t('resourceadm.deploy_status_card_error_resource_page', {
+                num: validateResourceData.errors.length,
+              })
             : t('resourceadm.deploy_status_card_error_resource_page_default'),
           pageWithError: 'about',
         });
@@ -135,7 +132,9 @@ export const DeployResourcePage = ({
           message:
             hasPolicyError === 'validationFailed'
               ? validatePolicyData.errors
-                ? t('resourceadm.deploy_status_card_error_policy_page', { num: validatePolicyData.errors.length })
+                ? t('resourceadm.deploy_status_card_error_policy_page', {
+                    num: validatePolicyData.errors.length,
+                  })
                 : t('resourceadm.deploy_status_card_error_policy_page_default')
               : t('resourceadm.deploy_status_card_error_policy_page_missing'),
           pageWithError: 'policy',
@@ -249,24 +248,13 @@ export const DeployResourcePage = ({
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
                   <TextField
-                    placeholder=''
                     value={newVersionText}
                     onChange={(e) => setNewVersionText(e.target.value)}
                     label={t('resourceadm.deploy_version_input_label')}
+                    isValid={resourceVersionText !== ''}
+                    onBlur={() => onSaveVersion(newVersionText)}
                   />
                 </div>
-                <Button
-                  color='primary'
-                  onClick={() => {
-                    // TODO - Save new version number - Missing API call
-                    alert('todo - Save new version number');
-                  }}
-                  iconPlacement='left'
-                  size='small'
-                  icon={<UploadIcon title={t('resourceadm.deploy_version_upload_button')} />}
-                >
-                  {t('resourceadm.deploy_version_upload_button')}
-                </Button>
               </div>
             </div>
             <Label size='medium' spacing>
