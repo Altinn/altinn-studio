@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
-import { SchemaEditor } from './components/SchemaEditor';
 
 import { store } from './store';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
@@ -12,22 +11,22 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export type SchemaEditorAppProps = {
+  children: React.ReactNode;
   datamodels: DatamodelMetadata[];
   modelPath?: string;
-  modelName?: string;
   jsonSchema: JsonSchema;
   save: (args: { modelPath: string; model: JsonSchema }) => void;
 };
 
 export function SchemaEditorApp({
+  children,
   datamodels,
   modelPath,
-  modelName,
   jsonSchema,
   save,
 }: SchemaEditorAppProps) {
   const autoSaveTimeoutRef = useRef(undefined);
-  const [model, setModel] = useState(() => buildUiSchema(jsonSchema));
+  const [model, setModel] = useState(() => (jsonSchema ? buildUiSchema(jsonSchema) : []));
   const prevModelPathRef = useRef(modelPath);
   const prevModelRef = useRef(model);
 
@@ -51,7 +50,10 @@ export function SchemaEditorApp({
       const isExistingModel = datamodels.some(
         (item) => item.repositoryRelativeUrl === prevModelPathRef.current
       );
-      if (!isExistingModel) return;
+      if (!isExistingModel) {
+        prevModelPathRef.current = modelPath;
+        return;
+      }
 
       clearTimeout(autoSaveTimeoutRef.current);
       save({ modelPath: prevModelPathRef.current, model: buildJsonSchema(prevModelRef.current) });
@@ -63,7 +65,7 @@ export function SchemaEditorApp({
   }, [datamodels, modelPath, save]);
 
   useEffect(() => {
-    const newModel = buildUiSchema(jsonSchema);
+    const newModel = jsonSchema ? buildUiSchema(jsonSchema) : [];
     prevModelRef.current = newModel;
     setModel(newModel);
   }, [jsonSchema]);
@@ -75,9 +77,7 @@ export function SchemaEditorApp({
 
   return (
     <SchemaEditorAppContext.Provider value={value}>
-      <Provider store={store}>
-        <SchemaEditor modelName={modelName} />
-      </Provider>
+      <Provider store={store}>{children}</Provider>
     </SchemaEditorAppContext.Provider>
   );
 }
