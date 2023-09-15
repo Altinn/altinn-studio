@@ -29,9 +29,9 @@
 }
 
 .navigationElement:focus-visible {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
   background-color: var(--fds-semantic-background-default);
   z-index: 2;
+  border-bottom: none;
 
   --fds-inner-focus-border-color: var(--fds-semantic-border-focus-boxshadow);
   --fds-outer-focus-border-color: var(--fds-semantic-border-focus-outline);
