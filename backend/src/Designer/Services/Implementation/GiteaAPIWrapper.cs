@@ -213,9 +213,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string content = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(content) && !content.StartsWith("[]"))
+
+                ContentsResponse contentsResponse = null;
+
+                try
                 {
-                    ContentsResponse contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
+                    contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
+                }
+                catch(JsonException)
+                {
+                    // Not pushed to git
+                }
+                catch(Exception)
+                {
+                    // Not pushed to git
+                }
+
+                if (contentsResponse != null)
+                {
                     response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
@@ -238,7 +253,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             }
                         }
 
-                        listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
+                        if (oldestCommit?.Commit?.Author?.Name != null)
+                        {
+                            listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
+                        }
                     }
                 }
             }
