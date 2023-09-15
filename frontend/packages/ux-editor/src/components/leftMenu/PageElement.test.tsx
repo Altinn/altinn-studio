@@ -1,6 +1,7 @@
 import React from 'react';
 import { IPageElementProps, PageElement } from './PageElement';
-import { formDesignerMock, queriesMock, renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { formDesignerMock } from '../../testing/stateMocks';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';

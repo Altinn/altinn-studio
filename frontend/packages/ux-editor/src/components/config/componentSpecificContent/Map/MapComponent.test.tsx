@@ -5,8 +5,8 @@ import { MapComponent } from './MapComponent';
 import {
   renderWithMockStore,
   renderHookWithMockStore,
-  appDataMock,
 } from '../../../../testing/mocks';
+import { appDataMock } from '../../../../testing/stateMocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import { IGenericEditComponent } from '../../componentConfig';
