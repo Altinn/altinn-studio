@@ -25,7 +25,7 @@ export const Content = () => {
           editFormId={formId}
           container={form}
           handleContainerUpdate={async (updatedContainer) => {
-            handleUpdate((updatedContainer));
+            handleUpdate(updatedContainer);
             debounceSave(formId, updatedContainer);
           }}
         />

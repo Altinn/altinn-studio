@@ -1,25 +1,25 @@
 import React, { memo, useState } from 'react';
-import '../styles/index.css';
+import '../../styles/index.css';
 import classes from './FormComponent.module.css';
 import cn from 'classnames';
-import type { FormComponent as IFormComponent } from '../types/FormComponent';
+import type { FormComponent as IFormComponent } from '../../types/FormComponent';
 import { Button } from '@digdir/design-system-react';
-import { ComponentPreview } from '../containers/ComponentPreview';
+import { ComponentPreview } from '../../containers/ComponentPreview';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { DragHandle } from './dragAndDrop/DragHandle';
+import { DragHandle } from './DragHandle';
 import { ITextResource } from 'app-shared/types/global';
 import { MonitorIcon, TrashIcon } from '@navikt/aksel-icons';
-import { formItemConfigs } from '../data/formItemConfig';
-import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
+import { formItemConfigs } from '../../data/formItemConfig';
+import { getComponentTitleByComponentType, getTextResource, truncate } from '../../utils/language';
 import {
   selectedLayoutNameSelector,
   selectedLayoutSetSelector,
-} from '../selectors/formLayoutSelectors';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
-import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
-import { useTextResourcesSelector } from '../hooks';
+} from '../../selectors/formLayoutSelectors';
+import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
+import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
+import { useTextResourcesSelector } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { AltinnConfirmDialog } from 'app-shared/components';
@@ -121,13 +121,13 @@ export const FormComponent = memo(function FormComponent({
           ) : (
             <div className={classes.formComponentTitle}>
               <span className={classes.icon}>
-                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)}/>}
+                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)} />}
               </span>
               <span id={`${id}-title`}>
                 {textResource
                   ? truncate(textResource, 80)
                   : getComponentTitleByComponentType(component.type, t) ||
-                  t('ux_editor.component_unknown')}
+                    t('ux_editor.component_unknown')}
               </span>
             </div>
           )}

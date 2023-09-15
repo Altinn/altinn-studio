@@ -23,7 +23,6 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
 }));
 
-
 const wrapper = ({
   children,
   queries = {},

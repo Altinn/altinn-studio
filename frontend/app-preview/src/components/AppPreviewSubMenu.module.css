@@ -72,6 +72,7 @@
 
 .backToEditorBtn {
   width: fit-content;
-  --component-button-outline-primary-color-background-default: white;
-  --component-button-outline-primary-color-border-default: transparent;
+  color: black;
+  background-color: white;
+  border: none;
 }
