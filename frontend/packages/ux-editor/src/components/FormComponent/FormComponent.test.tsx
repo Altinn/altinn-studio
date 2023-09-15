@@ -32,7 +32,9 @@ const handleDiscardMock = jest.fn();
 
 jest.mock('../../hooks/mutations/useDeleteFormComponentMutation');
 const mockDeleteFormComponent = jest.fn();
-const mockUseDeleteFormComponentMutation = useDeleteFormComponentMutation as jest.MockedFunction<typeof useDeleteFormComponentMutation>;
+const mockUseDeleteFormComponentMutation = useDeleteFormComponentMutation as jest.MockedFunction<
+  typeof useDeleteFormComponentMutation
+>;
 mockUseDeleteFormComponentMutation.mockReturnValue({
   mutate: mockDeleteFormComponent,
 } as unknown as UseMutationResult<IInternalLayout, unknown, string, unknown>);
@@ -69,7 +71,9 @@ describe('FormComponent', () => {
       const text = await screen.findByText(textMock('ux_editor.component_deletion_text'));
       expect(text).toBeInTheDocument();
 
-      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_deletion_confirm') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('ux_editor.component_deletion_confirm'),
+      });
       expect(confirmButton).toBeInTheDocument();
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -82,7 +86,9 @@ describe('FormComponent', () => {
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await act(() => user.click(deleteButton));
 
-      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_deletion_confirm') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('ux_editor.component_deletion_confirm'),
+      });
       await act(() => user.click(confirmButton));
 
       expect(mockDeleteFormComponent).toBeCalledWith(component1IdMock);
@@ -121,9 +127,9 @@ describe('FormComponent', () => {
         component: {
           ...component1Mock,
           textResourceBindings: {
-            title: testTextResourceKey
+            title: testTextResourceKey,
           },
-        }
+        },
       });
 
       expect(screen.getByText(testTextResourceValue)).toBeInTheDocument();
@@ -149,7 +155,7 @@ describe('FormComponent', () => {
           textResourceBindings: {
             title: undefined,
           },
-        }
+        },
       });
 
       expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
@@ -161,12 +167,12 @@ describe('FormComponent', () => {
           ...component1Mock,
           textResourceBindings: undefined,
           type: undefined,
-        }
+        },
       });
 
       expect(screen.getByText(textMock('ux_editor.component_unknown'))).toBeInTheDocument();
     });
-  })
+  });
 
   describe('icon', () => {
     it('should display the icon', async () => {
@@ -177,15 +183,20 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole("img", { name: textMock('ux_editor.component_input') })).toBeInTheDocument();
+      expect(
+        screen.getByRole('img', { name: textMock('ux_editor.component_input') })
+      ).toBeInTheDocument();
     });
   });
 });
 
 const waitForData = async () => {
-  const { result: texts } = renderHookWithMockStore({}, {
-    getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources })
-  })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const { result: texts } = renderHookWithMockStore(
+    {},
+    {
+      getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
+    }
+  )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
 
@@ -198,7 +209,7 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
     handleSave: handleSaveMock,
     debounceSave: debounceSaveMock,
     handleDiscard: handleDiscardMock,
-    ...props
+    ...props,
   };
 
   await waitForData();

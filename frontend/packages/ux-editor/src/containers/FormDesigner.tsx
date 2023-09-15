@@ -5,7 +5,6 @@ import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { FormContextProvider } from './FormContext';
-import { deepCopy } from 'app-shared/pure';
 import { useText } from '../hooks';
 import { useSearchParams } from 'react-router-dom';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
@@ -25,12 +24,6 @@ const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string)
   if (instanceId) {
     // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
     localStorage.setItem(instanceId, layoutName);
-  }
-};
-
-const getSelectedLayoutInLocalStorage = (instanceId: string): string => {
-  if (instanceId) {
-    return localStorage.getItem(instanceId);
   }
 };
 
@@ -88,11 +81,10 @@ export const FormDesigner = ({
     const firstLayoutPage = layoutPagesOrder?.[0];
     if (!firstLayoutPage) return;
 
-    const localStorageLayout = getSelectedLayoutInLocalStorage(instanceId);
     const searchParamsLayout = searchParams.get('layout');
 
-    const selectFirstLayoutPage = () => {
-      setSearchParams({ ...deepCopy(searchParams), layout: firstLayoutPage });
+    const updateLayoutInSearchParams = (layout: string) => {
+      setSearchParams((prevParams) => ({ ...prevParams, layout }));
     };
 
     const isValidLayout = (layoutName: string): boolean => {
@@ -101,15 +93,13 @@ export const FormDesigner = ({
       return isExistingLayout || isReceipt;
     };
 
-    if (isValidLayout(localStorageLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(localStorageLayout));
-      setSearchParams({ ...deepCopy(searchParams), layout: localStorageLayout });
-    } else if (isValidLayout(searchParamsLayout)) {
+    if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-    } else {
-      selectFirstLayoutPage();
+      return;
     }
+
+    updateLayoutInSearchParams(firstLayoutPage);
   }, [
     dispatch,
     formLayoutSettings?.receiptLayoutName,

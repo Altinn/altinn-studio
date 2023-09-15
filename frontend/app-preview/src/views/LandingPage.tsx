@@ -39,8 +39,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     'viewSize',
     'desktop'
   );
-  const selectedLayoutInEditor = localStorage.getItem(instanceId);
-
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
@@ -75,7 +73,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             app={app}
             user={user}
             repository={repository}
-            buttonActions={appPreviewButtonActions(org, app, selectedLayoutInEditor)}
+            buttonActions={appPreviewButtonActions(org, app, instanceId)}
             variant={variant}
             subMenuContent={
               <AppPreviewSubMenu
