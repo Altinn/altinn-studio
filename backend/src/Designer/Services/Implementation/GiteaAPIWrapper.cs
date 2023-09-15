@@ -220,11 +220,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
                 }
-                catch(JsonException)
+                catch (JsonException)
                 {
                     // Not pushed to git
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     // Not pushed to git
                 }
