@@ -6,8 +6,7 @@ import { CogIcon, InformationSquareIcon, ShieldLockIcon } from '@navikt/aksel-ic
 import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-
-type SettingsModalTab = 'about' | 'policy';
+import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 
 const getIsActiveTab = (currentTab: SettingsModalTab, tabId: SettingsModalTab) => {
   return currentTab === tabId;
@@ -85,32 +84,6 @@ export const SettingsModal = (): React.ReactNode => {
             <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
           </div>
           <div className={classes.tabWrapper}>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
-            <p> {currentTab}</p>
             <p> {currentTab}</p>
           </div>
         </div>
