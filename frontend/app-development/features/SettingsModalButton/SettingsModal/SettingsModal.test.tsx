@@ -87,6 +87,19 @@ describe('SettingsModal', () => {
       })
     ).toBeInTheDocument();
     expect(screen.queryByText('about')).not.toBeInTheDocument();
+
+    const aboutTab = screen.getByRole('button', {
+      name: textMock('settings_modal.left_nav_tab_about'),
+    });
+    await act(() => user.click(aboutTab));
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('settings_modal.policy_tab_heading'),
+        level: 2,
+      })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('about')).toBeInTheDocument();
   });
 });
 
