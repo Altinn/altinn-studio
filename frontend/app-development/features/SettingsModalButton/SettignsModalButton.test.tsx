@@ -45,6 +45,25 @@ describe('SettingsModalButton', () => {
       screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
     ).toBeInTheDocument();
   });
+
+  it('closes the modal on click', async () => {
+    const user = userEvent.setup();
+    render();
+
+    const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
+    await act(() => user.click(openButton));
+
+    expect(
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+    ).toBeInTheDocument();
+
+    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    await act(() => user.click(closeButton));
+
+    expect(
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+    ).not.toBeInTheDocument();
+  });
 });
 
 const render = (
