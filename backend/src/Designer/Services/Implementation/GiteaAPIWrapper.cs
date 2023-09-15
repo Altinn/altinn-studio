@@ -253,7 +253,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             }
                         }
 
-                        listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
+                        if (oldestCommit?.Commit?.Author?.Name != null)
+                        {
+                            listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
+                        }
                     }
                 }
             }
