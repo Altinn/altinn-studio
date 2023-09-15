@@ -11,7 +11,7 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export type SchemaEditorAppProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   datamodels: DatamodelMetadata[];
   modelPath?: string;
   jsonSchema: JsonSchema;
