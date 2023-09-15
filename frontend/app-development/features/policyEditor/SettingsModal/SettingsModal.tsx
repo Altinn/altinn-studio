@@ -1,19 +1,50 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Button, Heading } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon, InformationSquareIcon, ShieldLockIcon } from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
+import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import { createNavigationTab } from './utils';
 
 /**
  * Displays the settings modal.
  *
- * @returns {React.ReactNode}
+ * @returns {ReactNode}
  */
-export const SettingsModal = (): React.ReactNode => {
+export const SettingsModal = (): ReactNode => {
   const { t } = useTranslation();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
+  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+
+  const aboutTabId: SettingsModalTab = 'about';
+  const policyTabId: SettingsModalTab = 'policy';
+
+  const leftNavigationTabs: LeftNavigationTab[] = [
+    createNavigationTab(
+      <InformationSquareIcon className={classes.icon} />,
+      aboutTabId,
+      () => changeTabTo(aboutTabId),
+      currentTab
+    ),
+    createNavigationTab(
+      <ShieldLockIcon className={classes.icon} />,
+      policyTabId,
+      () => changeTabTo(policyTabId),
+      currentTab
+    ),
+  ];
+
+  /**
+   * Changes the active tab
+   * @param tabId
+   */
+  const changeTabTo = (tabId: SettingsModalTab) => {
+    setCurrentTab(tabId);
+  };
 
   return (
     <>
@@ -31,7 +62,14 @@ export const SettingsModal = (): React.ReactNode => {
           </div>
         }
       >
-        <div>TODO</div>
+        <div className={classes.modalContent}>
+          <div className={classes.leftNavWrapper}>
+            <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
+          </div>
+          <div className={classes.tabWrapper}>
+            <p> {currentTab}</p>
+          </div>
+        </div>
       </Modal>
     </>
   );
