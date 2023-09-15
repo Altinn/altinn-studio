@@ -32,7 +32,7 @@ export const App = () => {
   const { data: applicationMetadata, isError: hasApplicationMetadataError } = useApplicationMetadataQuery();
   const { isError: hasLayoutSetError } = useLayoutSetsQuery();
   const { isError: hasOrgsError } = useOrgsQuery();
-  useFooterLayoutQuery(!!applicationMetadata?.features?.footer);
+  useFooterLayoutQuery();
   useCurrentDataModelSchemaQuery();
 
   const componentIsReady = applicationSettings && applicationMetadata;
