@@ -1,8 +1,6 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
-
-export interface NewDndItem {
+export interface NewDndItem<T> {
   isNew: true;
-  type: ComponentType;
+  payload: T;
 }
 
 export interface ExistingDndItem {
@@ -11,12 +9,11 @@ export interface ExistingDndItem {
   position: ItemPosition;
 }
 
-export type DndItem = NewDndItem | ExistingDndItem;
+export type DndItem<T> = NewDndItem<T> | ExistingDndItem;
 
 export enum DraggableEditorItemType {
   ToolbarItem = 'TOOLBAR_ITEM',
-  Component = 'COMPONENT',
-  Container = 'CONTAINER',
+  ExistingItem = 'EXISTING_ITEM',
 }
 
 export enum DragCursorPosition {
@@ -27,7 +24,7 @@ export enum DragCursorPosition {
   Idle = 'Idle', // Nothing relevant is being dragged
 }
 
-export type HandleDrop = (draggedItem: DndItem, droppedPosition: ItemPosition) => void;
+export type HandleDrop<T> = (draggedItem: DndItem<T>, droppedPosition: ItemPosition) => void;
 
 export interface ItemPosition {
   parentId: string;

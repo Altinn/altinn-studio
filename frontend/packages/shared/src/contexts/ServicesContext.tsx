@@ -79,7 +79,8 @@ export const ServicesContextProvider = ({
       new QueryClient({
         ...clientConfig,
         queryCache: new QueryCache({
-          onError: (error: AxiosError<ApiError>, query) => handleError(error, t, i18n, query.options?.meta, queries.logout),
+          onError: (error: AxiosError<ApiError>, query) =>
+            handleError(error, t, i18n, query.options?.meta, queries.logout),
         }),
         mutationCache: new MutationCache({
           onError: (error: AxiosError<ApiError>, variables, context, mutation) =>

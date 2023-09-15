@@ -1,9 +1,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 import { actions, moduleName } from './formLayoutActions';
-import type {
-  IAddLayoutFulfilledAction, IDeleteLayoutAction,
-} from '../formDesignerTypes';
+import type { IAddLayoutFulfilledAction, IDeleteLayoutAction } from '../formDesignerTypes';
 
 export interface IFormLayoutState {
   error: Error;
@@ -45,7 +43,7 @@ const formLayoutSlice = createSlice({
     },
     updateSelectedLayoutSet: (state, action: PayloadAction<string>) => {
       state.selectedLayoutSet = action.payload;
-    }
+    },
   },
 });
 

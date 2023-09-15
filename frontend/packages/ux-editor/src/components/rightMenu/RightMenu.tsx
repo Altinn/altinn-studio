@@ -1,5 +1,5 @@
 import classes from './RightMenu.module.css';
-import React, { useEffect }  from 'react';
+import React, { useEffect } from 'react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
@@ -30,7 +30,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
 
   const toggleOpen = (id: string) => {
     if (openList.includes(id)) {
-      setOpenList(openList.filter(item => item !== id));
+      setOpenList(openList.filter((item) => item !== id));
     } else {
       setOpenList([...openList, id]);
     }
@@ -38,25 +38,37 @@ export const RightMenu = ({ className }: RightMenuProps) => {
 
   return (
     <div className={cn(className, classes.rightMenu)}>
-      <Accordion color="subtle">
+      <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('content')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('content')}>{t('right_menu.content')}</Accordion.Header>
+          <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
+            {t('right_menu.content')}
+          </Accordion.Header>
           <Accordion.Content>
             <Content />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>{t('right_menu.dynamics')}</Accordion.Header>
+          <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
+            {t('right_menu.dynamics')}
+          </Accordion.Header>
           <Accordion.Content>
-          {
-            showNewExpressions ?
-            <Expressions onShowNewExpressions={setShowNewExpressions} showNewExpressions={showNewExpressions}/> :
-            <ConditionalRendering onShowNewExpressions={setShowNewExpressions} showNewExpressions={showNewExpressions}/>
-          }
+            {showNewExpressions ? (
+              <Expressions
+                onShowNewExpressions={setShowNewExpressions}
+                showNewExpressions={showNewExpressions}
+              />
+            ) : (
+              <ConditionalRendering
+                onShowNewExpressions={setShowNewExpressions}
+                showNewExpressions={showNewExpressions}
+              />
+            )}
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
-          <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>{t('right_menu.calculations')}</Accordion.Header>
+          <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>
+            {t('right_menu.calculations')}
+          </Accordion.Header>
           <Accordion.Content>
             <Calculations />
           </Accordion.Content>

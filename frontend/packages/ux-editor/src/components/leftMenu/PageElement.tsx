@@ -4,7 +4,13 @@ import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
 import { Button, TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
-import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
+import {
+  MenuElipsisVerticalIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  PencilIcon,
+  TrashIcon,
+} from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,7 +26,7 @@ import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { firstAvailableLayout } from '../../utils/formLayoutsUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useInstanceIdQuery } from "app-shared/hooks/queries";
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
 export interface IPageElementProps {
   name: string;

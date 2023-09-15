@@ -57,7 +57,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
     }
     addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
     setSearchParams({ ...deepCopy(searchParams), layout: name });
-    localStorage.setItem(instanceId, name)
+    localStorage.setItem(instanceId, name);
     dispatch(FormLayoutActions.updateSelectedLayout(name));
   }
 

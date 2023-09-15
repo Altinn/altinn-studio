@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { RightMenu } from '../components/rightMenu/RightMenu';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -16,10 +14,11 @@ import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { ErrorPage } from '../components/ErrorPage';
 import { PageSpinner } from 'app-shared/components';
-import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 
 const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
   if (instanceId) {
@@ -145,7 +144,7 @@ export const FormDesigner = ({
 
   if (formLayoutIsReady) {
     return (
-      <DndProvider backend={HTML5Backend}>
+      <DragAndDrop.Provider rootId={BASE_CONTAINER_ID}>
         <div className={classes.root}>
           <div className={classes.container}>
             <LeftMenu className={classes.leftContent + ' ' + classes.item} />
@@ -155,7 +154,7 @@ export const FormDesigner = ({
             </FormContextProvider>
           </div>
         </div>
-      </DndProvider>
+      </DragAndDrop.Provider>
     );
   }
   return <PageSpinner />;
