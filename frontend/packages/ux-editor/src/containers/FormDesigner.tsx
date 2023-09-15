@@ -27,12 +27,6 @@ const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string)
   }
 };
 
-const getSelectedLayoutInLocalStorage = (instanceId: string): string => {
-  if (instanceId) {
-    return localStorage.getItem(instanceId);
-  }
-};
-
 export interface FormDesignerProps {
   selectedLayout: string;
   selectedLayoutSet: string | undefined;
@@ -87,7 +81,6 @@ export const FormDesigner = ({
     const firstLayoutPage = layoutPagesOrder?.[0];
     if (!firstLayoutPage) return;
 
-    const localStorageLayout = getSelectedLayoutInLocalStorage(instanceId);
     const searchParamsLayout = searchParams.get('layout');
 
     const updateLayoutInSearchParams = (layout: string) => {
@@ -103,12 +96,6 @@ export const FormDesigner = ({
     if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-      return;
-    }
-
-    if (isValidLayout(localStorageLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(localStorageLayout));
-      updateLayoutInSearchParams(localStorageLayout);
       return;
     }
 
