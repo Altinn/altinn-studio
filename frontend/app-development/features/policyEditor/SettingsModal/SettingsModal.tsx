@@ -7,35 +7,14 @@ import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
-
-const getIsActiveTab = (currentTab: SettingsModalTab, tabId: SettingsModalTab) => {
-  return currentTab === tabId;
-};
-
-const createNavigationTab = (
-  icon: ReactNode,
-  tabId: SettingsModalTab,
-  onClick: () => void,
-  currentTab: SettingsModalTab
-): LeftNavigationTab => {
-  return {
-    icon,
-    tabName: `settings_modal.left_nav_tab_${tabId}`,
-    tabId,
-    action: {
-      type: 'button',
-      onClick,
-    },
-    isActiveTab: getIsActiveTab(currentTab, tabId),
-  };
-};
+import { createNavigationTab } from './utils';
 
 /**
  * Displays the settings modal.
  *
- * @returns {React.ReactNode}
+ * @returns {ReactNode}
  */
-export const SettingsModal = (): React.ReactNode => {
+export const SettingsModal = (): ReactNode => {
   const { t } = useTranslation();
 
   const [isOpen, setIsOpen] = useState(true);
@@ -59,6 +38,10 @@ export const SettingsModal = (): React.ReactNode => {
     ),
   ];
 
+  /**
+   * Changes the active tab
+   * @param tabId
+   */
   const changeTabTo = (tabId: SettingsModalTab) => {
     setCurrentTab(tabId);
   };
