@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from '@altinn/schema-editor/mockData';
 import { jsonMetadataMock } from 'app-shared/mocks/datamodelMetadataMocks';
@@ -21,11 +21,9 @@ const initialProps = {
   save: saveMock,
 };
 
-export const render = (ChildComponent: React.ElementType) => {
+export const render = (ChildComponent?: React.ElementType) => {
   return rtlRender(
-    <SchemaEditorApp {...initialProps}>
-      <ChildComponent />
-    </SchemaEditorApp>
+    <SchemaEditorApp {...initialProps}>{ChildComponent && <ChildComponent />}</SchemaEditorApp>
   );
 };
 
@@ -50,20 +48,17 @@ describe('SchemaEditorApp', () => {
       );
     });
 
+    expect(screen.getByTestId('data')).toHaveTextContent(JSON.stringify(buildUiSchema(dataMock)));
+
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
-
-    await waitFor(async () =>
-      expect((await screen.findByTestId('data')).textContent).toEqual(
-        JSON.stringify(uiSchemaNodesMock)
-      )
-    );
 
     expect(saveMock).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
 
     expect(screen.getByTestId('data')).toHaveTextContent(JSON.stringify(uiSchemaNodesMock));
+
     expect(saveMock).toHaveBeenCalledWith({
       modelPath: jsonMetadataMock.repositoryRelativeUrl,
       model: buildJsonSchema(uiSchemaNodesMock),
@@ -71,10 +66,7 @@ describe('SchemaEditorApp', () => {
   });
 
   it('Autosaves when changing model', async () => {
-    const { rerender } = render(() => {
-      const { data } = useSchemaEditorAppContext();
-      return <div data-testid='data'>{JSON.stringify(data)}</div>;
-    });
+    const { rerender } = render();
 
     expect(saveMock).not.toHaveBeenCalled();
 
@@ -90,11 +82,8 @@ describe('SchemaEditorApp', () => {
     });
   });
 
-  it('Does not save when deleting model', async () => {
-    const { rerender } = render(() => {
-      const { data } = useSchemaEditorAppContext();
-      return <div data-testid='data'>{JSON.stringify(data)}</div>;
-    });
+  it('Does not save when model is deleted', async () => {
+    const { rerender } = render();
 
     const updatedProps = {
       ...initialProps,
@@ -106,6 +95,7 @@ describe('SchemaEditorApp', () => {
       ],
       modelPath: 'newModel',
     };
+
     rerender(<SchemaEditorApp {...updatedProps} />);
 
     expect(saveMock).not.toHaveBeenCalled();
