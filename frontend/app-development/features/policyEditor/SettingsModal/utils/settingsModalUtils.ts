@@ -3,18 +3,6 @@ import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { ReactNode } from 'react';
 
 /**
- * Function that gets if a tab is active or not
- *
- * @param currentTab the currently selected tab
- * @param tabId the id of the tab to check
- *
- * @returns boolean for if it is active or not
- */
-export const getIsActiveTab = (currentTab: SettingsModalTab, tabId: SettingsModalTab) => {
-  return currentTab === tabId;
-};
-
-/**
  * Creates a new Navigation tab of the LeftNavigationTab type
  *
  * @param icon icon to display in the tab
@@ -38,6 +26,6 @@ export const createNavigationTab = (
       type: 'button',
       onClick,
     },
-    isActiveTab: getIsActiveTab(currentTab, tabId),
+    isActiveTab: currentTab === tabId,
   };
 };

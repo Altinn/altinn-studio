@@ -1,1 +1,1 @@
-export { getIsActiveTab, createNavigationTab } from './settingsModalUtils';
+export { createNavigationTab } from './settingsModalUtils';

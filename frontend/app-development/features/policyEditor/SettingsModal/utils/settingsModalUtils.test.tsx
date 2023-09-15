@@ -1,6 +1,6 @@
 import React from 'react';
 import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
-import { getIsActiveTab, createNavigationTab } from './index';
+import { createNavigationTab } from './index';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 
@@ -9,18 +9,6 @@ const mockTabId2: SettingsModalTab = 'policy';
 const mockCurrentTab: SettingsModalTab = mockTabId1;
 
 describe('settingsModalUtils', () => {
-  describe('getIsActiveTab', () => {
-    it('returns true if the currentTab matches the tabId', () => {
-      const isActive = getIsActiveTab(mockCurrentTab, mockTabId1);
-      expect(isActive).toBe(true);
-    });
-
-    it('returns false if the currentTab does not match the tabId', () => {
-      const isActive = getIsActiveTab(mockCurrentTab, mockTabId2);
-      expect(isActive).toBe(false);
-    });
-  });
-
   describe('createNavigationTab', () => {
     const mockIcon = <TestFlaskIcon />;
     const mockOnClick = jest.fn();
