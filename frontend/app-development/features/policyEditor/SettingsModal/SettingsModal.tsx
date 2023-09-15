@@ -84,7 +84,35 @@ export const SettingsModal = (): React.ReactNode => {
           <div className={classes.leftNavWrapper}>
             <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
           </div>
-          <div className={classes.tabWrapper}>{currentTab}</div>
+          <div className={classes.tabWrapper}>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+            <p> {currentTab}</p>
+          </div>
         </div>
       </Modal>
     </>
