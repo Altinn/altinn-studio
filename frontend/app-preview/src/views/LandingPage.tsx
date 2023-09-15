@@ -35,7 +35,10 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
     'layoutSet/' + app
   );
-  const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>('viewSize', 'desktop');
+  const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
+    'viewSize',
+    'desktop'
+  );
   const selectedLayoutInEditor = localStorage.getItem(instanceId);
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>

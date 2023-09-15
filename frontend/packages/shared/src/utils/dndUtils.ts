@@ -1,6 +1,6 @@
 import type { DropTargetMonitor } from 'react-dnd';
-import type { DndItem, ExistingDndItem, ItemPosition } from '../types/dndTypes';
-import { DragCursorPosition } from '../types/dndTypes';
+import type { DndItem, ExistingDndItem, ItemPosition } from 'app-shared/types/dndTypes';
+import { DragCursorPosition } from 'app-shared/types/dndTypes';
 import { RefObject } from 'react';
 import { areObjectsEqual } from 'app-shared/utils/objectUtils';
 
@@ -18,19 +18,21 @@ import { areObjectsEqual } from 'app-shared/utils/objectUtils';
  *  - Self: If the dragged item is the same as the target item
  *  - Idle: If nothing relevant is being dragged
  */
-export const getDragCursorPosition = (
+export const getDragCursorPosition = <T>(
   monitor: DropTargetMonitor,
-  dragItem: DndItem,
+  dragItem: DndItem<T>,
   dropItem: ExistingDndItem,
   dropRef: RefObject<HTMLDivElement>,
-  disabledDrop?: boolean,
+  disabledDrop?: boolean
 ): DragCursorPosition => {
   if (!monitor) return DragCursorPosition.Idle;
 
-  if (dragItem.isNew === false && areObjectsEqual(dragItem.position, dropItem.position)) return DragCursorPosition.Self;
+  if (dragItem.isNew === false && areObjectsEqual(dragItem.position, dropItem.position))
+    return DragCursorPosition.Self;
 
   const clientOffset = monitor.getClientOffset();
-  if (disabledDrop || !clientOffset || !monitor.isOver({ shallow: true })) return DragCursorPosition.Outside;
+  if (disabledDrop || !clientOffset || !monitor.isOver({ shallow: true }))
+    return DragCursorPosition.Outside;
 
   const boundingClientRect = dropRef.current?.getBoundingClientRect();
 
@@ -55,27 +57,32 @@ export const getDragCursorPosition = (
  * @param dragCursorPosition The current DragCursorPosition (given by getDragCursorPosition)
  * @returns ItemPosition New parent ID and index
  */
-export const calculateNewPosition = (
-  dragItem: DndItem,
+export const calculateNewPosition = <T>(
+  dragItem: DndItem<T>,
   dropItem: ExistingDndItem,
   dragCursorPosition: DragCursorPosition
 ): ItemPosition | undefined => {
-  const { position: { index: dropItemIndex, parentId: dropItemParent } } = dropItem;
-  if ([
-    DragCursorPosition.Self,
-    DragCursorPosition.Outside,
-    DragCursorPosition.Idle
-  ].includes(dragCursorPosition)) return undefined;
+  const {
+    position: { index: dropItemIndex, parentId: dropItemParent },
+  } = dropItem;
+  if (
+    [DragCursorPosition.Self, DragCursorPosition.Outside, DragCursorPosition.Idle].includes(
+      dragCursorPosition
+    )
+  )
+    return undefined;
   const moveAfter = dragCursorPosition === DragCursorPosition.LowerHalf;
-  const movingDownInSameParent = dragItem.isNew === false &&
+  const movingDownInSameParent =
+    dragItem.isNew === false &&
     dragItem.position.parentId === dropItemParent &&
     dragItem.position.index < dropItemIndex;
-  const index = dropItemIndex
-    + +moveAfter // Add 1 to new index if the desired position is after the target item
-    - +movingDownInSameParent; // Subtract 1 from new index if the item is moving down, because the indexes will be offset when the item is removed above
+  const index =
+    dropItemIndex +
+    +moveAfter - // Add 1 to new index if the desired position is after the target item
+    +movingDownInSameParent; // Subtract 1 from new index if the item is moving down, because the indexes will be offset when the item is removed above
   const parentId = dropItemParent;
   return { index, parentId };
-}
+};
 
 /**
  * Checks that two items have the same parent and that thi first one comes right before the second one.
@@ -87,7 +94,11 @@ const isFirstItemRightAboveSecondItem = (
   firstItem: ExistingDndItem,
   secondItem: ExistingDndItem
 ): boolean => {
-  const { position: { index: firstItemIndex, parentId: firstItemParent } } = firstItem;
-  const { position: { index: secondItemIndex, parentId: secondItemParent } } = secondItem;
+  const {
+    position: { index: firstItemIndex, parentId: firstItemParent },
+  } = firstItem;
+  const {
+    position: { index: secondItemIndex, parentId: secondItemParent },
+  } = secondItem;
   return firstItemParent === secondItemParent && firstItemIndex === secondItemIndex - 1;
-}
+};

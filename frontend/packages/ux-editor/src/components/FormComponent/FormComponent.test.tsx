@@ -5,14 +5,14 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
-import { component1IdMock, component1Mock } from '../testing/layoutMock';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { component1IdMock, component1Mock } from '../../testing/layoutMock';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
-import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
+import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
 import { UseMutationResult } from '@tanstack/react-query';
-import { IInternalLayout } from '../types/global';
+import { IInternalLayout } from '../../types/global';
 
 const user = userEvent.setup();
 
@@ -30,7 +30,7 @@ const handleSaveMock = jest.fn();
 const debounceSaveMock = jest.fn();
 const handleDiscardMock = jest.fn();
 
-jest.mock('../hooks/mutations/useDeleteFormComponentMutation');
+jest.mock('../../hooks/mutations/useDeleteFormComponentMutation');
 const mockDeleteFormComponent = jest.fn();
 const mockUseDeleteFormComponentMutation = useDeleteFormComponentMutation as jest.MockedFunction<typeof useDeleteFormComponentMutation>;
 mockUseDeleteFormComponentMutation.mockReturnValue({
