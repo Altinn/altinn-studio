@@ -213,7 +213,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string content = await response.Content.ReadAsStringAsync();
-                if (!content.StartsWith("[]"))
+                if (!string.IsNullOrEmpty(content) && !content.StartsWith("[]"))
                 {
                     ContentsResponse contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
                     response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
