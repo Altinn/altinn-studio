@@ -953,6 +953,8 @@
   "session.expires": "Du blir snart logget ut",
   "session.inactive": "Du har vært innaktiv for lenge og vil snart bli logget ut. Trykk “fortsett” om du ønsker å jobbe videre med appen.",
   "settings_modal.heading": "Innstillinger",
+  "settings_modal.left_nav_tab_about": "Om applikasjonen",
+  "settings_modal.left_nav_tab_policy": "Tilgangsstyring",
   "settings_modal.open_button": "Åpne modal",
   "shared.header_all": "Alle",
   "shared.header_button_alt": "Altinn profilmeny",

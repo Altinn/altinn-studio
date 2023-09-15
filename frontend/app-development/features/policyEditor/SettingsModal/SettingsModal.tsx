@@ -1,9 +1,35 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Button, Heading } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon, InformationSquareIcon, ShieldLockIcon } from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
+
+type SettingsModalTab = 'about' | 'policy';
+
+const getIsActiveTab = (currentTab: SettingsModalTab, tabId: SettingsModalTab) => {
+  return currentTab === tabId;
+};
+
+const createNavigationTab = (
+  icon: ReactNode,
+  tabId: SettingsModalTab,
+  onClick: () => void,
+  currentTab: SettingsModalTab
+): LeftNavigationTab => {
+  return {
+    icon,
+    tabName: `settings_modal.left_nav_tab_${tabId}`,
+    tabId,
+    action: {
+      type: 'button',
+      onClick,
+    },
+    isActiveTab: getIsActiveTab(currentTab, tabId),
+  };
+};
 
 /**
  * Displays the settings modal.
@@ -13,7 +39,30 @@ import { Modal } from 'app-shared/components/Modal';
 export const SettingsModal = (): React.ReactNode => {
   const { t } = useTranslation();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
+  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+
+  const aboutTabId: SettingsModalTab = 'about';
+  const policyTabId: SettingsModalTab = 'policy';
+
+  const leftNavigationTabs: LeftNavigationTab[] = [
+    createNavigationTab(
+      <InformationSquareIcon className={classes.icon} />,
+      aboutTabId,
+      () => changeTabTo(aboutTabId),
+      currentTab
+    ),
+    createNavigationTab(
+      <ShieldLockIcon className={classes.icon} />,
+      policyTabId,
+      () => changeTabTo(policyTabId),
+      currentTab
+    ),
+  ];
+
+  const changeTabTo = (tabId: SettingsModalTab) => {
+    setCurrentTab(tabId);
+  };
 
   return (
     <>
@@ -31,7 +80,12 @@ export const SettingsModal = (): React.ReactNode => {
           </div>
         }
       >
-        <div>TODO</div>
+        <div className={classes.modalContent}>
+          <div className={classes.leftNavWrapper}>
+            <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
+          </div>
+          <div className={classes.tabWrapper}>{currentTab}</div>
+        </div>
       </Modal>
     </>
   );

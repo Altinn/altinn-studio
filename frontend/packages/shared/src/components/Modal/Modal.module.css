@@ -19,7 +19,6 @@
   transform: translate(var(--modal-translate), var(--modal-translate));
   padding: 0;
   padding-top: 20px;
-  border: solid 1px var(--fds-semantic-border-neutral-subtle);
   background-color: var(--fds-semantic-background-default);
 }
 

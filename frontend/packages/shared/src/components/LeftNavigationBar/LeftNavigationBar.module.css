@@ -1,7 +1,6 @@
 .navigationBar {
   background-color: var(--fds-semantic-background-subtle);
   width: 250px;
-  min-height: 100vh;
   height: 100%;
   left: 0;
   border: 1px solid var(--fds-semantic-border-neutral-divider);
