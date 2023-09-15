@@ -6,6 +6,7 @@ import { RadioButton } from 'src/components/form/RadioButton';
 import { RadioGroup } from 'src/components/form/RadioGroup';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { useLanguage } from 'src/hooks/useLanguage';
+import { groupIsRepeatingLikert } from 'src/layout/Group/tools';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
@@ -19,8 +20,20 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const { selected, handleChange, handleBlur, fetchingOptions, calculatedOptions } = useRadioButtons(props);
   const { lang, langAsString } = useLanguage();
 
+  const getLabelPrefixForLikert = () => {
+    if (
+      node.parent.item.type === 'Group' &&
+      groupIsRepeatingLikert(node.parent.item) &&
+      node.parent.item.textResourceBindings?.leftColumnHeader
+    ) {
+      return `${langAsString(node.parent.item.textResourceBindings.leftColumnHeader)} `;
+    }
+    return null;
+  };
+
   const labelText = (
     <span style={{ fontSize: '1rem', wordBreak: 'break-word' }}>
+      {getLabelPrefixForLikert()}
       {lang(textResourceBindings?.title)}
       <RequiredIndicator required={required} />
       <OptionalIndicator

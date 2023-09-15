@@ -246,6 +246,23 @@ describe('RepeatingGroupsLikertContainer', () => {
       );
     });
 
+    it('should prefix leftColumnHeader to each radio group legend', async () => {
+      const leftColumnHeader = 'Hvor fornøyd eller misfornøyd er du med:';
+      render({
+        likertContainerProps: {
+          textResourceBindings: {
+            leftColumnHeader,
+          },
+        },
+        mobileView: true,
+      });
+      validateRadioLayout(
+        defaultMockQuestions.map((q) => ({ ...q, Question: `${leftColumnHeader} ${q.Question}` })),
+        defaultMockOptions,
+        true,
+      );
+    });
+
     it('should render mobile view and click radiobuttons', async () => {
       const { mockStoreDispatch } = render({ mobileView: true });
       validateRadioLayout(defaultMockQuestions, defaultMockOptions, true);
