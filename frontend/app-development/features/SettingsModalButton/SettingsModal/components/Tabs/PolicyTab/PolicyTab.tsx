@@ -1,12 +1,10 @@
-import React from 'react';
-import classes from './PolicyEditor.module.css';
+import React, { ReactNode } from 'react';
+import classes from './PolicyTab.module.css';
 import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import { Heading, Spinner } from '@digdir/design-system-react';
-import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { SettingsModal } from './SettingsModal';
+import { Heading } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * The different actions a policy can have. TODO - Find out if there should be more.
@@ -57,11 +55,33 @@ const subjectData: PolicySubject[] = [
   },
 ];
 
-export const PolicyEditor = () => {
-  const { org, app } = useStudioUrlParams();
+export type PolicyTabProps = {
+  /**
+   * The policy to show
+   */
+  policy: Policy;
+  /**
+   * The org
+   */
+  org: string;
+  /**
+   * The app
+   */
+  app: string;
+};
 
-  // Get the data
-  const { data: policyData, isLoading: policyLoading } = useAppPolicyQuery(org, app);
+/**
+ * @component
+ *    Displays the tab rendering the polciy for an app
+ *
+ * @property {Policy}[policy] - The policy to show
+ * @property {string}[org] - The org
+ * @property {string}[app] - The app
+ *
+ * @returns {ReactNode} - The rendered component
+ */
+export const PolicyTab = ({ policy, org, app }: PolicyTabProps): ReactNode => {
+  const { t } = useTranslation();
 
   // Mutation function to update policy
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
@@ -69,26 +89,17 @@ export const PolicyEditor = () => {
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (policy: Policy) => {
-    updateAppPolicyMutation(policy);
+  const handleSavePolicy = (updatedPolicy: Policy) => {
+    updateAppPolicyMutation(updatedPolicy);
   };
 
-  if (policyLoading) {
-    return (
-      <div className={classes.spinnerWrapper}>
-        <Spinner size='2xLarge' variant='interaction' title='Laster inn policy' />
-      </div>
-    );
-  }
   return (
-    <div className={classes.policyEditorWrapper}>
-      <Heading size='large' spacing level={1}>
-        Tilgangsregler
+    <div className={classes.wrapper}>
+      <Heading level={2} spacing size='small'>
+        {t('settings_modal.policy_tab_heading')}
       </Heading>
-      {/* TODO - Move button to the correct place to open the settings modal from. Issue: #11047 */}
-      <SettingsModal />
       <PolicyEditorImpl
-        policy={policyData}
+        policy={policy}
         actions={actionData}
         // TODO - Find out the list of subjects: Issue: #10882
         subjects={subjectData}

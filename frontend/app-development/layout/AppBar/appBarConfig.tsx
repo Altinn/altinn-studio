@@ -21,7 +21,7 @@ export enum TopBarMenu {
   Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
   ProcessEditor = 'top_menu.process-editor',
-  PolicyEditor = 'top_menu.policy-editor',
+  SettingsModalButton = 'top_menu.settings-modal',
   None = '',
 }
 
@@ -53,10 +53,10 @@ export const menu: TopBarMenuItem[] = [
     featureFlagName: 'processEditor',
   },
   {
-    key: TopBarMenu.PolicyEditor,
-    link: '/:org/:app/policy-editor',
+    key: TopBarMenu.SettingsModalButton,
+    link: '/:org/:app/settings',
     repositoryTypes: [RepositoryType.App],
-    featureFlagName: 'policyEditor',
+    // featureFlagName: 'settingsModal',
   },
 ];
 
