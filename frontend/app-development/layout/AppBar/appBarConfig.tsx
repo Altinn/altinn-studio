@@ -56,7 +56,7 @@ export const menu: TopBarMenuItem[] = [
     key: TopBarMenu.SettingsModalButton,
     link: '/:org/:app/settings',
     repositoryTypes: [RepositoryType.App],
-    // featureFlagName: 'settingsModal',
+    featureFlagName: 'settingsModal',
   },
 ];
 
