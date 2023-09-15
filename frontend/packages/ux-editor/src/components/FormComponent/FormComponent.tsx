@@ -31,7 +31,7 @@ export interface IFormComponentProps {
   handleDiscard: () => void;
   handleEdit: (component: IFormComponent) => void;
   handleSave: () => Promise<void>;
-  debounceSave: () => void;
+  debounceSave: (id?: string, updatedForm?: IFormComponent) => Promise<void>;
   id: string;
   isEditMode: boolean;
 }
@@ -114,20 +114,20 @@ export const FormComponent = memo(function FormComponent({
               component={component}
               handleComponentChange={async (updatedComponent) => {
                 handleEdit(updatedComponent);
-                debounceSave();
+                debounceSave(id, updatedComponent);
               }}
               layoutName={selectedLayout}
             />
           ) : (
             <div className={classes.formComponentTitle}>
               <span className={classes.icon}>
-                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)}/>}
+                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)} />}
               </span>
               <span id={`${id}-title`}>
                 {textResource
                   ? truncate(textResource, 80)
                   : getComponentTitleByComponentType(component.type, t) ||
-                  t('ux_editor.component_unknown')}
+                    t('ux_editor.component_unknown')}
               </span>
             </div>
           )}

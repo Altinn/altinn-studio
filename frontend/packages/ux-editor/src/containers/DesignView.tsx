@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
@@ -19,7 +19,7 @@ import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation'
 import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { FormContext } from './FormContext';
+import { useFormContext } from './FormContext';
 import { ConnectDragSource } from 'react-dnd';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
@@ -44,8 +44,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
     selectedLayoutSet
   );
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
-  const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } =
-    useContext(FormContext);
+  const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
   const { t } = useTranslation();
 

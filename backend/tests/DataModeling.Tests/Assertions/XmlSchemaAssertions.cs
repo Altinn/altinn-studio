@@ -38,7 +38,7 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actualNamespaces.TryGetValue($"{expectedNs.Name}:{expectedNs.Namespace}", out XmlQualifiedName actualNs))
                 {
-                    throw new ContainsException(expectedNs.Namespace, actual);
+                    throw ContainsException.ForKeyNotFound(expectedNs.Namespace, string.Join(',', actualNamespaces.Select(x => x.Key)));
                 }
 
                 actualNamespaces.Remove($"{actualNs.Name}:{actualNs.Namespace}");
@@ -46,7 +46,7 @@ namespace DataModeling.Tests.Assertions
 
             if (actualNamespaces.Count > 0 && (actualNamespaces.First().Key != "xsi:http://www.w3.org/2001/XMLSchema-instance" && actualNamespaces.First().Key != "xs:http://www.w3.org/2001/XMLSchema"))
             {
-                throw new DoesNotContainException(expected, $"{actualNamespaces.First().Key.ToString()}: {actualNamespaces.First().Value.ToString()}");
+                throw DoesNotContainException.ForKeyFound(actualNamespaces.First().Key.ToString(), string.Join(',', expected.ToArray().Select(x => $"{x.Name}:{x.Namespace}")));
             }
         }
 
@@ -217,7 +217,7 @@ namespace DataModeling.Tests.Assertions
 
             if (!XNode.DeepEquals(expectedXNode, actualXNode))
             {
-                throw new EqualException(expected.OuterXml, actual.OuterXml);
+                throw EqualException.ForMismatchedValues(expected.OuterXml, actual.OuterXml);
             }
         }
 
@@ -504,7 +504,7 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actualAttributes.TryGetValue(expectedAttribute.Name, out XmlAttribute actualAttribute))
                 {
-                    throw new ContainsException(expectedAttribute.Name, actual);
+                    throw ContainsException.ForCollectionItemNotFound(expectedAttribute.Name, string.Join(',', actualAttributes.Select(x => x.Key)));
                 }
 
                 actualAttributes.Remove(actualAttribute.Name);
@@ -515,7 +515,7 @@ namespace DataModeling.Tests.Assertions
             if (actualAttributes.Count > 0)
             {
                 XmlAttribute actualAttribute = actualAttributes.First().Value;
-                throw new DoesNotContainException(expected, $"{actualAttribute.Name}=\"{actualAttribute.Value}\"");
+                throw DoesNotContainException.ForKeyFound($"{actualAttribute.Name}=\"{actualAttribute.Value}\"", string.Join(',', expected.ToDictionary(x => x.Name).Select(x => x.Key)));
             }
         }
 
@@ -565,13 +565,15 @@ namespace DataModeling.Tests.Assertions
 
                 if (!found)
                 {
-                    throw new ContainsException(expectedFacet, actual);
+                    throw ContainsException.ForCollectionItemNotFound(expectedFacet.Value!, string.Join(',', actualFacets.Select(x => x.Value)));
                 }
             }
 
             if (actualFacets.Count > 0)
             {
-                throw new DoesNotContainException(expected, actualFacets.First());
+                throw ContainsException.ForCollectionItemNotFound(actualFacets.First().Value!, string.Join(',', expected
+                    .Cast<XmlSchemaFacet>()
+                    .ToList().Select(x => x.Value)));
             }
         }
 

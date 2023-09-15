@@ -173,12 +173,13 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 {
     logger.LogInformation($"// Program.cs // ConfigureServices // Attempting to configure services.");
 
-    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
-
     services.Configure<KestrelServerOptions>(options =>
     {
         options.AllowSynchronousIO = true;
     });
+
+    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
+    services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";

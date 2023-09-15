@@ -68,7 +68,6 @@ export const App = (): JSX.Element => {
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
             <Route path='/' element={<ErrorPage />} />
             <Route path='/:selectedContext' element={<RedirectPage />} />
-            <Route path='/:selectedContext/:repo/*' element={<ErrorPage />} />
           </Route>
         </Routes>
       </div>

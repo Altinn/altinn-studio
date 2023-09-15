@@ -1,22 +1,7 @@
 import React, { ReactNode } from 'react';
 import classes from './Modal.module.css';
-import ReactModal from 'react-modal';
 import { Heading } from '@digdir/design-system-react';
-
-/**
- * Style the modal
- */
-const modalStyles = {
-  content: {
-    width: '600px',
-    height: 'fit-content',
-    margin: 'auto',
-    padding: '32px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
+import { Modal as SharedModal } from 'app-shared/components/Modal';
 
 type ModalProps = {
   /**
@@ -56,18 +41,18 @@ type ModalProps = {
  */
 export const Modal = ({ isOpen, title, onClose, children }: ModalProps): React.ReactNode => {
   return (
-    <ReactModal
+    <SharedModal
       isOpen={isOpen}
-      onRequestClose={() => onClose && onClose()}
-      contentLabel={title}
-      style={modalStyles}
-      ariaHideApp={false}
+      onClose={onClose}
+      title={
+        <div className={classes.headingWrapper}>
+          <Heading size='xsmall' spacing level={1}>
+            {title}
+          </Heading>
+        </div>
+      }
     >
-      <Heading size='xsmall' spacing level={2}>
-        {title}
-      </Heading>
-      <div className={classes.contentDivider} />
-      {children}
-    </ReactModal>
+      <div className={classes.content}>{children}</div>
+    </SharedModal>
   );
 };
