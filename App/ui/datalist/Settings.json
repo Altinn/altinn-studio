@@ -1,9 +1,11 @@
-﻿{
+{
   "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
     "order": [
       "formLayout",
-      "summary"
+      "summary",
+      "Side3",
+      "Side4"
     ]
   }
 }
