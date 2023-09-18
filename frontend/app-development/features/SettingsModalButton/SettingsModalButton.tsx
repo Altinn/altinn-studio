@@ -20,7 +20,7 @@ export const SettingsModalButton = (): ReactNode => {
   // Get the policy data
   const { data: policyData, isLoading: policyLoading } = useAppPolicyQuery(org, app);
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   /**
    * Display spinner when loading, else display component

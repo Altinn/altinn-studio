@@ -10,6 +10,7 @@ import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
 import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
+import { AboutTab } from './components/Tabs/AbouTab';
 
 export type SettingsModalProps = {
   /**
@@ -93,7 +94,7 @@ export const SettingsModal = ({
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <p>{t('settings_modal.about_tab_heading')}</p>;
+        return <AboutTab />;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
