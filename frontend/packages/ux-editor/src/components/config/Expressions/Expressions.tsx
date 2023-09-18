@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Alert, Button, Switch } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -36,7 +36,7 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
   const [expressionInEditModeId, setExpressionInEditModeId] = React.useState<string | undefined>(undefined);
-  const successfullyAddedExpressionIdRef = useRef('default');
+  const [successfullyAddedExpressionIndex, setSuccessfullyAddedExpressionIndex] = React.useState<number | undefined>(undefined);
   const t = useText();
   
   useEffect(() => {
@@ -64,11 +64,12 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;
   const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
 
-  const saveExpressionAndSetCheckMark = async (expression: Expression) => {
+  const saveExpressionAndSetCheckMark = async (index: number, expression: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
+    // Need to use index as expression reference since the id will be changed when the component is updated.
+    setSuccessfullyAddedExpressionIndex(index);
     setExpressionInEditModeId(undefined);
-    successfullyAddedExpressionIdRef.current = expression.id;
   };
 
   const addNewExpression = async () => {
@@ -90,9 +91,9 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
 
   const editExpression = (expression: Expression) => {
     // TODO: Check if expression is in edit mode and try to save?
-    const validExpression = removeInvalidExpressions(expressions);
+    const validExpressions = removeInvalidExpressions(expressions);
     setExpressionInEditModeId(expression.id);
-    setExpressions(validExpression);
+    setExpressions(validExpressions);
   };
 
   const deleteExpression = async (expression: Expression) => {
@@ -139,8 +140,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
             expression={expression}
             onGetProperties={() => getProperties(expression)}
             showRemoveExpressionButton={showRemoveExpressionButton}
-            onSaveExpression={() => saveExpressionAndSetCheckMark(expression)}
-            successfullyAddedExpression={expression.id === successfullyAddedExpressionIdRef.current}
+            onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
+            successfullyAddedExpression={index === successfullyAddedExpressionIndex}
             expressionInEditMode={expression.id === expressionInEditModeId}
             onUpdateExpression={newExpression => updateExpression(index, newExpression)}
             onRemoveExpression={() => deleteExpression(expression)}

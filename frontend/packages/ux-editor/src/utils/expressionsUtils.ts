@@ -13,7 +13,7 @@ import { IFormLayouts, LayoutItemType } from '../types/global';
 import { FormComponent } from '../types/FormComponent';
 import { SingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
-import {useText} from "../hooks";
+import { useText } from '../hooks';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
