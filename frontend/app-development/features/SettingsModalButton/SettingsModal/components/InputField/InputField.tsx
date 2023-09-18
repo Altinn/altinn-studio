@@ -126,8 +126,10 @@ export const InputField = ({
 
   return (
     <div className={classes.wrapper}>
-      <Label htmlFor={id}>{label}</Label>
-      <Paragraph>{description}</Paragraph>
+      <Label spacing htmlFor={id}>
+        {label}
+      </Label>
+      <Paragraph className={classes.paragraph}>{description}</Paragraph>
       {displayInputField()}
       {!isValid && <ErrorMessage>{errorText}</ErrorMessage>}
     </div>

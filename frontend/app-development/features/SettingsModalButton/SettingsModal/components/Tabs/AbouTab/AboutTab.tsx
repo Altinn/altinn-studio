@@ -2,7 +2,6 @@ import React, { ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { Paragraph } from '@digdir/design-system-react';
 import { InputField } from '../../InputField';
 
 export type AboutTabProps = {
@@ -42,9 +41,6 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
   return (
     <div>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
-      <Paragraph>{JSON.stringify(appConfig)}</Paragraph>
-      <Paragraph>{org}</Paragraph>
-      <Paragraph>{app}</Paragraph>
       <InputField
         id='aboutNameField'
         label={t('settings_modal.about_tab_name_label')}

@@ -5,7 +5,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { Button, Spinner } from '@digdir/design-system-react';
 import { SettingsModal } from './SettingsModal';
-import { useAppConfig } from 'app-development/hooks/queries/useAppConfig';
+import { useAppConfig } from 'app-development/hooks/queries';
 
 /**
  * @component
