@@ -3,6 +3,7 @@ import type { IDataType, ITitle } from 'src/types/shared';
 type ILogoOptions = {
   source: 'org' | 'resource';
   displayAppOwnerNameInHeader?: boolean;
+  size?: 'small' | 'medium' | 'large';
 };
 
 export interface IApplicationMetadata {

@@ -6,6 +6,23 @@
 }
 
 .img {
-  max-height: 32px;
   width: 100%;
+}
+
+.small {
+  max-height: 32px;
+}
+
+.medium {
+  max-height: 50px;
+}
+
+.large {
+  max-height: 50px;
+}
+
+@media only screen and (min-width: 576px) {
+  .large {
+    max-height: 123px;
+  }
 }

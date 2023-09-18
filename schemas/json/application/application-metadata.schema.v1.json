@@ -566,6 +566,12 @@
           "type": "boolean",
           "title": "Display app owner name in header",
           "description": "A boolean indicating if the app owner name should be displayed in the header next to the logo."
+        },
+        "size":  {
+          "type": "string",
+          "title": "Size",
+          "description": "The size of the logo. Can be \"small\", \"medium\", or \"large\". Defaults to \"small\"",
+          "enum": ["small", "medium", "large"]
         }
       },
       "required": ["source"],
