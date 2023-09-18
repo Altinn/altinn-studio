@@ -98,6 +98,10 @@ export const SettingsModal = ({
     setCurrentTab(tabId);
   };
 
+  /**
+   * Displays the currently selected tab and its content
+   * @returns
+   */
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
@@ -108,8 +112,6 @@ export const SettingsModal = ({
       }
     }
   };
-
-  console.log(appConfig);
 
   return (
     <Modal
