@@ -35,6 +35,7 @@
   },
   "logo": {
     "displayAppOwnerNameInHeader": true,
-    "source": "org"
+    "source": "org",
+    "size": "medium"
   }
 }

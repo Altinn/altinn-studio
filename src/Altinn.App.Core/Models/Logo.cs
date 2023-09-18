@@ -21,5 +21,11 @@ namespace Altinn.App.Core.Models
         [JsonProperty(PropertyName = "source")]
         public string? Source { get; set; }
 
+        /// <summary>
+        /// Specifies the size of the logo. Can have the values
+        /// 'small', 'medium', or 'large'
+        /// </summary>
+        [JsonProperty(PropertyName = "size")]
+        public string Size { get; set; } = "small";
     }
 }
