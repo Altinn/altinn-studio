@@ -10,19 +10,19 @@
 }
 
 .small {
-  max-height: 32px;
+  height: 32px;
 }
 
 .medium {
-  max-height: 50px;
+  height: 50px;
 }
 
 .large {
-  max-height: 50px;
+  height: 50px;
 }
 
 @media only screen and (min-width: 576px) {
   .large {
-    max-height: 123px;
+    height: 123px;
   }
 }
