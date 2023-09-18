@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import classes from './InputField.module.css';
-import { ErrorMessage, Label, Paragraph, TextArea, TextField } from '@digdir/design-system-react';
+import { ErrorMessage, Label, Paragraph, TextField } from '@digdir/design-system-react';
 
 export type InputFieldProps = {
   /**
@@ -39,10 +39,6 @@ export type InputFieldProps = {
    */
   errorText?: string;
   /**
-   * The type of the field
-   */
-  type: 'textfield' | 'textarea';
-  /**
    * Flag for if the field is read only
    */
   readOnly?: boolean;
@@ -50,7 +46,7 @@ export type InputFieldProps = {
 
 /**
  * @component
- *    Displays a textfield or a textarea field for input fields in the Settings modal
+ *    Displays a textfield for input fields in the Settings modal
  *
  * @example
  *    <InputField
@@ -62,7 +58,6 @@ export type InputFieldProps = {
  *      onBlur={handleBlur}
  *      isValid={isValudValid}
  *      errorText='The field is invalid.'
- *      type='textfield'
  *    />
  *
  * @property {string}[id] - The id of the field
@@ -73,7 +68,6 @@ export type InputFieldProps = {
  * @property {function}[onBlur] -  Function to be executed on blur
  * @property {boolean}[isValid] - Flag for if the value in the field is valid
  * @property {string}[errorText] - Error text to show if field is invalid
- * @property {'textfield' | 'textarea'}[type] - The type of the field
  * @property {boolean}[readOnly] - Flag for if the field is read only
  *
  * @returns
@@ -87,50 +81,22 @@ export const InputField = ({
   onBlur,
   isValid,
   errorText,
-  type,
   readOnly,
 }: InputFieldProps): ReactNode => {
-  /**
-   * Display either a TextField or a TextArea based on the type
-   */
-  const displayInputField = () => {
-    switch (type) {
-      case 'textfield': {
-        return (
-          <TextField
-            id={id}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onBlur={onBlur}
-            isValid={isValid}
-            readOnly={readOnly}
-          />
-        );
-      }
-      case 'textarea': {
-        return (
-          <TextArea
-            id={id}
-            value={value}
-            onChange={(e) => onChange(e.currentTarget.value)}
-            onBlur={onBlur}
-            resize='vertical'
-            rows={5}
-            isValid={isValid}
-            readOnly={readOnly}
-          />
-        );
-      }
-    }
-  };
-
   return (
     <div className={classes.wrapper}>
       <Label spacing htmlFor={id}>
         {label}
       </Label>
       <Paragraph className={classes.paragraph}>{description}</Paragraph>
-      {displayInputField()}
+      <TextField
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        isValid={isValid}
+        readOnly={readOnly}
+      />
       {!isValid && <ErrorMessage>{errorText}</ErrorMessage>}
     </div>
   );

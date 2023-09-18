@@ -1,4 +1,5 @@
 import React, { ReactNode, useState } from 'react';
+import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
@@ -39,8 +40,15 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
   };
 
   return (
-    <div>
+    <div className={classes.wrapper}>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
+      <InputField
+        id='aboutRepoName'
+        label={t('settings_modal.about_tab_repo_label')}
+        description={t('settings_modal.about_tab_repo_description')}
+        value={appConfigState.repositoryName}
+        readOnly
+      />
       <InputField
         id='aboutNameField'
         label={t('settings_modal.about_tab_name_label')}
@@ -50,7 +58,6 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
         onBlur={handleSaveAppConfig}
         isValid={appConfigState.serviceName.length > 0}
         errorText={t('settings_modal.about_tab_name_error')}
-        type='textfield'
       />
       <InputField
         id='aboutAltIdField'
@@ -59,26 +66,6 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
         value={appConfigState.serviceId}
         onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
         onBlur={handleSaveAppConfig}
-        type='textfield'
-      />
-      <InputField
-        id='aboutRepoName'
-        label={t('settings_modal.about_tab_repo_label')}
-        description={t('settings_modal.about_tab_repo_description')}
-        value={appConfigState.repositoryName}
-        type='textfield'
-        readOnly
-      />
-      <InputField
-        id='aboutDescriptionId'
-        label={t('settings_modal.about_tab_description_label')}
-        description={t('settings_modal.about_tab_description_description')}
-        value={appConfigState.serviceDescription}
-        onChange={(serviceDescription: string) =>
-          setAppConfigState((ac) => ({ ...ac, serviceDescription }))
-        }
-        onBlur={handleSaveAppConfig}
-        type='textarea'
       />
     </div>
   );

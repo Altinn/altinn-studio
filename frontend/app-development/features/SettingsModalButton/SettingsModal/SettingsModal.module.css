@@ -1,7 +1,8 @@
 .modalContent {
   display: flex;
   max-height: calc(var(--modal-content-max-height));
-  min-width: 80vw;
+  min-width: 60vw;
+  max-width: 80vw;
 }
 
 .leftNavWrapper {
