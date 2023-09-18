@@ -43,6 +43,38 @@ describe('SettingsModalButton', () => {
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
+  it('initially displays the spinner when loading data', () => {
+    render();
+
+    expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
+  });
+
+  it('displays the error message when failing to load data', async () => {
+    render();
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content'))
+    );
+  });
+
+  it.each(['getAppPolicy', 'getAppConfig'])(
+    'shows an error message if an error occured on the %s query',
+    async (queryName) => {
+      const errorMessage = 'error-message-test';
+      render({
+        [queryName]: () => Promise.reject({ message: errorMessage }),
+      });
+
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('settings_modal.loading_content'))
+      );
+
+      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    }
+  );
+
   it('opens the modal when the button is clicked', async () => {
     render();
 
