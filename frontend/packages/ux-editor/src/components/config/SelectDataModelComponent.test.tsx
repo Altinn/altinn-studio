@@ -1,12 +1,8 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 
-import {
-  appDataMock,
-  renderWithMockStore,
-  renderHookWithMockStore,
-  textResourcesMock,
-} from '../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
+import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '../../../../../testing/mocks/i18nMock';

@@ -1,4 +1,5 @@
-import { appStateMock, queryClientMock, formDesignerMock, queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queryClientMock, queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { appStateMock, formDesignerMock } from '../../testing/stateMocks';
 import { waitFor } from '@testing-library/react';
 import { AddFormItemMutationArgs, useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';

@@ -1,3 +1,26 @@
+.modalContent {
+  display: flex;
+  min-width: 700px;
+  max-height: calc(var(--modal-content-max-height));
+}
+
+.leftNavWrapper {
+  height: auto;
+  top: 0;
+  position: sticky;
+}
+
+.leftNavigationBar {
+  min-height: 200px;
+  border-bottom-left-radius: 20px;
+}
+
+.tabWrapper {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-left: 10px;
+}
+
 .headingWrapper {
   display: flex;
   align-items: center;

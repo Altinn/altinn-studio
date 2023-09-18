@@ -21,8 +21,8 @@
 }
 
 .editMode .formComponentWithHandle {
-  border-color: #008FD6;
-  box-shadow: 0 0 4px #1EADF740;
+  border-color: #008fd6;
+  box-shadow: 0 0 4px #1eadf740;
   border-radius: 5px;
 }
 
@@ -42,14 +42,14 @@
 .editMode .buttons,
 .wrapper:hover .dragHandle,
 .wrapper:hover .buttons,
-.buttons:has(button[aria-expanded="true"]) {
+.buttons:has(button[aria-expanded='true']) {
   visibility: visible;
 }
 
 .editMode .dragHandle {
   --drag-handle-border-left-width: 6px;
   --drag-handle-inner-width: calc(var(--drag-handle-width) - var(--drag-handle-border-left-width));
-  border-left: var(--drag-handle-border-left-width) solid #008FD6;
+  border-left: var(--drag-handle-border-left-width) solid #008fd6;
   box-sizing: border-box;
 }
 
@@ -60,7 +60,7 @@
 .formComponent {
   background-color: #fff;
   border: 1px solid #6a6a6a;
-  color: #022F51;
+  color: #022f51;
   flex: 1;
   padding: 1rem;
   cursor: pointer;
@@ -85,10 +85,10 @@
 
 .formComponentTitle {
   margin-top: 0.6rem;
-  color: #022F51;
+  color: #022f51;
   align-items: center;
   display: flex;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 
 .formComponentTitle .icon {

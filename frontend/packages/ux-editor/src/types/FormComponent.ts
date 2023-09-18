@@ -1,6 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
-import { Expression } from './Expressions';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
@@ -21,9 +20,9 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleUpdateDataModel?: (dataModelBinding: string) => void;
   disabled?: boolean; // Add dynamic type?
   // TODO: Figure out if it is necessary to have the Dynamic type here since the type is not actually added to the field?
-  required?: boolean | Expression;
-  hidden?: boolean | Expression;
-  readOnly?: boolean | Expression;
+  required?: boolean | any;
+  hidden?: boolean | any;
+  readOnly?: boolean | any;
   [id: string]: any;
   propertyPath?: string;
 }

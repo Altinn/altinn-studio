@@ -1,9 +1,10 @@
 import { UseText } from '../hooks';
+import { LayoutItemType } from './global';
 
 export interface Expression {
   id?: string;
   operator?: Operator;
-  property?: ExpressionPropertyBase | ExpressionPropertyForGroup;
+  property?: ExpressionProperty;
   subExpressions?: SubExpression[];
   complexExpression?: any;
 }
@@ -12,15 +13,17 @@ export interface SubExpression {
   id: string;
   function?: ExpressionFunction;
   dataSource?: string;
-  value?: string;
+  value?: string | number | boolean;
   comparableDataSource?: string;
-  comparableValue?: string;
+  comparableValue?: string | number | boolean;
 }
 
 export enum Operator {
   And = 'and',
   Or = 'or'
 }
+
+export type ExpressionProperty = ExpressionPropertyBase | ExpressionPropertyForGroup;
 
 // Could we instead collect all properties from the specific component that has the type boolean?
 // What about strings that can be set with e.g. if/else and concat
@@ -58,16 +61,12 @@ export enum DataSource { // comments reflects available values to select if choo
   Null  = 'null', // no additional field
 }
 
-export const isDataSourceWithDropDown = (dataSource: DataSource) => {
-  switch (dataSource) {
-    case DataSource.Component:
-    case DataSource.DataModel:
-    case DataSource.InstanceContext:
-    case DataSource.ApplicationSettings:
-      return true;
-    default:
-      return false;
+export const getExpressionPropertiesBasedOnComponentType = (componentType: LayoutItemType.Component | LayoutItemType.Container): ExpressionProperty[] => {
+  const expressionProperties = Object.values(ExpressionPropertyBase) as string[];
+  if (componentType === LayoutItemType.Container) {
+    return expressionProperties.concat(Object.values(ExpressionPropertyForGroup) as string[]) as ExpressionProperty[];
   }
+  return expressionProperties as ExpressionProperty[];
 };
 
 export const expressionFunctionTexts = (t: UseText) => ({
@@ -110,14 +109,3 @@ export const expressionDataSourceTexts = (t: UseText) => ({
   [DataSource.Boolean]: t('right_menu.expressions_data_source_boolean'),
   [DataSource.Null]: t('right_menu.expressions_data_source_null'),
 });
-
-export const expressionDataSourceTextKeys = {
-  [DataSource.Component]: 'right_menu.expressions_data_source_component',
-  [DataSource.DataModel]: 'right_menu.expressions_data_source_data_model',
-  [DataSource.InstanceContext]: 'right_menu.expressions_data_source_instance_context',
-  [DataSource.ApplicationSettings]: 'right_menu.expressions_data_source_application_settings',
-  [DataSource.String]: 'right_menu.expressions_data_source_string',
-  [DataSource.Number]: 'right_menu.expressions_data_source_number',
-  [DataSource.Boolean]: 'right_menu.expressions_data_source_boolean',
-  [DataSource.Null]: 'right_menu.expressions_data_source_null',
-};

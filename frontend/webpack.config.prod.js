@@ -4,7 +4,7 @@ const commonConfig = require('./webpack.common');
 module.exports = {
   ...commonConfig,
   mode: 'production',
-  devtool: false,
+  devtool: 'source-map',
   performance: {
     hints: false,
   },

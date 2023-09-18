@@ -1,8 +1,7 @@
 import React, { MouseEvent } from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import { DraggableToolbarItem } from '../dragAndDrop/DraggableToolbarItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
-
+import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 
 interface IToolbarItemProps {
   text: string;
@@ -21,20 +20,14 @@ export const ToolbarItem = ({
 }: IToolbarItemProps) => {
   return (
     <div>
-      <DraggableToolbarItem
-        notDraggable={notDraggable}
-        item={{
-          type: componentType,
-          isNew: true,
-        }}
-      >
+      <DragAndDrop.NewItem<ComponentType> notDraggable={notDraggable} payload={componentType}>
         <ToolbarItemComponent
           onClick={onClick}
           componentType={componentType}
           thirdPartyLabel={text}
           icon={icon}
         />
-      </DraggableToolbarItem>
+      </DragAndDrop.NewItem>
     </div>
   );
 };

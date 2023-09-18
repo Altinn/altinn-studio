@@ -4,6 +4,7 @@ import { render as rtlRender, act, screen, waitFor } from '@testing-library/reac
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
 import userEvent from '@testing-library/user-event';
+import { formContextProviderMock } from '../../testing/formContextMocks';
 
 const user = userEvent.setup();
 
@@ -15,16 +16,6 @@ const texts = {
   'right_menu.content': contentText,
   'right_menu.dynamics': conditionalRenderingText,
   'right_menu.calculations': calculationsText,
-};
-
-const FormContextProviderMock = {
-  formId: null,
-  form: null,
-  handleDiscard: jest.fn(),
-  handleEdit: jest.fn(),
-  handleUpdate: jest.fn(),
-  handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
-  debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
 };
 
 const contentTestId = 'content';
@@ -115,7 +106,7 @@ describe('RightMenu', () => {
 
 const getComponent = (formContextProps: Partial<FormContext> = {}, rightMenuProps: Partial<RightMenuProps> = {}) => (
   <FormContext.Provider value={{
-    ...FormContextProviderMock,
+    ...formContextProviderMock,
     ...formContextProps
   }}>
     <RightMenu {...rightMenuProps} />

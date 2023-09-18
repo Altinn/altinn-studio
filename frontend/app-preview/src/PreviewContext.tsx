@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useState, useEffect } from 'react';
-
 import axios from 'axios';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+
 interface PreviewContextProps {
   isReady: boolean;
   data: any;

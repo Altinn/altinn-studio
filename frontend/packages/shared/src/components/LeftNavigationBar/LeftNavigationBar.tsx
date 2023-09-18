@@ -3,6 +3,7 @@ import classes from './LeftNavigationBar.module.css';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { GoBackButton } from './GoBackButton';
 import { Tab } from './Tab';
+import cn from 'classnames';
 
 export type LeftNavigationBarProps = {
   /**
@@ -21,6 +22,10 @@ export type LeftNavigationBarProps = {
    * The text on the back link
    */
   backLinkText?: string;
+  /**
+   * Additional classnames
+   */
+  className?: string;
 };
 
 /**
@@ -39,6 +44,7 @@ export type LeftNavigationBarProps = {
  * @property {'backButton' | undefined}[upperTab] - The upper tab
  * @property {string}[backLink] - Href for the back link
  * @property {string}[backLinkText] - The text on the back link
+ * @property {string}[className] - Additional classnames
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -47,6 +53,7 @@ export const LeftNavigationBar = ({
   upperTab = undefined,
   backLink,
   backLinkText = '',
+  className,
 }: LeftNavigationBarProps): ReactNode => {
   const [newTabIdClicked, setNewTabIdClicked] = useState<string | null>(null);
 
@@ -89,7 +96,7 @@ export const LeftNavigationBar = ({
   ));
 
   return (
-    <div className={classes.navigationBar}>
+    <div className={cn(classes.navigationBar, className)}>
       <div className={classes.navigationElements}>
         {displayUpperTab()}
         {displayTabs}
