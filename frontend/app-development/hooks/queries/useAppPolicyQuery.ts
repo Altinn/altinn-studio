@@ -2,6 +2,7 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { AxiosError } from 'axios';
 
 /**
  * Query to get a policy of an app.
@@ -11,14 +12,18 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  *
  * @returns UseQueryResult with an object of Policy
  */
-export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Policy> => {
+export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Policy, AxiosError> => {
   const { getAppPolicy } = useServicesContext();
 
-  return useQuery<Policy>([QueryKey.AppPolicy, org, app], () => getAppPolicy(org, app), {
-    select: (data) => ({
-      rules: data.rules ?? [],
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
-    }),
-  });
+  return useQuery<Policy, AxiosError>(
+    [QueryKey.AppPolicy, org, app],
+    () => getAppPolicy(org, app),
+    {
+      select: (data) => ({
+        rules: data.rules ?? [],
+        requiredAuthenticationLevelEndUser: '3',
+        requiredAuthenticationLevelOrg: '3',
+      }),
+    }
+  );
 };
