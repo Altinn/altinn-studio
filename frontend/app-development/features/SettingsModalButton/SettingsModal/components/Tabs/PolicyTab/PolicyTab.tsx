@@ -86,13 +86,6 @@ export const PolicyTab = ({ policy, org, app }: PolicyTabProps): ReactNode => {
   // Mutation function to update policy
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
-  /**
-   * Saves the policy to backend
-   */
-  const handleSavePolicy = (updatedPolicy: Policy) => {
-    updateAppPolicyMutation(updatedPolicy);
-  };
-
   return (
     <div className={classes.wrapper}>
       <Heading level={2} spacing size='small'>
@@ -103,7 +96,7 @@ export const PolicyTab = ({ policy, org, app }: PolicyTabProps): ReactNode => {
         actions={actionData}
         // TODO - Find out the list of subjects: Issue: #10882
         subjects={subjectData}
-        onSave={handleSavePolicy}
+        onSave={updateAppPolicyMutation}
         // TODO - Find out how errors should be handled for apps, then refactor. Issue: #10881
         showAllErrors={false}
         usageType='app'

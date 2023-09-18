@@ -93,7 +93,7 @@ export const SettingsModal = ({
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <p> {currentTab}</p>;
+        return <p>Denne siden er under utvikling</p>;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;

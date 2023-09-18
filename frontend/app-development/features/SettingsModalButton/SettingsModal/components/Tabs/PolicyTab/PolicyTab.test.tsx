@@ -19,6 +19,8 @@ const mockPolicy: Policy = {
   requiredAuthenticationLevelOrg: '3',
 };
 
+const user = userEvent.setup();
+
 jest.mock('../../../../../../hooks/mutations/useAppPolicyMutation');
 const updateAppPolicyMutation = jest.fn();
 const mockUpdateAppPolicyMutation = useAppPolicyMutation as jest.MockedFunction<
@@ -38,7 +40,6 @@ describe('PolicyTab', () => {
   };
 
   it('displays the PolicyEditor component with the provided policy and data', async () => {
-    const user = userEvent.setup();
     render({}, createQueryClientMock(), defaultProps);
 
     // Fix to remove act error
@@ -51,7 +52,6 @@ describe('PolicyTab', () => {
   });
 
   it('should update app policy when "onSave" is called', async () => {
-    const user = userEvent.setup();
     render({}, createQueryClientMock(), defaultProps);
 
     const addButton = screen.getByRole('button', {

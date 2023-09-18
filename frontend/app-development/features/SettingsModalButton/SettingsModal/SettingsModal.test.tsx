@@ -19,6 +19,7 @@ const mockPolicy: Policy = {
 };
 
 describe('SettingsModal', () => {
+  const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
   const mockOnClose = jest.fn();
@@ -32,7 +33,6 @@ describe('SettingsModal', () => {
   };
 
   it('closes the modal when the close button is clicked', async () => {
-    const user = userEvent.setup();
     render(<SettingsModal {...defaultProps} isOpen />);
 
     const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
@@ -64,7 +64,6 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab displayed when a tab is clicked', async () => {
-    const user = userEvent.setup();
     renderWithQueryClient({}, createQueryClientMock(), defaultProps);
 
     expect(

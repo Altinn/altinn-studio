@@ -22,6 +22,8 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+const user = userEvent.setup();
+
 describe('SettingsModalButton', () => {
   afterEach(jest.clearAllMocks);
 
@@ -31,7 +33,6 @@ describe('SettingsModalButton', () => {
   });
 
   it('opens the modal when the button is clicked', async () => {
-    const user = userEvent.setup();
     render();
 
     expect(
@@ -47,7 +48,6 @@ describe('SettingsModalButton', () => {
   });
 
   it('closes the modal on click', async () => {
-    const user = userEvent.setup();
     render();
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
