@@ -15,7 +15,7 @@ describe('useMediaQuery', () => {
       const { result } = renderHook(() => useMediaQuery(query));
       expect(matchMediaValue).toHaveBeenCalledWith(query);
       expect(result.current).toBe(matches);
-    },
+    }
   );
 
   it('Adds event listener', () => {

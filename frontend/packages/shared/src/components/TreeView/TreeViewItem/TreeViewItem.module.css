@@ -1,0 +1,27 @@
+.listItem {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.button {
+  align-items: center;
+  justify-content: left;
+  width: 100%;
+}
+
+.button[aria-selected='true'] {
+  background-color: var(--fds-semantic-surface-neutral-selected);
+}
+
+.button:focus {
+  z-index: 1;
+}
+
+.chevronWrapper {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 1em;
+}
