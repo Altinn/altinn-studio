@@ -77,7 +77,7 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     {},
     queries
   )(
-    <DragAndDrop.Provider rootId={BASE_CONTAINER_ID}>
+    <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormContext.Provider
         value={{
           form: null,

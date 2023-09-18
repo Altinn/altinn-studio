@@ -3,7 +3,6 @@ import {
   DragCursorPosition,
   DndItem,
   ExistingDndItem,
-  HandleDrop,
 } from '../../../types/dndTypes';
 import React, { ReactNode, useMemo, useRef, useState } from 'react';
 import { ConnectDragSource, useDrag, useDrop } from 'react-dnd';
@@ -12,6 +11,7 @@ import classes from './DragAndDropListItem.module.css';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { DragAndDropListItemContext } from '../DragAndDropListItem';
 import { useParentId } from '../hooks/useParentId';
+import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
 
 export interface DragAndDropListItemProps<T> {
   /** The index of the item. */
@@ -19,9 +19,6 @@ export interface DragAndDropListItemProps<T> {
 
   /** The id of the item. */
   itemId: string;
-
-  /** Action to be called when another item is dropped over the item. */
-  onDrop: HandleDrop<T>;
 
   /** Function that renders the item content. It takes a drag handle ref as a parameter - this must be used as the ref to the drag handle component. */
   renderItem: (dragHandleRef: ConnectDragSource) => ReactNode;
@@ -31,18 +28,14 @@ interface DragCollectedProps {
   isDragging: boolean;
 }
 
-export function DragAndDropListItem<T>({
-  index,
-  itemId,
-  onDrop,
-  renderItem,
-}: DragAndDropListItemProps<T>) {
+export function DragAndDropListItem<T>({ index, itemId, renderItem }: DragAndDropListItemProps<T>) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dragCursorPosition, setDragCursorPosition] = useState<DragCursorPosition>(
     DragCursorPosition.Outside
   );
   const isParentDisabled = useIsParentDisabled();
   const parentId = useParentId();
+  const onDrop = useOnDrop<T>();
 
   const boxShadow = useMemo(() => {
     switch (dragCursorPosition) {

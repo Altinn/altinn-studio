@@ -26,6 +26,9 @@ export enum DragCursorPosition {
 
 export type HandleDrop<T> = (draggedItem: DndItem<T>, droppedPosition: ItemPosition) => void;
 
+export type HandleMove = (draggedItemId: string, droppedPosition: ItemPosition) => void;
+export type HandleAdd<T> = (payload: T, droppedPosition: ItemPosition) => void;
+
 export interface ItemPosition {
   parentId: string;
   index: number;

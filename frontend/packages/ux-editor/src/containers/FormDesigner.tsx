@@ -19,6 +19,12 @@ import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
+import { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { generateComponentId } from '../utils/generateId';
+import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
+import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
+import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 
 const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
   if (instanceId) {
@@ -49,6 +55,14 @@ export const FormDesigner = ({
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
+  const { mutate: updateFormLayout } = useFormLayoutMutation(
+    org,
+    app,
+    selectedLayout,
+    selectedLayoutSet
+  );
+
   const layoutOrder = useMemo(
     () => formLayouts?.[selectedLayout]?.order || {},
     [formLayouts, selectedLayout]
@@ -130,8 +144,23 @@ export const FormDesigner = ({
   }
 
   if (formLayoutIsReady) {
+    const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
+    const layout = formLayouts[selectedLayout];
+
+    const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
+      const newId = generateComponentId(type, formLayouts);
+      const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
+      if (validateDepth(updatedLayout)) {
+        addItemToLayout({ componentType: type, newId, parentId, index });
+      } else triggerDepthAlert();
+    };
+    const moveItem: HandleMove = (id, { parentId, index }) => {
+      const updatedLayout = moveLayoutItem(layout, id, parentId, index);
+      validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
+    };
+
     return (
-      <DragAndDrop.Provider rootId={BASE_CONTAINER_ID}>
+      <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
             <LeftMenu className={classes.leftContent + ' ' + classes.item} />

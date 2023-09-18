@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { RootIdContext } from '../DragAndDropProvider';
+import { DragAndDropRootContext } from '../DragAndDropProvider';
 import { DragAndDropListItemContext } from '../DragAndDropListItem';
 
 /**
@@ -7,10 +7,10 @@ import { DragAndDropListItemContext } from '../DragAndDropListItem';
  * @returns The parent ID.
  */
 export const useParentId = (): string => {
-  const rootIdContext = useContext(RootIdContext);
-  const droppableListContext = useContext(DragAndDropListItemContext);
-  if (typeof rootIdContext !== 'string') {
+  const rootContext = useContext(DragAndDropRootContext);
+  const listItemContext = useContext(DragAndDropListItemContext);
+  if (!rootContext) {
     throw new Error('useParentId must be used within a DragAndDropProvider.');
   }
-  return droppableListContext?.itemId || rootIdContext;
+  return listItemContext?.itemId || rootContext.rootId;
 };
