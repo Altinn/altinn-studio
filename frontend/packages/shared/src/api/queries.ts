@@ -95,7 +95,7 @@ export const getComponentSchema = (component: string) => get<string[]>(component
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
 // Settings modal
-export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app))
+export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
 
 // Resourceadm
