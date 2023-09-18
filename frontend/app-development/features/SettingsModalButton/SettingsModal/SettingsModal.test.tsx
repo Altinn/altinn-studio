@@ -85,7 +85,11 @@ describe('SettingsModal', () => {
         level: 2,
       })
     ).toBeInTheDocument();
-    expect(screen.queryByText('about')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'Denne siden er under utvikling og vil bli publisert på et senere tidspunkt.'
+      )
+    ).not.toBeInTheDocument();
 
     const aboutTab = screen.getByRole('button', {
       name: textMock('settings_modal.left_nav_tab_about'),
