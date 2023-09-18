@@ -7,7 +7,9 @@
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
-      "allowedContentTypes": ["application/pdf"],
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
       "maxCount": 0,
       "minCount": 0,
       "enablePdfCreation": true,
@@ -18,7 +20,9 @@
     },
     {
       "id": "skjema",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.skjema",
@@ -39,7 +43,11 @@
     },
     {
       "id": "Vedlegg",
-      "allowedContentTypes": ["application/pdf", "image/png", "image/jpeg"],
+      "allowedContentTypes": [
+        "application/pdf",
+        "image/png",
+        "image/jpeg"
+      ],
       "taskId": "Task_1",
       "maxSize": 25,
       "maxCount": 10,
@@ -52,7 +60,11 @@
     },
     {
       "id": "vedlegg-cv",
-      "allowedContentTypes": ["application/pdf", "image/png", "image/jpeg"],
+      "allowedContentTypes": [
+        "application/pdf",
+        "image/png",
+        "image/jpeg"
+      ],
       "taskId": "Task_1",
       "maxSize": 25,
       "maxCount": 10,
