@@ -93,7 +93,7 @@ export const SettingsModal = ({
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <p>Denne siden er under utvikling og vil bli publisert på et senere tidspunkt.</p>;
+        return <p>{t('settings_modal.about_tab_heading')}</p>;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;

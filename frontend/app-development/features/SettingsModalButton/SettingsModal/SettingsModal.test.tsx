@@ -54,7 +54,7 @@ describe('SettingsModal', () => {
   it('displays the about tab, and not the other tabs, when modal opens first time', () => {
     render(<SettingsModal {...defaultProps} />);
 
-    expect(screen.getByText('about')).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
@@ -72,7 +72,7 @@ describe('SettingsModal', () => {
         level: 2,
       })
     ).not.toBeInTheDocument();
-    expect(screen.getByText('about')).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
     const policyTab = screen.getByRole('button', {
       name: textMock('settings_modal.left_nav_tab_policy'),
@@ -86,9 +86,7 @@ describe('SettingsModal', () => {
       })
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(
-        'Denne siden er under utvikling og vil bli publisert på et senere tidspunkt.'
-      )
+      screen.queryByText(textMock('settings_modal.about_tab_heading'))
     ).not.toBeInTheDocument();
 
     const aboutTab = screen.getByRole('button', {
@@ -102,7 +100,7 @@ describe('SettingsModal', () => {
         level: 2,
       })
     ).not.toBeInTheDocument();
-    expect(screen.getByText('about')).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
   });
 });
 
