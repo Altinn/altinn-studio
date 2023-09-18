@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react';
-import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
@@ -34,7 +33,7 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
 
   return (
-    <div className={classes.wrapper}>
+    <div>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
       <Paragraph>{JSON.stringify(appConfig)}</Paragraph>
       <Paragraph>{org}</Paragraph>
