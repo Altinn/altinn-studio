@@ -1,5 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import {
+  render as rtlRender,
+  screen,
+  act,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import { SettingsModalButton } from './SettingsModalButton';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -13,6 +18,7 @@ const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
 const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -32,12 +38,21 @@ describe('SettingsModalButton', () => {
     expect(getAppPolicy).toHaveBeenCalledTimes(1);
   });
 
+  it('fetches appConfig on mount', () => {
+    render();
+    expect(getAppConfig).toHaveBeenCalledTimes(1);
+  });
+
   it('opens the modal when the button is clicked', async () => {
     render();
 
     expect(
       screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
     ).not.toBeInTheDocument();
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content'))
+    );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
     await act(() => user.click(openButton));
@@ -49,6 +64,10 @@ describe('SettingsModalButton', () => {
 
   it('closes the modal on click', async () => {
     render();
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content'))
+    );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
     await act(() => user.click(openButton));
@@ -73,6 +92,7 @@ const render = (
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAppPolicy,
+    getAppConfig,
     ...queries,
   };
   return rtlRender(
