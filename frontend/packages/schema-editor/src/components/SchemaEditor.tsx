@@ -19,7 +19,6 @@ import {
 import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
 import {
   selectedDefinitionParentSelector,
-  selectedItemSelector,
   selectedPropertyParentSelector,
 } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
 import {
@@ -60,7 +59,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   );
 
   const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
-  const selectedItem = useSchemaAndReduxSelector(selectedItemSelector);
 
   useEffect(() => {
     if (selectedType) {
@@ -68,12 +66,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
       setSelectedType(isExistingNode ? rootNodeMap.get(selectedType.pointer) : null);
     }
   }, [rootNodeMap, selectedType]);
-
-  useEffect(() => {
-    if (selectedItem && pointerIsDefinition(selectedItem.pointer)) {
-      setSelectedType(selectedItem);
-    }
-  }, [selectedItem]);
 
   useEffect(() => {
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
@@ -106,15 +98,11 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
         <TypesInspector
           schemaItems={definitions}
           handleSelectType={handleSelectType}
-          key={selectedType?.pointer || ''}
           selectedNodePointer={selectedType?.pointer}
         />
       </aside>
       {selectedType ? (
-        <div
-          id='types-editor'
-          className={classNames(classes.editor, classes.editorTypes)}
-        >
+        <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
           <div className={classes.typeInfo}>
             <span>
               {t('schema_editor.types_editing', {
@@ -150,7 +138,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
         </div>
       )}
       <aside className={classes.inspector}>
-        <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
+        <SchemaInspector setSelectedType={setSelectedType} />
       </aside>
     </>
   );
