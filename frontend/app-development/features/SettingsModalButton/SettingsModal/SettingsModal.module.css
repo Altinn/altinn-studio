@@ -18,7 +18,9 @@
 .tabWrapper {
   flex-grow: 1;
   overflow-y: auto;
-  padding-inline: 30px;
+  padding-left: 30px;
+  padding-right: 100px;
+  padding-bottom: 50px;
 }
 
 .headingWrapper {
