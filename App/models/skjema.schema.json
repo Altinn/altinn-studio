@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://altinn-repositories:3000/bjosttveit/expression-validation/App/models/skjema.schema.json",
+  "$id": "http://altinn-repositories:3000/ttd/expression-validation-test/App/models/skjema.schema.json",
   "info": {
     "rootNode": ""
   },
