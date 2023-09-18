@@ -17,7 +17,7 @@ describe('TypeItem', () => {
     restrictions: null,
   };
   it('should render the component', () => {
-    render(<TypeItem handleItemClick={() => {}} uiSchemaNode={uiSchemaNode} />);
+    render(<TypeItem uiSchemaNode={uiSchemaNode} />);
     expect(screen.getByText('MyTestType')).toBeInTheDocument();
   });
 });

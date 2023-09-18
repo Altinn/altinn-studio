@@ -10,7 +10,6 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
 import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
 import {
-  UiSchemaNode,
   UiSchemaNodes,
   getNameFromPointer,
   isEmpty,
@@ -33,7 +32,7 @@ export interface SchemaEditorProps {
 
 export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const dispatch = useDispatch();
-  const { data } = useSchemaEditorAppContext();
+  const { data, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   useEffect(() => {
     if (modelName) {
@@ -43,7 +42,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   }, [dispatch, modelName]);
 
   const { t } = useTranslation();
-  const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
@@ -61,13 +59,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
 
   useEffect(() => {
-    if (selectedType) {
-      const isExistingNode = !!rootNodeMap.get(selectedType.pointer);
-      setSelectedType(isExistingNode ? rootNodeMap.get(selectedType.pointer) : null);
-    }
-  }, [rootNodeMap, selectedType]);
-
-  useEffect(() => {
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
       setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
     }
@@ -82,31 +73,24 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
 
   if (isEmpty(data)) return null;
 
-  const handleSelectType = (node: UiSchemaNode) => {
-    setSelectedType(node);
-    dispatch(setSelectedId({ pointer: node.pointer }));
-  };
-
   const handleResetSelectedType = () => {
-    setSelectedType(null);
+    setSelectedTypePointer(null);
     dispatch(setSelectedId({ pointer: '' }));
   };
+
+  const selectedType = definitions.find((item) => item.pointer === selectedTypePointer);
 
   return (
     <>
       <aside className={classes.inspector}>
-        <TypesInspector
-          schemaItems={definitions}
-          handleSelectType={handleSelectType}
-          selectedNodePointer={selectedType?.pointer}
-        />
+        <TypesInspector schemaItems={definitions} />
       </aside>
       {selectedType ? (
         <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
           <div className={classes.typeInfo}>
             <span>
               {t('schema_editor.types_editing', {
-                type: getNameFromPointer({ pointer: selectedType.pointer }),
+                type: getNameFromPointer({ pointer: selectedTypePointer }),
               })}
             </span>
             <Button
@@ -122,9 +106,9 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
             uiSchemaNode={selectedType}
             setExpandedDefNodes={setExpandedDefNodes}
             expandedDefNodes={
-              expandedDefNodes.includes(selectedType?.pointer)
+              expandedDefNodes.includes(selectedTypePointer)
                 ? expandedDefNodes
-                : expandedDefNodes.concat([selectedType.pointer])
+                : expandedDefNodes.concat([selectedTypePointer])
             }
           />
         </div>
@@ -138,7 +122,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
         </div>
       )}
       <aside className={classes.inspector}>
-        <SchemaInspector setSelectedType={setSelectedType} />
+        <SchemaInspector />
       </aside>
     </>
   );

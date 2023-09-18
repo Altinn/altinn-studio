@@ -12,15 +12,9 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export interface TypesInspectorProps {
   schemaItems: UiSchemaNode[];
-  handleSelectType: (node: UiSchemaNode) => void;
-  selectedNodePointer?: string;
 }
 
-export const TypesInspector = ({
-  schemaItems,
-  handleSelectType,
-  selectedNodePointer,
-}: TypesInspectorProps) => {
+export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { data, save } = useSchemaEditorAppContext();
@@ -65,12 +59,7 @@ export const TypesInspector = ({
         </div>
 
         {schemaItems.map((item) => (
-          <TypeItem
-            uiSchemaNode={item}
-            key={item.pointer}
-            handleItemClick={handleSelectType}
-            selected={item.pointer === selectedNodePointer}
-          />
+          <TypeItem uiSchemaNode={item} key={item.pointer} />
         ))}
       </div>
     </div>

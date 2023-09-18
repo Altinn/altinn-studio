@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Tabs } from '@digdir/design-system-react';
 import type { TabItem } from '@digdir/design-system-react';
-import { FieldType, ObjectKind, pointerIsDefinition } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
@@ -10,11 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
 import { useSchemaAndReduxSelector } from '../hooks/useSchemaAndReduxSelector';
 
-export interface ISchemaInspectorProps {
-  setSelectedType?: (selectedItem: any) => void;
-}
-
-export const SchemaInspector = ({ setSelectedType }: ISchemaInspectorProps) => {
+export const SchemaInspector = () => {
   const { t } = useTranslation();
 
   enum TabValue {
@@ -32,12 +28,6 @@ export const SchemaInspector = ({ setSelectedType }: ISchemaInspectorProps) => {
   ]);
 
   const selectedItem = useSchemaAndReduxSelector(selectedItemSelector);
-
-  useEffect(() => {
-    if (selectedItem && pointerIsDefinition(selectedItem.pointer)) {
-      setSelectedType(selectedItem);
-    }
-  }, [selectedItem, setSelectedType]);
 
   useEffect(() => {
     if (!selectedItem) return;
