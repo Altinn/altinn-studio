@@ -31,6 +31,7 @@ import {
   resourceValidateResourcePath,
   ruleConfigPath,
   ruleHandlerPath,
+  serviceConfigPath,
   textLanguagesPath,
   textResourcesPath,
   userCurrentPath,
@@ -57,6 +58,7 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { AppConfig } from 'app-shared/types/AppConfig';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -92,6 +94,8 @@ export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl()
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
+// Settings modal
+export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app))
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
 
 // Resourceadm
