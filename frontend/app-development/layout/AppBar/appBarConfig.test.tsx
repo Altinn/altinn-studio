@@ -36,7 +36,7 @@ describe('getTopBarMenu', () => {
   });
 
   it('should return menu items including items hidden behind feature flag, if the flag i activated', () => {
-    typedLocalStorage.setItem('featureFlags', ['processEditor', 'policyEditor']);
+    typedLocalStorage.setItem('featureFlags', ['processEditor', 'settingsModal']);
     expect(getTopBarMenu('test-org', 'test-app', RepositoryType.App, t)).toHaveLength(menu.length);
   });
 });
