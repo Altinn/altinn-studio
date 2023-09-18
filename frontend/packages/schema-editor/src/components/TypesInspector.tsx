@@ -17,7 +17,7 @@ export interface TypesInspectorProps {
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { data, save } = useSchemaEditorAppContext();
+  const { data, save, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
@@ -59,7 +59,12 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
         </div>
 
         {schemaItems.map((item) => (
-          <TypeItem uiSchemaNode={item} key={item.pointer} />
+          <TypeItem
+            uiSchemaNode={item}
+            key={item.pointer}
+            selected={item.pointer === selectedTypePointer}
+            setSelectedTypePointer={setSelectedTypePointer}
+          />
         ))}
       </div>
     </div>

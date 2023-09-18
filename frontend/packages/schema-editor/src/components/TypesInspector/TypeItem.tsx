@@ -6,14 +6,14 @@ import classNames from 'classnames';
 import * as testids from '../../../../../testing/testids';
 import { useDispatch } from 'react-redux';
 import { setSelectedId } from '../../features/editor/schemaEditorSlice';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
+  selected?: boolean;
+  setSelectedTypePointer: (pointer: string) => void;
 }
 
-export const TypeItem = ({ uiSchemaNode }: TypeItemProps) => {
-  const { selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
   const dispatch = useDispatch();
 
   const handleClick = () => {
@@ -23,7 +23,7 @@ export const TypeItem = ({ uiSchemaNode }: TypeItemProps) => {
   return (
     <div
       className={classNames(classes.item, {
-        [classes.itemSelected]: uiSchemaNode.pointer === selectedTypePointer,
+        [classes.itemSelected]: selected,
       })}
       onClick={handleClick}
       data-testid={testids.typeItem(uiSchemaNode.pointer)}
