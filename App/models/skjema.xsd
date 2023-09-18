@@ -37,7 +37,7 @@
               <xs:element minOccurs="0" name="epost" type="xs:string" />
               <xs:element minOccurs="0" name="telefonnummer" type="xs:long" />
               <xs:element minOccurs="0" name="bosted" type="xs:string" />
-              <xs:element minOccurs="0" name="kjønn" type="xs:string" />
+              <xs:element minOccurs="0" name="kjonn" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-felter" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-arbeidsgiver" type="xs:string" />
               <xs:element minOccurs="0" name="SF_skjul-prosjekt" type="xs:string" />

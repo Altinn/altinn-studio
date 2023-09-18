@@ -58,10 +58,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("bosted")]
     public string bosted { get; set; }
 
-    [XmlElement("kjønn", Order = 8)]
-    [JsonProperty("kjønn")]
-    [JsonPropertyName("kjønn")]
-    public string kjønn { get; set; }
+    [XmlElement("kjonn", Order = 8)]
+    [JsonProperty("kjonn")]
+    [JsonPropertyName("kjonn")]
+    public string kjonn { get; set; }
 
     [XmlElement("SF_skjul-felter", Order = 9)]
     [JsonProperty("SF_skjul-felter")]

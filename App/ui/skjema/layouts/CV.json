@@ -107,7 +107,7 @@
           "kjonn"
         ],
         "dataModelBindings": {
-          "simpleBinding": "root.arbeidserfaring.prosjekter.tittel"
+          "simpleBinding": "root.kjonn"
         },
         "required": false,
         "optionsId": "kjønn",

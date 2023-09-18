@@ -90,7 +90,7 @@
         "bosted": {
           "type": "string"
         },
-        "kjønn": {
+        "kjonn": {
           "type": "string"
         },
         "SF_skjul-felter": {

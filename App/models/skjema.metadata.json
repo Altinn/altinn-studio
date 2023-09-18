@@ -412,13 +412,13 @@
       "JsonSchemaPointer": "/properties/root/properties/bosted",
       "DisplayString": "skjema.root.bosted : [0..1] String"
     },
-    "skjema.root.kjønn": {
-      "ID": "skjema.root.kjønn",
+    "skjema.root.kjonn": {
+      "ID": "skjema.root.kjonn",
       "ParentElement": "skjema.root",
-      "TypeName": "kjønn",
-      "Name": "kjønn",
-      "DataBindingName": "root.kjønn",
-      "XPath": "/skjema/root/kjønn",
+      "TypeName": "kjonn",
+      "Name": "kjonn",
+      "DataBindingName": "root.kjonn",
+      "XPath": "/skjema/root/kjonn",
       "Restrictions": {},
       "Type": 0,
       "XsdValueType": 0,
@@ -426,13 +426,13 @@
       "CustomProperties": {},
       "MaxOccurs": 1,
       "MinOccurs": 0,
-      "XName": "kjønn",
+      "XName": "kjonn",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "/properties/root/properties/kjønn",
-      "DisplayString": "skjema.root.kjønn : [0..1] String"
+      "JsonSchemaPointer": "/properties/root/properties/kjonn",
+      "DisplayString": "skjema.root.kjonn : [0..1] String"
     },
     "skjema.root.SF_skjulfelter": {
       "ID": "skjema.root.SF_skjulfelter",
