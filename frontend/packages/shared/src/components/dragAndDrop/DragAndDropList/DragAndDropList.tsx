@@ -7,7 +7,7 @@ import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { useParentId } from '../hooks/useParentId';
 import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
 
-export interface DragAndDropListProps<T> {
+export interface DragAndDropListProps {
   /** The list of existing items. */
   children: ReactNode;
 }
@@ -16,7 +16,7 @@ export interface DragAndDropListCollectedProps {
   canBeDropped: boolean;
 }
 
-export function DragAndDropList<T>({ children }: DragAndDropListProps<T>) {
+export function DragAndDropList<T>({ children }: DragAndDropListProps) {
   const disabledDrop = useIsParentDisabled();
   const parentId = useParentId();
   const onDrop = useOnDrop<T>();
