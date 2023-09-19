@@ -33,13 +33,15 @@ export const SchemaEditorWithToolbar = ({
         setSelectedOption={setSelectedOption}
       />
       <main className={classes.main}>
-        {!datamodels.length && (
-          <LandingPagePanel
-            openCreateNew={() => setCreateNewOpen(true)}
+        {!datamodels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
+        {modelPath && (
+          <SelectedSchemaEditor
+            datamodels={datamodels}
+            modelName={modelName}
+            modelPath={modelPath}
           />
         )}
-        {modelPath && <SelectedSchemaEditor modelName={modelName} modelPath={modelPath}/>}
       </main>
     </div>
   );
-}
+};
