@@ -8,6 +8,7 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const texts = {
   'api_errors.DM_01': 'DM_01 error message',
+  'api_errors.GT_01': 'Deling av endringer mislyktes. Vennligst prøv igjen.',
   'general.error_message': 'Something went wrong',
   'general.try_again': 'Try again',
 };
@@ -69,9 +70,7 @@ describe('ServicesContext', () => {
       { wrapper }
     );
     await waitFor(() => result.current.isError);
-    await waitFor(() => {
-      expect(screen.getByText("handle_merge_conflict.discard_changes_toast_message")).toBeInTheDocument();
-    });
+    expect(await screen.findByText(texts['api_errors.GT_01'])).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
   });
 

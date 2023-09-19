@@ -47,11 +47,6 @@ const handleError = (
     return;
   }
 
-  if (errorCode === 'GT_01') {
-    toast.error(t('handle_merge_conflict.discard_changes_toast_message'));
-    return;
-  }
-
   if (
     meta?.hideDefaultError === true ||
     (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
