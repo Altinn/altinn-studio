@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
@@ -10,9 +11,11 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -25,8 +28,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
-        public ResourceRegistryService()
+    public ResourceRegistryService()
         {
 
         }
@@ -71,9 +75,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 fullWritePolicyToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
 
-            string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
+            string serviceResourceString = System.Text.Json.JsonSerializer.Serialize(serviceResource, _serializerOptions);
             _httpClientFactory.CreateClient("myHttpClient");
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+
+            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
+
+            HttpResponseMessage response;
+
+            if (getResourceResponse.IsSuccessStatusCode && getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
+            {
+                string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
+                response = await _httpClient.PutAsync(putRequest, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+            }
+            else
+            {
+                response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string responseConent = await response.Content.ReadAsStringAsync();
+                return await GetPublishResponse(response);
+            }
 
             if (policyPath != null)
             {
@@ -125,18 +149,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
-
-            if (getResourceResponse.IsSuccessStatusCode)
-            {
-                string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
-                HttpResponseMessage putResponse = await _httpClient.PutAsync(putRequest, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
-                return putResponse.IsSuccessStatusCode ? new StatusCodeResult(201) : new StatusCodeResult(400);
-            }
-
-            HttpResponseMessage response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
-
-            return GetPublishResponse(response);
+            return await GetPublishResponse(response);
         }
 
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
@@ -144,7 +157,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
         }
 
-        private StatusCodeResult GetPublishResponse(HttpResponseMessage response)
+        private async Task<ActionResult> GetPublishResponse(HttpResponseMessage response)
         {
             if (response.StatusCode == HttpStatusCode.Created)
             {
@@ -156,7 +169,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                return new StatusCodeResult(400);
+                string responseContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    ProblemDetails problems = JsonSerializer.Deserialize<ProblemDetails>(responseContent);
+                    return new ObjectResult(problems) { StatusCode = (int)response.StatusCode };
+                }
+                catch (Exception ex)
+                {
+                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                }
             }
         }
 
