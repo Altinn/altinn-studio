@@ -95,7 +95,7 @@
         "dataModelBindings": {
           "simpleBinding": "root.kjonn"
         },
-        "required": false,
+        "required": true,
         "optionsId": "kjønn",
         "textResourceBindings": {
           "title": "CV.kj.title"
