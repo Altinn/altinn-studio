@@ -7,9 +7,7 @@
     "dataTypes": [
         {
             "id": "datamodel",
-            "allowedContentTypes": [
-                "application/xml"
-            ],
+            "allowedContentTypes": ["application/xml"],
             "appLogic": {
                 "autoCreate": true,
                 "classRef": "Altinn.App.Models.datamodel"

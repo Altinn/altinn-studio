@@ -15,7 +15,6 @@ const renderWithMockServices = (services: Partial<ServicesContextProps> = {}) =>
 };
 
 describe('App', () => {
-
   test('should display spinner while loading', () => {
     renderWithMockServices();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();

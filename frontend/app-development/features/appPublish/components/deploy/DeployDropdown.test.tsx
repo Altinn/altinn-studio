@@ -16,13 +16,17 @@ describe('DeployDropdown', () => {
     it('should open the confirmation dialog when clicking the delete button', async () => {
       await render();
 
-      const deleteButton = screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') });
+      const deleteButton = screen.getByRole('button', {
+        name: textMock('app_deploy_messages.btn_deploy_new_version'),
+      });
       await act(() => user.click(deleteButton));
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(textMock('app_deploy_messages.deploy_confirmation_short', { selectedImageTag: '' }));
+      const text = await screen.findByText(
+        textMock('app_deploy_messages.deploy_confirmation_short', { selectedImageTag: '' })
+      );
       expect(text).toBeInTheDocument();
 
       const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
@@ -35,7 +39,9 @@ describe('DeployDropdown', () => {
     it('should confirm and close the dialog when clicking the confirm button', async () => {
       await render();
 
-      const deleteButton = screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') });
+      const deleteButton = screen.getByRole('button', {
+        name: textMock('app_deploy_messages.btn_deploy_new_version'),
+      });
       await act(() => user.click(deleteButton));
 
       const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
@@ -48,7 +54,9 @@ describe('DeployDropdown', () => {
     it('should close the confirmation dialog when clicking the cancel button', async () => {
       await render();
 
-      const deleteButton = screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') });
+      const deleteButton = screen.getByRole('button', {
+        name: textMock('app_deploy_messages.btn_deploy_new_version'),
+      });
       await act(() => user.click(deleteButton));
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -61,7 +69,9 @@ describe('DeployDropdown', () => {
     it('should close when clicking outside the popover', async () => {
       await render();
 
-      const deleteButton = screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') });
+      const deleteButton = screen.getByRole('button', {
+        name: textMock('app_deploy_messages.btn_deploy_new_version'),
+      });
       await act(() => user.click(deleteButton));
 
       await act(() => user.click(document.body));
@@ -83,7 +93,7 @@ const render = async (props: Partial<DeployDropdownProps> = {}) => {
     setSelectedImageTag: jest.fn(),
     selectedImageTag: '',
     startDeploy: startDeployMock,
-    ...props
+    ...props,
   };
 
   return rtlRender(<DeployDropdown {...allProps} />);

@@ -2,7 +2,7 @@ import React from 'react';
 import {
   convertMetadataListToOptions,
   findMetadataOptionByRelativeUrl,
-  groupMetadataOptions
+  groupMetadataOptions,
 } from '../../../../utils/metadataUtils';
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/design-system-react';
@@ -20,9 +20,8 @@ export const SchemaSelect = ({
   datamodels,
   disabled,
   selectedOption,
-  setSelectedOption
+  setSelectedOption,
 }: ISchemaSelectProps) => {
-
   const options = convertMetadataListToOptions(datamodels);
   const optionGroups = groupMetadataOptions(options);
   const handleChange = (repositoyUrl: string) =>

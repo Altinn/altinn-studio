@@ -26,7 +26,7 @@ const clickUploadButton = async () => {
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
-  renderWithMockStore({}, {}, queryClient)(<XSDUpload/>);
+  renderWithMockStore({}, {}, queryClient)(<XSDUpload />);
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);

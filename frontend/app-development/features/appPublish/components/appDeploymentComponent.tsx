@@ -2,7 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
 import { AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
-import { Table, TableRow, TableHeader, TableCell, TableBody, Link } from '@digdir/design-system-react';
+import {
+  Table,
+  TableRow,
+  TableHeader,
+  TableCell,
+  TableBody,
+  Link,
+} from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useTranslation, Trans } from 'react-i18next';
@@ -93,7 +100,9 @@ export const AppDeploymentComponent = ({
     if (deployPermission && latestDeploy && deployedVersionNotReachable) {
       toast.error(() => (
         <Trans i18nKey='app_deploy_messages.unable_to_list_deploys'>
-          <Link inverted href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>
+            tjenesteeier@altinn.no
+          </Link>
         </Trans>
       ));
     }
@@ -103,7 +112,9 @@ export const AppDeploymentComponent = ({
     if (deployPermission && (deployFailed || mutation.isError)) {
       toast.error(() => (
         <Trans i18nKey='app_deploy_messages.technical_error_1'>
-          <Link inverted href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>
+            tjenesteeier@altinn.no
+          </Link>
         </Trans>
       ));
     }
@@ -137,7 +148,7 @@ export const AppDeploymentComponent = ({
           {!deployPermission && (
             <div className={classes.deployStatusGridContainer}>
               <div className={classes.deploySpinnerGridItem}>
-                <InformationSquareFillIcon/> 
+                <InformationSquareFillIcon />
               </div>
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>

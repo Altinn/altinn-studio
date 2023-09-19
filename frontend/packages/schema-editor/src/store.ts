@@ -9,5 +9,5 @@ export const store: EnhancedStore = configureStore({
       serializableCheck: {
         ignoredActionPaths: ['payload.onSaveSchema'],
       },
-    })
+    }),
 });

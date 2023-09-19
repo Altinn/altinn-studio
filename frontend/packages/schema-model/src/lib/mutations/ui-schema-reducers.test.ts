@@ -59,7 +59,7 @@ import {
   ObjectKind,
   StrRestrictionKey,
   UiSchemaNode,
-  UiSchemaNodes
+  UiSchemaNodes,
 } from '../../types';
 import { ROOT_POINTER } from '../constants';
 import { getPointers } from '../mappers/getPointers';
@@ -183,7 +183,9 @@ describe('ui-schema-reducers', () => {
       result = promoteProperty(uiSchemaMock, pointer);
       const expectedPointer = `${ROOT_POINTER}/$defs/${substringAfterLast(pointer, '/')}`;
       expect(getPointers(result)).toContain(expectedPointer);
-      expect(getNodeByPointer(result, expectedPointer)).toMatchObject({ fieldType: stringNodeMock.fieldType });
+      expect(getNodeByPointer(result, expectedPointer)).toMatchObject({
+        fieldType: stringNodeMock.fieldType,
+      });
     });
   });
 
@@ -303,7 +305,7 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.fieldType).toEqual(combinationType);
     });
 
-    it('Updates the childrens\' pointers', () => {
+    it("Updates the childrens' pointers", () => {
       result = setCombinationType(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(allOfNodeMock.children.length).toEqual(updatedNode.children.length);
@@ -394,7 +396,7 @@ describe('ui-schema-reducers', () => {
           expect(childNode.pointer).not.toContain(Keyword.Items);
         });
       });
-    })
+    });
   });
 
   describe('changeChildrenOrder', () => {

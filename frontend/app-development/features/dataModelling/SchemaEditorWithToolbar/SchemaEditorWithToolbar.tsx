@@ -15,7 +15,6 @@ export const SchemaEditorWithToolbar = ({
   createPathOption,
   datamodels,
 }: SchemaEditorWithToolbarProps) => {
-
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
 

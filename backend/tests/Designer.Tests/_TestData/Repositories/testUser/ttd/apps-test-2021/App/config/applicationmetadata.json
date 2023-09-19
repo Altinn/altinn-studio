@@ -1,53 +1,49 @@
 {
-  "id": "ttd/apps-test-2021",
-  "org": "ttd",
-  "title": {
-    "nb": "test app (simple)"
-  },
-  "dataTypes": [
-    {
-      "id": "default",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
-      "appLogic": {
-        "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema",
-        "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false
-      },
-      "taskId": "Task_1",
-      "maxCount": 1,
-      "minCount": 1,
-      "enablePdfCreation": true
+    "id": "ttd/apps-test-2021",
+    "org": "ttd",
+    "title": {
+        "nb": "test app (simple)"
     },
-    {
-      "id": "ref-data-as-pdf",
-      "allowedContentTypes": [
-        "application/pdf"
-      ],
-      "maxCount": 0,
-      "minCount": 0,
-      "enablePdfCreation": true
+    "dataTypes": [
+        {
+            "id": "default",
+            "allowedContentTypes": ["application/xml"],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.Skjema",
+                "allowAnonymousOnStateless": false,
+                "autoDeleteOnProcessEnd": false
+            },
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 1,
+            "enablePdfCreation": true
+        },
+        {
+            "id": "ref-data-as-pdf",
+            "allowedContentTypes": ["application/pdf"],
+            "maxCount": 0,
+            "minCount": 0,
+            "enablePdfCreation": true
+        },
+        {
+            "id": "d84913c1-2b32-4ab0-a605-409be875bae6",
+            "taskId": "Task_1",
+            "maxSize": 1,
+            "maxCount": 3,
+            "minCount": 1,
+            "enablePdfCreation": true
+        }
+    ],
+    "partyTypesAllowed": {
+        "bankruptcyEstate": false,
+        "organisation": false,
+        "person": false,
+        "subUnit": false
     },
-    {
-      "id": "d84913c1-2b32-4ab0-a605-409be875bae6",
-      "taskId": "Task_1",
-      "maxSize": 1,
-      "maxCount": 3,
-      "minCount": 1,
-      "enablePdfCreation": true
-    }
-  ],
-  "partyTypesAllowed": {
-    "bankruptcyEstate": false,
-    "organisation": false,
-    "person": false,
-    "subUnit": false
-  },
-  "autoDeleteOnProcessEnd": false,
-  "created": "2022-11-15T14:02:17.206356Z",
-  "createdBy": "testUser",
-  "lastChanged": "2022-11-15T14:02:17.206356Z",
-  "lastChangedBy": "testUser"
+    "autoDeleteOnProcessEnd": false,
+    "created": "2022-11-15T14:02:17.206356Z",
+    "createdBy": "testUser",
+    "lastChanged": "2022-11-15T14:02:17.206356Z",
+    "lastChangedBy": "testUser"
 }

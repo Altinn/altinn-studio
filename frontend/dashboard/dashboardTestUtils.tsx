@@ -5,10 +5,14 @@ import { MemoryRouter } from 'react-router-dom';
 import {
   ServicesContextProps,
   ServicesContextProvider,
-  ServicesContextProviderProps
+  ServicesContextProviderProps,
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { AddRepoParams, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import {
+  AddRepoParams,
+  SearchRepoFilterParams,
+  SearchRepositoryResponse,
+} from 'app-shared/types/api';
 import { queryClientConfigMock, createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 export type MockServicesContextWrapperProps = {
@@ -24,25 +28,25 @@ export const MockServicesContextWrapper = ({
 }: MockServicesContextWrapperProps) => {
   const queries: ServicesContextProviderProps = {
     ...queriesMock,
-    getUser: () => Promise.resolve({ avatar_url: null, email: '', full_name: '', id: null, login: null }),
+    getUser: () =>
+      Promise.resolve({ avatar_url: null, email: '', full_name: '', id: null, login: null }),
     logout: () => Promise.resolve(),
     getOrganizations: () => Promise.resolve([]),
     addRepo: (repoToAdd: AddRepoParams) => Promise.resolve({} as IRepository),
     copyApp: () => Promise.resolve(),
     getStarredRepos: () => Promise.resolve([] as IRepository[]),
-    searchRepos: (params: SearchRepoFilterParams) => Promise.resolve({} as SearchRepositoryResponse),
+    searchRepos: (params: SearchRepoFilterParams) =>
+      Promise.resolve({} as SearchRepositoryResponse),
     setStarredRepo: () => Promise.resolve([]),
     unsetStarredRepo: () => Promise.resolve(),
     ...customServices,
     client,
-    clientConfig: queryClientConfigMock
+    clientConfig: queryClientConfigMock,
   };
 
   return (
     <MemoryRouter>
-      <ServicesContextProvider {...queries}>
-        {children}
-      </ServicesContextProvider>
+      <ServicesContextProvider {...queries}>{children}</ServicesContextProvider>
     </MemoryRouter>
   );
 };

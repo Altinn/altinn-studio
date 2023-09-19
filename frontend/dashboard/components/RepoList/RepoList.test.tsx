@@ -22,7 +22,6 @@ const renderWithMockServices = (
 };
 
 describe('RepoList', () => {
-
   test('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
     const handleSortMock = jest.fn();
     renderWithMockServices({
@@ -56,14 +55,15 @@ describe('RepoList', () => {
     });
   });
 
-  test("Should render GridActionsCellItem", () => {
-   renderWithMockServices({
+  test('Should render GridActionsCellItem', () => {
+    renderWithMockServices({
       isLoading: false,
       isServerSort: true,
       rowCount: 5,
     });
-    const gridActionsCellItem = within(screen.getByRole('menuitem', 
-    { name: textMock('dashboard.unstar') })).getByRole('img');
+    const gridActionsCellItem = within(
+      screen.getByRole('menuitem', { name: textMock('dashboard.unstar') })
+    ).getByRole('img');
     expect(gridActionsCellItem).toBeInTheDocument();
   });
 });

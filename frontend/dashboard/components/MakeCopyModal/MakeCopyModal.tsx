@@ -25,7 +25,9 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const { mutate: copyAppMutate, isLoading: isLoadingCopyApp } = useCopyAppMutation({ hideDefaultError: (error: AxiosError) => error?.response?.status === 409 });
+  const { mutate: copyAppMutate, isLoading: isLoadingCopyApp } = useCopyAppMutation({
+    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+  });
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
 

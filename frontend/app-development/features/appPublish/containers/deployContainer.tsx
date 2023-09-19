@@ -25,11 +25,17 @@ export const DeployContainerComponent = () => {
     (state) => state.appDeployments.createAppDeploymentErrors
   );
 
-  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeploymentsQuery(org, app);
+  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeploymentsQuery(
+    org,
+    app
+  );
   const { data: environmentList = [], isLoading: envIsLoading } = useEnvironmentsQuery();
   const { data: releases = [], isLoading: releasesIsLoading } = useAppReleasesQuery(org, app);
   const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgListQuery();
-  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(org, app);
+  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(
+    org,
+    app
+  );
 
   const isLoading = () =>
     releasesIsLoading || orgsIsLoading || permissionsIsLoading || envIsLoading || deploysAreLoading;

@@ -16,10 +16,12 @@ describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls getDatamodel with correct arguments when Json Schema', async () => {
-    const { renderHookResult: { result } } = renderHookWithMockStore(
+    const {
+      renderHookResult: { result },
+    } = renderHookWithMockStore(
       {},
       { getDatamodel, addXsdFromRepo },
-      createQueryClientMock(),
+      createQueryClientMock()
     )(() => useSchemaQuery(jsonModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(getDatamodel).toHaveBeenCalledTimes(1);
@@ -28,10 +30,12 @@ describe('useSchemaQuery', () => {
   });
 
   it('Calls addXsdFromRepo with correct arguments when XSD', async () => {
-    const { renderHookResult: { result } } = renderHookWithMockStore(
+    const {
+      renderHookResult: { result },
+    } = renderHookWithMockStore(
       {},
       { getDatamodel, addXsdFromRepo },
-      createQueryClientMock(),
+      createQueryClientMock()
     )(() => useSchemaQuery(xsdModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(addXsdFromRepo).toHaveBeenCalledTimes(1);

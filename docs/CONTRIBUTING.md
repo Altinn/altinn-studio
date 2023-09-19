@@ -5,6 +5,7 @@ However we do recommend that you check our pages on
 [how to contribute to our development](https://docs.altinn.studio/community/contributing/) first.
 
 You can also contribute by:
+
 - Reporting a bug
 - Discussing the current state of the code
 - Proposing new features
@@ -49,7 +50,7 @@ Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/is
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
 
-People *love* thorough bug reports. I'm not even kidding.
+People _love_ thorough bug reports. I'm not even kidding.
 
 ## License
 

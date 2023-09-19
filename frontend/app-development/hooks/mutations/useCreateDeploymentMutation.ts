@@ -10,6 +10,6 @@ export const useCreateDeploymentMutation = (owner, app, meta?: MutationMeta) => 
     mutationFn: (payload: CreateDeploymentPayload) => createDeployment(owner, app, payload),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppDeployments, owner, app] }),
-      meta,
+    meta,
   });
 };

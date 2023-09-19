@@ -36,4 +36,4 @@ export const repositoryMock: Repository = {
   updated_at: '',
   watchers_count: 0,
   website: '',
-}
+};

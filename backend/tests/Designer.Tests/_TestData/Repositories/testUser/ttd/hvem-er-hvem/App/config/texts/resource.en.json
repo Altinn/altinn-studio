@@ -1,9 +1,9 @@
 ﻿{
-  "language": "en",
-  "resources": [
-    {
-      "id": "ServiceName",
-      "value": "who-is-who"
-    }
-  ]
+    "language": "en",
+    "resources": [
+        {
+            "id": "ServiceName",
+            "value": "who-is-who"
+        }
+    ]
 }

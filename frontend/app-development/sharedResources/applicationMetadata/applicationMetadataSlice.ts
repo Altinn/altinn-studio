@@ -58,7 +58,7 @@ const applicationMetadataSlice = createSlice({
 });
 
 const actions = {
-  getApplicationMetadata: createAction<{org, app}>(`${moduleName}/getApplicationMetadata`),
+  getApplicationMetadata: createAction<{ org; app }>(`${moduleName}/getApplicationMetadata`),
   putApplicationMetadata: createAction<IPutApplicationMetadata>(
     `${moduleName}/putApplicationMetadata`
   ),

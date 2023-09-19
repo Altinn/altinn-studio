@@ -1,4 +1,4 @@
-  {
+{
     "name": "resource.nb.json",
     "path": "App/config/texts/resource.nb.json",
     "sha": "eb8ee3c9010ef9a8931eb46fdfbda4b8acb57e64",
@@ -13,8 +13,8 @@
     "download_url": "https://dev.altinn.studio/repos/ttd/apps-test/raw/commit/5e651c2b784571e481c90fbf26325ce336b634b8/App/config/texts/resource.nb.json",
     "submodule_git_url": null,
     "_links": {
-      "self": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/contents/App/config/texts/resource.nb.json?ref=5e651c2b784571e481c90fbf26325ce336b634b8",
-      "git": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/git/blobs/eb8ee3c9010ef9a8931eb46fdfbda4b8acb57e64",
-      "html": "https://dev.altinn.studio/repos/ttd/apps-test/src/commit/5e651c2b784571e481c90fbf26325ce336b634b8/App/config/texts/resource.nb.json"
+        "self": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/contents/App/config/texts/resource.nb.json?ref=5e651c2b784571e481c90fbf26325ce336b634b8",
+        "git": "https://dev.altinn.studio/repos/api/v1/repos/ttd/apps-test/git/blobs/eb8ee3c9010ef9a8931eb46fdfbda4b8acb57e64",
+        "html": "https://dev.altinn.studio/repos/ttd/apps-test/src/commit/5e651c2b784571e481c90fbf26325ce336b634b8/App/config/texts/resource.nb.json"
     }
-  }
+}

@@ -10,7 +10,10 @@
 }
 
 .treeItem:global(.Mui-selected) > :global(.MuiTreeItem-content) :global(.MuiTreeItem-label),
-.treeItem :global(.MuiTreeItem-root.Mui-selected):focus > :global(.MuiTreeItem-content) :global(.MuiTreeItem-label) {
+.treeItem
+  :global(.MuiTreeItem-root.Mui-selected):focus
+  > :global(.MuiTreeItem-content)
+  :global(.MuiTreeItem-label) {
   background-color: transparent;
 }
 

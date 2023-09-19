@@ -26,5 +26,5 @@ export const useCreateDatamodelMutation = () => {
         queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
       ]);
     },
-  })
-}
+  });
+};

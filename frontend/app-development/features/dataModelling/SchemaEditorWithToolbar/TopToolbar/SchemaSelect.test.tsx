@@ -2,7 +2,10 @@ import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
-import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import {
+  jsonMetadata1Mock,
+  jsonMetadata2Mock,
+} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import userEvent from '@testing-library/user-event';
@@ -44,7 +47,7 @@ describe('SchemaSelect', () => {
     render();
     await user.selectOptions(
       screen.getByRole('combobox'),
-      screen.getByRole('option', { name: jsonOption2.label }),
+      screen.getByRole('option', { name: jsonOption2.label })
     );
     expect(setSelectedOption).toHaveBeenCalledTimes(1);
     expect(setSelectedOption).toHaveBeenCalledWith(jsonOption2);

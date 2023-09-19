@@ -43,7 +43,9 @@ describe('custom-properties', () => {
     });
 
     it('Returns CustomPropertyType.Unsupported for unsupported properties', () => {
-      expect(propertyType(customProperties, unsupportedPropKey)).toEqual(CustomPropertyType.Unsupported);
+      expect(propertyType(customProperties, unsupportedPropKey)).toEqual(
+        CustomPropertyType.Unsupported
+      );
     });
   });
 

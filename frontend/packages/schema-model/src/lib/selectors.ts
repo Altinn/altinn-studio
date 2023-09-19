@@ -7,8 +7,7 @@ export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSch
   const rootNodes: UiSchemaNodes = [];
   if (hasNodePointer(uiSchemaNodes, ROOT_POINTER)) {
     getNodeByPointer(uiSchemaNodes, ROOT_POINTER)
-      .children
-      .filter((p) => p.startsWith(makePointer(Keyword.Definitions)) === defs)
+      .children.filter((p) => p.startsWith(makePointer(Keyword.Definitions)) === defs)
       .forEach((childPointer) => rootNodes.push(getNodeByPointer(uiSchemaNodes, childPointer)));
   }
   return rootNodes;

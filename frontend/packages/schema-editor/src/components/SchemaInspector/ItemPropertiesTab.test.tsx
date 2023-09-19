@@ -28,7 +28,7 @@ describe('ItemPropertiesTab', () => {
       uiSchemaNodes.push(childNode);
     });
 
-    renderWithProviders()(<ItemPropertiesTab selectedItem={uiSchemaNodes[1]}/>);
+    renderWithProviders()(<ItemPropertiesTab selectedItem={uiSchemaNodes[1]} />);
     expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
   });
 });

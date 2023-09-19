@@ -13,7 +13,10 @@ export function DeployPage() {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
   const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgListQuery();
-  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(org, app);
+  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(
+    org,
+    app
+  );
   useInvalidator();
   if (isLoadingOrgs || permissionsIsLoading) {
     return (
@@ -48,9 +51,7 @@ export function DeployPage() {
   if (!permissions || !permissions.length) {
     return (
       <InfoCard headerText={t('app_publish.no_team')} shadow={true}>
-        <div style={{ paddingTop: '2.4rem' }}>
-          {t('app_publish.no_team_info')}
-        </div>
+        <div style={{ paddingTop: '2.4rem' }}>{t('app_publish.no_team_info')}</div>
       </InfoCard>
     );
   }

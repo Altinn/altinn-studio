@@ -13,10 +13,7 @@ export interface IXSDUploadProps {
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
-export const XSDUpload = ({
-  disabled,
-  submitButtonRenderer,
-}: IXSDUploadProps) => {
+export const XSDUpload = ({ disabled, submitButtonRenderer }: IXSDUploadProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();

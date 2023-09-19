@@ -31,20 +31,26 @@ describe('AppDeploymentComponent', () => {
   const user = userEvent.setup();
   it('should render', () => {
     render();
-    expect(screen.getByText(`${textMock('app_deploy.environment', { envName: 'test' })}`)).toBeInTheDocument();
+    expect(
+      screen.getByText(`${textMock('app_deploy.environment', { envName: 'test' })}`)
+    ).toBeInTheDocument();
   });
 
   it('should render with no deploy history', () => {
     render();
     expect(screen.getByText(textMock('app_deploy.no_app_deployed'))).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' }))
+      screen.getByText(
+        textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' })
+      )
     ).toBeInTheDocument();
   });
 
   it('should render missing rights message if deployPermission is false', () => {
     render({ deployPermission: false });
-    expect(screen.getByText(textMock('app_publish.missing_rights', { envName: 'test', orgName: 'test' }))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_publish.missing_rights', { envName: 'test', orgName: 'test' }))
+    ).toBeInTheDocument();
   });
 
   it('should render with deploy history', () => {
@@ -68,7 +74,9 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ deployHistory });
-    expect(screen.getByText(textMock('app_deploy.deployed_version', { appDeployedVersion: 'test' }))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deploy.deployed_version', { appDeployedVersion: 'test' }))
+    ).toBeInTheDocument();
     expect(
       screen.getByText(textMock('app_deploy_table.deployed_version_history', { envName: 'test' }))
     ).toBeInTheDocument();
@@ -96,7 +104,9 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ deployHistory });
-    expect(await screen.findByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('app_deploy_messages.technical_error_1'))
+    ).toBeInTheDocument();
   });
 
   it('should should render error message if latest deploy succeeded but app is not reachable', () => {
@@ -196,6 +206,8 @@ describe('AppDeploymentComponent', () => {
       )
     );
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.yes') })));
-    expect(await screen.findByText(textMock('app_deploy_messages.technical_error_1'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('app_deploy_messages.technical_error_1'))
+    ).toBeInTheDocument();
   });
 });

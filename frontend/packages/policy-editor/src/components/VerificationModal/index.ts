@@ -1,1 +1,1 @@
-export { VerificationModal } from './VerificationModal'
+export { VerificationModal } from './VerificationModal';

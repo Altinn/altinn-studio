@@ -11,13 +11,14 @@ import {
   ObjectKind,
   buildUiSchema,
   getNodeByPointer,
-  makePointer, UiSchemaNodes,
+  makePointer,
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders, RenderWithProvidersData } from '../../test/renderWithProviders';
 import { getSavedModel } from '../../test/test-utils';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
-import * as testids from '../../../../testing/testids'
+import * as testids from '../../../../testing/testids';
 import { uiSchemaNodesMock } from '../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
@@ -42,16 +43,18 @@ const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
       save,
       ...data.appContextProps,
     },
-  })(<SchemaEditor/>);
+  })(<SchemaEditor />);
 };
 
-const clickMenuItem = async (name: string) =>{
+const clickMenuItem = async (name: string) => {
   const item = screen.getByRole('menuitem', { name });
   await act(() => user.click(item));
 };
 
 const clickOpenContextMenuButton = async () => {
-  const buttons = screen.getAllByRole('button', { name: textMock('schema_editor.open_action_menu') });
+  const buttons = screen.getAllByRole('button', {
+    name: textMock('schema_editor.open_action_menu'),
+  });
   await act(() => user.click(buttons[0]));
 };
 
@@ -212,9 +215,15 @@ describe('SchemaEditor', () => {
   test('should show menu with option field, reference, and combination when pressing add', async () => {
     const data = buildUiSchema(dataMock);
     renderEditor({ appContextProps: { data } });
-    expect(screen.getByRole('menuitem', { name: textMock('schema_editor.field') })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: textMock('schema_editor.reference') })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: textMock('schema_editor.combination') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.field') })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') })
+    ).toBeInTheDocument();
   });
 
   test('should trigger correct dispatch when adding combination to root', async () => {
@@ -279,7 +288,9 @@ describe('SchemaEditor', () => {
     renderEditor({ appContextProps: { data } });
     const type = screen.getByTestId(testids.typeItem(`#/${Keyword.Definitions}/TestType`));
     await act(() => user.click(type));
-    expect(screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))).toBeDefined();
+    expect(
+      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))
+    ).toBeDefined();
   });
 
   test('close type when clicking on close button', async () => {

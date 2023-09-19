@@ -1,13 +1,11 @@
 [
     {
         "ActionId": "read",
-        "ActionTitle": "Les",
-
+        "ActionTitle": "Les"
     },
     {
         "ActionId": "write",
         "ActionTitle": "Skriv"
-
     },
     {
         "ActionId": "delete",

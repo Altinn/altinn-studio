@@ -1,37 +1,37 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:21383/",
-      "sslPort": 0
-    }
-  },
-  "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+    "iisSettings": {
+        "windowsAuthentication": false,
+        "anonymousAuthentication": true,
+        "iisExpress": {
+            "applicationUrl": "http://localhost:21383/",
+            "sslPort": 0
+        }
     },
-    "AltinnCoreDesigner": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "http://studio.localhost/",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "AltinnStudioOsX": {
-      "commandName": "Project",
-      "launchBrowser": false,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ServiceRepositorySettings__RepositoryLocation": "/tmp/altinn/repos/",
-        "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/",
-        "DOTNET_ROLL_FORWARD": "Major"
-      }
+    "profiles": {
+        "IIS Express": {
+            "commandName": "IISExpress",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        "AltinnCoreDesigner": {
+            "commandName": "Project",
+            "launchBrowser": true,
+            "launchUrl": "http://studio.localhost/",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        "AltinnStudioOsX": {
+            "commandName": "Project",
+            "launchBrowser": false,
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ServiceRepositorySettings__RepositoryLocation": "/tmp/altinn/repos/",
+                "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/",
+                "DOTNET_ROLL_FORWARD": "Major"
+            }
+        }
     }
-  }
 }

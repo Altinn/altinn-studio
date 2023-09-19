@@ -7,7 +7,7 @@ import { SchemaState } from '@altinn/schema-editor/types';
 
 export type ReduxSelector<T> = (state: SchemaState) => T;
 
-export const selectedIdSelector: ReduxSelector<string> =
-  (state) => state.selectedEditorTab === 'properties'
+export const selectedIdSelector: ReduxSelector<string> = (state) =>
+  state.selectedEditorTab === 'properties'
     ? state.selectedPropertyNodeId
     : state.selectedDefinitionNodeId;

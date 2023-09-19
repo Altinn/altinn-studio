@@ -71,7 +71,9 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutate: addRepo } = useAddRepoMutation({ hideDefaultError: (error: AxiosError) => error?.response?.status === 409 });
+  const { mutate: addRepo } = useAddRepoMutation({
+    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+  });
   const { t } = useTranslation();
   const navigate = useNavigate();
 

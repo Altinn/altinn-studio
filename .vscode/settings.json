@@ -19,7 +19,7 @@
   "cSpell.words": ["api", "i", "kubernetes", "wrapper"],
   "java.configuration.updateBuildConfiguration": "interactive",
   "eslint.workingDirectories": [
-    { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true },
+    { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true }
   ],
   "editor.codeActionsOnSave": { "source.fixAll": true }
 }

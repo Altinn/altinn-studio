@@ -1,4 +1,4 @@
 {
-  "text_file" : "invalid json format",
-  "this is not allowed" : 0
+    "text_file": "invalid json format",
+    "this is not allowed": 0
 }

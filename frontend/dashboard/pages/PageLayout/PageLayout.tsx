@@ -20,7 +20,7 @@ export const PageLayout = () => {
       organizations &&
       !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
     ) {
-      navigate("/");
+      navigate('/');
     }
   }, [organizations, selectedContext, user.login, navigate]);
 

@@ -10,7 +10,7 @@ import {
   getNodeByPointer,
   getParentNodeByPointer,
   UiSchemaNode,
-  UiSchemaNodes
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
 
@@ -19,20 +19,20 @@ export type SchemaAndReduxSelector<R, S> = {
   schemaSelector: (reduxSelectorResult: R, schema: UiSchemaNodes) => S;
 };
 
-export const selectedItemSelector: SchemaAndReduxSelector<string, UiSchemaNode> =  {
+export const selectedItemSelector: SchemaAndReduxSelector<string, UiSchemaNode> = {
   reduxSelector: selectedIdSelector,
-  schemaSelector: (selectedId, schema) => selectedId ? getNodeByPointer(schema, selectedId) : undefined
+  schemaSelector: (selectedId, schema) =>
+    selectedId ? getNodeByPointer(schema, selectedId) : undefined,
 };
 
 export const selectedPropertyParentSelector: SchemaAndReduxSelector<string, UiSchemaNode> = {
   reduxSelector: (state) => state.selectedPropertyNodeId,
-  schemaSelector: (selectedId, schema) => selectedId ? getParentNodeByPointer(schema, selectedId) : undefined
+  schemaSelector: (selectedId, schema) =>
+    selectedId ? getParentNodeByPointer(schema, selectedId) : undefined,
 };
 
 export const selectedDefinitionParentSelector: SchemaAndReduxSelector<string, UiSchemaNode> = {
   reduxSelector: (state) => state.selectedDefinitionNodeId,
-  schemaSelector: (selectedId, schema) => selectedId ? getParentNodeByPointer(schema, selectedId) : undefined
+  schemaSelector: (selectedId, schema) =>
+    selectedId ? getParentNodeByPointer(schema, selectedId) : undefined,
 };
-
-
-

@@ -13,7 +13,6 @@ import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 
-
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
 };
@@ -59,30 +58,30 @@ export const Viewer = (): JSX.Element => {
         body: t('process_editor.not_found_process_error_message'),
       };
     }
-    if(bpmnViewerError === "unknown"){
+    if (bpmnViewerError === 'unknown') {
       return {
         heading: t('process_editor.unknown_heading_error_message'),
         body: t('process_editor.unknown_paragraph_error_message'),
-      }
+      };
     }
     return null;
   };
 
   const errorToDisplay = getErrorMessage();
   return (
-  <>
-  {errorToDisplay && ( 
-   <div className={classes.alertContainer}>
-    <Alert severity='warning'>
-      <Heading size='small' spacing>
-        {errorToDisplay.heading}
-      </Heading>
-      <Paragraph>{errorToDisplay.body}</Paragraph>
-    </Alert>
-   </div>
-  )}
-  <div ref={canvasRef}></div>
-  </>
+    <>
+      {errorToDisplay && (
+        <div className={classes.alertContainer}>
+          <Alert severity='warning'>
+            <Heading size='small' spacing>
+              {errorToDisplay.heading}
+            </Heading>
+            <Paragraph>{errorToDisplay.body}</Paragraph>
+          </Alert>
+        </div>
+      )}
+      <div ref={canvasRef}></div>
+    </>
   );
 };
 

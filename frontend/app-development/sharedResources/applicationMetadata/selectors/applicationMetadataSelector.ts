@@ -5,8 +5,11 @@ const applicationMetadataSelector = (state: RootState) => {
   return state.applicationMetadataState?.applicationMetadata;
 };
 
-const getApplicationMetadata = createSelector([applicationMetadataSelector], (applicationMetadata) => {
-  return applicationMetadata;
-});
+const getApplicationMetadata = createSelector(
+  [applicationMetadataSelector],
+  (applicationMetadata) => {
+    return applicationMetadata;
+  }
+);
 
 export const makeGetApplicationMetadata = getApplicationMetadata;

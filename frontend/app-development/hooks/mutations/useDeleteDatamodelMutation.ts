@@ -16,5 +16,5 @@ export const useDeleteDatamodelMutation = () => {
         queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
       ]);
     },
-  })
-}
+  });
+};

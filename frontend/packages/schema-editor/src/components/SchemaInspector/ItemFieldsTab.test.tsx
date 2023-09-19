@@ -73,13 +73,16 @@ const saveDatamodel = jest.fn();
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, data: Partial<RenderWithProvidersData> = {}) =>
+const renderItemFieldsTab = (
+  props: Partial<ItemFieldsTabProps> = {},
+  data: Partial<RenderWithProvidersData> = {}
+) =>
   renderWithProviders({
     ...data,
     appContextProps: {
       data: uiSchema,
       save: saveDatamodel,
-      ...data.appContextProps
+      ...data.appContextProps,
     },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
 
@@ -215,7 +218,7 @@ describe('ItemFieldsTab', () => {
       {
         appContextProps: {
           data: [...uiSchema, referencedNode],
-        }
+        },
       }
     );
     const textboxes = await screen.findAllByLabelText(textFieldName);

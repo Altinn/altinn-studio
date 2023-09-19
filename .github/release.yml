@@ -38,4 +38,4 @@ changelog:
         - kind/dependencies
     - title: Other Changes
       labels:
-        - "*"
+        - '*'

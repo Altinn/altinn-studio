@@ -12,16 +12,18 @@ describe('renameNodePointer', () => {
   const newPointers = getPointers(result);
 
   it('Renames the given node pointer', () => {
-    expect(renamedNode).toEqual(({
+    expect(renamedNode).toEqual({
       ...parentNodeMock,
       pointer: newPointer,
       children: expect.anything(),
-    }));
+    });
     expect(newPointers).not.toContain(oldPointer);
   });
 
   it('Renames the children pointers', () => {
-    const oldChildPointers = getPointers(uiSchemaMock).filter((pointer) => pointer.startsWith(oldPointer));
+    const oldChildPointers = getPointers(uiSchemaMock).filter((pointer) =>
+      pointer.startsWith(oldPointer)
+    );
     oldChildPointers.forEach((oldChildPointer) => {
       expect(newPointers).toContain(oldChildPointer.replace(oldPointer, newPointer));
       expect(newPointers).not.toContain(oldChildPointer);
@@ -29,8 +31,9 @@ describe('renameNodePointer', () => {
   });
 
   it('Updates the children array of the renamed node', () => {
-    expect(renamedNode.children)
-      .toEqual(parentNodeMock.children.map((child) => child.replace(oldPointer, newPointer)));
+    expect(renamedNode.children).toEqual(
+      parentNodeMock.children.map((child) => child.replace(oldPointer, newPointer))
+    );
   });
 
   it('Throws error on unknown pointer', () => {

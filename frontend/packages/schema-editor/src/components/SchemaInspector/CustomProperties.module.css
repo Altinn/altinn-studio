@@ -4,7 +4,7 @@
 }
 
 .listItem {
-  --vertical-padding: .5rem; /* Must use padding instead of gap to get a proper hover effect */
+  --vertical-padding: 0.5rem; /* Must use padding instead of gap to get a proper hover effect */
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -26,16 +26,18 @@
   box-shadow: 100px 0 var(--background), -100px 0 var(--background);
 }
 
-.data, .data > * {
+.data,
+.data > * {
   flex: 1;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
 }
 
-.deleteButton {}
+.deleteButton {
+}
 
 .unknownFormatValue {
   display: inline-flex;
-  gap: .5rem;
+  gap: 0.5rem;
 }

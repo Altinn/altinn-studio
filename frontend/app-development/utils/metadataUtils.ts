@@ -1,4 +1,8 @@
-import { DatamodelMetadata, DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import {
+  DatamodelMetadata,
+  DatamodelMetadataJson,
+  DatamodelMetadataXsd,
+} from 'app-shared/types/DatamodelMetadata';
 import { replaceEnd } from 'app-shared/utils/stringUtils';
 import { removeDuplicates } from 'app-shared/utils/arrayUtils';
 import { MetadataOption } from '../types/MetadataOption';
@@ -14,12 +18,14 @@ import { removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 export const filterOutXsdDataIfJsonDataExist = (
   jsonData: DatamodelMetadataJson[],
   xsdData: DatamodelMetadataXsd[]
-): DatamodelMetadataXsd[] => xsdData.filter(
-  ({ fileName }) =>
-    !jsonData.find(
-      ({ fileName: jsonFileName }) => jsonFileName === replaceEnd(fileName, '.xsd', '.schema.json')
-    )
-);
+): DatamodelMetadataXsd[] =>
+  xsdData.filter(
+    ({ fileName }) =>
+      !jsonData.find(
+        ({ fileName: jsonFileName }) =>
+          jsonFileName === replaceEnd(fileName, '.xsd', '.schema.json')
+      )
+  );
 
 /**
  * Merges the Json and Xsd data lists, excluding the Xsd items of which there are corresponding Json items.
@@ -43,7 +49,7 @@ export const convertMetadataToOption = (metadata: DatamodelMetadata): MetadataOp
     label += ' (XSD)';
   }
   return { value: metadata, label };
-}
+};
 
 /**
  * Converts a list of DatamodelMetadata objects to a list of MetadataOption objects.
@@ -58,24 +64,28 @@ export const convertMetadataListToOptions = (metadataList: DatamodelMetadata[]):
  * @param metadataOptions The metadata options to group.
  * @returns A list of metadata option groups.
  */
-export const groupMetadataOptions = (metadataOptions: MetadataOption[]): MetadataOptionsGroup[] => ([
-  {
-    label: 'JSONSchema',
-    options: metadataOptions.filter(({ value }) => value.fileType === '.json'),
-  },
-  {
-    label: 'XSD',
-    options: metadataOptions.filter(({ value }) => value.fileType === '.xsd'),
-  },
-] satisfies MetadataOptionsGroup[]).filter(({ options }) => options.length > 0);
+export const groupMetadataOptions = (metadataOptions: MetadataOption[]): MetadataOptionsGroup[] =>
+  (
+    [
+      {
+        label: 'JSONSchema',
+        options: metadataOptions.filter(({ value }) => value.fileType === '.json'),
+      },
+      {
+        label: 'XSD',
+        options: metadataOptions.filter(({ value }) => value.fileType === '.xsd'),
+      },
+    ] satisfies MetadataOptionsGroup[]
+  ).filter(({ options }) => options.length > 0);
 
 /**
  * Converts a list of DatamodelMetadata objects to grouped lists of MetadataOption objects.
  * @param metadataList The list of DatamodelMetadata objects to convert.
  * @returns A list of MetadataOptionsGroup objects.
  */
-export const convertMetadataListToOptionGroups = (metadataList: DatamodelMetadata[]): MetadataOptionsGroup[] =>
-  groupMetadataOptions(convertMetadataListToOptions(metadataList));
+export const convertMetadataListToOptionGroups = (
+  metadataList: DatamodelMetadata[]
+): MetadataOptionsGroup[] => groupMetadataOptions(convertMetadataListToOptions(metadataList));
 
 /**
  * Extracts all model names from a list of DatamodelMetadata objects.
@@ -83,7 +93,9 @@ export const convertMetadataListToOptionGroups = (metadataList: DatamodelMetadat
  * @returns A list of model names.
  */
 export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadata[]): string[] =>
-  removeDuplicates(metadataList?.map(({ fileName }) => fileName.replace(/\.((schema\.json)|(xsd))$/, '')));
+  removeDuplicates(
+    metadataList?.map(({ fileName }) => fileName.replace(/\.((schema\.json)|(xsd))$/, ''))
+  );
 
 /**
  * Compares an old and a new list of metadata items and returns the first item of which the file name does not exist in the old list.
@@ -94,9 +106,10 @@ export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadat
 export const findNewMetadataItem = (
   oldMetadataList: DatamodelMetadata[],
   newMetadataList: DatamodelMetadata[]
-): DatamodelMetadata | undefined => newMetadataList.find(
-  ({ fileName }) => !oldMetadataList.find(({ fileName: oldFileName }) => oldFileName === fileName)
-);
+): DatamodelMetadata | undefined =>
+  newMetadataList.find(
+    ({ fileName }) => !oldMetadataList.find(({ fileName: oldFileName }) => oldFileName === fileName)
+  );
 
 /**
  * Checks if the file name of a given item exists in a list of metadata items.
@@ -104,8 +117,10 @@ export const findNewMetadataItem = (
  * @param item The item to check for.
  * @returns True if an item with the same file name exists in the list, false otherwise.
  */
-export const metadataItemExists = (metadataList: DatamodelMetadata[], item: DatamodelMetadata): boolean =>
-  !!metadataList?.find(({ fileName }) => fileName === item.fileName);
+export const metadataItemExists = (
+  metadataList: DatamodelMetadata[],
+  item: DatamodelMetadata
+): boolean => !!metadataList?.find(({ fileName }) => fileName === item.fileName);
 
 /**
  * Computes the option to be selected based on the currently selected option an the current and previous metadata lists.
@@ -121,9 +136,8 @@ export const metadataItemExists = (metadataList: DatamodelMetadata[], item: Data
 export const computeSelectedOption = (
   currentSelectedOption?: MetadataOption,
   currentMetadataList?: DatamodelMetadata[],
-  previousMetadataList?: DatamodelMetadata[],
+  previousMetadataList?: DatamodelMetadata[]
 ): MetadataOption | undefined => {
-
   if (!currentMetadataList?.length) return undefined;
 
   if (currentMetadataList !== previousMetadataList) {
@@ -131,11 +145,14 @@ export const computeSelectedOption = (
     if (newMetadataItem) return convertMetadataToOption(newMetadataItem);
   }
 
-  if (!currentSelectedOption || !metadataItemExists(currentMetadataList, currentSelectedOption.value))
+  if (
+    !currentSelectedOption ||
+    !metadataItemExists(currentMetadataList, currentSelectedOption.value)
+  )
     return convertMetadataToOption(currentMetadataList[0]);
 
   return currentSelectedOption;
-}
+};
 
 /**
  * Finds a metadata option by its relative URL.

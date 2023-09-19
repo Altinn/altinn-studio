@@ -1,4 +1,4 @@
 {
-  "repotype": "app",
-  "datamodelling.preference": "jsonSchema"
+    "repotype": "app",
+    "datamodelling.preference": "jsonSchema"
 }

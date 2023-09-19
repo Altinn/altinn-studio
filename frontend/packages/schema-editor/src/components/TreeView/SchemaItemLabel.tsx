@@ -29,9 +29,15 @@ import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { deleteNode } from '@altinn/schema-model';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
-import { LinkIcon, BulletListIcon, TabsIcon, ArrowUpIcon, TrashIcon,ArrowDownIcon } from '@navikt/aksel-icons';
+import {
+  LinkIcon,
+  BulletListIcon,
+  TabsIcon,
+  ArrowUpIcon,
+  TrashIcon,
+  ArrowDownIcon,
+} from '@navikt/aksel-icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -177,7 +183,7 @@ export const SchemaItemLabel = ({
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={t('schema_editor.add_reference')}
-            icon={LinkIcon}    
+            icon={LinkIcon}
           />
         )}
         {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
@@ -243,7 +249,9 @@ export const SchemaItemLabel = ({
                   event.stopPropagation();
                   setIsConfirmDeleteDialogOpen((prevState) => !prevState);
                 }}
-                text={hasReferredNodes ? t('schema_editor.in_use_error') : t('schema_editor.delete')}
+                text={
+                  hasReferredNodes ? t('schema_editor.in_use_error') : t('schema_editor.delete')
+                }
                 icon={TrashIcon}
                 disabled={hasReferredNodes}
               />

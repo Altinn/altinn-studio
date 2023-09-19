@@ -20,11 +20,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const out: JsonSchema = {};
   const rootNode = getRootNode(nodes);
   Object.assign(out, rootNode.custom);
-  JSONPointer.set(
-    out,
-    `/${Keyword.Type}`,
-    !rootNode.implicitType ? rootNode.fieldType : undefined
-  );
+  JSONPointer.set(out, `/${Keyword.Type}`, !rootNode.implicitType ? rootNode.fieldType : undefined);
   JSONPointer.set(out, `/${Keyword.Required}`, findRequiredProps(nodes, rootNode.pointer));
   JSONPointer.set(out, `/${Keyword.Description}`, rootNode.description);
   JSONPointer.set(out, `/${Keyword.Title}`, rootNode.title);
@@ -77,15 +73,9 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
       JSONPointer.set(out, [jsonPointer, Keyword.Type].join('/'), findJsonFieldType(node));
 
       // Adding generics back
-      [Keyword.Default, Keyword.Const, Keyword.Title, Keyword.Description].forEach(
-        (keyword) => {
-          JSONPointer.set(
-            out,
-            [jsonPointer, keyword].join('/'),
-            node[keyword as keyof UiSchemaNode]
-          );
-        }
-      );
+      [Keyword.Default, Keyword.Const, Keyword.Title, Keyword.Description].forEach((keyword) => {
+        JSONPointer.set(out, [jsonPointer, keyword].join('/'), node[keyword as keyof UiSchemaNode]);
+      });
 
       // Adding enums
       JSONPointer.set(

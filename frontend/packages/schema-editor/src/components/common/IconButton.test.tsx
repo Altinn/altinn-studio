@@ -35,7 +35,7 @@ test('onCLick handler is called when button is clicked', async () => {
 test('Button has given id', () => {
   const id = 'test';
   renderIconButton({ id });
-  expect(screen.getByRole('button')).toHaveAttribute('id', 'test')
+  expect(screen.getByRole('button')).toHaveAttribute('id', 'test');
 });
 
 test('Button has given class', () => {

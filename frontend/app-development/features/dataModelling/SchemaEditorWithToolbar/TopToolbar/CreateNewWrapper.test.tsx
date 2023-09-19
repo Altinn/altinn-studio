@@ -4,7 +4,10 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { datamodel1NameMock, jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import {
+  datamodel1NameMock,
+  jsonMetadata1Mock,
+} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 
 const user = userEvent.setup();
 
@@ -140,4 +143,4 @@ describe('CreateNewWrapper', () => {
 });
 
 const render = (props: Partial<CreateNewWrapperProps> = {}) =>
-  renderRtl(<CreateNewWrapper {...defaultProps} {...props}/>);
+  renderRtl(<CreateNewWrapper {...defaultProps} {...props} />);

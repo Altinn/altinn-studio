@@ -5,7 +5,7 @@ import { appMetadataPath } from 'app-shared/api/paths';
 import { ApplicationMetadataActions } from '../applicationMetadataSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-function* getApplicationMetadataSaga({ payload }: PayloadAction<{ org, app }>): SagaIterator {
+function* getApplicationMetadataSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
   try {
     const result = yield call(get, appMetadataPath(org, app));

@@ -12,8 +12,15 @@ type SearchResultReposList = {
 };
 export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
   const { t } = useTranslation();
-  const { searchResults, isLoadingSearchResults, sortModel, pageSize, setPageNumber, setSortModel, setPageSize } =
-    useReposSearch({ keyword: searchValue });
+  const {
+    searchResults,
+    isLoadingSearchResults,
+    sortModel,
+    pageSize,
+    setPageNumber,
+    setSortModel,
+    setPageSize,
+  } = useReposSearch({ keyword: searchValue });
 
   const reposWithStarred = useAugmentReposWithStarred({
     repos: searchResults?.data,

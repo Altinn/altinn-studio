@@ -24,9 +24,8 @@ import {
   FilesIcon,
   ExternalLinkIcon,
   StarIcon,
-  StarFillIcon
+  StarFillIcon,
 } from '@navikt/aksel-icons';
-
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -119,10 +118,14 @@ export const RepoList = ({
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
             label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
-            icon={ repo.user_has_starred 
-                ? <StarFillIcon name="star-fill-icon" className={classes.favoriteIcon} />
-                : <StarIcon name="star-icon" className={classes.dropdownIcon} />}
-          />
+            icon={
+              repo.user_has_starred ? (
+                <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
+              ) : (
+                <StarIcon name='star-icon' className={classes.dropdownIcon} />
+              )
+            }
+          />,
         ];
       },
     };
@@ -188,7 +191,12 @@ export const RepoList = ({
             />,
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<PencilIcon  title={t("dashboard.edit_app_icon")} className={cn(classes.linkIcon, classes.editLink)} />}
+              icon={
+                <PencilIcon
+                  title={t('dashboard.edit_app_icon')}
+                  className={cn(classes.linkIcon, classes.editLink)}
+                />
+              }
               key={`dashboard.edit_app${params.row.id}`}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}

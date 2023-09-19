@@ -1,9 +1,6 @@
 {
     "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
     "pages": {
-        "order": [
-            "layoutFile1InSet1",
-            "layoutFile2InSet1"
-        ]
+        "order": ["layoutFile1InSet1", "layoutFile2InSet1"]
     }
 }

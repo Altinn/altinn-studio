@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   queryClientMock,
-  renderWithMockStore
+  renderWithMockStore,
 } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
 import { layoutSetsMock } from '../../../../frontend/packages/ux-editor/src/testing/layoutMock';
 import { AppPreviewSubMenuProps, AppPreviewSubMenu } from './AppPreviewSubMenu';

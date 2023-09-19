@@ -37,7 +37,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
       onSuccess: () => {
         onCloseWrapper();
         toast.success(t('administration.reset_repo_completed'));
-      }
+      },
     });
   };
 

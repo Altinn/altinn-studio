@@ -15,10 +15,7 @@ const schemaEditorSlice = createSlice({
   name: 'schemaEditor',
   initialState,
   reducers: {
-    setSelectedAndFocusedNode(
-      state,
-      { payload: newPointer }: PayloadAction<string>
-    ) {
+    setSelectedAndFocusedNode(state, { payload: newPointer }: PayloadAction<string>) {
       if (pointerIsDefinition(newPointer)) state.selectedDefinitionNodeId = newPointer;
       else state.selectedPropertyNodeId = newPointer;
       state.focusNameField = newPointer;
@@ -30,10 +27,7 @@ const schemaEditorSlice = createSlice({
         state.selectedPropertyNodeId = '';
       }
     },
-    setSelectedNode(
-      state,
-      { payload: newPointer }: PayloadAction<string>
-    ) {
+    setSelectedNode(state, { payload: newPointer }: PayloadAction<string>) {
       state.selectedEditorTab === 'definitions'
         ? (state.selectedDefinitionNodeId = newPointer)
         : (state.selectedPropertyNodeId = newPointer);

@@ -32,7 +32,10 @@ const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getDatamodelsJson = jest.fn().mockImplementation(() => Promise.resolve([]));
 const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
 
-const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = createQueryClientMock()) => {
+const render = (
+  queries: Partial<ServicesContextProps> = {},
+  queryClient: QueryClient = createQueryClientMock()
+) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getDatamodel,
@@ -43,7 +46,7 @@ const render = (queries: Partial<ServicesContextProps> = {}, queryClient: QueryC
 
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <DataModelling/>
+      <DataModelling />
     </ServicesContextProvider>
   );
 };
@@ -62,49 +65,55 @@ describe('DataModelling', () => {
     queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], []);
     queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], []);
     render({}, queryClient);
-    const dialogHeader = screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') });
+    const dialogHeader = screen.getByRole('heading', {
+      name: textMock('app_data_modelling.landing_dialog_header'),
+    });
     expect(dialogHeader).toBeInTheDocument();
   });
 
   it('does not show start dialog when the models have not been loaded yet', () => {
     render();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })
+    ).not.toBeInTheDocument();
   });
 
   it('does not show start dialog when there are models present', async () => {
     getDatamodelsJson.mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
     render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
-    expect(screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })
+    ).not.toBeInTheDocument();
   });
 
-  it.each([
-    'getDatamodelsJson',
-    'getDatamodelsXsd'
-  ])('shows an error message if an error occured on the %s query', async (queryName) => {
-    const errorMessage = 'error-message-test';
-    render({
-      [queryName]: () => Promise.reject({ message: errorMessage }),
-    });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
-    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
-  });
+  it.each(['getDatamodelsJson', 'getDatamodelsXsd'])(
+    'shows an error message if an error occured on the %s query',
+    async (queryName) => {
+      const errorMessage = 'error-message-test';
+      render({
+        [queryName]: () => Promise.reject({ message: errorMessage }),
+      });
+      await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    }
+  );
 
   it('Shows a spinner when loading', () => {
     render();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  it.each([
-    QueryKey.DatamodelsJson,
-    QueryKey.DatamodelsXsd
-  ])('Shows a spinner when only the "%s" query is loading', (queryKey) => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([queryKey, org, app], []);
-    render({}, queryClient);
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
-  });
+  it.each([QueryKey.DatamodelsJson, QueryKey.DatamodelsXsd])(
+    'Shows a spinner when only the "%s" query is loading',
+    (queryKey) => {
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([queryKey, org, app], []);
+      render({}, queryClient);
+      expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    }
+  );
 });

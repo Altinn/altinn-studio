@@ -9,52 +9,52 @@
 .array {
   composes: icon;
   background-color: red;
-  background-image: url("../icons/array.svg");
+  background-image: url('../icons/array.svg');
 }
 
 .boolean {
   composes: icon;
-  background-image: url("../icons/boolean.svg");
+  background-image: url('../icons/boolean.svg');
 }
 
 .combination {
   composes: icon;
-  background-image: url("../icons/combination.svg");
+  background-image: url('../icons/combination.svg');
 }
 
 .definition {
   composes: icon;
-  background-image: url("../icons/definition.svg");
+  background-image: url('../icons/definition.svg');
 }
 
 .element {
   composes: icon;
-  background-image: url("../icons/element.svg");
+  background-image: url('../icons/element.svg');
 }
 
 .number {
   composes: icon;
-  background-image: url("../icons/number.svg");
+  background-image: url('../icons/number.svg');
 }
 
 .object {
   composes: icon;
-  background-image: url("../icons/object.svg");
+  background-image: url('../icons/object.svg');
 }
 
 .property {
   composes: icon;
-  background-image: url("../icons/property.svg");
+  background-image: url('../icons/property.svg');
 }
 
 .reference {
   composes: icon;
-  background-image: url("../icons/reference.svg");
+  background-image: url('../icons/reference.svg');
 }
 
 .string {
   composes: icon;
-  background-image: url("../icons/string.svg");
+  background-image: url('../icons/string.svg');
 }
 
 .wastebucket {
@@ -88,15 +88,15 @@
     58.03% 69.32%,
     56.06% 34.27%,
 
-    42.60% 41.39%,
+    42.6% 41.39%,
     46.18% 41.21%,
     47.28% 63.11%,
-    43.70% 63.29%,
-    42.60% 41.39%,
+    43.7% 63.29%,
+    42.6% 41.39%,
     56.06% 34.27%,
 
     50.71% 63.19%,
-    51.80% 41.28%,
+    51.8% 41.28%,
     55.38% 41.46%,
     54.29% 63.37%,
     50.71% 63.19%

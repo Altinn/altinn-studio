@@ -4,12 +4,11 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 
-export const useSearchReposQuery = (filter: SearchRepoFilterParams): UseQueryResult<SearchRepositoryResponse> => {
+export const useSearchReposQuery = (
+  filter: SearchRepoFilterParams
+): UseQueryResult<SearchRepositoryResponse> => {
   const { searchRepos } = useServicesContext();
-  return useQuery(
-    [QueryKey.SearchRepos, filter],
-    () => searchRepos(mapQueryParams(filter))
-  );
+  return useQuery([QueryKey.SearchRepos, filter], () => searchRepos(mapQueryParams(filter)));
 };
 
 const mapQueryParams = (params: SearchRepoFilterParams): SearchRepoFilterParams => {

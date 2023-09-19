@@ -15,7 +15,7 @@
   font-weight: 500;
 }
 
-.alertContainer  {
+.alertContainer {
   composes: container;
   max-width: 780px;
 }

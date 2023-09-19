@@ -24,14 +24,13 @@ const renderWithMockServices = (
       <CreateService
         organizations={organizations || []}
         user={
-          user ||
-          ({
+          user || {
             id: 1,
             avatar_url: '',
             email: '',
             full_name: '',
             login: '',
-          })
+          }
         }
       />
     </MockServicesContextWrapper>
@@ -39,7 +38,6 @@ const renderWithMockServices = (
 };
 
 describe('CreateService', () => {
-
   test('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
@@ -108,7 +106,9 @@ describe('CreateService', () => {
       full_name: 'unit-test',
     };
 
-    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject({ response: { status: 409 } }));
+    const addRepoMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
     renderWithMockServices({ addRepo: addRepoMock }, [org]);
 
@@ -151,9 +151,7 @@ describe('CreateService', () => {
 
     await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
 
-    const emptyFieldErrors = await screen.findAllByText(
-      textMock('general.error_message')
-    );
+    const emptyFieldErrors = await screen.findAllByText(textMock('general.error_message'));
     expect(emptyFieldErrors.length).toBe(1);
   });
 

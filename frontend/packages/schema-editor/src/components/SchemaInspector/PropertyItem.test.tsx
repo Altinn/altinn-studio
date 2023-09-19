@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import {
   parentNodeMock,
   toggableNodeMock,
-  uiSchemaNodesMock
+  uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
 import { SchemaState } from '@altinn/schema-editor/types';
 
@@ -69,10 +69,11 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 const renderPropertyItem = (
   props?: Partial<IPropertyItemProps>,
   state: Partial<SchemaState> = {}
-) => renderWithProviders({
-  state: { ...defaultState, ...state },
-  appContextProps: { data: uiSchemaNodesMock, save: saveDatamodel },
-})(<PropertyItem {...defaultProps} {...props} />);
+) =>
+  renderWithProviders({
+    state: { ...defaultState, ...state },
+    appContextProps: { data: uiSchemaNodesMock, save: saveDatamodel },
+  })(<PropertyItem {...defaultProps} {...props} />);
 
 describe('PropertyItem', () => {
   afterEach(jest.clearAllMocks);

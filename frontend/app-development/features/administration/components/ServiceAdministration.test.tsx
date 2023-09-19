@@ -100,8 +100,8 @@ describe('Administration', () => {
           serviceNameObj: {
             ...mockServiceInformation.serviceNameObj,
             name: null,
-          }
-        }
+          },
+        },
       },
     });
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
@@ -151,7 +151,9 @@ describe('Administration', () => {
     const mockEvent = { target: { value: 'New description' } };
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-    const inputElement = screen.getByRole('textbox', { name: textMock('administration.service_comment') });
+    const inputElement = screen.getByRole('textbox', {
+      name: textMock('administration.service_comment'),
+    });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
 
     fireEvent.change(inputElement, mockEvent);
@@ -182,7 +184,9 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New id' } };
 
-    const inputElement = screen.getByRole('textbox', { name: textMock('administration.service_id') });
+    const inputElement = screen.getByRole('textbox', {
+      name: textMock('administration.service_id'),
+    });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
     fireEvent.change(inputElement, mockEvent);

@@ -2,19 +2,19 @@ name: Repositories Scan
 
 on:
   schedule:
-  - cron: '0 8 * * 1,4'
+    - cron: '0 8 * * 1,4'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build ./gitea --tag altinn-repos:${{github.sha}}
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker build ./gitea --tag altinn-repos:${{github.sha}}
 
-    - uses: Azure/container-scan@v0
-      env:
-        # See https://github.com/goodwithtech/dockle/issues/188
-        DOCKLE_HOST: "unix:///var/run/docker.sock"
-      with:
-        image-name: altinn-repos:${{github.sha}}
+      - uses: Azure/container-scan@v0
+        env:
+          # See https://github.com/goodwithtech/dockle/issues/188
+          DOCKLE_HOST: 'unix:///var/run/docker.sock'
+        with:
+          image-name: altinn-repos:${{github.sha}}

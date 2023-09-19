@@ -106,9 +106,7 @@ const setMaxIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxIncl
 
 const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
   const { value } = action;
-  const key = state.isMinInclusive
-    ? IntRestrictionKey.minimum
-    : IntRestrictionKey.exclusiveMinimum;
+  const key = state.isMinInclusive ? IntRestrictionKey.minimum : IntRestrictionKey.exclusiveMinimum;
   state.min = value;
   state.restrictions[key] = value;
   state.numberRestrictionsError = validateMinMax(state);
@@ -116,9 +114,7 @@ const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) 
 
 const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
   const { value } = action;
-  const key = state.isMaxInclusive
-    ? IntRestrictionKey.maximum
-    : IntRestrictionKey.exclusiveMaximum;
+  const key = state.isMaxInclusive ? IntRestrictionKey.maximum : IntRestrictionKey.exclusiveMaximum;
   state.max = value;
   state.restrictions[key] = value;
   state.numberRestrictionsError = validateMinMax(state);

@@ -32,10 +32,7 @@ export const getReposLabel = ({
   const orgName = orgs.length > 0 && orgs.find((org) => org.username === selectedContext).full_name;
 
   return orgName
-    ? t(
-      isDatamodelsRepo ? 'dashboard.org_datamodels' : 'dashboard.org_apps',
-      { orgName }
-    )
+    ? t(isDatamodelsRepo ? 'dashboard.org_datamodels' : 'dashboard.org_apps', { orgName })
     : t(isDatamodelsRepo ? 'dashboard.datamodels' : 'dashboard.apps');
 };
 

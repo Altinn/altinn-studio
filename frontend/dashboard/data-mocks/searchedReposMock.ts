@@ -10,7 +10,8 @@ export const searchedRepos: SearchRepositoryResponse = {
       id: 36,
       name: 'Mocking Username',
       owner: {
-        avatar_url: 'https://secure.gravatar.com/avatar/c60d5958ff3bb331294e89d51bc022dd?d=identicon',
+        avatar_url:
+          'https://secure.gravatar.com/avatar/c60d5958ff3bb331294e89d51bc022dd?d=identicon',
         full_name: '',
         login: 'mocked-testing',
       },

@@ -33,14 +33,10 @@ export function AdministrationComponent() {
           {repositoryType === RepositoryType.App && (
             <ServiceAdministration repository={repository} />
           )}
-          {repositoryType === RepositoryType.Datamodels && (
-            <DatamodelsAdministration />
-          )}
+          {repositoryType === RepositoryType.Datamodels && <DatamodelsAdministration />}
         </AltinnColumnLayout>
       )}
-      {!repository && (
-        <PageSpinner />
-      )}
+      {!repository && <PageSpinner />}
     </div>
   );
 }

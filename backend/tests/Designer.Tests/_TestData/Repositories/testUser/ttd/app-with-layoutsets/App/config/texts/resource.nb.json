@@ -1,13 +1,13 @@
 {
-  "language": "nb",
-  "resources": [
-    {
-      "id": "some-old-id",
-      "value": "A value for the old id"
-    },
-    {
-      "id": "another-id",
-      "value": "A value for the other id"
-    }
-  ]
+    "language": "nb",
+    "resources": [
+        {
+            "id": "some-old-id",
+            "value": "A value for the old id"
+        },
+        {
+            "id": "another-id",
+            "value": "A value for the other id"
+        }
+    ]
 }

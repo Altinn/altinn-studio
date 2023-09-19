@@ -32,7 +32,9 @@ describe('SchemaItem', () => {
       const info = await screen.findByText(textMock('schema_editor.datamodel_field_deletion_info'));
       expect(info).toBeInTheDocument();
 
-      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.datamodel_field_deletion_confirm') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('schema_editor.datamodel_field_deletion_confirm'),
+      });
       expect(confirmButton).toBeInTheDocument();
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -46,13 +48,15 @@ describe('SchemaItem', () => {
       await act(() => user.click(getMenuButton()));
       await act(() => user.click(getDeleteButton()));
 
-      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.datamodel_field_deletion_confirm') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('schema_editor.datamodel_field_deletion_confirm'),
+      });
       await act(() => user.click(confirmButton));
 
       await waitFor(() => {
         expect(dispatchSpy).toBeCalledWith({
-            payload: '#/$defs/Test',
-            type: 'schemaEditor/removeSelection',
+          payload: '#/$defs/Test',
+          type: 'schemaEditor/removeSelection',
         });
       });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -88,8 +92,10 @@ describe('SchemaItem', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
-    const getMenuButton = () => screen.getByRole('button', { name: textMock('schema_editor.open_action_menu') });
-    const getDeleteButton = () => screen.getByRole('menuitem', { name: textMock('schema_editor.delete') });
+    const getMenuButton = () =>
+      screen.getByRole('button', { name: textMock('schema_editor.open_action_menu') });
+    const getDeleteButton = () =>
+      screen.getByRole('menuitem', { name: textMock('schema_editor.delete') });
   });
 });
 
@@ -119,11 +125,15 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
     isPropertiesView: false,
     onLabelClick: jest.fn(),
     index: 0,
-    ...props
+    ...props,
   };
 
   return renderWithProviders({
     state: mockInitialState,
     appContextProps: { data: buildUiSchema(dataMock) },
-  })(<DndProvider backend={HTML5Backend}><SchemaItem {...allProps} /></DndProvider>);
+  })(
+    <DndProvider backend={HTML5Backend}>
+      <SchemaItem {...allProps} />
+    </DndProvider>
+  );
 };

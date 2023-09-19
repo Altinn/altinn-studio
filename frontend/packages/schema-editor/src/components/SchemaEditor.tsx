@@ -111,10 +111,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
         />
       </aside>
       {selectedType ? (
-        <div
-          id='types-editor'
-          className={classNames(classes.editor, classes.editorTypes)}
-        >
+        <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
           <div className={classes.typeInfo}>
             <span>
               {t('schema_editor.types_editing', {

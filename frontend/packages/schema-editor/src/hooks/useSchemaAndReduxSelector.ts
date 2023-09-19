@@ -13,4 +13,4 @@ export const useSchemaAndReduxSelector = <R, S>(selector: SchemaAndReduxSelector
   const { data } = useSchemaEditorAppContext();
   const reduxSelectorResult = useSelector(selector.reduxSelector);
   return data ? selector.schemaSelector(reduxSelectorResult, data) : null;
-}
+};

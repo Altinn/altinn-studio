@@ -10,10 +10,7 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
  */
 export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
-const defaultPath = path.resolve(
-  __dirname,
-  '../../../../testdata/Model/JsonSchema'
-);
+const defaultPath = path.resolve(__dirname, '../../../../testdata/Model/JsonSchema');
 
 const cache = new Map();
 

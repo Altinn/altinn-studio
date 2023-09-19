@@ -11,7 +11,7 @@ const DataModellingContainer = () => (
     data-testid={testids.dataModellingContainer}
   >
     <div className={classes.dataModellingWrapper}>
-      <DataModelling/>
+      <DataModelling />
     </div>
   </div>
 );

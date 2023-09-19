@@ -10,7 +10,10 @@ import { ReduxSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
 describe('useSchemaAndReduxSelector', () => {
   it('Accesses the datamodel and the redux state and returns the result of the selector', () => {
     const selectedEditorTab = 'properties';
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { data: uiSchemaNodesMock, save: jest.fn() };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      data: uiSchemaNodesMock,
+      save: jest.fn(),
+    };
     const state: Partial<SchemaState> = { selectedEditorTab };
 
     const reduxSelector: ReduxSelector<string> = (state) => state?.selectedEditorTab;

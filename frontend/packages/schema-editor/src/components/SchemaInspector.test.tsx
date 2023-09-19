@@ -74,10 +74,7 @@ describe('SchemaInspector', () => {
   afterEach(jest.clearAllMocks);
 
   it('Saves datamodel when entering text in textboxes', async () => {
-    renderSchemaInspector(
-      mockUiSchema,
-      getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
-    );
+    renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeDefined();
     const tabpanel = screen.getByRole('tabpanel');
@@ -114,7 +111,7 @@ describe('SchemaInspector', () => {
     await act(() => user.tab());
 
     expect(saveDatamodel).toHaveBeenCalled();
-    let updatedModel = getSavedModel(saveDatamodel,3);
+    let updatedModel = getSavedModel(saveDatamodel, 3);
     let updatedNode = getNodeByPointer(updatedModel, pointer);
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
@@ -123,7 +120,7 @@ describe('SchemaInspector', () => {
     await act(() => user.type(maxLengthTextField, maxLength));
     await act(() => user.tab());
 
-    updatedModel = getSavedModel(saveDatamodel,7);
+    updatedModel = getSavedModel(saveDatamodel, 7);
     updatedNode = getNodeByPointer(updatedModel, pointer);
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
