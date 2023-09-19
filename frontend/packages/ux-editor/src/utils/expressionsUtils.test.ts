@@ -40,7 +40,7 @@ import {
 
 } from '../testing/expressionMocks';
 import { deepCopy } from 'app-shared/pure';
-import { textMock } from "../../../../testing/mocks/i18nMock";
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 describe('expressionsUtils', () => {
 

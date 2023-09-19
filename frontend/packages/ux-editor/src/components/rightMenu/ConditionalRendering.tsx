@@ -7,7 +7,7 @@ import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
 import { Trans } from 'react-i18next';
-import { altinnDocsUrl } from "app-shared/ext-urls";
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ConditionalRendering = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
