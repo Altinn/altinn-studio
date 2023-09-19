@@ -39,7 +39,7 @@ describe('AboutTab', () => {
     render(<AboutTab {...defaultProps} />);
 
     const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
-    expect(appName).toHaveValue(mockAppConfig.repositoryName);
+    expect(appName).toHaveValue(mockAppConfig.serviceName);
 
     await act(() => user.type(appName, mockNewText));
 
@@ -49,11 +49,11 @@ describe('AboutTab', () => {
   it('displays correct value in "alternative id" input field, and updates the value on change', async () => {
     render(<AboutTab {...defaultProps} />);
 
-    const altId = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
-    expect(altId).toHaveValue(mockAppConfig.repositoryName);
+    const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
+    expect(altId).toHaveValue(mockAppConfig.serviceId);
 
     await act(() => user.type(altId, mockNewText));
 
-    expect(altId).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
+    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
   });
 });
