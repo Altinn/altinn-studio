@@ -6,7 +6,7 @@ import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { Expressions } from '../config/Expressions';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion, Switch } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
 import {
   addFeatureFlagToLocalStorage,
@@ -67,17 +67,17 @@ export const RightMenu = ({ className }: RightMenuProps) => {
             {t('right_menu.dynamics')}
           </Accordion.Header>
           <Accordion.Content>
-            {showNewExpressions ? (
-              <Expressions
-                onShowNewExpressions={handleToggleNewDynamics}
-                showNewExpressions={showNewExpressions}
-              />
-            ) : (
-              <ConditionalRendering
-                onShowNewExpressions={handleToggleNewDynamics}
-                showNewExpressions={showNewExpressions}
-              />
-            )}
+            <>
+              <Switch
+                  name={'new-dynamics-switch'}
+                  onChange={handleToggleNewDynamics}
+                  checked={showNewExpressions}
+                  size={'small'}
+              >
+                {t('right_menu.show_new_dynamics')}
+              </Switch>
+            {showNewExpressions ? (<Expressions/>) : (<ConditionalRendering/>)}
+            </>
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>

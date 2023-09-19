@@ -13,7 +13,7 @@ import { IFormLayouts, LayoutItemType } from '../types/global';
 import { FormComponent } from '../types/FormComponent';
 import { SingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
-import { useText } from '../hooks';
+import { UseText } from '../hooks';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -266,8 +266,7 @@ export const addDataSourceValue = (expEl: SubExpression, dataSourceValue: string
   return newExpEl;
 };
 
-export const stringifyValueForDisplay = (dataSourceValue: string | boolean | number | undefined | null): string => {
-  const t = useText();
+export const stringifyValueForDisplay = (t: UseText, dataSourceValue: string | boolean | number | undefined | null): string => {
   if (dataSourceValue === null || dataSourceValue === undefined) {
     return 'null';
   }

@@ -9,7 +9,7 @@ import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { Expressions, ExpressionsProps } from './Expressions';
+import { Expressions } from './Expressions';
 import { FormContext } from '../../../containers/FormContext';
 import { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -93,6 +93,12 @@ describe('Expressions', () => {
     expect(defaultExpressionSelectProperty).toBeInTheDocument();
     expect(defaultExpressionSelectProperty).toHaveValue(textMock('right_menu.expressions_property_select'));
   });
+  it('renders link to docs', () => {
+    render({});
+
+    const linkToExpressionDocs = screen.getByText(textMock('right_menu.read_more_about_expressions'));
+    expect(linkToExpressionDocs).toBeInTheDocument();
+  });
 });
 
 const componentWithExpression: FormComponent = {
@@ -103,14 +109,10 @@ const componentWithExpression: FormComponent = {
 }
 
 const render = ({ props = {}, queries = {}, component = componentWithExpression }: {
-  props?: Partial<ExpressionsProps | FormContext>;
+  props?: Partial<FormContext>;
   queries?: Partial<ServicesContextProps>;
   component?: FormComponent | FormContainer;
 }) => {
-  const defaultProps: ExpressionsProps = {
-    onShowNewExpressions: jest.fn(),
-    showNewExpressions: true
-  };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   return renderWithMockStore({}, queries, queryClient)(
@@ -122,7 +124,7 @@ const render = ({ props = {}, queries = {}, component = componentWithExpression 
         ...props,
       }}
     >
-      <Expressions {...defaultProps} {...props} />
+      <Expressions/>
     </FormContext.Provider>
     );
 };

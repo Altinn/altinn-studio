@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Alert, Button, Switch } from '@digdir/design-system-react';
+import { Alert, Button } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
@@ -27,12 +27,7 @@ import { FormContext } from '../../../containers/FormContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';
 
-export type ExpressionsProps = {
-  onShowNewExpressions: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  showNewExpressions: boolean;
-};
-
-export const Expressions = ({ onShowNewExpressions, showNewExpressions }: ExpressionsProps) => {
+export const Expressions = () => {
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
   const [expressionInEditModeId, setExpressionInEditModeId] = React.useState<string | undefined>(undefined);
@@ -133,6 +128,14 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   console.log('expressions: ', expressions) // TODO: Remove when fully tested
   return (
     <div className={classes.root}>
+        <Trans i18nKey={'right_menu.read_more_about_expressions'}>
+          <a
+              href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+              target='_newTab'
+              rel='noopener noreferrer'
+          />
+        </Trans>
+        <Divider/>
       {Object.values(expressions).map((expression: Expression, index: number) => (
         <React.Fragment key={expression.id}>
           <ExpressionContent
@@ -168,23 +171,6 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
           {t('right_menu.expressions_add')}
         </Button>
       )}
-      <div className={classes.expressionsVersionCheckBox}>
-        <Divider/>
-        <Switch
-            name={'new-dynamics-switch'}
-            onChange={onShowNewExpressions}
-            checked={showNewExpressions}
-        >
-          {t('right_menu.show_new_dynamics')}
-        </Switch>
-        <Trans i18nKey={'right_menu.read_more_about_expressions'}>
-          <a
-              href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
-              target='_newTab'
-              rel='noopener noreferrer'
-          />
-        </Trans>
-      </div>
     </div>
   );
 };
