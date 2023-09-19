@@ -40,7 +40,6 @@ const handleError = (
   logout: () => Promise<void>
 ): void => {
   // TODO : log axios errors
-  const errorCode = error?.response?.data?.errorCode;
 
   if (error?.response?.status === 401) {
     logout().then(() => window.location.assign(userLogoutAfterPath()));
@@ -52,7 +51,8 @@ const handleError = (
     (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
   )
     return;
-
+    
+  const errorCode = error?.response?.data?.errorCode;
   if (errorCode) {
     const errorMessageKey = `api_errors.${errorCode}`;
 
