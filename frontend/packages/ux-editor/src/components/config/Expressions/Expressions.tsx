@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
+import { Alert, Button, Switch } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
@@ -19,15 +19,16 @@ import {
 import classes from './Expressions.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { Divider } from 'app-shared/primitives';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 import { LayoutItemType } from '../../../types/global';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { FormContext } from '../../../containers/FormContext';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { Trans } from 'react-i18next';
 
 export type ExpressionsProps = {
-  onShowNewExpressions: (value: boolean) => void;
+  onShowNewExpressions: (event: React.ChangeEvent<HTMLInputElement>) => void;
   showNewExpressions: boolean;
 };
 
@@ -166,17 +167,23 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
           {t('right_menu.expressions_add')}
         </Button>
       )}
-      {shouldDisplayFeature('expressions') && (
-        <div className={classes.expressionsVersionCheckBox}>
-          <Divider />
-          <LegacyCheckbox
-            label={t('right_menu.show_new_dynamics')}
-            name={'checkbox-name'}
+      <div className={classes.expressionsVersionCheckBox}>
+        <Divider/>
+        <Switch
+            name={'new-dynamics-switch'}
+            onChange={onShowNewExpressions}
             checked={showNewExpressions}
-            onChange={() => onShowNewExpressions(!showNewExpressions)}
+        >
+          {t('right_menu.show_new_dynamics')}
+        </Switch>
+        <Trans i18nKey={'right_menu.read_more_about_expressions'}>
+          <a
+              href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+              target='_newTab'
+              rel='noopener noreferrer'
           />
-        </div>
-      )}
+        </Trans>
+      </div>
     </div>
   );
 };

@@ -8,6 +8,11 @@ import cn from 'classnames';
 import { Expressions } from '../config/Expressions';
 import { Accordion } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
+import {
+  addFeatureFlagToLocalStorage,
+  removeFeatureFlagFromLocalStorage,
+  shouldDisplayFeature
+} from 'app-shared/utils/featureToggleUtils';
 
 export interface RightMenuProps {
   className?: string;
@@ -15,7 +20,7 @@ export interface RightMenuProps {
 
 export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
-  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(false);
+  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(shouldDisplayFeature('expressions'));
   const { formId } = useFormContext();
   const formIdRef = React.useRef(formId);
 
@@ -33,6 +38,16 @@ export const RightMenu = ({ className }: RightMenuProps) => {
       setOpenList(openList.filter((item) => item !== id));
     } else {
       setOpenList([...openList, id]);
+    }
+  };
+
+  const handleToggleNewDynamics = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowNewExpressions(event.target.checked);
+    // Ensure choice of feature toggling is persisted in local storage
+    if(event.target.checked){
+      addFeatureFlagToLocalStorage('expressions');
+    } else {
+      removeFeatureFlagFromLocalStorage('expressions');
     }
   };
 
@@ -54,12 +69,12 @@ export const RightMenu = ({ className }: RightMenuProps) => {
           <Accordion.Content>
             {showNewExpressions ? (
               <Expressions
-                onShowNewExpressions={setShowNewExpressions}
+                onShowNewExpressions={handleToggleNewDynamics}
                 showNewExpressions={showNewExpressions}
               />
             ) : (
               <ConditionalRendering
-                onShowNewExpressions={setShowNewExpressions}
+                onShowNewExpressions={handleToggleNewDynamics}
                 showNewExpressions={showNewExpressions}
               />
             )}
