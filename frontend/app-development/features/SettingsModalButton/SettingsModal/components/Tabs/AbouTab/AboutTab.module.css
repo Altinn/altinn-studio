@@ -1,0 +1,34 @@
+.contentWrapperbot {
+  max-width: 500px;
+}
+
+.createdFor {
+  display: flex;
+  align-items: center;
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border-radius: 4px;
+  padding-inline: 12px;
+  padding-block: 20px;
+}
+
+.createdBy {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.label {
+  margin-top: 20px;
+}
+
+.paragraph {
+  margin-left: 15px;
+}
+
+.createdForIcon {
+  font-size: 2.5rem;
+}
+
+.createdByIcon {
+  font-size: 1.5rem;
+}
