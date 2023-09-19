@@ -1,18 +1,15 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { Checkbox, Paragraph } from '@digdir/design-system-react';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-
-type AccessControlOption = 'BankruptcyEstate' | 'Business' | 'PrivatePerson' | 'Subunit';
-
-const accessControlOptionsMap: Record<AccessControlOption, string> = {
-  BankruptcyEstate: 'settings_modal.access_control_tab_option_bankruptcy_estate',
-  Business: 'settings_modal.access_control_tab_option_business',
-  PrivatePerson: 'settings_modal.access_control_tab_option_private_person',
-  Subunit: 'settings_modal.access_control_tab_option_subunit',
-};
+import { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
+import { useAppMetadataMutation } from 'app-development/hooks/mutations';
+import {
+  getPartyTypesAllowedOptions,
+  initialPartyTypes,
+  partyTypesAllowedMap,
+} from '../../../utils/tabUtils/accessControlTabUtils';
 
 export type AccessControlTabProps = {
   /**
@@ -39,24 +36,45 @@ export type AccessControlTabProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const AccessControlTab = ({}: AccessControlTabProps): ReactNode => {
+export const AccessControlTab = ({ appMetadata, org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
 
-  const accessControlOptions = Object.keys(accessControlOptionsMap).map((key) => ({
-    value: key,
-    label: accessControlOptionsMap[key],
-  }));
+  // Mutation function to update app metadata
+  const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
+  const [partyTypesAllowed, setPartyTypesAllowed] = useState<PartyTypesAllowed>(
+    appMetadata?.partyTypesAllowed ?? initialPartyTypes
+  );
+
+  /**
+   * Update the selected party types when clicking an option
+   */
+  const handleChange = (partyTypes: string[]) => {
+    const newPartyTypesAllowed = { ...partyTypesAllowed };
+
+    Object.keys(partyTypesAllowed).forEach((key) => {
+      newPartyTypesAllowed[key] = partyTypes.includes(key);
+    });
+
+    setPartyTypesAllowed(newPartyTypesAllowed);
+  };
+
+  /**
+   * Save the metadata with the new party types
+   */
+  const handleSavePartyTypes = () => {
+    updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed });
+  };
+
+  /**
+   * Display the checkboxes
+   */
   const displayCheckboxes = () => {
-    return accessControlOptions.map((option) => (
+    return getPartyTypesAllowedOptions().map((option) => (
       <Checkbox value={option.value} key={option.value} size='small'>
         {t(option.label)}
       </Checkbox>
     ));
-  };
-
-  const handleChange = (value: string[]) => {
-    console.log(value);
   };
 
   return (
@@ -65,8 +83,8 @@ export const AccessControlTab = ({}: AccessControlTabProps): ReactNode => {
       <Checkbox.Group
         legend={t('settings_modal.access_control_tab_checkbox_legend')}
         onChange={handleChange}
-        // onBlur={} // TODO - save
-        // value={} // TODO
+        onBlur={handleSavePartyTypes}
+        value={Object.keys(partyTypesAllowedMap).filter((key) => partyTypesAllowed[key])}
       >
         <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
           {t('settings_modal.access_control_tab_checkbox_description')}
