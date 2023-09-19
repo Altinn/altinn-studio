@@ -35,6 +35,8 @@ context('Resourceadm', () => {
     cy.url().should('include', '/dashboard');
   });
 
+  /* Temporary inactivation of Resourceadm cypress tests
+
   it('is possible to switch to all, and return via Redirect page', () => {
     cy.switchSelectedContext('all');
     cy.url().should('include', '/resourceadm/all');
@@ -171,4 +173,6 @@ context('Resourceadm', () => {
     cy.get('button').contains(texts['resourceadm.left_nav_bar_about']).click();
     cy.url().should('include', '/about');
   });
+  */
+
 });

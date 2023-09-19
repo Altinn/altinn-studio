@@ -1,5 +1,5 @@
 import React from 'react';
-import { TreeItem } from '@mui/lab';
+import { TreeItem } from '@mui/x-tree-view';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { SchemaItemLabel } from './SchemaItemLabel';
@@ -32,12 +32,7 @@ SchemaItem.defaultProps = {
   isPropertiesView: false,
 };
 
-export function SchemaItem({
-  selectedNode,
-  isPropertiesView,
-  translate,
-  index,
-}: SchemaItemProps) {
+export function SchemaItem({ selectedNode, isPropertiesView, translate, index }: SchemaItemProps) {
   const dispatch = useDispatch();
   const { data, save } = useSchemaEditorAppContext();
 
