@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { InputField } from '../../InputField';
+import { Divider } from 'app-shared/primitives';
 
 export type AboutTabProps = {
   /**
@@ -40,33 +41,36 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
   };
 
   return (
-    <div className={classes.wrapper}>
+    <div>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
-      <InputField
-        id='aboutRepoName'
-        label={t('settings_modal.about_tab_repo_label')}
-        description={t('settings_modal.about_tab_repo_description')}
-        value={appConfigState.repositoryName}
-        readOnly
-      />
-      <InputField
-        id='aboutNameField'
-        label={t('settings_modal.about_tab_name_label')}
-        description={t('settings_modal.about_tab_name_description')}
-        value={appConfigState.serviceName}
-        onChange={(serviceName: string) => setAppConfigState((ac) => ({ ...ac, serviceName }))}
-        onBlur={handleSaveAppConfig}
-        isValid={appConfigState.serviceName.length > 0}
-        errorText={t('settings_modal.about_tab_name_error')}
-      />
-      <InputField
-        id='aboutAltIdField'
-        label={t('settings_modal.about_tab_alt_id_label')}
-        description={t('settings_modal.about_tab_alt_id_description')}
-        value={appConfigState.serviceId}
-        onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
-        onBlur={handleSaveAppConfig}
-      />
+      <div className={classes.contentWrapper}>
+        <InputField
+          id='aboutRepoName'
+          label={t('settings_modal.about_tab_repo_label')}
+          description={t('settings_modal.about_tab_repo_description')}
+          value={appConfigState.repositoryName}
+          readOnly
+        />
+        <InputField
+          id='aboutNameField'
+          label={t('settings_modal.about_tab_name_label')}
+          description={t('settings_modal.about_tab_name_description')}
+          value={appConfigState.serviceName}
+          onChange={(serviceName: string) => setAppConfigState((ac) => ({ ...ac, serviceName }))}
+          onBlur={handleSaveAppConfig}
+          isValid={appConfigState.serviceName.length > 0}
+          errorText={t('settings_modal.about_tab_name_error')}
+        />
+        <InputField
+          id='aboutAltIdField'
+          label={t('settings_modal.about_tab_alt_id_label')}
+          description={t('settings_modal.about_tab_alt_id_description')}
+          value={appConfigState.serviceId}
+          onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
+          onBlur={handleSaveAppConfig}
+        />
+      </div>
+      <Divider marginless />
     </div>
   );
 };

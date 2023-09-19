@@ -2,10 +2,9 @@ import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModalButton.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppPolicyQuery } from 'app-development/hooks/queries';
+import { useAppPolicyQuery, useAppConfigQuery } from 'app-development/hooks/queries';
 import { Alert, Button, ErrorMessage, Paragraph, Spinner } from '@digdir/design-system-react';
 import { SettingsModal } from './SettingsModal';
-import { useAppConfigQuery } from 'app-development/hooks/queries/useAppConfigQuery';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { Center } from 'app-shared/components/Center';
 
