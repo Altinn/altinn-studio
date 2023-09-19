@@ -5,6 +5,7 @@ import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { InputField } from '../../InputField';
 import { Divider } from 'app-shared/primitives';
+import { useAppConfigMutation } from 'app-development/hooks/mutations';
 
 export type AboutTabProps = {
   /**
@@ -36,8 +37,11 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
 
   const [appConfigState, setAppConfigState] = useState<AppConfig>(appConfig);
 
+  // Mutation function to update app config
+  const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
+
   const handleSaveAppConfig = () => {
-    console.log(appConfigState);
+    updateAppConfigMutation(appConfigState);
   };
 
   return (
