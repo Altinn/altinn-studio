@@ -1,7 +1,12 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
-import { CogIcon, InformationSquareIcon, ShieldLockIcon } from '@navikt/aksel-icons';
+import {
+  CogIcon,
+  InformationSquareIcon,
+  PersonSuitIcon,
+  ShieldLockIcon,
+} from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
@@ -12,6 +17,7 @@ import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { AccessControlTab } from './components/Tabs/AccessControlTab';
 
 export type SettingsModalProps = {
   /**
@@ -71,6 +77,7 @@ export const SettingsModal = ({
    */
   const aboutTabId: SettingsModalTab = 'about';
   const policyTabId: SettingsModalTab = 'policy';
+  const accessControlTabId: SettingsModalTab = 'accessControl';
 
   /**
    * The tabs to display in the navigation bar
@@ -86,6 +93,12 @@ export const SettingsModal = ({
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
+      currentTab
+    ),
+    createNavigationTab(
+      <PersonSuitIcon className={classes.icon} />,
+      accessControlTabId,
+      () => changeTabTo(accessControlTabId),
       currentTab
     ),
   ];
@@ -106,6 +119,9 @@ export const SettingsModal = ({
     switch (currentTab) {
       case 'about': {
         return <AboutTab appConfig={appConfig} org={org} app={app} />;
+      }
+      case 'accessControl': {
+        return <AccessControlTab />;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
