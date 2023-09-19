@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act  } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
@@ -19,10 +19,12 @@ describe('ProcessEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render "canvas" when bpmnXml is provided and default render is view-mode', () => {
-    render(
-      <ProcessEditor bpmnXml={`<?xml version="1.0" encoding="UTF-8"?></xml>`} onSave={() => {}} />
-    );
+  it('should render "canvas" when bpmnXml is provided and default render is view-mode', async () => {
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(() => { 
+      render(<ProcessEditor bpmnXml={`<?xml version="1.0" encoding="UTF-8"?></xml>`} onSave={() => { } } />); 
+    })
+
     expect(
       screen.getByRole('button', { name: textMock('process_editor.edit_mode') })
     ).toBeInTheDocument();

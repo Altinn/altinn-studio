@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CogIcon, EyeFillIcon } from '@navikt/aksel-icons';
-import { Button } from '@digdir/design-system-react';
+import { Alert, Button } from '@digdir/design-system-react';
 import { useBpmnViewer } from '../../hooks/useBpmnViewer';
 import { useBpmnEditor } from '../../hooks/useBpmnEditor';
 
@@ -11,6 +11,8 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
@@ -40,11 +42,48 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
   );
 };
 
-
 // Below is helper components for Canvas.tsx
-const Viewer = (): JSX.Element => {
-  const { canvasRef } = useBpmnViewer();
-  return <div ref={canvasRef}></div>;
+export const Viewer = (): JSX.Element => {
+  const { t } = useTranslation();
+  const { canvasRef, bpmnViewerError } = useBpmnViewer();
+  const getErrorMessage = (): { heading: string; body: string } | null => {
+    if (bpmnViewerError === 'noDiagram') {
+      return {
+        heading: t('process_editor.not_found_diagram_heading'),
+        body: t('process_editor.not_found_diagram_error_message'),
+      };
+    }
+    if (bpmnViewerError === 'noProcess') {
+      return {
+        heading: t('process_editor.not_found_process_heading'),
+        body: t('process_editor.not_found_process_error_message'),
+      };
+    }
+    if(bpmnViewerError === "unknown"){
+      return {
+        heading: t('process_editor.unknown_heading_error_message'),
+        body: t('process_editor.unknown_paragraph_error_message'),
+      }
+    }
+    return null;
+  };
+
+  const errorToDisplay = getErrorMessage();
+  return (
+  <>
+  {errorToDisplay && ( 
+   <div className={classes.alertContainer}>
+    <Alert severity='warning'>
+      <Heading size='small' spacing>
+        {errorToDisplay.heading}
+      </Heading>
+      <Paragraph>{errorToDisplay.body}</Paragraph>
+    </Alert>
+   </div>
+  )}
+  <div ref={canvasRef}></div>
+  </>
+  );
 };
 
 const Editor = (): JSX.Element => {
