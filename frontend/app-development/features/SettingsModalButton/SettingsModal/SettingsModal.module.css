@@ -1,0 +1,37 @@
+.modalContent {
+  display: flex;
+  max-height: calc(var(--modal-content-max-height));
+  min-width: 80vw;
+}
+
+.leftNavWrapper {
+  height: auto;
+  top: 0;
+  position: sticky;
+}
+
+.leftNavigationBar {
+  min-height: 200px;
+  border-bottom-left-radius: 20px;
+}
+
+.tabWrapper {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-inline: 30px;
+}
+
+.headingWrapper {
+  display: flex;
+  align-items: center;
+  padding-block: 10px;
+  padding-inline: 20px;
+}
+
+.headingWrapper > :first-child {
+  margin-right: 10px;
+}
+
+.icon {
+  font-size: 2rem;
+}

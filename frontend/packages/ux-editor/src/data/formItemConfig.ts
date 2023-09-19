@@ -23,6 +23,7 @@ import {
   InformationSquareIcon
 } from '@navikt/aksel-icons';
 import React, { RefAttributes, SVGProps } from 'react';
+import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -70,6 +71,10 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.ActionButton,
+      textResourceBindings: {
+        title: '', // To avoid undefined as text when previewing default component
+      },
+      buttonStyle: ActionButtonSchema.properties.buttonStyle.enum[0], // To avoid rendering error in app-frontend when previewing default component
     },
     icon: FingerButtonIcon,
   },

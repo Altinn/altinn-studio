@@ -7,10 +7,10 @@ import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormContext } from './FormContext';
+import { DragAndDrop } from 'app-shared/components/dragAndDrop';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
 
 // Test data:
 const org = 'org';
@@ -26,7 +26,7 @@ describe('DesignView', () => {
       [layout2NameMock]: { $schema: '', data: { layout: [] } },
     };
     const queries: Partial<ServicesContextProps> = {
-      getFormLayouts: () => Promise.resolve(emptyLayoutsResponse)
+      getFormLayouts: () => Promise.resolve(emptyLayoutsResponse),
     };
     await render(queries);
     expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('DesignView', () => {
 
   it('Renders component without layout', async () => {
     const queries: Partial<ServicesContextProps> = {
-      getFormLayouts: () => Promise.resolve({})
+      getFormLayouts: () => Promise.resolve({}),
     };
     await render(queries);
     expect(screen.getByText(layout1NameMock)).toBeInTheDocument();
@@ -53,23 +53,31 @@ describe('DesignView', () => {
               type: ComponentType.Group,
               children: [],
             },
-          ]
-        }
-      }
+          ],
+        },
+      },
     };
     const queries: Partial<ServicesContextProps> = {
-      getFormLayouts: () => Promise.resolve(formLayoutsResponse)
+      getFormLayouts: () => Promise.resolve(formLayoutsResponse),
     };
     await render(queries);
-    expect(screen.queryByText((content) => content.startsWith(`Gruppe - $`))).not.toBeInTheDocument();
+    expect(
+      screen.queryByText((content) => content.startsWith(`Gruppe - $`))
+    ).not.toBeInTheDocument();
   });
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const { result } = renderHookWithMockStore({}, queries)(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
+  const { result } = renderHookWithMockStore(
+    {},
+    queries
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
   await waitFor(() => result.current.isSuccess);
-  return renderWithMockStore({}, queries)(
-    <DndProvider backend={HTML5Backend}>
+  return renderWithMockStore(
+    {},
+    queries
+  )(
+    <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormContext.Provider
         value={{
           form: null,
@@ -81,9 +89,8 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
           handleEdit: mockHandleEdit,
         }}
       >
-        <DesignView/>
+        <DesignView />
       </FormContext.Provider>
-    </DndProvider>
+    </DragAndDrop.Provider>
   );
 };
-

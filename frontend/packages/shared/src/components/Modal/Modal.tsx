@@ -36,7 +36,7 @@ export type ModalProps = {
  *      title={
  *        <div>
  *          <SomeIcon />
- *          <Heading level={2} size='small'>Some name</Heading>
+ *          <Heading level={1} size='small'>Some name</Heading>
  *        </div>
  *      }
  *    >

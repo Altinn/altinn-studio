@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -27,10 +26,10 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet("process-definition")]
-        public Task<string> GetProcessDefinition(string org, string repo)
+        public async Task<string> GetProcessDefinition(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            return _appDevelopmentService.GetProcessDefinition(new AltinnAppContext(org, repo, developer));
+            return await _appDevelopmentService.GetProcessDefinition(new AltinnAppContext(org, repo, developer));
         }
 
         [HttpPut("process-definition")]

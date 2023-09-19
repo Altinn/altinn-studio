@@ -212,30 +212,52 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                ContentsResponse contentsResponse = await response.Content.ReadAsAsync<ContentsResponse>();
-                response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
-                if (response.StatusCode == HttpStatusCode.OK)
+                string content = await response.Content.ReadAsStringAsync();
+
+                ContentsResponse contentsResponse = null;
+
+                try
                 {
-                    GiteaCommit lastCommit = await response.Content.ReadAsAsync<GiteaCommit>();
-                    listviewResource.LastChanged = DateTime.Parse(lastCommit.Created);
+                    contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
+                }
+                catch (JsonException)
+                {
+                    // Not pushed to git
+                }
+                catch (Exception)
+                {
+                    // Not pushed to git
                 }
 
-                HttpResponseMessage responseFromCommits = await _httpClient.GetAsync($"repos/{org}/{repo}/commits");
-                if (responseFromCommits.StatusCode == HttpStatusCode.OK)
+                if (contentsResponse != null)
                 {
-                    List<GiteaCommit> commitList = await responseFromCommits.Content.ReadAsAsync<List<GiteaCommit>>();
-                    DateTime oldestCommitTimestamp = listviewResource.LastChanged;
-                    GiteaCommit oldestCommit = new GiteaCommit();
-                    foreach (GiteaCommit commit in commitList)
+                    response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        if (DateTime.Parse(commit.Created) <= oldestCommitTimestamp)
-                        {
-                            oldestCommitTimestamp = DateTime.Parse(commit.Created);
-                            oldestCommit = commit;
-                        }
+                        GiteaCommit lastCommit = await response.Content.ReadAsAsync<GiteaCommit>();
+                        listviewResource.LastChanged = DateTime.Parse(lastCommit.Created);
                     }
 
-                    listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
+                    HttpResponseMessage responseFromCommits = await _httpClient.GetAsync($"repos/{org}/{repo}/commits");
+                    if (responseFromCommits.StatusCode == HttpStatusCode.OK)
+                    {
+                        List<GiteaCommit> commitList = await responseFromCommits.Content.ReadAsAsync<List<GiteaCommit>>();
+                        DateTime oldestCommitTimestamp = listviewResource.LastChanged;
+                        GiteaCommit oldestCommit = new GiteaCommit();
+                        foreach (GiteaCommit commit in commitList)
+                        {
+                            if (DateTime.Parse(commit.Created) <= oldestCommitTimestamp)
+                            {
+                                oldestCommitTimestamp = DateTime.Parse(commit.Created);
+                                oldestCommit = commit;
+                            }
+                        }
+
+                        if (oldestCommit?.Commit?.Author?.Name != null)
+                        {
+                            listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
+                        }
+                    }
                 }
             }
 

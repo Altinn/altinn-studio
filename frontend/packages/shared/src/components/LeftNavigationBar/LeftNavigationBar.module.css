@@ -1,0 +1,50 @@
+.navigationBar {
+  background-color: var(--fds-semantic-background-subtle);
+  width: 250px;
+  height: 100%;
+  left: 0;
+  border-right: 1px solid var(--fds-semantic-border-neutral-divider);
+  border-top: none;
+}
+
+.navigationElements {
+  display: flex;
+  flex-direction: column;
+}
+
+.navigationElement {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-block: 20px;
+  border: none;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  background-color: var(--fds-semantic-background-subtle);
+  cursor: pointer;
+}
+
+.navigationElement:hover {
+  background-color: var(--fds-semantic-background-default);
+  z-index: 1;
+}
+
+.navigationElement:focus-visible {
+  background-color: var(--fds-semantic-background-default);
+  z-index: 2;
+  border-bottom: none;
+
+  --fds-inner-focus-border-color: var(--fds-semantic-border-focus-boxshadow);
+  --fds-outer-focus-border-color: var(--fds-semantic-border-focus-outline);
+  --fds-focus-border-width: 3px;
+
+  outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset,
+    0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
+}
+
+.navigationElement:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+  background-color: var(--fds-semantic-background-subtle);
+}

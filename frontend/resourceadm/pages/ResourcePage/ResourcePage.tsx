@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -20,6 +19,15 @@ import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
+import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import {
+  GavelSoundBlockIcon,
+  InformationSquareIcon,
+  MigrationIcon,
+  UploadIcon,
+} from '@navikt/aksel-icons';
+import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
+import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
 
 /**
  * @component
@@ -143,13 +151,6 @@ export const ResourcePage = (): React.ReactNode => {
   };
 
   /**
-   * Takes the user back to where they came from
-   */
-  const goBack = () => {
-    navigate(getResourceDashboardURL(selectedContext, repo));
-  };
-
-  /**
    * Handles the navigation to a page that has erros. This is used from the deploy
    * page when information is displayed about errors on the policy or the resource page.
    *
@@ -176,14 +177,65 @@ export const ResourcePage = (): React.ReactNode => {
     return false;
   };
 
+  const aboutPageId = 'about';
+  const policyPageId = 'policy';
+  const deployPageId = 'deploy';
+  const migrationPageId = 'migration';
+
+  const leftNavigationTabs: LeftNavigationTab[] = [
+    createNavigationTab(
+      <InformationSquareIcon className={classes.icon} />,
+      aboutPageId,
+      () => navigateToPage(aboutPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'about')
+    ),
+    createNavigationTab(
+      <GavelSoundBlockIcon className={classes.icon} />,
+      policyPageId,
+      () => navigateToPage(policyPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'policy')
+    ),
+    createNavigationTab(
+      <UploadIcon className={classes.icon} />,
+      deployPageId,
+      () => navigateToPage(deployPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'deploy')
+    ),
+  ];
+
+  const migrationTab: LeftNavigationTab = createNavigationTab(
+    <MigrationIcon className={classes.icon} />,
+    migrationPageId,
+    () => navigateToPage(migrationPageId),
+    currentPage,
+    getResourcePageURL(selectedContext, repo, resourceId, 'migration')
+  );
+
+  /**
+   * Gets the tabs to display. If showMigrate is true, the migration tab
+   * is added, otherwise it displays the three initial tabs.
+   *
+   * @returns the tabs to display in the LeftNavigationBar
+   */
+  const getTabs = (): LeftNavigationTab[] => {
+    if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
+      return [...leftNavigationTabs, migrationTab];
+    } else {
+      return leftNavigationTabs;
+    }
+  };
+
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
         <LeftNavigationBar
-          currentPage={currentPage}
-          navigateToPage={navigateToPage}
-          goBack={goBack}
-          showMigrate={getShowMigrate()}
+          upperTab='backButton'
+          tabs={getTabs()}
+          backLink={`${getResourceDashboardURL(selectedContext, repo)}`}
+          backLinkText={t('resourceadm.left_nav_bar_back')}
         />
       </div>
       <div className={classes.resourcePageWrapper}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
-import { ServicesContextProvider } from './ServicesContext';
+import { ServicesContextProps, ServicesContextProvider } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
@@ -23,11 +23,44 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
 }));
 
-const wrapper = ({ children }) => (
-  <ServicesContextProvider {...queriesMock}>{children}</ServicesContextProvider>
-);
+const wrapper = ({
+  children,
+  queries = {},
+}: {
+  children: React.JSX.Element;
+  queries: Partial<ServicesContextProps>;
+}) => {
+  const allQueries: ServicesContextProps = {
+    ...queriesMock,
+    ...queries,
+  };
+  return <ServicesContextProvider {...allQueries}>{children}</ServicesContextProvider>;
+};
 
 describe('ServicesContext', () => {
+  it('logs the user out when the session is invalid or expired', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(401)), {
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      }
+    );
+
+    await waitFor(() => result.current.isError);
+
+    expect(logout).toHaveBeenCalledTimes(1);
+    expect(mockConsoleError).toHaveBeenCalled();
+  });
+
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(

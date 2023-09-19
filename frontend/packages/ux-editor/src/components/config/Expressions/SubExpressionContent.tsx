@@ -13,22 +13,22 @@ import { DataSourceValue } from './DataSourceValue';
 import { addDataSource, addDataSourceValue } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
 
-interface IExpressionContentProps {
-  expressionAction: boolean;
+export interface SubExpressionContentProps {
+  expressionPropertyIsSet: boolean;
   subExpression: SubExpression;
   onUpdateSubExpression: (subExpression: SubExpression) => void;
   onRemoveSubExpression: (subExpression: SubExpression) => void;
 }
 
 export const SubExpressionContent = ({
-  expressionAction,
+  expressionPropertyIsSet,
   subExpression,
   onUpdateSubExpression,
   onRemoveSubExpression,
-}: IExpressionContentProps) => {
+}: SubExpressionContentProps) => {
   const t = useText();
 
-  const allowToSpecifyExpression = expressionAction && Object.values(ExpressionFunction).includes(subExpression.function as ExpressionFunction);
+  const allowToSpecifyExpression = expressionPropertyIsSet && Object.values(ExpressionFunction).includes(subExpression.function as ExpressionFunction);
 
   const addFunctionToSubExpression = (func: string) => {
     if (func === 'default') {
@@ -36,30 +36,25 @@ export const SubExpressionContent = ({
     } else {
       subExpression.function = func as ExpressionFunction;
     }
-    handleUpdateSubExpression();
+    onUpdateSubExpression(subExpression);
   };
 
   const addDataSourceToExpression = (dataSource: string, isComparable: boolean ) => {
     const newSubExpression = addDataSource(subExpression, dataSource, isComparable);
-    subExpression = { ...newSubExpression };
-    handleUpdateSubExpression();
+    onUpdateSubExpression(newSubExpression);
   };
 
   const addDataSourceValueToExpression = (dataSourceValue: string, isComparable: boolean) => {
     const newSubExpression = addDataSourceValue(subExpression, dataSourceValue, isComparable);
-    subExpression = { ...newSubExpression };
-    handleUpdateSubExpression();
-  };
-
-  const handleUpdateSubExpression = () => {
-    onUpdateSubExpression(subExpression);
+    onUpdateSubExpression(newSubExpression);
   };
 
   return (
     <div>
       <div className={classes.subExpressionTop}>
-        <p>{t('right_menu.expressions_function_on_action')}</p>
+        <p>{t('right_menu.expressions_function_on_property')}</p>
         <Button
+          title={t('general.delete')}
           color='danger'
           icon={<XMarkIcon />}
           onClick={() => onRemoveSubExpression(subExpression)}
@@ -68,6 +63,8 @@ export const SubExpressionContent = ({
         />
       </div>
       <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
+        label={t('right_menu.expressions_function')}
+        hideLabel={true}
         onChange={(func: string) => addFunctionToSubExpression(func)}
         options={[{ label: t('right_menu.expressions_function_select'), value: 'default' }].concat(
           Object.values(ExpressionFunction).map((func: string) => ({
@@ -81,6 +78,8 @@ export const SubExpressionContent = ({
         <div className={classes.expression}>
             <div className={classes.expressionDetails}>
               <Select
+                label={t('right_menu.expressions_data_source')}
+                hideLabel={true}
                 onChange={(dataSource: string) => addDataSourceToExpression(dataSource, false)}
                 options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(
                   Object.values(DataSource).map((ds: string) => ({
@@ -102,6 +101,8 @@ export const SubExpressionContent = ({
                 {expressionFunctionTexts(t)[subExpression.function]}
               </p>
               <Select
+                label={t('right_menu.expressions_comparable_data_source')}
+                hideLabel={true}
                 onChange={(compDataSource: string) =>
                   addDataSourceToExpression(compDataSource, true)
                 }

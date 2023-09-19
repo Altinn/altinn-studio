@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
@@ -30,8 +31,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">Repository name where the schema file recides.</param>
         /// <param name="developer">Developers short name</param>
         /// <param name="relativeFilePath">Relative path to the file.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>JSON content of the schema file specified.</returns>
-        Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath);
+        Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Updates a schema based on the relative path to the JSON Schema within the repository.

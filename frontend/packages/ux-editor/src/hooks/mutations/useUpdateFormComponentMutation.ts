@@ -38,10 +38,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutN
       const newId = updatedComponent.id;
 
       if (currentId !== newId) {
-        components[newId] = {
-          ...components[id],
-          ...updatedComponent,
-        };
+        components[newId] = updatedComponent;
         delete components[id];
 
         // Update ID in parent container order
@@ -56,10 +53,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutN
           delete components[id].options;
           delete components[id].optionsId;
         }
-        components[id] = {
-          ...components[id],
-          ...updatedComponent,
-        };
+        components[id] = updatedComponent;
       }
 
       return saveLayout(updatedLayout).then(async (data) => {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Enums.Altinn2;
@@ -183,12 +184,12 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/sectors")]
-        public async Task<ActionResult<List<DataTheme>>> GetSectors()
+        public async Task<ActionResult<List<DataTheme>>> GetSectors(CancellationToken cancellationToken)
         {
             string cacheKey = "sectors";
             if (!_memoryCache.TryGetValue(cacheKey, out List<DataTheme> sectors))
             {
-                DataThemesContainer dataThemesContainer = await _resourceRegistryOptions.GetSectors();
+                DataThemesContainer dataThemesContainer = await _resourceRegistryOptions.GetSectors(cancellationToken);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
@@ -204,12 +205,12 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/losterms")]
-        public async Task<ActionResult<List<LosTerm>>> GetGetLosTerms()
+        public async Task<ActionResult<List<LosTerm>>> GetGetLosTerms(CancellationToken cancellationToken)
         {
             string cacheKey = "losterms";
             if (!_memoryCache.TryGetValue(cacheKey, out List<LosTerm> sectors))
             {
-                LosTerms losTerms = await _resourceRegistryOptions.GetLosTerms();
+                LosTerms losTerms = await _resourceRegistryOptions.GetLosTerms(cancellationToken);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
@@ -225,13 +226,13 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/eurovoc")]
-        public async Task<ActionResult<List<EuroVocTerm>>> GetEuroVoc()
+        public async Task<ActionResult<List<EuroVocTerm>>> GetEuroVoc(CancellationToken cancellationToken)
         {
             string cacheKey = "eurovocs";
             if (!_memoryCache.TryGetValue(cacheKey, out List<EuroVocTerm> sectors))
             {
 
-                EuroVocTerms euroVocTerms = await _resourceRegistryOptions.GetEuroVocTerms();
+                EuroVocTerms euroVocTerms = await _resourceRegistryOptions.GetEuroVocTerms(cancellationToken);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
@@ -287,11 +288,6 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
             }
 
-            if (resource.ResourceType == null)
-            {
-                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingresourcetype");
-            }
-
             if (resource.AvailableForType == null || resource.AvailableForType.Count == 0)
             {
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
@@ -299,7 +295,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
-                ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingcontactpoints");
+                ModelState.AddModelError($"{resource.Identifier}.contactPoint", "resourceerror.missingcontactpoints");
             }
             else
             {
@@ -310,7 +306,7 @@ namespace Altinn.Studio.Designer.Controllers
                     var telephoneError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].Telephone);
                     var contactPageError = string.IsNullOrWhiteSpace(resource.ContactPoints[i].ContactPage);
 
-                    if (categoryError || emailError || telephoneError || contactPageError)
+                    if (categoryError && emailError && telephoneError && contactPageError)
                     {
                         ModelState.AddModelError($"{resource.Identifier}.contactPoints[{i}]", "resourceerror.missingcontactpoints.");
                     }
@@ -322,12 +318,20 @@ namespace Altinn.Studio.Designer.Controllers
             return details;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {
-            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-            return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+            if (repository == $"{org}-resources")
+            {
+                string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
+                return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+            }
+            else
+            {
+                Console.WriteLine("Invalid repository for resource");
+                return new StatusCodeResult(400);
+            }
         }
     }
 }

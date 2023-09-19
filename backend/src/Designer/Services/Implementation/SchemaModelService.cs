@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Schema;
 
@@ -82,8 +83,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath)
+        public async Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
 
             return await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath);

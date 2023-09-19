@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
@@ -20,6 +21,7 @@ using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Json.Schema;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -96,8 +98,14 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
 
         var response = await HttpClient.Value.SendAsync(request);
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-        var errorResponse = await response.Content.ReadAsAsync<ApiError>();
-        errorResponse.ErrorCode.Should().Be(expectedErrorCode);
+        var content = await response.Content.ReadAsStringAsync();
+
+        var errorResponse = JsonSerializer.Deserialize<ProblemDetails>(content, new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true
+        });
+        Assert.True(errorResponse.Extensions.TryGetValue("errorCode", out object expected));
+        ((JsonElement)expected).GetString().Should().Be(expectedErrorCode);
     }
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)

@@ -1,4 +1,5 @@
-﻿using Altinn.Studio.Designer.Configuration;
+﻿using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Implementation;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace Designer.Tests.Services
     {
         [Theory]
         [InlineData("ttd", "hvem-er-hvem", "testUser")]
-        public void Semaphores_ShouldBeCleanedUpAfterExpiry(string org, string repo, string developer)
+        public async Task Semaphores_ShouldBeCleanedUpAfterExpiry(string org, string repo, string developer)
         {
             var settings = new UserRequestSynchronizationSettings
             {
@@ -23,8 +24,7 @@ namespace Designer.Tests.Services
             Assert.Equal(semaphore2, semaphore);
 
             // Check if semaphore will expire
-            System.Threading.Thread.Sleep(5000);
-
+            await Task.Delay(5000);
             var semaphore3 = service.GetRequestsSemaphore(org, repo, developer);
             Assert.NotEqual(semaphore3, semaphore);
 
