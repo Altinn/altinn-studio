@@ -18,14 +18,7 @@ export const useAppMetadataQuery = (
 ): UseQueryResult<ApplicationMetadata, AxiosError> => {
   const { getAppMetadata } = useServicesContext();
 
-  return useQuery<ApplicationMetadata, AxiosError>(
-    [QueryKey.AppMetadata, org, app],
-    () => getAppMetadata(org, app),
-    {
-      select: (data) => {
-        console.log(data);
-        return data;
-      },
-    }
+  return useQuery<ApplicationMetadata, AxiosError>([QueryKey.AppMetadata, org, app], () =>
+    getAppMetadata(org, app)
   );
 };

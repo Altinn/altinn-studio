@@ -9,6 +9,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -26,6 +27,19 @@ const mockAppConfig: AppConfig = {
   serviceDescription: '',
 };
 
+const mockPartyTypesAllowed: PartyTypesAllowed = {
+  bankruptcyEstate: true,
+  organisation: false,
+  person: false,
+  subUnit: false,
+};
+
+const mockAppMetadata: ApplicationMetadata = {
+  id: 'mockId',
+  org: mockOrg,
+  partyTypesAllowed: mockPartyTypesAllowed,
+};
+
 describe('SettingsModal', () => {
   const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
@@ -39,6 +53,7 @@ describe('SettingsModal', () => {
     org: mockOrg,
     app: mockApp,
     appConfig: mockAppConfig,
+    appMetadata: mockAppMetadata,
   };
 
   it('closes the modal when the close button is clicked', async () => {
@@ -58,6 +73,9 @@ describe('SettingsModal', () => {
     expect(
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_accessControl') })
+    ).toBeInTheDocument();
   });
 
   it('displays the about tab, and not the other tabs, when modal opens first time', () => {
@@ -70,9 +88,15 @@ describe('SettingsModal', () => {
         level: 2,
       })
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('settings_modal.access_control_tab_heading'),
+        level: 2,
+      })
+    ).not.toBeInTheDocument();
   });
 
-  it('changes the tab displayed when a tab is clicked', async () => {
+  it('changes the tab from "about" to "policy" when policy tab is clicked', async () => {
     renderWithQueryClient({}, createQueryClientMock(), defaultProps);
 
     expect(
@@ -97,6 +121,15 @@ describe('SettingsModal', () => {
     expect(
       screen.queryByText(textMock('settings_modal.about_tab_heading'))
     ).not.toBeInTheDocument();
+  });
+
+  it('changes the tab from "policy" to "about" when about tab is clicked', async () => {
+    renderWithQueryClient({}, createQueryClientMock(), defaultProps);
+
+    const policyTab = screen.getByRole('button', {
+      name: textMock('settings_modal.left_nav_tab_policy'),
+    });
+    await act(() => user.click(policyTab));
 
     const aboutTab = screen.getByRole('button', {
       name: textMock('settings_modal.left_nav_tab_about'),
@@ -110,6 +143,33 @@ describe('SettingsModal', () => {
       })
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+  });
+
+  it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
+    renderWithQueryClient({}, createQueryClientMock(), defaultProps);
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('settings_modal.access_control_tab_heading'),
+        level: 2,
+      })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+
+    const accessControlTab = screen.getByRole('button', {
+      name: textMock('settings_modal.left_nav_tab_accessControl'),
+    });
+    await act(() => user.click(accessControlTab));
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('settings_modal.access_control_tab_heading'),
+        level: 2,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('settings_modal.about_tab_heading'))
+    ).not.toBeInTheDocument();
   });
 });
 

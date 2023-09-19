@@ -19,6 +19,7 @@ const mockOrg: string = 'org';
 
 const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -43,13 +44,18 @@ describe('SettingsModalButton', () => {
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
+  it('fetches appMetadata on mount', () => {
+    render();
+    expect(getAppMetadata).toHaveBeenCalledTimes(1);
+  });
+
   it('initially displays the spinner when loading data', () => {
     render();
 
     expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
   });
 
-  it.each(['getAppPolicy', 'getAppConfig'])(
+  it.each(['getAppPolicy', 'getAppConfig', 'getAppMetadata'])(
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
@@ -117,6 +123,7 @@ const render = (
     ...queriesMock,
     getAppPolicy,
     getAppConfig,
+    getAppMetadata,
     ...queries,
   };
   return rtlRender(
