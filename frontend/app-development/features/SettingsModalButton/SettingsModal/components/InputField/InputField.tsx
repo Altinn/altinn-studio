@@ -70,7 +70,7 @@ export type InputFieldProps = {
  * @property {string}[errorText] - Error text to show if field is invalid
  * @property {boolean}[readOnly] - Flag for if the field is read only
  *
- * @returns
+ * @returns {ReactNode} - The rendered component
  */
 export const InputField = ({
   id,
