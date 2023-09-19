@@ -35,7 +35,10 @@ export type AboutTabProps = {
 export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
 
-  const [appConfigState, setAppConfigState] = useState<AppConfig>(appConfig);
+  const [appConfigState, setAppConfigState] = useState<AppConfig>({
+    ...appConfig,
+    serviceId: appConfig?.serviceId ?? '',
+  });
 
   // Mutation function to update app config
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
