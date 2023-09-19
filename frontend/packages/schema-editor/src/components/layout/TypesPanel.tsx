@@ -67,47 +67,47 @@ export const TypesPanel = ({
 
   return (
     <div className={classes.root}>
-      <ActionMenu
-        items={[
-          {
-            action: () => handleAddProperty(ObjectKind.Field),
-            icon: IconImage.Object,
-            text: t('field'),
-          },
-          {
-            action: () => handleAddProperty(ObjectKind.Reference),
-            icon: IconImage.Reference,
-            text: t('reference'),
-          },
-          {
-            action: () => handleAddProperty(ObjectKind.Combination),
-            icon: IconImage.Combination,
-            text: t('combination'),
-          },
-          {
-            action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
-            className: classes.dividerAbove,
-            icon: IconImage.String,
-            text: t('string'),
-          },
-          {
-            action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
-            icon: IconImage.Number,
-            text: t('integer'),
-          },
-          {
-            action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
-            icon: IconImage.Number,
-            text: t('number'),
-          },
-          {
-            action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
-            icon: IconImage.Boolean,
-            text: t('boolean'),
-          },
-        ]}
-        openButtonText={t('add')}
-      />
+        <ActionMenu
+          items={[
+            {
+              action: () => handleAddProperty(ObjectKind.Field),
+              icon: IconImage.Object,
+              text: t('field'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Reference),
+              icon: IconImage.Reference,
+              text: t('reference'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Combination),
+              icon: IconImage.Combination,
+              text: t('combination'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
+              className: classes.dividerAbove,
+              icon: IconImage.String,
+              text: t('string'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
+              icon: IconImage.Number,
+              text: t('integer'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
+              icon: IconImage.Number,
+              text: t('number'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
+              icon: IconImage.Boolean,
+              text: t('boolean'),
+            },
+          ]}
+          openButtonText={t('add')}
+        />
       <SchemaTreeView
         expanded={expandedDefNodes}
         items={[uiSchemaNode]}
