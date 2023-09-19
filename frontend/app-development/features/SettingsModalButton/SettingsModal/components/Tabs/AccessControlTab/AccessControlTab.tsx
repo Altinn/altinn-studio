@@ -3,6 +3,7 @@ import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { Checkbox, Paragraph } from '@digdir/design-system-react';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 type AccessControlOption = 'BankruptcyEstate' | 'Business' | 'PrivatePerson' | 'Subunit';
 
@@ -13,8 +14,31 @@ const accessControlOptionsMap: Record<AccessControlOption, string> = {
   Subunit: 'settings_modal.access_control_tab_option_subunit',
 };
 
-export type AccessControlTabProps = {};
+export type AccessControlTabProps = {
+  /**
+   * The application's metadata
+   */
+  appMetadata: ApplicationMetadata;
+  /**
+   * The org
+   */
+  org: string;
+  /**
+   * The app
+   */
+  app: string;
+};
 
+/**
+ * @component
+ *    Displays the tab rendering the access control for an app
+ *
+ * @property {ApplicationMetadata}[appMetadata] - The application's metadata
+ * @property {string}[org] - The org
+ * @property {string}[app] - The app
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const AccessControlTab = ({}: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
 

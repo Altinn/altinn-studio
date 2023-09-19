@@ -10,3 +10,4 @@ export { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 export { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 export { useAppPolicyQuery } from './useAppPolicyQuery';
 export { useAppConfigQuery } from './useAppConfigQuery';
+export { useAppMetadataQuery } from './useAppMetadataQuery';

@@ -18,6 +18,7 @@ import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export type SettingsModalProps = {
   /**
@@ -45,6 +46,10 @@ export type SettingsModalProps = {
    * The config for the application
    */
   appConfig: AppConfig;
+  /**
+   * The application's metadata
+   */
+  appMetadata: ApplicationMetadata;
 };
 
 /**
@@ -56,7 +61,8 @@ export type SettingsModalProps = {
  * @property {Policy}[policy] - The policy of the app
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {AppConfig}[appConfig] - The serice name
+ * @property {AppConfig}[appConfig] - The service name
+ * @property {ApplicationMetadata}[appMetadata] - The application's metadata
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -67,6 +73,7 @@ export const SettingsModal = ({
   org,
   app,
   appConfig,
+  appMetadata,
 }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -121,7 +128,7 @@ export const SettingsModal = ({
         return <AboutTab appConfig={appConfig} org={org} app={app} />;
       }
       case 'accessControl': {
-        return <AccessControlTab />;
+        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
