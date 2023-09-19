@@ -51,7 +51,7 @@ const handleError = (
     (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
   )
     return;
-    
+  
   const errorCode = error?.response?.data?.errorCode;
   if (errorCode) {
     const errorMessageKey = `api_errors.${errorCode}`;
