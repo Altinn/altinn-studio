@@ -1,10 +1,9 @@
 import React, { ReactNode } from 'react';
-import classes from './PolicyTab.module.css';
 import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
-import { Heading } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { TabHeader } from '../../TabHeader';
 
 /**
  * The different actions a policy can have. TODO - Find out if there should be more.
@@ -87,10 +86,8 @@ export const PolicyTab = ({ policy, org, app }: PolicyTabProps): ReactNode => {
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
   return (
-    <div className={classes.wrapper}>
-      <Heading level={2} spacing size='small'>
-        {t('settings_modal.policy_tab_heading')}
-      </Heading>
+    <div>
+      <TabHeader text={t('settings_modal.policy_tab_heading')} />
       <PolicyEditorImpl
         policy={policy}
         actions={actionData}
