@@ -4,7 +4,7 @@ import { DndProvider } from 'react-dnd';
 import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { SchemaItem } from './SchemaItem';
-import { TreeView } from '@mui/lab';
+import { TreeView } from '@mui/x-tree-view';
 
 export interface SchemaTreeViewProps {
   expanded: any;
