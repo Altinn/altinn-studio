@@ -313,6 +313,7 @@
   "handle_merge_conflict.discard_changes_button_cancel": "Avbryt",
   "handle_merge_conflict.discard_changes_button_confirm": "Forkast alle mine endringer",
   "handle_merge_conflict.discard_changes_message": "Om du velger å forkaste alle dine endringer vil alt ditt arbeide siden siste deling bli permanent slettet.",
+  "handle_merge_conflict.discard_changes_toast_message": "Deling av endringer mislyktes. Vennligst prøv igjen.",
   "language.aa": "Afar",
   "language.ab": "Abkhasisk",
   "language.ae": "Avestisk",

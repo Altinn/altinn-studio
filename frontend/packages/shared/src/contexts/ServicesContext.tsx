@@ -40,9 +40,15 @@ const handleError = (
   logout: () => Promise<void>
 ): void => {
   // TODO : log axios errors
+  const errorCode = error?.response?.data?.errorCode;
 
   if (error?.response?.status === 401) {
     logout().then(() => window.location.assign(userLogoutAfterPath()));
+    return;
+  }
+
+  if (errorCode === 'GT_01') {
+    toast.error(t('handle_merge_conflict.discard_changes_toast_message'));
     return;
   }
 
@@ -52,7 +58,6 @@ const handleError = (
   )
     return;
 
-  const errorCode = error?.response?.data?.errorCode;
   if (errorCode) {
     const errorMessageKey = `api_errors.${errorCode}`;
 

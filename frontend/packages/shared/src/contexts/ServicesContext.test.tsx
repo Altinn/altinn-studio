@@ -61,6 +61,20 @@ describe('ServicesContext', () => {
     expect(mockConsoleError).toHaveBeenCalled();
   });
 
+  it('Displays a toast message for "GT_01" error code', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const errorCode = 'GT_01';
+    const { result } = renderHook( () =>
+      useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(409, errorCode)), { retry: false }),
+      { wrapper }
+    );
+    await waitFor(() => result.current.isError);
+    await waitFor(() => {
+      expect(screen.getByText("handle_merge_conflict.discard_changes_toast_message")).toBeInTheDocument();
+    });
+    expect(mockConsoleError).toHaveBeenCalled();
+  });
+
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
