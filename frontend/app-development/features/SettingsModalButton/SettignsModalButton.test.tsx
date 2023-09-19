@@ -49,14 +49,6 @@ describe('SettingsModalButton', () => {
     expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
   });
 
-  it('displays the error message when failing to load data', async () => {
-    render();
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
-    );
-  });
-
   it.each(['getAppPolicy', 'getAppConfig'])(
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
