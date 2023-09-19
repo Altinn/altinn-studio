@@ -8,6 +8,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryClient } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { AppConfig } from 'app-shared/types/AppConfig';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -16,6 +17,13 @@ const mockPolicy: Policy = {
   rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '3',
+};
+
+const mockAppConfig: AppConfig = {
+  repositoryName: 'test',
+  serviceName: 'test',
+  serviceId: '',
+  serviceDescription: '',
 };
 
 describe('SettingsModal', () => {
@@ -30,6 +38,7 @@ describe('SettingsModal', () => {
     policy: mockPolicy,
     org: mockOrg,
     app: mockApp,
+    appConfig: mockAppConfig,
   };
 
   it('closes the modal when the close button is clicked', async () => {

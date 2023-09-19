@@ -10,6 +10,8 @@ import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
 import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
+import { AboutTab } from './components/Tabs/AbouTab';
+import { AppConfig } from 'app-shared/types/AppConfig';
 
 export type SettingsModalProps = {
   /**
@@ -33,6 +35,10 @@ export type SettingsModalProps = {
    * The app
    */
   app: string;
+  /**
+   * The config for the application
+   */
+  appConfig: AppConfig;
 };
 
 /**
@@ -44,6 +50,7 @@ export type SettingsModalProps = {
  * @property {Policy}[policy] - The policy of the app
  * @property {string}[org] - The org
  * @property {string}[app] - The app
+ * @property {AppConfig}[appConfig] - The serice name
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -53,6 +60,7 @@ export const SettingsModal = ({
   policy,
   org,
   app,
+  appConfig,
 }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -90,10 +98,14 @@ export const SettingsModal = ({
     setCurrentTab(tabId);
   };
 
+  /**
+   * Displays the currently selected tab and its content
+   * @returns
+   */
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <p>{t('settings_modal.about_tab_heading')}</p>;
+        return <AboutTab appConfig={appConfig} org={org} app={app} />;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
