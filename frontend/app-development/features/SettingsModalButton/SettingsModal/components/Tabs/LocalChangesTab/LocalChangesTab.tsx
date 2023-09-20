@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import classes from './LocalChangesTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
 import { DeleteModal } from './DeleteModal';
@@ -33,9 +33,6 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode =
   const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-  const handleDownloadOnlyChangedFiles = () => {};
-  const handleDownloadAllFiles = () => {};
 
   const handleDelete = () => {
     deleteLocalChanges(undefined, {

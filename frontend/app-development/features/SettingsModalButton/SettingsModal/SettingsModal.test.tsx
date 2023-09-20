@@ -68,6 +68,9 @@ describe('SettingsModal', () => {
     expect(
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_localChanges') })
+    ).toBeInTheDocument();
   });
 
   it('displays the about tab, and not the other tabs, when modal opens first time', () => {
@@ -120,6 +123,33 @@ describe('SettingsModal', () => {
       })
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+  });
+
+  it('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
+    renderWithQueryClient({}, createQueryClientMock(), defaultProps);
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('settings_modal.local_changes_tab_heading'),
+        level: 2,
+      })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+
+    const localChangesTab = screen.getByRole('button', {
+      name: textMock('settings_modal.left_nav_tab_localChanges'),
+    });
+    await act(() => user.click(localChangesTab));
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('settings_modal.local_changes_tab_heading'),
+        level: 2,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('settings_modal.about_tab_heading'))
+    ).not.toBeInTheDocument();
   });
 });
 
