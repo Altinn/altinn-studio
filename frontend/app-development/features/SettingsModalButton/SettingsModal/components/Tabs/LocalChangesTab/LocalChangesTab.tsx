@@ -8,7 +8,7 @@ import { LocalChangesActionButton } from './LocalChangesActionButton';
 import { DeleteModal } from './DeleteModal';
 
 export type LocalChangesTabProps = {
-  app: string;
+  appName: string;
 };
 
 /**
@@ -17,7 +17,7 @@ export type LocalChangesTabProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const LocalChangesTab = ({ app }: LocalChangesTabProps): ReactNode => {
+export const LocalChangesTab = ({ appName }: LocalChangesTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -57,7 +57,7 @@ export const LocalChangesTab = ({ app }: LocalChangesTabProps): ReactNode => {
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onDelete={handleDelete}
-        appName={app}
+        appName={appName}
       />
     </div>
   );

@@ -42,9 +42,7 @@ export const DeleteModal = ({
     >
       <div className={classes.contentWrapper}>
         <Paragraph size='small' className={classes.paragraph}>
-          {t('settings_modal.local_changes_tab_delete_modal_text', {
-            appName,
-          })}
+          {t('settings_modal.local_changes_tab_delete_modal_text')}
         </Paragraph>
         <TextField
           label={t('settings_modal.local_changes_tab_delete_modal_textfield_label')}
