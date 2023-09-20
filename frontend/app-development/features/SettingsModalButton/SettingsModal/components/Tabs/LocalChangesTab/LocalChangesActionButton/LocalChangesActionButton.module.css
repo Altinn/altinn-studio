@@ -5,3 +5,8 @@
 .paragraph {
   margin-bottom: 10px;
 }
+
+.linkAndIconWrapper {
+  display: flex;
+  align-items: center;
+}

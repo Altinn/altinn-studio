@@ -2,12 +2,13 @@ import React, { ReactNode, useState } from 'react';
 import classes from './LocalChangesTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { Paragraph } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
 import { DeleteModal } from './DeleteModal';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
+import { repoDownloadPath } from 'app-shared/api/paths';
 
 export type LocalChangesTabProps = {
   /**
@@ -53,24 +54,24 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode =
         <LocalChangesActionButton
           label={t('settings_modal.local_changes_tab_download_your_files_label')}
           description={t('settings_modal.local_changes_tab_download_your_files_description')}
-          onClick={handleDownloadOnlyChangedFiles}
-          icon={<DownloadIcon />}
+          icon={<DownloadIcon className={classes.downloadIcon} />}
           text={t('settings_modal.local_changes_tab_download_only_changed_button')}
+          action={{ type: 'link', href: repoDownloadPath(org, app) }}
         />
         <LocalChangesActionButton
           label={t('settings_modal.local_changes_tab_download_all_files_label')}
           description={t('settings_modal.local_changes_tab_download_all_files_description')}
-          onClick={handleDownloadAllFiles}
-          icon={<DownloadIcon />}
+          icon={<DownloadIcon className={classes.downloadIcon} />}
           text={t('settings_modal.local_changes_tab_download_all_button')}
+          action={{ type: 'link', href: repoDownloadPath(org, app, true) }}
         />
         <LocalChangesActionButton
           label={t('settings_modal.local_changes_tab_delete_label')}
           description={t('settings_modal.local_changes_tab_delete_description')}
-          onClick={() => setDeleteModalOpen(true)}
           color='danger'
           icon={<TrashIcon />}
           text={t('settings_modal.local_changes_tab_delete_button')}
+          action={{ type: 'button', onClick: () => setDeleteModalOpen(true) }}
         />
       </div>
       <DeleteModal

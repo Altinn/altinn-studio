@@ -1,6 +1,18 @@
 import React, { ReactNode } from 'react';
 import classes from './LocalChangesActionButton.module.css';
-import { Button, Label, Paragraph } from '@digdir/design-system-react';
+import { Button, Label, Link, Paragraph } from '@digdir/design-system-react';
+
+interface LinkAction {
+  href: string;
+  type: 'link';
+}
+
+interface ButtonAction {
+  onClick: () => void;
+  type: 'button';
+}
+
+type Action = LinkAction | ButtonAction;
 
 export type LocalChangesActionButtonProps = {
   /**
@@ -19,7 +31,7 @@ export type LocalChangesActionButtonProps = {
    * Function to be executed on click
    * @returns void
    */
-  onClick: () => void;
+  // onClick: () => void;
   /**
    * Icon to display in the button
    */
@@ -28,6 +40,7 @@ export type LocalChangesActionButtonProps = {
    * The text on the button
    */
   text: string;
+  action: Action;
 };
 
 /**
@@ -58,10 +71,39 @@ export const LocalChangesActionButton = ({
   label,
   description,
   color = 'primary',
-  onClick,
   icon,
   text,
+  action,
 }: LocalChangesActionButtonProps): ReactNode => {
+  const displayLinkOrButton = () => {
+    switch (action.type) {
+      case 'link': {
+        return (
+          <div className={classes.linkAndIconWrapper}>
+            <Link href={action.href}>
+              {text}
+              {icon}
+            </Link>
+          </div>
+        );
+      }
+      case 'button': {
+        return (
+          <Button
+            variant='outline'
+            color={color}
+            onClick={action.onClick}
+            icon={icon}
+            iconPlacement='right'
+            size='small'
+          >
+            {text}
+          </Button>
+        );
+      }
+    }
+  };
+
   return (
     <div className={classes.wrapper}>
       <Label as='p' spacing>
@@ -70,16 +112,7 @@ export const LocalChangesActionButton = ({
       <Paragraph className={classes.paragraph} size='small'>
         {description}
       </Paragraph>
-      <Button
-        variant='outline'
-        color={color}
-        onClick={onClick}
-        icon={icon}
-        iconPlacement='right'
-        size='small'
-      >
-        {text}
-      </Button>
+      {displayLinkOrButton()}
     </div>
   );
 };
