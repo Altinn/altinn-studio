@@ -5,7 +5,7 @@ import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
-import { Buldings3Icon, PersonCircleIcon } from '@navikt/aksel-icons';
+import { PersonCircleIcon } from '@navikt/aksel-icons';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import { Repository } from 'app-shared/types/Repository';
@@ -65,7 +65,8 @@ export const AboutTab = ({
           )}
         </Label>
         <div className={classes.createdFor}>
-          <Buldings3Icon className={classes.createdForIcon} />
+          {/*<Buldings3Icon className={classes.createdForIcon} />*/}
+          <img src={repository.owner.avatar_url} style={{ maxHeight: '2em' }} alt='' />
           <Paragraph className={classes.paragraph}>
             {repository.owner.full_name || repository.owner.login}
           </Paragraph>
