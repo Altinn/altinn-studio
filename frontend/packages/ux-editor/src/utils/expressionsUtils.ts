@@ -18,7 +18,10 @@ export const convertInternalExpressionToExternal = (expression: Expression): any
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
-  const expressions: any[] = [];
+  const subExpressions: any[] = [];
+  if (!expression.subExpressions) {
+    return subExpressions;
+  }
   expression.subExpressions.map(subEXp => {
     const expressionObject = [];
     expressionObject[0] = subEXp.function;
@@ -42,12 +45,17 @@ export const convertInternalExpressionToExternal = (expression: Expression): any
     } else {
       expressionObject[2] = subEXp.comparableValue;
     }
-    expressions.push(expressionObject);
+    subExpressions.push(expressionObject);
   });
-  return expression.operator ? [expression.operator].concat(expressions) : expressions[0];
+  return expression.operator ? [expression.operator].concat(subExpressions) : subExpressions[0];
 };
 
 export const isStudioFriendlyExpression = (expression: any): boolean => {
+  
+  if (expression?.length === 0) {
+    // For building expressions free style from beginning
+    return true;
+  }
 
   const isStudioFriendlySubExpression = (subExp: any): boolean => {
     // SubExpression is Studio friendly if it is an array of three elements where the two last elements

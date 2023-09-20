@@ -9,9 +9,10 @@ export type ComplexExpressionProps = {
   disabled?: boolean;
   expression: Expression;
   onChange?: (expression: string) => void;
+  isStudioFriendly?: boolean;
 };
 
-export const ComplexExpression = ({ disabled = false, expression, onChange }: ComplexExpressionProps) => {
+export const ComplexExpression = ({ disabled = false, expression, onChange, isStudioFriendly }: ComplexExpressionProps) => {
   const { t } = useTranslation();
   return (
     <div className={classes.root}>
@@ -20,9 +21,9 @@ export const ComplexExpression = ({ disabled = false, expression, onChange }: Co
         onChange={event => onChange?.(event.target.value)}
         value={stringifyData(expression.complexExpression)}
       />
-      <Alert>
-        {t('right_menu.expressions_complex_expression_message')}
-      </Alert>
+        {!isStudioFriendly && <Alert>
+            {t('right_menu.expressions_complex_expression_message')}
+        </Alert>}
     </div>
   );
 }
