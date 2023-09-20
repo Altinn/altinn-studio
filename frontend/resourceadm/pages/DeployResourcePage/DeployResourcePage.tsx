@@ -69,7 +69,8 @@ export const DeployResourcePage = ({
   // Query function fo rpublishing a resource
   const { mutate: publishResource } = usePublishResourceMutation(selectedContext, repo, resourceId);
 
-  const handlePublish = (env: 'tt02' | 'prod') => {
+  const handlePublish = (env: 'tt02' | 'prod' | 'at22' | 'at23') => {
+    console.log('Trying to publish to: ', env);
     publishResource(env, {
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success'));
@@ -293,6 +294,28 @@ export const DeployResourcePage = ({
                 onClick={() => handlePublish('prod')}
               />
             </div>
+            {selectedContext === 'ttd' && (
+              <div className={classes.deployCardsWrapper}>
+                <ResourceDeployEnvCard
+                  isDeployPossible={isDeployPossible('test', versionInTest)}
+                  envName={t('resourceadm.deploy_at22_env')}
+                  currentEnvVersion={versionInTest}
+                  newEnvVersion={
+                    resourceVersionText !== versionInTest ? resourceVersionText : undefined
+                  }
+                  onClick={() => handlePublish('at22')}
+                />
+                <ResourceDeployEnvCard
+                  isDeployPossible={isDeployPossible('prod', versionInProd)}
+                  envName={t('resourceadm.deploy_at23_env')}
+                  currentEnvVersion={versionInProd}
+                  newEnvVersion={
+                    resourceVersionText !== versionInProd ? resourceVersionText : undefined
+                  }
+                  onClick={() => handlePublish('at23')}
+                />
+              </div>
+            )}
           </div>
         </>
       );

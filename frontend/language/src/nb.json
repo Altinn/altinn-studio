@@ -744,6 +744,8 @@
   "resourceadm.deploy_status_card_error_title": "Du må fikse disse feilene før du kan gå videre",
   "resourceadm.deploy_status_card_error_version": "Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.",
   "resourceadm.deploy_status_card_success": "Ressursen er klar til å publiseres",
+  "resourceadm.deploy_at22_env": "AT22",
+  "resourceadm.deploy_at23_env": "AT23",
   "resourceadm.deploy_test_env": "Testmiljø TT-02",
   "resourceadm.deploy_title": "Publiser ressursen",
   "resourceadm.deploy_version_input_label": "Sett et versjonsnummer for endringene du har gjort",
