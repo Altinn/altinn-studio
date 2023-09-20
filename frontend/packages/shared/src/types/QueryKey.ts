@@ -32,6 +32,7 @@ export enum QueryKey {
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
   Widgets = 'Widgets',
+  AppConfig = 'AppConfig',
 
   // Resourceadm
   ResourceList = 'ResourceList',
