@@ -47,16 +47,16 @@ describe('utils', () => {
   test('getUniqueNodePath', () => {
     const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
     expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keyword.Properties, 'hello'))).toBe(
-      makePointer(Keyword.Properties, 'hello0')
+      makePointer(Keyword.Properties, 'hello0'),
     );
   });
 
   test('replaceLastPointerSegment', () => {
     expect(replaceLastPointerSegment(makePointer('some', 'thing', 'cozy'), 'scary')).toBe(
-      makePointer('some', 'thing', 'scary')
+      makePointer('some', 'thing', 'scary'),
     );
     expect(replaceLastPointerSegment(makePointer('trying', 'to', 'fool'), 'to/fool')).toBe(
-      makePointer('trying', 'to', 'to', 'fool')
+      makePointer('trying', 'to', 'to', 'fool'),
     );
   });
 

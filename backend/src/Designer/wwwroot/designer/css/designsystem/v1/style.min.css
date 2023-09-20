@@ -2349,7 +2349,9 @@ mark,
     background-clip: padding-box;
     border: 1px solid #cccccc;
     border-radius: 0.25rem;
-    transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+    transition:
+        border-color ease-in-out 0.15s,
+        box-shadow ease-in-out 0.15s;
 }
 .form-control::-ms-expand {
     background-color: transparent;
@@ -3607,7 +3609,9 @@ tbody.collapse.show {
     background-color: #1eaef7;
 }
 .custom-control-input:focus ~ .custom-control-indicator {
-    box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px #1eaef7;
+    box-shadow:
+        0 0 0 1px #ffffff,
+        0 0 0 3px #1eaef7;
 }
 .custom-control-input:active ~ .custom-control-indicator {
     color: #ffffff;
@@ -11782,7 +11786,9 @@ textarea:focus::-moz-placeholder {
 .a-form-group .a-switch input[type='radio']:not(:checked) + .a-form-label-inline {
     border: 2px dotted #1eaef7;
     border-radius: 36px;
-    transition: border 0.2s, background-color 0.2s;
+    transition:
+        border 0.2s,
+        background-color 0.2s;
 }
 .a-switch input[type='checkbox']:not(:checked) + label.disabled,
 .a-switch .a-form-group input[type='checkbox']:not(:checked) + .disabled.a-form-label-inline,
@@ -11860,7 +11866,9 @@ textarea:focus::-moz-placeholder {
     background-color: rgba(30, 174, 247, 0.2);
     border: 2px solid #1eaef7;
     border-radius: 36px;
-    transition: border 0.2s, background-color 0.2s;
+    transition:
+        border 0.2s,
+        background-color 0.2s;
 }
 .a-switch input[type='checkbox']:checked + label.a-toggle-icon i,
 .a-switch .a-form-group input[type='checkbox']:checked + .a-toggle-icon.a-form-label-inline i,
@@ -15166,7 +15174,9 @@ textarea:focus::-moz-placeholder {
     background-image: linear-gradient(to right, #1eaef7 50%, transparent 0%),
         linear-gradient(to right, #1eaef7 50%, transparent 0%);
     background-repeat: repeat-x;
-    background-position: 25px top, 25px bottom;
+    background-position:
+        25px top,
+        25px bottom;
     background-size: 4px 2px;
 }
 .a-list li > .row,
@@ -16480,7 +16490,10 @@ a.a-modal-close {
     border: none;
     border-top: 1px solid #efefef;
     box-shadow: 0 1px 5px -2px #000000;
-    transition: margin 300ms, width 300ms, height 300ms !important;
+    transition:
+        margin 300ms,
+        width 300ms,
+        height 300ms !important;
 }
 .a-collapsePanel .a-collapsePanel-body.a-collapsePanel-body--border {
     border: 1px solid #bcc7cc;
@@ -16581,7 +16594,11 @@ a.a-modal-close {
 .a-panelAccordion .a-collapsePanel-heading {
     display: table;
     width: 100%;
-    transition: margin 300ms, padding 300ms, width 300ms, height 300ms !important;
+    transition:
+        margin 300ms,
+        padding 300ms,
+        width 300ms,
+        height 300ms !important;
 }
 .a-panelAccordion .a-collapsePanel-heading .a-collapseBtn {
     background: transparent;
@@ -17824,8 +17841,16 @@ h1 + .a-byline {
 }
 @media (min-width: 576px) {
     .onboarding-wrapper {
-        transition: transform 0.45s ease-in, top 0.1s ease-out, left 0.1s, ease-out;
-        -webkit-transition: -webkit-transform 0.45s ease-in, top 0.1s ease-out, left 0.1s, ease-out;
+        transition:
+            transform 0.45s ease-in,
+            top 0.1s ease-out,
+            left 0.1s,
+            ease-out;
+        -webkit-transition:
+            -webkit-transform 0.45s ease-in,
+            top 0.1s ease-out,
+            left 0.1s,
+            ease-out;
     }
 }
 
@@ -18314,7 +18339,9 @@ hr.a-hrSolidLight {
     box-shadow: none;
     background-repeat: repeat, repeat-x;
     background-position: 25px bottom;
-    background-size: auto, 4px 2px;
+    background-size:
+        auto,
+        4px 2px;
     background-blend-mode: darken;
 }
 .a-dotted.a-disabled.a-primary {

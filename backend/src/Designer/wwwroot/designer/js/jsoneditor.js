@@ -735,7 +735,7 @@
                     for (i = 0; i < schema['extends'].length; i++) {
                         extended = this.extendSchemas(
                             extended,
-                            this.expandSchema(schema['extends'][i])
+                            this.expandSchema(schema['extends'][i]),
                         );
                     }
                 }
@@ -1085,13 +1085,13 @@
                     if (window.math) {
                         valid = window.math[schema.exclusiveMaximum ? 'smaller' : 'smallerEq'](
                             window.math.bignumber(value),
-                            window.math.bignumber(schema.maximum)
+                            window.math.bignumber(schema.maximum),
                         );
                     }
                     // Use Decimal.js if available
                     else if (window.Decimal) {
                         valid = new window.Decimal(value)[schema.exclusiveMaximum ? 'lt' : 'lte'](
-                            new window.Decimal(schema.maximum)
+                            new window.Decimal(schema.maximum),
                         );
                     }
 
@@ -1103,7 +1103,7 @@
                                 schema.exclusiveMaximum
                                     ? 'error_maximum_excl'
                                     : 'error_maximum_incl',
-                                [schema.maximum]
+                                [schema.maximum],
                             ),
                         });
                     }
@@ -1120,13 +1120,13 @@
                     if (window.math) {
                         valid = window.math[schema.exclusiveMinimum ? 'larger' : 'largerEq'](
                             window.math.bignumber(value),
-                            window.math.bignumber(schema.minimum)
+                            window.math.bignumber(schema.minimum),
                         );
                     }
                     // Use Decimal.js if available
                     else if (window.Decimal) {
                         valid = new window.Decimal(value)[schema.exclusiveMinimum ? 'gt' : 'gte'](
-                            new window.Decimal(schema.minimum)
+                            new window.Decimal(schema.minimum),
                         );
                     }
 
@@ -1138,7 +1138,7 @@
                                 schema.exclusiveMinimum
                                     ? 'error_minimum_excl'
                                     : 'error_minimum_incl',
-                                [schema.minimum]
+                                [schema.minimum],
                             ),
                         });
                     }
@@ -1165,7 +1165,7 @@
                             property: 'minLength',
                             message: this.translate(
                                 schema.minLength === 1 ? 'error_notempty' : 'error_minLength',
-                                [schema.minLength]
+                                [schema.minLength],
                             ),
                         });
                     }
@@ -1193,7 +1193,7 @@
                             // Validate against it
                             if (schema.items[i]) {
                                 errors = errors.concat(
-                                    this._validateSchema(schema.items[i], value[i], path + '.' + i)
+                                    this._validateSchema(schema.items[i], value[i], path + '.' + i),
                                 );
                             }
                             // If all additional items are allowed
@@ -1207,8 +1207,8 @@
                                     this._validateSchema(
                                         schema.additionalItems,
                                         value[i],
-                                        path + '.' + i
-                                    )
+                                        path + '.' + i,
+                                    ),
                                 );
                             }
                             // If no additional items are allowed
@@ -1231,7 +1231,7 @@
                         // Each item in the array must validate against the schema
                         for (i = 0; i < value.length; i++) {
                             errors = errors.concat(
-                                this._validateSchema(schema.items, value[i], path + '.' + i)
+                                this._validateSchema(schema.items, value[i], path + '.' + i),
                             );
                         }
                     }
@@ -1330,7 +1330,7 @@
                         if (!schema.properties.hasOwnProperty(i)) continue;
                         validated_properties[i] = true;
                         errors = errors.concat(
-                            this._validateSchema(schema.properties[i], value[i], path + '.' + i)
+                            this._validateSchema(schema.properties[i], value[i], path + '.' + i),
                         );
                     }
                 }
@@ -1351,8 +1351,8 @@
                                     this._validateSchema(
                                         schema.patternProperties[i],
                                         value[j],
-                                        path + '.' + j
-                                    )
+                                        path + '.' + j,
+                                    ),
                                 );
                             }
                         }
@@ -1394,8 +1394,8 @@
                                     this._validateSchema(
                                         schema.additionalProperties,
                                         value[i],
-                                        path + '.' + i
-                                    )
+                                        path + '.' + i,
+                                    ),
                                 );
                             }
                         }
@@ -1427,7 +1427,7 @@
                         // Schema dependency
                         else {
                             errors = errors.concat(
-                                this._validateSchema(schema.dependencies[i], value, path)
+                                this._validateSchema(schema.dependencies[i], value, path),
                             );
                         }
                     }
@@ -1518,7 +1518,7 @@
             if (this.jsoneditor.options.form_name_root)
                 this.formname = this.formname.replace(
                     /^root\[/,
-                    this.jsoneditor.options.form_name_root + '['
+                    this.jsoneditor.options.form_name_root + '[',
                 );
             this.key = this.path.split('.').pop();
             this.parent = options.parent;
@@ -1575,7 +1575,7 @@
                         if (
                             !self.theme.closest(
                                 self.container,
-                                '[data-schemaid="' + path_parts[0] + '"]'
+                                '[data-schemaid="' + path_parts[0] + '"]',
                             )
                         )
                             path_parts.unshift('#');
@@ -1602,7 +1602,7 @@
             if (this.schema.headerTemplate) {
                 this.header_template = this.jsoneditor.compileTemplate(
                     this.schema.headerTemplate,
-                    this.template_engine
+                    this.template_engine,
                 );
             }
         },
@@ -2020,8 +2020,8 @@
                 Math.max(
                     this.getTitle().length,
                     this.schema.maxLength || 0,
-                    this.schema.minLength || 0
-                ) / 5
+                    this.schema.minLength || 0,
+                ) / 5,
             );
             var num;
 
@@ -2043,7 +2043,7 @@
             if (!this.format && this.schema.media && this.schema.media.type) {
                 this.format = this.schema.media.type.replace(
                     /(^(application|text)\/(x-)?(script\.)?)|(-source$)/g,
-                    ''
+                    '',
                 );
             }
             if (!this.format && this.options.default_format) {
@@ -2245,7 +2245,7 @@
             if (this.schema.template) {
                 this.template = this.jsoneditor.compileTemplate(
                     this.schema.template,
-                    this.template_engine
+                    this.template_engine,
                 );
                 this.refreshValue();
             } else {
@@ -2287,7 +2287,7 @@
                             height: 300,
                         },
                         JSONEditor.plugins.sceditor,
-                        self.options.sceditor_options || {}
+                        self.options.sceditor_options || {},
                     );
 
                     window.jQuery(self.input).sceditor(options);
@@ -2301,7 +2301,7 @@
                         window
                             .jQuery(
                                 '#sceditor-start-marker,#sceditor-end-marker,.sceditor-nlf',
-                                val
+                                val,
                             )
                             .remove();
                         // Set the value and update
@@ -2624,7 +2624,7 @@
                         else
                             this.theme.setGridColumnSize(
                                 editor.container,
-                                rows[i].editors[j].width
+                                rows[i].editors[j].width,
                             );
                         row.appendChild(editor.container);
                     }
@@ -2753,7 +2753,7 @@
                         self.minwidth = Math.max(
                             self.minwidth,
                             self.editors[key].options.grid_columns ||
-                                self.editors[key].getNumColumns()
+                                self.editors[key].getNumColumns(),
                         );
                         self.maxwidth +=
                             self.editors[key].options.grid_columns ||
@@ -2909,7 +2909,7 @@
                 this.toggle_button = this.getButton(
                     '',
                     'collapse',
-                    this.translate('button_collapse')
+                    this.translate('button_collapse'),
                 );
                 this.title_controls.appendChild(this.toggle_button);
                 this.toggle_button.addEventListener('click', function (e) {
@@ -2922,7 +2922,7 @@
                             self.toggle_button,
                             '',
                             'collapse',
-                            self.translate('button_collapse')
+                            self.translate('button_collapse'),
                         );
                     } else {
                         self.editor_holder.style.display = 'none';
@@ -2931,7 +2931,7 @@
                             self.toggle_button,
                             '',
                             'expand',
-                            self.translate('button_expand')
+                            self.translate('button_expand'),
                         );
                     }
                 });
@@ -3890,7 +3890,7 @@
                 self.rows[i].delete_button = this.getButton(
                     self.getItemTitle(),
                     'delete',
-                    this.translate('button_delete_row_title', [self.getItemTitle()])
+                    this.translate('button_delete_row_title', [self.getItemTitle()]),
                 );
                 self.rows[i].delete_button.className += ' delete';
                 self.rows[i].delete_button.setAttribute('data-i', i);
@@ -3936,7 +3936,7 @@
                 self.rows[i].moveup_button = this.getButton(
                     '',
                     'moveup',
-                    this.translate('button_move_up_title')
+                    this.translate('button_move_up_title'),
                 );
                 self.rows[i].moveup_button.className += ' moveup';
                 self.rows[i].moveup_button.setAttribute('data-i', i);
@@ -3967,7 +3967,7 @@
                 self.rows[i].movedown_button = this.getButton(
                     '',
                     'movedown',
-                    this.translate('button_move_down_title')
+                    this.translate('button_move_down_title'),
                 );
                 self.rows[i].movedown_button.className += ' movedown';
                 self.rows[i].movedown_button.setAttribute('data-i', i);
@@ -4043,7 +4043,7 @@
             this.add_row_button = this.getButton(
                 this.getItemTitle(),
                 'add',
-                this.translate('button_add_row_title', [this.getItemTitle()])
+                this.translate('button_add_row_title', [this.getItemTitle()]),
             );
 
             this.add_row_button.addEventListener('click', function (e) {
@@ -4069,7 +4069,7 @@
             this.delete_last_row_button = this.getButton(
                 this.translate('button_delete_last', [this.getItemTitle()]),
                 'delete',
-                this.translate('button_delete_last_title', [this.getItemTitle()])
+                this.translate('button_delete_last_title', [this.getItemTitle()]),
             );
             this.delete_last_row_button.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -4093,7 +4093,7 @@
             this.remove_all_rows_button = this.getButton(
                 this.translate('button_delete_all'),
                 'delete',
-                this.translate('button_delete_all_title')
+                this.translate('button_delete_all_title'),
             );
             this.remove_all_rows_button.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -4479,7 +4479,7 @@
                 self.rows[i].delete_button = this.getButton(
                     '',
                     'delete',
-                    this.translate('button_delete_row_title_short')
+                    this.translate('button_delete_row_title_short'),
                 );
                 self.rows[i].delete_button.className += ' delete';
                 self.rows[i].delete_button.setAttribute('data-i', i);
@@ -4505,7 +4505,7 @@
                 self.rows[i].moveup_button = this.getButton(
                     '',
                     'moveup',
-                    this.translate('button_move_up_title')
+                    this.translate('button_move_up_title'),
                 );
                 self.rows[i].moveup_button.className += ' moveup';
                 self.rows[i].moveup_button.setAttribute('data-i', i);
@@ -4530,7 +4530,7 @@
                 self.rows[i].movedown_button = this.getButton(
                     '',
                     'movedown',
-                    this.translate('button_move_down_title')
+                    this.translate('button_move_down_title'),
                 );
                 self.rows[i].movedown_button.className += ' movedown';
                 self.rows[i].movedown_button.setAttribute('data-i', i);
@@ -4595,7 +4595,7 @@
             this.add_row_button = this.getButton(
                 this.getItemTitle(),
                 'add',
-                this.translate('button_add_row_title', [this.getItemTitle()])
+                this.translate('button_add_row_title', [this.getItemTitle()]),
             );
             this.add_row_button.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -4611,7 +4611,7 @@
             this.delete_last_row_button = this.getButton(
                 this.translate('button_delete_last', [this.getItemTitle()]),
                 'delete',
-                this.translate('button_delete_last_title', [this.getItemTitle()])
+                this.translate('button_delete_last_title', [this.getItemTitle()]),
             );
             this.delete_last_row_button.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -4627,7 +4627,7 @@
             this.remove_all_rows_button = this.getButton(
                 this.translate('button_delete_all'),
                 'delete',
-                this.translate('button_delete_all_title')
+                this.translate('button_delete_all_title'),
             );
             this.remove_all_rows_button.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -4865,7 +4865,7 @@
                 self.validators[i] = new JSONEditor.Validator(
                     self.jsoneditor,
                     schema,
-                    validator_options
+                    validator_options,
                 );
             });
 
@@ -5216,19 +5216,19 @@
                     if (this.enumSource[i].value) {
                         this.enumSource[i].value = this.jsoneditor.compileTemplate(
                             this.enumSource[i].value,
-                            this.template_engine
+                            this.template_engine,
                         );
                     }
                     if (this.enumSource[i].title) {
                         this.enumSource[i].title = this.jsoneditor.compileTemplate(
                             this.enumSource[i].title,
-                            this.template_engine
+                            this.template_engine,
                         );
                     }
                     if (this.enumSource[i].filter) {
                         this.enumSource[i].filter = this.jsoneditor.compileTemplate(
                             this.enumSource[i].filter,
-                            this.template_engine
+                            this.template_engine,
                         );
                     }
                 }
@@ -5345,7 +5345,7 @@
                             if (this.enumSource[i].slice) {
                                 items = Array.prototype.slice.apply(
                                     items,
-                                    this.enumSource[i].slice
+                                    this.enumSource[i].slice,
                                 );
                             }
                             // Filter the items
@@ -5586,19 +5586,19 @@
                     if (this.enumSource[i].value) {
                         this.enumSource[i].value = this.jsoneditor.compileTemplate(
                             this.enumSource[i].value,
-                            this.template_engine
+                            this.template_engine,
                         );
                     }
                     if (this.enumSource[i].title) {
                         this.enumSource[i].title = this.jsoneditor.compileTemplate(
                             this.enumSource[i].title,
-                            this.template_engine
+                            this.template_engine,
                         );
                     }
                     if (this.enumSource[i].filter) {
                         this.enumSource[i].filter = this.jsoneditor.compileTemplate(
                             this.enumSource[i].filter,
-                            this.template_engine
+                            this.template_engine,
                         );
                     }
                 }
@@ -5665,7 +5665,7 @@
                         onChange: function () {
                             self.onInputChange();
                         },
-                    })
+                    }),
                 );
             } else {
                 this.selectize = null;
@@ -5868,14 +5868,14 @@
                     var label = this.theme.getCheckboxLabel(this.option_titles[i]);
                     this.controls[this.option_keys[i]] = this.theme.getFormControl(
                         label,
-                        this.inputs[this.option_keys[i]]
+                        this.inputs[this.option_keys[i]],
                     );
                 }
 
                 this.control = this.theme.getMultiCheckboxHolder(
                     this.controls,
                     this.label,
-                    this.description
+                    this.description,
                 );
             } else {
                 this.input_type = 'select';
@@ -6081,7 +6081,7 @@
             this.control = this.theme.getFormControl(
                 this.label,
                 this.uploader || this.input,
-                this.preview
+                this.preview,
             );
             this.container.appendChild(this.control);
         },
@@ -6104,7 +6104,7 @@
                     mime +
                     ', <strong>Size:</strong> ' +
                     Math.floor(
-                        (this.value.length - this.value.split(',')[0].length - 1) / 1.33333
+                        (this.value.length - this.value.split(',')[0].length - 1) / 1.33333,
                     ) +
                     ' bytes';
                 if (mime.substr(0, 5) === 'image') {
@@ -6191,7 +6191,7 @@
             this.control = this.theme.getFormControl(
                 this.label,
                 this.uploader || this.input,
-                this.preview
+                this.preview,
             );
             this.container.appendChild(this.control);
         },
@@ -7086,7 +7086,7 @@
             input.errmsg.style.display = 'none';
             input.controlgroup.className = input.controlgroup.className.replace(
                 /\s?has-error/g,
-                ''
+                '',
             );
         },
         getTabHolder: function () {

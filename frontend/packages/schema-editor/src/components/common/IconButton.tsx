@@ -23,7 +23,7 @@ const IconButton = forwardRef(
     >
       <Icon image={icon} className={classes.icon} />
     </button>
-  )
+  ),
 );
 
 IconButton.displayName = 'IconButton';

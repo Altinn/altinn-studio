@@ -17,14 +17,14 @@ import { removeSchemaExtension } from 'app-shared/utils/filenameUtils';
  */
 export const filterOutXsdDataIfJsonDataExist = (
   jsonData: DatamodelMetadataJson[],
-  xsdData: DatamodelMetadataXsd[]
+  xsdData: DatamodelMetadataXsd[],
 ): DatamodelMetadataXsd[] =>
   xsdData.filter(
     ({ fileName }) =>
       !jsonData.find(
         ({ fileName: jsonFileName }) =>
-          jsonFileName === replaceEnd(fileName, '.xsd', '.schema.json')
-      )
+          jsonFileName === replaceEnd(fileName, '.xsd', '.schema.json'),
+      ),
   );
 
 /**
@@ -35,7 +35,7 @@ export const filterOutXsdDataIfJsonDataExist = (
  */
 export const mergeJsonAndXsdData = (
   jsonData: DatamodelMetadataJson[],
-  xsdData: DatamodelMetadataXsd[]
+  xsdData: DatamodelMetadataXsd[],
 ): DatamodelMetadata[] => [...jsonData, ...filterOutXsdDataIfJsonDataExist(jsonData, xsdData)];
 
 /**
@@ -84,7 +84,7 @@ export const groupMetadataOptions = (metadataOptions: MetadataOption[]): Metadat
  * @returns A list of MetadataOptionsGroup objects.
  */
 export const convertMetadataListToOptionGroups = (
-  metadataList: DatamodelMetadata[]
+  metadataList: DatamodelMetadata[],
 ): MetadataOptionsGroup[] => groupMetadataOptions(convertMetadataListToOptions(metadataList));
 
 /**
@@ -94,7 +94,7 @@ export const convertMetadataListToOptionGroups = (
  */
 export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadata[]): string[] =>
   removeDuplicates(
-    metadataList?.map(({ fileName }) => fileName.replace(/\.((schema\.json)|(xsd))$/, ''))
+    metadataList?.map(({ fileName }) => fileName.replace(/\.((schema\.json)|(xsd))$/, '')),
   );
 
 /**
@@ -105,10 +105,11 @@ export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadat
  */
 export const findNewMetadataItem = (
   oldMetadataList: DatamodelMetadata[],
-  newMetadataList: DatamodelMetadata[]
+  newMetadataList: DatamodelMetadata[],
 ): DatamodelMetadata | undefined =>
   newMetadataList.find(
-    ({ fileName }) => !oldMetadataList.find(({ fileName: oldFileName }) => oldFileName === fileName)
+    ({ fileName }) =>
+      !oldMetadataList.find(({ fileName: oldFileName }) => oldFileName === fileName),
   );
 
 /**
@@ -119,7 +120,7 @@ export const findNewMetadataItem = (
  */
 export const metadataItemExists = (
   metadataList: DatamodelMetadata[],
-  item: DatamodelMetadata
+  item: DatamodelMetadata,
 ): boolean => !!metadataList?.find(({ fileName }) => fileName === item.fileName);
 
 /**
@@ -136,7 +137,7 @@ export const metadataItemExists = (
 export const computeSelectedOption = (
   currentSelectedOption?: MetadataOption,
   currentMetadataList?: DatamodelMetadata[],
-  previousMetadataList?: DatamodelMetadata[]
+  previousMetadataList?: DatamodelMetadata[],
 ): MetadataOption | undefined => {
   if (!currentMetadataList?.length) return undefined;
 
@@ -162,6 +163,6 @@ export const computeSelectedOption = (
  */
 export const findMetadataOptionByRelativeUrl = (
   metadataOptions: MetadataOption[],
-  relativeUrl: string
+  relativeUrl: string,
 ): MetadataOption | undefined =>
   metadataOptions.find(({ value }) => value.repositoryRelativeUrl === relativeUrl);

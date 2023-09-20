@@ -43,7 +43,7 @@ describe('NameField', () => {
     await act(() => user.type(screen.getByRole('textbox'), '@'));
     await act(() => user.tab());
     expect(
-      screen.getByText(textMock('schema_editor.nameError_invalidCharacter'))
+      screen.getByText(textMock('schema_editor.nameError_invalidCharacter')),
     ).toBeInTheDocument();
     expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });

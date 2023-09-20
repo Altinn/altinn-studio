@@ -112,7 +112,7 @@ describe('NumberRestrictions component', () => {
     };
 
     await waitFor(() =>
-      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions)
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions),
     );
   });
 
@@ -141,7 +141,7 @@ describe('NumberRestrictions component', () => {
     };
 
     await waitFor(() =>
-      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions)
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions),
     );
   });
 });

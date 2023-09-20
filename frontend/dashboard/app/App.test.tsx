@@ -10,7 +10,7 @@ const renderWithMockServices = (services: Partial<ServicesContextProps> = {}) =>
   render(
     <MockServicesContextWrapper customServices={services}>
       <App />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
@@ -26,7 +26,7 @@ describe('App', () => {
       await screen.findByRole('heading', {
         level: 1,
         name: 'Feil oppstod ved innlasting av brukerdata',
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe('App', () => {
       await screen.findByRole('heading', {
         level: 1,
         name: 'Feil oppstod ved innlasting av organisasjoner',
-      })
+      }),
     );
   });
 

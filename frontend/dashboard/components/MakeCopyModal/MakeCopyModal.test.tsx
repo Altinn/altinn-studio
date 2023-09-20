@@ -17,7 +17,7 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <MakeCopyModal anchorEl={anchor} handleClose={() => {}} serviceFullName={`${org}/${app}`} />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
@@ -39,8 +39,8 @@ describe('MakeCopyModal', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('dashboard.make_copy'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
@@ -63,7 +63,7 @@ describe('MakeCopyModal', () => {
     renderWithMockServices();
 
     expect(
-      screen.queryByText(textMock('dashboard.service_name_is_too_long'))
+      screen.queryByText(textMock('dashboard.service_name_is_too_long')),
     ).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
@@ -78,7 +78,7 @@ describe('MakeCopyModal', () => {
     renderWithMockServices();
 
     expect(
-      screen.queryByText(/dashboard\.service_name_has_illegal_characters/i)
+      screen.queryByText(/dashboard\.service_name_has_illegal_characters/i),
     ).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
@@ -87,7 +87,7 @@ describe('MakeCopyModal', () => {
     await act(() => user.type(inputField, 'this name is invalid'));
     await act(() => user.click(confirmButton));
     expect(
-      screen.getByText(textMock('dashboard.service_name_has_illegal_characters'))
+      screen.getByText(textMock('dashboard.service_name_has_illegal_characters')),
     ).toBeInTheDocument();
   });
 });

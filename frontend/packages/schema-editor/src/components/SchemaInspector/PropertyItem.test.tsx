@@ -68,7 +68,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 
 const renderPropertyItem = (
   props?: Partial<IPropertyItemProps>,
-  state: Partial<SchemaState> = {}
+  state: Partial<SchemaState> = {},
 ) =>
   renderWithProviders({
     state: { ...defaultState, ...state },

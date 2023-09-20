@@ -22,7 +22,7 @@ describe('renameNodePointer', () => {
 
   it('Renames the children pointers', () => {
     const oldChildPointers = getPointers(uiSchemaMock).filter((pointer) =>
-      pointer.startsWith(oldPointer)
+      pointer.startsWith(oldPointer),
     );
     oldChildPointers.forEach((oldChildPointer) => {
       expect(newPointers).toContain(oldChildPointer.replace(oldPointer, newPointer));
@@ -32,7 +32,7 @@ describe('renameNodePointer', () => {
 
   it('Updates the children array of the renamed node', () => {
     expect(renamedNode.children).toEqual(
-      parentNodeMock.children.map((child) => child.replace(oldPointer, newPointer))
+      parentNodeMock.children.map((child) => child.replace(oldPointer, newPointer)),
     );
   });
 

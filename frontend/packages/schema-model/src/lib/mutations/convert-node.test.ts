@@ -13,7 +13,7 @@ describe('convert-node', () => {
       const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
       const promotedNodeMap = convertPropToType(
         uiSchemaNodes,
-        makePointer(Keyword.Properties, 'world')
+        makePointer(Keyword.Properties, 'world'),
       );
       expect(buildJsonSchema(promotedNodeMap)).toEqual({
         [Keyword.Properties]: {
@@ -50,7 +50,7 @@ describe('convert-node', () => {
       });
       const convertedNodes = convertRefToField(
         uiSchemaNodes,
-        makePointer(Keyword.Properties, 'email')
+        makePointer(Keyword.Properties, 'email'),
       );
       expect(uiSchemaNodes).not.toBe(convertedNodes);
       expect(buildJsonSchema(convertedNodes)).toStrictEqual({
@@ -72,7 +72,7 @@ describe('convert-node', () => {
       });
       const convertedNodes = convertRefToField(
         uiSchemaNodes,
-        makePointer(Keyword.Properties, 'email')
+        makePointer(Keyword.Properties, 'email'),
       );
       expect(uiSchemaNodes).not.toBe(convertedNodes);
       expect(buildJsonSchema(convertedNodes)).toStrictEqual({
@@ -106,7 +106,7 @@ describe('convert-node', () => {
       const targetNode = getNodeByPointer(convertedNodes, pointerThatShouldBeConverted);
       expect(targetNode.children).toHaveLength(2);
       targetNode.children.forEach((childPointer) =>
-        expect(getNodeIndexByPointer(convertedNodes, childPointer)).toBeDefined()
+        expect(getNodeIndexByPointer(convertedNodes, childPointer)).toBeDefined(),
       );
     });
   });

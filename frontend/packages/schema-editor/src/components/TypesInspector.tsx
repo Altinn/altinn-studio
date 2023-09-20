@@ -35,7 +35,7 @@ export const TypesInspector = ({
         callback: (newPointer) => {
           dispatch(setSelectedAndFocusedNode(newPointer));
         },
-      })
+      }),
     );
   };
 

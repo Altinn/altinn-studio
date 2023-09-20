@@ -54,7 +54,7 @@ export function App() {
   const { t } = useTranslation();
   const { data: repoStatus, refetch } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
-    (state) => state.userState.session.remainingMinutes
+    (state) => state.userState.session.remainingMinutes,
   );
   const dispatch = useAppDispatch();
   const lastKeepAliveTimestamp = useRef<number>(0);
@@ -66,25 +66,25 @@ export function App() {
       dispatch(
         HandleServiceInformationActions.fetchService({
           url: repoMetaPath(org, app),
-        })
+        }),
       );
       dispatch(
         HandleServiceInformationActions.fetchInitialCommit({
           url: repoInitialCommitPath(org, app),
-        })
+        }),
       );
 
       if (repositoryType === RepositoryType.App) {
         dispatch(
           HandleServiceInformationActions.fetchServiceName({
             url: serviceNamePath(org, app),
-          })
+          }),
         );
 
         dispatch(
           HandleServiceInformationActions.fetchServiceConfig({
             url: serviceConfigPath(org, app),
-          })
+          }),
         );
       }
     }
@@ -96,8 +96,8 @@ export function App() {
       keepAliveListeners.forEach((listener) =>
         (subscribe ? window.addEventListener : window.removeEventListener)(
           listener,
-          keepAliveSessionState
-        )
+          keepAliveSessionState,
+        ),
       );
     };
     const windowEventReceived = async (event: any) => {
@@ -136,7 +136,7 @@ export function App() {
         lastKeepAliveTimestamp.current = Date.now();
       }
     },
-    [dispatch]
+    [dispatch],
   );
   if (!repoStatus) {
     return (

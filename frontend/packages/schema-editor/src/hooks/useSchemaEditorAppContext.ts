@@ -8,7 +8,7 @@ export const useSchemaEditorAppContext = (): SchemaEditorAppContextProps => {
   const context = useContext(SchemaEditorAppContext);
   if (!context) {
     throw new Error(
-      'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.'
+      'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.',
     );
   }
   return context;

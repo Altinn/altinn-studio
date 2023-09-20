@@ -6,7 +6,7 @@ export function versionNameValid(releases: AppRelease[], tagName: string): boole
     releases.find(
       (r) =>
         r.tagName.toLowerCase() === tagName.trim() &&
-        (r.build.result === BuildResult.succeeded || r.build.status === BuildStatus.inProgress)
+        (r.build.result === BuildResult.succeeded || r.build.status === BuildStatus.inProgress),
     )
   ) {
     return false;

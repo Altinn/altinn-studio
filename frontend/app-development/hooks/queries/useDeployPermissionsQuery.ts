@@ -5,6 +5,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 export const useDeployPermissionsQuery = (owner, app): UseQueryResult<string[]> => {
   const { getDeployPermissions } = useServicesContext();
   return useQuery<string[]>([QueryKey.DeployPermissions, owner, app], () =>
-    getDeployPermissions(owner, app)
+    getDeployPermissions(owner, app),
   );
 };

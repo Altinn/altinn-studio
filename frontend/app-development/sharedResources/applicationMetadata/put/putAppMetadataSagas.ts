@@ -8,7 +8,7 @@ import { appMetadataPath } from 'app-shared/api/paths';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 export function* putApplicationMetadataSaga(
-  action: PayloadAction<IPutApplicationMetadata>
+  action: PayloadAction<IPutApplicationMetadata>,
 ): SagaIterator {
   const { applicationMetadata } = action.payload;
   try {
@@ -18,7 +18,7 @@ export function* putApplicationMetadataSaga(
     yield put(
       ApplicationMetadataActions.putApplicationMetadataFulfilled({
         applicationMetadata: result,
-      })
+      }),
     );
   } catch (error) {
     yield put(ApplicationMetadataActions.putApplicationMetadataRejected({ error }));

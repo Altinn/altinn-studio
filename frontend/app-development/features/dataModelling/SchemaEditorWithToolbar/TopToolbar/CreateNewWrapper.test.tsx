@@ -32,7 +32,7 @@ describe('CreateNewWrapper', () => {
     expect(
       screen.queryByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
-      })
+      }),
     ).not.toBeInTheDocument();
 
     const newButton = screen.getByRole('button', {
@@ -50,7 +50,7 @@ describe('CreateNewWrapper', () => {
     expect(
       screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
-      })
+      }),
     ).toBeInTheDocument();
 
     const newButton = screen.getByRole('button', {

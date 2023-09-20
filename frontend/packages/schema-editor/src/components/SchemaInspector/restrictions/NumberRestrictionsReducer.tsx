@@ -49,7 +49,7 @@ export type NumberRestrictionsReducerState = {
 };
 
 export const validateMinMax = (
-  formatState: NumberRestrictionsReducerState
+  formatState: NumberRestrictionsReducerState,
 ): NumberRestrictionsError => {
   const areBothInclusive = formatState.isMinInclusive && formatState.isMaxInclusive;
   if (areBothInclusive && formatState.min > formatState.max) {
@@ -125,7 +125,7 @@ const setRestriction = (state: NumberRestrictionsReducerState, action: SetRestri
 
 export const numberRestrictionsReducer = (
   state: NumberRestrictionsReducerState,
-  action: NumberRestrictionsReducerAction
+  action: NumberRestrictionsReducerAction,
 ) => {
   switch (action.type) {
     case NumberRestrictionsReducerActionType.setMinIncl:

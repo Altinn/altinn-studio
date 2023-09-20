@@ -13,6 +13,6 @@ test('that capabilities work as expected', () => {
       Capabilites.CanBeConvertedToArray,
       Capabilites.CanBeConvertedToReference,
       Capabilites.CanBeDeleted,
-    ].sort()
+    ].sort(),
   );
 });

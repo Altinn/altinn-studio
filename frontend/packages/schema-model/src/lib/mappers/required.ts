@@ -3,7 +3,7 @@ import { getChildNodesByPointer } from '../selectors';
 
 export const findRequiredProps = (
   uiSchemaNodes: UiSchemaNodes,
-  parentPointer: string
+  parentPointer: string,
 ): string[] | undefined => {
   const childNodes = getChildNodesByPointer(uiSchemaNodes, parentPointer);
   const required: string[] = [];

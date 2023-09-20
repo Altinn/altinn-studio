@@ -242,7 +242,7 @@ export const RepoList = ({
         labelRowsPerPage: t('dashboard.rows_per_page'),
       },
     }),
-    [t]
+    [t],
   );
 
   return (

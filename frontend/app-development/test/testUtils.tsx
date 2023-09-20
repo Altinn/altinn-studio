@@ -24,7 +24,7 @@ export const renderWithProviders = (
     store = setupStore(preloadedState),
     startUrl = undefined,
     ...renderOptions
-  }: ExtendedRenderOptions = {}
+  }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
     return (

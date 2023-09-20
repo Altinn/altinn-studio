@@ -138,7 +138,7 @@ export const ExpandablePolicyCard = ({
     index: number,
     field: 'id' | 'type',
     value: string,
-    ruleIndex: number
+    ruleIndex: number,
   ) => {
     const updatedResources = [...policyRule.resources];
     updatedResources[ruleIndex][index] = {
@@ -149,7 +149,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
   };
@@ -162,14 +162,14 @@ export const ExpandablePolicyCard = ({
     const newResource: PolicyRuleResource[] = createNewPolicyResource(
       usageType,
       resourceType,
-      resourceId
+      resourceId,
     );
 
     const updatedResources = [...policyRule.resources, newResource];
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -214,7 +214,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -229,7 +229,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -256,7 +256,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActions },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -285,7 +285,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjects },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -312,7 +312,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjectTitles },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -339,7 +339,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActionTitles },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -364,14 +364,14 @@ export const ExpandablePolicyCard = ({
 
     // Create a deep copy of the object so the objects don't share same object reference
     const deepCopiedResourceGroupToDuplicate: PolicyRuleResource[] = JSON.parse(
-      JSON.stringify(resourceGroupToDuplicate)
+      JSON.stringify(resourceGroupToDuplicate),
     );
 
     const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -388,7 +388,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);

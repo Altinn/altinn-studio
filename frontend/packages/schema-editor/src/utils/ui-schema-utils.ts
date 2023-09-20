@@ -12,7 +12,7 @@ export const getDomFriendlyID = (
   options: {
     suffix?: string;
     reset?: boolean;
-  } = {}
+  } = {},
 ): string => {
   const { reset, ...restOptions } = options;
   if (reset) {

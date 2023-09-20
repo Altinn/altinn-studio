@@ -29,7 +29,7 @@ module.exports = (options) =>
             resolve();
           }
         });
-      }
+      },
     );
     if (options.body) {
       req.write(JSON.stringify(options.body));

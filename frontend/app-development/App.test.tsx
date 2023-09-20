@@ -52,10 +52,10 @@ describe('App', () => {
     });
     await screen.findByTestId(testids.appContentWrapper);
     expect(
-      screen.queryByRole('button', { name: textMock('general.continue') })
+      screen.queryByRole('button', { name: textMock('general.continue') }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: textMock('general.sign_out') })
+      screen.queryByRole('button', { name: textMock('general.sign_out') }),
     ).not.toBeInTheDocument();
   });
 });

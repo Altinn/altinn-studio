@@ -49,7 +49,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         {t(
           props.repoType === RepositoryType.Datamodels
             ? 'administration.repo_owner_is'
-            : 'administration.service_owner_is'
+            : 'administration.service_owner_is',
         )}
       </div>
       <div>

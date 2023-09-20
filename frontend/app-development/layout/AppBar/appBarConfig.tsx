@@ -64,7 +64,7 @@ export const getTopBarMenu = (
   org: string,
   app: string,
   repositoryType: RepositoryType,
-  t: TFunction
+  t: TFunction,
 ): AltinnHeaderMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))

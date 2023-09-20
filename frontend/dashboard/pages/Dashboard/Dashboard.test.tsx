@@ -13,7 +13,7 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <Dashboard organizations={[]} user={{} as User} />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
@@ -39,7 +39,7 @@ describe('Dashboard', () => {
     renderWithMockServices({ getStarredRepos: () => Promise.resolve([starredRepoMock]) });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(
-      await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') })
+      await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') }),
     ).toHaveLength(1);
   });
 
@@ -47,7 +47,7 @@ describe('Dashboard', () => {
     renderWithMockServices({ searchRepos: () => Promise.resolve(searchedRepos) });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(
-      await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') })
+      await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') }),
     ).toHaveLength(1);
   });
 });

@@ -15,7 +15,7 @@ export function DeployPage() {
   const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgListQuery();
   const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(
     org,
-    app
+    app,
   );
   useInvalidator();
   if (isLoadingOrgs || permissionsIsLoading) {

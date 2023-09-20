@@ -7,7 +7,7 @@ import { splitPointerInBaseAndName } from '../utils';
 export const removeNodeByPointer = (
   uiNodeMap: UiSchemaNodes,
   pointer: string,
-  justChildren?: boolean
+  justChildren?: boolean,
 ) => {
   let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];
 
@@ -30,13 +30,13 @@ export const removeNodeByPointer = (
 
   // Remove decendants... just using the pointer
   mutatedUiNodeMap = mutatedUiNodeMap.filter(
-    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(`${pointer}/`)
+    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(`${pointer}/`),
   );
 
   // Removing itself...
   if (!justChildren) {
     mutatedUiNodeMap = mutatedUiNodeMap.filter(
-      (uiNode: UiSchemaNode) => uiNode.pointer !== pointer
+      (uiNode: UiSchemaNode) => uiNode.pointer !== pointer,
     );
   }
   // dealing with combinations, updating their children is a little more tricky.

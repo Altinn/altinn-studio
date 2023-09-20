@@ -21,7 +21,7 @@ export const TextEditor = () => {
   const selectedLanguagesStorageKey = `${org}:${app}:selectedLanguages`;
   const [selectedLangCodes, setSelectedLangCodes] = useLocalStorage<string[]>(
     selectedLanguagesStorageKey,
-    [defaultLangCode]
+    [defaultLangCode],
   );
   const getSearchQuery = () => searchParams.get('search') || '';
 

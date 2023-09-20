@@ -2067,10 +2067,18 @@ mark {
     background-clip: padding-box;
     border: 1px solid #ccc;
     border-radius: 0.25rem;
-    -webkit-transition: border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
-    transition: border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    -webkit-transition:
+        border-color 0.15s ease-in-out,
+        -webkit-box-shadow 0.15s ease-in-out;
+    transition:
+        border-color 0.15s ease-in-out,
+        -webkit-box-shadow 0.15s ease-in-out;
+    transition:
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out;
+    transition:
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out,
         -webkit-box-shadow 0.15s ease-in-out;
 }
 .form-control::-ms-expand {
@@ -2329,8 +2337,12 @@ select.form-control-lg:not([size]):not([multiple]) {
 }
 .custom-control-input.is-valid:focus ~ .custom-control-label::before,
 .was-validated .custom-control-input:valid:focus ~ .custom-control-label::before {
-    -webkit-box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(23, 201, 107, 0.25);
-    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(23, 201, 107, 0.25);
+    -webkit-box-shadow:
+        0 0 0 1px #fff,
+        0 0 0 0.2rem rgba(23, 201, 107, 0.25);
+    box-shadow:
+        0 0 0 1px #fff,
+        0 0 0 0.2rem rgba(23, 201, 107, 0.25);
 }
 .custom-file-input.is-valid ~ .custom-file-label,
 .was-validated .custom-file-input:valid ~ .custom-file-label {
@@ -2426,8 +2438,12 @@ select.form-control-lg:not([size]):not([multiple]) {
 }
 .custom-control-input.is-invalid:focus ~ .custom-control-label::before,
 .was-validated .custom-control-input:invalid:focus ~ .custom-control-label::before {
-    -webkit-box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(226, 59, 83, 0.25);
-    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(226, 59, 83, 0.25);
+    -webkit-box-shadow:
+        0 0 0 1px #fff,
+        0 0 0 0.2rem rgba(226, 59, 83, 0.25);
+    box-shadow:
+        0 0 0 1px #fff,
+        0 0 0 0.2rem rgba(226, 59, 83, 0.25);
 }
 .custom-file-input.is-invalid ~ .custom-file-label,
 .was-validated .custom-file-input:invalid ~ .custom-file-label {
@@ -2553,14 +2569,26 @@ select.form-control-lg:not([size]):not([multiple]) {
     font-size: 1.6rem;
     line-height: 1.5;
     border-radius: 0;
-    -webkit-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-        border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-        border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    -webkit-transition:
+        color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        -webkit-box-shadow 0.15s ease-in-out;
+    transition:
+        color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        -webkit-box-shadow 0.15s ease-in-out;
+    transition:
+        color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out;
+    transition:
+        color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out,
         -webkit-box-shadow 0.15s ease-in-out;
 }
 .btn:focus,
@@ -3644,8 +3672,12 @@ tbody.collapse.show {
     background-color: #1eaef7;
 }
 .custom-control-input:focus ~ .custom-control-label::before {
-    -webkit-box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(30, 174, 247, 0.25);
-    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(30, 174, 247, 0.25);
+    -webkit-box-shadow:
+        0 0 0 1px #fff,
+        0 0 0 0.2rem rgba(30, 174, 247, 0.25);
+    box-shadow:
+        0 0 0 1px #fff,
+        0 0 0 0.2rem rgba(30, 174, 247, 0.25);
 }
 .custom-control-input:active ~ .custom-control-label::before {
     color: #fff;
@@ -3741,8 +3773,12 @@ tbody.collapse.show {
 .custom-select:focus {
     border-color: #99dafb;
     outline: 0;
-    -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075), 0 0 5px rgba(153, 218, 251, 0.5);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075), 0 0 5px rgba(153, 218, 251, 0.5);
+    -webkit-box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.075),
+        0 0 5px rgba(153, 218, 251, 0.5);
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.075),
+        0 0 5px rgba(153, 218, 251, 0.5);
 }
 .custom-select:focus::-ms-value {
     color: #495057;
@@ -5175,7 +5211,9 @@ button.close {
     -webkit-transition: -webkit-transform 0.3s ease-out;
     transition: -webkit-transform 0.3s ease-out;
     transition: transform 0.3s ease-out;
-    transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out;
+    transition:
+        transform 0.3s ease-out,
+        -webkit-transform 0.3s ease-out;
     -webkit-transform: translate(0, -25%);
     transform: translate(0, -25%);
 }
@@ -11580,8 +11618,12 @@ textarea::placeholder {
 .form-group .a-switch input[type='radio']:not(:checked) + .a-form-label-inline {
     border: 2px dotted #1eaef7;
     border-radius: 36px;
-    -webkit-transition: border 0.2s, background-color 0.2s;
-    transition: border 0.2s, background-color 0.2s;
+    -webkit-transition:
+        border 0.2s,
+        background-color 0.2s;
+    transition:
+        border 0.2s,
+        background-color 0.2s;
 }
 .a-form-group .a-switch input[type='checkbox']:not(:checked) + .disabled.a-form-label-inline,
 .a-form-group .a-switch input[type='radio']:not(:checked) + .disabled.a-form-label-inline,
@@ -11711,8 +11753,12 @@ textarea::placeholder {
     background-color: rgba(30, 174, 247, 0.2);
     border: 2px solid #1eaef7;
     border-radius: 36px;
-    -webkit-transition: border 0.2s, background-color 0.2s;
-    transition: border 0.2s, background-color 0.2s;
+    -webkit-transition:
+        border 0.2s,
+        background-color 0.2s;
+    transition:
+        border 0.2s,
+        background-color 0.2s;
 }
 .a-form-group .a-switch input[type='checkbox']:checked + .a-toggle-icon.a-form-label-inline i,
 .a-form-group .a-switch input[type='radio']:checked + .a-toggle-icon.a-form-label-inline i,
@@ -12220,7 +12266,8 @@ hr.a-hrSolidLight {
     color: #000;
     cursor: not-allowed;
     background-color: #fff;
-    background-image: url(../Content/extimg/disabled-background.svg),
+    background-image:
+        url(../Content/extimg/disabled-background.svg),
         -webkit-gradient(linear, left top, right top, color-stop(50%, #1eaef7), color-stop(0, #fff));
     background-image: url(../Content/extimg/disabled-background.svg),
         linear-gradient(to right, #1eaef7 50%, #fff 0);
@@ -12230,7 +12277,9 @@ hr.a-hrSolidLight {
     box-shadow: none;
     background-repeat: repeat, repeat-x;
     background-position: 25px bottom;
-    background-size: auto, 4px 2px;
+    background-size:
+        auto,
+        4px 2px;
     background-blend-mode: darken;
 }
 .a-dotted.a-disabled.a-primary {
@@ -15687,7 +15736,8 @@ body > .loader-container {
     }
 }
 .a-list.a-list-borderTop li:first-child {
-    background-image: -webkit-gradient(
+    background-image:
+        -webkit-gradient(
             linear,
             left top,
             right top,
@@ -15698,7 +15748,9 @@ body > .loader-container {
     background-image: linear-gradient(to right, #1eaef7 50%, transparent 0),
         linear-gradient(to right, #1eaef7 50%, transparent 0);
     background-repeat: repeat-x;
-    background-position: 25px top, 25px bottom;
+    background-position:
+        25px top,
+        25px bottom;
     background-size: 4px 2px;
 }
 .a-list.a-list-borderTopSolid li:first-child {
@@ -16319,7 +16371,8 @@ body.modal-open {
     -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
     transition: -webkit-transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
     transition: transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
-    transition: transform 0.5s cubic-bezier(0.3, 1, 0.5, 1),
+    transition:
+        transform 0.5s cubic-bezier(0.3, 1, 0.5, 1),
         -webkit-transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
 }
 .a-modal .a-page.a-next-page {
@@ -16729,8 +16782,16 @@ a.a-modal-close {
 .a-collapsePanel-body,
 .a-collapsePanel-body-content,
 .a-collapsePanel-heading {
-    -webkit-transition: height 0.35s ease, margin 0.35s ease, padding 0.35s ease, width 0.35s ease;
-    transition: height 0.35s ease, margin 0.35s ease, padding 0.35s ease, width 0.35s ease;
+    -webkit-transition:
+        height 0.35s ease,
+        margin 0.35s ease,
+        padding 0.35s ease,
+        width 0.35s ease;
+    transition:
+        height 0.35s ease,
+        margin 0.35s ease,
+        padding 0.35s ease,
+        width 0.35s ease;
 }
 .panel-collapse-content-section {
     background-color: #efefef;
@@ -16879,7 +16940,9 @@ a.a-modal-close {
     -webkit-transition: -webkit-transform 0.2s ease-out;
     transition: -webkit-transform 0.2s ease-out;
     transition: transform 0.2s ease-out;
-    transition: transform 0.2s ease-out, -webkit-transform 0.2s ease-out;
+    transition:
+        transform 0.2s ease-out,
+        -webkit-transform 0.2s ease-out;
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
     -webkit-box-pack: center;
@@ -16905,7 +16968,9 @@ a.a-modal-close {
     -webkit-transition: -webkit-transform 0.2s ease-out;
     transition: -webkit-transform 0.2s ease-out;
     transition: transform 0.2s ease-out;
-    transition: transform 0.2s ease-out, -webkit-transform 0.2s ease-out;
+    transition:
+        transform 0.2s ease-out,
+        -webkit-transform 0.2s ease-out;
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
     -webkit-box-pack: center;
@@ -19407,7 +19472,8 @@ a.a-overflow-dropdown:hover {
     -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
     transition: -webkit-transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
     transition: transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
-    transition: transform 0.5s cubic-bezier(0.3, 1, 0.5, 1),
+    transition:
+        transform 0.5s cubic-bezier(0.3, 1, 0.5, 1),
         -webkit-transform 0.5s cubic-bezier(0.3, 1, 0.5, 1);
 }
 .a-stickyHelp .a-page.a-next-page {

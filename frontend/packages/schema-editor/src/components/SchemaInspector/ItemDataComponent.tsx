@@ -88,7 +88,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           pointer: pointer,
           props: { fieldType: FieldType.Null },
           callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-        })
+        }),
       );
       return;
     }
@@ -123,7 +123,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         path: pointer,
         name: newNodeName,
         callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-      })
+      }),
     );
   };
 

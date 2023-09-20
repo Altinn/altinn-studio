@@ -4,7 +4,7 @@ const os = require('os');
 const getCommit = require('./git-commit-hash');
 const randomPass = () =>
   [Math.random().toString(36).substring(2, 5), Math.random().toString(36).substring(2, 5)].join(
-    'DIG@'
+    'DIG@',
   );
 
 const defaultEnvVars = {

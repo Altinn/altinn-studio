@@ -21,7 +21,7 @@ describe('useSchemaQuery', () => {
     } = renderHookWithMockStore(
       {},
       { getDatamodel, addXsdFromRepo },
-      createQueryClientMock()
+      createQueryClientMock(),
     )(() => useSchemaQuery(jsonModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(getDatamodel).toHaveBeenCalledTimes(1);
@@ -35,7 +35,7 @@ describe('useSchemaQuery', () => {
     } = renderHookWithMockStore(
       {},
       { getDatamodel, addXsdFromRepo },
-      createQueryClientMock()
+      createQueryClientMock(),
     )(() => useSchemaQuery(xsdModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(addXsdFromRepo).toHaveBeenCalledTimes(1);

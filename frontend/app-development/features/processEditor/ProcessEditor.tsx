@@ -18,7 +18,7 @@ export const ProcessEditor = () => {
         onSuccess: () => {
           toast.success('Bpmn saved successfully');
         },
-      }
+      },
     );
   };
 

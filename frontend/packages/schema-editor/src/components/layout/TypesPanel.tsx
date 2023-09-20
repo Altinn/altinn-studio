@@ -54,14 +54,14 @@ export const TypesPanel = ({
             pointer,
             props: newNode,
             callback: (newPointer) => dispatch(setSelectedNode(newPointer)),
-          })
+          }),
         )
       : save(
           addProperty(data, {
             pointer,
             props: newNode,
             callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer)),
-          })
+          }),
         );
   };
 

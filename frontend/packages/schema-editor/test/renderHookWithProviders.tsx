@@ -15,7 +15,7 @@ export const renderHookWithProviders =
     { state = {}, appContextProps = {} }: RenderWithProvidersData = {
       state: {},
       appContextProps: {},
-    }
+    },
   ) =>
   (hook: () => any) => {
     const allStateProps: SchemaState = {
@@ -49,7 +49,7 @@ export const renderHookWithProviders =
       }: RenderWithProvidersData = {
         state: {},
         appContextProps: {},
-      }
+      },
     ) => {
       const newStateProps: SchemaState = {
         selectedEditorTab: null,
@@ -70,7 +70,7 @@ export const renderHookWithProviders =
             <SchemaEditorAppContext.Provider value={newAppContextProps}>
               {rerenderElement}
             </SchemaEditorAppContext.Provider>
-          </Provider>
+          </Provider>,
         );
     };
 

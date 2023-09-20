@@ -80,13 +80,13 @@ export const SettingsModal = ({
       <InformationSquareIcon className={classes.icon} />,
       aboutTabId,
       () => changeTabTo(aboutTabId),
-      currentTab
+      currentTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
-      currentTab
+      currentTab,
     ),
   ];
 

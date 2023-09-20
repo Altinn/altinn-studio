@@ -85,10 +85,10 @@ export const PolicyEditor = ({
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? [])
+    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? []),
   );
   const [requiredAuthLevel, setRequiredAuthLevel] = useState<RequiredAuthLevel>(
-    policy?.requiredAuthenticationLevelEndUser ?? '3'
+    policy?.requiredAuthenticationLevelEndUser ?? '3',
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
@@ -210,8 +210,8 @@ export const PolicyEditor = ({
         subjects,
         actions,
         pr,
-        `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}` // TODO - find out if ID should be hardcoded. Issue: #10893
-      )
+        `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}`, // TODO - find out if ID should be hardcoded. Issue: #10893
+      ),
     );
 
     const updatedPolicy: Policy = {

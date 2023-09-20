@@ -31,14 +31,14 @@ const applicationMetadataSlice = createSlice({
   reducers: {
     getApplicationMetadataFulfilled: (
       state,
-      action: PayloadAction<IGetApplicationMetadataFulfilled>
+      action: PayloadAction<IGetApplicationMetadataFulfilled>,
     ) => {
       const { applicationMetadata } = action.payload;
       state.applicationMetadata = applicationMetadata;
     },
     getApplicationMetadataRejected: (
       state,
-      action: PayloadAction<IApplicationMetadataActionRejected>
+      action: PayloadAction<IApplicationMetadataActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -49,7 +49,7 @@ const applicationMetadataSlice = createSlice({
     },
     putApplicationMetadataRejected: (
       state,
-      action: PayloadAction<IApplicationMetadataActionRejected>
+      action: PayloadAction<IApplicationMetadataActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -60,7 +60,7 @@ const applicationMetadataSlice = createSlice({
 const actions = {
   getApplicationMetadata: createAction<{ org; app }>(`${moduleName}/getApplicationMetadata`),
   putApplicationMetadata: createAction<IPutApplicationMetadata>(
-    `${moduleName}/putApplicationMetadata`
+    `${moduleName}/putApplicationMetadata`,
   ),
 };
 

@@ -6,7 +6,7 @@ import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const useGenerateModelsMutation = (
-  modelPath: string
+  modelPath: string,
 ): UseMutationResult<void, AxiosError> => {
   const queryClient = useQueryClient();
   const { org, app } = useStudioUrlParams();

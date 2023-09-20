@@ -18,7 +18,7 @@ import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
 export const getUpdatedRules = (
   updatedRule: PolicyRuleCard,
   policyRuleId: string,
-  currentRules: PolicyRuleCard[]
+  currentRules: PolicyRuleCard[],
 ): PolicyRuleCard[] => {
   const updatedRules = [...currentRules];
   const ruleIndex = currentRules.findIndex((rule) => rule.ruleId === policyRuleId);

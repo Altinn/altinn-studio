@@ -42,7 +42,7 @@ describe('create-node', () => {
       uiSchemaNodes
         .filter(
           (uiNode) =>
-            uiNode.objectKind === ObjectKind.Combination || uiNode.fieldType === FieldType.Object
+            uiNode.objectKind === ObjectKind.Combination || uiNode.fieldType === FieldType.Object,
         )
         .forEach((uiNode) => {
           [true, false].forEach((isDefinition) => {
@@ -62,7 +62,7 @@ describe('create-node', () => {
     it('Throws error on existing pointer', () => {
       const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
       expect(() =>
-        insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello'))
+        insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello')),
       ).toThrowError();
     });
   });

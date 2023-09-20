@@ -216,13 +216,13 @@ describe('SchemaEditor', () => {
     const data = buildUiSchema(dataMock);
     renderEditor({ appContextProps: { data } });
     expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.field') })
+      screen.getByRole('menuitem', { name: textMock('schema_editor.field') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') })
+      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') })
+      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') }),
     ).toBeInTheDocument();
   });
 
@@ -289,7 +289,7 @@ describe('SchemaEditor', () => {
     const type = screen.getByTestId(testids.typeItem(`#/${Keyword.Definitions}/TestType`));
     await act(() => user.click(type));
     expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))
+      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
     ).toBeDefined();
   });
 

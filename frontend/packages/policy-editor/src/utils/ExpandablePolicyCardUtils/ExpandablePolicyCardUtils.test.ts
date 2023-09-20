@@ -26,7 +26,7 @@ describe('ExpandablePolicyCardUtils', () => {
       const updatedRules = getUpdatedRules(
         updatedRule,
         mockPolicyRuleCard1.ruleId,
-        mockPolicyRuleCards
+        mockPolicyRuleCards,
       );
 
       expect(updatedRules.length).toBe(2);

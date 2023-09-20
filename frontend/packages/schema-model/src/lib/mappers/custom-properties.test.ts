@@ -7,6 +7,6 @@ test('findCustomAttributes', () => {
     findCustomAttributes({
       [Keyword.Enum]: [],
       customData,
-    })
+    }),
   ).toStrictEqual({ customData });
 });

@@ -78,7 +78,7 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
@@ -99,13 +99,13 @@ describe('ExpandablePolicyCard', () => {
 
     // Check that the selected actions are present
     const selectedAction1 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionTitle1}`
+      `${textMock('general.delete')} ${mockActionTitle1}`,
     );
     const selectedAction2 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionTitle2}`
+      `${textMock('general.delete')} ${mockActionTitle2}`,
     );
     const selectedAction3 = screen.queryByLabelText(
-      `${textMock('general.delete')} ${mockActionTitle3}`
+      `${textMock('general.delete')} ${mockActionTitle3}`,
     );
     expect(selectedAction1).toBeInTheDocument();
     expect(selectedAction2).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('ExpandablePolicyCard', () => {
 
     // Open the select
     const [actionSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_actions_title')
+      textMock('policy_editor.rule_card_actions_title'),
     );
     await act(() => user.click(actionSelect));
 
@@ -133,12 +133,12 @@ describe('ExpandablePolicyCard', () => {
 
     // Expect the option clicked to be removed from the screen
     expect(
-      screen.queryByLabelText(`${textMock('general.delete')} ${mockActionTitle3}`)
+      screen.queryByLabelText(`${textMock('general.delete')} ${mockActionTitle3}`),
     ).not.toBeInTheDocument();
 
     // Expect the label with all selected to be present
     const [inputAllSelected] = screen.getAllByText(
-      textMock('policy_editor.rule_card_actions_select_all_selected')
+      textMock('policy_editor.rule_card_actions_select_all_selected'),
     );
     expect(inputAllSelected).toBeInTheDocument();
   });
@@ -149,13 +149,13 @@ describe('ExpandablePolicyCard', () => {
 
     // Check that the selected subjects are present
     const selectedSubject1 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle1}`
+      `${textMock('general.delete')} ${mockSubjectTitle1}`,
     );
     const selectedSubject2 = screen.queryByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle2}`
+      `${textMock('general.delete')} ${mockSubjectTitle2}`,
     );
     const selectedSubject3 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockSubjectTitle3}`
+      `${textMock('general.delete')} ${mockSubjectTitle3}`,
     );
     expect(selectedSubject1).toBeInTheDocument();
     expect(selectedSubject2).not.toBeInTheDocument(); // 2 is not in the resource
@@ -163,7 +163,7 @@ describe('ExpandablePolicyCard', () => {
 
     // Open the select
     const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_title')
+      textMock('policy_editor.rule_card_subjects_title'),
     );
     await act(() => user.click(subjectSelect));
 
@@ -183,12 +183,12 @@ describe('ExpandablePolicyCard', () => {
 
     // Expect the option clicked to be removed from the screen
     expect(
-      screen.queryByLabelText(`${textMock('general.delete')} ${mockSubjectTitle2}`)
+      screen.queryByLabelText(`${textMock('general.delete')} ${mockSubjectTitle2}`),
     ).not.toBeInTheDocument();
 
     // Expect the label with all selected to be present
     const [inputAllSelected] = screen.getAllByText(
-      textMock('policy_editor.rule_card_subjects_select_all_selected')
+      textMock('policy_editor.rule_card_subjects_select_all_selected'),
     );
     expect(inputAllSelected).toBeInTheDocument();
   });
@@ -198,7 +198,7 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [descriptionField] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_description_title')
+      textMock('policy_editor.rule_card_description_title'),
     );
     expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
     await act(() => user.type(descriptionField, '1'));
@@ -211,7 +211,7 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
@@ -222,21 +222,21 @@ describe('ExpandablePolicyCard', () => {
     await act(() => user.tab());
 
     const [actionSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_actions_title')
+      textMock('policy_editor.rule_card_actions_title'),
     );
     await act(() => user.click(actionSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockActionTitle3 })));
     await act(() => user.tab());
 
     const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_title')
+      textMock('policy_editor.rule_card_subjects_title'),
     );
     await act(() => user.click(subjectSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockSubjectTitle2 })));
     await act(() => user.tab());
 
     const [descriptionField] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_description_title')
+      textMock('policy_editor.rule_card_description_title'),
     );
     expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
     await act(() => user.type(descriptionField, newWord));

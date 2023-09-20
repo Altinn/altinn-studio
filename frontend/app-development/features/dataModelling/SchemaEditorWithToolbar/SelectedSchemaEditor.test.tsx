@@ -48,10 +48,10 @@ describe('SelectedSchemaEditor', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient = createQueryClientMock(),
-  props: Partial<SelectedSchemaEditorProps> = {}
+  props: Partial<SelectedSchemaEditorProps> = {},
 ) =>
   renderWithMockStore(
     {},
     queries,
-    queryClient
+    queryClient,
   )(<SelectedSchemaEditor {...defaultProps} {...props} />);

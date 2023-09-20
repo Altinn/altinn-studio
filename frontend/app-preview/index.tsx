@@ -19,5 +19,5 @@ root.render(
         <PreviewApp />
       </BrowserRouter>
     </PreviewConnectionContextProvider>
-  </ServicesContextProvider>
+  </ServicesContextProvider>,
 );

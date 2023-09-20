@@ -15,7 +15,7 @@ export const createStrictContext = <T>(props?: CreateStrictContextProps): Contex
     const context = React.useContext(Context);
     if (context === undefined) {
       throw new Error(
-        props?.options.errorMessage || `${props?.options.name || ''} Context Provider is missing`
+        props?.options.errorMessage || `${props?.options.name || ''} Context Provider is missing`,
       );
     }
     return context;

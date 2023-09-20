@@ -46,7 +46,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
               setErrorMessage(t('dashboard.app_already_exists'));
             }
           },
-        }
+        },
       );
     }
   };

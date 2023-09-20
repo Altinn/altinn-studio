@@ -12,7 +12,7 @@ function* getApplicationMetadataSaga({ payload }: PayloadAction<{ org; app }>): 
     yield put(
       ApplicationMetadataActions.getApplicationMetadataFulfilled({
         applicationMetadata: result,
-      })
+      }),
     );
   } catch (error) {
     if (error.status === 404) {

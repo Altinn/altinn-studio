@@ -85,7 +85,7 @@ describe('AboutTab', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: AboutTabProps
+  props: AboutTabProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -95,6 +95,6 @@ const render = (
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <AboutTab {...props} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };

@@ -43,7 +43,7 @@ export const propertyType = (properties: KeyValuePairs, key: string): CustomProp
 export const setProperty = <T>(
   properties: KeyValuePairs,
   key: string,
-  value: T
+  value: T,
 ): KeyValuePairs => ({
   ...properties,
   [key]: value,

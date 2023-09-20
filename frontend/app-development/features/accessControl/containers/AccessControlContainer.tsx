@@ -36,7 +36,7 @@ export function AccessControlContainer() {
   });
 
   const applicationMetadata = useAppSelector(
-    (state: RootState) => state.applicationMetadataState.applicationMetadata
+    (state: RootState) => state.applicationMetadataState.applicationMetadata,
   );
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export function AccessControlContainer() {
     dispatch(
       ApplicationMetadataActions.putApplicationMetadata({
         applicationMetadata: newApplicationMetadata,
-      })
+      }),
     );
   };
 

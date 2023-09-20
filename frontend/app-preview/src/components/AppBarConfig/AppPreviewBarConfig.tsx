@@ -40,7 +40,7 @@ export const getTopBarAppPreviewMenu = (
   org: string,
   app: string,
   repositoryType: RepositoryType,
-  t: TFunction
+  t: TFunction,
 ): AppPreviewMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
@@ -116,7 +116,7 @@ export const SubPreviewMenuRightContent = () => {
 export const appPreviewButtonActions = (
   org: string,
   app: string,
-  instanceId: string
+  instanceId: string,
 ): AltinnButtonActionItem[] => {
   const subUrl = `/ui-editor?layout=`;
   const action: AltinnButtonActionItem[] = [
@@ -128,7 +128,7 @@ export const appPreviewButtonActions = (
       headerButtonsClasses: classes.backToEditorBtn,
       handleClick: () =>
         (window.location.href = `${editorPath(org, app)}${subUrl}${window.localStorage.getItem(
-          instanceId
+          instanceId,
         )}`),
     },
   ];

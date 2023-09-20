@@ -65,7 +65,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const selectedFormat = DatamodelFormat.XSD;
   const selectedContext = useSelectedContext();
   const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext,
   );
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
@@ -107,7 +107,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
               applicationAboutPage({
                 org: repository.owner.login,
                 repo: repository.name,
-              })
+              }),
             );
           },
           onError: (error: { response: { status: number } }) => {
@@ -117,7 +117,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
 
             setPageState(PageState.Idle);
           },
-        }
+        },
       );
     }
   };

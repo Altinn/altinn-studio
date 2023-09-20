@@ -42,7 +42,7 @@ describe('ResetRepoModal', () => {
 
   const render = (
     props?: Partial<IResetRepoModalProps>,
-    queries?: Partial<ServicesContextProps>
+    queries?: Partial<ServicesContextProps>,
   ) => {
     const defaultProps = {
       anchorRef: mockAnchorEl,

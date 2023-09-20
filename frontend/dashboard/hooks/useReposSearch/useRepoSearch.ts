@@ -38,7 +38,7 @@ export const useReposSearch = ({
       return DATAGRID_ROWS_PER_PAGE_OPTIONS.includes(parsedValue)
         ? (parsedValue as DATAGRID_PAGE_SIZE_TYPE)
         : defaultPageSize;
-    }
+    },
   );
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
 

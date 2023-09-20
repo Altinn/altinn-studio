@@ -15,7 +15,7 @@ describe('ProcessEditor', () => {
       screen.getByRole('heading', {
         name: textMock('process_editor.fetch_bpmn_error_title'),
         level: 2,
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -23,12 +23,15 @@ describe('ProcessEditor', () => {
     // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => {
       render(
-        <ProcessEditor bpmnXml={`<?xml version="1.0" encoding="UTF-8"?></xml>`} onSave={() => {}} />
+        <ProcessEditor
+          bpmnXml={`<?xml version="1.0" encoding="UTF-8"?></xml>`}
+          onSave={() => {}}
+        />,
       );
     });
 
     expect(
-      screen.getByRole('button', { name: textMock('process_editor.edit_mode') })
+      screen.getByRole('button', { name: textMock('process_editor.edit_mode') }),
     ).toBeInTheDocument();
   });
 });

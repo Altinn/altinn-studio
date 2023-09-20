@@ -29,7 +29,7 @@ export const PageLayout = () => {
       selectableOrgs: organizations,
       user,
     }),
-    [organizations, user]
+    [organizations, user],
   );
 
   return (

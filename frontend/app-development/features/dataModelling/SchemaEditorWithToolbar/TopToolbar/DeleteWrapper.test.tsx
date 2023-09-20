@@ -36,11 +36,11 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 
 const render = (
   props: Partial<DeleteWrapperProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   queryClient.setQueryData(
     [QueryKey.DatamodelsMetadata, org, app],
-    [jsonMetadata1Mock, jsonMetadata2Mock]
+    [jsonMetadata1Mock, jsonMetadata2Mock],
   );
   return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
 };

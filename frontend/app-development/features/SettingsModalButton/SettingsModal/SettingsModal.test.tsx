@@ -63,10 +63,10 @@ describe('SettingsModal', () => {
   it('displays left navigation bar on mount', () => {
     render(<SettingsModal {...defaultProps} />);
     expect(
-      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_about') })
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_about') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') })
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') }),
     ).toBeInTheDocument();
   });
 
@@ -78,7 +78,7 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
   });
 
@@ -89,7 +89,7 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
@@ -102,10 +102,10 @@ describe('SettingsModal', () => {
       screen.getByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading'))
+      screen.queryByText(textMock('settings_modal.about_tab_heading')),
     ).not.toBeInTheDocument();
 
     const aboutTab = screen.getByRole('button', {
@@ -117,7 +117,7 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
   });
@@ -126,7 +126,7 @@ describe('SettingsModal', () => {
 const renderWithQueryClient = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: SettingsModalProps
+  props: SettingsModalProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -136,6 +136,6 @@ const renderWithQueryClient = (
   return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <SettingsModal {...props} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };

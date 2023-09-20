@@ -9,7 +9,7 @@ export const itemType = 'SCHEMA_ITEM_LABEL';
 export const dropTargetSpec = (
   targetItem: DragItem,
   refCurrent: HTMLDivElement | null,
-  moveThing: (from: DragItem, to: DragItem) => void
+  moveThing: (from: DragItem, to: DragItem) => void,
 ): DropTargetHookSpec<any, any, any> => ({
   accept: itemType,
   collect(monitor) {

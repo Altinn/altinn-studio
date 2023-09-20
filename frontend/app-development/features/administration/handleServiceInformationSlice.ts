@@ -56,7 +56,7 @@ const handleServiceInformationSlice = createSlice({
     },
     fetchInitialCommitRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>
+      action: PayloadAction<IHandleServiceInformationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -67,7 +67,7 @@ const handleServiceInformationSlice = createSlice({
     },
     fetchServiceRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>
+      action: PayloadAction<IHandleServiceInformationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -79,7 +79,7 @@ const handleServiceInformationSlice = createSlice({
     },
     fetchServiceConfigRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>
+      action: PayloadAction<IHandleServiceInformationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -91,7 +91,7 @@ const handleServiceInformationSlice = createSlice({
     },
     fetchServiceNameRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>
+      action: PayloadAction<IHandleServiceInformationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -99,7 +99,7 @@ const handleServiceInformationSlice = createSlice({
     saveServiceConfig: (
       state,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      action: PayloadAction<ISaveServiceConfigAction>
+      action: PayloadAction<ISaveServiceConfigAction>,
     ) => {
       state.serviceDescriptionObj.saving = true;
       state.serviceIdObj.saving = true;
@@ -113,7 +113,7 @@ const handleServiceInformationSlice = createSlice({
     },
     saveServiceConfigRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>
+      action: PayloadAction<IHandleServiceInformationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -131,7 +131,7 @@ const handleServiceInformationSlice = createSlice({
     },
     saveServiceNameRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>
+      action: PayloadAction<IHandleServiceInformationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;

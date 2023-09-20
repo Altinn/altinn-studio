@@ -47,7 +47,7 @@ describe('SchemaSelect', () => {
     render();
     await user.selectOptions(
       screen.getByRole('combobox'),
-      screen.getByRole('option', { name: jsonOption2.label })
+      screen.getByRole('option', { name: jsonOption2.label }),
     );
     expect(setSelectedOption).toHaveBeenCalledTimes(1);
     expect(setSelectedOption).toHaveBeenCalledWith(jsonOption2);

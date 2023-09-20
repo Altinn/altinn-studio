@@ -42,7 +42,7 @@ describe('ResourceNarrowingList', () => {
       name: textMock('policy_editor.narrowing_list_field_delete'),
     });
     const typeInputs = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
     const idInputs = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
@@ -76,7 +76,7 @@ describe('ResourceNarrowingList', () => {
     mockHandleInputChange.mockClear();
 
     const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
     await act(() => user.type(typeInput, mockNewText));
     expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
@@ -147,7 +147,7 @@ describe('ResourceNarrowingList', () => {
     render(<ResourceNarrowingList {...defaultProps} />);
 
     const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
 
     await act(() => user.type(typeInput, mockNewText));

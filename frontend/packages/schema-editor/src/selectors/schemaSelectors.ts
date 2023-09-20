@@ -40,7 +40,7 @@ export const getRootNodes: SchemaSelector<Map<string, UiSchemaNode>> = (schema: 
 };
 
 export const rootNodesSelector: SchemaSelector<Map<string, UiSchemaNode>> = (
-  schema: UiSchemaNodes
+  schema: UiSchemaNodes,
 ) => {
   const nodesmap: Map<string, UiSchemaNode> = new Map();
   if (schema.length) {
@@ -51,5 +51,6 @@ export const rootNodesSelector: SchemaSelector<Map<string, UiSchemaNode>> = (
   return nodesmap;
 };
 
-export const rootChildrenSelector: SchemaSelector<string[] | undefined> = (schema: UiSchemaNodes) =>
-  schema.length ? getNodeByPointer(schema, ROOT_POINTER).children : undefined;
+export const rootChildrenSelector: SchemaSelector<string[] | undefined> = (
+  schema: UiSchemaNodes,
+) => (schema.length ? getNodeByPointer(schema, ROOT_POINTER).children : undefined);

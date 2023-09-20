@@ -32,12 +32,12 @@ const defaultState: NumberRestrictionsReducerState = {
 const changeCallback = jest.fn();
 const dispatchAction = (
   action: NumberRestrictionsReducerAction,
-  state?: Partial<NumberRestrictionsReducerState>
+  state?: Partial<NumberRestrictionsReducerState>,
 ) => {
   const defaultStateCopy = { ...defaultState, restrictions: { ...defaultRestrictions } };
   return numberRestrictionsReducer(
     state ? { ...defaultStateCopy, ...state } : defaultStateCopy,
-    action
+    action,
   );
 };
 
@@ -79,7 +79,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMinimum: minNumber,
           maximum: defaultRestrictions.maximum,
           exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
-        })
+        }),
       );
     });
 
@@ -91,7 +91,7 @@ describe('NumberRestrictionsReducer', () => {
       };
       const state = dispatchAction(
         { type, value: true, changeCallback },
-        { isMinInclusive: false, restrictions: initialRestrictions }
+        { isMinInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.isMinInclusive).toBe(true);
       expect(state.min).toBe(minNumber);
@@ -106,7 +106,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMinimum: undefined,
           maximum: defaultRestrictions.maximum,
           exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
-        })
+        }),
       );
     });
   });
@@ -128,7 +128,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
           maximum: undefined,
           exclusiveMaximum: maxNumber,
-        })
+        }),
       );
     });
 
@@ -140,7 +140,7 @@ describe('NumberRestrictionsReducer', () => {
       };
       const state = dispatchAction(
         { type, value: true, changeCallback },
-        { isMaxInclusive: false, restrictions: initialRestrictions }
+        { isMaxInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.isMaxInclusive).toBe(true);
       expect(state.max).toBe(maxNumber);
@@ -155,7 +155,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
           maximum: maxNumber,
           exclusiveMaximum: undefined,
-        })
+        }),
       );
     });
   });
@@ -172,7 +172,7 @@ describe('NumberRestrictionsReducer', () => {
       const value = 2;
       const state = dispatchAction(
         { type, value, changeCallback },
-        { isMinInclusive: true, restrictions: initialRestrictions }
+        { isMinInclusive: true, restrictions: initialRestrictions },
       );
       expect(state.min).toEqual(value);
       expect(state.restrictions.minimum).toEqual(value);
@@ -186,7 +186,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMinimum: undefined,
           maximum: defaultRestrictions.maximum,
           exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
-        })
+        }),
       );
     });
 
@@ -199,7 +199,7 @@ describe('NumberRestrictionsReducer', () => {
       const value = 2;
       const state = dispatchAction(
         { type, value, changeCallback },
-        { isMinInclusive: false, restrictions: initialRestrictions }
+        { isMinInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.min).toEqual(value);
       expect(state.restrictions.minimum).toBeUndefined();
@@ -213,7 +213,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMinimum: value,
           maximum: defaultRestrictions.maximum,
           exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
-        })
+        }),
       );
     });
   });
@@ -230,7 +230,7 @@ describe('NumberRestrictionsReducer', () => {
       const value = 5;
       const state = dispatchAction(
         { type, value, changeCallback },
-        { isMaxInclusive: true, restrictions: initialRestrictions }
+        { isMaxInclusive: true, restrictions: initialRestrictions },
       );
       expect(state.max).toEqual(value);
       expect(state.restrictions.maximum).toEqual(value);
@@ -244,7 +244,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMaximum: undefined,
           minimum: defaultRestrictions.minimum,
           exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
-        })
+        }),
       );
     });
 
@@ -257,7 +257,7 @@ describe('NumberRestrictionsReducer', () => {
       const value = 5;
       const state = dispatchAction(
         { type, value, changeCallback },
-        { isMaxInclusive: false, restrictions: initialRestrictions }
+        { isMaxInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.max).toEqual(value);
       expect(state.restrictions.maximum).toBeUndefined();
@@ -271,7 +271,7 @@ describe('NumberRestrictionsReducer', () => {
           exclusiveMaximum: value,
           minimum: defaultRestrictions.minimum,
           exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
-        })
+        }),
       );
     });
   });

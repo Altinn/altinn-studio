@@ -19,7 +19,7 @@ describe('SchemaEditorSlice', () => {
     it('Sets selected ID when it is a definition', () => {
       const nextState = reducer(
         { ...state, selectedEditorTab: 'definitions' },
-        setSelectedId({ pointer: '#/$defs/Kommentar2000Restriksjon' })
+        setSelectedId({ pointer: '#/$defs/Kommentar2000Restriksjon' }),
       );
       expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/Kommentar2000Restriksjon');
     });
@@ -27,7 +27,7 @@ describe('SchemaEditorSlice', () => {
     it('Sets selected ID when it is a property', () => {
       const nextState = reducer(
         { ...state, selectedEditorTab: 'properties' },
-        setSelectedId({ pointer: '#/properties/someField' })
+        setSelectedId({ pointer: '#/properties/someField' }),
       );
       expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
     });
@@ -36,7 +36,7 @@ describe('SchemaEditorSlice', () => {
   test('navigateToType', () => {
     const nextState = reducer(
       { ...state, selectedEditorTab: 'properties' },
-      navigateToType({ pointer: '#/$defs/someField' })
+      navigateToType({ pointer: '#/$defs/someField' }),
     );
     expect(nextState.selectedEditorTab).toEqual('definitions');
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/someField');
@@ -48,7 +48,7 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(
       { ...state, selectedEditorTab: 'properties' },
-      setSelectedTab(payload)
+      setSelectedTab(payload),
     );
     expect(nextState.selectedEditorTab).toEqual('definitions');
   });

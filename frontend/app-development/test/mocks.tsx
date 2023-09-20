@@ -23,7 +23,7 @@ export const renderWithMockStore =
   (
     state: Partial<RootState> = {},
     queries: Partial<ServicesContextProps> = {},
-    queryClient?: QueryClient
+    queryClient?: QueryClient,
   ) =>
   (component: ReactNode) => {
     const store = configureStore()({ ...rootStateMock, ...state });
@@ -39,7 +39,7 @@ export const renderWithMockStore =
             <BrowserRouter>{component}</BrowserRouter>
           </Provider>
         </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
+      </ServicesContextProvider>,
     );
     const rerender = (rerenderedComponent) =>
       renderResult.rerender(
@@ -54,7 +54,7 @@ export const renderWithMockStore =
               <BrowserRouter>{rerenderedComponent}</BrowserRouter>
             </Provider>
           </PreviewConnectionContextProvider>
-        </ServicesContextProvider>
+        </ServicesContextProvider>,
       );
     return { renderResult: { ...renderResult, rerender }, store };
   };
@@ -63,7 +63,7 @@ export const renderHookWithMockStore =
   (
     state: Partial<RootState> = {},
     queries: Partial<ServicesContextProps> = {},
-    queryClient?: QueryClient
+    queryClient?: QueryClient,
   ) =>
   (hook: () => any) => {
     const store = configureStore()({ ...rootStateMock, ...state });

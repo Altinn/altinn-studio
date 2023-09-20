@@ -40,7 +40,7 @@ export function SchemaEditorApp({
         save({ modelPath, model: buildJsonSchema(newModel) });
       }, saveAfterMs);
     },
-    [modelPath, save]
+    [modelPath, save],
   );
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function SchemaEditorApp({
       if (prevModelPathRef.current === modelPath) return;
 
       const isExistingModel = datamodels.some(
-        (item) => item.repositoryRelativeUrl === prevModelPathRef.current
+        (item) => item.repositoryRelativeUrl === prevModelPathRef.current,
       );
       if (!isExistingModel) {
         prevModelPathRef.current = modelPath;
@@ -72,7 +72,7 @@ export function SchemaEditorApp({
 
   const value = useMemo(
     () => ({ data: model, save: saveInternalModel }),
-    [model, saveInternalModel]
+    [model, saveInternalModel],
   );
 
   return (

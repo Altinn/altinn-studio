@@ -17,7 +17,7 @@ jest.mock('react-router-dom', () => ({
 const renderWithMockServices = (
   services?: Partial<ServicesContextProps>,
   organizations?: IGiteaOrganisation[],
-  user?: User
+  user?: User,
 ) => {
   render(
     <MockServicesContextWrapper client={null} customServices={services}>
@@ -33,7 +33,7 @@ const renderWithMockServices = (
           }
         }
       />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
@@ -46,7 +46,7 @@ describe('CreateService', () => {
     await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.field_cannot_be_empty')
+      textMock('dashboard.field_cannot_be_empty'),
     );
     expect(emptyFieldErrors.length).toBe(2);
   });
@@ -66,14 +66,14 @@ describe('CreateService', () => {
     const user = userEvent.setup();
     renderWithMockServices();
     await act(() =>
-      user.type(screen.getByLabelText(/general.service_name/), 'this-app-name-is-longer-than-max')
+      user.type(screen.getByLabelText(/general.service_name/), 'this-app-name-is-longer-than-max'),
     );
 
     const createBtn = await screen.findByText(textMock('dashboard.create_service_btn'));
     await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.service_name_is_too_long')
+      textMock('dashboard.service_name_is_too_long'),
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -83,7 +83,7 @@ describe('CreateService', () => {
     renderWithMockServices();
 
     await act(() =>
-      user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels')
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels'),
     );
 
     const createButton = screen.queryByRole('button', {
@@ -92,7 +92,7 @@ describe('CreateService', () => {
     await act(() => user.click(createButton));
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.service_name_has_illegal_characters')
+      textMock('dashboard.service_name_has_illegal_characters'),
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -113,12 +113,12 @@ describe('CreateService', () => {
     renderWithMockServices({ addRepo: addRepoMock }, [org]);
 
     await act(() =>
-      user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') }))
+      user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') })),
     );
     await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
 
     await act(() =>
-      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists')
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
     );
 
     const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));

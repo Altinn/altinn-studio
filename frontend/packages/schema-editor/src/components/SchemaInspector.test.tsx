@@ -63,7 +63,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
   })(
     <Provider store={store}>
       <SchemaInspector selectedItem={selectedItem} />
-    </Provider>
+    </Provider>,
   );
 };
 

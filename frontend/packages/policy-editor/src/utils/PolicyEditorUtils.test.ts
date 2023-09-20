@@ -66,7 +66,7 @@ describe('PolicyEditorUtils', () => {
       const result = mapPolicyRulesBackendObjectToPolicyRuleCard(
         mockSubjects,
         mockActions,
-        mockPolicyRules
+        mockPolicyRules,
       );
       expect(result).toEqual(mockPolicyRuleCards);
     });
@@ -94,7 +94,7 @@ describe('PolicyEditorUtils', () => {
         mockSubjects,
         mockActions,
         mockPolicyRuleCard1,
-        mockRuleId1
+        mockRuleId1,
       );
 
       expect(result).toEqual(mockPolicyRule1);

@@ -39,10 +39,10 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const alertTextApp = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
     const alertTextResource = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
     // Fix to remove act error
@@ -57,10 +57,10 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} usageType='resource' />);
 
     const alertTextApp = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
     const alertTextResource = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
     // Fix to remove act error
@@ -75,7 +75,7 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label')
+      textMock('policy_editor.select_auth_level_label'),
     );
     expect(selectElement).toHaveValue(mockRequiredAuthLevelLabel);
 
@@ -83,7 +83,7 @@ describe('PolicyEditor', () => {
     await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
 
     const [selectElementAfter] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label')
+      textMock('policy_editor.select_auth_level_label'),
     );
     expect(selectElementAfter).toHaveValue(authlevelOptions[2].label);
   });
@@ -93,7 +93,7 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label')
+      textMock('policy_editor.select_auth_level_label'),
     );
     await act(() => user.click(selectElement));
     await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
@@ -107,7 +107,7 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const aLabelFromPolicyCard = screen.getAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title')
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
     // Fix to remove act error
@@ -121,7 +121,7 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} policy={{ ...mockPolicy, rules: [] }} />);
 
     const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title')
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
     // Fix to remove act error
@@ -143,7 +143,7 @@ describe('PolicyEditor', () => {
     await act(() => user.click(addButton));
 
     const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title')
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
     expect(aLabelFromPolicyCard.length).toEqual(originalLength + 1);

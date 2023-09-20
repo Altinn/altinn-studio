@@ -29,7 +29,7 @@ test.each(getSeresJsonSchemasForTest())(
         expect(uiSchema.fieldType).toBeDefined();
       }
     });
-  }
+  },
 );
 
 test.each(getGeneralJsonSchemasForTest())(
@@ -39,7 +39,7 @@ test.each(getGeneralJsonSchemasForTest())(
     dumpToDebug(__dirname, name, uiSchemaNodes);
     const jsonSchema = buildJsonSchema(uiSchemaNodes);
     expect(jsonSchema).toEqual(testSchema);
-  }
+  },
 );
 
 test('That we can convert old schemas too', () => {

@@ -45,7 +45,7 @@ describe('PolicyTab', () => {
     await act(() => user.tab());
 
     const elementInPolicyEditor = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
     expect(elementInPolicyEditor).toBeInTheDocument();
   });
@@ -66,7 +66,7 @@ describe('PolicyTab', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: PolicyTabProps
+  props: PolicyTabProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -76,6 +76,6 @@ const render = (
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <PolicyTab {...props} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };

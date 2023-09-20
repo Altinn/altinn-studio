@@ -25,7 +25,7 @@ describe('DeployDropdown', () => {
       expect(dialog).toBeInTheDocument();
 
       const text = await screen.findByText(
-        textMock('app_deploy_messages.deploy_confirmation_short', { selectedImageTag: '' })
+        textMock('app_deploy_messages.deploy_confirmation_short', { selectedImageTag: '' }),
       );
       expect(text).toBeInTheDocument();
 

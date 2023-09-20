@@ -26,7 +26,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
 
   const promotedNodePointer = getUniqueNodePath(
     uiSchemaNodes,
-    makePointer(Keyword.Definitions, pointer.split('/').pop())
+    makePointer(Keyword.Definitions, pointer.split('/').pop()),
   );
 
   const updatedUiSchemaNodes = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
@@ -61,7 +61,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
       children,
       isRequired: false,
       isArray: false,
-    })
+    }),
   );
 };
 

@@ -48,8 +48,8 @@ describe('ArrayRestrictions', () => {
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.minItems,
-        '12'
-      )
+        '12',
+      ),
     );
   });
 
@@ -67,8 +67,8 @@ describe('ArrayRestrictions', () => {
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.maxItems,
-        '12'
-      )
+        '12',
+      ),
     );
   });
 
@@ -81,15 +81,15 @@ describe('ArrayRestrictions', () => {
     };
     render(props);
     const uniqueItems = screen.getByLabelText(
-      textMock('schema_editor.' + ArrRestrictionKey.uniqueItems)
+      textMock('schema_editor.' + ArrRestrictionKey.uniqueItems),
     );
     await act(() => user.click(uniqueItems));
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.uniqueItems,
-        true
-      )
+        true,
+      ),
     );
   });
 });

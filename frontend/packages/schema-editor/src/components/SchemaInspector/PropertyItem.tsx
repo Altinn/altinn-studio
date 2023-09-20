@@ -43,7 +43,7 @@ export function PropertyItem({
       setPropertyName(data, {
         path: fullPath,
         name: newNodeName,
-      })
+      }),
     );
   };
 
@@ -52,7 +52,7 @@ export function PropertyItem({
       setRequired(data, {
         path: fullPath,
         required: e.target.checked,
-      })
+      }),
     );
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>

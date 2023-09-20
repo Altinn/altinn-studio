@@ -8,7 +8,7 @@ import { removeStart } from 'app-shared/utils/stringUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const useSchemaQuery = (
-  modelPath: string
+  modelPath: string,
 ): UseQueryResult<JsonSchema | null, AxiosError> => {
   const { org, app } = useStudioUrlParams();
   const { getDatamodel, addXsdFromRepo } = useServicesContext();
@@ -17,6 +17,6 @@ export const useSchemaQuery = (
     async () =>
       isXsdFile(modelPath)
         ? addXsdFromRepo(org, app, removeStart(modelPath, '/'))
-        : getDatamodel(org, app, modelPath)
+        : getDatamodel(org, app, modelPath),
   );
 };

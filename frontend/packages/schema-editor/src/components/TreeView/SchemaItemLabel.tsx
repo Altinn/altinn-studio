@@ -107,14 +107,14 @@ export const SchemaItemLabel = ({
             pointer,
             props,
             callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-          })
+          }),
         )
       : save(
           addProperty(data, {
             pointer,
             props,
             callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer)),
-          })
+          }),
         );
   });
 

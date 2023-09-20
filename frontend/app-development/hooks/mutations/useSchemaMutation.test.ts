@@ -33,12 +33,12 @@ describe('useSchemaMutation', () => {
     result.current.mutate({ modelPath, model: jsonSchemaMock });
     await waitFor(() => result.current.isSuccess);
     expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(
-      jsonSchemaMock
+      jsonSchemaMock,
     );
   });
 });
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => renderHookWithMockStore({}, queries, queryClient)(() => useSchemaMutation());

@@ -134,6 +134,6 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
   })(
     <DndProvider backend={HTML5Backend}>
       <SchemaItem {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };

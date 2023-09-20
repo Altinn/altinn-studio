@@ -18,17 +18,17 @@ describe('LandingPagePanel', () => {
     render();
 
     expect(
-      screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })
+      screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_data_modelling.landing_dialog_paragraph'))
+      screen.getByText(textMock('app_data_modelling.landing_dialog_paragraph')),
     ).toBeInTheDocument();
     expect(screen.getByTestId(testids.fileSelectorInput)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_upload') })
+      screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_upload') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_create') })
+      screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_create') }),
     ).toBeInTheDocument();
   });
 

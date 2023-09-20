@@ -43,7 +43,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         });
 
         Object.values(ArrRestrictionKey).forEach((key) =>
-          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key])
+          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
         );
 
         // Putting the special fields back to items root.
@@ -66,7 +66,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
       JSONPointer.set(
         out,
         [jsonPointer, Keyword.Reference].join('/'),
-        typeof node.reference === 'string' ? node.reference : undefined
+        typeof node.reference === 'string' ? node.reference : undefined,
       );
 
       // Setting Type for fields
@@ -81,14 +81,14 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
       JSONPointer.set(
         out,
         [jsonPointer, Keyword.Enum].join('/'),
-        node[Keyword.Enum]?.length ? node[Keyword.Enum] : undefined
+        node[Keyword.Enum]?.length ? node[Keyword.Enum] : undefined,
       );
 
       // Restrictions
       Object.keys(node.restrictions)
         .filter((key) => !Object.keys(ArrRestrictionKey).includes(key))
         .forEach((key) =>
-          JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key])
+          JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key]),
         );
 
       // We are dealing with an object prep the properties and required keywords.
@@ -97,7 +97,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         JSONPointer.set(
           out,
           [jsonPointer, Keyword.Required].join('/'),
-          findRequiredProps(nodes, node.pointer)
+          findRequiredProps(nodes, node.pointer),
         );
       }
       const currentJsonNode = JSONPointer.get(out, jsonPointer);

@@ -27,7 +27,7 @@ const defaultState: Partial<SchemaState> = {
 
 const renderItemDataComponent = (
   schemaNode: Partial<UiSchemaNode> = {},
-  state: Partial<SchemaState> = {}
+  state: Partial<SchemaState> = {},
 ) => {
   return renderWithProviders({
     state: { ...defaultState, ...state },

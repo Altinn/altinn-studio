@@ -215,7 +215,7 @@ describe('metadataUtils', () => {
       const currentList = [jsonMetadata1Mock, jsonMetadata2Mock];
       const previousList = [jsonMetadata1Mock];
       expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(
-        newOption
+        newOption,
       );
       expect(computeSelectedOption(undefined, currentList, previousList)).toEqual(newOption);
     });
@@ -223,7 +223,7 @@ describe('metadataUtils', () => {
     it('Returns the first option if the current selected option is undefined', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
       expect(computeSelectedOption(undefined, list, list)).toEqual(
-        convertMetadataToOption(jsonMetadata1Mock)
+        convertMetadataToOption(jsonMetadata1Mock),
       );
     });
 
@@ -232,7 +232,7 @@ describe('metadataUtils', () => {
       const previousList = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata2Mock);
       expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(
-        convertMetadataToOption(jsonMetadata1Mock)
+        convertMetadataToOption(jsonMetadata1Mock),
       );
     });
 
@@ -240,7 +240,7 @@ describe('metadataUtils', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata1Mock);
       expect(computeSelectedOption(currentSelectedOption, list, list)).toEqual(
-        currentSelectedOption
+        currentSelectedOption,
       );
     });
   });

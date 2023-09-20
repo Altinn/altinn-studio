@@ -24,6 +24,6 @@ export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Poli
         requiredAuthenticationLevelEndUser: '3',
         requiredAuthenticationLevelOrg: '3',
       }),
-    }
+    },
   );
 };

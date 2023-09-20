@@ -19,7 +19,7 @@ export const renderWithProviders =
     { state = {}, appContextProps = {} }: RenderWithProvidersData = {
       state: {},
       appContextProps: {},
-    }
+    },
   ) =>
   (element: ReactNode) => {
     const allStateProps: SchemaState = {
@@ -43,7 +43,7 @@ export const renderWithProviders =
         <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
           {element}
         </SchemaEditorAppContext.Provider>
-      </Provider>
+      </Provider>,
     );
 
     const rerender = (
@@ -53,7 +53,7 @@ export const renderWithProviders =
       }: RenderWithProvidersData = {
         state: {},
         appContextProps: {},
-      }
+      },
     ) => {
       const newStateProps: SchemaState = {
         selectedEditorTab: null,
@@ -75,7 +75,7 @@ export const renderWithProviders =
             <SchemaEditorAppContext.Provider value={newAppContextProps}>
               {rerenderElement}
             </SchemaEditorAppContext.Provider>
-          </Provider>
+          </Provider>,
         );
     };
 

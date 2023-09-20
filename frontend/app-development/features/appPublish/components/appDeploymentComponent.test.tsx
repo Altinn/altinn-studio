@@ -13,7 +13,7 @@ import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const render = (
   props?: Partial<AppDeploymentComponentProps>,
-  queries?: Partial<ServicesContextProps>
+  queries?: Partial<ServicesContextProps>,
 ) => {
   const defaultProps: AppDeploymentComponentProps = {
     deployHistory: [],
@@ -32,7 +32,7 @@ describe('AppDeploymentComponent', () => {
   it('should render', () => {
     render();
     expect(
-      screen.getByText(`${textMock('app_deploy.environment', { envName: 'test' })}`)
+      screen.getByText(`${textMock('app_deploy.environment', { envName: 'test' })}`),
     ).toBeInTheDocument();
   });
 
@@ -41,15 +41,17 @@ describe('AppDeploymentComponent', () => {
     expect(screen.getByText(textMock('app_deploy.no_app_deployed'))).toBeInTheDocument();
     expect(
       screen.getByText(
-        textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' })
-      )
+        textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' }),
+      ),
     ).toBeInTheDocument();
   });
 
   it('should render missing rights message if deployPermission is false', () => {
     render({ deployPermission: false });
     expect(
-      screen.getByText(textMock('app_publish.missing_rights', { envName: 'test', orgName: 'test' }))
+      screen.getByText(
+        textMock('app_publish.missing_rights', { envName: 'test', orgName: 'test' }),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -75,10 +77,10 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      screen.getByText(textMock('app_deploy.deployed_version', { appDeployedVersion: 'test' }))
+      screen.getByText(textMock('app_deploy.deployed_version', { appDeployedVersion: 'test' })),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deploy_table.deployed_version_history', { envName: 'test' }))
+      screen.getByText(textMock('app_deploy_table.deployed_version_history', { envName: 'test' })),
     ).toBeInTheDocument();
     expect(screen.getByText('test')).toBeInTheDocument();
   });
@@ -105,7 +107,7 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      await screen.findByText(textMock('app_deploy_messages.technical_error_1'))
+      await screen.findByText(textMock('app_deploy_messages.technical_error_1')),
     ).toBeInTheDocument();
   });
 
@@ -131,7 +133,7 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      screen.getByText(textMock('app_deploy.deployed_version_unavailable'))
+      screen.getByText(textMock('app_deploy.deployed_version_unavailable')),
     ).toBeInTheDocument();
   });
 
@@ -176,7 +178,7 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      screen.getByText(`${textMock('app_publish.deployment_in_progress')}...`)
+      screen.getByText(`${textMock('app_publish.deployment_in_progress')}...`),
     ).toBeInTheDocument();
   });
 
@@ -202,12 +204,14 @@ describe('AppDeploymentComponent', () => {
     await act(() => user.click(screen.getByText('test1')));
     await act(() =>
       user.click(
-        screen.getByRole('button', { name: textMock('app_deploy_messages.btn_deploy_new_version') })
-      )
+        screen.getByRole('button', {
+          name: textMock('app_deploy_messages.btn_deploy_new_version'),
+        }),
+      ),
     );
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.yes') })));
     expect(
-      await screen.findByText(textMock('app_deploy_messages.technical_error_1'))
+      await screen.findByText(textMock('app_deploy_messages.technical_error_1')),
     ).toBeInTheDocument();
   });
 });

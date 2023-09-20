@@ -46,7 +46,7 @@ export function StringRestrictions({
       restrictions[StrRestrictionKey.formatExclusiveMaximum] ??
       restrictions[StrRestrictionKey.formatMaximum],
     restrictions: Object.fromEntries(
-      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]])
+      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]]),
     ),
   });
 
@@ -86,7 +86,7 @@ export function StringRestrictions({
         value={restrictions[StrRestrictionKey.format] || ''}
       />
       {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
-        restrictions[StrRestrictionKey.format]
+        restrictions[StrRestrictionKey.format],
       ) && (
         <>
           <div>

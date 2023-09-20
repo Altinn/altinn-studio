@@ -23,7 +23,7 @@ const initialProps = {
 
 export const render = (ChildComponent?: React.ElementType) => {
   return rtlRender(
-    <SchemaEditorApp {...initialProps}>{ChildComponent && <ChildComponent />}</SchemaEditorApp>
+    <SchemaEditorApp {...initialProps}>{ChildComponent && <ChildComponent />}</SchemaEditorApp>,
   );
 };
 

@@ -12,12 +12,12 @@ const user = userEvent.setup();
 
 const renderWithMockServices = (
   componentProps: IRepoListProps,
-  services?: Partial<ServicesContextProps>
+  services?: Partial<ServicesContextProps>,
 ) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <RepoList repos={[starredRepoMock] as unknown as IRepository[]} {...componentProps} />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
@@ -62,7 +62,7 @@ describe('RepoList', () => {
       rowCount: 5,
     });
     const gridActionsCellItem = within(
-      screen.getByRole('menuitem', { name: textMock('dashboard.unstar') })
+      screen.getByRole('menuitem', { name: textMock('dashboard.unstar') }),
     ).getByRole('img');
     expect(gridActionsCellItem).toBeInTheDocument();
   });

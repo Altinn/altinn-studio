@@ -6,7 +6,7 @@ import { deepCopy } from 'app-shared/pure';
 
 export const insertSchemaNode = (
   uiSchemaNodes: UiSchemaNodes,
-  newNode: UiSchemaNode
+  newNode: UiSchemaNode,
 ): UiSchemaNodes => {
   if (hasNodePointer(uiSchemaNodes, newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists allready`);
@@ -32,7 +32,7 @@ export const insertSchemaNode = (
 export const createChildNode = (
   parentNode: UiSchemaNode,
   displayName: string,
-  isDefinition: boolean
+  isDefinition: boolean,
 ): UiSchemaNode => {
   const { pointer, objectKind, children, fieldType, isArray } = parentNode;
   if (isArray) {

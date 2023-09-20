@@ -47,20 +47,20 @@ const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 const renderToolbar = (
   props: Partial<TopToolbarProps> = {},
-  servicesContextProps: Partial<ServicesContextProps> = {}
+  servicesContextProps: Partial<ServicesContextProps> = {},
 ) => {
   const TopToolbarWithInitData = () => {
     const queryClient = useQueryClient();
     queryClient.setQueryData(
       [QueryKey.JsonSchema, org, app, modelPath],
-      buildJsonSchema(uiSchemaNodesMock)
+      buildJsonSchema(uiSchemaNodesMock),
     );
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
   return renderWithMockStore(
     {},
-    { generateModels, ...servicesContextProps }
+    { generateModels, ...servicesContextProps },
   )(<TopToolbarWithInitData />);
 };
 
@@ -104,7 +104,7 @@ describe('TopToolbar', () => {
       {},
       {
         generateModels: jest.fn().mockImplementation(() => Promise.reject()),
-      }
+      },
     );
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     expect(await screen.findByRole('alert')).toHaveTextContent(generalErrorMessage);

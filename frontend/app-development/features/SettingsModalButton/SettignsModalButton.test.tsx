@@ -73,13 +73,13 @@ describe('SettingsModalButton', () => {
       });
 
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('settings_modal.loading_content'))
+        screen.queryByTitle(textMock('settings_modal.loading_content')),
       );
 
       expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
       expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    }
+    },
   );
 
   it('opens the modal when the button is clicked', async () => {
@@ -88,11 +88,11 @@ describe('SettingsModalButton', () => {
     render();
 
     expect(
-      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).not.toBeInTheDocument();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
@@ -100,7 +100,7 @@ describe('SettingsModalButton', () => {
     await act(() => user.click(openButton));
 
     expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).toBeInTheDocument();
   });
 
@@ -110,28 +110,28 @@ describe('SettingsModalButton', () => {
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
     await act(() => user.click(openButton));
 
     expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).toBeInTheDocument();
 
     const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
     await act(() => user.click(closeButton));
 
     expect(
-      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).not.toBeInTheDocument();
   });
 });
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -144,6 +144,6 @@ const render = (
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <SettingsModalButton />
       </ServicesContextProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

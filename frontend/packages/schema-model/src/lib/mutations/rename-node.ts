@@ -6,7 +6,7 @@ import { splitPointerInBaseAndName } from '../utils';
 export const renameNodePointer = (
   uiSchemaNodes: UiSchemaNodes,
   oldPointer: string,
-  newPointer: string
+  newPointer: string,
 ) => {
   if (oldPointer === newPointer) {
     throw new Error('Old and new name are equal');
@@ -35,7 +35,7 @@ export const renameNodePointer = (
     nodeCopy.children = uiNode.children.map((childPointer) =>
       pointerIsInBranch(childPointer, oldPointer)
         ? childPointer.replace(oldPointer, newPointer)
-        : childPointer
+        : childPointer,
     );
     mutatedNodeArray.push(nodeCopy);
   });

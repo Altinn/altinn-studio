@@ -56,7 +56,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   rootChildren?.forEach((childPointer) =>
     pointerIsDefinition(childPointer)
       ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer))
+      : properties.push(rootNodeMap.get(childPointer)),
   );
 
   const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);

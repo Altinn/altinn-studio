@@ -33,11 +33,11 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
-    'layoutSet/' + app
+    'layoutSet/' + app,
   );
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
-    'desktop'
+    'desktop',
   );
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';

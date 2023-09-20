@@ -44,7 +44,7 @@ export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): b
 
 export const getNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string
+  pointer: string,
 ): UiSchemaNode | undefined => getNodePointerCache(uiSchemaNodes).get(pointer);
 
 /**
@@ -55,7 +55,7 @@ export const getNodeByPointer = (
  */
 export const getNodeIndexByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string
+  pointer: string,
 ): number | undefined => {
   const index = uiSchemaNodes.findIndex((node) => node.pointer === pointer);
   return index > -1 ? index : undefined;
@@ -63,7 +63,7 @@ export const getNodeIndexByPointer = (
 
 export const getChildNodesByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string
+  pointer: string,
 ): UiSchemaNode[] => {
   const parentNode = getNodeByPointer(uiSchemaNodes, pointer);
   if (!parentNode) return [];
@@ -73,7 +73,7 @@ export const getChildNodesByPointer = (
 
 export const getParentNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string
+  pointer: string,
 ): UiSchemaNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
@@ -104,7 +104,7 @@ export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string) => {
         referredNodes.cache.set(node.reference ?? '_', [
           ...(referredNodes.cache.get(ref) ?? []),
           node,
-        ])
+        ]),
       );
   }
   return referredNodes.cache.get(ref) ?? [];

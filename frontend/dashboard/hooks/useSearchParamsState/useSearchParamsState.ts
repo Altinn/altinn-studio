@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 export function useSearchParamsState<T>(
   searchParamName: string,
   defaultValue: T,
-  cast: (_: string) => T = (_: string) => _ as T
+  cast: (_: string) => T = (_: string) => _ as T,
 ): [searchParamsState: T, setSearchParamsState: (newState: T) => void] {
   const [searchParams, setSearchParams] = useSearchParams();
 

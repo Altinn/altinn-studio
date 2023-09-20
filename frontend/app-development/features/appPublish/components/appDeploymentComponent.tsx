@@ -74,9 +74,9 @@ export const AppDeploymentComponent = ({
       deployHistory.filter(
         (deployment: IDeployment) =>
           deployment.build.result === DeploymentStatus.succeeded &&
-          deployment.build.finished !== null
+          deployment.build.finished !== null,
       ),
-    [deployHistory]
+    [deployHistory],
   );
   const latestDeploy = deployHistory ? deployHistory[0] : null;
   const deploymentInEnv = deployHistory ? deployHistory.find((d) => d.deployedInEnv) : false;

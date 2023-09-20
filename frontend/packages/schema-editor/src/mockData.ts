@@ -3,5 +3,5 @@ import * as path from 'path';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export const dataMock: JsonSchema = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '..', 'test', 'fixtures', 'mock-string.json'), 'utf-8')
+  fs.readFileSync(path.resolve(__dirname, '..', 'test', 'fixtures', 'mock-string.json'), 'utf-8'),
 );

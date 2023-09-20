@@ -21,7 +21,7 @@ module.exports = async (env) => {
           method: 'DELETE',
           user: env.GITEA_ADMIN_USER,
           pass: env.GITEA_ADMIN_PASS,
-        })
+        }),
       );
     }
   });
@@ -63,7 +63,7 @@ module.exports = async (env) => {
     'frontend',
     'testing',
     'cypress',
-    'cypress.env.json'
+    'cypress.env.json',
   );
   fs.writeFileSync(cypressEnvFilePath, JSON.stringify(envFile, null, 2) + os.EOL, 'utf-8');
   console.log('Wrote a new:', cypressEnvFilePath);

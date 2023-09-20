@@ -49,7 +49,7 @@ export const ModelsPanel = ({
         location: makePointer(Keyword.Properties),
         props: newNode,
         callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer)),
-      })
+      }),
     );
   };
 

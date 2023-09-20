@@ -34,7 +34,7 @@ const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]))
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -47,7 +47,7 @@ const render = (
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <DataModelling />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };
 
@@ -75,7 +75,7 @@ describe('DataModelling', () => {
     render();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })
+      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
     ).not.toBeInTheDocument();
   });
 
@@ -84,7 +84,7 @@ describe('DataModelling', () => {
     render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(
-      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') })
+      screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
     ).not.toBeInTheDocument();
   });
 
@@ -99,7 +99,7 @@ describe('DataModelling', () => {
       expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
       expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    }
+    },
   );
 
   it('Shows a spinner when loading', () => {
@@ -114,6 +114,6 @@ describe('DataModelling', () => {
       queryClient.setQueryData([queryKey, org, app], []);
       render({}, queryClient);
       expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
-    }
+    },
   );
 });

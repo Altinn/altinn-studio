@@ -23,7 +23,9 @@
 .listItem:hover {
   --background: #0001;
   background-color: var(--background);
-  box-shadow: 100px 0 var(--background), -100px 0 var(--background);
+  box-shadow:
+    100px 0 var(--background),
+    -100px 0 var(--background);
 }
 
 .data,

@@ -75,7 +75,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 
 const renderItemFieldsTab = (
   props: Partial<ItemFieldsTabProps> = {},
-  data: Partial<RenderWithProvidersData> = {}
+  data: Partial<RenderWithProvidersData> = {},
 ) =>
   renderWithProviders({
     ...data,
@@ -219,7 +219,7 @@ describe('ItemFieldsTab', () => {
         appContextProps: {
           data: [...uiSchema, referencedNode],
         },
-      }
+      },
     );
     const textboxes = await screen.findAllByLabelText(textFieldName);
     textboxes.forEach((input) => expect(input).toBeDisabled());

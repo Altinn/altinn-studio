@@ -82,7 +82,7 @@ describe('CustomProperties', () => {
   it('Renders an "unsupported property" message for unsupported properties', () => {
     render();
     expect(screen.getAllByText(textMock('schema_editor.custom_props_unknown_format'))).toHaveLength(
-      1
+      1,
     );
   });
 
@@ -95,7 +95,7 @@ describe('CustomProperties', () => {
   it('Saves model without deleted property when the delete button is clicked', async () => {
     render();
     await act(() =>
-      user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0])
+      user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]),
     );
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);

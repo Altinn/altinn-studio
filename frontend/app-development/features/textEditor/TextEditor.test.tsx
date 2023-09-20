@@ -24,7 +24,7 @@ const queriesMock: Partial<ServicesContextProps> = {
           value: testTextResourceValue,
         },
       ],
-    })
+    }),
   ),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(languages)),
 };

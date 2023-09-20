@@ -31,7 +31,7 @@ export type AddEnumValueArgs = {
 };
 export const addEnumValue: UiSchemaReducer<AddEnumValueArgs> = (
   uiSchema: UiSchemaNodes,
-  { path, value, oldValue }
+  { path, value, oldValue },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const node = getNodeByPointer(newSchema, path);
@@ -50,7 +50,7 @@ export type AddRootItemArgs = {
 };
 export const addRootItem: UiSchemaReducer<AddRootItemArgs> = (
   uiSchema: UiSchemaNodes,
-  { location, name, props, callback }
+  { location, name, props, callback },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const newPointer = getUniqueNodePath(newSchema, [location, name].join('/'));
@@ -69,7 +69,7 @@ export type AddPropertyArgs = {
 };
 export const addProperty: UiSchemaReducer<AddPropertyArgs> = (
   uiSchema: UiSchemaNodes,
-  { pointer, props, callback }
+  { pointer, props, callback },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const addToNode = getNodeByPointer(newSchema, pointer);
@@ -78,7 +78,7 @@ export const addProperty: UiSchemaReducer<AddPropertyArgs> = (
     : addToNode.pointer;
   const newNodePointer = getUniqueNodePath(
     newSchema,
-    makePointer(pointerBase, Keyword.Properties, 'name')
+    makePointer(pointerBase, Keyword.Properties, 'name'),
   );
   addToNode.children.push(newNodePointer);
   callback && callback(newNodePointer);
@@ -93,7 +93,7 @@ export type DeleteEnumValueArgs = {
 };
 export const deleteEnumValue: UiSchemaReducer<DeleteEnumValueArgs> = (
   uiSchema: UiSchemaNodes,
-  { path, value }
+  { path, value },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const enumItem = getNodeByPointer(newSchema, path);
@@ -114,7 +114,7 @@ export type SetRestrictionArgs = {
 };
 export const setRestriction: UiSchemaReducer<SetRestrictionArgs> = (
   uiSchema,
-  { path, key, value }
+  { path, key, value },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const schemaItem = getNodeByPointer(newSchema, path);
@@ -135,7 +135,7 @@ export type SetRestrictionsArgs = {
 };
 export const setRestrictions: UiSchemaReducer<SetRestrictionsArgs> = (
   uiSchema,
-  { path, restrictions }
+  { path, restrictions },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const schemaItem = getNodeByPointer(newSchema, path);
@@ -197,7 +197,7 @@ export type SetDescriptionArgs = {
 };
 export const setDescription: UiSchemaReducer<SetDescriptionArgs> = (
   uiSchema,
-  { path, description }
+  { path, description },
 ) => {
   const newSchema = deepCopy(uiSchema);
   getNodeByPointer(newSchema, path).description = description;
@@ -220,7 +220,7 @@ export type SetCustomPropertiesArgs = {
 };
 export const setCustomProperties: UiSchemaReducer<SetCustomPropertiesArgs> = (
   uiSchema,
-  { path, properties }
+  { path, properties },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const uiSchemaNode = getNodeByPointer(newSchema, path);
@@ -234,7 +234,7 @@ export type SetCombinationTypeArgs = {
 };
 export const setCombinationType: UiSchemaReducer<SetCombinationTypeArgs> = (
   uiSchema,
-  { path, type }
+  { path, type },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const uiSchemaNode = getNodeByPointer(newSchema, path);
@@ -251,13 +251,13 @@ export type AddCombinationItemArgs = {
 };
 export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> = (
   uiSchema,
-  { pointer, props, callback }
+  { pointer, props, callback },
 ) => {
   const newSchema = deepCopy(uiSchema);
   const node = getNodeByPointer(newSchema, pointer);
   const item = Object.assign(
     createNodeBase(pointer, node.fieldType, node.children.length.toString()),
-    props
+    props,
   );
   item.isCombinationItem = true;
   node.children.push(item.pointer);
@@ -273,7 +273,7 @@ export type SetPropertyNameArgs = {
 };
 export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> = (
   uiSchema,
-  { path, name, callback }
+  { path, name, callback },
 ) => {
   if (!name || name.length === 0) {
     return uiSchema;
@@ -295,13 +295,13 @@ export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => 
       newSchema = renameNodePointer(
         newSchema,
         child,
-        child.replace(pointer, makePointer(pointer, Keyword.Items))
+        child.replace(pointer, makePointer(pointer, Keyword.Items)),
       );
     } else {
       newSchema = renameNodePointer(
         newSchema,
         child,
-        child.replace(makePointer(pointer, Keyword.Items), pointer)
+        child.replace(makePointer(pointer, Keyword.Items), pointer),
       );
     }
   });
@@ -314,7 +314,7 @@ export type ChangeChildrenOrderArgs = {
 };
 export const changeChildrenOrder: UiSchemaReducer<ChangeChildrenOrderArgs> = (
   uiSchema,
-  { pointerA, pointerB }
+  { pointerA, pointerB },
 ) => {
   const { base: baseA } = splitPointerInBaseAndName(pointerA);
   const { base: baseB } = splitPointerInBaseAndName(pointerB);

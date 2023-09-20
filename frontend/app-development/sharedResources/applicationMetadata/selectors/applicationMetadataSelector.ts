@@ -9,7 +9,7 @@ const getApplicationMetadata = createSelector(
   [applicationMetadataSelector],
   (applicationMetadata) => {
     return applicationMetadata;
-  }
+  },
 );
 
 export const makeGetApplicationMetadata = getApplicationMetadata;

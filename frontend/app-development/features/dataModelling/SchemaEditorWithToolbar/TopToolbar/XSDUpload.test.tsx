@@ -49,7 +49,7 @@ describe('XSDUpload', () => {
     await clickUploadButton();
 
     expect(
-      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload'))
+      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload')),
     ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
@@ -57,7 +57,7 @@ describe('XSDUpload', () => {
     await act(() => user.upload(fileInput, file));
 
     expect(
-      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload'))
+      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload')),
     ).toBeInTheDocument();
   });
 

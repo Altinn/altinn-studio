@@ -12,7 +12,7 @@ module.exports = (hostname) =>
         resolve(true);
       } else {
         reject(
-          `DNS entry for ${hostname} does not resolve to 127.0.0.1. Check that it is set in  /etc/hosts`
+          `DNS entry for ${hostname} does not resolve to 127.0.0.1. Check that it is set in  /etc/hosts`,
         );
       }
     });

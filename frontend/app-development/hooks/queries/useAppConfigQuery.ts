@@ -14,11 +14,11 @@ import { AxiosError } from 'axios';
  */
 export const useAppConfigQuery = (
   org: string,
-  app: string
+  app: string,
 ): UseQueryResult<AppConfig, AxiosError> => {
   const { getAppConfig } = useServicesContext();
 
   return useQuery<AppConfig, AxiosError>([QueryKey.AppConfig, org, app], () =>
-    getAppConfig(org, app)
+    getAppConfig(org, app),
   );
 };
