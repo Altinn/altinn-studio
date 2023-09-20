@@ -6,12 +6,38 @@ import { TrashIcon } from '@navikt/aksel-icons';
 import { Button, Heading, Paragraph, TextField } from '@digdir/design-system-react';
 
 export type DeleteModalProps = {
+  /**
+   * If the modal is open or not
+   */
   isOpen: boolean;
+  /**
+   * Function to execute on close
+   * @returns void
+   */
   onClose: () => void;
+  /**
+   * Function to execute on click delete
+   * @returns void
+   */
   onDelete: () => void;
+  /**
+   * The name of the app to delete changes on
+   */
   appName: string;
 };
 
+/**
+ * @component
+ *    Displays a Warning modal to the user to ensure they really want to
+ *    do an action.
+ *
+ * @property {boolean}[isOpen] - If the modal is open or not
+ * @property {function}[onClose] - Function to execute on close
+ * @property {function}[onDelete] - Function to execute on click delete
+ * @property {string}[appName] - The name of the app to delete changes on
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const DeleteModal = ({
   isOpen,
   onClose,
