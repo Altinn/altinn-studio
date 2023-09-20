@@ -19,8 +19,6 @@ const mockPolicy: Policy = {
   requiredAuthenticationLevelOrg: '3',
 };
 
-const user = userEvent.setup();
-
 jest.mock('../../../../../../hooks/mutations/useAppPolicyMutation');
 const updateAppPolicyMutation = jest.fn();
 const mockUpdateAppPolicyMutation = useAppPolicyMutation as jest.MockedFunction<
@@ -31,6 +29,7 @@ mockUpdateAppPolicyMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, unknown, Policy, unknown>);
 
 describe('PolicyTab', () => {
+  const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
   const defaultProps: PolicyTabProps = {

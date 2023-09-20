@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -10,6 +10,8 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import { Repository } from 'app-shared/types/Repository';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
+import { InputField } from '../../InputField';
+import { useAppConfigMutation } from 'app-development/hooks/mutations';
 
 export type AboutTabProps = {
   /**
@@ -49,12 +51,47 @@ export const AboutTab = ({
 
   const repositoryType = getRepositoryType(org, app);
 
+  const [appConfigState, setAppConfigState] = useState<AppConfig>({
+    ...appConfig,
+    serviceId: appConfig?.serviceId ?? '',
+  });
+
+  const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
+
+  const handleSaveAppConfig = () => {
+    updateAppConfigMutation(appConfigState);
+  };
+
   return (
     <div>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
-      <Paragraph>{JSON.stringify(appConfig)}</Paragraph>
-      <Paragraph>{org}</Paragraph>
-      <Paragraph>{app}</Paragraph>
+      <div className={classes.contentWrapper}>
+        <InputField
+          id='aboutRepoName'
+          label={t('settings_modal.about_tab_repo_label')}
+          description={t('settings_modal.about_tab_repo_description')}
+          value={appConfigState.repositoryName}
+          readOnly
+        />
+        <InputField
+          id='aboutNameField'
+          label={t('settings_modal.about_tab_name_label')}
+          description={t('settings_modal.about_tab_name_description')}
+          value={appConfigState.serviceName}
+          onChange={(serviceName: string) => setAppConfigState((ac) => ({ ...ac, serviceName }))}
+          onBlur={handleSaveAppConfig}
+          isValid={appConfigState.serviceName.length > 0}
+          errorText={t('settings_modal.about_tab_name_error')}
+        />
+        <InputField
+          id='aboutAltIdField'
+          label={t('settings_modal.about_tab_alt_id_label')}
+          description={t('settings_modal.about_tab_alt_id_description')}
+          value={appConfigState.serviceId}
+          onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
+          onBlur={handleSaveAppConfig}
+        />
+      </div>
       <Divider marginless />
       <div className={classes.contentWrapper}>
         <Label as='p' spacing className={classes.label}>
