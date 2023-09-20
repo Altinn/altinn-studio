@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
-    public ResourceRegistryService()
+        public ResourceRegistryService()
         {
 
         }
