@@ -2,7 +2,6 @@
 using Altinn.App.Core.Models;
 using Altinn.Codelists.SSB.Models;
 using System.Globalization;
-using System.Linq;
 
 namespace Altinn.Codelists.SSB;
 
@@ -59,10 +58,10 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         Dictionary<string, string> mergedKeyValuePairs = MergeDictionaries(_defaultKeyValuePairs, keyValuePairs);
 
         string? date = mergedKeyValuePairs.GetValueOrDefault("date");
-        DateOnly dateOnly = date == null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date, DateTimeFormatInfo.InvariantInfo);
+        DateOnly dateOnly = date == null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date, CultureInfo.InvariantCulture);
         string level = mergedKeyValuePairs.GetValueOrDefault("level") ?? string.Empty;
         string variant = mergedKeyValuePairs.GetValueOrDefault("variant") ?? string.Empty;
-        string selectCodes = mergedKeyValuePairs.GetValueOrDefault("selectcodes") ?? string.Empty;
+        string selectCodes = mergedKeyValuePairs.GetValueOrDefault("selectCodes") ?? string.Empty;
 
         var classificationCode = await _classificationsClient.GetClassificationCodes(_classificationId, language, dateOnly, level, variant, selectCodes);
 
