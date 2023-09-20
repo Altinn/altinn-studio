@@ -971,7 +971,7 @@
   "schema_editor.view_mode": "Vis",
   "session.expires": "Du blir snart logget ut",
   "session.inactive": "Du har vært innaktiv for lenge og vil snart bli logget ut. Trykk “fortsett” om du ønsker å jobbe videre med appen.",
-  "settings_modal.about_tab_alt_id_description": "Dersom applikasjonen har en annen ID andre systemer, kan du legge den til her. Eksempel REF-nummer.",
+  "settings_modal.about_tab_alt_id_description": "Dersom applikasjonen har en annen ID i andre systemer, kan du legge den til her. For eksempel et REF-nummer.",
   "settings_modal.about_tab_alt_id_label": "Alternativ ID",
   "settings_modal.about_tab_created_for_repo": "Opprettet for",
   "settings_modal.about_tab_created_for_service": "Denne applikasjonen er opprettet for",

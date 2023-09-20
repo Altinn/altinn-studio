@@ -1,4 +1,4 @@
-.contentWrapperbot {
+.contentWrapper {
   max-width: 500px;
 }
 
@@ -32,4 +32,8 @@
 
 .createdByIcon {
   font-size: 1.5rem;
+}
+
+.avatar {
+  max-height: 2em;
 }

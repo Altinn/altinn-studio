@@ -102,8 +102,7 @@ export const AboutTab = ({
           )}
         </Label>
         <div className={classes.createdFor}>
-          {/*<Buldings3Icon className={classes.createdForIcon} />*/}
-          <img src={repository.owner.avatar_url} style={{ maxHeight: '2em' }} alt='' />
+          <img src={repository.owner.avatar_url} className={classes.avatar} alt='' />
           <Paragraph className={classes.paragraph}>
             {repository.owner.full_name || repository.owner.login}
           </Paragraph>
