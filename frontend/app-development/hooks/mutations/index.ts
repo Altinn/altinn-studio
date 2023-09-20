@@ -1,4 +1,5 @@
 export { useAddLanguageMutation } from './useAddLanguageMutation';
+export { useAppConfigMutation } from './useAppConfigMutation';
 export { useAppPolicyMutation } from './useAppPolicyMutation';
 export { useBpmnMutation } from './useBpmnMutation';
 export { useCreateDatamodelMutation } from './useCreateDatamodelMutation';
