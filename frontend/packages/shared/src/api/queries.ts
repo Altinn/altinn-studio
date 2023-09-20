@@ -60,6 +60,7 @@ import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
+import { Commit } from 'app-shared/types/Commit';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -76,7 +77,7 @@ export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(lay
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getOrgList = () => get<OrgsState>(orgsListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
-export const getRepoInitialCommit = (owner: string, app: string) => get<any>(repoInitialCommitPath(owner, app));
+export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));

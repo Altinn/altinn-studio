@@ -12,6 +12,7 @@ import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { Repository } from 'app-shared/types/Repository';
 
 export type SettingsModalProps = {
   /**
@@ -39,6 +40,8 @@ export type SettingsModalProps = {
    * The config for the application
    */
   appConfig: AppConfig;
+  repository: Repository;
+  createdBy: string;
 };
 
 /**
@@ -61,6 +64,8 @@ export const SettingsModal = ({
   org,
   app,
   appConfig,
+  repository,
+  createdBy,
 }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -105,7 +110,15 @@ export const SettingsModal = ({
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <AboutTab appConfig={appConfig} org={org} app={app} />;
+        return (
+          <AboutTab
+            appConfig={appConfig}
+            org={org}
+            app={app}
+            repository={repository}
+            createdBy={createdBy}
+          />
+        );
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;

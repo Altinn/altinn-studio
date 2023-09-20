@@ -8,6 +8,8 @@ import { Divider } from 'app-shared/primitives';
 import { Buldings3Icon, PersonCircleIcon } from '@navikt/aksel-icons';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
+import { Repository } from 'app-shared/types/Repository';
+import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 
 export type AboutTabProps = {
   /**
@@ -22,6 +24,8 @@ export type AboutTabProps = {
    * The app
    */
   app: string;
+  repository: Repository;
+  createdBy: string;
 };
 
 /**
@@ -34,7 +38,13 @@ export type AboutTabProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
+export const AboutTab = ({
+  appConfig,
+  org,
+  app,
+  repository,
+  createdBy,
+}: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const repositoryType = getRepositoryType(org, app);
@@ -56,16 +66,22 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
         </Label>
         <div className={classes.createdFor}>
           <Buldings3Icon className={classes.createdForIcon} />
-          <Paragraph className={classes.paragraph}>TODO-Created for</Paragraph>
+          <Paragraph className={classes.paragraph}>
+            {repository.owner.full_name || repository.owner.login}
+          </Paragraph>
         </div>
         <Label as='p' spacing className={classes.label}>
           {t('settings_modal.about_tab_created_by')}
         </Label>
         <div className={classes.createdBy}>
           <PersonCircleIcon className={classes.createdByIcon} />
-          <Paragraph className={classes.paragraph}>TODO-Created by</Paragraph>
+          <Paragraph className={classes.paragraph}>{createdBy}</Paragraph>
         </div>
-        <Paragraph>Dato: TODO-date</Paragraph>
+        <Paragraph>
+          {t('settings_modal.about_tab_created_date', {
+            date: formatDateToDateAndTimeString(repository.created_at),
+          })}
+        </Paragraph>
       </div>
     </div>
   );

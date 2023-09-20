@@ -9,12 +9,13 @@
   border-radius: 4px;
   padding-inline: 12px;
   padding-block: 20px;
+  margin-top: 10px;
 }
 
 .createdBy {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-block: 10px;
 }
 
 .label {

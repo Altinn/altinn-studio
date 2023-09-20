@@ -974,6 +974,7 @@
   "settings_modal.about_tab_created_for_repo": "Opprettet for",
   "settings_modal.about_tab_created_for_service": "Denne applikasjonen er opprettet for",
   "settings_modal.about_tab_created_by": "Opprettet av",
+  "settings_modal.about_tab_created_date": "Dato: {{date}}",
   "settings_modal.heading": "Innstillinger",
   "settings_modal.left_nav_tab_about": "Om applikasjonen",
   "settings_modal.left_nav_tab_policy": "Tilgangsstyring",

@@ -30,19 +30,27 @@ export const SettingsModalButton = (): ReactNode => {
     data: appConfigData,
     error: appConfigError,
   } = useAppConfigQuery(org, app);
-
-  const { data: repositoryData } = useRepoMetadataQuery(org, app);
-  console.log('repodata', repositoryData);
-
-  const { data: initialData } = useRepoInitialCommitQuery(org, app);
-  console.log('initialdata', initialData);
+  const {
+    status: repositoryStatus,
+    data: repositoryData,
+    error: repositoryError,
+  } = useRepoMetadataQuery(org, app);
+  const {
+    status: initialCommitStatus,
+    data: initialCommitData,
+    error: initialCommitError,
+  } = useRepoInitialCommitQuery(org, app);
+  console.log('repositoryData', repositoryData);
+  console.log('initialCommitData', initialCommitData);
 
   const [isOpen, setIsOpen] = useState(false);
 
   /**
    * Display spinner, error, or content based on the merged status
    */
-  switch (mergeQueryStatuses(policyStatus, appConfigStatus)) {
+  switch (
+    mergeQueryStatuses(policyStatus, appConfigStatus, repositoryStatus, initialCommitStatus)
+  ) {
     case 'loading': {
       return (
         <div>
@@ -62,6 +70,8 @@ export const SettingsModalButton = (): ReactNode => {
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
             {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
             {appConfigError && <ErrorMessage>{appConfigError.message}</ErrorMessage>}
+            {repositoryError && <ErrorMessage>{repositoryError.message}</ErrorMessage>}
+            {initialCommitError && <ErrorMessage>{initialCommitError.message}</ErrorMessage>}
           </Alert>
         </Center>
       );
@@ -80,6 +90,8 @@ export const SettingsModalButton = (): ReactNode => {
             org={org}
             app={app}
             appConfig={appConfigData}
+            repository={repositoryData}
+            createdBy={initialCommitData.author.name}
           />
         </div>
       );
