@@ -31,7 +31,7 @@ export const LikertComponent = (props: PropsFromGenericComponent<'Likert'>) => {
 };
 
 const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
-  const { node, componentValidations, legend, isValid } = props;
+  const { node, componentValidations, legend } = props;
   const { selected, handleChange, calculatedOptions, handleBlur, fetchingOptions } = useRadioButtons(props);
   const { lang, langAsString } = useLanguage();
 
@@ -78,8 +78,7 @@ const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
                 label={`${getPlainTextFromNode(lang(texts?.title))} ${langAsString(option.label)}`}
                 hideLabel={true}
                 name={rowLabelId}
-                radioId={inputId}
-                error={!isValid}
+                id={inputId}
               />
             </div>
           </TableCell>

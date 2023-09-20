@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { LayoutStyle } from 'src/layout/common.generated';
 import { RadioButtonContainerComponent } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { IOptionsState } from 'src/features/options';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const threeOptions = [
@@ -23,8 +21,6 @@ const threeOptions = [
     value: 'denmark',
   },
 ];
-
-const twoOptions = threeOptions.slice(1);
 
 const render = ({
   component,
@@ -76,16 +72,6 @@ const getRadio = ({ name, isChecked = false }) =>
   });
 
 describe('RadioButtonsContainerComponent', () => {
-  jest.useFakeTimers();
-
-  const user = userEvent.setup({
-    advanceTimers: (time) => {
-      act(() => {
-        jest.advanceTimersByTime(time);
-      });
-    },
-  });
-
   it('should call handleDataChange with value of preselectedOptionIndex when simpleBinding is not set', () => {
     const handleChange = jest.fn();
     render({
@@ -150,11 +136,10 @@ describe('RadioButtonsContainerComponent', () => {
     expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
 
-    await act(() => user.click(getRadio({ name: 'Denmark' })));
+    await userEvent.click(getRadio({ name: 'Denmark' }));
 
     expect(handleChange).not.toHaveBeenCalled();
-    jest.runOnlyPendingTimers();
-    expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true });
+    await waitFor(() => expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true }));
   });
 
   it('should call handleDataChange instantly on blur when the value has changed', async () => {
@@ -172,11 +157,11 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(denmark).toBeInTheDocument();
 
-    await act(() => user.click(denmark));
+    await userEvent.click(denmark);
 
     expect(handleChange).not.toHaveBeenCalled();
 
-    fireEvent.blur(denmark);
+    await userEvent.tab();
 
     expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true });
   });
@@ -220,68 +205,6 @@ describe('RadioButtonsContainerComponent', () => {
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
   });
 
-  it('should show items in a row when layout is "row" and options count is 3', () => {
-    render({
-      component: {
-        optionsId: 'countries',
-        layout: LayoutStyle.Row,
-      },
-    });
-
-    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: row;');
-  });
-
-  it('should show items in a row when layout is not defined, and options count is 2', () => {
-    render({
-      component: {
-        optionsId: 'countries',
-      },
-      manipulateState: (state) => {
-        state.optionState = {
-          options: {
-            countries: {
-              id: 'countries',
-              options: twoOptions,
-            },
-          },
-        } as unknown as IOptionsState;
-      },
-    });
-
-    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: row;');
-  });
-
-  it('should show items in a column when layout is "column" and options count is 2 ', () => {
-    render({
-      component: {
-        optionsId: 'countries',
-        layout: LayoutStyle.Column,
-      },
-      manipulateState: (state) => {
-        state.optionState = {
-          options: {
-            countries: {
-              id: 'countries',
-              options: twoOptions,
-            },
-          },
-        } as unknown as IOptionsState;
-      },
-    });
-
-    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: column;');
-  });
-
-  it('should show items in a columns when layout is not defined, and options count is 3', () => {
-    render({
-      component: {
-        optionsId: 'countries',
-      },
-    });
-
-    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: column;');
-  });
-
   it('should present replaced label, description and help text if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
 
@@ -300,24 +223,27 @@ describe('RadioButtonsContainerComponent', () => {
       },
     });
 
-    expect(getRadio({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
-    expect(getRadio({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+    expect(getRadio({ name: /The value from the group is: Label for first/ })).toBeInTheDocument();
+    expect(getRadio({ name: /The value from the group is: Label for second/ })).toBeInTheDocument();
     expect(screen.getByText('Description: The value from the group is: Label for first')).toBeInTheDocument();
     expect(screen.getByText('Description: The value from the group is: Label for second')).toBeInTheDocument();
 
-    await act(() =>
-      user.click(screen.getByRole('button', { name: 'Help text for The value from the group is: Label for first' })),
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for first' }),
     );
-    expect(screen.getByText('Help Text: The value from the group is: Label for first')).toBeInTheDocument();
-    await act(() =>
-      user.click(screen.getByRole('button', { name: 'Help text for The value from the group is: Label for second' })),
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Help Text: The value from the group is: Label for first',
     );
-    expect(screen.getByText('Help Text: The value from the group is: Label for second')).toBeInTheDocument();
 
-    await act(() => user.click(getRadio({ name: 'The value from the group is: Label for first' })));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for second' }),
+    );
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Help Text: The value from the group is: Label for second',
+    );
 
+    await userEvent.click(getRadio({ name: /The value from the group is: Label for first/ }));
     expect(handleDataChange).not.toHaveBeenCalled();
-    jest.runOnlyPendingTimers();
-    expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true });
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true }));
   });
 });

@@ -1,17 +1,13 @@
 import React from 'react';
 
-import { LegacyFieldSet } from '@digdir/design-system-react';
-import cn from 'classnames';
-import type { LegacyRadioButton } from '@digdir/design-system-react';
-
-import classes from 'src/components/form/RadioGroup.module.css';
+import { HelpText, Radio } from '@digdir/design-system-react';
 
 export interface IRadioGroupProps {
   legend: React.ReactNode;
   description?: React.ReactNode;
-  helpText?: React.ReactNode;
+  helpText?: string;
   error?: React.ReactNode;
-  children: React.ReactElement<typeof LegacyRadioButton> | React.ReactElement<typeof LegacyRadioButton>[];
+  children: React.ReactElement<typeof Radio> | React.ReactElement<typeof Radio>[];
   shouldDisplayHorizontally?: boolean;
   disabled?: boolean;
 }
@@ -25,20 +21,19 @@ export const RadioGroup = ({
   shouldDisplayHorizontally,
   disabled = false,
 }: IRadioGroupProps) => (
-  <LegacyFieldSet
-    legend={legend}
+  <Radio.Group
+    legend={
+      <>
+        {legend}
+        {helpText ? <HelpText title={helpText}>{helpText}</HelpText> : null}
+      </>
+    }
     description={description}
-    helpText={helpText}
     error={error}
     disabled={disabled}
+    inline={shouldDisplayHorizontally}
+    role='radiogroup'
   >
-    <div
-      role='radiogroup'
-      className={cn(classes.radioGroup)}
-      // Implemented with inline styles to be able to test with toHaveStyle
-      style={{ flexDirection: shouldDisplayHorizontally ? 'row' : 'column' }}
-    >
-      {children}
-    </div>
-  </LegacyFieldSet>
+    {children}
+  </Radio.Group>
 );

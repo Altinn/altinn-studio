@@ -1,25 +1,21 @@
-.cardLabel {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  cursor: pointer;
-  z-index: -1;
-}
-
-.card label:focus-within {
-  box-shadow: none;
-  outline: none;
+.radioLabelContainer {
+  display: flex;
+  gap: var(--fds-spacing-1);
+  align-items: center;
 }
 
 .card {
   border-radius: 6px;
   background-color: var(--fds-semantic-background-subtle);
-  padding: var(--fds-spacing-3);
-  position: relative;
-  display: flex;
-  z-index: 0;
+  width: 100%;
+  padding-top: var(--fds-spacing-2);
+  padding-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-3);
+  cursor: pointer;
+}
+
+.card label {
+  width: 100%;
 }
 
 .card:hover {
@@ -35,7 +31,7 @@
   box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-primary-active);
 }
 
-.card:focus-within {
+.card:has(:focus-visible) {
   --fds-focus-border-width: 3px;
   background: var(--fds-semantic-surface-neutral-selected);
 

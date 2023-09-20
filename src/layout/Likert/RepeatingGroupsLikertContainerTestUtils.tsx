@@ -270,19 +270,14 @@ export const validateRadioLayout = (questions: IQuestion[], options: IOption[], 
   if (mobileView) {
     expect(screen.getAllByRole('radiogroup')).toHaveLength(questions.length);
   } else {
+    // Header and questions
     expect(screen.getAllByRole('row')).toHaveLength(questions.length + 1);
   }
 
   for (const question of questions) {
-    const row = mobileView
-      ? within(
-          screen.getByRole('group', {
-            name: question.Question,
-          }),
-        ).getByRole('radiogroup')
-      : screen.getByRole('row', {
-          name: question.Question,
-        });
+    const row = screen.getByRole(mobileView ? 'radiogroup' : 'row', {
+      name: question.Question,
+    });
 
     for (const option of options) {
       // Ideally we should use `getByRole` selector here, but the tests that use this function

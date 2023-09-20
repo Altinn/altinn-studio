@@ -57,7 +57,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
           <RadioGroup
             legend={overrideDisplay?.renderLegend === false ? null : labelText}
             description={textResourceBindings?.description && lang(textResourceBindings.description)}
-            helpText={textResourceBindings?.help && lang(textResourceBindings.help)}
+            helpText={textResourceBindings?.help && langAsString(textResourceBindings.help)}
             error={!isValid}
             disabled={readOnly}
             shouldDisplayHorizontally={shouldUseRowLayout({
@@ -70,12 +70,11 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
                 {...option}
                 label={langAsString(option.label)}
                 description={lang(option.description)}
-                helpText={lang(option.helpText)}
+                helpText={langAsString(option.helpText)}
                 name={id}
                 key={option.value}
                 checked={option.value === selected}
                 showAsCard={showAsCard}
-                error={!isValid}
                 disabled={readOnly}
                 onChange={handleChange}
                 hideLabel={hideLabel}
