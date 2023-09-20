@@ -7,7 +7,7 @@ import { Alert, Button, ErrorMessage, Paragraph, Spinner } from '@digdir/design-
 import { SettingsModal } from './SettingsModal';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { Center } from 'app-shared/components/Center';
-import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { useRepoInitialCommitQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 /**
  * @component
@@ -32,7 +32,11 @@ export const SettingsModalButton = (): ReactNode => {
   } = useAppConfigQuery(org, app);
 
   const { data: repositoryData } = useRepoMetadataQuery(org, app);
-  console.log(repositoryData);
+  console.log('repodata', repositoryData);
+
+  const { data: initialData } = useRepoInitialCommitQuery(org, app);
+  console.log('initialdata', initialData);
+
   const [isOpen, setIsOpen] = useState(false);
 
   /**

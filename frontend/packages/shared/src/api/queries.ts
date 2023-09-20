@@ -17,6 +17,7 @@ import {
   orgsListPath,
   processEditorPath,
   releasesPath,
+  repoInitialCommitPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
@@ -75,6 +76,7 @@ export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(lay
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getOrgList = () => get<OrgsState>(orgsListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
+export const getRepoInitialCommit = (owner: string, app: string) => get<any>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
