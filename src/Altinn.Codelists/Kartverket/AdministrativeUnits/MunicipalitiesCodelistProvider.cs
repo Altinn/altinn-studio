@@ -33,7 +33,8 @@ public class MunicipalitiesCodelistProvider : IAppOptionsProvider
 
         var appOptions = new AppOptions()
         {
-            Options = municipalities.Select(x => new AppOption() { Value = x.Number, Label = x.Name }).ToList()
+            Options = municipalities.Select(x => new AppOption() { Value = x.Number, Label = x.Name }).ToList(),
+            Parameters = hasCountyParam && countyNumber != null ? new Dictionary<string, string>() { { "fnr", countyNumber } } : new Dictionary<string, string>()
         };
 
         return appOptions;
