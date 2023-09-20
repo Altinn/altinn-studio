@@ -1,0 +1,11 @@
+.contentWrapper {
+  max-width: 500px;
+}
+
+.textAndButtonWrapper {
+  margin-block: 40px;
+}
+
+.paragraph {
+  margin-bottom: 20px;
+}

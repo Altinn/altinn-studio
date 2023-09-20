@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
-import { CogIcon, InformationSquareIcon, ShieldLockIcon } from '@navikt/aksel-icons';
+import { CogIcon, InformationSquareIcon, MonitorIcon, ShieldLockIcon } from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
@@ -12,6 +12,7 @@ import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 
 export type SettingsModalProps = {
   /**
@@ -71,6 +72,7 @@ export const SettingsModal = ({
    */
   const aboutTabId: SettingsModalTab = 'about';
   const policyTabId: SettingsModalTab = 'policy';
+  const localChangesTabId: SettingsModalTab = 'localChanges';
 
   /**
    * The tabs to display in the navigation bar
@@ -86,6 +88,12 @@ export const SettingsModal = ({
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
+      currentTab
+    ),
+    createNavigationTab(
+      <MonitorIcon className={classes.icon} />,
+      localChangesTabId,
+      () => changeTabTo(localChangesTabId),
       currentTab
     ),
   ];
@@ -109,6 +117,9 @@ export const SettingsModal = ({
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
+      }
+      case 'localChanges': {
+        return <LocalChangesTab />;
       }
     }
   };
