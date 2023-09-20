@@ -40,7 +40,6 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
     serviceId: appConfig?.serviceId ?? '',
   });
 
-  // Mutation function to update app config
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
   const handleSaveAppConfig = () => {
