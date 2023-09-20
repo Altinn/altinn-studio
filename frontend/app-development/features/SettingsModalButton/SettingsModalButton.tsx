@@ -40,8 +40,6 @@ export const SettingsModalButton = (): ReactNode => {
     data: initialCommitData,
     error: initialCommitError,
   } = useRepoInitialCommitQuery(org, app);
-  console.log('repositoryData', repositoryData);
-  console.log('initialCommitData', initialCommitData);
 
   const [isOpen, setIsOpen] = useState(false);
 

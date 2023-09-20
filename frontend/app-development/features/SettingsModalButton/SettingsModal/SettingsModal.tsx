@@ -40,7 +40,13 @@ export type SettingsModalProps = {
    * The config for the application
    */
   appConfig: AppConfig;
+  /**
+   * The repository of the app
+   */
   repository: Repository;
+  /**
+   * The name of the user that created the app
+   */
   createdBy: string;
 };
 
@@ -54,6 +60,8 @@ export type SettingsModalProps = {
  * @property {string}[org] - The org
  * @property {string}[app] - The app
  * @property {AppConfig}[appConfig] - The serice name
+ * @property {Repository}[repository] - The repository of the app
+ * @property {strign}[createdBy] - The name of the user that created the app
  *
  * @returns {ReactNode} - The rendered component
  */

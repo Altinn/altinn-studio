@@ -26,7 +26,13 @@ export type AboutTabProps = {
    * The app
    */
   app: string;
+  /**
+   * The repository of the app
+   */
   repository: Repository;
+  /**
+   * The name of the user that created the app
+   */
   createdBy: string;
 };
 
@@ -37,6 +43,8 @@ export type AboutTabProps = {
  * @property {AppConfig}[appConfig] - The app config to show
  * @property {string}[org] - The org
  * @property {string}[app] - The app
+ * @property {Repository}[repository] - The repository of the app
+ * @property {strign}[createdBy] - The name of the user that created the app
  *
  * @returns {ReactNode} - The rendered component
  */
