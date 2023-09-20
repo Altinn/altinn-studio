@@ -1,0 +1,36 @@
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--modal-content-max-height));
+  min-width: 300px;
+  width: 400px;
+  padding-inline: 20px;
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+
+.modalIcon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  padding-block: 10px;
+  padding-inline: 20px;
+}
+
+.paragraph {
+  margin-bottom: 20px;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 20px;
+}
+
+.cancelButton {
+  margin-left: 10px;
+}
