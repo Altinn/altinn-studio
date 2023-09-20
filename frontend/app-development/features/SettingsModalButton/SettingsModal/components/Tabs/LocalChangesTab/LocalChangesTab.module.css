@@ -2,10 +2,7 @@
   max-width: 500px;
 }
 
-.textAndButtonWrapper {
-  margin-block: 40px;
-}
-
-.paragraph {
-  margin-bottom: 20px;
+.modalIcon {
+  margin-right: 10px;
+  font-size: 1.5rem;
 }

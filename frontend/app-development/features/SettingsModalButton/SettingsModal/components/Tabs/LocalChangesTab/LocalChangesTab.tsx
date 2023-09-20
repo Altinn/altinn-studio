@@ -1,11 +1,15 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './LocalChangesTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { Button, Label, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
+import { LocalChangesActionButton } from './LocalChangesActionButton';
+import { DeleteModal } from './DeleteModal';
 
-export type LocalChangesTabProps = {};
+export type LocalChangesTabProps = {
+  app: string;
+};
 
 /**
  * @component
@@ -13,8 +17,10 @@ export type LocalChangesTabProps = {};
  *
  * @returns {ReactNode} - The rendered component
  */
-export const LocalChangesTab = ({}: LocalChangesTabProps): ReactNode => {
+export const LocalChangesTab = ({ app }: LocalChangesTabProps): ReactNode => {
   const { t } = useTranslation();
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const handleDownload = () => {};
   const handleDelete = () => {};
@@ -23,41 +29,36 @@ export const LocalChangesTab = ({}: LocalChangesTabProps): ReactNode => {
     <div>
       <TabHeader text={t('settings_modal.local_changes_tab_heading')} />
       <div className={classes.contentWrapper}>
-        <Paragraph>{t('settings_modal.local_changes_tab_info_text')}</Paragraph>
-        <div className={classes.textAndButtonWrapper}>
-          <Label as='p' spacing>
-            {t('settings_modal.local_changes_tab_download_label')}
-          </Label>
-          <Paragraph className={classes.paragraph}>
-            {t('settings_modal.local_changes_tab_download_description')}
-          </Paragraph>
-          <Button
-            variant='outline'
-            onClick={handleDownload}
-            icon={<DownloadIcon />}
-            iconPlacement='right'
-          >
-            {t('settings_modal.local_changes_tab_download_button')}
-          </Button>
-        </div>
-        <div className={classes.textAndButtonWrapper}>
-          <Label as='p' spacing>
-            {t('settings_modal.local_changes_tab_delete_label')}
-          </Label>
-          <Paragraph className={classes.paragraph}>
-            {t('settings_modal.local_changes_tab_delete_description')}
-          </Paragraph>
-          <Button
-            color='danger'
-            variant='outline'
-            onClick={handleDelete}
-            icon={<TrashIcon />}
-            iconPlacement='right'
-          >
-            {t('settings_modal.local_changes_tab_delete_button')}
-          </Button>
-        </div>
+        <Paragraph size='small'>{t('settings_modal.local_changes_tab_info_text')}</Paragraph>
+        <LocalChangesActionButton
+          label={t('settings_modal.local_changes_tab_download_label')}
+          description={t('settings_modal.local_changes_tab_download_description')}
+          onClick={handleDownload}
+          icon={<DownloadIcon />}
+          text={t('settings_modal.local_changes_tab_download_only_changed_button')}
+        />
+        <LocalChangesActionButton
+          label={t('settings_modal.local_changes_tab_download_label2')}
+          description={t('settings_modal.local_changes_tab_download_description2')}
+          onClick={handleDownload}
+          icon={<DownloadIcon />}
+          text={t('settings_modal.local_changes_tab_download_all_button')}
+        />
+        <LocalChangesActionButton
+          label={t('settings_modal.local_changes_tab_delete_label')}
+          description={t('settings_modal.local_changes_tab_delete_description')}
+          onClick={() => setDeleteModalOpen(true)}
+          color='danger'
+          icon={<TrashIcon />}
+          text={t('settings_modal.local_changes_tab_delete_button')}
+        />
       </div>
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onDelete={handleDelete}
+        appName={app}
+      />
     </div>
   );
 };
