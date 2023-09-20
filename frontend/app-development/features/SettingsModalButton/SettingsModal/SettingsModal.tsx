@@ -119,7 +119,7 @@ export const SettingsModal = ({
         return <PolicyTab policy={policy} org={org} app={app} />;
       }
       case 'localChanges': {
-        return <LocalChangesTab appName={'123'} />;
+        return <LocalChangesTab org={org} app={app} />;
       }
     }
   };

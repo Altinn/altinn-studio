@@ -27,6 +27,11 @@ export const DeleteModal = ({
     onClose();
   };
 
+  const handleDelete = () => {
+    setNameToDelete('');
+    onDelete();
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -53,7 +58,7 @@ export const DeleteModal = ({
           <Button
             variant='outline'
             color='danger'
-            onClick={onDelete}
+            onClick={handleDelete}
             disabled={appName !== nameToDelete}
             size='small'
           >

@@ -6,9 +6,18 @@ import { Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
 import { DeleteModal } from './DeleteModal';
+import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
+import { toast } from 'react-toastify';
 
 export type LocalChangesTabProps = {
-  appName: string;
+  /**
+   * The org
+   */
+  org: string;
+  /**
+   * The app
+   */
+  app: string;
 };
 
 /**
@@ -17,13 +26,24 @@ export type LocalChangesTabProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const LocalChangesTab = ({ appName }: LocalChangesTabProps): ReactNode => {
+export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode => {
   const { t } = useTranslation();
+
+  const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  const handleDownload = () => {};
-  const handleDelete = () => {};
+  const handleDownloadOnlyChangedFiles = () => {};
+  const handleDownloadAllFiles = () => {};
+
+  const handleDelete = () => {
+    deleteLocalChanges(undefined, {
+      onSuccess: () => {
+        setDeleteModalOpen(false);
+        toast.success(t('settings_modal.local_changes_tab_deleted_success'));
+      },
+    });
+  };
 
   return (
     <div>
@@ -31,16 +51,16 @@ export const LocalChangesTab = ({ appName }: LocalChangesTabProps): ReactNode =>
       <div className={classes.contentWrapper}>
         <Paragraph size='small'>{t('settings_modal.local_changes_tab_info_text')}</Paragraph>
         <LocalChangesActionButton
-          label={t('settings_modal.local_changes_tab_download_label')}
-          description={t('settings_modal.local_changes_tab_download_description')}
-          onClick={handleDownload}
+          label={t('settings_modal.local_changes_tab_download_your_files_label')}
+          description={t('settings_modal.local_changes_tab_download_your_files_description')}
+          onClick={handleDownloadOnlyChangedFiles}
           icon={<DownloadIcon />}
           text={t('settings_modal.local_changes_tab_download_only_changed_button')}
         />
         <LocalChangesActionButton
-          label={t('settings_modal.local_changes_tab_download_label2')}
-          description={t('settings_modal.local_changes_tab_download_description2')}
-          onClick={handleDownload}
+          label={t('settings_modal.local_changes_tab_download_all_files_label')}
+          description={t('settings_modal.local_changes_tab_download_all_files_description')}
+          onClick={handleDownloadAllFiles}
           icon={<DownloadIcon />}
           text={t('settings_modal.local_changes_tab_download_all_button')}
         />
@@ -57,7 +77,7 @@ export const LocalChangesTab = ({ appName }: LocalChangesTabProps): ReactNode =>
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onDelete={handleDelete}
-        appName={appName}
+        appName={app}
       />
     </div>
   );
