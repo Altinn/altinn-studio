@@ -109,7 +109,7 @@ export const getValidatePolicy = (org: string, repo: string, id: string) => get<
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 
 // ProcessEditor
-export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));
+export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));
 export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
   put(processEditorPath(org, app), bpmnXml, {
     headers: {
