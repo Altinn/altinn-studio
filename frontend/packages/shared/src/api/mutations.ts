@@ -27,6 +27,7 @@ import {
   createDatamodelPath,
   appPolicyPath,
   appMetadataPath,
+  serviceConfigPath,
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
@@ -45,6 +46,7 @@ import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayl
 import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, Resource } from 'app-shared/types/ResourceAdm';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { AppConfig } from 'app-shared/types/AppConfig';
 
 const headers = {
   Accept: 'application/json',
@@ -84,6 +86,7 @@ export const updateTranslationByLangCode = (org: string, app: string, language, 
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
+export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 
 // Resourceadm
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
