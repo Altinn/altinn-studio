@@ -7,6 +7,7 @@ import { Alert, Button, ErrorMessage, Paragraph, Spinner } from '@digdir/design-
 import { SettingsModal } from './SettingsModal';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { Center } from 'app-shared/components/Center';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 /**
  * @component
@@ -30,6 +31,8 @@ export const SettingsModalButton = (): ReactNode => {
     error: appConfigError,
   } = useAppConfigQuery(org, app);
 
+  const { data: repositoryData } = useRepoMetadataQuery(org, app);
+  console.log(repositoryData);
   const [isOpen, setIsOpen] = useState(false);
 
   /**

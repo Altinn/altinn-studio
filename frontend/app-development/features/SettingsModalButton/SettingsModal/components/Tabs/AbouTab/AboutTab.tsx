@@ -6,6 +6,8 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { Buldings3Icon, PersonCircleIcon } from '@navikt/aksel-icons';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { RepositoryType } from 'app-shared/types/global';
 
 export type AboutTabProps = {
   /**
@@ -35,6 +37,8 @@ export type AboutTabProps = {
 export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
 
+  const repositoryType = getRepositoryType(org, app);
+
   return (
     <div>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
@@ -44,7 +48,11 @@ export const AboutTab = ({ appConfig, org, app }: AboutTabProps): ReactNode => {
       <Divider marginless />
       <div className={classes.contentWrapper}>
         <Label as='p' spacing className={classes.label}>
-          {t('settings_modal.about_tab_created_for')}
+          {t(
+            repositoryType === RepositoryType.Datamodels
+              ? 'settings_modal.about_tab_created_for_repo'
+              : 'settings_modal.about_tab_created_for_service'
+          )}
         </Label>
         <div className={classes.createdFor}>
           <Buldings3Icon className={classes.createdForIcon} />
