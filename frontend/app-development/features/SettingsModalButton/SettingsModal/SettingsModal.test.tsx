@@ -5,10 +5,11 @@ import { SettingsModal, SettingsModalProps } from './SettingsModal';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { Policy } from '@altinn/policy-editor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { useAppConfigMutation } from 'app-development/hooks/mutations';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -25,6 +26,15 @@ const mockAppConfig: AppConfig = {
   serviceId: '',
   serviceDescription: '',
 };
+
+jest.mock('../../../hooks/mutations/useAppConfigMutation');
+const updateAppConfigMutation = jest.fn();
+const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
+  typeof useAppConfigMutation
+>;
+mockUpdateAppConfigMutation.mockReturnValue({
+  mutate: updateAppConfigMutation,
+} as unknown as UseMutationResult<void, unknown, AppConfig, unknown>);
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
