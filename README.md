@@ -48,7 +48,7 @@ The fastest way to get things running from scratch is to use our setup-script. T
 ensure that the setup is up to date. As we add more features this script will be updated. It can be run as follows:
 
 ```bash
-yarn setup
+yarn && yarn setup
 ```
 
 More about that script and development in general, [can be found here](development/README.md).
