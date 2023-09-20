@@ -25,6 +25,9 @@ export type LocalChangesTabProps = {
  * @component
  *    Displays the tab rendering the local changes for an app
  *
+ * @property {string}[org] - The org
+ * @property {string}[app] - The app
+ *
  * @returns {ReactNode} - The rendered component
  */
 export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode => {

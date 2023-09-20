@@ -13,9 +13,6 @@ import { repoDownloadPath } from 'app-shared/api/paths';
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
-/**
- * TODO
- */
 jest.mock('../../../../../../hooks/mutations/useResetRepositoryMutation');
 const deleteLocalChangesMutation = jest.fn();
 const mockDeleteLocalChangesyMutation = useResetRepositoryMutation as jest.MockedFunction<
