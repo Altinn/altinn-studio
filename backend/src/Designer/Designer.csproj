@@ -43,6 +43,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Yuniql.AspNetCore" />
     <PackageReference Include="Yuniql.PostgreSql" />
@@ -127,6 +128,7 @@
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
   </ItemGroup>
+
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />

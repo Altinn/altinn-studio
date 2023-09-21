@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -511,26 +512,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<Branch> CreateBranch(string org, string repository, string branchName)
         {
-            HttpResponseMessage response = await PostBranch(org, repository, branchName);
-
-            if (response.StatusCode == HttpStatusCode.Created)
-            {
-                var branch = await response.Content.ReadAsAsync<Branch>();
-                return branch;
-            }
-
             // In quite a few cases we have experienced that we get a 404 back
             // when doing a POST to this endpoint, hence we do a simple retry
             // with a specified wait time.
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                HttpResponseMessage retryResponse = await PostBranch(org, repository, branchName, 250);
-                Branch branch = await retryResponse.Content.ReadAsAsync<Branch>();
-                return branch;
-            }
+            var retryPolicy = Policy.HandleResult<HttpResponseMessage>(response => response.StatusCode != HttpStatusCode.Created)
+                .FallbackAsync(ct =>
+                {
+                    _logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
+                    throw new GiteaApiWrapperException($"Failed to create branch {branchName} in Gitea after 4 retries.");
+                })
+                .WrapAsync(
+                    Policy.HandleResult<HttpResponseMessage>(httpResponse => httpResponse.StatusCode == HttpStatusCode.NotFound)
+                        .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromMilliseconds(500 * retryAttempt))
+                );
 
-            _logger.LogError($"//GiteaAPIWrapper // CreateBranch // Error ({response.StatusCode}) occured when creating branch {branchName} for repo {org}/{repository}");
-            return null;
+
+            HttpResponseMessage response = await retryPolicy.ExecuteAsync(() => PostBranch(org, repository, branchName));
+
+            return await response.Content.ReadAsAsync<Branch>();
         }
 
         private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName, int waitMsBeforeCall = 0)
