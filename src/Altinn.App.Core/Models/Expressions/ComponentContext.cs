@@ -12,10 +12,11 @@ public sealed class ComponentContext
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
-    public ComponentContext(BaseComponent component, int[]? RowIndicies, IEnumerable<ComponentContext>? childContexts = null)
+    public ComponentContext(BaseComponent component, int[]? rowIndices, int? rowLength, IEnumerable<ComponentContext>? childContexts = null)
     {
         Component = component;
-        RowIndices = RowIndicies;
+        RowIndices = rowIndices;
+        RowLength = rowLength;
         ChildContexts = childContexts ?? Enumerable.Empty<ComponentContext>();
         foreach (var child in ChildContexts)
         {
@@ -34,6 +35,21 @@ public sealed class ComponentContext
     public int[]? RowIndices { get; }
 
     /// <summary>
+    /// The number of rows in case the component is a repeating group
+    /// </summary>
+    public int? RowLength { get; }
+
+    /// <summary>
+    /// Whether or not the component is hidden
+    /// </summary>
+    public bool? IsHidden { get; set; }
+
+    /// <summary>
+    /// Hidden rows for repeating group
+    /// </summary>
+    public int[]? HiddenRows { get; set; }
+
+    /// <summary>
     /// Contexts that logically belongs under this context (eg cell => row => group=> page)
     /// </summary>
     public IEnumerable<ComponentContext> ChildContexts { get; }
@@ -48,7 +64,7 @@ public sealed class ComponentContext
     /// </summary>
     public IEnumerable<ComponentContext> Decendants
     {
-        get 
+        get
         {
             var stack = new Stack<ComponentContext>(ChildContexts);
             while (stack.Any())

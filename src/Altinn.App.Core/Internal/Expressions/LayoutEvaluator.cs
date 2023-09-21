@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Internal.Expressions;
@@ -18,7 +19,7 @@ public static class LayoutEvaluator
 
         foreach (var context in state.GetComponentContexts())
         {
-            HiddenFieldsForRemovalReucrs(state, hiddenModelBindings, nonHiddenModelBindings, context, parentHidden: false);
+            HiddenFieldsForRemovalRecurs(state, hiddenModelBindings, nonHiddenModelBindings, context);
         }
 
         var forRemoval = hiddenModelBindings.Except(nonHiddenModelBindings);
@@ -26,15 +27,45 @@ public static class LayoutEvaluator
         return existsForRemoval.ToList();
     }
 
-    private static void HiddenFieldsForRemovalReucrs(LayoutEvaluatorState state, HashSet<string> hiddenModelBindings, HashSet<string> nonHiddenModelBindings, ComponentContext context, bool parentHidden)
+    private static void HiddenFieldsForRemovalRecurs(LayoutEvaluatorState state, HashSet<string> hiddenModelBindings, HashSet<string> nonHiddenModelBindings, ComponentContext context)
     {
-        var hidden = parentHidden || ExpressionEvaluator.EvaluateBooleanExpression(state, context, "hidden", false);
 
+        // Recurse children
         foreach (var childContext in context.ChildContexts)
         {
-            HiddenFieldsForRemovalReucrs(state, hiddenModelBindings, nonHiddenModelBindings, childContext, hidden);
+            // Check if row is already hidden
+            if (context.HiddenRows is not null)
+            {
+                var currentRow = childContext.RowIndices?.Last();
+                var rowIsHidden = currentRow is not null && context.HiddenRows.Contains(currentRow.Value);
+                if (rowIsHidden)
+                {
+                    continue;
+                }
+            }
+
+            HiddenFieldsForRemovalRecurs(state, hiddenModelBindings, nonHiddenModelBindings, childContext);
         }
 
+        // Remove data for hidden rows
+        if (context.Component is RepeatingGroupComponent repGroup && context.RowLength is not null && context.HiddenRows is not null)
+        {
+            foreach (var index in Enumerable.Range(0, context.RowLength.Value).Reverse())
+            {
+                var rowIndices = context.RowIndices?.Append(index).ToArray() ?? new[] { index };
+                var indexedBinding = state.AddInidicies(repGroup.DataModelBindings["group"], rowIndices);
+                if (context.HiddenRows.Contains(index))
+                {
+                    hiddenModelBindings.Add(indexedBinding);
+                }
+                else
+                {
+                    nonHiddenModelBindings.Add(indexedBinding);
+                }
+            }
+        }
+
+        // Remove data if hidden
         foreach (var (bindingName, binding) in context.Component.DataModelBindings)
         {
             if (bindingName == "group")
@@ -44,7 +75,7 @@ public static class LayoutEvaluator
 
             var indexed_binding = state.AddInidicies(binding, context);
 
-            if (hidden)
+            if (context.IsHidden == true)
             {
                 hiddenModelBindings.Add(indexed_binding);
             }
@@ -58,12 +89,12 @@ public static class LayoutEvaluator
     /// <summary>
     /// Remove fields that are only refrenced from hidden fields from the data object in the state.
     /// </summary>
-    public static void RemoveHiddenData(LayoutEvaluatorState state)
+    public static void RemoveHiddenData(LayoutEvaluatorState state, bool deleteRows = false)
     {
         var fields = GetHiddenFieldsForRemoval(state);
         foreach (var field in fields)
         {
-            state.RemoveDataField(field);
+            state.RemoveDataField(field, deleteRows);
         }
     }
 
@@ -84,8 +115,7 @@ public static class LayoutEvaluator
 
     private static void RunLayoutValidationsForRequiredRecurs(List<ValidationIssue> validationIssues, LayoutEvaluatorState state, string dataElementId, ComponentContext context)
     {
-        var hidden = ExpressionEvaluator.EvaluateBooleanExpression(state, context, "hidden", false);
-        if (!hidden)
+        if (context.IsHidden == false)
         {
             foreach (var childContext in context.ChildContexts)
             {

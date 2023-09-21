@@ -37,8 +37,7 @@ public class DynamicsPdfFormatter : IPdfFormatter
         var state = await _layoutStateInit.Init(instance, data, layoutSetId: layoutSet?.Id);
         foreach (var pageContext in state.GetComponentContexts())
         {
-            var pageHidden = ExpressionEvaluator.EvaluateBooleanExpression(state, pageContext, "hidden", false);
-            if (pageHidden)
+            if (pageContext.IsHidden == true)
             {
                 layoutSettings.Pages.ExcludeFromPdf.Add(pageContext.Component.Id);
             }
@@ -47,8 +46,7 @@ public class DynamicsPdfFormatter : IPdfFormatter
                 //TODO: figure out how pdf reacts to groups one level down.
                 foreach (var componentContext in pageContext.ChildContexts)
                 {
-                    var componentHidden = ExpressionEvaluator.EvaluateBooleanExpression(state, componentContext, "hidden", false);
-                    if (componentHidden)
+                    if (componentContext.IsHidden == true)
                     {
                         layoutSettings.Components.ExcludeFromPdf.Add(componentContext.Component.Id);
                     }

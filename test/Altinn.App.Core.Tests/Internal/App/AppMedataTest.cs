@@ -451,7 +451,8 @@ namespace Altinn.App.Core.Tests.Internal.App
                 Logo = new Logo
                 {
                     Source = "org",
-                    DisplayAppOwnerNameInHeader = true
+                    DisplayAppOwnerNameInHeader = true,
+                    Size = "medium"
                 },
                 Features = enabledFrontendFeatures
             };

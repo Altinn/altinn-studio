@@ -39,7 +39,7 @@ public interface IDataModelAccessor
     /// <summary>
     /// Remove a value from the wrapped datamodel
     /// </summary>
-    void RemoveField(string key);
+    void RemoveField(string key, bool deleteRows = false);
 
     /// <summary>
     /// Verify that a Key is a valid lookup for the datamodel 

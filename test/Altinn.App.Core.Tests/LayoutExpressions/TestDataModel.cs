@@ -246,6 +246,122 @@ public class TestDataModel
     }
 
     [Fact]
+    public void TestRemoveRows()
+    {
+        var model = new Model()
+        {
+            Id = 2,
+            Name = new()
+            {
+                Value = "Per"
+            },
+            Friends = new List<Friend>
+            {
+                new()
+                {
+                    Name = new()
+                    {
+                        Value = "Første venn"
+                    },
+                    Age = 1235,
+                    Friends = new List<Friend>
+                    {
+                        new()
+                        {
+                            Name = new()
+                            {
+                                Value = "Første venn sin første venn",
+                            },
+                            Age = 233
+                        },
+                        new()
+                        {
+                            Name = new()
+                            {
+                                Value = "Første venn sin andre venn",
+                            },
+                            Age = 233
+                        },
+                        new()
+                        {
+                            Name = new()
+                            {
+                                Value = "Første venn sin tredje venn",
+                            },
+                            Age = 233
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = new()
+                    {
+                        Value = "Andre venn"
+                    },
+                    Age = 1235,
+                    Friends = new List<Friend>
+                    {
+                        new()
+                        {
+                            Name = new()
+                            {
+                                Value = "Andre venn sin venn",
+                            },
+                            Age = 233
+                        }
+                    }
+                },
+                new()
+                {
+                    Name = new()
+                    {
+                        Value = "Tredje venn"
+                    },
+                    Age = 1235,
+                    Friends = new List<Friend>
+                    {
+                        new()
+                        {
+                            Name = new()
+                            {
+                                Value = "Tredje venn sin venn",
+                            },
+                            Age = 233
+                        }
+                    }
+                }
+            }
+        };
+        var serializedModel = System.Text.Json.JsonSerializer.Serialize(model);
+
+        // deleteRows = false
+        var model1 = System.Text.Json.JsonSerializer.Deserialize<Model>(serializedModel)!;
+        IDataModelAccessor modelHelper1 = new DataModel(model1);
+
+        modelHelper1.RemoveField("friends[0].friends[0]");
+        model1.Friends![0].Friends![0].Should().BeNull();
+        model1.Friends![0].Friends!.Count.Should().Be(3);
+        model1.Friends[0].Friends![1].Name!.Value.Should().Be("Første venn sin andre venn");
+
+        modelHelper1.RemoveField("friends[1]");
+        model1.Friends[1].Should().BeNull();
+        model1.Friends.Count.Should().Be(3);
+        model1.Friends[2].Name!.Value.Should().Be("Tredje venn");
+
+        // deleteRows = true
+        var model2 = System.Text.Json.JsonSerializer.Deserialize<Model>(serializedModel)!;
+        IDataModelAccessor modelHelper2 = new DataModel(model2);
+
+        modelHelper2.RemoveField("friends[0].friends[0]", true);
+        model2.Friends![0].Friends!.Count.Should().Be(2);
+        model2.Friends[0].Friends![0].Name!.Value.Should().Be("Første venn sin andre venn");
+
+        modelHelper2.RemoveField("friends[1]", true);
+        model2.Friends.Count.Should().Be(2);
+        model2.Friends[1].Name!.Value.Should().Be("Tredje venn");
+    }
+
+    [Fact]
     public void TestErrorCases()
     {
         var modelHelper = new DataModel(
@@ -315,11 +431,9 @@ public class TestDataModel
         // Don't add indicies if they are specified in input
         modelHelper.AddIndicies("friends[3]", new int[] { 0 }).Should().Be("friends[3]");
 
-        // Seccond index is ignored if the first is explicit
-        modelHelper.Invoking(m => m.AddIndicies("friends[0].friends", new int[] { 0, 3 }))
-            .Should()
-            .Throw<DataModelException>()
-            .WithMessage("Missmatch*");
+        // First index is ignored if it is explicit
+        modelHelper.AddIndicies("friends[0].friends", new int[] { 2, 3 }).Should().Be("friends[0].friends[3]");
+
     }
 
     [Fact]
@@ -376,7 +490,7 @@ public class Model
 
     [JsonProperty("friends")]
     [JsonPropertyName("friends")]
-    public IEnumerable<Friend>? Friends { get; set; }
+    public IList<Friend>? Friends { get; set; }
 }
 
 public class Name
@@ -399,5 +513,5 @@ public class Friend
     // Infinite recursion. Simple way for testing
     [JsonProperty("friends")]
     [JsonPropertyName("friends")]
-    public IEnumerable<Friend>? Friends { get; set; }
+    public IList<Friend>? Friends { get; set; }
 }

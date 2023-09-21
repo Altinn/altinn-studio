@@ -274,7 +274,7 @@ public class DefaultTaskEvents : ITaskEvents
                     // Remove hidden data before validation
                     var layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);
                     var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-                    LayoutEvaluator.RemoveHiddenData(evaluationState);
+                    LayoutEvaluator.RemoveHiddenData(evaluationState, true);
                 }
 
                 // save the updated data if there are changes
