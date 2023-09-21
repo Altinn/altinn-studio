@@ -5,6 +5,7 @@ import {
   CogIcon,
   InformationSquareIcon,
   PersonSuitIcon,
+  MonitorIcon,
   ShieldLockIcon,
 } from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
@@ -17,6 +18,7 @@ import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
@@ -84,6 +86,7 @@ export const SettingsModal = ({
    */
   const aboutTabId: SettingsModalTab = 'about';
   const policyTabId: SettingsModalTab = 'policy';
+  const localChangesTabId: SettingsModalTab = 'localChanges';
   const accessControlTabId: SettingsModalTab = 'accessControl';
 
   /**
@@ -94,19 +97,25 @@ export const SettingsModal = ({
       <InformationSquareIcon className={classes.icon} />,
       aboutTabId,
       () => changeTabTo(aboutTabId),
-      currentTab
+      currentTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
-      currentTab
+      currentTab,
     ),
     createNavigationTab(
       <PersonSuitIcon className={classes.icon} />,
       accessControlTabId,
       () => changeTabTo(accessControlTabId),
-      currentTab
+      currentTab,
+    ),
+    createNavigationTab(
+      <MonitorIcon className={classes.icon} />,
+      localChangesTabId,
+      () => changeTabTo(localChangesTabId),
+      currentTab,
     ),
   ];
 
@@ -132,6 +141,9 @@ export const SettingsModal = ({
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
+      }
+      case 'localChanges': {
+        return <LocalChangesTab org={org} app={app} />;
       }
     }
   };

@@ -1,8 +1,7 @@
 .modalContent {
   display: flex;
   max-height: calc(var(--modal-content-max-height));
-  min-width: 60vw;
-  max-width: 80vw;
+  width: 70vw;
 }
 
 .leftNavWrapper {
@@ -19,7 +18,7 @@
 .tabWrapper {
   flex-grow: 1;
   overflow-y: auto;
-  padding-left: 30px;
+  padding-left: 35px;
   padding-right: 100px;
   padding-bottom: 50px;
 }

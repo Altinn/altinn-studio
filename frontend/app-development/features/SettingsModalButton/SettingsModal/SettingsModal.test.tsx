@@ -77,13 +77,16 @@ describe('SettingsModal', () => {
   it('displays left navigation bar on mount', () => {
     render(<SettingsModal {...defaultProps} />);
     expect(
-      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_about') })
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_about') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') })
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_accessControl') })
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_localChanges') }),
+    );
+    expect(
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_accessControl') }),
     ).toBeInTheDocument();
   });
 
@@ -95,13 +98,13 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
         name: textMock('settings_modal.access_control_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
   });
 
@@ -112,7 +115,7 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
@@ -125,10 +128,10 @@ describe('SettingsModal', () => {
       screen.getByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading'))
+      screen.queryByText(textMock('settings_modal.about_tab_heading')),
     ).not.toBeInTheDocument();
   });
 
@@ -149,9 +152,35 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.policy_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+  });
+
+  it('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
+    renderWithQueryClient({}, createQueryClientMock(), defaultProps);
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('settings_modal.local_changes_tab_heading'),
+        level: 2,
+      }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+
+    const localChangesTab = screen.getByRole('button', {
+      name: textMock('settings_modal.left_nav_tab_localChanges'),
+    });
+    await act(() => user.click(localChangesTab));
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('settings_modal.local_changes_tab_heading'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('settings_modal.about_tab_heading')),
+    ).not.toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
@@ -161,7 +190,7 @@ describe('SettingsModal', () => {
       screen.queryByRole('heading', {
         name: textMock('settings_modal.access_control_tab_heading'),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
@@ -174,10 +203,10 @@ describe('SettingsModal', () => {
       screen.getByRole('heading', {
         name: textMock('settings_modal.access_control_tab_heading'),
         level: 2,
-      })
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading'))
+      screen.queryByText(textMock('settings_modal.about_tab_heading')),
     ).not.toBeInTheDocument();
   });
 });
@@ -185,7 +214,7 @@ describe('SettingsModal', () => {
 const renderWithQueryClient = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: SettingsModalProps
+  props: SettingsModalProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -195,6 +224,6 @@ const renderWithQueryClient = (
   return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <SettingsModal {...props} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };
