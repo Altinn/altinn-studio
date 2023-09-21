@@ -12,7 +12,6 @@ export interface SchemaTreeViewProps {
   onNodeToggle: any;
   selectedPointer: string;
   isPropertiesView: boolean;
-  translate: (key: string) => string;
 }
 
 export const SchemaTreeView = ({
@@ -20,7 +19,6 @@ export const SchemaTreeView = ({
   items,
   onNodeToggle,
   selectedPointer,
-  translate,
   isPropertiesView,
 }: SchemaTreeViewProps) => {
   return (
@@ -39,7 +37,6 @@ export const SchemaTreeView = ({
             isPropertiesView={isPropertiesView}
             selectedNode={item}
             key={item.pointer}
-            translate={translate}
           />
         ))}
       </TreeView>

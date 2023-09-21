@@ -1,7 +1,8 @@
 import React from 'react';
 import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { TypeItem } from './TypeItem';
+import { renderWithProviders } from '../../../test/renderWithProviders';
 describe('TypeItem', () => {
   const uiSchemaNode: UiSchemaNode = {
     children: [],
@@ -17,7 +18,9 @@ describe('TypeItem', () => {
     restrictions: null,
   };
   it('should render the component', () => {
-    render(<TypeItem handleItemClick={() => {}} uiSchemaNode={uiSchemaNode} />);
+    renderWithProviders()(
+      <TypeItem setSelectedTypePointer={jest.fn()} uiSchemaNode={uiSchemaNode} />
+    );
     expect(screen.getByText('MyTestType')).toBeInTheDocument();
   });
 });

@@ -1,7 +1,13 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
-import { CogIcon, InformationSquareIcon, MonitorIcon, ShieldLockIcon } from '@navikt/aksel-icons';
+import {
+  CogIcon,
+  InformationSquareIcon,
+  PersonSuitIcon,
+  MonitorIcon,
+  ShieldLockIcon,
+} from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
@@ -13,6 +19,8 @@ import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
+import { AccessControlTab } from './components/Tabs/AccessControlTab';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export type SettingsModalProps = {
   /**
@@ -40,6 +48,10 @@ export type SettingsModalProps = {
    * The config for the application
    */
   appConfig: AppConfig;
+  /**
+   * The application's metadata
+   */
+  appMetadata: ApplicationMetadata;
 };
 
 /**
@@ -51,7 +63,8 @@ export type SettingsModalProps = {
  * @property {Policy}[policy] - The policy of the app
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {AppConfig}[appConfig] - The serice name
+ * @property {AppConfig}[appConfig] - The service name
+ * @property {ApplicationMetadata}[appMetadata] - The application's metadata
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -62,6 +75,7 @@ export const SettingsModal = ({
   org,
   app,
   appConfig,
+  appMetadata,
 }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -73,6 +87,7 @@ export const SettingsModal = ({
   const aboutTabId: SettingsModalTab = 'about';
   const policyTabId: SettingsModalTab = 'policy';
   const localChangesTabId: SettingsModalTab = 'localChanges';
+  const accessControlTabId: SettingsModalTab = 'accessControl';
 
   /**
    * The tabs to display in the navigation bar
@@ -82,19 +97,25 @@ export const SettingsModal = ({
       <InformationSquareIcon className={classes.icon} />,
       aboutTabId,
       () => changeTabTo(aboutTabId),
-      currentTab
+      currentTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
-      currentTab
+      currentTab,
     ),
     createNavigationTab(
       <MonitorIcon className={classes.icon} />,
       localChangesTabId,
       () => changeTabTo(localChangesTabId),
-      currentTab
+      currentTab,
+    ),
+    createNavigationTab(
+      <PersonSuitIcon className={classes.icon} />,
+      accessControlTabId,
+      () => changeTabTo(accessControlTabId),
+      currentTab,
     ),
   ];
 
@@ -114,6 +135,9 @@ export const SettingsModal = ({
     switch (currentTab) {
       case 'about': {
         return <AboutTab appConfig={appConfig} org={org} app={app} />;
+      }
+      case 'accessControl': {
+        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;

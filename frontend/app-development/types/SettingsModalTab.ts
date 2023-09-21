@@ -1,1 +1,1 @@
-export type SettingsModalTab = 'about' | 'policy' | 'localChanges';
+export type SettingsModalTab = 'about' | 'policy' | 'accessControl' | 'localChanges';

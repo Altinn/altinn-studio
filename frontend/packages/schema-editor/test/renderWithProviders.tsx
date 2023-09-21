@@ -30,6 +30,7 @@ export const renderWithProviders = ({
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
     data: uiSchemaNodesMock,
     save: jest.fn(),
+    setSelectedTypePointer: jest.fn(),
     ...appContextProps,
   };
 
@@ -61,6 +62,7 @@ export const renderWithProviders = ({
     const newAppContextProps: SchemaEditorAppContextProps = {
       data: uiSchemaNodesMock,
       save: jest.fn(),
+      setSelectedTypePointer: jest.fn(),
       ...rerenderAppContextProps,
     };
 

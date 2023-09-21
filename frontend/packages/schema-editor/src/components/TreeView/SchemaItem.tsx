@@ -22,7 +22,6 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
-  translate: (key: string) => string;
   isPropertiesView: boolean;
   onLabelClick?: (e: any) => void;
   index: number;
@@ -32,7 +31,7 @@ SchemaItem.defaultProps = {
   isPropertiesView: false,
 };
 
-export function SchemaItem({ selectedNode, isPropertiesView, translate, index }: SchemaItemProps) {
+export function SchemaItem({ selectedNode, isPropertiesView, index }: SchemaItemProps) {
   const dispatch = useDispatch();
   const { data, save } = useSchemaEditorAppContext();
 
@@ -83,7 +82,6 @@ export function SchemaItem({ selectedNode, isPropertiesView, translate, index }:
           isPropertiesView={isPropertiesView}
           selectedNode={childNode}
           key={`${keyPrefix}-${childNode.pointer}`}
-          translate={translate}
           onLabelClick={(e: any) => onLabelClick(e, childNode)}
         />
       ))}
