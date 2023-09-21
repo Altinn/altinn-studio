@@ -226,6 +226,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         string? type = null;
         Dictionary<string, string>? dataModelBindings = null;
         Expression? hidden = null;
+        Expression? hiddenRow = null;
         Expression? required = null;
         Expression? readOnly = null;
         // Custom properities for group
@@ -280,6 +281,9 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 case "hidden":
                     hidden = ExpressionConverter.ReadNotNull(ref reader, options);
                     break;
+                case "hiddenrow":
+                    hiddenRow = ExpressionConverter.ReadNotNull(ref reader, options);
+                    break;
                 case "required":
                     required = ExpressionConverter.ReadNotNull(ref reader, options);
                     break;
@@ -327,7 +331,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                         throw new JsonException($"A group id:\"{id}\" with maxCount: {maxCount} does not have a \"group\" dataModelBinding");
                     }
 
-                    var repComponent = new RepeatingGroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, maxCount, hidden, required, readOnly, additionalProperties);
+                    var repComponent = new RepeatingGroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, maxCount, hidden, hiddenRow, required, readOnly, additionalProperties);
                     return repComponent;
                 }
                 else

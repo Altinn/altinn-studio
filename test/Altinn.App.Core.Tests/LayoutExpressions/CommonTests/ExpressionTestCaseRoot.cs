@@ -76,7 +76,7 @@ public class ComponentContextForTestSpec
 
     public ComponentContext ToContext(LayoutModel model)
     {
-        return new ComponentContext(model.GetComponent(CurrentPageName, ComponentId), RowIndices);
+        return new ComponentContext(model.GetComponent(CurrentPageName, ComponentId), RowIndices, null);
     }
 
     public static ComponentContextForTestSpec FromContext(ComponentContext context)

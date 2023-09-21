@@ -260,7 +260,7 @@ public class DefaultTaskEvents : ITaskEvents
                     // Remove hidden data before validation
                     var layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);
                     var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-                    LayoutEvaluator.RemoveHiddenData(evaluationState);
+                    LayoutEvaluator.RemoveHiddenData(evaluationState, true);
                 }
 
                 // save the updated data if there are changes
@@ -282,7 +282,7 @@ public class DefaultTaskEvents : ITaskEvents
                     instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataElementId);
 
                 var modifier = new IgnorePropertiesWithPrefix(dataType.AppLogic.ShadowFields.Prefix);
-                JsonSerializerOptions options = new ()
+                JsonSerializerOptions options = new()
                 {
                     TypeInfoResolver = new DefaultJsonTypeInfoResolver
                     {
@@ -290,14 +290,16 @@ public class DefaultTaskEvents : ITaskEvents
                     },
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 };
-                
+
                 string serializedData = JsonSerializer.Serialize(data, options);
-                if (dataType.AppLogic.ShadowFields.SaveToDataType != null) {
+                if (dataType.AppLogic.ShadowFields.SaveToDataType != null)
+                {
                     var saveToDataType = dataTypesToLock.Find(dt => dt.Id == dataType.AppLogic.ShadowFields.SaveToDataType);
-                    if (saveToDataType == null) {
+                    if (saveToDataType == null)
+                    {
                         throw new Exception($"SaveToDataType {dataType.AppLogic.ShadowFields.SaveToDataType} not found");
                     }
-    
+
                     Type saveToModelType = _appModel.GetModelType(saveToDataType.AppLogic.ClassRef);
                     var updatedData = JsonSerializer.Deserialize(serializedData, saveToModelType);
                     await _dataClient.InsertFormData(updatedData, instanceGuid, saveToModelType ?? modelType, instance.Org, app, instanceOwnerPartyId, saveToDataType.Id);

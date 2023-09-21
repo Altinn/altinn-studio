@@ -104,7 +104,7 @@ public class DataModel : IDataModelAccessor
         return null;
     }
 
-    private static readonly Regex KeyPartRegex = new Regex(@"^(\w+)\[(\d+)\]?$");
+    private static readonly Regex KeyPartRegex = new Regex(@"^([^\s\[\]\.]+)\[(\d+)\]?$");
     internal static (string key, int? index) ParseKeyPart(string keypart)
     {
         if (keypart.Length == 0)
@@ -130,13 +130,15 @@ public class DataModel : IDataModelAccessor
         var prop = currentModelType.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
         if (prop is null)
         {
-            throw new DataModelException($"Unknown model property {key} in {fullKey}");
+            throw new DataModelException($"Unknown model property {key} in {string.Join(".", ret)}.{key}");
         }
+
+        var currentIndex = groupIndex ?? (indicies.Length > 0 ? indicies[0] : null);
 
         var childType = prop.PropertyType;
         // Strings are enumerable in C#
         // Other enumerable types is treated as an collection
-        if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
+        if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)) && currentIndex is not null)
         {
             // Hope the first generic argument is tied to the IEnumerable implementation
             var childTypeEnumerableParameter = childType.GetGenericArguments().FirstOrDefault();
@@ -146,23 +148,13 @@ public class DataModel : IDataModelAccessor
                 throw new DataModelException("DataModels must have generic IEnumerable<> implementation for list");
             }
 
-            if (groupIndex is null)
+            ret.Add($"{key}[{currentIndex}]");
+            if (indicies.Length > 0)
             {
-                if (indicies.Length == 0)
-                {
-                    throw new DataModelException($"Missmatch in indicies in {fullKey} on key {key} and [{string.Join(", ", originalIndicies.ToArray())}]");
-                }
-                ret.Add($"{key}[{indicies[0]}]");
-            }
-            else
-            {
-                ret.Add($"{key}[{groupIndex}]");
-
-                // Ignore indexes after a literal index has been set
-                indicies = new int[] { groupIndex.Value };
+                indicies = indicies.Slice(1);
             }
 
-            AddIndiciesRecursive(ret, childTypeEnumerableParameter, keys.Slice(1), fullKey, indicies.Slice(1), originalIndicies);
+            AddIndiciesRecursive(ret, childTypeEnumerableParameter, keys.Slice(1), fullKey, indicies, originalIndicies);
         }
         else
         {
@@ -215,17 +207,11 @@ public class DataModel : IDataModelAccessor
     }
 
     /// <inheritdoc />
-    public void RemoveField(string key)
+    public void RemoveField(string key, bool deleteRows = false)
     {
         var keys_split = key.Split('.');
         var keys = keys_split[0..^1];
         var (lastKey, lastGroupIndex) = ParseKeyPart(keys_split[^1]);
-
-        if (lastGroupIndex is not null)
-        {
-            // TODO: Consider implementing. Would be required for rowHidden on groups
-            throw new NotImplementedException($"Deleting elements in List is not implemented {key}");
-        }
 
         var containingObject = GetModelDataRecursive(keys, 0, _serviceModel, default);
         if (containingObject is null)
@@ -233,6 +219,7 @@ public class DataModel : IDataModelAccessor
             // Already empty field
             return;
         }
+
 
         if (containingObject is System.Collections.IEnumerable)
         {
@@ -246,9 +233,33 @@ public class DataModel : IDataModelAccessor
             return;
         }
 
-        var nullValue = property.PropertyType.GetTypeInfo().IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
+        if (lastGroupIndex is not null)
+        {
+            // Remove row from list
+            var propertyValue = property.GetValue(containingObject);
+            if (propertyValue is not System.Collections.IList listValue)
+            {
+                throw new ArgumentException($"Tried to remove row {key}, ended in a non-list ({propertyValue?.GetType()})");
+            }
 
-        property.SetValue(containingObject, nullValue);
+            if (deleteRows)
+            {
+                listValue.RemoveAt(lastGroupIndex.Value);
+            }
+            else
+            {
+
+                var genericType = listValue.GetType().GetGenericArguments().FirstOrDefault();
+                var nullValue = genericType?.IsValueType == true ? Activator.CreateInstance(genericType) : null;
+                listValue[lastGroupIndex.Value] = nullValue;
+            }
+        }
+        else
+        {
+            // Set property to null
+            var nullValue = property.PropertyType.GetTypeInfo().IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
+            property.SetValue(containingObject, nullValue);
+        }
     }
 
     /// <inheritdoc />

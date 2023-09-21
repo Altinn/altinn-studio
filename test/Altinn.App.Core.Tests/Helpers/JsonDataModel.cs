@@ -143,7 +143,7 @@ public class JsonDataModel : IDataModelAccessor
     }
 
     /// <inheritdoc />
-    public void RemoveField(string key)
+    public void RemoveField(string key, bool deleteRows = false)
     {
         throw new NotImplementedException("Impossible to remove fields in a json model");
     }
