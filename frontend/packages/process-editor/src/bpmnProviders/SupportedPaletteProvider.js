@@ -6,33 +6,44 @@ const supportedEntries = [
 ];
 
 class SupportedPaletteProvider {
-  constructor(bpmnFactory, create, elementFactory, palette, translate) {
+  constructor(bpmnFactory, create, elementFactory, palette, translate, modeling, moddle) {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
     this.translate = translate;
+    this.modeling = modeling;
+    this.moddle = moddle;
 
     palette.registerProvider(this);
   }
 
   getPaletteEntries() {
-    const { elementFactory, create, bpmnFactory, translate } = this;
+    const { elementFactory, create, bpmnFactory, translate, modeling, moddle } = this;
 
-    function createTask(taskType) {
+    function createCustomTask(taskType) {
       return function (event) {
-        const businessObject = bpmnFactory.create('bpmn:Task');
-
-        console.log(businessObject)
-        businessObject.taskType = taskType;
-        console.log(businessObject.taskType)
-
-        const shape = elementFactory.createShape({
-          type: 'bpmn:Task',
-          businessObject: businessObject,
+        const businessObject = bpmnFactory.create('bpmn:Task', {
+          name: `Task with Altinn ${taskType} task`,
         });
 
-        create.start(event, shape);
-        console.log(event);
+        const task = elementFactory.createShape({
+          type: 'bpmn:Task',
+          businessObject,
+        });
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:taskExtension', {
+              taskType: 'data', // Custom extension element properties
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
       };
     }
 
@@ -41,11 +52,34 @@ class SupportedPaletteProvider {
       const customEntries = {
         'create.altinn-data-task': {
           group: 'activity',
-          className: 'bpmn-icon-task red',
           title: translate('Create Altinn Data Task'),
           action: {
-            dragstart: createTask('data'),
-            click: createTask('data'),
+            dragstart: createCustomTask('data'),
+            click: createCustomTask('data'),
+          },
+        },
+        'create.altinn-confirmation-task': {
+          group: 'activity',
+          title: translate('Create Altinn Confirm Task'),
+          action: {
+            dragstart: createCustomTask('confirmation'),
+            click: createCustomTask('confirmation'),
+          },
+        },
+        'create.altinn-feedback-task': {
+          group: 'activity',
+          title: translate('Create Altinn Feedback Task'),
+          action: {
+            dragstart: createCustomTask('feedback'),
+            click: createCustomTask('feedback'),
+          },
+        },
+        'create.altinn-signing-task': {
+          group: 'activity',
+          title: translate('Create Altinn signing Task'),
+          action: {
+            dragstart: createCustomTask('signing'),
+            click: createCustomTask('signing'),
           },
         },
       };
@@ -78,6 +112,8 @@ SupportedPaletteProvider.$inject = [
   'elementFactory',
   'palette',
   'translate',
+  'modeling',
+  'moddle',
 ];
 
 export default {

@@ -9,7 +9,7 @@ import altinnDataTask from '../extensions/altinnDataTask.json';
 
 type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
-  modelerRef: MutableRefObject<Modeler>;
+  modelerRef: MutableRefObject<BpmnModeler>;
 };
 
 export const useBpmnEditor = (): UseBpmnViewerResult => {

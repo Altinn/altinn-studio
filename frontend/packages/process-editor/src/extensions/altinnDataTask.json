@@ -1,37 +1,23 @@
 {
-  "name": "AltinnTaskType",
-  "uri": "http://some-company/schema/bpmn/qa",
-  "prefix": "qa",
+  "name": "AltinnTask",
+  "uri": "http://some-company/schema/bpmn/altinn",
+  "prefix": "altinn",
   "xml": {
     "tagAlias": "lowerCase"
   },
   "types": [
     {
-      "name": "AnalyzedNode",
-      "extends": ["bpmn:FlowNode"]
-    },
-    {
       "name": "taskExtension",
-      "superClass": ["Element"],
+      "superClass": ["bpmn:ExtensionElements"],
       "properties": [
         {
           "name": "taskType",
           "isMany": false,
-          "type": "Task"
-        }
-      ]
-    },
-    {
-      "name": "Task",
-      "properties": [
-        {
-          "name": "taskType",
-          "isBody": true,
           "type": "String"
         }
       ]
     }
   ],
-  "emumerations": [],
+  "enumerations": [],
   "associations": []
 }
