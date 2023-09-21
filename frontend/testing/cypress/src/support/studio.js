@@ -5,7 +5,8 @@ import { dashboard } from '../selectors/dashboard';
 import { designer } from '../selectors/designer';
 import { header } from '../selectors/header';
 import { login } from '../selectors/login';
-import {gitea} from "../selectors/gitea";
+import { gitea } from '../selectors/gitea';
+import { DEFAULT_SELECTED_LAYOUT_NAME } from '../../../../packages/shared/src/constants';
 
 /**
  * Login to studio with user name and password
@@ -93,4 +94,13 @@ Cypress.Commands.add('searchAndOpenApp', (appId) => {
  */
 Cypress.Commands.add('selectElementInApplicationList', (appListHeaderText, elementSelector) => {
   return cy.contains('h2', appListHeaderText).siblings().find(elementSelector);
+});
+
+Cypress.Commands.add('ensureCreatePageIsLoaded', () => {
+  cy.intercept('GET', '**/app-development/form-layouts?**').as('formLayouts');
+  cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+  cy.wait('@formLayouts').its('response.statusCode').should('eq', 200);
+  cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+  cy.findByRole('heading', { name: DEFAULT_SELECTED_LAYOUT_NAME }).should('be.visible');
+  cy.findByRole('heading', { name: `${texts['general.page']}1` }).should('be.visible');
 });
