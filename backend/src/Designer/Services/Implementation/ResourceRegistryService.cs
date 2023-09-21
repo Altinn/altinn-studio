@@ -172,6 +172,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return new StatusCodeResult(409);
             }
+            else if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    ValidationProblemDetails problems = JsonSerializer.Deserialize<ValidationProblemDetails>(responseContent);
+                    return new ObjectResult(problems) { StatusCode = (int)response.StatusCode };
+                }
+                catch (Exception)
+                {
+                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                }
+            }
             else
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
