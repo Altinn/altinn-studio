@@ -8,23 +8,11 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import type { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-
-const mockPartyTypesAllowed: PartyTypesAllowed = {
-  bankruptcyEstate: true,
-  organisation: false,
-  person: false,
-  subUnit: false,
-};
-
-const mockAppMetadata: ApplicationMetadata = {
-  id: 'mockId',
-  org: mockOrg,
-  partyTypesAllowed: mockPartyTypesAllowed,
-};
 
 jest.mock('../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -113,7 +101,7 @@ describe('AccessControlTab', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: AccessControlTabProps
+  props: AccessControlTabProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -123,6 +111,6 @@ const render = (
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <AccessControlTab {...props} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };

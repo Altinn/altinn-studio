@@ -17,6 +17,7 @@ import { mockAppConfig } from './SettingsModal/mocks/appConfigMock';
 import { mockPolicy } from './SettingsModal/mocks/policyMock';
 import { mockRepository1 } from './SettingsModal/mocks/repositoryMock';
 import { Commit, CommitAuthor } from 'app-shared/types/Commit';
+import { mockAppMetadata } from './SettingsModal/mocks/applicationMetadataMock';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -40,14 +41,15 @@ const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const resolveMocks = () => {
   getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
   getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
   getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
   getRepoInitialCommit.mockImplementation(() => Promise.resolve(mockInitialCommit));
+  getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
 };
-const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -105,7 +107,7 @@ describe('SettingsModalButton', () => {
     });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
@@ -118,11 +120,11 @@ describe('SettingsModalButton', () => {
     render();
 
     expect(
-      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).not.toBeInTheDocument();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
@@ -130,7 +132,7 @@ describe('SettingsModalButton', () => {
     await act(() => user.click(openButton));
 
     expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).toBeInTheDocument();
   });
 
@@ -139,28 +141,28 @@ describe('SettingsModalButton', () => {
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
     await act(() => user.click(openButton));
 
     expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).toBeInTheDocument();
 
     const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
     await act(() => user.click(closeButton));
 
     expect(
-      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).not.toBeInTheDocument();
   });
 });
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -176,6 +178,6 @@ const render = (
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <SettingsModalButton />
       </ServicesContextProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

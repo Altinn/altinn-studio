@@ -106,7 +106,7 @@ export const AboutTab = ({
           {t(
             repositoryType === RepositoryType.Datamodels
               ? 'settings_modal.about_tab_created_for_repo'
-              : 'settings_modal.about_tab_created_for_service'
+              : 'settings_modal.about_tab_created_for_service',
           )}
         </Label>
         <div className={classes.createdFor}>
@@ -124,7 +124,7 @@ export const AboutTab = ({
             {createdBy}
           </Paragraph>
         </div>
-        <Paragraph size='small'>
+        <Paragraph size='small' className={classes.dateParagraph}>
           {t('settings_modal.about_tab_created_date', {
             date: formatDateToDateAndTimeString(repository.created_at),
           })}
