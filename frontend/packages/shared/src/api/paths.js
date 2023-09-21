@@ -119,6 +119,7 @@ export const userReposPath = () => `${basePath}/user/repos`; // Get
 export const userStarredListPath = () => `${basePath}/user/starred`; // Get
 export const userStarredRepoPath = (org, app) => `${basePath}/user/starred/${org}/${app}`; // Put, Delete
 
+// Policy Editor app
 export const appPolicyPath = (org, app) => `${basePath}/${org}/${app}/policy`; // Get, Put
 
 // Resourceadm

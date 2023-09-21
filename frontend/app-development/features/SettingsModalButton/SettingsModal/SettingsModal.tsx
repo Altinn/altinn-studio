@@ -1,7 +1,12 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
-import { CogIcon, InformationSquareIcon, ShieldLockIcon } from '@navikt/aksel-icons';
+import {
+  CogIcon,
+  InformationSquareIcon,
+  PersonSuitIcon,
+  ShieldLockIcon,
+} from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
@@ -13,6 +18,8 @@ import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { Repository } from 'app-shared/types/Repository';
+import { AccessControlTab } from './components/Tabs/AccessControlTab';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export type SettingsModalProps = {
   /**
@@ -48,6 +55,10 @@ export type SettingsModalProps = {
    * The name of the user that created the app
    */
   createdBy: string;
+  /*
+   * The application's metadata
+   */
+  appMetadata: ApplicationMetadata;
 };
 
 /**
@@ -62,6 +73,8 @@ export type SettingsModalProps = {
  * @property {AppConfig}[appConfig] - The serice name
  * @property {Repository}[repository] - The repository of the app
  * @property {strign}[createdBy] - The name of the user that created the app
+ * @property {AppConfig}[appConfig] - The service name
+ * @property {ApplicationMetadata}[appMetadata] - The application's metadata
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -74,6 +87,7 @@ export const SettingsModal = ({
   appConfig,
   repository,
   createdBy,
+  appMetadata,
 }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -84,6 +98,7 @@ export const SettingsModal = ({
    */
   const aboutTabId: SettingsModalTab = 'about';
   const policyTabId: SettingsModalTab = 'policy';
+  const accessControlTabId: SettingsModalTab = 'accessControl';
 
   /**
    * The tabs to display in the navigation bar
@@ -99,6 +114,12 @@ export const SettingsModal = ({
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
+      currentTab
+    ),
+    createNavigationTab(
+      <PersonSuitIcon className={classes.icon} />,
+      accessControlTabId,
+      () => changeTabTo(accessControlTabId),
       currentTab
     ),
   ];
@@ -130,6 +151,9 @@ export const SettingsModal = ({
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
+      }
+      case 'accessControl': {
+        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
       }
     }
   };

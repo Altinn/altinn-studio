@@ -47,6 +47,7 @@ const resolveMocks = () => {
   getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
   getRepoInitialCommit.mockImplementation(() => Promise.resolve(mockInitialCommit));
 };
+const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -80,29 +81,37 @@ describe('SettingsModalButton', () => {
     expect(getRepoInitialCommit).toHaveBeenCalledTimes(1);
   });
 
+  it('fetches appMetadata on mount', () => {
+    render();
+    expect(getAppMetadata).toHaveBeenCalledTimes(1);
+  });
+
   it('initially displays the spinner when loading data', () => {
     render();
 
     expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
   });
 
-  it.each(['getAppPolicy', 'getAppConfig', 'getRepoMetadata', 'getRepoInitialCommit'])(
-    'shows an error message if an error occured on the %s query',
-    async (queryName) => {
-      const errorMessage = 'error-message-test';
-      render({
-        [queryName]: () => Promise.reject({ message: errorMessage }),
-      });
+  it.each([
+    'getAppPolicy',
+    'getAppConfig',
+    'getAppMetadata',
+    'getRepoMetadata',
+    'getRepoInitialCommit',
+  ])('shows an error message if an error occured on the %s query', async (queryName) => {
+    const errorMessage = 'error-message-test';
+    render({
+      [queryName]: () => Promise.reject({ message: errorMessage }),
+    });
 
-      await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('settings_modal.loading_content'))
-      );
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content'))
+    );
 
-      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    }
-  );
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
 
   it('opens the modal when the button is clicked', async () => {
     resolveMocks();
@@ -159,6 +168,7 @@ const render = (
     getAppConfig,
     getRepoMetadata,
     getRepoInitialCommit,
+    getAppMetadata,
     ...queries,
   };
   return rtlRender(

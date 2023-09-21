@@ -1,3 +1,4 @@
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type {
   SupportedLanguageKey,
@@ -83,7 +84,7 @@ export const mapLanguageKeyToLanguageText = (
 export const getMissingInputLanguageString = (
   language: SupportedLanguage,
   usageString: string,
-  translationFunction: (key: string, params?: object) => string
+  translationFunction: (key: string, params?: KeyValuePairs<string>) => string
 ): string => {
   const valArr: ('nb' | 'nn' | 'en')[] = [];
 

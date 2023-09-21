@@ -82,6 +82,8 @@ export const queriesMock: ServicesContextProps = {
   getAppPolicy: jest.fn(),
   updateAppPolicy: jest.fn(),
   getAppConfig: jest.fn(),
+  getAppMetadata: jest.fn(),
+  updateAppMetadata: jest.fn(),
   updateAppConfig: jest.fn(),
   getRepoInitialCommit: jest.fn(),
 };
