@@ -17,6 +17,7 @@ export const ConditionalRendering = () => {
         <div>
           <div className={classes.dynamicsVersionCheckBox}>
             <Alert severity='warning'>
+            <span>
               <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
                 <a
                     href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
@@ -24,6 +25,7 @@ export const ConditionalRendering = () => {
                     rel='noopener noreferrer'
                 />
               </Trans>
+            </span>
             </Alert>
             <Divider/>
           </div>
