@@ -180,7 +180,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     ProblemDetails problems = JsonSerializer.Deserialize<ProblemDetails>(responseContent);
                     return new ObjectResult(problems) { StatusCode = (int)response.StatusCode };
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
                 }
