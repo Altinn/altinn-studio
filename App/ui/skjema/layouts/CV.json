@@ -300,6 +300,7 @@
           "simpleBinding": "root.arbeidserfaring.beskrivelse"
         },
         "required": false,
+        "triggers": ["validation"],
         "textResourceBindings": {
           "title": "CV.erfaring-beskrivelse.title"
         }
@@ -369,6 +370,7 @@
           "simpleBinding": "root.arbeidserfaring.prosjekter.beskrivelse"
         },
         "required": false,
+        "triggers": ["validation"],
         "textResourceBindings": {
           "title": "CV.prosjekt-beskrivelse.title"
         }
