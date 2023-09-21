@@ -24,13 +24,13 @@ export const SimpleExpressionPreview = ({ expression }: SimpleExpressionPreviewP
           <p>
             <ArrowRightIcon fontSize='1.5rem'/>
             {expressionDataSourceTexts(t)[subExp.dataSource]}
-            <span>{stringifyValueForDisplay(subExp.value)}</span>
+            <span>{stringifyValueForDisplay(t, subExp.value)}</span>
           </p>
           <p className={classes.bold}>{expressionFunctionTexts(t)[subExp.function]}</p>
           <p>
             <ArrowRightIcon fontSize='1.5rem'/>
             {expressionDataSourceTexts(t)[subExp.comparableDataSource]}
-            <span>{stringifyValueForDisplay(subExp.comparableValue)}</span>
+            <span>{stringifyValueForDisplay(t, subExp.comparableValue)}</span>
           </p>
           {index !== expression.subExpressions.length - 1 && (
             <center className={classes.bold}>

@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { Alert, Button, LegacyCheckbox } from '@digdir/design-system-react';
+import React, { useContext, useEffect } from 'react';
+import { Alert, Button } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
@@ -19,23 +19,19 @@ import {
 import classes from './Expressions.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import { Divider } from 'app-shared/primitives';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { deepCopy } from 'app-shared/pure';
 import { LayoutItemType } from '../../../types/global';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { FormContext } from '../../../containers/FormContext';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { Trans } from 'react-i18next';
 
-export type ExpressionsProps = {
-  onShowNewExpressions: (value: boolean) => void;
-  showNewExpressions: boolean;
-};
-
-export const Expressions = ({ onShowNewExpressions, showNewExpressions }: ExpressionsProps) => {
+export const Expressions = () => {
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
   const [expressionInEditModeId, setExpressionInEditModeId] = React.useState<string | undefined>(undefined);
-  const successfullyAddedExpressionIdRef = useRef('default');
+  const [successfullyAddedExpressionIndex, setSuccessfullyAddedExpressionIndex] = React.useState<number | undefined>(undefined);
   const t = useText();
   
   useEffect(() => {
@@ -63,11 +59,12 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;
   const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
 
-  const saveExpressionAndSetCheckMark = async (expression: Expression) => {
+  const saveExpressionAndSetCheckMark = async (index: number, expression: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
+    // Need to use index as expression reference since the id will be changed when the component is updated.
+    setSuccessfullyAddedExpressionIndex(index);
     setExpressionInEditModeId(undefined);
-    successfullyAddedExpressionIdRef.current = expression.id;
   };
 
   const addNewExpression = async () => {
@@ -89,9 +86,9 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
 
   const editExpression = (expression: Expression) => {
     // TODO: Check if expression is in edit mode and try to save?
-    const validExpression = removeInvalidExpressions(expressions);
+    const validExpressions = removeInvalidExpressions(expressions);
     setExpressionInEditModeId(expression.id);
-    setExpressions(validExpression);
+    setExpressions(validExpressions);
   };
 
   const deleteExpression = async (expression: Expression) => {
@@ -131,6 +128,14 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
   console.log('expressions: ', expressions) // TODO: Remove when fully tested
   return (
     <div className={classes.root}>
+        <Trans i18nKey={'right_menu.read_more_about_expressions'}>
+          <a
+              href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+              target='_newTab'
+              rel='noopener noreferrer'
+          />
+        </Trans>
+        <Divider/>
       {Object.values(expressions).map((expression: Expression, index: number) => (
         <React.Fragment key={expression.id}>
           <ExpressionContent
@@ -138,8 +143,8 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
             expression={expression}
             onGetProperties={() => getProperties(expression)}
             showRemoveExpressionButton={showRemoveExpressionButton}
-            onSaveExpression={() => saveExpressionAndSetCheckMark(expression)}
-            successfullyAddedExpression={expression.id === successfullyAddedExpressionIdRef.current}
+            onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
+            successfullyAddedExpression={index === successfullyAddedExpressionIndex}
             expressionInEditMode={expression.id === expressionInEditModeId}
             onUpdateExpression={newExpression => updateExpression(index, newExpression)}
             onRemoveExpression={() => deleteExpression(expression)}
@@ -165,17 +170,6 @@ export const Expressions = ({ onShowNewExpressions, showNewExpressions }: Expres
         >
           {t('right_menu.expressions_add')}
         </Button>
-      )}
-      {shouldDisplayFeature('expressions') && (
-        <div className={classes.expressionsVersionCheckBox}>
-          <Divider />
-          <LegacyCheckbox
-            label={t('right_menu.show_new_dynamics')}
-            name={'checkbox-name'}
-            checked={showNewExpressions}
-            onChange={() => onShowNewExpressions(!showNewExpressions)}
-          />
-        </div>
       )}
     </div>
   );
