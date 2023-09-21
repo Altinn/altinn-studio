@@ -106,15 +106,15 @@ export const SettingsModal = ({
       currentTab,
     ),
     createNavigationTab(
-      <MonitorIcon className={classes.icon} />,
-      localChangesTabId,
-      () => changeTabTo(localChangesTabId),
-      currentTab,
-    ),
-    createNavigationTab(
       <PersonSuitIcon className={classes.icon} />,
       accessControlTabId,
       () => changeTabTo(accessControlTabId),
+      currentTab,
+    ),
+    createNavigationTab(
+      <MonitorIcon className={classes.icon} />,
+      localChangesTabId,
+      () => changeTabTo(localChangesTabId),
       currentTab,
     ),
   ];
