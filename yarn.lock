@@ -1714,23 +1714,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.24.0":
-  version: 0.24.0
-  resolution: "@digdir/design-system-react@npm:0.24.0"
+"@digdir/design-system-react@npm:0.24.2":
+  version: 0.24.2
+  resolution: "@digdir/design-system-react@npm:0.24.2"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.5.0
-    "@floating-ui/react": 0.24.1
+    "@digdir/design-system-tokens": ^0.6.1
+    "@floating-ui/react": 0.25.2
     "@navikt/aksel-icons": ^3.2.4
     react-number-format: 5.2.2
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 7dc13e6dc9d30ae4a0e9c29f891ad578899879c5f9ff2bc8afeaf5d16fb9e7853bdfce8160ffd218cf525da8d3cb9196d8b0cbc2c54c09b269f44c3ea0dbb6bf
+  checksum: 153c2e41640f92ab1b468223dee4e7c5ba5bbdf816df8bad7fe3e76e42410040a5178ce4a11183fcc1f6d4376ea131bbb8abc1dff7b56b1493210f6d1e9139c3
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.5.0, @digdir/design-system-tokens@npm:^0.5.0":
+"@digdir/design-system-tokens@npm:0.5.0":
   version: 0.5.0
   resolution: "@digdir/design-system-tokens@npm:0.5.0"
   checksum: f73f90d2d8d9343cf14f614fe6c2f846ded87938d36d1308d04470a32050db53bb0b352319e9daf5643601f26c16074d1e01d31d86c01e3bc24e3eb67ef3c6ed
@@ -1741,6 +1741,13 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "@digdir/design-system-tokens@npm:0.6.1"
+  checksum: b3866dd27831c0a9943f904e32a0e04da963dd70f183e947cbd54ff802b65a588388bef61e22215e02e79a2ff5ab4bd62a2be4116dd563f353877f02346f4619
   languageName: node
   linkType: hard
 
@@ -2166,7 +2173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react-dom@npm:^2.0.2":
+"@floating-ui/react-dom@npm:^2.0.1, @floating-ui/react-dom@npm:^2.0.2":
   version: 2.0.2
   resolution: "@floating-ui/react-dom@npm:2.0.2"
   dependencies:
@@ -2189,6 +2196,20 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 89e525412a5f71be1437ce74a3a76f4a6c771074e1dca62dddf11062dd9eca7b967091906c369427a0c8f9c9a7c6c7ae06525917e6809d60d832443a4acfc3f3
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react@npm:0.25.2":
+  version: 0.25.2
+  resolution: "@floating-ui/react@npm:0.25.2"
+  dependencies:
+    "@floating-ui/react-dom": ^2.0.1
+    "@floating-ui/utils": ^0.1.1
+    tabbable: ^6.0.1
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 851aedc2e327f7a82553270669ce613d1b03fbb5ea8a7137f959cf7db95ecdab05d4402320d613ad2b662f6920f2fac366fdfd82d273d83d3070de532ecb0728
   languageName: node
   linkType: hard
 
@@ -5311,7 +5332,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.24.0
+    "@digdir/design-system-react": 0.24.2
     "@digdir/design-system-tokens": 0.5.0
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
