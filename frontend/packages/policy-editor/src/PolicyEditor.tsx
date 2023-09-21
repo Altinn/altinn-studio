@@ -82,7 +82,7 @@ export const PolicyEditor = ({
   const { t } = useTranslation();
 
   // TODO - Find out how this should be set. Issue: #10880
-  const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource';
+  const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
     mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? [])
