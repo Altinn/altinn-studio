@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Enums.Altinn2;
+using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -30,8 +31,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IMemoryCache _memoryCache;
         private readonly CacheSettings _cacheSettings;
         private readonly IAltinn2MetadataClient _altinn2MetadataClient;
+        private readonly IOrgService _orgService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -39,6 +41,7 @@ namespace Altinn.Studio.Designer.Controllers
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
             _altinn2MetadataClient = altinn2MetadataClient;
+            _orgService = orgService;
         }
 
         [HttpGet]
@@ -158,15 +161,17 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPut]
         [Route("designer/api/{org}/resources/updateresource/{id}")]
-        public ActionResult UpdateResource(string org, string id, [FromBody] ServiceResource resource)
+        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource)
         {
+            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
             return _repository.UpdateServiceResource(org, id, resource);
         }
 
         [HttpPost]
         [Route("designer/api/{org}/resources/addresource")]
-        public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
+        public async Task<ActionResult<ServiceResource>> AddResource(string org, [FromBody] ServiceResource resource)
         {
+            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
             return _repository.AddServiceResource(org, resource);
         }
 
@@ -332,6 +337,45 @@ namespace Altinn.Studio.Designer.Controllers
                 Console.WriteLine("Invalid repository for resource");
                 return new StatusCodeResult(400);
             }
+        }
+
+        private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
+        {
+            Org organization = await GetOrg(org);
+            if (organization == null)
+            {
+                return null;
+            }
+            return new CompetentAuthority() { Name = organization.Name, Organization = organization.Orgnr, Orgcode = org };
+        }
+
+        private async Task<Org> GetOrg(string org)
+        {
+            OrgList orgList = await GetOrgList();
+
+            if (orgList.Orgs.TryGetValue(org, out Org organization))
+            {
+                return organization;
+            }
+
+            return null;
+        }
+
+        private async Task<OrgList> GetOrgList()
+        {
+            string cacheKey = "orglist";
+            if (!_memoryCache.TryGetValue(cacheKey, out OrgList orgList))
+            {
+                orgList = await _orgService.GetOrgList();
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.OrgListCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, orgList, cacheEntryOptions);
+            }
+
+            return orgList;
         }
     }
 }

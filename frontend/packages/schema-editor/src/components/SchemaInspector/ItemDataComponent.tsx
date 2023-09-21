@@ -62,7 +62,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     custom,
   } = schemaNode;
   const dispatch = useDispatch();
-  const { data, save } = useSchemaEditorAppContext();
+  const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
@@ -122,7 +122,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       setPropertyName(data, {
         path: pointer,
         name: newNodeName,
-        callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+        callback: (newPointer: string) => {
+          if (newPointer && pointerIsDefinition(newPointer)) {
+            setSelectedTypePointer(newPointer);
+          }
+          dispatch(setSelectedNode(newPointer));
+        },
       })
     );
   };

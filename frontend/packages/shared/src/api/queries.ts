@@ -1,5 +1,6 @@
 import { get, put } from 'app-shared/utils/networking';
 import {
+  appMetadataPath,
   appPolicyPath,
   branchStatusPath,
   datamodelMetadataPath,
@@ -59,6 +60,7 @@ import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -97,6 +99,7 @@ export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchema
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
+export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));

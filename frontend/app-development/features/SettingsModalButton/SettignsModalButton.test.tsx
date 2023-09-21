@@ -13,12 +13,28 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { Policy } from '@altinn/policy-editor';
+import { AppConfig } from 'app-shared/types/AppConfig';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
+const mockPolicy: Policy = {
+  rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
+  requiredAuthenticationLevelEndUser: '3',
+  requiredAuthenticationLevelOrg: '3',
+};
+
+const mockAppConfig: AppConfig = {
+  repositoryName: 'test',
+  serviceName: 'test',
+  serviceId: '',
+  serviceDescription: '',
+};
+
 const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -43,13 +59,18 @@ describe('SettingsModalButton', () => {
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
+  it('fetches appMetadata on mount', () => {
+    render();
+    expect(getAppMetadata).toHaveBeenCalledTimes(1);
+  });
+
   it('initially displays the spinner when loading data', () => {
     render();
 
     expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
   });
 
-  it.each(['getAppPolicy', 'getAppConfig'])(
+  it.each(['getAppPolicy', 'getAppConfig', 'getAppMetadata'])(
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
@@ -68,6 +89,8 @@ describe('SettingsModalButton', () => {
   );
 
   it('opens the modal when the button is clicked', async () => {
+    getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+    getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
     render();
 
     expect(
@@ -79,6 +102,7 @@ describe('SettingsModalButton', () => {
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
+    expect(openButton).toBeInTheDocument();
     await act(() => user.click(openButton));
 
     expect(
@@ -87,6 +111,8 @@ describe('SettingsModalButton', () => {
   });
 
   it('closes the modal on click', async () => {
+    getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+    getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
     render();
 
     await waitForElementToBeRemoved(() =>
@@ -117,6 +143,7 @@ const render = (
     ...queriesMock,
     getAppPolicy,
     getAppConfig,
+    getAppMetadata,
     ...queries,
   };
   return rtlRender(

@@ -101,7 +101,6 @@ export const ModelsPanel = ({
       <SchemaTreeView
         expanded={expandedPropNodes}
         items={properties}
-        translate={t}
         onNodeToggle={handlePropertiesNodeExpanded}
         selectedPointer={selectedPropertyNodeId}
         isPropertiesView={true}
