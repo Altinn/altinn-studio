@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -40,6 +41,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -762,7 +764,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (FileSystemObject resourceFile in resourceFiles)
             {
                 string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
+                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
 
                 if (serviceResource != null)
                 {
@@ -784,11 +786,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 foreach (FileSystemObject resourceFile in resourceFiles)
                 {
                     string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                    ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
+                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
 
                     if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
                     {
-                        string updatedResourceString = JsonConvert.SerializeObject(updatedResource);
+                        string updatedResourceString = System.Text.Json.JsonSerializer.Serialize(updatedResource, _serializerOptions);
                         File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
                         return new StatusCodeResult(201);
                     }
@@ -811,7 +813,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                     string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), string.Format("{0}_resource.json", newResource.Identifier));
-                    string newResourceJson = JsonConvert.SerializeObject(newResource);
+                    string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
 

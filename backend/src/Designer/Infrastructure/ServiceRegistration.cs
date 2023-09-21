@@ -52,6 +52,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ILanguagesService, LanguagesService>();
             services.AddTransient<ITextsService, TextsService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
+            services.AddHttpClient<IOrgService, OrgService>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IResourceRegistry, ResourceRegistryService>();
