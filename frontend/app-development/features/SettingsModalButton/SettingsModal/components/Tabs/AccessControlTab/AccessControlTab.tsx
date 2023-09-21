@@ -66,9 +66,6 @@ export const AccessControlTab = ({ appMetadata, org, app }: AccessControlTabProp
     updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed });
   };
 
-  /**
-   * Display the checkboxes
-   */
   const displayCheckboxes = () => {
     return getPartyTypesAllowedOptions().map((option) => (
       <Checkbox value={option.value} key={option.value} size='small'>
