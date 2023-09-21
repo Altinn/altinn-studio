@@ -22,8 +22,13 @@
   margin-top: 20px;
 }
 
-.paragraph {
+.ownerParagraph {
   margin-left: 15px;
+  color: var(--fds-semantic-text-action-active);
+}
+
+.createdByParagraph {
+  margin-left: 10px;
 }
 
 .createdForIcon {

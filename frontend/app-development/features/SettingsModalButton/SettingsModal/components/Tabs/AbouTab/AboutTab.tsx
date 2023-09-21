@@ -102,7 +102,7 @@ export const AboutTab = ({
       </div>
       <Divider marginless />
       <div className={classes.contentWrapper}>
-        <Label as='p' spacing className={classes.label}>
+        <Label as='p' size='small' spacing className={classes.label}>
           {t(
             repositoryType === RepositoryType.Datamodels
               ? 'settings_modal.about_tab_created_for_repo'
@@ -111,18 +111,20 @@ export const AboutTab = ({
         </Label>
         <div className={classes.createdFor}>
           <img src={repository.owner.avatar_url} className={classes.avatar} alt='' />
-          <Paragraph className={classes.paragraph}>
+          <Paragraph size='small' className={classes.ownerParagraph}>
             {repository.owner.full_name || repository.owner.login}
           </Paragraph>
         </div>
-        <Label as='p' spacing className={classes.label}>
+        <Label as='p' size='small' spacing className={classes.label}>
           {t('settings_modal.about_tab_created_by')}
         </Label>
         <div className={classes.createdBy}>
           <PersonCircleIcon className={classes.createdByIcon} />
-          <Paragraph className={classes.paragraph}>{createdBy}</Paragraph>
+          <Paragraph size='small' className={classes.createdByParagraph}>
+            {createdBy}
+          </Paragraph>
         </div>
-        <Paragraph>
+        <Paragraph size='small'>
           {t('settings_modal.about_tab_created_date', {
             date: formatDateToDateAndTimeString(repository.created_at),
           })}
