@@ -39,7 +39,6 @@ export type AccessControlTabProps = {
 export const AccessControlTab = ({ appMetadata, org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
 
-  // Mutation function to update app metadata
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
   const [partyTypesAllowed, setPartyTypesAllowed] = useState<PartyTypesAllowed>(
