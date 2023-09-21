@@ -19,7 +19,7 @@ export const convertInternalExpressionToExternal = (expression: Expression): any
     return expression.complexExpression;
   }
   const subExpressions: any[] = [];
-  if (!expression.subExpressions) {
+  if (!expression.subExpressions || expression.subExpressions.length === 0) {
     return subExpressions;
   }
   expression.subExpressions.map(subEXp => {

@@ -24,7 +24,7 @@ import { useText } from '../../../hooks';
 import { ComplexExpression } from './ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import {stringifyData} from '../../../utils/jsonUtils';
+import { stringifyData } from '../../../utils/jsonUtils';
 
 export interface ExpressionContentProps {
   componentName: string;
@@ -69,7 +69,7 @@ export const ExpressionContent = ({
   );
   const propertiesList = onGetProperties(expression).availableProperties;
   const externalExpression = convertInternalExpressionToExternal(expression);
-  const isStudioFriendly = isStudioFriendlyExpression(tryParseExpression(expression, externalExpression).complexExpression)
+  const isStudioFriendly = isStudioFriendlyExpression(tryParseExpression(expression, externalExpression).complexExpression);
 
   const addPropertyToExpression = (property: string) => {
     const newExpression: Expression = addProperty(expression, property);
