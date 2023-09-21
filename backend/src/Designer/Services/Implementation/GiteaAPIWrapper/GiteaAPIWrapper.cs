@@ -532,13 +532,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<Branch>();
         }
 
-        private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName, int waitMsBeforeCall = 0)
+        private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName)
         {
-            if (waitMsBeforeCall > 0)
-            {
-                Thread.Sleep(waitMsBeforeCall);
-            }
-
             string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
             HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
             message.Content = new StringContent(content, Encoding.UTF8, "application/json");
