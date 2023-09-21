@@ -4,16 +4,21 @@ import { CogIcon, FileJsonIcon } from '@navikt/aksel-icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import * as testids from '../../../../../testing/testids';
+import { useDispatch } from 'react-redux';
+import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
   selected?: boolean;
-  handleItemClick: (node: UiSchemaNode) => void;
+  setSelectedTypePointer: (pointer: string) => void;
 }
 
-export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemProps) => {
+export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
+  const dispatch = useDispatch();
+
   const handleClick = () => {
-    handleItemClick(uiSchemaNode);
+    setSelectedTypePointer(uiSchemaNode.pointer);
+    dispatch(setSelectedId({ pointer: uiSchemaNode.pointer }));
   };
   return (
     <div
@@ -24,7 +29,7 @@ export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemPr
       data-testid={testids.typeItem(uiSchemaNode.pointer)}
     >
       <div>
-      <FileJsonIcon className={classes.typeIcon}/> 
+        <FileJsonIcon className={classes.typeIcon} />
       </div>
       <span className={classes.typeName}>
         {getNameFromPointer({ pointer: uiSchemaNode.pointer })}

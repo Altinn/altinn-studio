@@ -6,7 +6,12 @@ import {
   setSelectedNode,
 } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 
-import { CombinationKind, UiSchemaNode, addProperty, addCombinationItem } from '@altinn/schema-model';
+import {
+  CombinationKind,
+  UiSchemaNode,
+  addProperty,
+  addCombinationItem,
+} from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
@@ -45,19 +50,19 @@ export const TypesPanel = ({
     const { pointer } = uiSchemaNode;
     uiSchemaNode.objectKind === ObjectKind.Combination
       ? save(
-        addCombinationItem(data, {
-          pointer,
-          props: newNode,
-          callback: (newPointer) => dispatch(setSelectedNode(newPointer))
-        })
-      )
+          addCombinationItem(data, {
+            pointer,
+            props: newNode,
+            callback: (newPointer) => dispatch(setSelectedNode(newPointer)),
+          })
+        )
       : save(
-        addProperty(data, {
-          pointer,
-          props: newNode,
-          callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer))
-        })
-      );
+          addProperty(data, {
+            pointer,
+            props: newNode,
+            callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer)),
+          })
+        );
   };
 
   return (
@@ -106,7 +111,6 @@ export const TypesPanel = ({
       <SchemaTreeView
         expanded={expandedDefNodes}
         items={[uiSchemaNode]}
-        translate={t}
         onNodeToggle={handleDefinitionsNodeExpanded}
         selectedPointer={uiSchemaNode.pointer}
         isPropertiesView={false}

@@ -29,6 +29,7 @@ export function SchemaEditorApp({
   const [model, setModel] = useState(() => (jsonSchema ? buildUiSchema(jsonSchema) : []));
   const prevModelPathRef = useRef(modelPath);
   const prevModelRef = useRef(model);
+  const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
 
   const saveInternalModel = useCallback(
     (newModel: UiSchemaNodes, saveAfterMs: number = AUTOSAVE_DEBOUNCE_INTERVAL) => {
@@ -71,8 +72,8 @@ export function SchemaEditorApp({
   }, [jsonSchema]);
 
   const value = useMemo(
-    () => ({ data: model, save: saveInternalModel }),
-    [model, saveInternalModel]
+    () => ({ data: model, save: saveInternalModel, selectedTypePointer, setSelectedTypePointer }),
+    [model, saveInternalModel, selectedTypePointer]
   );
 
   return (
