@@ -72,7 +72,7 @@ export const DeleteModal = ({
       }
     >
       <div className={classes.contentWrapper}>
-        <Paragraph size='small' className={classes.paragraph}>
+        <Paragraph size='small' spacing>
           {t('settings_modal.local_changes_tab_delete_modal_text')}
         </Paragraph>
         <TextField
@@ -90,12 +90,7 @@ export const DeleteModal = ({
           >
             {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
           </Button>
-          <Button
-            variant='outline'
-            onClick={handleClose}
-            className={classes.cancelButton}
-            size='small'
-          >
+          <Button variant='outline' onClick={handleClose} size='small'>
             {t('general.cancel')}
           </Button>
         </div>

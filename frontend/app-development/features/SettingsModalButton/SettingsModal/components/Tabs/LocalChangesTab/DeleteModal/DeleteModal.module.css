@@ -21,16 +21,9 @@
   padding-inline: 20px;
 }
 
-.paragraph {
-  margin-bottom: 20px;
-}
-
 .buttonWrapper {
   display: flex;
   justify-content: flex-start;
   margin-top: 20px;
-}
-
-.cancelButton {
-  margin-left: 10px;
+  gap: 10px;
 }
