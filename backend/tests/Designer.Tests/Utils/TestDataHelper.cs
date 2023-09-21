@@ -136,9 +136,15 @@ namespace Designer.Tests.Utils
             {
                 throw new ArgumentException("Suffix is too long");
             }
-            if (length is < 12 or > 28) throw new ArgumentException("Length for test repo must be between 12 and 20.");
+            if (length is < 12 or > 28)
+            {
+                throw new ArgumentException("Length for test repo must be between 12 and 20.");
+            }
 
-            if ("test-repo-".Length + suffix?.Length > length) throw new ArgumentException("Suffix is too long");
+            if ("test-repo-".Length + suffix?.Length > length)
+            {
+                throw new ArgumentException("Suffix is too long");
+            }
 
             string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..length];
 
