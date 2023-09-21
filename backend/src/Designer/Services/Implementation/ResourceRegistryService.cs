@@ -86,16 +86,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (getResourceResponse.IsSuccessStatusCode && getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
             {
                 string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
-                response = await _httpClient.PutAsync(putRequest, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+                using (StringContent putContent = new StringContent(serviceResourceString, Encoding.UTF8, "application/json"))
+                {
+                    response = await _httpClient.PutAsync(putRequest, putContent);
+                }
             }
             else
             {
-                response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
+                using (StringContent postContent = new StringContent(serviceResourceString, Encoding.UTF8, "application/json"))
+                {
+                    response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, postContent);
+                }
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                string responseConent = await response.Content.ReadAsStringAsync();
                 return await GetPublishResponse(response);
             }
 
