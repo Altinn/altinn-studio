@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
-    "@mui/material": "5.14.9",
+    "@mui/material": "5.14.10",
     "@reduxjs/toolkit": "1.9.5",
     "axios": "1.5.0",
     "classnames": "2.3.2",
