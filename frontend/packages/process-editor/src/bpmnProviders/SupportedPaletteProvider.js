@@ -6,7 +6,7 @@ const supportedEntries = [
 ];
 
 class SupportedPaletteProvider {
-  constructor(bpmnFactory, create, elementFactory, palette, translate, modeling, moddle) {
+  constructor(bpmnFactory, create, elementFactory, palette, translate, modeling) {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
@@ -18,7 +18,7 @@ class SupportedPaletteProvider {
   }
 
   getPaletteEntries() {
-    const { elementFactory, create, bpmnFactory, translate, modeling, moddle } = this;
+    const { elementFactory, create, bpmnFactory, translate, modeling } = this;
 
     function createCustomTask(taskType) {
       return function (event) {
