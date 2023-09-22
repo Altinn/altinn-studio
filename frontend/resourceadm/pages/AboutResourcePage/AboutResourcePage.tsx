@@ -101,13 +101,13 @@ export const AboutResourcePage = ({
 
   // States to store the different input values
   const [title, setTitle] = useState<SupportedLanguageKey<string>>(
-    resourceData.title ?? emptyLangauges
+    resourceData.title ?? emptyLangauges,
   );
   const [description, setDescription] = useState<SupportedLanguageKey<string>>(
-    resourceData.description ?? emptyLangauges
+    resourceData.description ?? emptyLangauges,
   );
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
-    resourceData.rightDescription ?? emptyLangauges
+    resourceData.rightDescription ?? emptyLangauges,
   );
 
   // To handle which translation value is shown in the right menu
@@ -115,13 +115,13 @@ export const AboutResourcePage = ({
 
   // To handle the error state of the page
   const [hasTitleError, setHasTitleError] = useState(
-    getResourcePageTextfieldError(resourceData.title)
+    getResourcePageTextfieldError(resourceData.title),
   );
   const [hasDescriptionError, setHasDescriptionError] = useState(
-    getResourcePageTextfieldError(resourceData.description)
+    getResourcePageTextfieldError(resourceData.description),
   );
   const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
-    resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false
+    resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false,
   );
 
   // useRefs to handle tabbing between the input elements and the right translation bar
@@ -198,7 +198,7 @@ export const AboutResourcePage = ({
    * navigation feels natural.
    */
   const handleLeaveLastFieldRightBar = (
-    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     if (e.key === 'Tab') {
       if (translationType === 'title') {
@@ -309,7 +309,7 @@ export const AboutResourcePage = ({
           errorText={getMissingInputLanguageString(
             title,
             t('resourceadm.about_resource_error_usage_string_title'),
-            t
+            t,
           )}
         />
         <ResourceLanguageTextArea
@@ -329,7 +329,7 @@ export const AboutResourcePage = ({
           errorText={getMissingInputLanguageString(
             description,
             t('resourceadm.about_resource_error_usage_string_description'),
-            t
+            t,
           )}
         />
         <ResourceTextField
@@ -348,11 +348,12 @@ export const AboutResourcePage = ({
           onFocus={() => setTranslationType('none')}
           onBlur={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
           id='isDelegableSwitch'
+          descriptionId='isDelegableSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
         />
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_rights_description_label')}
-          description={t('resourceadm.about_resource_rights_description_label')}
+          description={t('resourceadm.about_resource_rights_description_text')}
           value={rightDescription['nb']}
           onFocus={() => setTranslationType('rightDescription')}
           id='aboutNBRightDescription'
@@ -370,7 +371,7 @@ export const AboutResourcePage = ({
           errorText={getMissingInputLanguageString(
             rightDescription,
             t('resourceadm.about_resource_error_usage_string_rights_description'),
-            t
+            t,
           )}
         />
         <ResourceTextField
@@ -405,6 +406,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
           }
           id='selfIdentifiedUsersEnabledSwitch'
+          descriptionId='selfIdentifiedUsersEnabledSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
         />
         <ResourceSwitchInput
@@ -416,6 +418,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
           }
           id='enterpriseUserEnabledSwitch'
+          descriptionId='enterpriseUserEnabledSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
         />
         <ResourceCheckboxGroup
@@ -443,6 +446,7 @@ export const AboutResourcePage = ({
           onFocus={() => setTranslationType('none')}
           onBlur={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           id='isVisibleSwitch'
+          descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
       </>

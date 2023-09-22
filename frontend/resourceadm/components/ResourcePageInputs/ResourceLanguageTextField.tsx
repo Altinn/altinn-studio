@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { TextField, Paragraph, Label } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceLanguageTextFieldProps = {
@@ -90,22 +90,20 @@ export const ResourceLanguageTextField = forwardRef<
       showErrorMessage = false,
       errorText,
     },
-    ref
+    ref,
   ): React.ReactNode => {
     return (
       <>
         <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor={id}>
-          {label}
-        </Label>
-        <Paragraph size='small'>{description}</Paragraph>
         <div className={classes.inputWrapper}>
-          <TextField
+          <Textfield
+            label={label}
+            description={description}
+            size='small'
             value={value}
             onChange={(e) => onChangeValue(e.target.value)}
             onFocus={onFocus}
-            id={id}
-            isValid={isValid}
+            error={!isValid}
             ref={ref}
             onKeyDown={onKeyDown}
             onBlur={onBlur}
@@ -114,7 +112,7 @@ export const ResourceLanguageTextField = forwardRef<
         </div>
       </>
     );
-  }
+  },
 );
 
 ResourceLanguageTextField.displayName = 'ResourceLanguageTextField';

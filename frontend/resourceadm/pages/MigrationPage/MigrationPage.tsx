@@ -5,7 +5,7 @@ import { useValidatePolicyQuery, useValidateResourceQuery } from 'resourceadm/ho
 import { MigrationStep } from 'resourceadm/components/MigrationStep';
 import {
   Button,
-  TextField,
+  Textfield,
   Select,
   Heading,
   Paragraph,
@@ -46,7 +46,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
   const { data: validateResourceData, isLoading: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
@@ -128,7 +128,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
             page='deploy'
           />
           <div className={classes.contentDivider} />
-          <Label size='medium' spacing>
+          <Label size='medium' spacing htmlFor='selectEnvDropdown'>
             Velg miljø du vil migrere til
           </Label>
           <Paragraph size='small'>
@@ -142,11 +142,12 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
               options={envOptions}
               value={selectedEnv}
               onChange={(o: string) => setSelectedEnv(o)}
+              inputId='selectEnvDropdown'
             />
           </div>
           {selectedEnv !== '' && (
             <>
-              <Label size='medium' spacing>
+              <Label as='p' size='medium' spacing>
                 Velg tidspunkt for å flytte delegeringer og fullføre migreringen
               </Label>
               <Paragraph size='small'>
@@ -156,24 +157,26 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
               </Paragraph>
               <div className={classes.datePickers}>
                 <div className={classes.datePickerWrapper}>
-                  <TextField
+                  <Textfield
                     type='date'
                     value={migrationDate}
                     onChange={(e) => setMigrationDate(e.target.value)}
                     label='Migreringsdato'
+                    size='small'
                   />
                 </div>
                 <div className={classes.datePickerWrapper}>
-                  <TextField
+                  <Textfield
                     type='time'
                     value={migrationTime}
                     onChange={(e) => setMigrationTime(e.target.value)}
                     label='Klokkeslett'
+                    size='small'
                   />
                 </div>
               </div>
               <div className={classes.numDelegations}>
-                <Label size='medium' spacing>
+                <Label as='p' size='medium' spacing>
                   Antall delegeringer i Altinn 2 og Altinn 3
                 </Label>
                 <Button
@@ -198,7 +201,7 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
                   </div>
                 )}
               </div>
-              <Label size='medium' spacing>
+              <Label as='p' size='medium' spacing>
                 Fullfør migrering
               </Label>
               <Paragraph size='small'>
