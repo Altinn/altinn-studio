@@ -28,10 +28,6 @@ type ResourceLanguageTextFieldProps = {
    */
   onFocus: () => void;
   /**
-   * The id of the field
-   */
-  id: string;
-  /**
    * Flag for if the value is valid
    */
   isValid: boolean;
@@ -63,7 +59,6 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[value] - The value in the field
  * @property {function}[onChangeValue] - Function that updates the value in the field
  * @property {function}[onFocus] - unction to be executed when the field is focused
- * @property {string}[id] - The id of the field
  * @property {boolean}[isValid] - Flag for if the value is valid
  * @property {React.KeyboardEventHandler<HTMLInputElement>}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
@@ -83,7 +78,6 @@ export const ResourceLanguageTextField = forwardRef<
       value,
       onChangeValue,
       onFocus,
-      id,
       isValid,
       onKeyDown,
       onBlur,

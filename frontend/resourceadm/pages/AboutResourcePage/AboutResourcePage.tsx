@@ -299,7 +299,6 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_resource_title_text')}
           value={title['nb']}
           onFocus={() => setTranslationType('title')}
-          id='aboutNBTitle'
           isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
           ref={titleFieldRef}
           onKeyDown={handleTabKeyIntoRightBar}
@@ -356,7 +355,6 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_rights_description_text')}
           value={rightDescription['nb']}
           onFocus={() => setTranslationType('rightDescription')}
-          id='aboutNBRightDescription'
           isValid={
             !(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '') ||
             !resourceData.delegable
