@@ -14,6 +14,7 @@
 
 .createdBy {
   display: flex;
+  gap: 4px;
   align-items: center;
   margin-block: 10px;
   color: var(--fds-semantic-text-action-active);
@@ -23,13 +24,12 @@
   margin-top: 20px;
 }
 
-.ownerParagraph {
+.createdForText {
   margin-left: 15px;
   color: var(--fds-semantic-text-action-active);
 }
 
-.createdByParagraph {
-  margin-left: 10px;
+.createdByText {
   color: inherit;
 }
 
@@ -42,6 +42,6 @@
   max-height: 2em;
 }
 
-.dateParagraph {
+.createdDate {
   color: var(--fds-semantic-text-neutral-subtle);
 }

@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { Commit } from 'app-shared/types/Commit';
+import type { Commit, CommitAuthor } from 'app-shared/types/Commit';
 import { AxiosError } from 'axios';
 
 /**
@@ -14,10 +14,26 @@ import { AxiosError } from 'axios';
  */
 export const useRepoInitialCommitQuery = (
   owner: string,
-  app: string
+  app: string,
 ): UseQueryResult<Commit, AxiosError> => {
   const { getRepoInitialCommit } = useServicesContext();
-  return useQuery<Commit, AxiosError>([QueryKey.RepoInitialCommit, owner, app], () =>
-    getRepoInitialCommit(owner, app)
+  return useQuery<Commit, AxiosError>(
+    [QueryKey.RepoInitialCommit, owner, app],
+    () => getRepoInitialCommit(owner, app),
+    {
+      select: (data: Commit) => {
+        // Convert the 'when' property of the author and comitter to a Date
+        const author: CommitAuthor = {
+          ...data.author,
+          when: new Date(data.author.when),
+        };
+        const comitter: CommitAuthor = {
+          ...data.comitter,
+          when: new Date(data.comitter.when),
+        };
+
+        return { ...data, author, comitter };
+      },
+    },
   );
 };

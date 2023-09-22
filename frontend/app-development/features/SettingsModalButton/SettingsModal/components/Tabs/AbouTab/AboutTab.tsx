@@ -111,7 +111,7 @@ export const AboutTab = ({
         </Label>
         <div className={classes.createdFor}>
           <img src={repository.owner.avatar_url} className={classes.avatar} alt='' />
-          <Paragraph size='small' className={classes.ownerParagraph}>
+          <Paragraph size='small' className={classes.createdForText}>
             {repository.owner.full_name || repository.owner.login}
           </Paragraph>
         </div>
@@ -120,11 +120,11 @@ export const AboutTab = ({
         </Label>
         <div className={classes.createdBy}>
           <PersonCircleIcon className={classes.createdByIcon} />
-          <Paragraph size='small' className={classes.createdByParagraph}>
+          <Paragraph size='small' className={classes.createdByText}>
             {createdBy}
           </Paragraph>
         </div>
-        <Paragraph size='small' className={classes.dateParagraph}>
+        <Paragraph size='small' className={classes.createdDate}>
           {t('settings_modal.about_tab_created_date', {
             date: formatDateToDateAndTimeString(repository.created_at),
           })}

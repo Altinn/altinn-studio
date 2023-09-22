@@ -10,5 +10,5 @@ export interface Commit {
 export interface CommitAuthor {
   email: string;
   name: string;
-  when: any;
+  when: Date;
 }

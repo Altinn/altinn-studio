@@ -44,6 +44,7 @@ export const SettingsModalButton = (): ReactNode => {
     data: initialCommitData,
     error: initialCommitError,
   } = useRepoInitialCommitQuery(org, app);
+  console.log(initialCommitData);
   const {
     status: appMetadataStatus,
     data: appMetadataData,
@@ -61,7 +62,7 @@ export const SettingsModalButton = (): ReactNode => {
       appConfigStatus,
       appMetadataStatus,
       repositoryStatus,
-      initialCommitStatus
+      initialCommitStatus,
     )
   ) {
     case 'loading': {
