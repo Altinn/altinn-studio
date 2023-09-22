@@ -3,12 +3,7 @@ import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { Modal } from 'app-shared/components/Modal';
 import { TrashIcon } from '@navikt/aksel-icons';
-import {
-  Button,
-  Heading,
-  Paragraph,
-  LegacyTextField as TextField,
-} from '@digdir/design-system-react';
+import { Button, Heading, Paragraph, Textfield } from '@digdir/design-system-react';
 
 export type DeleteModalProps = {
   /**
@@ -80,8 +75,9 @@ export const DeleteModal = ({
         <Paragraph size='small' spacing>
           {t('settings_modal.local_changes_tab_delete_modal_text')}
         </Paragraph>
-        <TextField
+        <Textfield
           label={t('settings_modal.local_changes_tab_delete_modal_textfield_label')}
+          size='small'
           value={nameToDelete}
           onChange={(e) => setNameToDelete(e.target.value)}
         />

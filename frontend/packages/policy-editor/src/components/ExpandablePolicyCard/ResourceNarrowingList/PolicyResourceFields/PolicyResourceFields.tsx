@@ -79,6 +79,7 @@ export const PolicyResourceFields = ({
           )}
           <Textfield
             value={valueType}
+            size='small'
             onChange={(e) => onChangeType(e.target.value)}
             readOnly={!canEditTypeAndId}
             onBlur={onBlur}
@@ -93,6 +94,7 @@ export const PolicyResourceFields = ({
           )}
           <Textfield
             value={valueId}
+            size='small'
             onChange={(e) => onChangeId(e.target.value)}
             readOnly={!canEditTypeAndId}
             onBlur={onBlur}
