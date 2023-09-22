@@ -389,7 +389,7 @@ const common = {
           .optional({ default: false })
           .setTitle('Read only/disabled?')
           .setDescription(
-            'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false.',
+            'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
           ),
       ),
       new CG.prop(
