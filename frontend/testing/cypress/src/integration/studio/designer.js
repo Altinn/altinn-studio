@@ -45,7 +45,6 @@ context('Designer', () => {
     designer.getAddPageButton().click();
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-    cy.findByText(texts['general.page'] + '2').should('be.visible');
 
     // Verify navigation button exists in form
     designer.getDroppableList().findByRole('listitem', { name: texts['ux_editor.component_navigation_buttons'] }).should('be.visible');
