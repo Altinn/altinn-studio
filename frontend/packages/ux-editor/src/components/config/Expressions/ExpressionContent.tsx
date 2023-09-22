@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Expression,
   SubExpression,
@@ -6,7 +6,7 @@ import {
   expressionPropertyTexts,
   Operator,
 } from '../../../types/Expressions';
-import { Button, Select } from '@digdir/design-system-react';
+import { Button, Select, Switch } from '@digdir/design-system-react';
 import { CheckmarkIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { Trans } from 'react-i18next';
 import classes from './ExpressionContent.module.css';
@@ -14,6 +14,8 @@ import {
   addProperty,
   addSubExpressionToExpression,
   complexExpressionIsSet,
+  convertInternalExpressionToExternal,
+  isStudioFriendlyExpression, tryParseExpression,
   updateComplexExpression,
   updateExpression,
   updateOperator
@@ -22,6 +24,7 @@ import { useText } from '../../../hooks';
 import { ComplexExpression } from './ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
+import { stringifyData } from '../../../utils/jsonUtils';
 
 export interface ExpressionContentProps {
   componentName: string;
@@ -50,8 +53,9 @@ export const ExpressionContent = ({
   onRemoveSubExpression,
   onEditExpression,
 }: ExpressionContentProps) => {
+  const [freeStyleEditing, setFreeStyleEditing] = useState<boolean>(!!expression.complexExpression);
   const t = useText();
-  
+
   const allowToSpecifyExpression = Object.values(onGetProperties(expression).expressionProperties).includes(expression.property);
   const allowToSaveExpression = (
     expression.subExpressions?.filter(subExp => !subExp.function)?.length === 0
@@ -64,6 +68,8 @@ export const ExpressionContent = ({
     && !!expression.property
   );
   const propertiesList = onGetProperties(expression).availableProperties;
+  const externalExpression = convertInternalExpressionToExternal(expression);
+  const isStudioFriendly = isStudioFriendlyExpression(tryParseExpression(expression, externalExpression).complexExpression);
 
   const addPropertyToExpression = (property: string) => {
     const newExpression: Expression = addProperty(expression, property);
@@ -90,10 +96,30 @@ export const ExpressionContent = ({
     onUpdateExpression(newExpression);
   };
 
+  const handleToggleFreeStyleEditing = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFreeStyleEditing(event.target.checked);
+    if (event.target.checked) {
+      const stringRepresentationOfExpression = stringifyData(externalExpression);
+      updateExpressionComplexExpression(stringRepresentationOfExpression);
+    } else {
+      updateExpressionComplexExpression(undefined);
+    }
+  };
+
+
   return (
     <>
       {expressionInEditMode ? (
         <div className={classes.editMode}>
+          <Switch
+              name={'Expression_enable_free_style_editing'}
+              onChange={handleToggleFreeStyleEditing}
+              checked={freeStyleEditing}
+              size={'small'}
+              readOnly={!isStudioFriendly}
+          >
+            {t('right_menu.expression_enable_free_style_editing')}
+          </Switch>
           <div className={classes.topBar}>
             <p>
               <Trans
@@ -127,6 +153,7 @@ export const ExpressionContent = ({
             <ComplexExpression
               expression={expression}
               onChange={updateExpressionComplexExpression}
+              isStudioFriendly={isStudioFriendly}
             />
           ) : (
             <SimpleExpression
