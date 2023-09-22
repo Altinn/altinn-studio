@@ -21,7 +21,6 @@ export const SchemaEditorWithToolbar = ({
 
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
   const modelName = selectedOption?.label;
-  
 
   return (
     <div className={classes.root}>

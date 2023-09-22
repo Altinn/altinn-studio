@@ -9,7 +9,6 @@ import * as testids from '../../../../testing/testids';
 import { toast } from 'react-toastify';
 import { Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import {QueryKey} from "app-shared/types/QueryKey";
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -41,8 +40,8 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
       onSuccess: () => {
         onCloseWrapper();
         toast.success(t('administration.reset_repo_completed'));
-        queryClient.invalidateQueries([QueryKey.DatamodelsXsd, QueryKey.DatamodelsJson]);
-      },
+        queryClient.removeQueries();
+      }
     });
   };
 

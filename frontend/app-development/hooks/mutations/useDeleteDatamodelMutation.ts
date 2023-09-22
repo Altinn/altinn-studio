@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { isXsdFile } from "app-shared/utils/filenameUtils";
 
 export const useDeleteDatamodelMutation = () => {
   const { deleteDatamodel } = useServicesContext();
@@ -10,7 +11,9 @@ export const useDeleteDatamodelMutation = () => {
   return useMutation({
     mutationFn: async (modelPath: string) => {
       await deleteDatamodel(org, app, modelPath);
+      const respectiveFileNameInXsdOrJson = isXsdFile(modelPath) ? modelPath.replace('.xsd', '.schema.json') : modelPath.replace('.schema.json', '.xsd');
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], undefined);
+      queryClient.setQueryData([QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson], undefined);
       await Promise.all([
         queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
         queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),

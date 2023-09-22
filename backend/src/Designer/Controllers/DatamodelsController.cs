@@ -165,8 +165,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                IList<AltinnCoreFile> schemaFiles =
-                    _schemaModelService.GetSchemaFiles(org, repository, developer, true);
+                IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
 
                 return Ok(schemaFiles);
             }
@@ -198,9 +197,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            string jsonSchema =
-                await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName,
-                    thefile.OpenReadStream());
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
         }
@@ -255,17 +252,24 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("xsd-from-repo")]
         public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
         {
-            Guard.AssertArgumentNotNull(filePath, nameof(filePath));
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
+            try
+            {
+                Guard.AssertArgumentNotNull(filePath, nameof(filePath));
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
-            string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
-            var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            string modelName = Path.GetFileName(filePath);
-            string jsonSchema =
-                await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
+                string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+                var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+                string modelName = Path.GetFileName(filePath);
+                string jsonSchema =
+                    await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
 
-            return Created(filePath, jsonSchema);
+                return Created(filePath, jsonSchema);
+            }
+            catch (IOException)
+            {
+                return NotFound();
+            }
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
