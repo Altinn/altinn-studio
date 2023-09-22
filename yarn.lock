@@ -4385,31 +4385,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/cypress@npm:9.0.0":
-  version: 9.0.0
-  resolution: "@testing-library/cypress@npm:9.0.0"
+"@testing-library/cypress@npm:10.0.1":
+  version: 10.0.1
+  resolution: "@testing-library/cypress@npm:10.0.1"
   dependencies:
     "@babel/runtime": ^7.14.6
-    "@testing-library/dom": ^8.1.0
+    "@testing-library/dom": ^9.0.0
   peerDependencies:
-    cypress: ^12.0.0
-  checksum: fbd24e8f0b8a60279b336de5f6bc0e7ad6fb31316eacab5128dacc7fccde1eb40935b90f2c3bddc7d814115fe3965c6dbf011785448cd15b5a5b0bc40ef5bb4c
-  languageName: node
-  linkType: hard
-
-"@testing-library/dom@npm:^8.1.0":
-  version: 8.19.0
-  resolution: "@testing-library/dom@npm:8.19.0"
-  dependencies:
-    "@babel/code-frame": ^7.10.4
-    "@babel/runtime": ^7.12.5
-    "@types/aria-query": ^4.2.0
-    aria-query: ^5.0.0
-    chalk: ^4.1.0
-    dom-accessibility-api: ^0.5.9
-    lz-string: ^1.4.4
-    pretty-format: ^27.0.2
-  checksum: 6bb93fef96703b6c47cf1b7cc8f71d402a9576084a94ba4e9926f51bd7bb1287fbb4f6942d82bd03fc6f3d998ae97e60f6aea4618f3a1ce6139597d2a4ecb7b9
+    cypress: ^12.0.0 || ^13.0.0
+  checksum: 737e16563844851e830786da1862ea2c29d9f67155d8d2ea4d5178c98b77621c67c89e47a91a633d36c0528adfff9592f7228a5f19666af9882c837eeacbd08e
   languageName: node
   linkType: hard
 
@@ -4508,13 +4492,6 @@ __metadata:
   version: 1.0.4
   resolution: "@tsconfig/node16@npm:1.0.4"
   checksum: 202319785901f942a6e1e476b872d421baec20cf09f4b266a1854060efbf78cde16a4d256e8bc949d31e6cd9a90f1e8ef8fb06af96a65e98338a2b6b0de0a0ff
-  languageName: node
-  linkType: hard
-
-"@types/aria-query@npm:^4.2.0":
-  version: 4.2.2
-  resolution: "@types/aria-query@npm:4.2.2"
-  checksum: 6f2ce11d91e2d665f3873258db19da752d91d85d3679eb5efcdf9c711d14492287e1e4eb52613b28e60375841a9e428594e745b68436c963d8bad4bf72188df3
   languageName: node
   linkType: hard
 
@@ -5887,7 +5864,7 @@ __metadata:
     "@reduxjs/toolkit": 1.9.5
     "@tanstack/react-query": ^4.29.3
     "@tanstack/react-query-devtools": ^4.29.3
-    "@testing-library/cypress": 9.0.0
+    "@testing-library/cypress": 10.0.1
     "@testing-library/jest-dom": 5.17.0
     "@testing-library/react": 14.0.0
     "@testing-library/user-event": 14.4.3

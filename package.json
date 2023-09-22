@@ -50,7 +50,7 @@
     "@percy/cypress": "^3.1.2",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.11",
     "@tanstack/react-query-devtools": "^4.29.3",
-    "@testing-library/cypress": "9.0.0",
+    "@testing-library/cypress": "10.0.1",
     "@testing-library/jest-dom": "5.17.0",
     "@testing-library/react": "14.0.0",
     "@testing-library/user-event": "14.4.3",
