@@ -13,12 +13,16 @@ import { IFormLayouts, LayoutItemType } from '../types/global';
 import { FormComponent } from '../types/FormComponent';
 import { SingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
+import { UseText } from '../hooks';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
-  const expressions: any[] = [];
+  const subExpressions: any[] = [];
+  if (!expression.subExpressions || expression.subExpressions.length === 0) {
+    return subExpressions;
+  }
   expression.subExpressions.map(subEXp => {
     const expressionObject = [];
     expressionObject[0] = subEXp.function;
@@ -42,12 +46,17 @@ export const convertInternalExpressionToExternal = (expression: Expression): any
     } else {
       expressionObject[2] = subEXp.comparableValue;
     }
-    expressions.push(expressionObject);
+    subExpressions.push(expressionObject);
   });
-  return expression.operator ? [expression.operator].concat(expressions) : expressions[0];
+  return expression.operator ? [expression.operator].concat(subExpressions) : subExpressions[0];
 };
 
 export const isStudioFriendlyExpression = (expression: any): boolean => {
+  
+  if (expression?.length === 0) {
+    // For building expressions free style from beginning
+    return true;
+  }
 
   const isStudioFriendlySubExpression = (subExp: any): boolean => {
     // SubExpression is Studio friendly if it is an array of three elements where the two last elements
@@ -265,12 +274,12 @@ export const addDataSourceValue = (expEl: SubExpression, dataSourceValue: string
   return newExpEl;
 };
 
-export const stringifyValueForDisplay = (dataSourceValue: string | boolean | number | undefined | null): string => {
+export const stringifyValueForDisplay = (t: UseText, dataSourceValue: string | boolean | number | undefined | null): string => {
   if (dataSourceValue === null || dataSourceValue === undefined) {
     return 'null';
   }
   else if (typeof dataSourceValue === 'boolean') {
-    return dataSourceValue ? 'true' : 'false';
+    return dataSourceValue ? t('general.true') : t('general.false');
   }
   return dataSourceValue.toString();
 };

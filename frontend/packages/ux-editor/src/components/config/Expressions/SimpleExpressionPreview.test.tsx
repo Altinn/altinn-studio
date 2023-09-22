@@ -22,7 +22,7 @@ describe('SimpleExpressionPreview', () => {
     expect(numberValueText).toBeInTheDocument();
     const booleanText = screen.getByText(textMock('right_menu.expressions_data_source_boolean'));
     expect(booleanText).toBeInTheDocument();
-    const booleanValueText = screen.getByText(internalExpressionWithMultipleSubExpressions.subExpressions[1].value as string);
+    const booleanValueText = screen.getByText(textMock('general.true'));
     expect(booleanValueText).toBeInTheDocument();
     const componentText = screen.getByText(textMock('right_menu.expressions_data_source_component'));
     expect(componentText).toBeInTheDocument();

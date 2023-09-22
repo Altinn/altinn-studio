@@ -5,7 +5,7 @@
   "dependencies": {
     "@microsoft/applicationinsights-react-js": "^17.0.0",
     "@microsoft/applicationinsights-web": "^3.0.2",
-    "@mui/material": "5.14.9",
+    "@mui/material": "5.14.10",
     "@reduxjs/toolkit": "1.9.5",
     "axios": "1.5.0",
     "classnames": "2.3.2",

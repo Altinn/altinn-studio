@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
-import { Button, LegacyCheckbox } from '@digdir/design-system-react';
+import { Alert, Button } from '@digdir/design-system-react';
 import classes from './ConditionalRendering.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { Trans } from 'react-i18next';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
-type ConditionalRenderingProps = {
-  onShowNewExpressions: (value: boolean) => void;
-  showNewExpressions: boolean;
-};
-
-export const ConditionalRendering = ({
-  onShowNewExpressions,
-  showNewExpressions,
-}: ConditionalRenderingProps) => {
+export const ConditionalRendering = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const t = useText();
   return (
-    <>
-      <div className={classes.conditionalRendering}>
+    <div className={classes.conditionalRendering}>
         <div>
+          <div className={classes.dynamicsVersionCheckBox}>
+            <Alert severity='warning'>
+            <span>
+              <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
+                <a
+                    href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+                    target='_newTab'
+                    rel='noopener noreferrer'
+                />
+              </Trans>
+            </span>
+            </Alert>
+            <Divider/>
+          </div>
           <div className={classes.header}>
             <span>{t('right_menu.rules_conditional_rendering')}</span>
             <Button
@@ -45,17 +51,5 @@ export const ConditionalRendering = ({
         <Divider marginless />
         <OldDynamicsInfo />
       </div>
-      {shouldDisplayFeature('expressions') && (
-        <div className={classes.dynamicsVersionCheckBox}>
-        <Divider />
-          <LegacyCheckbox
-            label={t('right_menu.show_new_dynamics')}
-            name={'checkbox-name'}
-            checked={showNewExpressions}
-            onChange={() => onShowNewExpressions(!showNewExpressions)}
-          />
-      </div>
-      )}
-    </>
   );
 };
