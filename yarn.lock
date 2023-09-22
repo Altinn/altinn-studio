@@ -1744,13 +1744,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "@digdir/design-system-tokens@npm:0.6.1"
-  checksum: b3866dd27831c0a9943f904e32a0e04da963dd70f183e947cbd54ff802b65a588388bef61e22215e02e79a2ff5ab4bd62a2be4116dd563f353877f02346f4619
-  languageName: node
-  linkType: hard
-
 "@discoveryjs/json-ext@npm:^0.5.0":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
