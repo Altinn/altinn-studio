@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { Label, Paragraph, Switch } from '@digdir/design-system-react';
-// import { Switch } from '../Switch';
 import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {
