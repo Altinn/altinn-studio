@@ -58,7 +58,7 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task CreateBranch_ConflictFromGitea_NullReturned()
+        public async Task CreateBranch_ConflictFromGitea_ThrowsException()
         {
             // Arrange
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
@@ -83,10 +83,7 @@ namespace Designer.Tests.Services
             GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);
 
             // Act
-            Branch actual = await sut.CreateBranch("ttd", "apps-test-2021", "master");
-
-            // Assert
-            Assert.Null(actual);
+            await Assert.ThrowsAsync<GiteaApiWrapperException>(() => sut.CreateBranch("ttd", "apps-test-2021", "master"));
         }
 
         [Fact]
