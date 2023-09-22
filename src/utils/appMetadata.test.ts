@@ -1,7 +1,6 @@
 import { instanceOwner, partyTypesAllowed } from 'src/__mocks__/constants';
 import {
   getCurrentDataTypeForApplication,
-  getCurrentDataTypeId,
   getCurrentTaskDataElementId,
   getLayoutSetIdForApplication,
   isStatelessApp,
@@ -50,6 +49,13 @@ describe('appMetadata.ts', () => {
         allowedContentTypes: ['application/xml'],
         appLogic: {},
         taskId: 'Task_1',
+        maxCount: 1,
+        minCount: 1,
+      },
+      {
+        id: 'Stateless',
+        allowedContentTypes: ['application/xml'],
+        appLogic: {},
         maxCount: 1,
         minCount: 1,
       },
@@ -124,7 +130,7 @@ describe('appMetadata.ts', () => {
       };
       const result = getCurrentDataTypeForApplication({
         application: statelessApplication,
-        instance: undefined,
+        instance: null,
         layoutSets,
       });
       const expected = 'Stateless';
@@ -138,6 +144,7 @@ describe('appMetadata.ts', () => {
       };
       const result = getCurrentDataTypeForApplication({
         application: statelessApplication,
+        instance: null,
         layoutSets,
       });
       const expected = 'Stateless';
@@ -157,7 +164,7 @@ describe('appMetadata.ts', () => {
         ...application,
         onEntry: { show: 'stateless' },
       };
-      const result = getLayoutSetIdForApplication(statelessApplication, undefined, layoutSets);
+      const result = getLayoutSetIdForApplication(statelessApplication, null, layoutSets);
       const expected = 'stateless';
       expect(result).toEqual(expected);
     });
@@ -196,7 +203,7 @@ describe('appMetadata.ts', () => {
   describe('getCurrentDataTypeId', () => {
     it('should return connected dataTypeId in app metadata if no layout set is configured', () => {
       const layoutSets: ILayoutSets = { sets: [] };
-      const result = getCurrentDataTypeId(application, instance, layoutSets);
+      const result = getCurrentDataTypeForApplication({ application, instance, layoutSets });
       const expected = 'Datamodel';
       expect(result).toEqual(expected);
     });
@@ -227,7 +234,7 @@ describe('appMetadata.ts', () => {
         ],
       };
 
-      const result = getCurrentDataTypeId(application, instanceInConfirm, layoutSets);
+      const result = getCurrentDataTypeForApplication({ application, instance: instanceInConfirm, layoutSets });
       const expected = 'Datamodel-for-confirm';
       expect(result).toEqual(expected);
     });

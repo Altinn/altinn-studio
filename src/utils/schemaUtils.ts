@@ -1,17 +1,25 @@
 import JsonPointer from 'jsonpointer';
 
-export const getRootElementPath = (schema: any) => {
+import type { IDataType } from 'src/types/shared';
+
+export const getRootElementPath = (schema: any, dataType: IDataType | undefined) => {
   if (![null, undefined].includes(schema.info?.rootNode)) {
     // If rootNode is defined in the schema
     return schema.info.rootNode;
-  } else if (schema.info?.meldingsnavn && schema.properties) {
+  }
+  if (schema.info?.meldingsnavn && schema.properties) {
     // SERES workaround
     return schema.properties[schema.info.meldingsnavn]?.$ref || '';
-  } else if (schema.properties) {
-    // Expect first property to contain $ref to schema
-    const rootKey: string = Object.keys(schema.properties)[0];
-    return schema.properties[rootKey].$ref;
   }
+
+  const classRef = dataType?.appLogic?.classRef?.replace('Altinn.App.Models.', '');
+  if (classRef && schema.$defs?.[classRef]) {
+    return `#/$defs/${classRef}`;
+  }
+  if (classRef && schema.definitions?.[classRef]) {
+    return `#/definitions/${classRef}`;
+  }
+
   return '';
 };
 

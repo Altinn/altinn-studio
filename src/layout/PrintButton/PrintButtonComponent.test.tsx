@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { PrintButtonComponent } from 'src/layout/PrintButton/PrintButtonComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
 const render = (component: Partial<CompExternal<'PrintButton'>> = {}) => {

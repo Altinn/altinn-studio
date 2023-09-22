@@ -4,8 +4,8 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 describe('TextAreaComponent.tsx', () => {
   const user = userEvent.setup();

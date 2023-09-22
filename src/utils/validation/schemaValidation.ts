@@ -13,8 +13,10 @@ import {
   getSchemaPartOldGenerator,
   processInstancePath,
 } from 'src/utils/schemaUtils';
+import type { IJsonSchemas } from 'src/features/datamodel';
 import type { IFormData } from 'src/features/formData';
 import type { ValidLanguageKey } from 'src/hooks/useLanguage';
+import type { IDataType } from 'src/types/shared';
 import type { IValidationContext } from 'src/utils/validation/types';
 
 export interface ISchemaValidator {
@@ -39,14 +41,14 @@ export type ISchemaValidationError = {
 
 const validators: ISchemaValidators = {};
 
-export function getValidator(currentDataTaskTypeId, schemas) {
-  if (!validators[currentDataTaskTypeId]) {
-    validators[currentDataTaskTypeId] = createValidator(schemas[currentDataTaskTypeId]);
+export function getValidator(typeId: string, schemas: IJsonSchemas, dataType: IDataType) {
+  if (!validators[typeId]) {
+    validators[typeId] = createValidator(schemas[typeId], dataType);
   }
-  return validators[currentDataTaskTypeId];
+  return validators[typeId];
 }
 
-export function createValidator(schema: any): ISchemaValidator {
+export function createValidator(schema: any, dataType: IDataType): ISchemaValidator {
   const ajvOptions: Options = {
     allErrors: true,
     coerceTypes: true,
@@ -67,26 +69,18 @@ export function createValidator(schema: any): ISchemaValidator {
     unicodeRegExp: false,
     code: { es5: true },
   };
-  let ajv: AjvCore.default;
-  const rootElementPath = getRootElementPath(schema);
-  if (schema.$schema?.includes('2020-12')) {
-    // we have to use a different ajv-instance for 2020-12 draft
-    // here we actually validate against the root json-schema object
-    ajv = new Ajv2020(ajvOptions);
-  } else {
-    // leave existing schemas untouched. Here we actually validate against a sub schema with the name of the model
-    // for instance "skjema"
-    ajv = new Ajv(ajvOptions);
-  }
+
+  const ajv = schema.$schema?.includes('2020-12') ? new Ajv2020(ajvOptions) : new Ajv(ajvOptions);
   addFormats(ajv);
   addAdditionalFormats(ajv);
   ajv.addFormat('year', /^\d{4}$/);
   ajv.addFormat('year-month', /^\d{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
+
   return {
     validator: ajv,
     schema,
-    rootElementPath,
+    rootElementPath: getRootElementPath(schema, dataType),
   };
 }
 
@@ -212,7 +206,12 @@ export function getSchemaValidationErrors(
     instance,
     layoutSets,
   });
-  const { validator, rootElementPath, schema } = getValidator(currentDataTaskDataTypeId, schemas);
+  const dataType = application?.dataTypes.find((d) => d.id === currentDataTaskDataTypeId);
+  if (!currentDataTaskDataTypeId || !dataType) {
+    return [];
+  }
+
+  const { validator, rootElementPath, schema } = getValidator(currentDataTaskDataTypeId, schemas, dataType);
   const formDataToValidate = { ...formData, ...overrideFormData };
   const model = convertDataBindingToModel(formDataToValidate);
   const valid = validator.validate(`schema${rootElementPath}`, model);

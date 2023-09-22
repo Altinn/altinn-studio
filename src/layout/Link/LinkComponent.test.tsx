@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { LinkComponent } from 'src/layout/Link/LinkComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
 describe('LinkComponent', () => {

@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 
 const render = (props = {}) => {
   const allProps = {

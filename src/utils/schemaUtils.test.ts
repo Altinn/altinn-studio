@@ -1,6 +1,10 @@
+import fs from 'node:fs';
+
 import * as complexSchema from 'src/__mocks__/json-schema/complex.json';
 import * as oneOfOnRootSchema from 'src/__mocks__/json-schema/one-of-on-root.json';
 import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
+import { lookupPropertiesInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
+import { ensureAppsDirIsSet, getAllLayoutSetsWithDataModelSchema, parseJsonTolerantly } from 'src/test/allApps';
 import { getRootElementPath, getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
 
 describe('schemaUtils', () => {
@@ -22,7 +26,7 @@ describe('schemaUtils', () => {
         },
       };
       it('should return empty string as root element path when no properties node is present', () => {
-        const result = getRootElementPath(schema);
+        const result = getRootElementPath(schema, undefined);
         expect(result).toEqual('');
       });
 
@@ -39,11 +43,11 @@ describe('schemaUtils', () => {
             },
           },
         };
-        const result = getRootElementPath(useSchema);
+        const result = getRootElementPath(useSchema, undefined);
         expect(result).toEqual('#/$defs/Test');
       });
 
-      it('should return path under first property when properties node is present with no info node', () => {
+      it('should not return path under first property when properties node is present with no info node', () => {
         const useSchema = {
           ...schema,
           properties: {
@@ -52,8 +56,8 @@ describe('schemaUtils', () => {
             },
           },
         };
-        const result = getRootElementPath(useSchema);
-        expect(result).toEqual('#/$defs/Test');
+        const result = getRootElementPath(useSchema, undefined);
+        expect(result).toEqual('');
       });
     });
 
@@ -81,13 +85,13 @@ describe('schemaUtils', () => {
             meldingsnavn: 'melding',
           },
         };
-        const result = getRootElementPath(useSchema);
+        const result = getRootElementPath(useSchema, undefined);
         expect(result).toEqual('#/definitions/Test');
       });
 
-      it('should return path under first property when properties node is present with no info node', () => {
-        const result = getRootElementPath(schema);
-        expect(result).toEqual('#/definitions/Test');
+      it('should not return path under first property when properties node is present with no info node', () => {
+        const result = getRootElementPath(schema, undefined);
+        expect(result).toEqual('');
       });
     });
 
@@ -111,9 +115,62 @@ describe('schemaUtils', () => {
         },
       };
       it('should return the value set in root node', () => {
-        const result = getRootElementPath(schema);
+        const result = getRootElementPath(schema, undefined);
         expect(result).toEqual('#/$defs/Test');
       });
+    });
+  });
+
+  describe('getRootElementPath (in real apps)', () => {
+    const dir = ensureAppsDirIsSet();
+    if (!dir) {
+      return;
+    }
+
+    const { out: allLayoutSets } = getAllLayoutSetsWithDataModelSchema(dir);
+    it.each(allLayoutSets)('$appName/$dataType', ({ setName, layouts, modelPath, dataTypeDef }) => {
+      if (!dataTypeDef) {
+        throw new Error(`No data type found for ${modelPath}`);
+      }
+
+      const schema = parseJsonTolerantly(fs.readFileSync(modelPath, 'utf-8'));
+      const rootPath = getRootElementPath(schema, dataTypeDef);
+      const availableProperties = lookupPropertiesInSchema(schema, rootPath);
+      const availablePropertiesOnRoot = lookupPropertiesInSchema(schema, '');
+
+      let availablePropertiesOnFirstProperty = new Set<string>();
+      if (schema.properties && typeof schema.properties === 'object') {
+        const firstProperty = Object.keys(schema.properties)[0];
+        if ((firstProperty as any).$ref) {
+          availablePropertiesOnFirstProperty = lookupPropertiesInSchema(schema, firstProperty);
+        }
+      }
+
+      const notFound: string[] = [];
+      for (const [pageKey, layout] of Object.entries(layouts)) {
+        for (const component of layout || []) {
+          if ('dataModelBindings' in component && component.dataModelBindings) {
+            for (const binding of Object.values(component.dataModelBindings)) {
+              const firstLeg = binding.split('.')[0];
+              const foundInPath = availableProperties.has(firstLeg);
+              const foundInRoot = availablePropertiesOnRoot.has(firstLeg);
+              const foundInFirstProperty = availablePropertiesOnFirstProperty.has(firstLeg);
+              const location = `Used in ${setName}/${pageKey}/${component.id} (${component.type}) (binding = ${binding})`;
+              if (!foundInPath && foundInRoot) {
+                notFound.push(
+                  [`${firstLeg} was found in the root of the schema, but not in ${rootPath}.`, location].join(' '),
+                );
+              } else if (!foundInPath && foundInFirstProperty) {
+                notFound.push(
+                  [`${firstLeg} was found in the first property of the schema, but not in ${rootPath}.`, ''].join(' '),
+                );
+              }
+            }
+          }
+        }
+      }
+
+      expect(notFound).toEqual([]);
     });
   });
 

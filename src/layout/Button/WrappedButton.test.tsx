@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 
 const buttonText = 'the button';
 

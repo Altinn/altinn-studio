@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { RootState } from 'src/redux/store';

@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { Accordion } from 'src/layout/Accordion/Accordion';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 describe('Accordion', () => {
   it('should display text from textResourceBindings', async () => {

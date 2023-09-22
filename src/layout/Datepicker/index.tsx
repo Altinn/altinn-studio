@@ -9,6 +9,7 @@ import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
+import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
 import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -93,5 +94,9 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
       }
     }
     return validationObjects;
+  }
+
+  validateDataModelBindings(ctx: LayoutValidationCtx<'Datepicker'>): string[] {
+    return this.validateDataModelBindingsSimple(ctx);
   }
 }

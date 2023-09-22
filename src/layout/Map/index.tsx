@@ -1,8 +1,10 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { MapDef } from 'src/layout/Map/config.def.generated';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
+import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -22,5 +24,9 @@ export class Map extends MapDef {
 
   renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {
     return <MapComponentSummary targetNode={targetNode} />;
+  }
+
+  validateDataModelBindings(ctx: LayoutValidationCtx<'Map'>): string[] {
+    return this.validateDataModelBindingsSimple(ctx);
   }
 }

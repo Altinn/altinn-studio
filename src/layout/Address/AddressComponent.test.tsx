@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'AddressComponent'>> = {}) => {
   renderGenericComponentTest({

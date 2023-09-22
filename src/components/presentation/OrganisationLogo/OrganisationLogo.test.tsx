@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 import { appMetadataMock } from 'src/__mocks__/applicationMetadataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 
 const renderComponent = (logo: IApplicationMetadata['logo']) =>

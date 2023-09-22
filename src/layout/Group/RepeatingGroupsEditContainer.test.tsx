@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { getMultiPageGroupMock } from 'src/__mocks__/formLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { TextResourceMap } from 'src/features/textResources';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';

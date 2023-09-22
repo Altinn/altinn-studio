@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SoftValidations } from 'src/components/form/SoftValidations';
 import { FormComponentContext } from 'src/layout';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { ISoftValidationProps, SoftValidationVariant } from 'src/components/form/SoftValidations';
 import type { IFormComponentContext } from 'src/layout';
 import type { IRuntimeState } from 'src/types';

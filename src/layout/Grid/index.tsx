@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { GridDef } from 'src/layout/Grid/config.def.generated';
 import { RenderGrid } from 'src/layout/Grid/GridComponent';
@@ -30,5 +31,9 @@ export class Grid extends GridDef {
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'Grid'> {
     return this._hierarchyGenerator;
+  }
+
+  validateDataModelBindings(): string[] {
+    return [];
   }
 }

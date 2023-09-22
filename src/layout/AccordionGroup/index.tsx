@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { AccordionGroup as AccordionGroupComponent } from 'src/layout/AccordionGroup/AccordionGroup';
 import { AccordionGroupDef } from 'src/layout/AccordionGroup/config.def.generated';
@@ -12,7 +13,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export class AccordionGroup extends AccordionGroupDef {
   private _hierarchyGenerator = new AccordionGroupHierarchyGenerator();
 
-  render(props: PropsFromGenericComponent<'AccordionGroup'>): React.JSX.Element | null {
+  render(props: PropsFromGenericComponent<'AccordionGroup'>): JSX.Element | null {
     return <AccordionGroupComponent {...props} />;
   }
 
@@ -34,5 +35,9 @@ export class AccordionGroup extends AccordionGroupDef {
 
   getDisplayData(): string {
     return '';
+  }
+
+  validateDataModelBindings(): string[] {
+    return [];
   }
 }

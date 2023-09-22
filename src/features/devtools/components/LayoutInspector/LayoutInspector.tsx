@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { Button } from '@digdir/design-system-react';
+import { Alert, Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -11,7 +11,9 @@ import { SplitView } from 'src/features/devtools/components/SplitView/SplitView'
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
+import { useLayoutValidationCurrentPage } from 'src/features/layoutValidation/useLayoutValidationCurrentPage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 
 export const LayoutInspector = () => {
@@ -36,6 +38,7 @@ export const LayoutInspector = () => {
 
   const currentLayout = layouts?.[currentView];
   const matchingNodes = selectedComponent ? nodes?.findAllById(selectedComponent) || [] : [];
+  const validationErrors = useLayoutValidationCurrentPage();
 
   useEffect(() => {
     setSelectedComponent(undefined);
@@ -115,6 +118,7 @@ export const LayoutInspector = () => {
               key={component.id}
               component={component}
               selected={selectedComponent === component.id}
+              hasErrors={validationErrors[component.id] !== undefined}
               onClick={() => setSelectedComponent(component.id)}
             />
           ))}
@@ -124,6 +128,20 @@ export const LayoutInspector = () => {
         <div className={classes.properties}>
           <div className={classes.header}>
             <h3>Egenskaper</h3>
+            {validationErrors[selectedComponent] && (
+              <Alert
+                className={classes.errorAlert}
+                severity={'warning'}
+              >
+                <div className={classes.errorList}>
+                  <ul>
+                    {validationErrors[selectedComponent].map((error) => (
+                      <li key={error}>{getParsedLanguageFromText(error)}</li>
+                    ))}
+                  </ul>
+                </div>
+              </Alert>
+            )}
             <div className={classes.headerLink}>
               {matchingNodes.length === 0 && 'Ingen aktive komponenter funnet'}
               {matchingNodes.map((node) => (

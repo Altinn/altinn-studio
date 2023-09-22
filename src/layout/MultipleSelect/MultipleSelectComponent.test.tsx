@@ -3,8 +3,8 @@ import React from 'react';
 import { act, screen, within } from '@testing-library/react';
 
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const dummyLabel = 'dummyLabel';
 

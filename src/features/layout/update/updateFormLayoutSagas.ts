@@ -10,12 +10,7 @@ import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
 import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import {
-  getCurrentDataTypeForApplication,
-  getCurrentDataTypeId,
-  getCurrentTaskDataElementId,
-  isStatelessApp,
-} from 'src/utils/appMetadata';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
@@ -189,8 +184,6 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
     const state: IRuntimeState = yield select();
     const layoutSets = state.formLayout.layoutsets;
     const currentView = state.formLayout.uiConfig.currentView;
-    let layoutSetId: string | null = null;
-    let dataTypeId: string | null = null;
     const formData = convertDataBindingToModel(state.formData.formData);
 
     if (!state.applicationMetadata.applicationMetadata) {
@@ -202,19 +195,19 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
       return;
     }
 
+    let layoutSetId: string | null = null;
+    const dataTypeId =
+      getCurrentDataTypeForApplication({
+        application: state.applicationMetadata.applicationMetadata,
+        instance: state.instanceData.instance,
+        layoutSets: state.formLayout.layoutsets,
+      }) || null;
+
     const appIsStateless = isStatelessApp(state.applicationMetadata.applicationMetadata);
     if (appIsStateless) {
-      dataTypeId =
-        getCurrentDataTypeForApplication({
-          application: state.applicationMetadata.applicationMetadata,
-          layoutSets: state.formLayout.layoutsets || undefined,
-        }) || null;
       layoutSetId = state.applicationMetadata.applicationMetadata.onEntry?.show || null;
     } else {
       const instance = state.instanceData.instance;
-      dataTypeId =
-        getCurrentDataTypeId(state.applicationMetadata.applicationMetadata, instance, state.formLayout.layoutsets) ||
-        null;
       if (layoutSets != null) {
         layoutSetId = getLayoutsetForDataElement(instance, dataTypeId || undefined, layoutSets) || null;
       }

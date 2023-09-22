@@ -1,10 +1,12 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getFieldName } from 'src/utils/formComponentUtils';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
+import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -58,5 +60,28 @@ export class List extends ListDef {
       validationObjects.push(buildValidationObject(node, 'errors', message));
     }
     return validationObjects;
+  }
+
+  validateDataModelBindings(ctx: LayoutValidationCtx<'List'>): string[] {
+    const possibleBindings = Object.keys(ctx.node.item.tableHeaders || {});
+
+    const errors: string[] = [];
+    for (const binding of possibleBindings) {
+      if (possibleBindings.includes(binding)) {
+        const [newErrors] = this.validateDataModelBindingsAny(
+          ctx,
+          binding,
+          ['string', 'number', 'integer', 'boolean'],
+          false,
+        );
+        errors.push(...(newErrors || []));
+      } else {
+        errors.push(
+          `Bindingen ${binding} er ikke gyldig for denne komponenten. Gyldige bindinger er definert i 'tableHeaders'`,
+        );
+      }
+    }
+
+    return errors;
   }
 }

@@ -5,8 +5,9 @@ import userEvent from '@testing-library/user-event';
 
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
-import { mockMediaQuery, renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { mockMediaQuery } from 'src/test/mockMediaQuery';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const { setScreenWidth } = mockMediaQuery(600);
 

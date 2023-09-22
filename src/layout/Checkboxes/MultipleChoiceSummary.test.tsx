@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IMultipleChoiceSummaryProps } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 
 describe('MultipleChoiceSummary', () => {

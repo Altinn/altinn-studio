@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react';
 
 import { instanceIdExample } from 'src/__mocks__/mocks';
 import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
-import { MemoryRouterWithRedirectingRoot } from 'src/testUtils';
+import { MemoryRouterWithRedirectingRoot } from 'src/test/memoryRouterWithRedirectingRoot';
 
 const TestComponent = () => {
   const { instanceId, partyId, instanceGuid } = useInstanceIdParams();

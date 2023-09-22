@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { appMetadataMock } from 'src/__mocks__/applicationMetadataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IParty } from 'src/types/shared';
 

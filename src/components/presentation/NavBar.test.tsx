@@ -8,7 +8,7 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { NavBar } from 'src/components/presentation/NavBar';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { TextResourceMap } from 'src/features/textResources';
 import type { IAppLanguage } from 'src/types/shared';
 

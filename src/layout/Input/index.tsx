@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { formatNumericText } from '@digdir/design-system-react';
 
@@ -6,6 +7,7 @@ import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -39,5 +41,9 @@ export class Input extends InputDef {
   renderSummary({ targetNode }: SummaryRendererProps<'Input'>): JSX.Element | null {
     const displayData = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
+  }
+
+  validateDataModelBindings(ctx: LayoutValidationCtx<'Input'>): string[] {
+    return this.validateDataModelBindingsSimple(ctx);
   }
 }

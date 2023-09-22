@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IDropzoneComponentProps } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 
 describe('DropzoneComponent', () => {

@@ -6,7 +6,6 @@ import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 
 export const initialState: IDevToolsState = {
   isOpen: false,
-  hasBeenOpen: false,
   pdfPreview: false,
   hiddenComponents: 'hide',
   activeTab: DevToolsTab.General,
@@ -33,7 +32,6 @@ export const devToolsSlice = () => {
       open: mkAction<void>({
         reducer: (state) => {
           state.isOpen = true;
-          state.hasBeenOpen = true;
         },
       }),
       close: mkAction<void>({

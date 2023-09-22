@@ -4,9 +4,9 @@ import { screen } from '@testing-library/react';
 
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 describe('NavigationButton', () => {
   const navButton1: CompNavigationButtonsExternal = {

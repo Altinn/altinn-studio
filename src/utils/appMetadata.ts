@@ -3,8 +3,46 @@ import { getLayoutsetForDataElement } from 'src/utils/layout';
 import type { ILayoutSets } from 'src/types';
 import type { IApplication, IInstance } from 'src/types/shared';
 
-export function getDataTypeByLayoutSetId(layoutSetId: string | undefined, layoutSets: ILayoutSets | undefined | null) {
-  return layoutSets?.sets.find((set) => set.id === layoutSetId)?.dataType;
+export function getDataTypeByLayoutSetId(
+  layoutSetId: string | undefined,
+  layoutSets: ILayoutSets | undefined | null,
+  appMetaData: IApplication | null,
+) {
+  const typeFromLayoutSet = layoutSets?.sets.find((set) => set.id === layoutSetId)?.dataType;
+  if (typeFromLayoutSet && appMetaData?.dataTypes.find((element) => element.id === typeFromLayoutSet)) {
+    return typeFromLayoutSet;
+  }
+
+  return undefined;
+}
+
+export function getDataTypeByTaskId(
+  taskId: string | undefined,
+  application: IApplication | null,
+  layoutSets: ILayoutSets | null | undefined,
+) {
+  if (!taskId) {
+    return undefined;
+  }
+
+  const typeFromLayoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(taskId))?.dataType;
+  const foundInMetaData = application?.dataTypes.find((element) => element.id === typeFromLayoutSet);
+  if (typeFromLayoutSet && !foundInMetaData) {
+    window.logError(
+      `Could not find data type '${typeFromLayoutSet}' from layout-set configuration in application metadata`,
+    );
+  }
+  if (typeFromLayoutSet && foundInMetaData) {
+    return typeFromLayoutSet;
+  }
+
+  const firstInTask = application?.dataTypes.find((element) => element.appLogic?.classRef && element.taskId === taskId)
+    ?.id;
+  if (firstInTask) {
+    return firstInTask;
+  }
+
+  return undefined;
 }
 
 /**
@@ -21,8 +59,8 @@ export const onEntryValuesThatHaveState: string[] = ['new-instance', 'select-ins
  */
 export function getLayoutSetIdForApplication(
   application: IApplication,
-  instance?: IInstance | null,
-  layoutSets?: ILayoutSets | null,
+  instance: IInstance | null,
+  layoutSets: ILayoutSets | null,
 ): string | undefined {
   const showOnEntry = application?.onEntry?.show;
   if (isStatelessApp(application)) {
@@ -35,14 +73,14 @@ export function getLayoutSetIdForApplication(
     return undefined;
   }
 
-  const dataType = getCurrentDataTypeId(application, instance, layoutSets);
+  const dataType = getCurrentDataTypeForApplication({ application, instance, layoutSets });
   return getLayoutsetForDataElement(instance, dataType, layoutSets);
 }
 
 interface IGetDataTypeForApplicationParams {
   application: IApplication | null;
-  instance?: IInstance | null;
-  layoutSets?: ILayoutSets | null;
+  instance: IInstance | null;
+  layoutSets: ILayoutSets | null;
 }
 
 /**
@@ -60,11 +98,16 @@ export function getCurrentDataTypeForApplication({
   const showOnEntry: string | undefined = application?.onEntry?.show;
   if (isStatelessApp(application)) {
     // we have a stateless app with a layout set
-    return getDataTypeByLayoutSetId(showOnEntry, layoutSets);
+    return getDataTypeByLayoutSetId(showOnEntry, layoutSets, application);
   }
 
-  // instance - get data element based on current process step
-  return getCurrentDataTypeId(application, instance, layoutSets);
+  // Instance - get data element based on current process step
+  const currentTaskId = instance?.process?.currentTask?.elementId;
+  if (currentTaskId === null || currentTaskId === undefined) {
+    return undefined;
+  }
+
+  return getDataTypeByTaskId(currentTaskId, application, layoutSets);
 }
 
 export function isStatelessApp(application: IApplication | null) {
@@ -80,36 +123,16 @@ export function isStatelessApp(application: IApplication | null) {
 }
 
 export const getCurrentTaskDataElementId = (
-  appMetaData: IApplication | null,
+  application: IApplication | null,
   instance: IInstance | null,
   layoutSets: ILayoutSets | null,
 ) => {
-  const currentDataTypeId = getCurrentDataTypeId(appMetaData, instance, layoutSets);
+  const currentDataTypeId = getCurrentDataTypeForApplication({ application, instance, layoutSets });
   const currentTaskDataElement = (instance?.data || []).find((element) => element.dataType === currentDataTypeId);
   return currentTaskDataElement?.id;
 };
 
-export const getCurrentTaskData = (appMetaData: IApplication, instance: IInstance, layoutSets: ILayoutSets) => {
-  const currentDataTypeId = getCurrentDataTypeId(appMetaData, instance, layoutSets);
+export const getCurrentTaskData = (application: IApplication, instance: IInstance, layoutSets: ILayoutSets) => {
+  const currentDataTypeId = getCurrentDataTypeForApplication({ application, instance, layoutSets });
   return instance.data.find((element) => element.dataType === currentDataTypeId);
-};
-
-/**
- * @deprecated Prefer getCurrentDataTypeForApplication() instead, as this function should be unexported - it does
- * not account for stateless apps.
- */
-export const getCurrentDataTypeId = (
-  appMetaData: IApplication | null,
-  instance?: IInstance | null,
-  layoutSets?: ILayoutSets | null,
-) => {
-  const currentTaskId = instance?.process?.currentTask?.elementId;
-  if (currentTaskId === null || currentTaskId === undefined) {
-    return undefined;
-  }
-
-  return (
-    layoutSets?.sets.find((set) => set.tasks?.includes(currentTaskId))?.dataType ||
-    appMetaData?.dataTypes.find((element) => element.appLogic?.classRef && element.taskId === currentTaskId)?.id
-  );
 };

@@ -3,9 +3,9 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { TextResourceMap } from 'src/features/textResources';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const jsonAttributeValue = { customKey: 'customValue' };
 

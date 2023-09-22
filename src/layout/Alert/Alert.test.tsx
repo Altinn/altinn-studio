@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { Alert } from 'src/layout/Alert/Alert';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompAlertInternal } from 'src/layout/Alert/config.generated';
 
 describe('Alert', () => {

@@ -6,7 +6,7 @@ import { getFormDataStateMock } from 'src/__mocks__/formDataStateMock';
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 

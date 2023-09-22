@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { CustomDef } from 'src/layout/Custom/config.def.generated';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
@@ -20,5 +21,9 @@ export class Custom extends CustomDef {
   renderSummary({ targetNode }: SummaryRendererProps<'Custom'>): JSX.Element | null {
     const displayData = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
+  }
+
+  validateDataModelBindings(): string[] {
+    return [];
   }
 }

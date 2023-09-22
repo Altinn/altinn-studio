@@ -66,20 +66,35 @@ describe('schemaValidation', () => {
         },
       },
     };
+    const dataType: IDataType = {
+      id: 'test',
+      maxCount: 1,
+      minCount: 1,
+      appLogic: {
+        classRef: 'Altinn.App.Models.SomeClassName',
+      },
+      allowedContentTypes: ['application/xml'],
+    };
 
     it('when receiving a 2020-12 draft schema it should create ajv2020 validator instance', () => {
-      const result = createValidator({
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        ...schema,
-      });
+      const result = createValidator(
+        {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          ...schema,
+        },
+        dataType,
+      );
       expect(result.validator).toBeInstanceOf(Ajv2020);
     });
 
     it('when receiving anything but 2020-12 draft schema it should create ajv validator instance', () => {
-      const result = createValidator({
-        $schema: 'http://json-schema.org/schema#',
-        ...schema,
-      });
+      const result = createValidator(
+        {
+          $schema: 'http://json-schema.org/schema#',
+          ...schema,
+        },
+        dataType,
+      );
       expect(result.validator).toBeInstanceOf(Ajv);
     });
   });
@@ -254,19 +269,9 @@ describe('schemaValidation', () => {
               $schema: 'https://json-schema.org/draft/2020-12/schema',
               type: 'object',
               properties: {
-                root: {
-                  $ref: '#/definitions/form',
-                },
-              },
-              definitions: {
-                form: {
-                  type: 'object',
-                  properties: {
-                    field: {
-                      type: 'string',
-                      format,
-                    },
-                  },
+                field: {
+                  type: 'string',
+                  format,
                 },
               },
             };

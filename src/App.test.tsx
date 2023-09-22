@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { App } from 'src/App';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 
 describe('App', () => {
   test('should render unknown error when hasApplicationSettingsError', async () => {

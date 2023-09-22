@@ -6,7 +6,7 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';

@@ -3,8 +3,8 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { ListComponent } from 'src/layout/List/ListComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const countries = [
   { Name: 'Norway', Population: 5, HighestMountain: 2469 },

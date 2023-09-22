@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 const submitBtnText = 'Submit form';
 

@@ -4,8 +4,8 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Dropdown'>> = {}) => {
   const countries = {

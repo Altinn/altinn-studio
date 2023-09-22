@@ -4,8 +4,9 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
-import { mockMediaQuery, renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { mockMediaQuery } from 'src/test/mockMediaQuery';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 // Mock dateformat
 jest.mock('src/utils/dateHelpers', () => ({

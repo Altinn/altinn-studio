@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
 describe('FileUploadComponent', () => {

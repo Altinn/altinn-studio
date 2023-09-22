@@ -7,7 +7,7 @@ import type { AxiosError } from 'axios';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { AppQueriesContext } from 'src/contexts/appQueriesContext';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IRuntimeState } from 'src/types';

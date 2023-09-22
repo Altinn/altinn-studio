@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 import { organisationMock } from 'src/__mocks__/organisationMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { AltinnAppHeader } from 'src/components/altinnAppHeader';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IHeaderProps } from 'src/components/altinnAppHeader';
 
 describe('AltinnAppHeader', () => {

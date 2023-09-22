@@ -2,10 +2,10 @@ import React from 'react';
 
 import dot from 'dot-object';
 
+import { useBindingSchema } from 'src/features/datamodel/useBindingSchema';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useBindingSchema } from 'src/hooks/useBindingSchema';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 interface Props {

@@ -33,14 +33,14 @@ function getCaseMapping(): ComponentTypeCaseMapping {
   return componentTypeCaseMapping;
 }
 
-export function cleanLayout(layout: ILayout): ILayout {
+export function cleanLayout(layout: ILayout, validateExpressions = true): ILayout {
   const mapping = getCaseMapping();
   const newLayout = layout.map((component) => ({
     ...component,
     type: mapping[component.type.toLowerCase()] || component.type,
   })) as ILayout;
 
-  preProcessLayout(newLayout);
+  validateExpressions && preProcessLayout(newLayout);
 
   return newLayout;
 }

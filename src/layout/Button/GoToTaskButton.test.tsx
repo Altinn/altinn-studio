@@ -4,8 +4,8 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Button'>> = {}) => {
   let spy;

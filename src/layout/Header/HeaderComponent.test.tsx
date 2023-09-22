@@ -4,8 +4,8 @@ import { fireEvent, screen } from '@testing-library/react';
 import ResizeObserverModule from 'resize-observer-polyfill';
 
 import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 (global as any).ResizeObserver = ResizeObserverModule;
 

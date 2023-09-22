@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { ErrorReport } from 'src/components/message/ErrorReport';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { IValidations } from 'src/utils/validation/types';
 

@@ -3,8 +3,8 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { MapComponent } from 'src/layout/Map/MapComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) =>
   renderGenericComponentTest({

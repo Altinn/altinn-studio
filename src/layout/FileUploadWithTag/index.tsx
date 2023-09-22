@@ -5,9 +5,11 @@ import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/Attach
 import { getUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.generated';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { attachmentIsMissingTag, attachmentsValid } from 'src/utils/validation/validation';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { IFormData } from 'src/features/formData';
+import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
 import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -65,5 +67,41 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements Component
       validations.push(buildValidationObject(node, 'errors', message));
     }
     return validations;
+  }
+
+  isDataModelBindingsRequired(node: LayoutNode<'FileUploadWithTag'>): boolean {
+    // Data model bindings are only required when the component is defined inside a repeating group
+    return !(node.parent instanceof LayoutPage) && node.parent.isType('Group') && node.parent.isRepGroup();
+  }
+
+  validateDataModelBindings(ctx: LayoutValidationCtx<'FileUploadWithTag'>): string[] {
+    const { node } = ctx;
+    const { dataModelBindings } = node.item;
+    const isRequired = this.isDataModelBindingsRequired(node);
+    const hasBinding = dataModelBindings && ('simpleBinding' in dataModelBindings || 'list' in dataModelBindings);
+
+    if (!isRequired && !hasBinding) {
+      return [];
+    }
+    if (isRequired && !hasBinding) {
+      return [
+        `En simpleBinding, eller list-datamodellbinding, er påkrevd for denne komponenten når den brukes ` +
+          `i en repeterende gruppe, men dette mangler i layout-konfigurasjonen.`,
+      ];
+    }
+
+    const simpleBinding =
+      dataModelBindings && 'simpleBinding' in dataModelBindings ? dataModelBindings.simpleBinding : undefined;
+    const listBinding = dataModelBindings && 'list' in dataModelBindings ? dataModelBindings.list : undefined;
+
+    if (simpleBinding) {
+      return this.validateDataModelBindingsSimple(ctx);
+    }
+
+    if (listBinding) {
+      return this.validateDataModelBindingsList(ctx);
+    }
+
+    return [];
   }
 }

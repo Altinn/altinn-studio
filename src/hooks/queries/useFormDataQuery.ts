@@ -40,7 +40,9 @@ export function useFormDataQuery(): UseQueryResult<IFormData> {
 
   const instance = useAppSelector((state) => state.instanceData.instance);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
-  const statelessDataType = isStateless ? getDataTypeByLayoutSetId(appMetaData?.onEntry?.show, layoutSets) : undefined;
+  const statelessDataType = isStateless
+    ? getDataTypeByLayoutSetId(appMetaData?.onEntry?.show, layoutSets, appMetaData)
+    : undefined;
   const currentTaskDataId = getCurrentTaskDataElementId(appMetaData, instance, layoutSets);
 
   const url =

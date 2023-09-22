@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { SummaryDef } from 'src/layout/Summary/config.def.generated';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
@@ -30,5 +31,9 @@ export class Summary extends SummaryDef {
 
   getDisplayData(): string {
     return '';
+  }
+
+  validateDataModelBindings(): string[] {
+    return [];
   }
 }

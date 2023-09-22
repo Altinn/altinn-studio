@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -29,5 +30,9 @@ export class ButtonGroup extends ButtonGroupDef {
 
   renderSummary(): JSX.Element | null {
     return null;
+  }
+
+  validateDataModelBindings(): string[] {
+    return [];
   }
 }

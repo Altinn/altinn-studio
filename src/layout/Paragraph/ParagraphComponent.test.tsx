@@ -3,8 +3,8 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { ParagraphComponent } from 'src/layout/Paragraph/ParagraphComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
-import type { RenderGenericComponentTestProps } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 describe('ParagraphComponent', () => {
   it('should render with supplied text', () => {

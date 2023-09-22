@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PanelReferenceGroupContainer } from 'src/layout/Panel/PanelReferenceGroupContainer';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type {

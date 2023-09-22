@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { Legend } from 'src/components/form/Legend';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IFormLegendProps } from 'src/components/form/Legend';
 
 describe('Legend', () => {

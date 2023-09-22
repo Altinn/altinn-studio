@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { Label } from 'src/components/form/Label';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import type { IFormLabelProps } from 'src/components/form/Label';
 
 describe('Label', () => {

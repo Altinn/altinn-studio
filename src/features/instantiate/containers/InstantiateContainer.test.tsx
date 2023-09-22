@@ -8,7 +8,7 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { setupStore } from 'src/redux/store';
-import { renderWithProviders } from 'src/testUtils';
+import { renderWithProviders } from 'src/test/renderWithProviders';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { IRuntimeState } from 'src/types';

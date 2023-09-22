@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
-import { renderGenericComponentTest } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 const render = () => {
   renderGenericComponentTest({
