@@ -11,6 +11,7 @@ import { Alert, Button, ErrorMessage, Paragraph, Spinner } from '@digdir/design-
 import { SettingsModal } from './SettingsModal';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { Center } from 'app-shared/components/Center';
+import { useRepoInitialCommitQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 /**
  * @component
@@ -34,6 +35,16 @@ export const SettingsModalButton = (): ReactNode => {
     error: appConfigError,
   } = useAppConfigQuery(org, app);
   const {
+    status: repositoryStatus,
+    data: repositoryData,
+    error: repositoryError,
+  } = useRepoMetadataQuery(org, app);
+  const {
+    status: initialCommitStatus,
+    data: initialCommitData,
+    error: initialCommitError,
+  } = useRepoInitialCommitQuery(org, app);
+  const {
     status: appMetadataStatus,
     data: appMetadataData,
     error: appMetadataError,
@@ -44,7 +55,15 @@ export const SettingsModalButton = (): ReactNode => {
   /**
    * Display spinner, error, or content based on the merged status
    */
-  switch (mergeQueryStatuses(policyStatus, appConfigStatus, appMetadataStatus)) {
+  switch (
+    mergeQueryStatuses(
+      policyStatus,
+      appConfigStatus,
+      appMetadataStatus,
+      repositoryStatus,
+      initialCommitStatus,
+    )
+  ) {
     case 'loading': {
       return (
         <div>
@@ -64,6 +83,8 @@ export const SettingsModalButton = (): ReactNode => {
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
             {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
             {appConfigError && <ErrorMessage>{appConfigError.message}</ErrorMessage>}
+            {repositoryError && <ErrorMessage>{repositoryError.message}</ErrorMessage>}
+            {initialCommitError && <ErrorMessage>{initialCommitError.message}</ErrorMessage>}
             {appMetadataError && <ErrorMessage>{appMetadataError.message}</ErrorMessage>}
           </Alert>
         </Center>
@@ -83,6 +104,8 @@ export const SettingsModalButton = (): ReactNode => {
             org={org}
             app={app}
             appConfig={appConfigData}
+            repository={repositoryData}
+            createdBy={initialCommitData.author.name}
             appMetadata={appMetadataData}
           />
         </div>

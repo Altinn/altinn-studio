@@ -18,6 +18,7 @@ import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { Repository } from 'app-shared/types/Repository';
 import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -49,6 +50,14 @@ export type SettingsModalProps = {
    */
   appConfig: AppConfig;
   /**
+   * The repository of the app
+   */
+  repository: Repository;
+  /**
+   * The name of the user that created the app
+   */
+  createdBy: string;
+  /*
    * The application's metadata
    */
   appMetadata: ApplicationMetadata;
@@ -63,6 +72,9 @@ export type SettingsModalProps = {
  * @property {Policy}[policy] - The policy of the app
  * @property {string}[org] - The org
  * @property {string}[app] - The app
+ * @property {AppConfig}[appConfig] - The serice name
+ * @property {Repository}[repository] - The repository of the app
+ * @property {strign}[createdBy] - The name of the user that created the app
  * @property {AppConfig}[appConfig] - The service name
  * @property {ApplicationMetadata}[appMetadata] - The application's metadata
  *
@@ -75,6 +87,8 @@ export const SettingsModal = ({
   org,
   app,
   appConfig,
+  repository,
+  createdBy,
   appMetadata,
 }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
@@ -134,13 +148,21 @@ export const SettingsModal = ({
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <AboutTab appConfig={appConfig} org={org} app={app} />;
-      }
-      case 'accessControl': {
-        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
+        return (
+          <AboutTab
+            appConfig={appConfig}
+            org={org}
+            app={app}
+            repository={repository}
+            createdBy={createdBy}
+          />
+        );
       }
       case 'policy': {
         return <PolicyTab policy={policy} org={org} app={app} />;
+      }
+      case 'accessControl': {
+        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
       }
       case 'localChanges': {
         return <LocalChangesTab org={org} app={app} />;

@@ -3,43 +3,21 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal, SettingsModalProps } from './SettingsModal';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { Policy } from '@altinn/policy-editor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
-import { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
+import { mockAppConfig } from './mocks/appConfigMock';
+import { mockRepository1 } from './mocks/repositoryMock';
+import { mockPolicy } from './mocks/policyMock';
+import { mockAppMetadata } from './mocks/applicationMetadataMock';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
+const mockCreatedBy: string = 'Mock Mockesen';
 
-const mockPolicy: Policy = {
-  rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
-  requiredAuthenticationLevelEndUser: '3',
-  requiredAuthenticationLevelOrg: '3',
-};
-
-const mockAppConfig: AppConfig = {
-  repositoryName: 'test',
-  serviceName: 'test',
-  serviceId: '',
-  serviceDescription: '',
-};
-
-const mockPartyTypesAllowed: PartyTypesAllowed = {
-  bankruptcyEstate: true,
-  organisation: false,
-  person: false,
-  subUnit: false,
-};
-
-const mockAppMetadata: ApplicationMetadata = {
-  id: 'mockId',
-  org: mockOrg,
-  partyTypesAllowed: mockPartyTypesAllowed,
-};
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
 const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
@@ -62,6 +40,8 @@ describe('SettingsModal', () => {
     org: mockOrg,
     app: mockApp,
     appConfig: mockAppConfig,
+    repository: mockRepository1,
+    createdBy: mockCreatedBy,
     appMetadata: mockAppMetadata,
   };
 
@@ -84,7 +64,7 @@ describe('SettingsModal', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_localChanges') }),
-    );
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_accessControl') }),
     ).toBeInTheDocument();

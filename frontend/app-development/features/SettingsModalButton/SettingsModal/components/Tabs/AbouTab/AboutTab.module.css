@@ -1,3 +1,47 @@
 .contentWrapper {
   max-width: 500px;
 }
+
+.createdFor {
+  display: flex;
+  align-items: center;
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border-radius: 4px;
+  padding-inline: 12px;
+  padding-block: 20px;
+  margin-top: 10px;
+}
+
+.createdBy {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-block: 10px;
+  color: var(--fds-semantic-text-action-active);
+}
+
+.label {
+  margin-top: 20px;
+}
+
+.createdForText {
+  margin-left: 15px;
+  color: var(--fds-semantic-text-action-active);
+}
+
+.createdByText {
+  color: inherit;
+}
+
+.createdByIcon {
+  font-size: 1.5rem;
+  color: inherit;
+}
+
+.avatar {
+  max-height: 2em;
+}
+
+.createdDate {
+  color: var(--fds-semantic-text-neutral-subtle);
+}

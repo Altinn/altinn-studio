@@ -9,18 +9,14 @@ import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { mockRepository1, mockRepository2 } from '../../../mocks/repositoryMock';
+import { mockAppConfig } from '../../../mocks/appConfigMock';
+import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-
-const mockAppConfig: AppConfig = {
-  repositoryName: 'test',
-  serviceName: 'test',
-  serviceId: '',
-  serviceDescription: '',
-};
-
 const mockNewText: string = 'test';
+const mockCreatedBy: string = 'Mock Mockesen';
 
 jest.mock('../../../../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -39,6 +35,8 @@ describe('AboutTab', () => {
     appConfig: mockAppConfig,
     org: mockOrg,
     app: mockApp,
+    repository: mockRepository1,
+    createdBy: mockCreatedBy,
   };
 
   it('displays the "repo" input as readonly', () => {
@@ -79,6 +77,30 @@ describe('AboutTab', () => {
     await act(() => user.tab());
 
     expect(updateAppConfigMutation).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays owners full name when it is set', () => {
+    render({}, createQueryClientMock(), defaultProps);
+    expect(screen.getByText(mockRepository1.owner.full_name)).toBeInTheDocument();
+    expect(screen.queryByText(mockRepository1.owner.login)).not.toBeInTheDocument();
+  });
+
+  it('displays owners login name when full name is not set', () => {
+    render({}, createQueryClientMock(), { ...defaultProps, repository: mockRepository2 });
+    expect(screen.queryByText(mockRepository1.owner.full_name)).not.toBeInTheDocument();
+    expect(screen.getByText(mockRepository1.owner.login)).toBeInTheDocument();
+  });
+
+  it.only('displays the created date mapped correctly', () => {
+    render({}, createQueryClientMock(), defaultProps);
+
+    const formatedDateString: string = formatDateToDateAndTimeString(mockRepository1.created_at);
+
+    expect(
+      screen.getByText(
+        textMock('settings_modal.about_tab_created_date', { date: formatedDateString })
+      )
+    ).toBeInTheDocument();
   });
 });
 
