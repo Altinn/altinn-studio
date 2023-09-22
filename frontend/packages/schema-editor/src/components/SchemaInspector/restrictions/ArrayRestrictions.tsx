@@ -1,7 +1,7 @@
 import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';

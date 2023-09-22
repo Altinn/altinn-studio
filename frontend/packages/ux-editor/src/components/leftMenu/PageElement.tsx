@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './PageElement.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
-import { Button, TextField } from '@digdir/design-system-react';
+import { Button, LegacyTextField as TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import {
   MenuElipsisVerticalIcon,

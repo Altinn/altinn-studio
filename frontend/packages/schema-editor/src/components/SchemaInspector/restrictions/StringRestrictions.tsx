@@ -3,7 +3,12 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { LegacyCheckbox, LegacyFieldSet, Select, TextField } from '@digdir/design-system-react';
+import {
+  LegacyCheckbox,
+  LegacyFieldSet,
+  Select,
+  LegacyTextField as TextField,
+} from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -46,7 +51,7 @@ export function StringRestrictions({
       restrictions[StrRestrictionKey.formatExclusiveMaximum] ??
       restrictions[StrRestrictionKey.formatMaximum],
     restrictions: Object.fromEntries(
-      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]])
+      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]]),
     ),
   });
 
@@ -86,7 +91,7 @@ export function StringRestrictions({
         value={restrictions[StrRestrictionKey.format] || ''}
       />
       {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
-        restrictions[StrRestrictionKey.format]
+        restrictions[StrRestrictionKey.format],
       ) && (
         <>
           <div>

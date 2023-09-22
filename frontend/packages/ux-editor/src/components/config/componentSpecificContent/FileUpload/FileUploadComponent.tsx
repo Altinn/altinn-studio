@@ -1,5 +1,9 @@
 import React from 'react';
-import { LegacyFieldSet, LegacyRadioGroup, TextField } from '@digdir/design-system-react';
+import {
+  LegacyFieldSet,
+  LegacyRadioGroup,
+  LegacyTextField as TextField,
+} from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -161,7 +165,7 @@ export const FileUploadComponent = ({
       <FormField
         id={component.id}
         label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t(
-          'ux_editor.modal_properties_maximum_file_size_helper'
+          'ux_editor.modal_properties_maximum_file_size_helper',
         )})`}
         onChange={handleMaxFileSizeInMBChange}
         value={fileUploaderComponent.maxFileSizeInMB || 0}

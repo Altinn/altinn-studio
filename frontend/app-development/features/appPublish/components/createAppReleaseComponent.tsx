@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './createAppReleaseComponent.module.css';
 import type { ChangeEvent } from 'react';
-import { TextField, TextArea, Button } from '@digdir/design-system-react';
+import { LegacyTextField as TextField, TextArea, Button } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';

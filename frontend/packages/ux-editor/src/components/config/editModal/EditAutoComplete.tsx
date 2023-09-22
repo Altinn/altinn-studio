@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { TextField, Popover, Button } from '@digdir/design-system-react';
+import { LegacyTextField as TextField, Popover, Button } from '@digdir/design-system-react';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
 import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 import { FormField } from '../../FormField';
@@ -139,7 +139,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
             >
               {option}
             </Button>
-          )
+          ),
         )}
       </Popover>
     </div>

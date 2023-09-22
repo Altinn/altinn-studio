@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, TextField, Paragraph } from '@digdir/design-system-react';
+import { Button, LegacyTextField as TextField, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';

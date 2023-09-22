@@ -3,7 +3,12 @@ import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { Modal } from 'app-shared/components/Modal';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { Button, Heading, Paragraph, TextField } from '@digdir/design-system-react';
+import {
+  Button,
+  Heading,
+  Paragraph,
+  LegacyTextField as TextField,
+} from '@digdir/design-system-react';
 
 export type DeleteModalProps = {
   /**

@@ -4,7 +4,7 @@ import {
   LegacyCheckbox,
   LegacyFieldSet,
   HelpText,
-  TextField,
+  LegacyTextField as TextField,
 } from '@digdir/design-system-react';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {

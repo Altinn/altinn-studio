@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AddOption.module.css';
 import { TextResource } from './TextResource';
-import { Button, LegacyFieldSet, TextField } from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, LegacyTextField as TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
 import { IOption } from '../types/global';
 import { PlusIcon } from '@navikt/aksel-icons';

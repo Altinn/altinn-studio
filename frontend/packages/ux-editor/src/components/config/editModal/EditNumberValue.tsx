@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
 

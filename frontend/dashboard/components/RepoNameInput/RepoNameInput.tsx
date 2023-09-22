@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 interface IRepoNameInputProps {

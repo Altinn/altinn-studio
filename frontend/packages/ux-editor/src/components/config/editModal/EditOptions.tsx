@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Button, Fieldset, LegacyRadioGroup, TextField } from '@digdir/design-system-react';
+import {
+  Button,
+  Fieldset,
+  LegacyRadioGroup,
+  LegacyTextField as TextField,
+} from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -78,7 +83,7 @@ export function EditOptions({
     handleComponentChange({
       ...component,
       options: component.options.map((option, idx) =>
-        idx === index ? { ...option, label: id } : option
+        idx === index ? { ...option, label: id } : option,
       ),
     });
   };
@@ -87,7 +92,7 @@ export function EditOptions({
     handleComponentChange({
       ...component,
       options: component.options.map((option, idx) =>
-        idx === index ? { ...option, value: e.target.value } : option
+        idx === index ? { ...option, value: e.target.value } : option,
       ),
     });
   };

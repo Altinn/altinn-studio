@@ -5,8 +5,7 @@ import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopov
 import type { PopoverOrigin } from '@mui/material';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../../utils/repoUtils';
-
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +24,9 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const { mutate: copyAppMutate, isLoading: isLoadingCopyApp } = useCopyAppMutation({ hideDefaultError: (error: AxiosError) => error?.response?.status === 409 });
+  const { mutate: copyAppMutate, isLoading: isLoadingCopyApp } = useCopyAppMutation({
+    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+  });
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
 
@@ -44,7 +45,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
               setErrorMessage(t('dashboard.app_already_exists'));
             }
           },
-        }
+        },
       );
     }
   };

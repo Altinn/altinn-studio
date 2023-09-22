@@ -1,6 +1,6 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface IRestrictionFieldProps {

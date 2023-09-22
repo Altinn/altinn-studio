@@ -13,7 +13,7 @@ import {
   LegacyFieldSet,
   Select,
   TextArea,
-  TextField,
+  LegacyTextField as TextField,
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -88,7 +88,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           pointer: pointer,
           props: { fieldType: FieldType.Null },
           callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-        })
+        }),
       );
       return;
     }
@@ -128,7 +128,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           }
           dispatch(setSelectedNode(newPointer));
         },
-      })
+      }),
     );
   };
 

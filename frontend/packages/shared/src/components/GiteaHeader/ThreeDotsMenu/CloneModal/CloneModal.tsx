@@ -5,7 +5,7 @@ import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
+import { Button, LegacyTextField as TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';

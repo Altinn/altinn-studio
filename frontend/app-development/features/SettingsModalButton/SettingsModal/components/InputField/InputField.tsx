@@ -1,6 +1,11 @@
 import React, { ReactNode } from 'react';
 import classes from './InputField.module.css';
-import { ErrorMessage, Label, Paragraph, TextField } from '@digdir/design-system-react';
+import {
+  ErrorMessage,
+  Label,
+  Paragraph,
+  LegacyTextField as TextField,
+} from '@digdir/design-system-react';
 
 export type InputFieldProps = {
   /**

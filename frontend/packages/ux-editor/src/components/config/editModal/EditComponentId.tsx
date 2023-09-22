@@ -4,14 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { useSelectedFormLayout } from '../../../hooks';
 import type { FormComponent } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
   component: FormComponent;
   helpText?: string;
 }
-export const EditComponentId = ({ component, handleComponentUpdate, helpText }: IEditComponentId) => {
+export const EditComponentId = ({
+  component,
+  handleComponentUpdate,
+  helpText,
+}: IEditComponentId) => {
   const { components, containers } = useSelectedFormLayout();
   const { t } = useTranslation();
 

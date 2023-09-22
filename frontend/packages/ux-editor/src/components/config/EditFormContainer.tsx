@@ -9,7 +9,7 @@ import {
   LegacyCheckbox,
   LegacyCheckboxGroup,
   LegacyFieldSet,
-  TextField,
+  LegacyTextField as TextField,
 } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
@@ -48,7 +48,7 @@ export const EditFormContainer = ({
   const { data: dataModel } = useDatamodelMetadataQuery(org, app);
   const { components, containers } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
-    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
+    textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
@@ -220,7 +220,7 @@ export const EditFormContainer = ({
                       label:
                         getTextResource(
                           components[id]?.textResourceBindings?.title,
-                          textResources
+                          textResources,
                         ) || id,
                       name: id,
                       checked:

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Select, TextField } from '@digdir/design-system-react';
+import { Select, LegacyTextField as TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';

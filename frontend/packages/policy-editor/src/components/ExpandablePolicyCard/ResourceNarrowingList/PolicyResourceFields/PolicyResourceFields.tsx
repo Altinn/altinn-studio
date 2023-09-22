@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Button, Label, TextField } from '@digdir/design-system-react';
+import { Button, Label, LegacyTextField as TextField } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 

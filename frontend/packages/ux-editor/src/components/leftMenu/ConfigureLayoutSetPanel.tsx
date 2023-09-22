@@ -11,7 +11,7 @@ import React, {
 import { useTranslation, Trans } from 'react-i18next';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
-import { Button, Paragraph, TextField } from '@digdir/design-system-react';
+import { Button, Paragraph, LegacyTextField as TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

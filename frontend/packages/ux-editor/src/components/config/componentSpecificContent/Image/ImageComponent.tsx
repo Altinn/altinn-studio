@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from '@digdir/design-system-react';
-import { LegacyFieldSet, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, LegacyTextField as TextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';

@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Button, ErrorMessage, TextField, Popover } from '@digdir/design-system-react';
+import {
+  Button,
+  ErrorMessage,
+  LegacyTextField as TextField,
+  Popover,
+} from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';

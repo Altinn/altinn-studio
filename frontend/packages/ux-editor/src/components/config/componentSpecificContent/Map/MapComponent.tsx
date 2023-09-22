@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
-import { LegacyFieldSet, Button, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, Button, LegacyTextField as TextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
@@ -212,7 +212,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               </FormField>
             </div>
           </LegacyFieldSet>
-        )
+        ),
       )}
       <Button
         icon={<PlusIcon title={t('general.add')} />}

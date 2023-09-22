@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField as TextField } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { IconImage } from '../common/Icon';
