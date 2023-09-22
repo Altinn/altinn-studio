@@ -25,7 +25,7 @@ const mockOrg: string = 'org';
 const mockCommitAuthor: CommitAuthor = {
   email: '',
   name: 'Mock Mockesen',
-  when: '',
+  when: new Date(2023, 9, 22),
 };
 
 const mockInitialCommit: Commit = {
