@@ -50,14 +50,22 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("datamodel")]
-        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath)
+        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository,
+            [FromQuery] string modelPath)
         {
-            var decodedPath = Uri.UnescapeDataString(modelPath);
+            try
+            {
+                var decodedPath = Uri.UnescapeDataString(modelPath);
 
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
+                var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
 
-            return Ok(json);
+                return Ok(json);
+            }
+            catch (IOException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -72,19 +80,27 @@ namespace Altinn.Studio.Designer.Controllers
         [UseSystemTextJson]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("datamodel")]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromBody] JsonNode payload, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromBody] JsonNode payload,
+            [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string content = payload.ToString();
-
-            if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
+            try
             {
-                return UnprocessableEntity(validationProblemDetails);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                string content = payload.ToString();
+
+                if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
+                {
+                    return UnprocessableEntity(validationProblemDetails);
+                }
+
+                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
+
+                return NoContent();
             }
-
-            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
-
-            return NoContent();
+            catch (IOException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -98,10 +114,17 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("datamodel")]
         public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (IOException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -115,10 +138,17 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("all-json")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
         {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
+            try
+            {
+                var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
 
-            return Ok(schemaFiles);
+                return Ok(schemaFiles);
+            }
+            catch (IOException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -132,10 +162,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("all-xsd")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                IList<AltinnCoreFile> schemaFiles =
+                    _schemaModelService.GetSchemaFiles(org, repository, developer, true);
 
-            return Ok(schemaFiles);
+                return Ok(schemaFiles);
+            }
+            catch (IOException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -150,7 +188,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The XSD file being uploaded.</param>
         [HttpPost]
         [Route("upload")]
-        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<IActionResult> AddXsd(string org, string repository,
+            [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -159,7 +198,9 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
+            string jsonSchema =
+                await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName,
+                    thefile.OpenReadStream());
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
         }
@@ -173,7 +214,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Produces("application/json")]
         [HttpPost]
         [Route("new")]
-        public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
+        public async Task<ActionResult<string>> Post(string org, string repository,
+            [FromBody] CreateModelViewModel createModel)
         {
             if (!ModelState.IsValid)
             {
@@ -181,12 +223,14 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
+            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer,
+                createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
             string baseUrl = GetBaseUrl();
-            string locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+            string locationUrl =
+                $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
@@ -217,14 +261,17 @@ namespace Altinn.Studio.Designer.Controllers
 
             string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
             var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
+            string modelName = Path.GetFileName(filePath);
+            string jsonSchema =
+                await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
 
             return Created(filePath, jsonSchema);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
-            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
+            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName
+                .ToString();
         }
 
         private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)

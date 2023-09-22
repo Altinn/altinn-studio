@@ -30,7 +30,7 @@
   "administration.reset_repo_button": "Slett mine endringer",
   "administration.reset_repo_completed": "Alle endringer er nå slettet",
   "administration.reset_repo_confirm_heading": "Slette endringer?",
-  "administration.reset_repo_confirm_info": "Du vil nå slette alle endringer gjort på {{repositoryName}}. Endringene kan ikke gjenopprettes.",
+  "administration.reset_repo_confirm_info": "Du vil nå slette alle endringer gjort på <bold>{{repositoryName}}</bold>. Endringene kan ikke gjenopprettes.",
   "administration.reset_repo_confirm_repo_name": "Skriv inn navn på appen for å bekrefte",
   "administration.reset_repo_heading": "Slett mine endringer",
   "administration.reset_repo_info_i1": "Dette vil tilbakestille alle filer til versjonen i det sentrale repositoriet",
