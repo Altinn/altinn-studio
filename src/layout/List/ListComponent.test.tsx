@@ -86,7 +86,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
 describe('ListComponent', () => {
   jest.useFakeTimers();
 
-  it('should render rows that is sent in but not rows that is not sent in', async () => {
+  it('should render rows that is sent in but not rows that is not sent in', () => {
     render();
     expect(screen.getByText('Norway')).toBeInTheDocument();
     expect(screen.getByText('Sweden')).toBeInTheDocument();
