@@ -43,6 +43,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Yuniql.AspNetCore" />
     <PackageReference Include="Yuniql.PostgreSql" />
@@ -94,6 +95,8 @@
     <Watch Remove="Models\ListviewServiceResource.cs" />
     <Watch Remove="Models\LosTerm.cs" />
     <Watch Remove="Models\LosTerms.cs" />
+    <Watch Remove="Models\Org.cs" />
+    <Watch Remove="Models\OrgList.cs" />
     <Watch Remove="Models\ResourcePartyType.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ResourceVersionInfo.cs" />
@@ -103,10 +106,12 @@
     <Watch Remove="RepositoryClient\Model\ContentsResponse.cs" />
     <Watch Remove="RepositoryClient\Model\FileLinksResponse.cs" />
     <Watch Remove="RepositoryClient\Model\GiteaRepoCommitStats.cs" />
+    <Watch Remove="Services\Implementation\OrgService.cs" />
     <Watch Remove="Services\Implementation\PolicyOptionsService.cs" />
     <Watch Remove="Services\Implementation\ResourceRegistryAdminService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
+    <Watch Remove="Services\Interfaces\IOrgService.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistry.cs" />
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistryAdmin.cs" />
@@ -127,6 +132,7 @@
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
   </ItemGroup>
+
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />

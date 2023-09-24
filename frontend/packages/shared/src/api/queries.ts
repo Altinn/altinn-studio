@@ -1,5 +1,6 @@
 import { get, put } from 'app-shared/utils/networking';
 import {
+  appMetadataPath,
   appPolicyPath,
   branchStatusPath,
   datamodelMetadataPath,
@@ -17,6 +18,7 @@ import {
   orgsListPath,
   processEditorPath,
   releasesPath,
+  repoInitialCommitPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
@@ -59,6 +61,8 @@ import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { Commit } from 'app-shared/types/Commit';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -75,6 +79,7 @@ export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(lay
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getOrgList = () => get<OrgsState>(orgsListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
+export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
@@ -97,6 +102,7 @@ export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchema
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
+export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
@@ -109,7 +115,7 @@ export const getValidatePolicy = (org: string, repo: string, id: string) => get<
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 
 // ProcessEditor
-export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));
+export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));
 export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
   put(processEditorPath(org, app), bpmnXml, {
     headers: {

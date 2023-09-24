@@ -22,7 +22,7 @@ export type TabHeaderProps = {
  */
 export const TabHeader = ({ text }: TabHeaderProps): ReactNode => {
   return (
-    <Heading level={2} spacing size='small' className={classes.heading}>
+    <Heading level={2} spacing size='xsmall' className={classes.heading}>
       {text}
     </Heading>
   );

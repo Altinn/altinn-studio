@@ -9,15 +9,10 @@ import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { Policy } from '@altinn/policy-editor';
 import userEvent from '@testing-library/user-event';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
+import { mockPolicy } from '../../../mocks/policyMock';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-
-const mockPolicy: Policy = {
-  rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
-  requiredAuthenticationLevelEndUser: '3',
-  requiredAuthenticationLevelOrg: '3',
-};
 
 jest.mock('../../../../../../hooks/mutations/useAppPolicyMutation');
 const updateAppPolicyMutation = jest.fn();

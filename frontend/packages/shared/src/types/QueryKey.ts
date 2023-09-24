@@ -1,5 +1,6 @@
 export enum QueryKey {
   AppDeployments = 'AppDeployments',
+  AppMetadata = 'AppMetadata',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
   BranchStatus = 'BranchStatus',
@@ -21,6 +22,7 @@ export enum QueryKey {
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
+  RepoInitialCommit = 'RepoInitialCommit',
   RepoMetaData = 'RepoMetaData',
   RepoPullData = 'RepoPullData',
   RepoReset = 'RepoReset',

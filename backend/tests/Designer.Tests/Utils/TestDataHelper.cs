@@ -128,14 +128,25 @@ namespace Designer.Tests.Utils
         /// Generates test repository name that will be excluded from project and will be git ignored.
         /// </summary>
         /// <param name="suffix">If provided appends suffix to test repo.</param>
+        /// <param name="length">Define length of the repo name.</param>
         /// <returns>Test repository name.</returns>
-        public static string GenerateTestRepoName(string suffix = null)
+        public static string GenerateTestRepoName(string suffix = null, int length = 28)
         {
             if (suffix?.Length > 15)
             {
                 throw new ArgumentException("Suffix is too long");
             }
-            string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..28];
+            if (length is < 12 or > 28)
+            {
+                throw new ArgumentException("Length for test repo must be between 12 and 20.");
+            }
+
+            if ("test-repo-".Length + suffix?.Length > length)
+            {
+                throw new ArgumentException("Suffix is too long");
+            }
+
+            string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..length];
 
             return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
         }

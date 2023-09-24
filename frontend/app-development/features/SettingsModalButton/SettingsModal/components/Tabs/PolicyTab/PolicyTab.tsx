@@ -82,7 +82,6 @@ export type PolicyTabProps = {
 export const PolicyTab = ({ policy, org, app }: PolicyTabProps): ReactNode => {
   const { t } = useTranslation();
 
-  // Mutation function to update policy
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
   return (

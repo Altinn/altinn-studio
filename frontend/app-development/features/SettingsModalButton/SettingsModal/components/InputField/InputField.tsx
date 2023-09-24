@@ -85,10 +85,12 @@ export const InputField = ({
 }: InputFieldProps): ReactNode => {
   return (
     <div className={classes.wrapper}>
-      <Label spacing htmlFor={id}>
+      <Label size='small' spacing htmlFor={id}>
         {label}
       </Label>
-      <Paragraph className={classes.paragraph}>{description}</Paragraph>
+      <Paragraph size='small' className={classes.paragraph}>
+        {description}
+      </Paragraph>
       <TextField
         id={id}
         value={value}

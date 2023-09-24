@@ -26,6 +26,7 @@ import {
   datamodelAddXsdFromRepoPath,
   createDatamodelPath,
   appPolicyPath,
+  appMetadataPath,
   serviceConfigPath,
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -44,6 +45,7 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, Resource } from 'app-shared/types/ResourceAdm';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { AppConfig } from 'app-shared/types/AppConfig';
 
 const headers = {
@@ -83,6 +85,7 @@ export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayl
 export const updateTranslationByLangCode = (org: string, app: string, language, payload) => post(textResourcesPath(org, app, language), payload);
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
+export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 
 // Resourceadm

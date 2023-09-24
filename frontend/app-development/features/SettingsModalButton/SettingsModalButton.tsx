@@ -2,11 +2,16 @@ import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModalButton.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppPolicyQuery, useAppConfigQuery } from 'app-development/hooks/queries';
+import {
+  useAppPolicyQuery,
+  useAppConfigQuery,
+  useAppMetadataQuery,
+} from 'app-development/hooks/queries';
 import { Alert, Button, ErrorMessage, Paragraph, Spinner } from '@digdir/design-system-react';
 import { SettingsModal } from './SettingsModal';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { Center } from 'app-shared/components/Center';
+import { useRepoInitialCommitQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 /**
  * @component
@@ -29,13 +34,36 @@ export const SettingsModalButton = (): ReactNode => {
     data: appConfigData,
     error: appConfigError,
   } = useAppConfigQuery(org, app);
+  const {
+    status: repositoryStatus,
+    data: repositoryData,
+    error: repositoryError,
+  } = useRepoMetadataQuery(org, app);
+  const {
+    status: initialCommitStatus,
+    data: initialCommitData,
+    error: initialCommitError,
+  } = useRepoInitialCommitQuery(org, app);
+  const {
+    status: appMetadataStatus,
+    data: appMetadataData,
+    error: appMetadataError,
+  } = useAppMetadataQuery(org, app);
 
   const [isOpen, setIsOpen] = useState(false);
 
   /**
    * Display spinner, error, or content based on the merged status
    */
-  switch (mergeQueryStatuses(policyStatus, appConfigStatus)) {
+  switch (
+    mergeQueryStatuses(
+      policyStatus,
+      appConfigStatus,
+      appMetadataStatus,
+      repositoryStatus,
+      initialCommitStatus,
+    )
+  ) {
     case 'loading': {
       return (
         <div>
@@ -55,6 +83,9 @@ export const SettingsModalButton = (): ReactNode => {
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
             {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
             {appConfigError && <ErrorMessage>{appConfigError.message}</ErrorMessage>}
+            {repositoryError && <ErrorMessage>{repositoryError.message}</ErrorMessage>}
+            {initialCommitError && <ErrorMessage>{initialCommitError.message}</ErrorMessage>}
+            {appMetadataError && <ErrorMessage>{appMetadataError.message}</ErrorMessage>}
           </Alert>
         </Center>
       );
@@ -73,6 +104,9 @@ export const SettingsModalButton = (): ReactNode => {
             org={org}
             app={app}
             appConfig={appConfigData}
+            repository={repositoryData}
+            createdBy={initialCommitData.author.name}
+            appMetadata={appMetadataData}
           />
         </div>
       );
