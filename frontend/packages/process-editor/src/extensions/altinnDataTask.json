@@ -1,6 +1,6 @@
 {
   "name": "AltinnTask",
-  "uri": "http://some-company/schema/bpmn/altinn",
+  "uri": "http://altinn.no",
   "prefix": "altinn",
   "xml": {
     "tagAlias": "lowerCase"

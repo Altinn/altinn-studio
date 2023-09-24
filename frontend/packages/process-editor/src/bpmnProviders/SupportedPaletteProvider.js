@@ -12,7 +12,6 @@ class SupportedPaletteProvider {
     this.elementFactory = elementFactory;
     this.translate = translate;
     this.modeling = modeling;
-    this.moddle = moddle;
 
     palette.registerProvider(this);
   }
@@ -34,7 +33,7 @@ class SupportedPaletteProvider {
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
             bpmnFactory.create('altinn:taskExtension', {
-              taskType: 'data', // Custom extension element properties
+              taskType: taskType,
             }),
           ],
         });
@@ -52,6 +51,7 @@ class SupportedPaletteProvider {
       const customEntries = {
         'create.altinn-data-task': {
           group: 'activity',
+          className: 'bpmn-icon-task',
           title: translate('Create Altinn Data Task'),
           action: {
             dragstart: createCustomTask('data'),
@@ -61,6 +61,7 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           title: translate('Create Altinn Confirm Task'),
+          className: 'bpmn-icon-task',
           action: {
             dragstart: createCustomTask('confirmation'),
             click: createCustomTask('confirmation'),
@@ -69,6 +70,7 @@ class SupportedPaletteProvider {
         'create.altinn-feedback-task': {
           group: 'activity',
           title: translate('Create Altinn Feedback Task'),
+          className: 'bpmn-icon-task',
           action: {
             dragstart: createCustomTask('feedback'),
             click: createCustomTask('feedback'),
@@ -76,6 +78,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-signing-task': {
           group: 'activity',
+          className: 'bpmn-icon-task',
           title: translate('Create Altinn signing Task'),
           action: {
             dragstart: createCustomTask('signing'),
@@ -113,7 +116,6 @@ SupportedPaletteProvider.$inject = [
   'palette',
   'translate',
   'modeling',
-  'moddle',
 ];
 
 export default {
