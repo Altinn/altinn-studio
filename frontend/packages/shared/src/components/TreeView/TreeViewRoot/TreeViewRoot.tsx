@@ -1,6 +1,5 @@
 import React, { ReactNode, useEffect, useId, useLayoutEffect, useState } from 'react';
 import { TreeViewRootContext } from '../TreeViewRoot';
-import { TreeViewItemContext } from '../TreeViewItem';
 import classes from './TreeViewRoot.module.css';
 import { findFirstNodeId } from 'app-shared/components/TreeView/utils/domUtils';
 import { focusableNodeId } from 'app-shared/components/TreeView/utils/treeViewItemUtils';
@@ -46,11 +45,9 @@ export const TreeViewRoot = ({
         focusableId,
       }}
     >
-      <TreeViewItemContext.Provider value={{ level: 1 }}>
-        <ul role='tree' id={rootId} className={classes.list}>
-          {children}
-        </ul>
-      </TreeViewItemContext.Provider>
+      <ul role='tree' id={rootId} className={classes.list}>
+        {children}
+      </ul>
     </TreeViewRootContext.Provider>
   );
 };
