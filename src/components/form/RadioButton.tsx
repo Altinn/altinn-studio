@@ -4,11 +4,12 @@ import { HelpText, Radio } from '@digdir/design-system-react';
 import type { RadioProps } from '@digdir/design-system-react';
 
 import classes from 'src/components/form/RadioButton.module.css';
+import { getPlainTextFromNode } from 'src/utils/stringHelper';
 
 export interface IRadioButtonProps extends Omit<RadioProps, 'children'> {
   showAsCard?: boolean;
   label?: string;
-  helpText?: string;
+  helpText?: React.ReactNode;
   hideLabel?: boolean;
 }
 
@@ -17,7 +18,7 @@ export const RadioButton = ({ showAsCard = false, label, helpText, hideLabel, ..
   const Label = (
     <div className={`${hideLabel ? 'sr-only' : ''} ${classes.radioLabelContainer}`}>
       {label}
-      {helpText ? <HelpText title={helpText}>{helpText}</HelpText> : null}
+      {helpText ? <HelpText title={getPlainTextFromNode(helpText)}>{helpText}</HelpText> : null}
     </div>
   );
   if (showAsCard) {

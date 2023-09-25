@@ -1,9 +1,10 @@
 import React from 'react';
 
+import { HelpText, Radio } from '@digdir/design-system-react';
+
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RadioButton } from 'src/components/form/RadioButton';
-import { RadioGroup } from 'src/components/form/RadioGroup';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { groupIsRepeatingLikert } from 'src/layout/Group/tools';
@@ -44,6 +45,10 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   );
 
   const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1;
+  const shouldDisplayHorizontally = shouldUseRowLayout({
+    layout,
+    optionsCount: calculatedOptions.length,
+  });
 
   return (
     <div>
@@ -54,23 +59,31 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
           id={id}
           onBlur={handleBlur}
         >
-          <RadioGroup
-            legend={overrideDisplay?.renderLegend === false ? null : labelText}
-            description={textResourceBindings?.description && lang(textResourceBindings.description)}
-            helpText={textResourceBindings?.help && langAsString(textResourceBindings.help)}
+          <Radio.Group
+            legend={
+              overrideDisplay?.renderLegend === false ? null : (
+                <>
+                  {labelText}
+                  {textResourceBindings?.help ? (
+                    <HelpText title={langAsString(textResourceBindings?.help)}>
+                      {lang(textResourceBindings?.help)}
+                    </HelpText>
+                  ) : null}
+                </>
+              )
+            }
+            description={lang(textResourceBindings?.description)}
             error={!isValid}
             disabled={readOnly}
-            shouldDisplayHorizontally={shouldUseRowLayout({
-              layout,
-              optionsCount: calculatedOptions.length,
-            })}
+            inline={shouldDisplayHorizontally}
+            role='radiogroup'
           >
             {calculatedOptions.map((option) => (
               <RadioButton
                 {...option}
                 label={langAsString(option.label)}
                 description={lang(option.description)}
-                helpText={langAsString(option.helpText)}
+                helpText={lang(option.helpText)}
                 name={id}
                 key={option.value}
                 checked={option.value === selected}
@@ -81,7 +94,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
                 size='small'
               />
             ))}
-          </RadioGroup>
+          </Radio.Group>
         </div>
       )}
     </div>
