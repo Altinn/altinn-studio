@@ -135,7 +135,6 @@ export const Expressions = () => {
               rel='noopener noreferrer'
           />
         </Trans>
-        <Divider/>
       {Object.values(expressions).map((expression: Expression, index: number) => (
         <React.Fragment key={expression.id}>
           <ExpressionContent

@@ -16,6 +16,7 @@ export const ConditionalRendering = () => {
     <div className={classes.conditionalRendering}>
         <div>
           <div className={classes.dynamicsVersionCheckBox}>
+            <Divider/>
             <Alert severity='warning'>
             <span>
               <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
@@ -27,7 +28,6 @@ export const ConditionalRendering = () => {
               </Trans>
             </span>
             </Alert>
-            <Divider/>
           </div>
           <div className={classes.header}>
             <span>{t('right_menu.rules_conditional_rendering')}</span>

@@ -188,7 +188,7 @@ export const removeInvalidExpressions = (oldExpressions: Expression[]): Expressi
 
 export const addProperty = (oldExpression: Expression, property: string): Expression => {
   if (property === 'default') {
-    return;
+    return oldExpression;
   }
   const newExpression = deepCopy(oldExpression);
   newExpression.property = property as ExpressionPropertyBase;
