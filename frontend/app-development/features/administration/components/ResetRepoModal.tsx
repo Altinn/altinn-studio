@@ -38,9 +38,9 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     setCanDelete(false);
     repoResetMutation.mutate(undefined, {
       onSuccess: () => {
-        onCloseWrapper();
         toast.success(t('administration.reset_repo_completed'));
         queryClient.removeQueries();
+        onCloseWrapper();
       }
     });
   };

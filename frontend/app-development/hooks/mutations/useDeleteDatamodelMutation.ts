@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { isXsdFile } from "app-shared/utils/filenameUtils";
+import { isXsdFile } from 'app-shared/utils/filenameUtils';
 
 export const useDeleteDatamodelMutation = () => {
   const { deleteDatamodel } = useServicesContext();

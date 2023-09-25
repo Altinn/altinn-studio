@@ -50,8 +50,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("datamodel")]
-        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository,
-            [FromQuery] string modelPath)
+        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath)
         {
             try
             {
@@ -80,8 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
         [UseSystemTextJson]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("datamodel")]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromBody] JsonNode payload,
-            [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromBody] JsonNode payload, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
             try
             {
@@ -187,8 +185,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The XSD file being uploaded.</param>
         [HttpPost]
         [Route("upload")]
-        public async Task<IActionResult> AddXsd(string org, string repository,
-            [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -211,8 +208,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Produces("application/json")]
         [HttpPost]
         [Route("new")]
-        public async Task<ActionResult<string>> Post(string org, string repository,
-            [FromBody] CreateModelViewModel createModel)
+        public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
             if (!ModelState.IsValid)
             {
@@ -226,8 +222,7 @@ namespace Altinn.Studio.Designer.Controllers
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
             string baseUrl = GetBaseUrl();
-            string locationUrl =
-                $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+            string locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
@@ -259,10 +254,9 @@ namespace Altinn.Studio.Designer.Controllers
                 Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
                 string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
-                var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+                using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
                 string modelName = Path.GetFileName(filePath);
-                string jsonSchema =
-                    await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
+                string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
 
                 return Created(filePath, jsonSchema);
             }
@@ -274,8 +268,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
-            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName
-                .ToString();
+            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
         }
 
         private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)
