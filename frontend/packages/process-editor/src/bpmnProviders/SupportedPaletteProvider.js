@@ -21,14 +21,7 @@ class SupportedPaletteProvider {
 
     function createCustomTask(taskType) {
       return function (event) {
-        const businessObject = bpmnFactory.create('bpmn:Task', {
-          name: `Task with Altinn ${taskType} task`,
-        });
-
-        const task = elementFactory.createShape({
-          type: 'bpmn:Task',
-          businessObject,
-        });
+        const task = buildAltinnTask(taskType);
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -45,6 +38,49 @@ class SupportedPaletteProvider {
         create.start(event, task);
       };
     }
+
+    function createCustomSigningTask() {
+      const taskType = 'signing';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:taskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: ['sign', 'reject'],
+              }),
+              signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
+                dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
+                  dataType: ['Model'],
+                }),
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
+    const buildAltinnTask = (taskType) => {
+      const businessObject = bpmnFactory.create('bpmn:Task', {
+        name: `Task with Altinn ${taskType} task`,
+      });
+
+      const task = elementFactory.createShape({
+        type: 'bpmn:Task',
+        businessObject,
+      });
+
+      return task;
+    };
 
     return (entries) => {
       this._deleteUnsupportedEntries(entries);
@@ -81,8 +117,8 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task',
           title: translate('Create Altinn signing Task'),
           action: {
-            dragstart: createCustomTask('signing'),
-            click: createCustomTask('signing'),
+            dragstart: createCustomSigningTask(),
+            click: createCustomSigningTask(),
           },
         },
       };
@@ -93,6 +129,7 @@ class SupportedPaletteProvider {
     };
   }
 
+  // "_" (underscore) is a convention for private methods in JavaScript
   _deleteUnsupportedEntries(entries) {
     const entriesToDelete = this._getUnsupportedEntries(entries);
     entriesToDelete.forEach((entry) => {
