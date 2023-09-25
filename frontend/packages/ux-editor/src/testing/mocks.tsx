@@ -27,7 +27,7 @@ export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
     order: [layout1NameMock, layout2NameMock],
   },
-  receiptLayoutName: 'Kvittering'
+  receiptLayoutName: 'Kvittering',
 };
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
@@ -46,6 +46,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
+  getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
   getInstanceIdForPreview: jest.fn(),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
@@ -76,7 +77,11 @@ export const queryClientMock = new QueryClient({
 });
 
 export const renderWithMockStore =
-  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = queryClientMock) =>
+  (
+    state: Partial<IAppState> = {},
+    queries: Partial<ServicesContextProps> = {},
+    queryClient: QueryClient = queryClientMock,
+  ) =>
   (component: ReactNode) => {
     const store = configureStore()({ ...appStateMock, ...state });
     const renderResult = render(
@@ -86,12 +91,16 @@ export const renderWithMockStore =
             <BrowserRouter>{component}</BrowserRouter>
           </Provider>
         </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
+      </ServicesContextProvider>,
     );
     return { renderResult, store };
   };
 export const renderHookWithMockStore =
-  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = queryClientMock) =>
+  (
+    state: Partial<IAppState> = {},
+    queries: Partial<ServicesContextProps> = {},
+    queryClient: QueryClient = queryClientMock,
+  ) =>
   (hook: () => any) => {
     const store = configureStore()({ ...appStateMock, ...state });
     const renderHookResult = renderHook(hook, {
