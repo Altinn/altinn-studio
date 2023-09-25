@@ -187,10 +187,10 @@ export const removeInvalidExpressions = (oldExpressions: Expression[]): Expressi
 };
 
 export const addProperty = (oldExpression: Expression, property: string): Expression => {
-  if (property === 'default') {
-    return oldExpression;
-  }
   const newExpression = deepCopy(oldExpression);
+  if (property === 'default') {
+    return newExpression;
+  }
   newExpression.property = property as ExpressionPropertyBase;
   if (!newExpression.subExpressions) {
     const newSubExpression: SubExpression = { id: uuidv4() };
