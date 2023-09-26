@@ -1,0 +1,5 @@
+.label {
+  display: flex;
+  justify-content: center;
+  gap: var(--fds-spacing-1);
+}

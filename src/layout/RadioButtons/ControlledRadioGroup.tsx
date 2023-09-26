@@ -8,6 +8,7 @@ import { RadioButton } from 'src/components/form/RadioButton';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { groupIsRepeatingLikert } from 'src/layout/Group/tools';
+import classes from 'src/layout/RadioButtons/ControlledRadioGroup.module.css';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
@@ -62,14 +63,14 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
           <Radio.Group
             legend={
               overrideDisplay?.renderLegend === false ? null : (
-                <>
+                <span className={classes.label}>
                   {labelText}
                   {textResourceBindings?.help ? (
                     <HelpText title={langAsString(textResourceBindings?.help)}>
                       {lang(textResourceBindings?.help)}
                     </HelpText>
                   ) : null}
-                </>
+                </span>
               )
             }
             description={lang(textResourceBindings?.description)}
