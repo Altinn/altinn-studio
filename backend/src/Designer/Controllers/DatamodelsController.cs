@@ -61,7 +61,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 return Ok(json);
             }
-            catch (IOException)
+            catch (FileNotFoundException)
             {
                 return NotFound();
             }
