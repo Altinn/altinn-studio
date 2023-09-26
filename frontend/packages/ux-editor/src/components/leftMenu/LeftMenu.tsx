@@ -49,6 +49,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   const t = useText();
 
   // TODO @David - Denne funksjonaliteten må flyttes inn i DesignView.tsx for å legge til flere sider
+  // Burde vi kanskje gitt brukeren mulighet til å velge et navn selv?
   function handleAddPage() {
     let count = 1;
     let name = t('left_menu.page') + (layoutOrder.length + count);

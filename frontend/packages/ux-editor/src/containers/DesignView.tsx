@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { Accordion, Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import {
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -28,9 +28,8 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
-import { deepCopy } from 'app-shared/pure';
 import { PlusIcon } from '@navikt/aksel-icons';
+import { PageAccordion } from './PageAccordion';
 
 // TODO @David - Move type to another place
 export interface FormLayout {
@@ -68,7 +67,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
@@ -146,6 +144,8 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   // TODO @David
   const handleAddPage = () => {};
 
+  // TODO @David - Denne kan potensielt flyttes til separate filer.
+  // Det er i komponentene her at stylingen må skje for å matche Figma.
   const renderContainer = (
     id: string,
     isBaseContainer: boolean,
@@ -209,25 +209,23 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     );
   };
 
+  const displayPageAccordions = mappedFormLayoutData.map((layout, i) => {
+    const { order, containers, components } = layout.data || {};
+    return (
+      <PageAccordion
+        pageName={layout.page}
+        key={i} /* TODO @David - Fikse key */
+        isOpen={getAccordionOpenStatus(layout.page)}
+        onClick={() => handleClickAccordion(layout.page)}
+      >
+        {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+      </PageAccordion>
+    );
+  });
+
   return (
     <div className={className}>
-      {mappedFormLayoutData.map((element, i) => {
-        const layout = element; //layouts?.[layoutName];
-        const { order, containers, components } = layout.data || {};
-
-        return (
-          <Accordion color='neutral' key={i}>
-            <Accordion.Item open={getAccordionOpenStatus(element.page)}>
-              <Accordion.Header level={3} onHeaderClick={() => handleClickAccordion(layout.page)}>
-                {layout.page}
-              </Accordion.Header>
-              <Accordion.Content>
-                {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
-              </Accordion.Content>
-            </Accordion.Item>
-          </Accordion>
-        );
-      })}
+      {displayPageAccordions}
       <div className={classes.addButton}>
         <Button icon={<PlusIcon />} onClick={handleAddPage} size='small'>
           {t('left_menu.pages_add')}
