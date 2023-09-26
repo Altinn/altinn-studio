@@ -1,4 +1,4 @@
-import {stringify, stringify as s} from 'qs';
+import { stringify as s } from 'qs';
 import { APP_DEVELOPMENT_BASENAME } from '../constants';
 
 // Base path
