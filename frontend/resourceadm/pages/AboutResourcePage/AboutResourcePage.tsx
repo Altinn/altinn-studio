@@ -37,7 +37,7 @@ import { ResourceContactPointFields } from 'resourceadm/components/ResourceConta
 /**
  * Initial value for languages with empty fields
  */
-const emptyLangauges: SupportedLanguage = { nb: '', nn: '', en: '' };
+const emptyLanguages: SupportedLanguage = { nb: '', nn: '', en: '' };
 
 export type AboutResourcePageProps = {
   /**
@@ -101,13 +101,13 @@ export const AboutResourcePage = ({
 
   // States to store the different input values
   const [title, setTitle] = useState<SupportedLanguageKey<string>>(
-    resourceData.title ?? emptyLangauges,
+    resourceData.title ?? emptyLanguages,
   );
   const [description, setDescription] = useState<SupportedLanguageKey<string>>(
-    resourceData.description ?? emptyLangauges,
+    resourceData.description ?? emptyLanguages,
   );
   const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
-    resourceData.rightDescription ?? emptyLangauges,
+    resourceData.rightDescription ?? emptyLanguages,
   );
 
   // To handle which translation value is shown in the right menu

@@ -5,7 +5,7 @@ import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopov
 import type { PopoverOrigin } from '@mui/material';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../../utils/repoUtils';
-import { LegacyTextField as TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -102,7 +102,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
         <h2>{t('dashboard.copy_application')}</h2>
         <p>{t('dashboard.copy_application_description')}</p>
         <div>
-          <TextField
+          <LegacyTextField
             id='new-clone-name-input'
             label={t('dashboard.new_service_copy')}
             value={repoName}

@@ -5,7 +5,7 @@ import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
-import { Button, LegacyTextField as TextField } from '@digdir/design-system-react';
+import { Button, LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -57,7 +57,7 @@ export const CloneModal = (props: ICloneModalProps) => {
         )}
         <>
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-          <TextField id='repository-url-form' value={gitUrl} readOnly />
+          <LegacyTextField id='repository-url-form' value={gitUrl} readOnly />
         </>
         {canCopy && (
           <Button onClick={copyGitUrl} id='copy-repository-url-button' size='small'>

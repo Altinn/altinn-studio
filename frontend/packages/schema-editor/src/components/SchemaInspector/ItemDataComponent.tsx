@@ -13,7 +13,7 @@ import {
   LegacyFieldSet,
   Select,
   TextArea,
-  LegacyTextField as TextField,
+  LegacyTextField,
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -204,7 +204,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       <Divider marginless />
       <LegacyFieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <TextField
+          <LegacyTextField
             id={titleId}
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}

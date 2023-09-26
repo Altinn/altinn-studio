@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelectedFormLayout } from '../../../hooks';
 import type { FormComponent } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { LegacyTextField as TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
@@ -50,7 +50,7 @@ export const EditComponentId = ({
       }}
     >
       {({ onChange }) => (
-        <TextField
+        <LegacyTextField
           name={`component-id-input${component.id}`}
           onChange={(e) => onChange(e.target.value, e)}
         />

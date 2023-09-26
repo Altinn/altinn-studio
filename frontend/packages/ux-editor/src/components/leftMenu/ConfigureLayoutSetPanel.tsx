@@ -11,7 +11,7 @@ import React, {
 import { useTranslation, Trans } from 'react-i18next';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
-import { Button, Paragraph, LegacyTextField as TextField } from '@digdir/design-system-react';
+import { Button, Paragraph, LegacyTextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -119,7 +119,7 @@ export const ConfigureLayoutSetPanel = () => {
           <label className={classes.label} htmlFor={inputLayoutSetNameId}>
             {t('left_menu.configure_layout_sets_name')}
           </label>
-          <TextField
+          <LegacyTextField
             id={inputLayoutSetNameId}
             onKeyDown={handleKeyPress}
             onChange={handleOnNameChange}

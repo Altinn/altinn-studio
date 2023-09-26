@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   Select,
   SingleSelectOption,
-  LegacyTextField as TextField,
+  LegacyTextField,
   ToggleButtonGroup,
 } from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
@@ -82,14 +82,14 @@ export const DataSourceValue = ({
       );
     case DataSource.String:
       return (
-        <TextField
+        <LegacyTextField
           onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
           value={currentValue as string}
         />
       );
     case DataSource.Number:
       return (
-        <TextField
+        <LegacyTextField
           formatting={{ number: {} }}
           inputMode='numeric'
           onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}

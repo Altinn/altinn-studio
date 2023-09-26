@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
-import { LegacyFieldSet, Button, LegacyTextField as TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, Button, LegacyTextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
@@ -44,7 +44,7 @@ export const MapComponent = ({
             }}
           >
             {({ onChange }) => (
-              <TextField
+              <LegacyTextField
                 formatting={{ number: {} }}
                 onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
               />
@@ -61,7 +61,7 @@ export const MapComponent = ({
             }}
           >
             {({ onChange }) => (
-              <TextField
+              <LegacyTextField
                 formatting={{ number: {} }}
                 onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
               />
@@ -81,7 +81,7 @@ export const MapComponent = ({
           }}
         >
           {({ onChange }) => (
-            <TextField
+            <LegacyTextField
               formatting={{ number: {} }}
               onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
             />
@@ -179,7 +179,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               }}
             >
               {({ onChange }) => (
-                <TextField name='url' onChange={(e) => onChange(e.target.value, e)} />
+                <LegacyTextField name='url' onChange={(e) => onChange(e.target.value, e)} />
               )}
             </FormField>
             <div className={classes.formGroup}>
@@ -191,7 +191,10 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
               >
                 {({ onChange }) => (
-                  <TextField name='attribution' onChange={(e) => onChange(e.target.value, e)} />
+                  <LegacyTextField
+                    name='attribution'
+                    onChange={(e) => onChange(e.target.value, e)}
+                  />
                 )}
               </FormField>
               <FormField
@@ -202,7 +205,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
               >
                 {({ value, onChange }) => (
-                  <TextField
+                  <LegacyTextField
                     name='subdomains'
                     placeholder={t('ux_editor.subdomains_placeholder')}
                     onChange={(e) => onChange(stringToArray(e.target.value), e)}

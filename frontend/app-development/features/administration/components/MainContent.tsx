@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, TextArea, LegacyTextField as TextField } from '@digdir/design-system-react';
+import { Button, TextArea, LegacyTextField } from '@digdir/design-system-react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import classes from './MainContent.module.css';
 import { Trans, useTranslation } from 'react-i18next';
@@ -46,7 +46,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       <h2 id={nameLabelId}>{t('general.service_name')}</h2>
       <p>{t('administration.service_name_administration_description')}</p>
       <div className={classes.sideBySide}>
-        <TextField
+        <LegacyTextField
           aria-labelledby={nameLabelId}
           onChange={props.onAppNameChange}
           value={props.appName}
@@ -63,7 +63,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       />
       <h2 id={appIdLabelId}>{t('administration.service_id')}</h2>
       <p>{t('administration.service_id_description')}</p>
-      <TextField
+      <LegacyTextField
         aria-labelledby={appIdLabelId}
         onChange={props.onAppIdChange}
         value={props.appId}
@@ -71,7 +71,11 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       />
       <h2>{t('general.service_saved_name')}</h2>
       <p>{t('administration.service_saved_name_administration_description')}</p>
-      <TextField id='administrationInputReponame' value={props.repositoryName} disabled={true} />
+      <LegacyTextField
+        id='administrationInputReponame'
+        value={props.repositoryName}
+        disabled={true}
+      />
       <h2 id={descriptionLabelId}>{t('administration.service_comment')}</h2>
       <p>{t('administration.service_comment_description')}</p>
       <TextArea

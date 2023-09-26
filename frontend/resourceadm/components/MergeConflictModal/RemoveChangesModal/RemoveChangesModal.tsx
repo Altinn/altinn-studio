@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, LegacyTextField as TextField, Paragraph } from '@digdir/design-system-react';
+import { Button, LegacyTextField, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
@@ -69,7 +69,7 @@ export const RemoveChangesModal = ({
         {t('administration.reset_repo_confirm_info', { repositoryName: repo })}
       </Paragraph>
       <div className={classes.textFieldWrapper}>
-        <TextField
+        <LegacyTextField
           label='Skriv inn navn på repoet for å bekrefte'
           value={deleteRepoName}
           onChange={(e) => setDeleteRepoName(e.target.value)}

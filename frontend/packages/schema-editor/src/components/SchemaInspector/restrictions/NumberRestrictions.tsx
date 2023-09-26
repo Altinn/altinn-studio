@@ -6,11 +6,7 @@ import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { Label } from 'app-shared/components/Label';
 import classes from './StringRestrictions.module.css';
-import {
-  LegacyCheckbox,
-  ErrorMessage,
-  LegacyTextField as TextField,
-} from '@digdir/design-system-react';
+import { LegacyCheckbox, ErrorMessage, LegacyTextField } from '@digdir/design-system-react';
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerAction,
@@ -93,7 +89,7 @@ export function NumberRestrictions({
         <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
-            <TextField
+            <LegacyTextField
               id='schema_editor.minimum_'
               onChange={onChangeMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
@@ -117,7 +113,7 @@ export function NumberRestrictions({
         <Label htmlFor='schema_editor.maximum_'>{t(maxLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
-            <TextField
+            <LegacyTextField
               id='schema_editor.maximum_'
               onChange={onChangeMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
@@ -141,7 +137,7 @@ export function NumberRestrictions({
       <div>
         <Label htmlFor='schema_editor.multipleOf'>{t('schema_editor.multipleOf')}</Label>
         <div className={classes.formatFieldsRowContent}>
-          <TextField
+          <LegacyTextField
             id='schema_editor.multipleOf'
             formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             onChange={(e) =>

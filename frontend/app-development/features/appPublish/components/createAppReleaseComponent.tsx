@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './createAppReleaseComponent.module.css';
 import type { ChangeEvent } from 'react';
-import { LegacyTextField as TextField, TextArea, Button } from '@digdir/design-system-react';
+import { LegacyTextField, TextArea, Button } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
@@ -43,7 +43,7 @@ export function CreateReleaseComponent() {
         </div>
       ) : null}
       <div className={classes.releaseVersionInput}>
-        <TextField
+        <LegacyTextField
           label={t('app_create_release.release_versionnumber')}
           onChange={handleTagNameChange}
           value={tagName}

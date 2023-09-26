@@ -7,7 +7,7 @@ import {
   ErrorMessage,
   TableCell,
   TableRow,
-  LegacyTextField as TextField,
+  LegacyTextField,
 } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
@@ -118,7 +118,7 @@ export const TextRow = ({
         <ButtonContainer>
           {textIdEditOpen ? (
             <div>
-              <TextField
+              <LegacyTextField
                 aria-label={'tekst key edit'}
                 isValid={!keyError}
                 value={textIdValue}

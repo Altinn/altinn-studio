@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { LegacyTextField as TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
 
@@ -39,7 +39,7 @@ export const EditNumberValue = ({
       }}
     >
       {({ onChange }) => (
-        <TextField
+        <LegacyTextField
           name={`component-${propertyKey}-input-${component.id}`}
           onChange={(e) => onChange(e.target.value as unknown as number, e)}
           inputMode='numeric'

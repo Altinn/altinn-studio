@@ -9,7 +9,7 @@ import {
   LegacyCheckbox,
   LegacyCheckboxGroup,
   LegacyFieldSet,
-  LegacyTextField as TextField,
+  LegacyTextField,
 } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
@@ -160,7 +160,7 @@ export const EditFormContainer = ({
         onChange={handleIdChange}
       >
         {({ onChange }) => (
-          <TextField
+          <LegacyTextField
             name={`group-id${container.id}`}
             onChange={(e) => onChange(e.target.value, e)}
           />
@@ -190,7 +190,7 @@ export const EditFormContainer = ({
             propertyPath={`${container.propertyPath}/properties/maxCount`}
           >
             {({ onChange }) => (
-              <TextField
+              <LegacyTextField
                 id='modal-properties-maximum-files'
                 disabled={!!container.dataModelBindings?.group}
                 formatting={{ number: {} }}

@@ -1,5 +1,5 @@
 import {
-  LegacyTextField as TextField,
+  LegacyTextField,
   LegacyTextFieldProps as TextFieldProps,
 } from '@digdir/design-system-react';
 import React from 'react';
@@ -12,6 +12,6 @@ export type AltinnTextFieldProps = TextFieldProps & {
 
 export const AltinnTextField = ({ withAsterisk, ...rest }: AltinnTextFieldProps) => (
   <span className={cn(withAsterisk && classes.withAsterisk)}>
-    <TextField {...rest} />
+    <LegacyTextField {...rest} />
   </span>
 );

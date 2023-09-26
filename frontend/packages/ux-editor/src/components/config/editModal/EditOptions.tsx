@@ -1,11 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import {
-  Button,
-  Fieldset,
-  LegacyRadioGroup,
-  LegacyTextField as TextField,
-} from '@digdir/design-system-react';
+import { Button, Fieldset, LegacyRadioGroup, LegacyTextField } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -167,7 +162,7 @@ export function EditOptions({
                             textResourceId={option.label}
                           />
                           <div>
-                            <TextField
+                            <LegacyTextField
                               label={t('general.value')}
                               onChange={updateValue}
                               placeholder={t('general.value')}

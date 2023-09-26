@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyTextField as TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
@@ -34,7 +34,7 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
     value: '',
     ...props,
   };
-  return rtlRender(<FormField {...allProps}>{() => <TextField />}</FormField>);
+  return rtlRender(<FormField {...allProps}>{() => <LegacyTextField />}</FormField>);
 };
 
 describe('FormField', () => {

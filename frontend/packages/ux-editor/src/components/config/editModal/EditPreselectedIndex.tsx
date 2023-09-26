@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyTextField as TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -40,7 +40,7 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
       propertyPath={`${component.propertyPath}/properties/preselectedOptionIndex`}
     >
       {({ onChange }) => (
-        <TextField
+        <LegacyTextField
           formatting={{ number: {} }}
           placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
           onChange={(e) => onChange(parseInt(e.target.value), e)}
