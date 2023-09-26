@@ -3,7 +3,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedContextPadProvider from '../bpmnProviders/SupportedContextPadProvider';
 import SupportedPaletteProvider from '../bpmnProviders/SupportedPaletteProvider';
 import { useBpmnContext } from '../contexts/BpmnContext';
-import altinnTask from '../extensions/altinnDataTask.json';
+import { altinnCustomTasks } from '../extensions/altinnCustomTasks';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -29,7 +29,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       },
       additionalModules: [SupportedPaletteProvider, SupportedContextPadProvider],
       moddleExtensions: {
-        altinn: altinnTask,
+        altinn: altinnCustomTasks,
       },
     });
 
