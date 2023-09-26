@@ -12,7 +12,7 @@
   --margin-top: 50px;
 
   flex-grow: 1;
-  height:calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
   overflow-y: hidden;
 }
 
@@ -86,4 +86,13 @@
 
 .logicEditor > * {
   margin: 1rem;
+}
+
+/* TODO - Below is only tmp */
+.pagesOverview {
+  border-right: 1px solid;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - var(--header-height));
+  width: 300px;
 }

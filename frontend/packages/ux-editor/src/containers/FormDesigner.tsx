@@ -25,6 +25,7 @@ import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
+import { PagesOverview } from '../components/PagesOverview';
 
 const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
   if (instanceId) {
@@ -49,7 +50,7 @@ export const FormDesigner = ({
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
@@ -60,12 +61,12 @@ export const FormDesigner = ({
     org,
     app,
     selectedLayout,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
 
   const layoutOrder = useMemo(
     () => formLayouts?.[selectedLayout]?.order || {},
-    [formLayouts, selectedLayout]
+    [formLayouts, selectedLayout],
   );
   const t = useText();
 
@@ -164,6 +165,9 @@ export const FormDesigner = ({
         <div className={classes.root}>
           <div className={classes.container}>
             <LeftMenu className={classes.leftContent + ' ' + classes.item} />
+            <div className={classes.pagesOverview}>
+              <PagesOverview />
+            </div>
             <FormContextProvider>
               <DesignView className={classes.mainContent + ' ' + classes.item} />
               <RightMenu className={classes.rightContent + ' ' + classes.item} />

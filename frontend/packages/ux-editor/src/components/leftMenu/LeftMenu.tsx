@@ -88,6 +88,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
             </Accordion.Content>
           </Accordion.Item>
         )}
+        {/* -------------------------------------------------------- */}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>
@@ -100,6 +101,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
             </div>
           </Accordion.Content>
         </Accordion.Item>
+        {/* -------------------------------------------------------- */}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
           <Accordion.Content>

@@ -50,7 +50,7 @@ export const FormComponent = memo(function FormComponent({
   const { org, app } = useStudioUrlParams();
 
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
-    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
+    textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
@@ -60,7 +60,7 @@ export const FormComponent = memo(function FormComponent({
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
     org,
     app,
-    selectedLayoutSetName
+    selectedLayoutSetName,
   );
 
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
@@ -93,7 +93,7 @@ export const FormComponent = memo(function FormComponent({
       className={cn(
         classes.wrapper,
         isEditMode && classes.editMode,
-        isPreviewMode && classes.previewMode
+        isPreviewMode && classes.previewMode,
       )}
       role='listitem'
       onClick={async (event: React.MouseEvent<HTMLDivElement>) => {

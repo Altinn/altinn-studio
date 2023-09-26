@@ -6,7 +6,7 @@ import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteForm
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
-import { selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
+import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { useSelector } from 'react-redux';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
@@ -32,16 +32,17 @@ export const FormContainer = ({
   id,
   isBaseContainer,
   isEditMode,
-} : IFormContainerProps) => {
+}: IFormContainerProps) => {
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
 
-  const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app, selectedLayoutSetName);
-
-  const handleDeleteFormContainer = useCallback(
-    deleteFormContainer,
-    [deleteFormContainer]
+  const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(
+    org,
+    app,
+    selectedLayoutSetName,
   );
+
+  const handleDeleteFormContainer = useCallback(deleteFormContainer, [deleteFormContainer]);
 
   const [expanded, setExpanded] = useState<boolean>(true);
 

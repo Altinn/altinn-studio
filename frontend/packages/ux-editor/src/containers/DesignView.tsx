@@ -26,6 +26,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  // console.log(layouts);
   const layoutName = useSelector(selectedLayoutNameSelector);
   const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
@@ -38,7 +39,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const renderContainer = (
     id: string,
     isBaseContainer: boolean,
-    dragHandleRef?: ConnectDragSource
+    dragHandleRef?: ConnectDragSource,
   ) => {
     if (!id) return null;
 

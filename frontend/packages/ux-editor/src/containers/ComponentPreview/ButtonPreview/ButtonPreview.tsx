@@ -22,7 +22,7 @@ export interface ButtonPreviewProps {
 export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => {
   const t = useText();
   const texts: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
-    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
+    textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
 
   const isNavigationButton = component.type === ComponentType.NavigationButtons;
