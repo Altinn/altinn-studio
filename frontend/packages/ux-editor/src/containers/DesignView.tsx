@@ -1,5 +1,5 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { ReactNode } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
@@ -17,28 +17,141 @@ import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { Accordion, Button } from '@digdir/design-system-react';
+import {
+  IFormDesignerComponents,
+  IFormDesignerContainers,
+  IFormLayoutOrder,
+  IInternalLayout,
+} from '../types/global';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { useSearchParams } from 'react-router-dom';
+import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
+import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
+import { deepCopy } from 'app-shared/pure';
+import { PlusIcon } from '@navikt/aksel-icons';
+
+// TODO @David - Move type to another place
+export interface FormLayout {
+  page: string;
+  data: IInternalLayout;
+}
+
+// TODO @David - Move function to utils
+const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
+  if (instanceId) {
+    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
+    localStorage.setItem(instanceId, layoutName);
+  }
+};
 
 export interface DesignViewProps {
+  /**
+   * Additional classnames to add to the component's wrapper
+   */
   className?: string;
 }
 
-export const DesignView = ({ className }: DesignViewProps) => {
+/**
+ * @component
+ *    TODO @David  - documentation
+ *
+ * @property {string}[className] - Additional classnames to add to the component's wrapper
+ *
+ * @returns {ReactNode} - The rendered component
+ */
+export const DesignView = ({ className }: DesignViewProps): ReactNode => {
+  const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  // console.log(layouts);
-  const layoutName = useSelector(selectedLayoutNameSelector);
+  const { data: instanceId } = useInstanceIdQuery(org, app);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParamsLayout = searchParams.get('layout');
+
+  const selectedLayoutName = useSelector(selectedLayoutNameSelector);
+
   const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
   const { t } = useTranslation();
 
-  const layout = layouts?.[layoutName];
+  /**
+   * Maps the IFormLayouts object to a list of FormLayouts
+   *
+   * TODO @David - Move this to utilrs maybe?
+   * TODO @David - Find out if this needs to be sorted
+   */
+  const mappedFormLayoutData: FormLayout[] = Object.entries(layouts).map(([key, value]) => ({
+    page: key,
+    data: value,
+  }));
 
-  const { order, containers, components } = layout || {};
+  /**
+   * Checks if the layout name provided is valid
+   *
+   * @param layoutName the name to check
+   *
+   * @returns boolean value for the validity
+   */
+  const isValidLayout = (layoutName: string): boolean => {
+    const isExistingLayout = mappedFormLayoutData.map((el) => el.page).includes(layoutName);
+    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
+    return isExistingLayout || isReceipt;
+  };
+
+  /**
+   * Gets the status of if an accordion is open or not
+   *
+   * @param layoutName the layout displayed in the accordion
+   *
+   * @returns boolean valud for if it is open or not
+   */
+  const getAccordionOpenStatus = (layoutName: string): boolean => {
+    if (isValidLayout(layoutName)) {
+      if (selectedLayoutName === 'default' && isValidLayout(searchParamsLayout)) {
+        return layoutName === searchParamsLayout;
+      } else if (isValidLayout(selectedLayoutName)) {
+        return layoutName === selectedLayoutName;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  };
+
+  /**
+   * Handles the click of an accordion. It updates the URL and sets the
+   * local storage for which page view that is open
+   *
+   * @param pageName the name of the accordion clicked
+   */
+  const handleClickAccordion = (pageName: string) => {
+    if (isValidLayout(pageName)) {
+      if (searchParamsLayout !== pageName) {
+        setSelectedLayoutInLocalStorage(instanceId, pageName);
+        dispatch(FormLayoutActions.updateSelectedLayout(pageName));
+        setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
+      } else {
+        setSelectedLayoutInLocalStorage(instanceId, undefined);
+        dispatch(FormLayoutActions.updateSelectedLayout(undefined));
+        setSearchParams(undefined);
+      }
+    }
+  };
+
+  // TODO @David
+  const handleAddPage = () => {};
 
   const renderContainer = (
     id: string,
     isBaseContainer: boolean,
+    order: IFormLayoutOrder,
+    containers: IFormDesignerContainers,
+    components: IFormDesignerComponents,
     dragHandleRef?: ConnectDragSource,
   ) => {
     if (!id) return null;
@@ -81,7 +194,10 @@ export const DesignView = ({ className }: DesignViewProps) => {
                       />
                     );
                   }
-                  return containers[itemId] && renderContainer(itemId, false, itemDragHandleRef);
+                  return (
+                    containers[itemId] &&
+                    renderContainer(itemId, false, order, containers, components, itemDragHandleRef)
+                  );
                 }}
               />
             ))
@@ -95,8 +211,28 @@ export const DesignView = ({ className }: DesignViewProps) => {
 
   return (
     <div className={className}>
-      <h1 className={classes.pageHeader}>{layoutName}</h1>
-      {layout && renderContainer(BASE_CONTAINER_ID, true)}
+      {mappedFormLayoutData.map((element, i) => {
+        const layout = element; //layouts?.[layoutName];
+        const { order, containers, components } = layout.data || {};
+
+        return (
+          <Accordion color='neutral' key={i}>
+            <Accordion.Item open={getAccordionOpenStatus(element.page)}>
+              <Accordion.Header level={3} onHeaderClick={() => handleClickAccordion(layout.page)}>
+                {layout.page}
+              </Accordion.Header>
+              <Accordion.Content>
+                {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+              </Accordion.Content>
+            </Accordion.Item>
+          </Accordion>
+        );
+      })}
+      <div className={classes.addButton}>
+        <Button icon={<PlusIcon />} onClick={handleAddPage} size='small'>
+          {t('left_menu.pages_add')}
+        </Button>
+      </div>
     </div>
   );
 };

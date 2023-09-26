@@ -1,9 +1,3 @@
-.addButton {
-  display: flex;
-  justify-content: center;
-  padding-top: var(--fds-spacing-5);
-}
-
 .pagesContent {
   padding: var(--fds-spacing-2);
 }

@@ -6,12 +6,10 @@ import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { FormContextProvider } from './FormContext';
 import { useText } from '../hooks';
-import { useSearchParams } from 'react-router-dom';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { ErrorPage } from '../components/ErrorPage';
 import { PageSpinner } from 'app-shared/components';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
@@ -25,27 +23,19 @@ import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-import { PagesOverview } from '../components/PagesOverview';
-
-const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
-  if (instanceId) {
-    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-    localStorage.setItem(instanceId, layoutName);
-  }
-};
 
 export interface FormDesignerProps {
   selectedLayout: string;
   selectedLayoutSet: string | undefined;
 }
 
+// TODO @David - Dette er rotfilen for Form Designer. Kanskje vi burde fikse mappestrukturen for disse filene nå mens vi er her?
 export const FormDesigner = ({
   selectedLayout,
   selectedLayoutSet,
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
@@ -70,8 +60,6 @@ export const FormDesigner = ({
   );
   const t = useText();
 
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
-
   const formLayoutIsReady =
     instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
 
@@ -88,42 +76,6 @@ export const FormDesigner = ({
       return createErrorMessage(t('general.layout'));
     }
   };
-
-  /**
-   * Set the correct selected layout based on url parameters
-   */
-  useEffect(() => {
-    const firstLayoutPage = layoutPagesOrder?.[0];
-    if (!firstLayoutPage) return;
-
-    const searchParamsLayout = searchParams.get('layout');
-
-    const updateLayoutInSearchParams = (layout: string) => {
-      setSearchParams((prevParams) => ({ ...prevParams, layout }));
-    };
-
-    const isValidLayout = (layoutName: string): boolean => {
-      const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-      const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-      return isExistingLayout || isReceipt;
-    };
-
-    if (isValidLayout(searchParamsLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-      return;
-    }
-
-    updateLayoutInSearchParams(firstLayoutPage);
-  }, [
-    dispatch,
-    formLayoutSettings?.receiptLayoutName,
-    instanceId,
-    layoutPagesOrder,
-    searchParams,
-    selectedLayout,
-    setSearchParams,
-  ]);
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -165,9 +117,6 @@ export const FormDesigner = ({
         <div className={classes.root}>
           <div className={classes.container}>
             <LeftMenu className={classes.leftContent + ' ' + classes.item} />
-            <div className={classes.pagesOverview}>
-              <PagesOverview />
-            </div>
             <FormContextProvider>
               <DesignView className={classes.mainContent + ' ' + classes.item} />
               <RightMenu className={classes.rightContent + ' ' + classes.item} />

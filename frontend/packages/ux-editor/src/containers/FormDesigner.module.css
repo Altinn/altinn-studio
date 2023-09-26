@@ -50,7 +50,6 @@
   display: flex;
   flex-direction: column;
   flex: 6;
-  min-width: 682px !important;
   overflow-y: auto;
 }
 
@@ -86,13 +85,4 @@
 
 .logicEditor > * {
   margin: 1rem;
-}
-
-/* TODO - Below is only tmp */
-.pagesOverview {
-  border-right: 1px solid;
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: calc(100vh - var(--header-height));
-  width: 300px;
 }

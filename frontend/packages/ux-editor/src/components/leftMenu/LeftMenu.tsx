@@ -48,6 +48,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
 
   const t = useText();
 
+  // TODO @David - Denne funksjonaliteten må flyttes inn i DesignView.tsx for å legge til flere sider
   function handleAddPage() {
     let count = 1;
     let name = t('left_menu.page') + (layoutOrder.length + count);
@@ -88,7 +89,12 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
             </Accordion.Content>
           </Accordion.Item>
         )}
-        {/* -------------------------------------------------------- */}
+        {/* TODO @David - Dette er den gamle visningen av sider.
+              - Dette må evt. fjernes når klart
+              - Komponenter inni må enten slettes eller brukes et annet sted
+              - Vi må flytte over knappen for å legge til sider
+              - Vi må ha med funksjonalitet for å slette pages, samt. mulighet til å flytte de opp og ned
+
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>
@@ -101,7 +107,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
             </div>
           </Accordion.Content>
         </Accordion.Item>
-        {/* -------------------------------------------------------- */}
+        */}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
           <Accordion.Content>
