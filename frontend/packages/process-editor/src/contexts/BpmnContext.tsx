@@ -31,7 +31,6 @@ export const BpmnContextProvider = ({ bpmnXml, children }: BpmnContextProviderPr
     }
     try {
       const { xml } = await modelerRef.current.saveXML({ format: true });
-      console.log(xml)
       setNumberOfUnsavedChanges(0);
       return xml;
     } catch {
