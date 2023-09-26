@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -230,8 +231,8 @@ namespace Altinn.App.Core.Features.Validation
                 {
                     var layoutSet = _appResourcesService.GetLayoutSetForTask(dataType.TaskId);
                     var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-                    // Remove hidden data before validation
-                    LayoutEvaluator.RemoveHiddenData(evaluationState);
+                    // Remove hidden data before validation, set rows to null to preserve indices
+                    LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.SetToNull);
                     // Evaluate expressions in layout and validate that all required data is included and that maxLength
                     // is respected on groups
                     var layoutErrors = LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState, dataElement.Id);

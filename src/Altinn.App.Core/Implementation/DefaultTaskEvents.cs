@@ -257,10 +257,10 @@ public class DefaultTaskEvents : ITaskEvents
 
                 if (_appSettings?.RemoveHiddenDataPreview == true)
                 {
-                    // Remove hidden data before validation
+                    // Remove hidden data before validation, ignore hidden rows. TODO: Determine how hidden rows should be handled going forward.
                     var layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);
                     var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-                    LayoutEvaluator.RemoveHiddenData(evaluationState, true);
+                    LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
                 }
 
                 // save the updated data if there are changes

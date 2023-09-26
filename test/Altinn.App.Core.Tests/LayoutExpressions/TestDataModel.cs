@@ -226,22 +226,22 @@ public class TestDataModel
         };
         IDataModelAccessor modelHelper = new DataModel(model);
         model.Id.Should().Be(2);
-        modelHelper.RemoveField("id");
+        modelHelper.RemoveField("id", RowRemovalOption.SetToNull);
         model.Id.Should().Be(default);
 
         model.Name.Value.Should().Be("Ivar");
-        modelHelper.RemoveField("name");
+        modelHelper.RemoveField("name", RowRemovalOption.SetToNull);
         model.Name.Should().BeNull();
 
         model.Friends.First().Name!.Value.Should().Be("Første venn");
-        modelHelper.RemoveField("friends[0].name.value");
+        modelHelper.RemoveField("friends[0].name.value", RowRemovalOption.SetToNull);
         model.Friends.First().Name!.Value.Should().BeNull();
-        modelHelper.RemoveField("friends[0].name");
+        modelHelper.RemoveField("friends[0].name", RowRemovalOption.SetToNull);
         model.Friends.First().Name.Should().BeNull();
         model.Friends.First().Age.Should().Be(1235);
 
         model.Friends.First().Friends!.First().Age.Should().Be(233);
-        modelHelper.RemoveField("friends[0].friends");
+        modelHelper.RemoveField("friends[0].friends", RowRemovalOption.SetToNull);
         model.Friends.First().Friends.Should().BeNull();
     }
 
@@ -338,12 +338,12 @@ public class TestDataModel
         var model1 = System.Text.Json.JsonSerializer.Deserialize<Model>(serializedModel)!;
         IDataModelAccessor modelHelper1 = new DataModel(model1);
 
-        modelHelper1.RemoveField("friends[0].friends[0]");
+        modelHelper1.RemoveField("friends[0].friends[0]", RowRemovalOption.SetToNull);
         model1.Friends![0].Friends![0].Should().BeNull();
         model1.Friends![0].Friends!.Count.Should().Be(3);
         model1.Friends[0].Friends![1].Name!.Value.Should().Be("Første venn sin andre venn");
 
-        modelHelper1.RemoveField("friends[1]");
+        modelHelper1.RemoveField("friends[1]", RowRemovalOption.SetToNull);
         model1.Friends[1].Should().BeNull();
         model1.Friends.Count.Should().Be(3);
         model1.Friends[2].Name!.Value.Should().Be("Tredje venn");
@@ -352,11 +352,11 @@ public class TestDataModel
         var model2 = System.Text.Json.JsonSerializer.Deserialize<Model>(serializedModel)!;
         IDataModelAccessor modelHelper2 = new DataModel(model2);
 
-        modelHelper2.RemoveField("friends[0].friends[0]", true);
+        modelHelper2.RemoveField("friends[0].friends[0]", RowRemovalOption.DeleteRow);
         model2.Friends![0].Friends!.Count.Should().Be(2);
         model2.Friends[0].Friends![0].Name!.Value.Should().Be("Første venn sin andre venn");
 
-        modelHelper2.RemoveField("friends[1]", true);
+        modelHelper2.RemoveField("friends[1]", RowRemovalOption.DeleteRow);
         model2.Friends.Count.Should().Be(2);
         model2.Friends[1].Name!.Value.Should().Be("Tredje venn");
     }
@@ -454,16 +454,16 @@ public class TestDataModel
         var modelHelper = new DataModel(new Model());
 
         // real fields works, no error
-        modelHelper.RemoveField("id");
+        modelHelper.RemoveField("id", RowRemovalOption.SetToNull);
 
         // non-existant-fields works, no error
-        modelHelper.RemoveField("doesNotExist");
+        modelHelper.RemoveField("doesNotExist", RowRemovalOption.SetToNull);
 
         // non-existant-fields in subfield works, no error
-        modelHelper.RemoveField("friends.doesNotExist");
+        modelHelper.RemoveField("friends.doesNotExist", RowRemovalOption.SetToNull);
 
         // non-existant-fields in subfield works, no error
-        modelHelper.RemoveField("friends[0].doesNotExist");
+        modelHelper.RemoveField("friends[0].doesNotExist", RowRemovalOption.SetToNull);
     }
 }
 
