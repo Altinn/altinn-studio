@@ -48,6 +48,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
+  getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
   getInstanceIdForPreview: jest.fn(),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
@@ -126,6 +127,7 @@ export const renderWithMockStore =
     const renderResult = render(renderComponent(component));
     return { renderResult, store };
   };
+
 export const renderHookWithMockStore =
   (
     state: Partial<IAppState> = {},

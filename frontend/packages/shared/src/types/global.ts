@@ -22,6 +22,10 @@ export interface IData {
   lastChanged: Date;
 }
 
+export interface IFrontEndSettings {
+  appUrl?: string;
+}
+
 export interface ILayoutSettings {
   $schema?: string;
   pages?: IPagesSettings;
@@ -72,7 +76,6 @@ export interface IGiteaOrganisation {
   website?: string;
   full_name?: string;
 }
-
 
 export interface IContentStatus {
   filePath: string;

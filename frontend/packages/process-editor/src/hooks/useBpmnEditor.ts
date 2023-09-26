@@ -1,14 +1,15 @@
 import { MutableRefObject, useRef, useEffect } from 'react';
-import Modeler from 'bpmn-js/lib/Modeler';
+import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedContextPadProvider from '../bpmnProviders/SupportedContextPadProvider';
 import SupportedPaletteProvider from '../bpmnProviders/SupportedPaletteProvider';
 import { useBpmnContext } from '../contexts/BpmnContext';
+import { altinnCustomTasks } from '../extensions/altinnCustomTasks';
 
 // Wrapper around bpmn-js to Reactify it
 
 type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
-  modelerRef: MutableRefObject<Modeler>;
+  modelerRef: MutableRefObject<BpmnModeler>;
 };
 
 export const useBpmnEditor = (): UseBpmnViewerResult => {
@@ -21,12 +22,15 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       return;
     }
 
-    const modeler = new Modeler({
+    const modeler = new BpmnModeler({
       container: canvasRef.current,
       keyboard: {
         bindTo: document,
       },
       additionalModules: [SupportedPaletteProvider, SupportedContextPadProvider],
+      moddleExtensions: {
+        altinn: altinnCustomTasks,
+      },
     });
 
     // set modelerRef.current to the Context so that it can be used in other components
