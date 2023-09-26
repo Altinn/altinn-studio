@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 interface IRepoNameInputProps {
@@ -24,7 +24,7 @@ export const RepoNameInput = ({
 
   return (
     <div>
-      <TextField
+      <LegacyTextField
         id='service-saved-name'
         label={t('general.service_name')}
         value={repoName}
