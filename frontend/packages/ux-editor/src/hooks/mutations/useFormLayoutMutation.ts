@@ -5,12 +5,14 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import { useAppContext } from '../useAppContext';
 
 export const useFormLayoutMutation = (org: string, app: string, layoutName: string, layoutSetName: string) => {
 
   const previewConnection = usePreviewConnection();
   const { saveFormLayout } = useServicesContext();
   const queryClient = useQueryClient();
+  const { previewIframeRef } = useAppContext();
 
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
@@ -19,10 +21,13 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
     },
     onSuccess: async (savedLayout) => {
       if (previewConnection && previewConnection.state === "Connected") {
+        console.log('sender');
         await previewConnection.send("sendMessage", "reload-layouts").catch(function (err) {
           return console.error(err.toString());
         });
       }
+
+      previewIframeRef.current?.contentWindow.location.reload();
 
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],

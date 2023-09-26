@@ -93,7 +93,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   };
 
   return (
-    <div className={className}>
+    <div className={classes.root}>
       <h1 className={classes.pageHeader}>{layoutName}</h1>
       {layout && renderContainer(BASE_CONTAINER_ID, true)}
     </div>

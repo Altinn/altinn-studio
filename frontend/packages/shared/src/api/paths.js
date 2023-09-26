@@ -1,4 +1,4 @@
-import { stringify as s } from 'qs';
+import {stringify, stringify as s} from 'qs';
 import { APP_DEVELOPMENT_BASENAME } from '../constants';
 
 // Base path
@@ -62,6 +62,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 // Preview
 export const previewPath = (org, app) => `/preview/${org}/${app}`;
 export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
+export const previewPage = (org, app, selectedLayoutSet) => `/designer/html/preview.html?${s({org, app, selectedLayoutSet})}`;
 
 //Editor
 export const editorPath = (org, app) => `/editor/${org}/${app}`;

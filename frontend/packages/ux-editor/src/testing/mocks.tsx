@@ -22,12 +22,14 @@ import { QueryClient } from '@tanstack/react-query';
 import expressionSchema from './schemas/json/layout/expression.schema.v1.json';
 import numberFormatSchema from './schemas/json/layout/number-format.schema.v1.json';
 import layoutSchema from './schemas/json/layout/layout.schema.v1.json';
+import { AppContext, AppContextProps } from '../AppContext';
+import { appContextMock } from './appContextMock';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
     order: [layout1NameMock, layout2NameMock],
   },
-  receiptLayoutName: 'Kvittering'
+  receiptLayoutName: 'Kvittering',
 };
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
@@ -75,33 +77,73 @@ export const queryClientMock = new QueryClient({
   },
 });
 
-export const renderWithMockStore =
-  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = queryClientMock) =>
-  (component: ReactNode) => {
-    const store = configureStore()({ ...appStateMock, ...state });
-    const renderResult = render(
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <PreviewConnectionContextProvider>
-          <Provider store={store}>
+type WrapperArgs = {
+  appContextProps: Partial<AppContextProps>;
+  queries: Partial<ServicesContextProps>;
+  queryClient: QueryClient;
+  state: Partial<IAppState>;
+  storeCreator: ReturnType<typeof configureStore>;
+};
+
+const wrapper = ({
+  appContextProps = {},
+  queries = {},
+  queryClient = queryClientMock,
+  state = {},
+  storeCreator,
+}: WrapperArgs) => {
+  const store = storeCreator({ ...appStateMock, ...state });
+  const renderComponent = (component: ReactNode) => (
+    <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+      <PreviewConnectionContextProvider>
+        <Provider store={store}>
+          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
             <BrowserRouter>{component}</BrowserRouter>
-          </Provider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    );
+          </AppContext.Provider>
+        </Provider>
+      </PreviewConnectionContextProvider>
+    </ServicesContextProvider>
+  );
+  return { store, renderComponent };
+};
+
+export const renderWithMockStore =
+  (
+    state: Partial<IAppState> = {},
+    queries: Partial<ServicesContextProps> = {},
+    queryClient: QueryClient = queryClientMock,
+    appContextProps: Partial<AppContextProps> = {},
+  ) =>
+  (component: ReactNode) => {
+    const storeCreator = configureStore();
+    const { renderComponent, store } = wrapper({
+      appContextProps,
+      queries,
+      queryClient,
+      state,
+      storeCreator,
+    });
+    const renderResult = render(renderComponent(component));
     return { renderResult, store };
   };
 export const renderHookWithMockStore =
-  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}, queryClient: QueryClient = queryClientMock) =>
+  (
+    state: Partial<IAppState> = {},
+    queries: Partial<ServicesContextProps> = {},
+    queryClient: QueryClient = queryClientMock,
+    appContextProps: Partial<AppContextProps> = {},
+  ) =>
   (hook: () => any) => {
-    const store = configureStore()({ ...appStateMock, ...state });
+    const storeCreator = configureStore();
+    const { renderComponent, store } = wrapper({
+      appContextProps,
+      queries,
+      queryClient,
+      state,
+      storeCreator,
+    });
     const renderHookResult = renderHook(hook, {
-      wrapper: ({ children }) => (
-        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-          <PreviewConnectionContextProvider>
-            <Provider store={store}>{children}</Provider>
-          </PreviewConnectionContextProvider>
-        </ServicesContextProvider>
-      ),
+      wrapper: ({ children }) => renderComponent(children),
     });
     return { renderHookResult, store };
   };
