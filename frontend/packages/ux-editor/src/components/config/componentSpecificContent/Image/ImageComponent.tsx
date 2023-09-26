@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from '@digdir/design-system-react';
-import { LegacyFieldSet, TextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
@@ -74,7 +74,7 @@ export const ImageComponent = ({
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
         {({ value, onChange }) => (
-          <TextField
+          <LegacyTextField
             name={`image_nb_src-input-${component.id}`}
             onChange={(e) => onChange({ nb: e.target.value }, e)}
             value={value?.nb || ''}
@@ -101,7 +101,7 @@ export const ImageComponent = ({
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
           {({ onChange }) => (
-            <TextField
+            <LegacyTextField
               name={`image_width-input-${component.id}`}
               onChange={(e) => onChange(e.target.value, e)}
             />

@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceNameAndId.module.css';
-import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
+import { Button, Textfield, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -125,11 +125,11 @@ export const ResourceNameAndId = ({
           </Label>
           <div className={classes.editFieldWrapper}>
             <div className={classes.textfieldWrapper}>
-              <TextField
+              <Textfield
                 value={id}
                 onChange={(e) => handleIdInput(e.target.value)}
                 id='resourceIdInputId'
-                isValid={!resourceIdExists}
+                error={resourceIdExists}
               />
             </div>
             <div className={classes.buttonWrapper}>
@@ -198,7 +198,7 @@ export const ResourceNameAndId = ({
         {t('resourceadm.dashboard_resource_name_and_id_resource_name')}
       </Label>
       <div className={classes.textfieldWrapper}>
-        <TextField
+        <Textfield
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
           id='resourceNameInputId'

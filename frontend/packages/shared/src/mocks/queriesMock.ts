@@ -35,6 +35,7 @@ export const queriesMock: ServicesContextProps = {
   getExpressionSchema: jest.fn(),
   getFormLayoutSettings: jest.fn(),
   getFormLayouts: jest.fn(),
+  getFrontEndSettings: jest.fn(),
   getInstanceIdForPreview: jest.fn(),
   getLayoutSchema: jest.fn(),
   getLayoutSets: jest.fn(),

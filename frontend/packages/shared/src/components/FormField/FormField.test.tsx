@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-  TextField,
-} from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
@@ -11,23 +9,24 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 const user = userEvent.setup();
 
 const schema = {
-  "$id": "id",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "definitions": {
-    "component": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "title": "id",
-          "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$",
-          "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>."
+  $id: 'id',
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  definitions: {
+    component: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          title: 'id',
+          pattern: '^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$',
+          description:
+            'The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.',
         },
       },
-      "required": ["id"],
-    }
-  }
+      required: ['id'],
+    },
+  },
 };
 
 const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
@@ -35,8 +34,8 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
     value: '',
     ...props,
   };
-  return rtlRender(<FormField {...allProps}>{() => <TextField />}</FormField>);
-}
+  return rtlRender(<FormField {...allProps}>{() => <LegacyTextField />}</FormField>);
+};
 
 describe('FormField', () => {
   const mockOnChange = jest.fn();
@@ -49,7 +48,7 @@ describe('FormField', () => {
     await render({
       label: 'test-label',
       value: 'test-value',
-      onChange: mockOnChange
+      onChange: mockOnChange,
     });
 
     expect(screen.getByText('test-label')).toBeInTheDocument();
@@ -77,7 +76,8 @@ describe('FormField', () => {
     await render({
       value: 'test-value',
       customValidationRules: (value: string) => value === 'test-value' && 'test-rule',
-      customValidationMessages: (errorType: string) => errorType === 'test-rule' && textMock('test-message')
+      customValidationMessages: (errorType: string) =>
+        errorType === 'test-rule' && textMock('test-message'),
     });
 
     expect(screen.getByText(textMock('test-message'))).toBeInTheDocument();

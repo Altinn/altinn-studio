@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 
 type ResourceContactPointTextFieldProps = {
   /**
@@ -49,12 +49,13 @@ export const ResourceContactPointTextField = ({
 }: ResourceContactPointTextFieldProps): React.ReactNode => {
   return (
     <div>
-      <TextField
+      <Textfield
         label={label}
+        size='small'
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => onBlur()}
-        isValid={isValid}
+        error={!isValid}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Button, Label, TextField } from '@digdir/design-system-react';
+import { Button, Label, Textfield } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -77,8 +77,9 @@ export const PolicyResourceFields = ({
               Type
             </Label>
           )}
-          <TextField
+          <Textfield
             value={valueType}
+            size='small'
             onChange={(e) => onChangeType(e.target.value)}
             readOnly={!canEditTypeAndId}
             onBlur={onBlur}
@@ -91,8 +92,9 @@ export const PolicyResourceFields = ({
               Id
             </Label>
           )}
-          <TextField
+          <Textfield
             value={valueId}
+            size='small'
             onChange={(e) => onChangeId(e.target.value)}
             readOnly={!canEditTypeAndId}
             onBlur={onBlur}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './ResourceContactPointFields.module.css';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
-import { Fieldset, Paragraph } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ResourceContactPointTextField } from './ResourceContactPointTextField';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
@@ -53,11 +53,10 @@ export const ResourceContactPointFieldset = ({
       <div className={classes.divider} />
       <Fieldset
         legend={t('resourceadm.about_resource_contact_legend')}
+        description={t('resourceadm.about_resource_contact_description')}
+        size='small'
         className={classes.fieldset}
       >
-        <Paragraph size='small' as='span'>
-          {t('resourceadm.about_resource_contact_description')}
-        </Paragraph>
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_category')}
           value={category}

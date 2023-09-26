@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { IconImage } from '../common/Icon';
@@ -40,7 +40,7 @@ export const EnumField = (props: IEnumFieldProps) => {
   const baseId = getDomFriendlyID(props.path);
   return (
     <div className={classes.root}>
-      <TextField
+      <LegacyTextField
         id={`${baseId}-enum-${props.value}`}
         disabled={props.readOnly}
         value={val}

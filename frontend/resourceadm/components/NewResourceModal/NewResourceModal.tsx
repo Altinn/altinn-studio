@@ -130,6 +130,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
       isOpen={isOpen}
       onClose={handleClose}
       title={t('resourceadm.dashboard_create_modal_title')}
+      contentClassName={classes.contentWidth}
     >
       <ResourceNameAndId
         isEditOpen={editIdFieldOpen}

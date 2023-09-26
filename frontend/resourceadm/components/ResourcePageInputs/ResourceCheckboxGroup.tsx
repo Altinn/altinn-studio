@@ -70,6 +70,7 @@ export const ResourceCheckboxGroup = ({
       <div className={classes.inputWrapper}>
         <Checkbox.Group
           legend={legend}
+          size='small'
           error={showErrors && value.length === 0}
           onChange={onChange}
           value={value}

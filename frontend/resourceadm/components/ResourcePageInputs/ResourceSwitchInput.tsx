@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, Paragraph } from '@digdir/design-system-react';
-import { Switch } from '../Switch';
+import { Label, Paragraph, Switch } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {
@@ -33,6 +32,10 @@ type ResourceSwitchInputProps = {
    */
   id: string;
   /**
+   * The id of the description of the field
+   */
+  descriptionId: string;
+  /**
    * The translation key to be put inside the translation function
    */
   toggleTextTranslationKey: string;
@@ -48,6 +51,7 @@ type ResourceSwitchInputProps = {
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {string}[id] - The id of the field
+ * @property {string}[descriptionId] - The id of the description of the field
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
  *
  * @returns {React.ReactNode} - The rendered component
@@ -59,6 +63,7 @@ export const ResourceSwitchInput = ({
   onFocus,
   onBlur,
   id,
+  descriptionId,
   toggleTextTranslationKey,
 }: ResourceSwitchInputProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -68,27 +73,32 @@ export const ResourceSwitchInput = ({
   return (
     <>
       <div className={classes.divider} />
-      <Label size='medium' spacing>
+      <Label size='small' spacing htmlFor={id}>
         {label}
       </Label>
-      <Paragraph short size='small'>
-        {description}
-      </Paragraph>
       <div className={classes.inputWrapper}>
+        <Paragraph short size='small' className={classes.description} id={descriptionId}>
+          {description}
+        </Paragraph>
         <Switch
-          isChecked={isChecked}
-          onToggle={(b: boolean) => setIsChecked(b)}
+          checked={isChecked}
+          onChange={() => setIsChecked((b: boolean) => !b)}
           onFocus={onFocus}
           onBlur={() => onBlur(isChecked)}
           id={id}
+          aria-describedby={descriptionId}
+          size='small'
         />
-        <p className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}>
+        <Paragraph
+          size='small'
+          className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
+        >
           {t(toggleTextTranslationKey, {
             showText: isChecked
               ? t('resourceadm.switch_should')
               : t('resourceadm.switch_should_not'),
           })}
-        </p>
+        </Paragraph>
       </div>
     </>
   );

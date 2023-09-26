@@ -16,3 +16,7 @@ h2 {
 .resourceNameAndId {
   margin-top: 20px;
 }
+
+.contentWidth {
+  max-width: 600px;
+}

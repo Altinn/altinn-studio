@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { TextFieldProps } from '@digdir/design-system-react';
+import type { LegacyTextFieldProps as TextFieldProps } from '@digdir/design-system-react';
 import { AltinnTextField } from 'app-shared/components/AltinnTextField';
 import {
   getNameFromPointer,
@@ -19,13 +19,7 @@ export type NameFieldProps = TextFieldProps & {
   label?: string;
 };
 
-export function NameField({
-  id,
-  pointer,
-  handleSave,
-  label,
-  ...props
-}: NameFieldProps) {
+export function NameField({ id, pointer, handleSave, label, ...props }: NameFieldProps) {
   const { t } = useTranslation();
   const { data } = useSchemaEditorAppContext();
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
@@ -34,16 +28,17 @@ export function NameField({
     setNodeName(getNameFromPointer({ pointer }));
   }, [pointer]);
 
-  const validateName = (nodeNameToValidate: string) : NameError => {
+  const validateName = (nodeNameToValidate: string): NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
-    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate))) return NameError.AlreadyInUse;
+    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate)))
+      return NameError.AlreadyInUse;
   };
 
   const onNameBlur = (newNodeName: string, errorCode: string) => {
     if (errorCode || newNodeName === nodeName) return;
-    handleSave(newNodeName, errorCode)
-  }
+    handleSave(newNodeName, errorCode);
+  };
 
   return (
     <FormField
@@ -63,13 +58,15 @@ export function NameField({
         }
       }}
     >
-      {({ errorCode, onChange, customRequired }) => <AltinnTextField
-        id={id}
-        onChange={(e) => onChange(e.target.value, e)}
-        onBlur={(e) => onNameBlur(e.target.value, errorCode)}
-        withAsterisk={customRequired}
-        {...props}
-      />}
+      {({ errorCode, onChange, customRequired }) => (
+        <AltinnTextField
+          id={id}
+          onChange={(e) => onChange(e.target.value, e)}
+          onBlur={(e) => onNameBlur(e.target.value, errorCode)}
+          withAsterisk={customRequired}
+          {...props}
+        />
+      )}
     </FormField>
   );
 }

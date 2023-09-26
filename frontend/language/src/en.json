@@ -705,7 +705,6 @@
   "resourceadm.deploy_status_card_success": "The resource is ready to be published",
   "resourceadm.deploy_test_env": "Test environment TT-02",
   "resourceadm.deploy_title": "Publish the resource",
-  "resourceadm.deploy_version_input_label": "Set a version number for the changes you have made",
   "resourceadm.deploy_version_label": "New version number",
   "resourceadm.deploy_version_text": "A resource needs to have a version number before it is published. In case of changes, the version number must be updated before new publication.",
   "resourceadm.deploy_version_upload_button": "Upload your changes",

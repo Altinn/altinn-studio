@@ -400,7 +400,7 @@ describe('expressionsUtils', () => {
       const propertyToAdd = 'default';
       const newExpression = addProperty(internalExpressionWithMultipleSubExpressions, propertyToAdd);
 
-      expect(newExpression).toBeUndefined();
+      expect(newExpression).toStrictEqual(internalExpressionWithMultipleSubExpressions);
     });
     it('should create a new subExpression when there are no subExpressions', () => {
       const newExpression = addProperty(baseInternalExpression, ExpressionPropertyBase.ReadOnly);

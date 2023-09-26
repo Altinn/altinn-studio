@@ -73,7 +73,7 @@ export const MigrationStep = ({
 
   return (
     <div className={classes.wrapper}>
-      <Label size='medium' spacing>
+      <Label as='p' size='medium' spacing>
         {title}
       </Label>
       <Alert severity={isSuccess ? 'success' : 'danger'} iconTitle={text} className={classes.alert}>

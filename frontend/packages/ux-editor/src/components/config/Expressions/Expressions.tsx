@@ -18,7 +18,6 @@ import {
 } from '../../../utils/expressionsUtils';
 import classes from './Expressions.module.css';
 import { v4 as uuidv4 } from 'uuid';
-import { Divider } from 'app-shared/primitives';
 import { deepCopy } from 'app-shared/pure';
 import { LayoutItemType } from '../../../types/global';
 import { FormComponent } from '../../../types/FormComponent';
@@ -135,7 +134,6 @@ export const Expressions = () => {
               rel='noopener noreferrer'
           />
         </Trans>
-        <Divider/>
       {Object.values(expressions).map((expression: Expression, index: number) => (
         <React.Fragment key={expression.id}>
           <ExpressionContent
