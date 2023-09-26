@@ -91,7 +91,6 @@ class SupportedPaletteProvider {
           title: translate('Create Altinn Data Task'),
           action: {
             dragstart: createCustomTask('data'),
-            click: createCustomTask('data'),
           },
         },
         'create.altinn-confirmation-task': {
@@ -100,7 +99,6 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task',
           action: {
             dragstart: createCustomTask('confirmation'),
-            click: createCustomTask('confirmation'),
           },
         },
         'create.altinn-feedback-task': {
@@ -109,7 +107,6 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task',
           action: {
             dragstart: createCustomTask('feedback'),
-            click: createCustomTask('feedback'),
           },
         },
         'create.altinn-signing-task': {
@@ -118,7 +115,6 @@ class SupportedPaletteProvider {
           title: translate('Create Altinn signing Task'),
           action: {
             dragstart: createCustomSigningTask(),
-            click: createCustomSigningTask(),
           },
         },
       };
