@@ -71,7 +71,7 @@ class SupportedPaletteProvider {
 
     const buildAltinnTask = (taskType) => {
       const businessObject = bpmnFactory.create('bpmn:Task', {
-        name: `Task with Altinn ${taskType} task`,
+        name: `Altinn ${taskType} task`,
       });
 
       const task = elementFactory.createShape({
