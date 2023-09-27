@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import classes from './InputField.module.css';
-import { ErrorMessage, Label, Paragraph, TextField } from '@digdir/design-system-react';
+import { ErrorMessage, Textfield } from '@digdir/design-system-react';
 
 export type InputFieldProps = {
   /**
@@ -79,22 +79,21 @@ export const InputField = ({
   value,
   onChange,
   onBlur,
-  isValid,
+  isValid = true,
   errorText,
   readOnly,
 }: InputFieldProps): ReactNode => {
   return (
     <div className={classes.wrapper}>
-      <Label spacing htmlFor={id}>
-        {label}
-      </Label>
-      <Paragraph className={classes.paragraph}>{description}</Paragraph>
-      <TextField
+      <Textfield
+        label={label}
+        description={description}
+        size='small'
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
-        isValid={isValid}
+        error={!isValid}
         readOnly={readOnly}
       />
       {!isValid && <ErrorMessage>{errorText}</ErrorMessage>}

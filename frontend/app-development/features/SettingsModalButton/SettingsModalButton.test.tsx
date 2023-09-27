@@ -13,28 +13,43 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { Policy } from '@altinn/policy-editor';
-import { AppConfig } from 'app-shared/types/AppConfig';
+import { mockAppConfig } from './SettingsModal/mocks/appConfigMock';
+import { mockPolicy } from './SettingsModal/mocks/policyMock';
+import { mockRepository1 } from './SettingsModal/mocks/repositoryMock';
+import { Commit, CommitAuthor } from 'app-shared/types/Commit';
+import { mockAppMetadata } from './SettingsModal/mocks/applicationMetadataMock';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
-const mockPolicy: Policy = {
-  rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
-  requiredAuthenticationLevelEndUser: '3',
-  requiredAuthenticationLevelOrg: '3',
+const mockCommitAuthor: CommitAuthor = {
+  email: '',
+  name: 'Mock Mockesen',
+  when: new Date(2023, 9, 22),
 };
 
-const mockAppConfig: AppConfig = {
-  repositoryName: 'test',
-  serviceName: 'test',
-  serviceId: '',
-  serviceDescription: '',
+const mockInitialCommit: Commit = {
+  message: '',
+  author: mockCommitAuthor,
+  comitter: mockCommitAuthor,
+  sha: '',
+  messageShort: '',
+  encoding: '',
 };
 
 const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+
+const resolveMocks = () => {
+  getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+  getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
+  getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
+  getRepoInitialCommit.mockImplementation(() => Promise.resolve(mockInitialCommit));
+  getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
+};
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -44,9 +59,8 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
-const user = userEvent.setup();
-
 describe('SettingsModalButton', () => {
+  const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
   it('fetches policy on mount', () => {
@@ -57,6 +71,16 @@ describe('SettingsModalButton', () => {
   it('fetches appConfig on mount', () => {
     render();
     expect(getAppConfig).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches repoMetaData on mount', () => {
+    render();
+    expect(getRepoMetadata).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches commit data on mount', () => {
+    render();
+    expect(getRepoInitialCommit).toHaveBeenCalledTimes(1);
   });
 
   it('fetches appMetadata on mount', () => {
@@ -70,35 +94,37 @@ describe('SettingsModalButton', () => {
     expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
   });
 
-  it.each(['getAppPolicy', 'getAppConfig', 'getAppMetadata'])(
-    'shows an error message if an error occured on the %s query',
-    async (queryName) => {
-      const errorMessage = 'error-message-test';
-      render({
-        [queryName]: () => Promise.reject({ message: errorMessage }),
-      });
+  it.each([
+    'getAppPolicy',
+    'getAppConfig',
+    'getAppMetadata',
+    'getRepoMetadata',
+    'getRepoInitialCommit',
+  ])('shows an error message if an error occured on the %s query', async (queryName) => {
+    const errorMessage = 'error-message-test';
+    render({
+      [queryName]: () => Promise.reject({ message: errorMessage }),
+    });
 
-      await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('settings_modal.loading_content'))
-      );
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
 
-      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    }
-  );
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
 
   it('opens the modal when the button is clicked', async () => {
-    getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
-    getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
+    resolveMocks();
     render();
 
     expect(
-      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).not.toBeInTheDocument();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
@@ -106,43 +132,44 @@ describe('SettingsModalButton', () => {
     await act(() => user.click(openButton));
 
     expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).toBeInTheDocument();
   });
 
   it('closes the modal on click', async () => {
-    getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
-    getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
+    resolveMocks();
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content'))
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
     const openButton = screen.getByRole('button', { name: textMock('settings_modal.open_button') });
     await act(() => user.click(openButton));
 
     expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.getByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).toBeInTheDocument();
 
     const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
     await act(() => user.click(closeButton));
 
     expect(
-      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 })
+      screen.queryByRole('heading', { name: textMock('settings_modal.heading'), level: 1 }),
     ).not.toBeInTheDocument();
   });
 });
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAppPolicy,
     getAppConfig,
+    getRepoMetadata,
+    getRepoInitialCommit,
     getAppMetadata,
     ...queries,
   };
@@ -151,6 +178,6 @@ const render = (
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <SettingsModalButton />
       </ServicesContextProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

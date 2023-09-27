@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ErrorMessage, TextField, Popover } from '@digdir/design-system-react';
+import { Button, ErrorMessage, LegacyTextField, Popover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
@@ -92,7 +92,7 @@ export function CreateNewWrapper({
       }
     >
       <label>{t('schema_editor.create_model_description')}</label>
-      <TextField
+      <LegacyTextField
         id='newModelInput'
         placeholder={t('schema_editor.name')}
         isValid={!nameError}

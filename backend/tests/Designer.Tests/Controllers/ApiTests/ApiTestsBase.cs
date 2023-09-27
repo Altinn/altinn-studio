@@ -47,7 +47,7 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     /// <summary>
     /// Location of the assembly of the executing unit test.
     /// </summary>
-    protected static string TestRepositoriesLocation =>
+    protected virtual string TestRepositoriesLocation =>
         Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Repositories");
 
     protected readonly WebApplicationFactory<TController> Factory;

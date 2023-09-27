@@ -35,6 +35,7 @@ export const queriesMock: ServicesContextProps = {
   getExpressionSchema: jest.fn(),
   getFormLayoutSettings: jest.fn(),
   getFormLayouts: jest.fn(),
+  getFrontEndSettings: jest.fn(),
   getInstanceIdForPreview: jest.fn(),
   getLayoutSchema: jest.fn(),
   getLayoutSets: jest.fn(),
@@ -77,7 +78,7 @@ export const queriesMock: ServicesContextProps = {
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
   upsertTextResources: jest.fn(),
-  getBpnmFile: jest.fn(),
+  getBpmnFile: jest.fn(),
   updateBpmnXml: jest.fn(),
   getAppPolicy: jest.fn(),
   updateAppPolicy: jest.fn(),
@@ -85,4 +86,5 @@ export const queriesMock: ServicesContextProps = {
   getAppMetadata: jest.fn(),
   updateAppMetadata: jest.fn(),
   updateAppConfig: jest.fn(),
+  getRepoInitialCommit: jest.fn(),
 };

@@ -11,8 +11,8 @@ context('Designer', () => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.createapp(Cypress.env('autoTestUser'), 'designer');
-    cy.createapp(Cypress.env('autoTestUser'), 'appwithout-dm');
+    const [orgName, appName] = Cypress.env('designerApp').split('/');
+    cy.createapp(orgName, appName);
     cy.clearCookies();
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
@@ -22,7 +22,8 @@ context('Designer', () => {
 
   it('is possible to edit information about the app', () => {
     const designerApp = Cypress.env('designerApp');
-    cy.searchAndOpenApp(designerApp);
+    // Navigate to designerApp
+    cy.visit('/editor/' + Cypress.env('designerApp'));
     administration.getHeader().should('be.visible');
     cy.findByRole('button', { name: texts['general.edit'] }).click();
     administration.getAppNameField().clear().type('New app name');
@@ -32,17 +33,31 @@ context('Designer', () => {
   });
 
   it('is possible to add and delete form components', () => {
-    cy.searchAndOpenApp(Cypress.env('designerApp'));
+    cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+    cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
+
+    // Navigate to designerApp
+    cy.visit('/editor/' + Cypress.env('designerApp'));
     header.getCreateLink().click();
+    cy.ensureCreatePageIsLoaded();
+
+    // Add new page and ensure updated data is loaded
     designer.getAddPageButton().click();
-    designer.getAddPageButton().click();
+    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+
+    // Verify navigation button exists in form
     designer.getDroppableList().findByRole('listitem', { name: texts['ux_editor.component_navigation_buttons'] }).should('be.visible');
+
+    // Add an input component
     designer.getToolbarItemByText(texts['ux_editor.component_input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
     designer.getDroppableList()
       .findAllByRole('listitem')
       .then(($elements) => expect($elements.length).eq(2));
+
+    // Delete components on page
     cy.deletecomponents();
   });
 

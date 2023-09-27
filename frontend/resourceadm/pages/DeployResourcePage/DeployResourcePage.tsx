@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { TextField, Spinner, Heading, Label, Paragraph, Link } from '@digdir/design-system-react';
+import { Textfield, Spinner, Heading, Label, Paragraph, Link } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
 import {
@@ -47,7 +47,7 @@ export const DeployResourcePage = ({
 
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
   const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
-    'none'
+    'none',
   );
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
@@ -56,12 +56,12 @@ export const DeployResourcePage = ({
   const { data: versionData, isLoading: versionLoading } = useResourcePolicyPublishStatusQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
   const { data: validateResourceData, isLoading: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
@@ -104,7 +104,7 @@ export const DeployResourcePage = ({
       setIsLocalRepoInSync(
         (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
           (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
-          repoStatus.contentStatus.length === 0
+          repoStatus.contentStatus.length === 0,
       );
     }
   }, [repoStatus]);
@@ -232,10 +232,10 @@ export const DeployResourcePage = ({
       );
     } else {
       const versionInTest = versionData.publishedVersions.find(
-        (v) => v.environment === 'TT02'
+        (v) => v.environment === 'TT02',
       ).version;
       const versionInProd = versionData.publishedVersions.find(
-        (v) => v.environment === 'PROD'
+        (v) => v.environment === 'PROD',
       ).version;
 
       return (
@@ -253,20 +253,16 @@ export const DeployResourcePage = ({
               </Trans>
             </Paragraph>
             <div className={classes.newVersionWrapper}>
-              <Label size='medium' spacing>
-                {t('resourceadm.deploy_version_label')}
-              </Label>
-              <Paragraph size='small' className={classes.newVersionParagraph}>
-                {t('resourceadm.deploy_version_text')}
-              </Paragraph>
               <div className={classes.textAndButton}>
                 <div className={classes.textfield}>
-                  <TextField
+                  <Textfield
+                    label={t('resourceadm.deploy_version_label')}
+                    description={t('resourceadm.deploy_version_text')}
+                    size='small'
                     value={newVersionText}
                     onChange={(e) => setNewVersionText(e.target.value)}
-                    label={t('resourceadm.deploy_version_input_label')}
-                    isValid={resourceVersionText !== ''}
                     onBlur={() => onSaveVersion(newVersionText)}
+                    error={resourceVersionText === ''}
                   />
                 </div>
               </div>

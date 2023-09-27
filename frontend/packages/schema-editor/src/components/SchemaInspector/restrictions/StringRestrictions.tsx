@@ -3,7 +3,12 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { LegacyCheckbox, LegacyFieldSet, Select, TextField } from '@digdir/design-system-react';
+import {
+  LegacyCheckbox,
+  LegacyFieldSet,
+  Select,
+  LegacyTextField,
+} from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -46,7 +51,7 @@ export function StringRestrictions({
       restrictions[StrRestrictionKey.formatExclusiveMaximum] ??
       restrictions[StrRestrictionKey.formatMaximum],
     restrictions: Object.fromEntries(
-      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]])
+      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]]),
     ),
   });
 
@@ -86,13 +91,13 @@ export function StringRestrictions({
         value={restrictions[StrRestrictionKey.format] || ''}
       />
       {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
-        restrictions[StrRestrictionKey.format]
+        restrictions[StrRestrictionKey.format],
       ) && (
         <>
           <div>
             <Label htmlFor='format-after-field'>{t(formatMinLangKey)}</Label>
             <div className={classes.formatFieldsRowContent}>
-              <TextField
+              <LegacyTextField
                 id='format-after-field'
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
@@ -111,7 +116,7 @@ export function StringRestrictions({
           <div>
             <Label htmlFor='format-before-field'>{t(formatMaxLangKey)}</Label>
             <div className={classes.formatFieldsRowContent}>
-              <TextField
+              <LegacyTextField
                 id='format-before-field'
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
@@ -131,7 +136,7 @@ export function StringRestrictions({
       )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
-          <TextField
+          <LegacyTextField
             formatting={{ number: {} }}
             label={t(StrRestrictionKey.minLength)}
             onChange={(e) => setRestriction(StrRestrictionKey.minLength, e.target.value)}
@@ -139,7 +144,7 @@ export function StringRestrictions({
           />
         </div>
         <div className={classes.lengthField}>
-          <TextField
+          <LegacyTextField
             formatting={{ number: {} }}
             label={t(StrRestrictionKey.maxLength)}
             onChange={(e) => setRestriction(StrRestrictionKey.maxLength, e.target.value)}
@@ -179,7 +184,7 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <TextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
+            <LegacyTextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
           </div>
         </div>
       </LegacyFieldSet>

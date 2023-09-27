@@ -2,6 +2,7 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
+  internalParsableComplexExpression,
   internalUnParsableComplexExpression,
   simpleInternalExpression,
   subExpression0
@@ -229,6 +230,29 @@ describe('ExpressionContent', () => {
     await act(() => user.click(editExpressionButton));
     expect(mockOnEditExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnEditExpression).toHaveBeenCalledTimes(1);
+  });
+  it('displays disabled free-style-editing-switch if complex expression can not be interpreted by Studio', () => {
+    render({
+      props: {
+        expression: internalUnParsableComplexExpression,
+    }
+  });
+  const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', { name: textMock('right_menu.expression_enable_free_style_editing') });
+  expect(enableFreeStyleEditingSwitch).toHaveAttribute('readonly');
+  });
+  it('displays toggled on free-style-editing-switch which is not readOnly if complex expression can be interpreted by Studio', () => {
+    render({
+      props: {
+        expression: internalParsableComplexExpression,
+      }
+    });
+    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', { name: textMock('right_menu.expression_enable_free_style_editing') });
+    expect(enableFreeStyleEditingSwitch).toHaveAttribute('checked');
+  });
+  it('displays toggled off free-style-editing-switch if expression is not complex', () => {
+    render({});
+    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', { name: textMock('right_menu.expression_enable_free_style_editing') });
+    expect(enableFreeStyleEditingSwitch).not.toHaveAttribute('checked');
   });
 });
 

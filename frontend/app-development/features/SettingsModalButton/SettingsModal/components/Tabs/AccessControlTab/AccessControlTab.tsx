@@ -42,7 +42,7 @@ export const AccessControlTab = ({ appMetadata, org, app }: AccessControlTabProp
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
   const [partyTypesAllowed, setPartyTypesAllowed] = useState<PartyTypesAllowed>(
-    appMetadata?.partyTypesAllowed ?? initialPartyTypes
+    appMetadata?.partyTypesAllowed ?? initialPartyTypes,
   );
 
   /**
@@ -78,6 +78,7 @@ export const AccessControlTab = ({ appMetadata, org, app }: AccessControlTabProp
       <TabHeader text={t('settings_modal.access_control_tab_heading')} />
       <Checkbox.Group
         legend={t('settings_modal.access_control_tab_checkbox_legend')}
+        size='small'
         onChange={handleChange}
         onBlur={handleSavePartyTypes}
         value={Object.keys(partyTypesAllowedMap).filter((key) => partyTypesAllowed[key])}

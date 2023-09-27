@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
-import { TextArea, TextField, Alert, Paragraph, Heading } from '@digdir/design-system-react';
+import { TextArea, Textfield, Alert, Paragraph, Heading } from '@digdir/design-system-react';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -69,7 +69,7 @@ export const RightTranslationBar = forwardRef<
 >(
   (
     { title, usesTextArea = false, value, onLanguageChange, showErrors, onLeaveLastField, onBlur },
-    ref
+    ref,
   ): React.ReactNode => {
     const { t } = useTranslation();
 
@@ -78,7 +78,7 @@ export const RightTranslationBar = forwardRef<
     };
 
     const handleTabOutOfTranslationBar = (
-      e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+      e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
       if (e.key === 'Tab') {
         if (e.shiftKey) {
@@ -110,14 +110,15 @@ export const RightTranslationBar = forwardRef<
         );
       }
       return (
-        <TextField
+        <Textfield
           value={value[lang]}
           onChange={(e) => handleChange(lang, e.target.value)}
           label={label}
-          isValid={!(showErrors && value[lang] === '')}
+          error={showErrors && value[lang] === ''}
           ref={!isLast ? (ref as React.Ref<HTMLInputElement>) : undefined}
           onKeyDown={(e) => (isLast ? handleTabOutOfTranslationBar(e) : undefined)}
           onBlur={onBlur}
+          size='small'
         />
       );
     };
@@ -143,7 +144,7 @@ export const RightTranslationBar = forwardRef<
         </div>
       </div>
     );
-  }
+  },
 );
 
 RightTranslationBar.displayName = 'RightTranslationBar';
