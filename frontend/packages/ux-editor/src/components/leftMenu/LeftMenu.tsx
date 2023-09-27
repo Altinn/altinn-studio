@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon, CogIcon } from '@navikt/aksel-icons';
 import { Button } from '@digdir/design-system-react';
 import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
@@ -27,6 +27,7 @@ import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { NativeSelect } from '@digdir/design-system-react';
 
 export interface LeftMenuProps {
   className?: string;
@@ -68,26 +69,31 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
 
   return (
     <div className={cn(className, classes.rightMenu)}>
-      <Accordion color='subtle'>
-        {shouldDisplayFeature('configureLayoutSet') && (
-          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
-            <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
-            <Accordion.Content>
-              {layoutSetNames ? (
-                <>
+      {shouldDisplayFeature('configureLayoutSet') &&
+        (layoutSetNames ? (
+          <>
+            <div className={classes.dropDownContainer}>
+              <div className={classes.selectLabelAndIcon}>
+                <span>{t('left_menu.layout_dropdown_menu_label')}</span>
+                <CogIcon className={classes.innstillingIcon} />
+              </div>
+              <NativeSelect>
+                <option>{t('left_menu.layout_dropdown_menu_default_choice')}</option>
+                <option>
                   <LayoutSetsContainer />
-                  <div className={classes.addButton}>
-                    <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
-                      {t('left_menu.layout_sets_add')}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <ConfigureLayoutSetPanel />
-              )}
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
+                </option>
+              </NativeSelect>
+            </div>
+            <div className={classes.addButton}>
+              <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
+                {t('left_menu.layout_sets_add')}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <ConfigureLayoutSetPanel />
+        ))}
+      <Accordion color='subtle'>
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>

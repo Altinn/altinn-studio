@@ -12,3 +12,18 @@
   padding-bottom: var(--fds-spacing-3);
   padding-top: var(--fds-spacing-2);
 }
+
+.dropDownContainer {
+  margin: 10px;
+}
+
+.selectLabelAndIcon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.innstillingIcon {
+  font-size: 1.5rem;
+}
