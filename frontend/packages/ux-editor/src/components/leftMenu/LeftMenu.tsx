@@ -78,7 +78,6 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
                 <CogIcon className={classes.innstillingIcon} />
               </div>
               <NativeSelect>
-                <option>{t('left_menu.layout_dropdown_menu_default_choice')}</option>
                 <option>
                   <LayoutSetsContainer />
                 </option>
