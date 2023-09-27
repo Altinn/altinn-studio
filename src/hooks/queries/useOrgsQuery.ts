@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
-import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { OrgsActions } from 'src/features/orgs/orgsSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { IAltinnOrgs } from 'src/types/shared';
@@ -11,7 +11,7 @@ const extractOrgsFromServerResponse = (response: { orgs: IAltinnOrgs }): IAltinn
 
 export const useOrgsQuery = (): UseQueryResult<IAltinnOrgs> => {
   const dispatch = useAppDispatch();
-  const { fetchOrgs } = useAppQueriesContext();
+  const { fetchOrgs } = useAppQueries();
   return useQuery(['fetchOrganizations'], () => fetchOrgs().then(extractOrgsFromServerResponse), {
     onSuccess: (orgs) => {
       // Update the Redux Store ensures that legacy code has access to the data without using the Tanstack Query Cache

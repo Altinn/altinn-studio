@@ -13,7 +13,7 @@ import type { PresentationType } from 'src/types';
 
 export interface IHeaderProps {
   type: ProcessTaskType | PresentationType;
-  header?: string | JSX.Element | JSX.Element[];
+  header?: string | React.ReactNode;
   appOwner?: string;
 }
 

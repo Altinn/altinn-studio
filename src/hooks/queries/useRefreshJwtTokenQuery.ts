@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
-import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { getEnvironmentLoginUrl } from 'src/utils/urls/appUrlHelper';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -17,7 +17,7 @@ export const useRefreshJwtTokenQuery = (
     refetchInterval: number;
   },
 ): UseQueryResult<void> => {
-  const { fetchRefreshJwtToken } = useAppQueriesContext();
+  const { fetchRefreshJwtToken } = useAppQueries();
   return useQuery(['refreshJwtToken'], fetchRefreshJwtToken, {
     ...options,
     onError: (error: HttpClientError) => {

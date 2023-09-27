@@ -11,13 +11,12 @@ import { createSagaSlice } from 'src/redux/sagaSlice';
 import type { IQueueError, IQueueState } from 'src/features/queue/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 
-const commonState = { isDone: null, error: null };
 export const initialState: IQueueState = {
-  dataTask: { ...commonState },
-  appTask: { ...commonState },
-  userTask: { ...commonState },
-  infoTask: { ...commonState },
-  stateless: { ...commonState },
+  dataTask: { error: null },
+  appTask: { error: null },
+  userTask: { error: null },
+  infoTask: { error: null },
+  stateless: { error: null },
 };
 
 export let QueueActions: ActionsFromSlice<typeof queueSlice>;
@@ -59,15 +58,6 @@ export const queueSlice = () => {
       startInitialAppTaskQueue: mkAction<void>({
         *takeEvery(): SagaIterator {
           yield put(TextResourcesActions.fetch());
-          yield put(QueueActions.startInitialAppTaskQueueFulfilled());
-        },
-        reducer: (state) => {
-          state.appTask.isDone = false;
-        },
-      }),
-      startInitialAppTaskQueueFulfilled: mkAction<void>({
-        reducer: (state) => {
-          state.appTask.isDone = true;
         },
       }),
       startInitialDataTaskQueue: mkAction<void>({
@@ -76,42 +66,16 @@ export const queueSlice = () => {
           yield put(FormLayoutActions.fetchSettings());
           yield put(PdfActions.initial());
           yield put(AttachmentActions.mapAttachments());
-          yield put(QueueActions.startInitialDataTaskQueueFulfilled());
-        },
-        reducer: (state) => {
-          state.dataTask.isDone = false;
-        },
-      }),
-      startInitialDataTaskQueueFulfilled: mkAction<void>({
-        reducer: (state) => {
-          state.dataTask.isDone = true;
         },
       }),
       startInitialInfoTaskQueue: mkAction<void>({
         saga: () => watchStartInitialInfoTaskQueueSaga,
-        reducer: (state) => {
-          state.infoTask.isDone = false;
-        },
-      }),
-      startInitialInfoTaskQueueFulfilled: mkAction<void>({
-        reducer: (state) => {
-          state.infoTask.isDone = true;
-        },
       }),
       startInitialStatelessQueue: mkAction<void>({
         *takeLatest(): SagaIterator {
           yield put(IsLoadingActions.startStatelessIsLoading());
           yield put(FormLayoutActions.fetch());
           yield put(FormLayoutActions.fetchSettings());
-          yield put(QueueActions.startInitialStatelessQueueFulfilled());
-        },
-        reducer: (state) => {
-          state.stateless.isDone = false;
-        },
-      }),
-      startInitialStatelessQueueFulfilled: mkAction<void>({
-        reducer: (state) => {
-          state.stateless.isDone = true;
         },
       }),
     },

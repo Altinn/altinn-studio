@@ -9,15 +9,23 @@ import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 
+export function useRealTaskType() {
+  const process = useAppSelector((state) => state.process);
+  const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
+  const taskType = process?.taskType;
+  const taskId = process?.taskId;
+  const isDataTask = behavesLikeDataTask(taskId, layoutSets);
+  return isDataTask ? ProcessTaskType.Data : taskType;
+}
+
 export function useProcess() {
   const dispatch = useAppDispatch();
 
   const instanceData = useAppSelector((state) => state.instanceData.instance);
   const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const process = useAppSelector((state) => state.process);
-  const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
 
-  const taskType = process?.taskType;
+  const taskType = useRealTaskType();
   const taskId = process?.taskId;
 
   React.useEffect(() => {
@@ -30,7 +38,7 @@ export function useProcess() {
       return;
     }
 
-    if (taskType === ProcessTaskType.Data || behavesLikeDataTask(taskId, layoutSets)) {
+    if (taskType === ProcessTaskType.Data) {
       dispatch(QueueActions.startInitialDataTaskQueue());
       return;
     }
@@ -47,7 +55,7 @@ export function useProcess() {
       default:
         break;
     }
-  }, [taskType, taskId, applicationMetadata, instanceData, dispatch, layoutSets]);
+  }, [taskType, taskId, applicationMetadata, instanceData, dispatch]);
 
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);

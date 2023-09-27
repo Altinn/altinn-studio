@@ -11,7 +11,6 @@ import {
   startInitialInfoTaskQueueSaga,
   TextResourceSelector,
 } from 'src/features/queue/infoTask/infoTaskQueueSaga';
-import { QueueActions } from 'src/features/queue/queueSlice';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { TextResourceMap } from 'src/features/textResources';
 
@@ -34,7 +33,6 @@ describe('infoTaskQueueSaga', () => {
         [select(InstanceDataSelector), getInstanceDataStateMock().instance],
       ])
       .put(IsLoadingActions.startDataTaskIsLoading())
-      .put(QueueActions.startInitialInfoTaskQueueFulfilled())
       .put(IsLoadingActions.finishDataTaskIsLoading())
       .run());
 
@@ -71,7 +69,6 @@ describe('infoTaskQueueSaga', () => {
         [select(InstanceDataSelector), instanceData],
       ])
       .put(IsLoadingActions.startDataTaskIsLoading())
-      .put(QueueActions.startInitialInfoTaskQueueFulfilled())
       .put(FormDataActions.fetchFulfilled({ formData: {} }))
       .put(IsLoadingActions.finishDataTaskIsLoading())
       .run();

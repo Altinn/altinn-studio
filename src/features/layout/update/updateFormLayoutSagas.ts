@@ -300,7 +300,7 @@ export function* findAndMoveToNextVisibleLayout(): SagaIterator {
 export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
   while (true) {
     yield all([
-      take(QueueActions.startInitialDataTaskQueueFulfilled),
+      take(QueueActions.startInitialDataTaskQueue),
       take(FormLayoutActions.fetchFulfilled),
       take(FormLayoutActions.fetchSettingsFulfilled),
     ]);

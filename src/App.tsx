@@ -97,22 +97,20 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
   const isReadyToRenderRoutes = allowAnonymous !== undefined;
   if (isReadyToRenderRoutes) {
     return (
-      <>
-        <Routes>
-          <Route
-            path='/'
-            element={<Entrypoint allowAnonymous={allowAnonymous} />}
-          />
-          <Route
-            path='/partyselection/*'
-            element={<PartySelection />}
-          />
-          <Route
-            path='/instance/:partyId/:instanceGuid'
-            element={<ProcessWrapper isFetching={isFetching} />}
-          />
-        </Routes>
-      </>
+      <Routes>
+        <Route
+          path='/'
+          element={<Entrypoint />}
+        />
+        <Route
+          path='/partyselection/*'
+          element={<PartySelection />}
+        />
+        <Route
+          path='/instance/:partyId/:instanceGuid'
+          element={<ProcessWrapper isFetching={isFetching} />}
+        />
+      </Routes>
     );
   }
 

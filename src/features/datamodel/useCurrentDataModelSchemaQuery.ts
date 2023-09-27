@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { JSONSchema7 } from 'json-schema';
 
-import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { DataModelActions } from 'src/features/datamodel/datamodelSlice';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
@@ -10,7 +10,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const useCurrentDataModelSchemaQuery = (): UseQueryResult<JSONSchema7> => {
   const dispatch = useAppDispatch();
-  const { fetchDataModelSchema } = useAppQueriesContext();
+  const { fetchDataModelSchema } = useAppQueries();
   const dataModelName = useCurrentDataModelName();
   return useQuery(['fetchDataModelSchemas', dataModelName], () => fetchDataModelSchema(dataModelName || ''), {
     enabled: !!dataModelName,

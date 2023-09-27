@@ -60,7 +60,6 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
     yield put(FormDataActions.fetchFulfilled({ formData }));
   }
 
-  yield put(QueueActions.startInitialInfoTaskQueueFulfilled());
   yield put(IsLoadingActions.finishDataTaskIsLoading());
 }
 

@@ -103,11 +103,11 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     process: getProcessStateMock(),
     profile: getProfileStateMock(),
     queue: {
-      appTask: { error: null, isDone: null },
-      dataTask: { error: null, isDone: null },
-      infoTask: { error: null, isDone: null },
-      stateless: { error: null, isDone: null },
-      userTask: { error: null, isDone: null },
+      appTask: { error: null },
+      dataTask: { error: null },
+      infoTask: { error: null },
+      stateless: { error: null },
+      userTask: { error: null },
     },
     textResources: {
       resourceMap: {

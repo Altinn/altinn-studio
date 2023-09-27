@@ -26,3 +26,9 @@ export interface ISelectPartyFulfilled {
 export interface ISelectPartyRejected {
   error: Error;
 }
+
+export interface IPartyValidationResponse {
+  valid: boolean;
+  message: string | null;
+  validParties: unknown[];
+}

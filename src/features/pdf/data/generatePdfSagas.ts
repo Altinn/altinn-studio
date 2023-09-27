@@ -173,7 +173,7 @@ export function* watchInitialPdfSaga(): SagaIterator {
   while (true) {
     const { devTools } = yield race({
       processTask: all([
-        take(QueueActions.startInitialDataTaskQueueFulfilled),
+        take(QueueActions.startInitialDataTaskQueue),
         take(FormLayoutActions.fetchFulfilled),
         take(FormLayoutActions.fetchSettingsFulfilled),
         take(InstanceDataActions.getFulfilled),

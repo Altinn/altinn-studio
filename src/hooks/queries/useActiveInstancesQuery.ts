@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
-import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { ISimpleInstance } from 'src/types';
@@ -9,7 +9,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const useActiveInstancesQuery = (partyId?: string, enabled?: boolean): UseQueryResult<ISimpleInstance[]> => {
   const dispatch = useAppDispatch();
-  const { fetchActiveInstances } = useAppQueriesContext();
+  const { fetchActiveInstances } = useAppQueries();
   return useQuery(['getActiveInstances'], () => fetchActiveInstances(partyId || ''), {
     enabled,
     onSuccess: (instanceData) => {

@@ -21,7 +21,7 @@ import { getRedirectUrl } from 'src/utils/urls/appUrlHelper';
 import { returnUrlFromQueryParameter, returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
 
 export interface IPresentationProvidedProps {
-  header?: string | JSX.Element | JSX.Element[];
+  header?: React.ReactNode;
   appOwner?: string;
   type: ProcessTaskType | PresentationType;
   children?: JSX.Element;

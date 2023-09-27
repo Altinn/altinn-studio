@@ -7,7 +7,6 @@ export interface IQueueState {
 }
 
 export interface IQueueTask {
-  isDone: boolean | null;
   error: Error | null;
 }
 

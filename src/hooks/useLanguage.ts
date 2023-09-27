@@ -28,14 +28,6 @@ export interface IUseLanguage {
     dataModelPath: string,
     params?: ValidParam[],
   ): string;
-
-  /**
-   * @deprecated Please do not use this functionality in new code. This function looks up the key, but if the key is not
-   * found in either text resources or the app language list, it will return an empty string (instead of the key itself,
-   * as is default). This behaviour makes it impossible to hard-code texts by just using the raw text as keys, so it
-   * may lead to unexpected behaviour.
-   */
-  langAsStringOrEmpty(key: ValidLanguageKey | string | undefined, params?: ValidParam[]): string;
 }
 
 interface TextResourceVariablesDataSources {
@@ -197,24 +189,6 @@ function staticUseLanguage(
 
       const name = getLanguageFromKey(key, language);
       return params ? replaceParameters(name, params) : name;
-    },
-    langAsStringOrEmpty: (key, params) => {
-      if (!key) {
-        return '';
-      }
-
-      const textResource = getTextResourceByKey(key, textResources, dataSources);
-      if (textResource !== key) {
-        return textResource;
-      }
-
-      const name = getLanguageFromKey(key, language);
-      const result = params ? replaceParameters(name, params) : name;
-      if (result === key) {
-        return '';
-      }
-
-      return result;
     },
     langAsStringUsingPathInDataModel(
       key: ValidLanguageKey | string | undefined,

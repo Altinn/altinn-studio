@@ -18,14 +18,12 @@ import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { isAxiosError } from 'src/utils/network/sharedNetworking';
 
-const titleKey = 'instantiate.starting';
-
 export const InstantiateContainer = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.greyLight);
   const dispatch = useAppDispatch();
   const instantiation = useAppSelector((state) => state.instantiation);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
-  const { langAsStringOrEmpty } = useLanguage();
+  const { lang } = useLanguage();
 
   React.useEffect(() => {
     const shouldCreateInstance =
@@ -62,7 +60,7 @@ export const InstantiateContainer = () => {
 
   return (
     <PresentationComponent
-      header={langAsStringOrEmpty(titleKey)}
+      header={lang('instantiate.starting')}
       type={ProcessTaskType.Unknown}
     >
       <AltinnContentLoader

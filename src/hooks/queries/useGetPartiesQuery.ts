@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { PartyActions } from 'src/features/party/partySlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
@@ -9,7 +9,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 export const usePartiesQuery = (enabled: boolean) => {
   const dispatch = useAppDispatch();
 
-  const { fetchParties } = useAppQueriesContext();
+  const { fetchParties } = useAppQueries();
   return useQuery(['fetchUseParties'], fetchParties, {
     enabled,
     onSuccess: (parties) => {

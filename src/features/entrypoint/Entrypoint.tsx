@@ -7,6 +7,7 @@ import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIco
 import { Form } from 'src/components/form/Form';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { PresentationComponent } from 'src/components/wrappers/Presentation';
+import { StatelessReadyState, useStatelessReadyState } from 'src/features/entrypoint/useStatelessReadyState';
 import { InstanceSelection } from 'src/features/instantiate/containers/InstanceSelection';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
@@ -23,19 +24,13 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import { PresentationType, ProcessTaskType } from 'src/types';
-import { isStatelessApp } from 'src/utils/appMetadata';
 import { checkIfAxiosError, HttpStatusCodes } from 'src/utils/network/networking';
 import type { ShowTypes } from 'src/features/applicationMetadata';
 
-const titleKey = 'instantiate.starting';
-
-type EntrypointProps = {
-  allowAnonymous: boolean;
-};
-export function Entrypoint({ allowAnonymous }: EntrypointProps) {
+export function Entrypoint() {
   const [action, setAction] = React.useState<ShowTypes | null>(null);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
-  const { langAsStringOrEmpty } = useLanguage();
+  const { lang } = useLanguage();
 
   const {
     data: partyValidation,
@@ -55,12 +50,14 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
   );
 
   const applicationMetadata = useAppSelector((state) => state.applicationMetadata?.applicationMetadata);
-  const statelessLoading = useAppSelector((state) => state.isLoading.stateless);
   const formDataError = useAppSelector((state) => state.formData.error);
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);
   const alwaysPromptForParty = useAlwaysPromptForParty();
   const dispatch = useAppDispatch();
+  const statelessReady = useStatelessReadyState(() => {
+    dispatch(QueueActions.startInitialStatelessQueue());
+  });
 
   const componentHasErrors = hasPartyValidationError || hasActiveInstancesError;
 
@@ -143,29 +140,24 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
     }
   }
 
-  // stateless view
-  if (isStatelessApp(applicationMetadata) && (allowAnonymous || partyValidation?.valid)) {
-    if (statelessLoading === null) {
-      dispatch(QueueActions.startInitialStatelessQueue());
-    }
-    if (statelessLoading === false) {
-      return (
-        <PresentationComponent
-          header={appName || ''}
-          appOwner={appOwner}
-          type={PresentationType.Stateless}
-        >
-          <div>
-            <Form />
-          </div>
-        </PresentationComponent>
-      );
-    }
+  // Stateless view
+  if (statelessReady === StatelessReadyState.Ready) {
+    return (
+      <PresentationComponent
+        header={appName || ''}
+        appOwner={appOwner}
+        type={PresentationType.Stateless}
+      >
+        <div>
+          <Form />
+        </div>
+      </PresentationComponent>
+    );
   }
 
   return (
     <PresentationComponent
-      header={langAsStringOrEmpty(titleKey)}
+      header={lang('instantiate.starting')}
       type={ProcessTaskType.Unknown}
     >
       <AltinnContentLoader

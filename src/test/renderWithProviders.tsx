@@ -35,7 +35,7 @@ export const renderWithProviders = (
     const theme = createTheme(AltinnAppTheme);
 
     const allMockedQueries = {
-      doPartyValidation: () => Promise.resolve({ isValid: true, validParties: [] }),
+      doPartyValidation: () => Promise.resolve({ valid: true, validParties: [], message: null }),
       fetchActiveInstances: () => Promise.resolve([]),
       fetchApplicationMetadata: () => Promise.resolve({} as unknown as IApplicationMetadata),
       fetchCurrentParty: () => Promise.resolve({}),

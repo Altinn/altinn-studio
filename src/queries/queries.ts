@@ -19,10 +19,12 @@ import {
 import { orgsListUrl } from 'src/utils/urls/urlHelper';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IFooterLayout } from 'src/features/footer/types';
+import type { IPartyValidationResponse } from 'src/features/party';
 import type { ILayoutSets, ISimpleInstance } from 'src/types';
 import type { IAltinnOrgs, IApplicationSettings, IProfile } from 'src/types/shared';
 
-export const doPartyValidation = async (partyId: string) => (await httpPost(getPartyValidationUrl(partyId))).data;
+export const doPartyValidation = async (partyId: string): Promise<IPartyValidationResponse> =>
+  (await httpPost(getPartyValidationUrl(partyId))).data;
 
 export const fetchActiveInstances = (partyId: string): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));

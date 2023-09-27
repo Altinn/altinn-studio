@@ -2,14 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
-import { useAppQueriesContext } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
+import { StatelessReadyState, useStatelessReadyState } from 'src/features/entrypoint/useStatelessReadyState';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormRulesActions } from 'src/features/formRules/rulesSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useRealTaskType } from 'src/hooks/useProcess';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { ProcessTaskType } from 'src/types';
 import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
 import { convertModelToDataBinding } from 'src/utils/databindings';
 import { putWithoutConfig } from 'src/utils/network/networking';
@@ -27,13 +30,15 @@ export function useFormDataQuery(): UseQueryResult<IFormData> {
   const reFetchActive = useAppSelector((state) => state.formData.reFetch);
   const appMetaData = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const currentPartyId = useAppSelector((state) => state.party.selectedParty?.partyId);
-  const isDoneDataTask = useAppSelector((state) => state.queue.dataTask.isDone);
-  const isDoneStatelessTask = useAppSelector((state) => state.queue.stateless.isDone);
+  const taskType = useRealTaskType();
+  const statelessReady = useStatelessReadyState();
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
   const allowAnonymous = useAppSelector(allowAnonymousSelector);
   const isStateless = isStatelessApp(appMetaData);
 
-  let isEnabled = isStateless ? isDoneStatelessTask !== null : isDoneDataTask !== null;
+  let isEnabled = isStateless
+    ? statelessReady === StatelessReadyState.Loading || statelessReady === StatelessReadyState.Ready
+    : taskType === ProcessTaskType.Data;
   if (isStateless && !allowAnonymous && currentPartyId === undefined) {
     isEnabled = false;
   }
@@ -65,7 +70,7 @@ export function useFormDataQuery(): UseQueryResult<IFormData> {
   // on the server).
   const currentTaskId = instance?.process?.currentTask?.elementId;
 
-  const { fetchFormData } = useAppQueriesContext();
+  const { fetchFormData } = useAppQueries();
   const out = useQuery(['fetchFormData', url, currentTaskId], () => fetchFormData(url || '', options), {
     enabled: isEnabled && url !== undefined,
     onSuccess: (formDataAsObj) => {
