@@ -4,9 +4,9 @@
     "order": [
       "prefill",
       "repeating",
-      "summary",
       "repeating2",
-      "hide"
+      "hide",
+      "summary"
     ],
     "excludeFromPdf": [
       "summary"

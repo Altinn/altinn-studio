@@ -23,14 +23,6 @@
           "title": "Send inn"
         },
         "dataModelBindings": {}
-      },
-      {
-        "id": "NavigationButtons-oGS9I4",
-        "type": "NavigationButtons",
-        "componentType": "NavigationButtons",
-        "dataModelBindings": {},
-        "showBackButton": true,
-        "textResourceBindings": {}
       }
     ]
   }

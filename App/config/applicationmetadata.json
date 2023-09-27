@@ -9,9 +9,7 @@
   "dataTypes": [
     {
       "id": "message",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
+      "allowedContentTypes": ["application/xml"],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.MessageV1",
@@ -23,9 +21,7 @@
       "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "fileUpload-message",
@@ -35,15 +31,11 @@
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "ServiceModel-test",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
+      "allowedContentTypes": ["application/xml"],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Skjema",
@@ -55,28 +47,20 @@
       "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "fileUpload-changename",
-      "allowedContentTypes": [
-        "application/pdf"
-      ],
       "taskId": "Task_2",
+      "allowedContentTypes": ["application/pdf"],
       "maxSize": 5,
       "maxCount": 3,
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [
-        "mimeTypeAnalyser"
-      ],
-      "enabledFileValidators": [
-        "mimeTypeValidator"
-      ]
+      "enabledFileAnalysers": ["mimeTypeAnalyser"],
+      "enabledFileValidators": ["mimeTypeValidator"]
     },
     {
       "id": "fileUploadWithTags-changename",
@@ -86,9 +70,7 @@
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "mainUploaderSingle",
@@ -98,9 +80,7 @@
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "mainUploaderMulti",
@@ -110,9 +90,7 @@
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "subUploader",
@@ -122,15 +100,11 @@
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "nested-group",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
+      "allowedContentTypes": ["application/xml"],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.NestedGroup",
@@ -142,15 +116,11 @@
       "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "likert",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
+      "allowedContentTypes": ["application/xml"],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.LikertSurvey",
@@ -162,28 +132,20 @@
       "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "ref-data-as-pdf",
-      "allowedContentTypes": [
-        "application/pdf"
-      ],
+      "allowedContentTypes": ["application/pdf"],
       "maxCount": 0,
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "datalist",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
+      "allowedContentTypes": ["application/xml"],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Datalist",
@@ -195,14 +157,12 @@
       "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "validationErrorOnPendingFileScan": false
     }
   ],
   "partyTypesAllowed": {
     "bankruptcyEstate": false,
-    "organisation": true,
+    "organisation": false,
     "person": false,
     "subUnit": false
   },

@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
@@ -41,11 +41,7 @@
         "textResourceBindings": {
           "title": "messageAttachments"
         },
-        "dataTypeIds": [
-          "fileUpload-message"
-        ],
-        "includePDF": true,
-        "renderAsSummary": true
+        "dataTypeIds": ["fileUpload-message"]
       },
       {
         "id": "startAgain",
@@ -55,19 +51,12 @@
         }
       },
       {
-        "id": "Grid-DmM6IO",
-        "type": "Grid"
-      },
-      {
-        "id": "Input-L0o0eH",
-        "type": "Input",
-        "dataModelBindings": {},
-        "required": true,
-        "readOnly": false
-      },
-      {
-        "id": "NavigationBar-4oIQzC",
-        "type": "NavigationBar"
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
       }
     ]
   }

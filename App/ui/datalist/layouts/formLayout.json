@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
@@ -12,18 +12,6 @@
         "textResourceBindings": {
           "title": "Søk"
         }
-      },
-      {
-        "id": "toSummary",
-        "type": "NavigationButtons",
-        "showPrev": false,
-        "textResourceBindings": {
-          "next": "Neste"
-        },
-        "dataModelBindings": {},
-        "triggers": [
-          "validatePage"
-        ]
       },
       {
         "id": "listComponent",
@@ -42,14 +30,9 @@
           "age": "Alder",
           "profession": "Yrke"
         },
-        "sortableColumns": [
-          "age"
-        ],
+        "sortableColumns": [ "age" ],
         "pagination": {
-          "alternatives": [
-            5,
-            10
-          ],
+          "alternatives": [ 5, 10 ],
           "default": 5
         },
         "mapping": {
@@ -58,10 +41,14 @@
         "required": true
       },
       {
-        "id": "Input-nSqV59",
-        "type": "Input",
+        "id": "toSummary",
+        "type": "NavigationButtons",
+        "showPrev": false,
+        "textResourceBindings": {
+          "next": "Neste"
+        },
         "dataModelBindings": {},
-        "required": true
+        "triggers": [ "validatePage" ]
       }
     ]
   }
