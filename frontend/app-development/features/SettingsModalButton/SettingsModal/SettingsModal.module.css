@@ -1,6 +1,6 @@
 .modalContent {
   display: flex;
-  max-height: calc(var(--modal-content-max-height));
+  height: calc(var(--modal-content-max-height));
   width: 70vw;
 }
 

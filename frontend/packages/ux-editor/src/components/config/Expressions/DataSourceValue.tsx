@@ -1,6 +1,11 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Select, SingleSelectOption, TextField, ToggleButtonGroup } from '@digdir/design-system-react';
+import {
+  Select,
+  SingleSelectOption,
+  LegacyTextField,
+  ToggleButtonGroup,
+} from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
@@ -41,7 +46,10 @@ export const DataSourceValue = ({
       case DataSource.DataModel:
         return getDataModelElementNames(dataModelElementsData as DatamodelFieldElement[]);
       case DataSource.InstanceContext:
-        return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({ label: dsv, value: dsv }));
+        return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({
+          label: dsv,
+          value: dsv,
+        }));
       case DataSource.ApplicationSettings:
         // TODO: Should convert appmetadatasagas to react-query before implementing this. Issue #10856
         return [{ label: 'Not implemented yet', value: 'NotImplementedYet' }];
@@ -55,34 +63,50 @@ export const DataSourceValue = ({
     case DataSource.DataModel:
     case DataSource.InstanceContext:
     case DataSource.ApplicationSettings:
-      return (<Select
-        label={isComparableValue ? t('right_menu.expressions_data_source_comparable_value') : t('right_menu.expressions_data_source_value')}
-        hideLabel={true}
-        onChange={(dataSourceValue: string) => specifyDataSourceValue(dataSourceValue, isComparableValue)}
-        options={[{ label: t('right_menu.expressions_data_source_select'), value: 'default' }].concat(getCorrespondingDataSourceValues(currentDataSource))}
-        value={currentValue  as string || 'default'}
-      />);
+      return (
+        <Select
+          label={
+            isComparableValue
+              ? t('right_menu.expressions_data_source_comparable_value')
+              : t('right_menu.expressions_data_source_value')
+          }
+          hideLabel={true}
+          onChange={(dataSourceValue: string) =>
+            specifyDataSourceValue(dataSourceValue, isComparableValue)
+          }
+          options={[
+            { label: t('right_menu.expressions_data_source_select'), value: 'default' },
+          ].concat(getCorrespondingDataSourceValues(currentDataSource))}
+          value={(currentValue as string) || 'default'}
+        />
+      );
     case DataSource.String:
-      return (<TextField
-        onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
-        value={currentValue as string}
-      />);
+      return (
+        <LegacyTextField
+          onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
+          value={currentValue as string}
+        />
+      );
     case DataSource.Number:
-      return (<TextField
-        formatting={{ number: {} }}
-        inputMode='numeric'
-        onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
-        value={currentValue as string}
-      />);
+      return (
+        <LegacyTextField
+          formatting={{ number: {} }}
+          inputMode='numeric'
+          onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
+          value={currentValue as string}
+        />
+      );
     case DataSource.Boolean:
-      return (<ToggleButtonGroup
-        items={[
-          { label: t('general.true'), value: 'true' },
-          { label: t('general.false'), value: 'false' }
-        ]}
-        onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
-        selectedValue={selectedValueForDisplayIfBoolean}
-      />);
+      return (
+        <ToggleButtonGroup
+          items={[
+            { label: t('general.true'), value: 'true' },
+            { label: t('general.false'), value: 'false' },
+          ]}
+          onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
+          selectedValue={selectedValueForDisplayIfBoolean}
+        />
+      );
     default:
       return null;
   }

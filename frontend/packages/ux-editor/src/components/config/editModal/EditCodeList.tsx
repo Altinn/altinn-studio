@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Select, TextField } from '@digdir/design-system-react';
+import { Select, LegacyTextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
@@ -67,7 +67,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
       {
         <>
           {useCustomCodeList && (
-            <TextField
+            <LegacyTextField
               displayType='input'
               label={t('ux_editor.modal_properties_custom_code_list_id')}
               onChange={(event) => handleOptionsIdChange(event.target.value)}

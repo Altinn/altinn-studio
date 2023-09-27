@@ -1,6 +1,6 @@
 import React, { useState, KeyboardEvent, forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { TextField, Paragraph, Label } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceTextFieldProps = {
@@ -80,35 +80,33 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
       showErrorMessage = false,
       errorText,
     },
-    ref
+    ref,
   ): React.ReactNode => {
     const [val, setVal] = useState(value);
 
     return (
       <>
         <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor={id}>
-          {label}
-        </Label>
-        <Paragraph size='small'>{description}</Paragraph>
         <div className={classes.inputWrapper}>
-          <TextField
+          <Textfield
+            label={label}
+            description={description}
+            size='small'
             value={val}
             onChange={(e) => {
               setVal(e.target.value);
             }}
             onFocus={onFocus}
-            id={id}
-            isValid={isValid}
+            error={!isValid}
             ref={ref}
             onKeyDown={(e) => (onKeyDown ? onKeyDown(e, val) : undefined)}
             onBlur={() => onBlur(val)}
           />
+          {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
         </div>
-        {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
       </>
     );
-  }
+  },
 );
 
 ResourceTextField.displayName = 'ResourceTextField';
