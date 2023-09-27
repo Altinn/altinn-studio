@@ -3444,23 +3444,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material-ui/icons@npm:4.11.3":
-  version: 4.11.3
-  resolution: "@material-ui/icons@npm:4.11.3"
-  dependencies:
-    "@babel/runtime": ^7.4.4
-  peerDependencies:
-    "@material-ui/core": ^4.0.0
-    "@types/react": ^16.8.6 || ^17.0.0
-    react: ^16.8.0 || ^17.0.0
-    react-dom: ^16.8.0 || ^17.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: f849a8c4fecddc112cfa94105a2c72e763ff76b9f8da74135b7bbadfd294ed6685897cbea6a2128099be0ce37843784893d8c64da6bde37d020956ab9067206c
-  languageName: node
-  linkType: hard
-
 "@material-ui/pickers@npm:3.3.11":
   version: 3.3.11
   resolution: "@material-ui/pickers@npm:3.3.11"
@@ -5845,7 +5828,6 @@ __metadata:
     "@digdir/design-system-react": ^0.24.0
     "@digdir/design-system-tokens": ^0.5.0
     "@material-ui/core": 4.12.4
-    "@material-ui/icons": 4.11.3
     "@material-ui/pickers": 3.3.11
     "@navikt/aksel-icons": ^5.0.0
     "@percy/cli": ^1.26.0
