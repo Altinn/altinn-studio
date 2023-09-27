@@ -7,22 +7,22 @@ import * as texts from '../../../../../language/src/nb.json';
 
 context('datamodel', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createapp(Cypress.env('autoTestUser'), 'datamodel-app');
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
     cy.visit('/dashboard');
-    cy.searchAndOpenApp(`${Cypress.env('autoTestUser')}/datamodel-app`);
+    cy.searchAndOpenApp(Cypress.env('designerAppName'));
 
     // Navigate to datamodels page and close dialog
     header.getDatamodelLink().click();
   });
 
   after(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('add a new data model', () => {

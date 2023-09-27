@@ -2,12 +2,12 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "https://staging.altinn.studio",
   "env": {
-    "autoTestUser": "AutoTest",
-    "datamodelApp": "AutoTest/datamodel",
-    "deployApp": "ttd/autodeploy-v3",
-    "designerApp": "AutoTest/auto-designer-app",
-    "withoutDataModelApp": "AutoTest/appwithout-dm",
-    "appOwner": "Testdepartementet"
+    "autoTestUser": "dev_cypress_testuser",
+    "useCaseUser": "dev_bruksmonster",
+    "orgFullName": "Testdepartementet",
+    "orgUserName": "ttd",
+    "deployAppName": "auto-deploy-app-v3-dev",
+    "designerAppName": "auto-designer-app-dev",
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

@@ -11,7 +11,7 @@ import { DEFAULT_SELECTED_LAYOUT_NAME } from '../../../../packages/shared/src/co
 /**
  * Login to studio with user name and password
  */
-Cypress.Commands.add('studiologin', (userName, userPwd) => {
+Cypress.Commands.add('studioLogin', (userName, userPwd) => {
   cy.session([userName, userPwd], () => {
     cy.visit('/');
     login.getLoginButton().should('be.visible').click();
@@ -45,7 +45,7 @@ Cypress.Commands.add('switchSelectedContext', (context) => {
 /**
  * create an app in studio with user logged in and in dashboard
  */
-Cypress.Commands.add('createapp', (orgName, appName) => {
+Cypress.Commands.add('createApp', (orgName, appName) => {
   cy.visit('/dashboard');
   dashboard.getNewAppLink().should('be.visible').click();
   dashboard.getAppOwnerField().should('be.visible').click();
@@ -59,7 +59,7 @@ Cypress.Commands.add('createapp', (orgName, appName) => {
 /**
  * Delete all the added components in ux-editor
  */
-Cypress.Commands.add('deletecomponents', () => {
+Cypress.Commands.add('deleteComponents', () => {
   designer
     .getDroppableList()
     .findAllByRole('listitem')
@@ -79,8 +79,7 @@ Cypress.Commands.add('deletecomponents', () => {
 /**
  * Search an app from dashboard and open app
  */
-Cypress.Commands.add('searchAndOpenApp', (appId) => {
-  const [_, appName] = appId.split('/');
+Cypress.Commands.add('searchAndOpenApp', (appName) => {
   cy.visit('/dashboard');
   dashboard.getSearchReposField().type(appName);
   dashboard
