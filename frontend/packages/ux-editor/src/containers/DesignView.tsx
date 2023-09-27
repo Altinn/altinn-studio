@@ -30,6 +30,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { PageAccordion } from './PageAccordion';
+import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 
 // TODO @David - Move type to another place
 export interface FormLayout {
@@ -72,10 +73,13 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const searchParamsLayout = searchParams.get('layout');
 
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
+  console.log('selectedLayoutName', selectedLayoutName);
 
   const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
   const { t } = useTranslation();
+
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
 
   /**
    * Maps the IFormLayouts object to a list of FormLayouts
@@ -109,16 +113,34 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
    * @returns boolean valud for if it is open or not
    */
   const getAccordionOpenStatus = (layoutName: string): boolean => {
-    if (isValidLayout(layoutName)) {
-      if (selectedLayoutName === 'default' && isValidLayout(searchParamsLayout)) {
-        return layoutName === searchParamsLayout;
-      } else if (isValidLayout(selectedLayoutName)) {
-        return layoutName === selectedLayoutName;
+    // TODO @David - jeg har lagt på en del kommentarer her for å prøve debuge hva som skjer.
+    // Det viser seg at begge disse to loges i consolen:
+    // - layout and selected match on: Kvittering
+    // - layout and search param match on: Side8
+    // Det er rart at selected er satt til Kvittering når man legger til en ny en.
+
+    layoutName === searchParamsLayout &&
+      console.log('layout and search param match on: ', layoutName);
+    layoutName === selectedLayoutName && console.log('layout and selected match on: ', layoutName);
+    // Dersom vi kommer inn på siden første gang, og eksisterende selectedLayoutName er 'default', sett til
+    // det som kommer fra params, dersom params er gyldig og matcher den som er sent inn til funksjonen.
+    // Om de ikke er valid, return false.
+    if (selectedLayoutName === 'default') {
+      if (isValidLayout(searchParamsLayout) && isValidLayout(layoutName)) {
+        return searchParamsLayout === layoutName;
       } else {
         return false;
       }
     }
-    return false;
+    // Om den ikke er default, sjekk om layoutName som kommer inn matcher den som er lagret i
+    // selectedLayoutName. om ikke, returner false.
+    else {
+      if (isValidLayout(selectedLayoutName) && isValidLayout(layoutName)) {
+        return selectedLayoutName === layoutName;
+      } else {
+        return false;
+      }
+    }
   };
 
   /**
@@ -142,7 +164,22 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   };
 
   // TODO @David
-  const handleAddPage = () => {};
+  // Det er et problem når man legger til en ny side dersom Kvittering eksisterer.
+  // Problemet er at etter man har lagt til siden, så åpner kvitterings accordionen seg, isteden for
+  // at accordionen som tilhører den nye siden åpner seg..
+  // Dersom du refresher siden, så er riktig accoridon åpen, og kvittering lukket.
+  // Mistenker at det kan ha noe med funksjonen "getAccordionOpenStatus()" å gjøre, eller at
+  // selectedLayoutName blir satt et eller anent sted i koden, typ en useEffect eller noe.
+  const handleAddPage = (isReceipt: boolean) => {
+    const newNum = mappedFormLayoutData.filter((p) => p.page !== 'Kvittering').length + 1;
+    const newLayoutName = isReceipt ? 'Kvittering' : t('left_menu.page') + newNum;
+    console.log(newNum);
+
+    addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: isReceipt });
+    setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
+    dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
+    setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
+  };
 
   // TODO @David - Denne kan potensielt flyttes til separate filer.
   // Det er i komponentene her at stylingen må skje for å matche Figma.
@@ -227,10 +264,22 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     <div className={className}>
       {displayPageAccordions}
       <div className={classes.addButton}>
-        <Button icon={<PlusIcon />} onClick={handleAddPage} size='small'>
+        <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small'>
           {t('left_menu.pages_add')}
         </Button>
       </div>
+      {mappedFormLayoutData.filter((p) => p.page === 'Kvittering').length === 0 && (
+        <div className={classes.receiptButton}>
+          <Button
+            variant='quiet'
+            onClick={() => handleAddPage(true)}
+            className={classes.button}
+            size='small'
+          >
+            {t('receipt.create')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
