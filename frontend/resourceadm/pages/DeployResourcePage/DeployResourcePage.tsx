@@ -75,6 +75,7 @@ export const DeployResourcePage = ({
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success'));
       },
+      onError: (data) => console.log(data),
     });
   };
 

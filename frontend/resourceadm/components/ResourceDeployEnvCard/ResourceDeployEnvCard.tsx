@@ -21,6 +21,10 @@ export type ResourceDeployEnvCardProps = {
    * The new version the resource will deploy to
    */
   newEnvVersion?: string;
+  /**
+   * Function to be executed on click
+   * @returns void
+   */
   onClick: () => void;
 };
 
@@ -33,6 +37,7 @@ export type ResourceDeployEnvCardProps = {
  * @property {string}[envName] - The name of the environment
  * @property {string}[currentEnvVersion] - The current version in the environment
  * @property {string}[newEnvVersion] - The new version the resource will deploy to
+ * @property {function}[onClick] - Function to be executed on click
  *
  * @returns {React.ReactNode} - The rendered component
  */
