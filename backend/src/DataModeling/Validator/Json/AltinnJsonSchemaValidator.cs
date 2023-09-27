@@ -8,7 +8,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
 {
     public class AltinnJsonSchemaValidator : IJsonSchemaValidator
     {
-        internal class ValidationContext
+        private sealed class ValidationContext
         {
             public ValidationContext(JsonSchema rootSchema)
             {
@@ -29,7 +29,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             if (schema.HasKeyword<PropertiesKeyword>() && (schema.HasKeyword<OneOfKeyword>() || schema.HasKeyword<AllOfKeyword>()))
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue( rootPath.ToString(), JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema)
+                    new JsonSchemaValidationIssue(rootPath.ToString(JsonPointerStyle.UriEncoded), JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema)
                     );
             }
 
@@ -93,8 +93,14 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             if (!schema.HasKeyword<PropertiesKeyword>())
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue(path.ToString(), JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties)
+                    new JsonSchemaValidationIssue(path.ToString(JsonPointerStyle.UriEncoded), JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties)
                     );
+            }
+
+            foreach (var keyword in schema.Keywords!)
+            {
+                var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
+                ValidateKeyword(keywordPath, keyword, validationContext);
             }
         }
 
@@ -102,7 +108,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
         {
             if (schema.TryGetKeyword(out ItemsKeyword itemsKeyword) && itemsKeyword.SingleSchema is not null)
             {
-                ValidateSubSchema(path, itemsKeyword.SingleSchema, validationContext);
+                ValidateSubSchema(path.Combine(JsonPointer.Parse("/items")), itemsKeyword.SingleSchema, validationContext);
             }
         }
 
@@ -125,7 +131,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             if (refSchema is null)
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue(path.ToString(), JsonSchemaValidationErrorCodes.InvalidReference)
+                    new JsonSchemaValidationIssue(path.ToString(JsonPointerStyle.UriEncoded), JsonSchemaValidationErrorCodes.InvalidReference)
                     );
                 return;
             }
@@ -135,7 +141,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
 
         private static bool SchemaHasType(JsonSchema subSchema, SchemaValueType type)
         {
-            if(subSchema.TryGetKeyword(out TypeKeyword typeKeyword))
+            if (subSchema.TryGetKeyword(out TypeKeyword typeKeyword))
             {
                 return typeKeyword.Type == type;
             }
