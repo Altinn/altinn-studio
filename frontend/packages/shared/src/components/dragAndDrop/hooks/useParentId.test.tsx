@@ -8,14 +8,9 @@ describe('useParentId', () => {
     const parentId = 'parentId';
     const { result } = renderHook(() => useParentId(), {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId='root'>
-          <DragAndDrop.List handleDrop={jest.fn()}>
-            <DragAndDrop.ListItem
-              index={0}
-              itemId={parentId}
-              onDrop={jest.fn()}
-              renderItem={() => children}
-            />
+        <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+          <DragAndDrop.List>
+            <DragAndDrop.ListItem index={0} itemId={parentId} renderItem={() => children} />
           </DragAndDrop.List>
         </DragAndDrop.Provider>
       ),
@@ -27,7 +22,9 @@ describe('useParentId', () => {
     const rootId = 'rootId';
     const { result } = renderHook(() => useParentId(), {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId={rootId}>{children}</DragAndDrop.Provider>
+        <DragAndDrop.Provider rootId={rootId} onAdd={jest.fn()} onMove={jest.fn()}>
+          {children}
+        </DragAndDrop.Provider>
       ),
     });
     expect(result.current).toBe(rootId);

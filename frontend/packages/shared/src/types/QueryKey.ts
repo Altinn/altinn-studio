@@ -1,5 +1,6 @@
 export enum QueryKey {
   AppDeployments = 'AppDeployments',
+  AppMetadata = 'AppMetadata',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
   BranchStatus = 'BranchStatus',
@@ -14,6 +15,7 @@ export enum QueryKey {
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
   FormLayouts = 'FormLayouts',
+  FrontEndSettings = 'FrontEndSettings',
   InstanceId = 'InstanceId',
   JsonSchema = 'JsonSchema',
   LayoutSchema = 'LayoutSchema',
@@ -21,6 +23,7 @@ export enum QueryKey {
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
+  RepoInitialCommit = 'RepoInitialCommit',
   RepoMetaData = 'RepoMetaData',
   RepoPullData = 'RepoPullData',
   RepoReset = 'RepoReset',
@@ -32,6 +35,7 @@ export enum QueryKey {
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
   Widgets = 'Widgets',
+  AppConfig = 'AppConfig',
 
   // Resourceadm
   ResourceList = 'ResourceList',

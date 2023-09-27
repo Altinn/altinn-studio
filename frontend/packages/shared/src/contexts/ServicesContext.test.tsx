@@ -8,6 +8,7 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const texts = {
   'api_errors.DM_01': 'DM_01 error message',
+  'api_errors.GT_01': 'Deling av endringer mislyktes. Vennligst prøv igjen.',
   'general.error_message': 'Something went wrong',
   'general.try_again': 'Try again',
 };
@@ -58,6 +59,18 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(logout).toHaveBeenCalledTimes(1);
+    expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('Displays a toast message for "GT_01" error code', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const errorCode = 'GT_01';
+    const { result } = renderHook( () =>
+      useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(409, errorCode)), { retry: false }),
+      { wrapper }
+    );
+    await waitFor(() => result.current.isError);
+    expect(await screen.findByText(texts['api_errors.GT_01'])).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
   });
 

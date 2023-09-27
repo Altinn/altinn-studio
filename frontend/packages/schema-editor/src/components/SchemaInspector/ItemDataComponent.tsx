@@ -13,7 +13,7 @@ import {
   LegacyFieldSet,
   Select,
   TextArea,
-  TextField,
+  LegacyTextField,
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -62,7 +62,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     custom,
   } = schemaNode;
   const dispatch = useDispatch();
-  const { data, save } = useSchemaEditorAppContext();
+  const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
@@ -88,7 +88,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           pointer: pointer,
           props: { fieldType: FieldType.Null },
           callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-        })
+        }),
       );
       return;
     }
@@ -122,8 +122,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       setPropertyName(data, {
         path: pointer,
         name: newNodeName,
-        callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-      })
+        callback: (newPointer: string) => {
+          if (newPointer && pointerIsDefinition(newPointer)) {
+            setSelectedTypePointer(newPointer);
+          }
+          dispatch(setSelectedNode(newPointer));
+        },
+      }),
     );
   };
 
@@ -199,7 +204,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       <Divider marginless />
       <LegacyFieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <TextField
+          <LegacyTextField
             id={titleId}
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}

@@ -1,18 +1,19 @@
 .modal {
-  --modal-min-size: 320px;
+  --modal-min-width: 320px;
   --modal-min-height: 100px;
-  --modal-max-size: 80vh;
+  --modal-max-height: 80vh;
+  --modal-max-width: 80%;
   --modal-position: 50%;
   --modal-translate: calc(var(--modal-position) * -1);
   --heading-height: 60px;
   --modal-border-size: 1px;
-  --modal-content-max-height: calc(var(--modal-max-size) - var(--heading-height)) -
+  --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
     var(--modal-border-size);
 
-  max-width: var(--modal-max-size);
-  min-width: var(--modal-min-size);
+  max-width: var(--modal-max-width);
+  min-width: var(--modal-min-width);
   width: max-content;
-  max-height: var(--modal-max-size);
+  max-height: var(--modal-max-height);
   min-height: var(--modal-min-height);
   height: max-content;
   border-radius: 20px;
@@ -32,7 +33,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: var(--overlay-gradient);
+  background-color: rgba(30, 43, 60, 0.5);
 }
 
 .headingWrapper {

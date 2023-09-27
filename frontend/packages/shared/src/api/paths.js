@@ -34,6 +34,7 @@ export const layoutSettingsPath = (org, app, layoutSetName) => `${basePath}/${or
 export const formLayoutsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
+export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
 
 // Frontend-language
 export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
@@ -119,6 +120,7 @@ export const userReposPath = () => `${basePath}/user/repos`; // Get
 export const userStarredListPath = () => `${basePath}/user/starred`; // Get
 export const userStarredRepoPath = (org, app) => `${basePath}/user/starred/${org}/${app}`; // Put, Delete
 
+// Policy Editor app
 export const appPolicyPath = (org, app) => `${basePath}/${org}/${app}/policy`; // Get, Put
 
 // Resourceadm

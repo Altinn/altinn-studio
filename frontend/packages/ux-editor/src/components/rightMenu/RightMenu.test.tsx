@@ -74,6 +74,14 @@ describe('RightMenu', () => {
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', "false");
     });
+
+    it('Shows new dynamics switch', async () => {
+      render();
+      const button = screen.queryByRole("button", { name: conditionalRenderingText });
+      await act(() => user.click(button));
+      const switchNewDynamics = screen.getByRole('checkbox', { name: 'right_menu.show_new_dynamics' });
+      expect(switchNewDynamics).toBeInTheDocument();
+    });
   });
 
   describe('Calculations', () => {

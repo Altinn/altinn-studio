@@ -14,7 +14,9 @@ describe('useIsParentDisabled', () => {
   it('Returns false when it is called from directly within the drag an drop provider', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId='root'>{children}</DragAndDrop.Provider>
+        <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+          {children}
+        </DragAndDrop.Provider>
       ),
     });
     expect(result.current).toBe(false);
@@ -23,8 +25,8 @@ describe('useIsParentDisabled', () => {
   it('Returns false when it is called from directly within the root droppable list', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId='root'>
-          <DragAndDrop.List handleDrop={jest.fn()}>{children}</DragAndDrop.List>
+        <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+          <DragAndDrop.List>{children}</DragAndDrop.List>
         </DragAndDrop.Provider>
       ),
     });
@@ -34,14 +36,9 @@ describe('useIsParentDisabled', () => {
   it('Returns true when it is called from an item that is being dragged', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId='root'>
-          <DragAndDrop.List handleDrop={jest.fn()}>
-            <DragAndDrop.ListItem
-              index={0}
-              itemId={draggedItemId}
-              onDrop={jest.fn()}
-              renderItem={() => children}
-            />
+        <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+          <DragAndDrop.List>
+            <DragAndDrop.ListItem index={0} itemId={draggedItemId} renderItem={() => children} />
           </DragAndDrop.List>
         </DragAndDrop.Provider>
       ),
@@ -52,20 +49,14 @@ describe('useIsParentDisabled', () => {
   it('Returns true when it is called from a child item of an item that is being dragged', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId='root'>
-          <DragAndDrop.List handleDrop={jest.fn()}>
+        <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+          <DragAndDrop.List>
             <DragAndDrop.ListItem
               index={0}
               itemId={draggedItemId}
-              onDrop={jest.fn()}
               renderItem={() => (
-                <DragAndDrop.List handleDrop={jest.fn()}>
-                  <DragAndDrop.ListItem
-                    index={0}
-                    itemId='subitem'
-                    onDrop={jest.fn()}
-                    renderItem={() => children}
-                  />
+                <DragAndDrop.List>
+                  <DragAndDrop.ListItem index={0} itemId='subitem' renderItem={() => children} />
                 </DragAndDrop.List>
               )}
             />
@@ -79,14 +70,9 @@ describe('useIsParentDisabled', () => {
   it('Returns false when it is called from an item that is not being dragged', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <DragAndDrop.Provider rootId='root'>
-          <DragAndDrop.List handleDrop={jest.fn()}>
-            <DragAndDrop.ListItem
-              index={0}
-              itemId='item'
-              onDrop={jest.fn()}
-              renderItem={() => children}
-            />
+        <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+          <DragAndDrop.List>
+            <DragAndDrop.ListItem index={0} itemId='item' renderItem={() => children} />
           </DragAndDrop.List>
         </DragAndDrop.Provider>
       ),

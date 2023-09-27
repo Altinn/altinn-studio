@@ -40,6 +40,7 @@ import {
 
 } from '../testing/expressionMocks';
 import { deepCopy } from 'app-shared/pure';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 describe('expressionsUtils', () => {
 
@@ -399,7 +400,7 @@ describe('expressionsUtils', () => {
       const propertyToAdd = 'default';
       const newExpression = addProperty(internalExpressionWithMultipleSubExpressions, propertyToAdd);
 
-      expect(newExpression).toBeUndefined();
+      expect(newExpression).toStrictEqual(internalExpressionWithMultipleSubExpressions);
     });
     it('should create a new subExpression when there are no subExpressions', () => {
       const newExpression = addProperty(baseInternalExpression, ExpressionPropertyBase.ReadOnly);
@@ -529,27 +530,27 @@ describe('expressionsUtils', () => {
   });
   describe('stringifyValueForDisplay', () => {
     it('should return "null" for null value', () => {
-      const result = stringifyValueForDisplay(null);
+      const result = stringifyValueForDisplay(textMock, null);
       expect(result).toBe('null');
     });
     it('should return "null" for undefined value', () => {
-      const result = stringifyValueForDisplay(undefined);
+      const result = stringifyValueForDisplay(textMock, undefined);
       expect(result).toBe('null');
     });
     it('should return "true" for true boolean value', () => {
-      const result = stringifyValueForDisplay(true);
-      expect(result).toBe('true');
+      const result = stringifyValueForDisplay(textMock, true);
+      expect(result).toBe(textMock('general.true'));
     });
     it('should return "false" for false boolean value', () => {
-      const result = stringifyValueForDisplay(false);
-      expect(result).toBe('false');
+      const result = stringifyValueForDisplay(textMock, false);
+      expect(result).toBe(textMock('general.false'));
     });
     it('should return string representation for string value', () => {
-      const result = stringifyValueForDisplay(stringValue);
+      const result = stringifyValueForDisplay(textMock, stringValue);
       expect(result).toBe(stringValue);
     });
     it('should return string representation for numeric value', () => {
-      const result = stringifyValueForDisplay(numberValue);
+      const result = stringifyValueForDisplay(textMock, numberValue);
       expect
       (result).toBe('1024');
     });

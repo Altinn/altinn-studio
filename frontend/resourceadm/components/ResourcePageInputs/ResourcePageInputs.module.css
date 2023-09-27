@@ -4,7 +4,6 @@
 
 .inputWrapper {
   width: 500px;
-  margin-top: 10px;
   position: relative;
 }
 
@@ -22,4 +21,8 @@
 
 .checkboxParagraph {
   margin-left: 0.5rem;
+}
+
+.description {
+  color: var(--fds-semantic-text-neutral-subtle);
 }

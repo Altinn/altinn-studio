@@ -6,8 +6,13 @@ import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { Expressions } from '../config/Expressions';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion, Switch } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
+import {
+  addFeatureFlagToLocalStorage,
+  removeFeatureFlagFromLocalStorage,
+  shouldDisplayFeature
+} from 'app-shared/utils/featureToggleUtils';
 
 export interface RightMenuProps {
   className?: string;
@@ -15,7 +20,7 @@ export interface RightMenuProps {
 
 export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
-  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(false);
+  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(shouldDisplayFeature('expressions'));
   const { formId } = useFormContext();
   const formIdRef = React.useRef(formId);
 
@@ -36,6 +41,16 @@ export const RightMenu = ({ className }: RightMenuProps) => {
     }
   };
 
+  const handleToggleNewDynamics = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowNewExpressions(event.target.checked);
+    // Ensure choice of feature toggling is persisted in local storage
+    if(event.target.checked){
+      addFeatureFlagToLocalStorage('expressions');
+    } else {
+      removeFeatureFlagFromLocalStorage('expressions');
+    }
+  };
+
   return (
     <div className={cn(className, classes.rightMenu)}>
       <Accordion color='subtle'>
@@ -52,17 +67,17 @@ export const RightMenu = ({ className }: RightMenuProps) => {
             {t('right_menu.dynamics')}
           </Accordion.Header>
           <Accordion.Content>
-            {showNewExpressions ? (
-              <Expressions
-                onShowNewExpressions={setShowNewExpressions}
-                showNewExpressions={showNewExpressions}
-              />
-            ) : (
-              <ConditionalRendering
-                onShowNewExpressions={setShowNewExpressions}
-                showNewExpressions={showNewExpressions}
-              />
-            )}
+            <>
+              <Switch
+                  name={'new-dynamics-switch'}
+                  onChange={handleToggleNewDynamics}
+                  checked={showNewExpressions}
+                  size={'small'}
+              >
+                {t('right_menu.show_new_dynamics')}
+              </Switch>
+            {showNewExpressions ? (<Expressions/>) : (<ConditionalRendering/>)}
+            </>
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>

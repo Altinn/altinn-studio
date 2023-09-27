@@ -1,26 +1,25 @@
 import React, { ReactNode, useCallback } from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
-import { DraggableEditorItemType, DndItem, HandleDrop } from 'app-shared/types/dndTypes';
+import { DraggableEditorItemType, DndItem } from 'app-shared/types/dndTypes';
 import classes from './DragAndDropList.module.css';
 import * as testids from '../../../../../../testing/testids';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { useParentId } from '../hooks/useParentId';
+import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
 
-export interface DragAndDropListProps<T> {
+export interface DragAndDropListProps {
   /** The list of existing items. */
   children: ReactNode;
-
-  /** Action to be called when an item is dropped in the list. */
-  handleDrop: HandleDrop<T>;
 }
 
 export interface DragAndDropListCollectedProps {
   canBeDropped: boolean;
 }
 
-export function DragAndDropList<T>({ children, handleDrop }: DragAndDropListProps<T>) {
+export function DragAndDropList<T>({ children }: DragAndDropListProps) {
   const disabledDrop = useIsParentDisabled();
   const parentId = useParentId();
+  const onDrop = useOnDrop<T>();
   const canDrop = useCallback(
     (monitor: DropTargetMonitor) => monitor.isOver({ shallow: true }) && !disabledDrop,
     [disabledDrop]
@@ -29,7 +28,7 @@ export function DragAndDropList<T>({ children, handleDrop }: DragAndDropListProp
     accept: Object.values(DraggableEditorItemType),
     drop: (draggedItem, monitor) => {
       if (canDrop(monitor)) {
-        handleDrop(draggedItem, { parentId, index: -1 });
+        onDrop(draggedItem, { parentId, index: -1 });
       }
     },
     collect: (monitor) => ({

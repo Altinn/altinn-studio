@@ -1,16 +1,27 @@
-import { MutableRefObject, useRef, useEffect } from 'react';
+import { MutableRefObject, useRef, useEffect, useState } from 'react';
 import BpmnJS from 'bpmn-js/dist/bpmn-navigated-viewer.development.js';
 import { useBpmnContext } from '../contexts/BpmnContext';
+import { useTranslation } from 'react-i18next';
 
 // Wrapper around bpmn-js to Reactify it
 
+type BpmnViewerError = 'noDiagram' | 'noProcess' | 'unknown';
+
+const bpmnViewerErrorMap: Record<string, BpmnViewerError> = {
+  'no diagram to display': 'noDiagram',
+  'no process or collaboration to display': 'noProcess',
+};
+
 type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
+  bpmnViewerError: BpmnViewerError | undefined;
 };
 
 export const useBpmnViewer = (): UseBpmnViewerResult => {
+  const { t } = useTranslation();
   const { bpmnXml } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [bpmnViewerError, setBpmnViewerError] = useState<BpmnViewerError | undefined>(undefined);
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -24,12 +35,12 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
       try {
         await viewer.importXML(bpmnXml);
       } catch (exception) {
-        console.log('An error occurred while rendering the viewer:', exception);
+        setBpmnViewerError(bpmnViewerErrorMap[exception.message] || 'unknown');
       }
     };
 
     initializeViewer();
-  }, [bpmnXml]);
+  }, [bpmnXml, t]);
 
-  return { canvasRef };
+  return { canvasRef, bpmnViewerError };
 };

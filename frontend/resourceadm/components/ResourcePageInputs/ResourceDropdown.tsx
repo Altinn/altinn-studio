@@ -89,13 +89,13 @@ export const ResourceDropdown = ({
   return (
     <>
       {spacingTop && <div className={classes.divider} />}
-      <Label size='medium' spacing htmlFor={id}>
+      <Label size='small' spacing htmlFor={id}>
         {label}
       </Label>
-      <Paragraph short size='small'>
-        {description}
-      </Paragraph>
       <div className={classes.inputWrapper}>
+        <Paragraph spacing short size='small'>
+          {description}
+        </Paragraph>
         <Select
           options={options}
           onChange={handleChangeInput}

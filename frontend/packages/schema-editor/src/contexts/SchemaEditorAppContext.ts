@@ -3,7 +3,9 @@ import { UiSchemaNodes } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
   data: UiSchemaNodes;
-  save: (datamodel: UiSchemaNodes) => void;
+  save: (datamodel: UiSchemaNodes, saveAfterMs?: number) => void;
+  selectedTypePointer?: string;
+  setSelectedTypePointer: (pointer: string) => void;
 }
 
 /**

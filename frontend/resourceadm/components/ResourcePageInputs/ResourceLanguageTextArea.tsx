@@ -90,16 +90,18 @@ export const ResourceLanguageTextArea = forwardRef<
       showErrorMessage = false,
       errorText,
     },
-    ref
+    ref,
   ): React.ReactNode => {
     return (
       <>
         <div className={classes.divider} />
-        <Label size='medium' spacing htmlFor={id}>
+        <Label size='small' htmlFor={id}>
           {label}
         </Label>
-        <Paragraph size='small'>{description}</Paragraph>
         <div className={classes.inputWrapper}>
+          <Paragraph size='small' spacing className={classes.description}>
+            {description}
+          </Paragraph>
           <TextArea
             value={value}
             resize='vertical'
@@ -116,7 +118,7 @@ export const ResourceLanguageTextArea = forwardRef<
         </div>
       </>
     );
-  }
+  },
 );
 
 ResourceLanguageTextArea.displayName = 'ResourceLanguageTextArea';

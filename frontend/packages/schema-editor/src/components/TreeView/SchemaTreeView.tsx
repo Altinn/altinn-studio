@@ -4,7 +4,7 @@ import { DndProvider } from 'react-dnd';
 import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { SchemaItem } from './SchemaItem';
-import { TreeView } from '@mui/lab';
+import { TreeView } from '@mui/x-tree-view';
 
 export interface SchemaTreeViewProps {
   expanded: any;
@@ -12,7 +12,6 @@ export interface SchemaTreeViewProps {
   onNodeToggle: any;
   selectedPointer: string;
   isPropertiesView: boolean;
-  translate: (key: string) => string;
 }
 
 export const SchemaTreeView = ({
@@ -20,7 +19,6 @@ export const SchemaTreeView = ({
   items,
   onNodeToggle,
   selectedPointer,
-  translate,
   isPropertiesView,
 }: SchemaTreeViewProps) => {
   return (
@@ -39,7 +37,6 @@ export const SchemaTreeView = ({
             isPropertiesView={isPropertiesView}
             selectedNode={item}
             key={item.pointer}
-            translate={translate}
           />
         ))}
       </TreeView>

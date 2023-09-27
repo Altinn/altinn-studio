@@ -1,5 +1,6 @@
 import { get, put } from 'app-shared/utils/networking';
 import {
+  appMetadataPath,
   appPolicyPath,
   branchStatusPath,
   datamodelMetadataPath,
@@ -10,6 +11,7 @@ import {
   deploymentsPath,
   envConfigPath,
   formLayoutsPath,
+  frontEndSettingsPath,
   instanceIdForPreviewPath,
   layoutSetsPath,
   layoutSettingsPath,
@@ -17,6 +19,7 @@ import {
   orgsListPath,
   processEditorPath,
   releasesPath,
+  repoInitialCommitPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
@@ -31,6 +34,7 @@ import {
   resourceValidateResourcePath,
   ruleConfigPath,
   ruleHandlerPath,
+  serviceConfigPath,
   textLanguagesPath,
   textResourcesPath,
   userCurrentPath,
@@ -43,7 +47,7 @@ import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/Da
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { ILayoutSettings, IRepository, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { ILayoutSettings, IRepository, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
 import { Organization } from 'app-shared/types/Organization';
 import { OrgsState } from 'app-shared/types/OrgsState';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -57,6 +61,9 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { Commit } from 'app-shared/types/Commit';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -69,10 +76,12 @@ export const getDeployments = (owner: string, app: string) => get<AppDeployments
 export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
+export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getOrgList = () => get<OrgsState>(orgsListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
+export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
@@ -92,7 +101,10 @@ export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl()
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 
+// Settings modal
+export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
+export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
@@ -105,7 +117,7 @@ export const getValidatePolicy = (org: string, repo: string, id: string) => get<
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 
 // ProcessEditor
-export const getBpnmFile = (org: string, app: string) => get(processEditorPath(org, app));
+export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));
 export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
   put(processEditorPath(org, app), bpmnXml, {
     headers: {

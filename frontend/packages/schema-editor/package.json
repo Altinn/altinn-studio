@@ -3,14 +3,14 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.142",
+    "@mui/lab": "5.0.0-alpha.144",
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {
-    "jest": "29.6.4"
+    "jest": "29.7.0"
   },
   "peerDependencies": {
-    "@mui/material": "5.14.7",
+    "@mui/material": "5.14.10",
     "@reduxjs/toolkit": "1.9.5",
     "axios": "1.5.0",
     "classnames": "2.3.2",

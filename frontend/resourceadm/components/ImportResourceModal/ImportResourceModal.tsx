@@ -177,6 +177,7 @@ export const ImportResourceModal = ({
       isOpen={isOpen}
       onClose={handleClose}
       title={t('resourceadm.dashboard_import_modal_title')}
+      contentClassName={classes.contentWidth}
     >
       <div className={classes.dropdownWraper}>
         <Select
