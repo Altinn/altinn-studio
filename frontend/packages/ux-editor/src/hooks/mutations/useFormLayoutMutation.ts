@@ -7,8 +7,12 @@ import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionCont
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useAppContext } from '../useAppContext';
 
-export const useFormLayoutMutation = (org: string, app: string, layoutName: string, layoutSetName: string) => {
-
+export const useFormLayoutMutation = (
+  org: string,
+  app: string,
+  layoutName: string,
+  layoutSetName: string,
+) => {
   const previewConnection = usePreviewConnection();
   const { saveFormLayout } = useServicesContext();
   const queryClient = useQueryClient();
@@ -17,12 +21,13 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
       const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(layout);
-      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(() => layout);
+      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(
+        () => layout,
+      );
     },
     onSuccess: async (savedLayout) => {
-      if (previewConnection && previewConnection.state === "Connected") {
-        console.log('sender');
-        await previewConnection.send("sendMessage", "reload-layouts").catch(function (err) {
+      if (previewConnection && previewConnection.state === 'Connected') {
+        await previewConnection.send('sendMessage', 'reload-layouts').catch(function (err) {
           return console.error(err.toString());
         });
       }
@@ -31,8 +36,8 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
 
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
-        (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout })
+        (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
       );
-    }
-  })
+    },
+  });
 };
