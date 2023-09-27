@@ -182,9 +182,9 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Set the value of a field to null.
     /// </summary>
-    public void RemoveDataField(string key, bool deleteRows = false)
+    public void RemoveDataField(string key, RowRemovalOption rowRemovalOption)
     {
-        _dataModel.RemoveField(key, deleteRows);
+        _dataModel.RemoveField(key, rowRemovalOption);
     }
 
     /// <summary>

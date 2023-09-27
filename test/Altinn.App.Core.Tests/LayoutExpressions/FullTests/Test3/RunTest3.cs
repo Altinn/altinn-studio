@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Expressions;
 using FluentAssertions;
 using Xunit;
@@ -61,7 +62,7 @@ public class RunTest3
         data.Some.Data[2].Binding.Should().Be("hideRow");
         data.Some.Data[2].Binding2.Should().Be(3);
         data.Some.Data[2].Binding3.Should().Be("text");
-        LayoutEvaluator.RemoveHiddenData(state);
+        LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.SetToNull);
 
         // Verify row not deleted but fields null
         data.Some.Data.Should().HaveCount(3);
@@ -71,7 +72,7 @@ public class RunTest3
         data.Some.Data[1].Binding2.Should().Be(2);
         data.Some.Data[2].Should().BeNull();
     }
-    
+
     [Fact]
     public async Task RemoveRowFromGroup()
     {
@@ -118,9 +119,9 @@ public class RunTest3
         data.Some.Data[2].Binding.Should().Be("hideRow");
         data.Some.Data[2].Binding2.Should().Be(3);
         data.Some.Data[2].Binding3.Should().Be("text");
-        
+
         // Verify rows deleted
-        LayoutEvaluator.RemoveHiddenData(state, true);
+        LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow);
         data.Some.Data.Should().HaveCount(2);
         data.Some.Data[0].Binding.Should().BeNull();
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero

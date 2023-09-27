@@ -1,3 +1,4 @@
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
@@ -89,12 +90,12 @@ public static class LayoutEvaluator
     /// <summary>
     /// Remove fields that are only refrenced from hidden fields from the data object in the state.
     /// </summary>
-    public static void RemoveHiddenData(LayoutEvaluatorState state, bool deleteRows = false)
+    public static void RemoveHiddenData(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
     {
         var fields = GetHiddenFieldsForRemoval(state);
         foreach (var field in fields)
         {
-            state.RemoveDataField(field, deleteRows);
+            state.RemoveDataField(field, rowRemovalOption);
         }
     }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Validation;
 using FluentAssertions;
@@ -54,7 +55,7 @@ public class RunTest2
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
         data.Some.Data[1].Binding.Should().Be("binding");
         data.Some.Data[1].Binding2.Should().Be(2);
-        LayoutEvaluator.RemoveHiddenData(state);
+        LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.SetToNull);
 
         // Verify data was removed
         data.Some.Data[0].Binding.Should().BeNull();
