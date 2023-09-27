@@ -9,7 +9,7 @@ import {
   findParentId,
   findPreviousVisibleNodeId,
   makeDomGroupId,
-  makeDomTreeitemId,
+  makeDomTreeItemId,
 } from '../utils/domUtils';
 import { AnimateHeight } from 'app-shared/components/AnimateHeight';
 import { TreeViewItemContext } from './TreeViewItemContext';
@@ -48,32 +48,32 @@ export const TreeViewItem = ({
   const focusable = focusableId === nodeId;
 
   const handleClick = () => {
-    setOpen(!open);
+    setOpen((prevOpen) => !prevOpen);
     setSelectedId(nodeId);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     switch (event.key) {
-      case 'ArrowRight':
+      case 'ArrowRight': // Open node if closed, focus on first child if open, do nothing if not expandable
         if (children) {
           open ? setFocusedId(findFirstChildId(rootId, nodeId)) : setOpen(true);
         }
         break;
-      case 'ArrowLeft':
+      case 'ArrowLeft': // Close node if open, focus on parent otherwise
         open ? setOpen(false) : setFocusedId(findParentId(rootId, nodeId));
         break;
-      case 'ArrowDown':
+      case 'ArrowDown': // Focus on next visible node
         const nextVisibleNode = findNextVisibleNodeId(rootId, nodeId);
         if (nextVisibleNode) setFocusedId(nextVisibleNode);
         break;
-      case 'ArrowUp':
+      case 'ArrowUp': // Focus on previous visible node
         const previousVisibleNode = findPreviousVisibleNodeId(rootId, nodeId);
         if (previousVisibleNode) setFocusedId(previousVisibleNode);
         break;
-      case 'Home':
+      case 'Home': // Focus on first node
         setFocusedId(findFirstNodeId(rootId));
         break;
-      case 'End':
+      case 'End': // Focus on last visible node
         setFocusedId(findLastVisibleNodeId(rootId));
         break;
     }
@@ -81,7 +81,7 @@ export const TreeViewItem = ({
 
   const handleFocus = () => setFocusedId(nodeId);
 
-  const treeItemId = makeDomTreeitemId(rootId, nodeId);
+  const treeItemId = makeDomTreeItemId(rootId, nodeId);
   const listId = makeDomGroupId(rootId, nodeId);
 
   const renderLabel = () => (

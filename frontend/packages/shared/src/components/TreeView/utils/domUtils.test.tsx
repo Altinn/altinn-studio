@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import {
   extractIdFromGroup,
-  extractIdFromTreeitem,
+  extractIdFromTreeItem,
   findAllNodeIds,
   findAllParentIds,
   findAllVisibleNodeIds,
@@ -15,28 +15,28 @@ import {
   findPreviousVisibleNodeId,
   hasChildNodes,
   makeDomGroupId,
-  makeDomTreeitemId,
+  makeDomTreeItemId,
 } from './domUtils';
 import { render } from '@testing-library/react';
 
 describe('domUtils', () => {
-  describe('makeDomTreeitemId', () => {
+  describe('makeDomTreeItemId', () => {
     it('Returns a string with the correct format', () => {
-      expect(makeDomTreeitemId('root1', 'bar')).toBe('root1-bar-treeitem');
-      expect(makeDomTreeitemId('root2', 'foo')).toBe('root2-foo-treeitem');
+      expect(makeDomTreeItemId('root1', 'bar')).toBe('root1-bar-treeitem');
+      expect(makeDomTreeItemId('root2', 'foo')).toBe('root2-foo-treeitem');
     });
   });
 
-  describe('extractIdFromTreeitem', () => {
-    it('Returns the correct id from a string formatted by makeDomTreeitemId', () => {
+  describe('extractIdFromTreeItem', () => {
+    it('Returns the correct id from a string formatted by makeDomTreeItemId', () => {
       const nodeId = 'nodeId';
       const rootId = 'rootId';
-      const treeitemId = makeDomTreeitemId(rootId, nodeId);
-      expect(extractIdFromTreeitem(rootId, treeitemId)).toBe(nodeId);
+      const treeItemId = makeDomTreeItemId(rootId, nodeId);
+      expect(extractIdFromTreeItem(rootId, treeItemId)).toBe(nodeId);
     });
 
     it('Returns undefined if no id string is given', () => {
-      expect(extractIdFromTreeitem('rootId', '')).toBeUndefined();
+      expect(extractIdFromTreeItem('rootId', '')).toBeUndefined();
     });
   });
 
@@ -81,11 +81,11 @@ describe('domUtils', () => {
               renderListItem(rootId, subItem2AId, 'subItem2A', 2),
               renderListItem(rootId, subItem2BId, 'subItem2B', 2),
             ])}
-          </ul>
+          </ul>,
         );
         expect(findDirectChildIds(rootId, rootItem1Id)).toEqual([subItem1AId, subItem1BId]);
         expect(findDirectChildIds(rootId, rootItem2Id)).toEqual([subItem2AId, subItem2BId]);
-      }
+      },
     );
 
     it('Does not include grandchildren', () => {
@@ -105,7 +105,7 @@ describe('domUtils', () => {
               renderListItem(rootId, subSubItem2Id, 'subSubItem2', 3),
             ]),
           ])}
-        </ul>
+        </ul>,
       );
       expect(findDirectChildIds(rootId, rootItemId)).toEqual([subItem1Id, subItem2Id]);
     });
@@ -116,7 +116,7 @@ describe('domUtils', () => {
       render(
         <ul role='tree' id={rootId}>
           {renderListItem(rootId, rootItemId, 'rootItem', 1)}
-        </ul>
+        </ul>,
       );
       expect(findDirectChildIds(rootId, rootItemId)).toEqual([]);
     });
@@ -129,7 +129,7 @@ describe('domUtils', () => {
         <ul role='tree' id={rootId}>
           {renderListItem(rootId, rootItem1Id, 'rootItem1', 1, true)}
           {renderListItem(rootId, rootItem2Id, 'rootItem2', 1, true)}
-        </ul>
+        </ul>,
       );
       expect(findDirectChildIds(rootId)).toEqual([rootItem1Id, rootItem2Id]);
     });
@@ -149,7 +149,7 @@ describe('domUtils', () => {
             renderListItem(rootId, subItem1BId, 'subItem1B', 2),
           ])}
           {renderListItem(rootId, rootItem2Id, 'rootItem2', 1)}
-        </ul>
+        </ul>,
       );
       expect(findParentId(rootId, subItem1AId)).toBe(rootItem1Id);
       expect(findParentId(rootId, subItem1BId)).toBe(rootItem1Id);
@@ -163,7 +163,7 @@ describe('domUtils', () => {
         <ul role='tree' id={rootId}>
           {renderListItem(rootId, rootItem1Id, 'rootItem1', 1)},
           {renderListItem(rootId, rootItem2Id, 'rootItem2', 1)}
-        </ul>
+        </ul>,
       );
       expect(findParentId(rootId, rootItem1Id)).toBeNull();
       expect(findParentId(rootId, rootItem2Id)).toBeNull();
@@ -186,7 +186,7 @@ describe('domUtils', () => {
               ]),
             ]),
           ])}
-        </ul>
+        </ul>,
       );
 
     it('Returns a list of all the parent ids of the node with the given id', () => {
@@ -223,7 +223,7 @@ describe('domUtils', () => {
             renderListItem(rootId, subItem2AId, 'subItem2A', 2),
             renderListItem(rootId, subItem2BId, 'subItem2B', 2),
           ])}
-        </ul>
+        </ul>,
       );
       expect(findAllNodeIds(rootId)).toEqual([
         rootItem1Id,
@@ -251,7 +251,7 @@ describe('domUtils', () => {
           {renderListItem(rootId, closedItemId, 'closedItem', 1, false, [
             renderListItem(rootId, subItemOfClosedItemId, 'subItemOfClosedItem', 2),
           ])}
-        </ul>
+        </ul>,
       );
       expect(findAllVisibleNodeIds(rootId)).toEqual([
         openItemId,
@@ -272,7 +272,7 @@ describe('domUtils', () => {
               renderListItem(rootId, subSubItemId, 'subSubItem', 3),
             ]),
           ])}
-        </ul>
+        </ul>,
       );
       expect(findAllVisibleNodeIds(rootId)).toEqual([closedItemId]);
     });
@@ -287,7 +287,7 @@ describe('domUtils', () => {
         <ul role='tree' id={rootId}>
           {renderListItem(rootId, firstItemId, 'firstItem', 1, true)}
           {renderListItem(rootId, secondItemId, 'secondItem', 1, true)}
-        </ul>
+        </ul>,
       );
       expect(findFirstNodeId(rootId)).toBe(firstItemId);
     });
@@ -314,7 +314,7 @@ describe('domUtils', () => {
               renderListItem(rootId, invisibleSubSubItemId, 'subSubItem', 3),
             ]),
           ])}
-        </ul>
+        </ul>,
       );
       expect(findLastVisibleNodeId(rootId)).toBe(subItemId);
     });
@@ -343,7 +343,7 @@ describe('domUtils', () => {
             ]),
           ])}
           {renderListItem(rootId, thirdItemId, 'thirdItem', 1)}
-        </ul>
+        </ul>,
       );
 
     it('Returns the id of the next visible node', () => {
@@ -376,7 +376,7 @@ describe('domUtils', () => {
             ]),
           ])}
           {renderListItem(rootId, thirdItemId, 'thirdItem', 1)}
-        </ul>
+        </ul>,
       );
 
     it('Returns the id of the previous visible node', () => {
@@ -408,7 +408,7 @@ describe('domUtils', () => {
             renderListItem(rootId, subItem2BId, 'subItem2B', 2),
           ])}
           {renderListItem(rootId, thirdItemId, 'thirdItem', 1)}
-        </ul>
+        </ul>,
       );
 
     it('Returns the index of the node within its group', () => {
@@ -439,10 +439,10 @@ describe('domUtils', () => {
             {renderListItem(rootId, rootItemId, 'rootItem', 1, expanded, [
               renderListItem(rootId, 'childItemId', 'childItem', 2),
             ])}
-          </ul>
+          </ul>,
         );
         expect(hasChildNodes(rootId, rootItemId)).toBe(true);
-      }
+      },
     );
 
     it('Returns false if the node has no children', () => {
@@ -451,7 +451,7 @@ describe('domUtils', () => {
       render(
         <ul role='tree' id={rootId}>
           {renderListItem(rootId, rootItemId, 'rootItem', 1)}
-        </ul>
+        </ul>,
       );
       expect(hasChildNodes(rootId, rootItemId)).toBe(false);
     });
@@ -469,7 +469,7 @@ describe('domUtils', () => {
             renderListItem(rootId, firstChildId, 'firstChild', 2),
             renderListItem(rootId, secondChildId, 'secondChild', 2),
           ])}
-        </ul>
+        </ul>,
       );
       expect(findFirstChildId(rootId, rootItemId)).toBe(firstChildId);
     });
@@ -480,7 +480,7 @@ describe('domUtils', () => {
       render(
         <ul role='tree' id={rootId}>
           {renderListItem(rootId, emptyItemId, 'emptyIem', 1)}
-        </ul>
+        </ul>,
       );
       expect(findFirstChildId(rootId, emptyItemId)).toBeNull();
     });
@@ -493,13 +493,13 @@ const renderListItem = (
   label: string,
   level: number,
   expanded?: boolean,
-  children?: ReactNode[]
+  children?: ReactNode[],
 ): ReactNode => (
   <li key={id}>
     <button
       aria-expanded={expanded}
       aria-level={level}
-      id={makeDomTreeitemId(rootId, id)}
+      id={makeDomTreeItemId(rootId, id)}
       role='treeitem'
     >
       {label}

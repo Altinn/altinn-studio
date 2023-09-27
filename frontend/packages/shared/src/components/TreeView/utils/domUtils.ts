@@ -1,8 +1,8 @@
 import { removeEnd, removeStart } from 'app-shared/utils/stringUtils';
 
-export const makeDomTreeitemId = (rootId: string, id: string) => `${rootId}-${id}-treeitem`;
+export const makeDomTreeItemId = (rootId: string, id: string) => `${rootId}-${id}-treeitem`;
 
-export const extractIdFromTreeitem = (rootId: string, id?: string) =>
+export const extractIdFromTreeItem = (rootId: string, id?: string) =>
   id ? removeEnd(removeStart(id, rootId + '-'), '-treeitem') : undefined;
 
 export const makeDomGroupId = (rootId: string, id: string) => `${rootId}-${id}-group`;
@@ -10,25 +10,25 @@ export const makeDomGroupId = (rootId: string, id: string) => `${rootId}-${id}-g
 export const extractIdFromGroup = (rootId: string, id?: string) =>
   id ? removeEnd(removeStart(id, rootId + '-'), '-group') : undefined;
 
-export const findTreeitem = (rootId: string, id: string) =>
-  document.getElementById(makeDomTreeitemId(rootId, id));
+export const findTreeItem = (rootId: string, id: string) =>
+  document.getElementById(makeDomTreeItemId(rootId, id));
 
 export const findGroup = (rootId: string, id: string) =>
   document.getElementById(makeDomGroupId(rootId, id));
 
 const findItemLevel = (rootId: string, nodeId?: string): number =>
-  nodeId ? parseInt(findTreeitem(rootId, nodeId)?.getAttribute('aria-level')) : 0;
+  nodeId ? parseInt(findTreeItem(rootId, nodeId)?.getAttribute('aria-level')) : 0;
 
 export const findDirectChildIds = (rootId: string, nodeId?: string): string[] => {
   const list = nodeId ? findGroup(rootId, nodeId) : document.getElementById(rootId);
   if (!list) return [];
   const level = findItemLevel(rootId, nodeId);
   const childItems = list.querySelectorAll(`[role="treeitem"][aria-level="${level + 1}"]`);
-  return Array.from(childItems).map((item) => extractIdFromTreeitem(rootId, item.id));
+  return Array.from(childItems).map((item) => extractIdFromTreeItem(rootId, item.id));
 };
 
 export const findParentId = (rootId: string, nodeId: string): string | null => {
-  const item = findTreeitem(rootId, nodeId);
+  const item = findTreeItem(rootId, nodeId);
   const parentItem = item.closest(`[role="group"], [role="tree"]`);
   const { id } = parentItem;
   return id === rootId ? null : extractIdFromGroup(rootId, id);
@@ -47,14 +47,14 @@ export const findAllParentIds = (rootId: string, nodeId: string): string[] => {
 export const findAllNodeIds = (rootId: string): string[] => {
   const root = document.getElementById(rootId);
   const items = root.querySelectorAll('[role="treeitem"]');
-  return Array.from(items).map((item) => extractIdFromTreeitem(rootId, item.id));
+  return Array.from(items).map((item) => extractIdFromTreeItem(rootId, item.id));
 };
 
 const isNodeVisible = (rootId: string, nodeId: string): boolean => {
   const parentIds = findAllParentIds(rootId, nodeId);
   return parentIds.every((id) => {
-    const treeitem = findTreeitem(rootId, id);
-    return treeitem && treeitem.getAttribute('aria-expanded') === 'true';
+    const treeItem = findTreeItem(rootId, id);
+    return treeItem && treeItem.getAttribute('aria-expanded') === 'true';
   });
 };
 
