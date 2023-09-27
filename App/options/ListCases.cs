@@ -78,9 +78,9 @@ namespace Altinn.App.Options
             {
                 return new DataList { ListItems = objectList, _metaData = appListsMetaData };
             }
-            
 
-            return new DataList { ListItems = objectList.GetRange(start, count), _metaData = appListsMetaData };
+            int boundedCount = start + count > items.Count ? items.Count - start : count;
+            return new DataList { ListItems = objectList.GetRange(start, boundedCount), _metaData = appListsMetaData };
         }
     }
 }
