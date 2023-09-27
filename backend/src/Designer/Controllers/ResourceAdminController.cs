@@ -298,6 +298,11 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
 
+            if (resource.Status == null)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
+            }
+
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
                 ModelState.AddModelError($"{resource.Identifier}.contactPoint", "resourceerror.missingcontactpoints");
