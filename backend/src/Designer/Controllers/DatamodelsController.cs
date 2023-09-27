@@ -52,19 +52,12 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("datamodel")]
         public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath)
         {
-            try
-            {
-                var decodedPath = Uri.UnescapeDataString(modelPath);
+            var decodedPath = Uri.UnescapeDataString(modelPath);
 
-                var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
 
-                return Ok(json);
-            }
-            catch (FileNotFoundException)
-            {
-                return NotFound();
-            }
+            return Ok(json);
         }
 
         /// <summary>
@@ -81,24 +74,17 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("datamodel")]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromBody] JsonNode payload, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
-            try
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string content = payload.ToString();
+
+            if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
             {
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                string content = payload.ToString();
-
-                if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
-                {
-                    return UnprocessableEntity(validationProblemDetails);
-                }
-
-                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
-
-                return NoContent();
+                return UnprocessableEntity(validationProblemDetails);
             }
-            catch (IOException)
-            {
-                return NotFound();
-            }
+
+            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -112,17 +98,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("datamodel")]
         public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
         {
-            try
-            {
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
 
-                return NoContent();
-            }
-            catch (IOException)
-            {
-                return NotFound();
-            }
+            return NoContent();
         }
 
         /// <summary>
@@ -136,17 +115,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("all-json")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
         {
-            try
-            {
-                var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
 
-                return Ok(schemaFiles);
-            }
-            catch (IOException)
-            {
-                return NotFound();
-            }
+            return Ok(schemaFiles);
         }
 
         /// <summary>
@@ -160,17 +132,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("all-xsd")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
         {
-            try
-            {
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
 
-                return Ok(schemaFiles);
-            }
-            catch (IOException)
-            {
-                return NotFound();
-            }
+            return Ok(schemaFiles);
         }
 
         /// <summary>
@@ -247,23 +212,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("xsd-from-repo")]
         public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
         {
-            try
-            {
-                Guard.AssertArgumentNotNull(filePath, nameof(filePath));
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
+            Guard.AssertArgumentNotNull(filePath, nameof(filePath));
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
-                string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
-                using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-                string modelName = Path.GetFileName(filePath);
-                string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
+            string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+            using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+            string modelName = Path.GetFileName(filePath);
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
 
-                return Created(filePath, jsonSchema);
-            }
-            catch (IOException)
-            {
-                return NotFound();
-            }
+            return Created(filePath, jsonSchema);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
