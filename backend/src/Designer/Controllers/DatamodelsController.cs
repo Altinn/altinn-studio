@@ -217,6 +217,10 @@ namespace Altinn.Studio.Designer.Controllers
             Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
             string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+            if (xsd == null)
+            {
+                return NoContent();
+            }
             using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
             string modelName = Path.GetFileName(filePath);
             string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
