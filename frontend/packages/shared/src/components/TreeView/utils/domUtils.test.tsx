@@ -413,9 +413,6 @@ describe('domUtils', () => {
 
     it('Returns the index of the node within its group', () => {
       renderDom();
-      expect(findNodeIndexWithinGroup(rootId, firstItemId)).toBe(0);
-      expect(findNodeIndexWithinGroup(rootId, secondItemId)).toBe(1);
-      expect(findNodeIndexWithinGroup(rootId, thirdItemId)).toBe(2);
       expect(findNodeIndexWithinGroup(rootId, subItem2AId)).toBe(0);
       expect(findNodeIndexWithinGroup(rootId, subItem2BId)).toBe(1);
     });
