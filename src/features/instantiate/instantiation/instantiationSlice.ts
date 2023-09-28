@@ -20,7 +20,7 @@ export const instantiationSlice = () => {
     initialState,
     actions: {
       instantiate: mkAction<void>({
-        takeLatest: instantiationSaga,
+        takeEvery: instantiationSaga,
         reducer: (state) => {
           state.instantiating = true;
         },

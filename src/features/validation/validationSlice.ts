@@ -62,7 +62,7 @@ export const validationSlice = () => {
     initialState,
     actions: {
       runSingleFieldValidation: mkAction<IRunSingleFieldValidation>({
-        takeLatest: runSingleFieldValidationSaga,
+        takeEvery: runSingleFieldValidationSaga,
       }),
       runSingleFieldValidationRejected: mkAction<IValidationActionRejected>({
         reducer: (state, action) => {

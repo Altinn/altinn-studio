@@ -42,7 +42,7 @@ export const profileSlice = () => {
         },
       }),
       updateSelectedAppLanguage: mkAction<IUpdateSelectedAppLanguage>({
-        *takeLatest() {
+        *takeEvery() {
           yield put(OptionsActions.fetch());
         },
         reducer: (state, action) => {

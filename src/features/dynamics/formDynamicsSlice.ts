@@ -21,7 +21,7 @@ export const formDynamicsSlice = () => {
     initialState,
     actions: {
       fetch: mkAction<IFetchServiceConfigFulfilled | undefined>({
-        takeLatest: fetchDynamicsSaga,
+        takeEvery: fetchDynamicsSaga,
       }),
       fetchFulfilled: mkAction<IFetchServiceConfigFulfilled>({
         reducer: (state, action) => {

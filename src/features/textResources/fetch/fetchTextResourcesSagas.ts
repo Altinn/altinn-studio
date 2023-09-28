@@ -1,4 +1,4 @@
-import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, take, takeEvery } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { ApplicationMetadataActions } from 'src/features/applicationMetadata/applicationMetadataSlice';
@@ -60,6 +60,6 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
   }
 
   yield call(fetchTextResources);
-  yield takeLatest(TextResourcesActions.fetch, fetchTextResources);
-  yield takeLatest(ProfileActions.updateSelectedAppLanguage, fetchTextResources);
+  yield takeEvery(TextResourcesActions.fetch, fetchTextResources);
+  yield takeEvery(ProfileActions.updateSelectedAppLanguage, fetchTextResources);
 }

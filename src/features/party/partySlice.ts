@@ -25,10 +25,10 @@ export const partySlice = () => {
     initialState,
     actions: {
       getParties: mkAction<void>({
-        takeLatest: getPartiesSaga,
+        takeEvery: getPartiesSaga,
       }),
       getCurrentParty: mkAction<void>({
-        takeLatest: getCurrentPartySaga,
+        takeEvery: getCurrentPartySaga,
       }),
       getPartiesFulfilled: mkAction<IGetPartiesFulfilled>({
         reducer: (state, action) => {
@@ -41,7 +41,7 @@ export const partySlice = () => {
         },
       }),
       selectParty: mkAction<ISelectParty>({
-        takeLatest: selectPartySaga,
+        takeEvery: selectPartySaga,
       }),
       selectPartyFulfilled: mkAction<ISelectPartyFulfilled>({
         reducer: (state, action) => {

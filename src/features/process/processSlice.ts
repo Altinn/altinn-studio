@@ -47,7 +47,7 @@ export const processSlice = () => {
     initialState,
     actions: {
       getTasks: mkAction<IGetTasksFulfilled>({
-        takeLatest: getTasksSaga,
+        takeEvery: getTasksSaga,
       }),
       getTasksFulfilled: mkAction<IGetTasksFulfilled>({
         reducer: (state: WritableDraft<IProcessState>, action: PayloadAction<IGetTasksFulfilled>) => {
@@ -61,10 +61,10 @@ export const processSlice = () => {
         },
       }),
       get: mkAction<void>({
-        takeLatest: getProcessStateSaga,
+        takeEvery: getProcessStateSaga,
       }),
       getFulfilled: mkAction<IGetProcessStateFulfilled>({
-        takeLatest: getTasksSaga,
+        takeEvery: getTasksSaga,
         reducer: genericFulfilledReducer,
       }),
       getRejected: mkAction<IGetProcessStateRejected>({
@@ -73,13 +73,13 @@ export const processSlice = () => {
         },
       }),
       complete: mkAction<ICompleteProcess | undefined>({
-        takeLatest: completeProcessSaga,
+        takeEvery: completeProcessSaga,
         reducer: (state, action) => {
           state.completingId = action.payload?.componentId ?? null;
         },
       }),
       completeFulfilled: mkAction<ICompleteProcessFulfilled>({
-        takeLatest: getTasksSaga,
+        takeEvery: getTasksSaga,
         reducer: (state, action) => {
           genericFulfilledReducer(state, action);
           state.completingId = null;
@@ -92,7 +92,7 @@ export const processSlice = () => {
         },
       }),
       checkIfUpdated: mkAction<void>({
-        takeLatest: checkProcessUpdated,
+        takeEvery: checkProcessUpdated,
       }),
     },
   }));

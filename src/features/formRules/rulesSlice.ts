@@ -17,7 +17,7 @@ export const formRulesSlice = () => {
     initialState,
     actions: {
       fetch: mkAction<void>({
-        takeLatest: fetchRuleModelSaga,
+        takeEvery: fetchRuleModelSaga,
         reducer: (state) => {
           state.fetched = false;
           state.fetching = true;

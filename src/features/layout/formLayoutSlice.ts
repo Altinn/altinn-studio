@@ -1,4 +1,4 @@
-import { put, takeLatest } from 'redux-saga/effects';
+import { put, takeEvery } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
@@ -96,14 +96,14 @@ export const formLayoutSlice = () => {
             state.error = null;
             state.uiConfig.repeatingGroups = null;
           },
-          *takeLatest() {
+          *takeEvery() {
             yield put(OptionsActions.fetch());
             yield put(DataListsActions.fetch());
           },
         }),
         fetchRejected: genericReject,
         fetchSets: mkAction<void>({
-          takeLatest: fetchLayoutSetsSaga,
+          takeEvery: fetchLayoutSetsSaga,
         }),
         fetchSetsFulfilled: mkAction<LayoutTypes.IFetchLayoutSetsFulfilled>({
           reducer: (state, action) => {
@@ -163,7 +163,7 @@ export const formLayoutSlice = () => {
           },
         }),
         updateCurrentView: mkAction<LayoutTypes.IUpdateCurrentView>({
-          takeLatest: updateCurrentViewSaga,
+          takeEvery: updateCurrentViewSaga,
         }),
         updateCurrentViewFulfilled: mkAction<LayoutTypes.IUpdateCurrentViewFulfilled>({
           takeEvery: (action) => {
@@ -197,7 +197,7 @@ export const formLayoutSlice = () => {
           },
         }),
         repGroupAddRow: mkAction<{ groupId: string }>({
-          takeLatest: repGroupAddRowSaga,
+          takeEvery: repGroupAddRowSaga,
         }),
         repGroupAddRowFulfilled: genericSetRepeatingGroups,
         repGroupAddRowRejected: genericReject,
@@ -260,7 +260,7 @@ export const formLayoutSlice = () => {
         }),
         updateFileUploaderWithTagRejected: genericReject,
         updateFileUploaderWithTagEditIndex: mkAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndex>({
-          takeLatest: updateFileUploaderWithTagEditIndexSaga,
+          takeEvery: updateFileUploaderWithTagEditIndexSaga,
         }),
         updateFileUploaderWithTagEditIndexFulfilled: mkAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>(
           {
@@ -276,7 +276,7 @@ export const formLayoutSlice = () => {
         ),
         updateFileUploaderWithTagEditIndexRejected: genericReject,
         updateFileUploaderWithTagChosenOptions: mkAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptions>({
-          takeLatest: updateFileUploaderWithTagChosenOptionsSaga,
+          takeEvery: updateFileUploaderWithTagChosenOptionsSaga,
         }),
         updateFileUploaderWithTagChosenOptionsFulfilled:
           mkAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>({
@@ -316,7 +316,7 @@ export const formLayoutSlice = () => {
           takeEvery: initRepeatingGroupsSaga,
           saga: () =>
             function* (): SagaIterator {
-              yield takeLatest([FormDataActions.fetchFulfilled, FormLayoutActions.fetchFulfilled], () =>
+              yield takeEvery([FormDataActions.fetchFulfilled, FormLayoutActions.fetchFulfilled], () =>
                 initRepeatingGroupsSaga({ payload: {} }),
               );
             },

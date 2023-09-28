@@ -1,4 +1,4 @@
-import { all, call, take, takeLatest } from 'redux-saga/effects';
+import { all, call, take, takeEvery } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
@@ -9,7 +9,7 @@ export function* watchMapFileUploaderWithTagSaga(): SagaIterator {
   yield all([take(FormLayoutActions.fetchFulfilled), take(AttachmentActions.mapAttachmentsFulfilled)]);
   yield call(mapFileUploaderWithTagSaga);
 
-  yield takeLatest(
+  yield takeEvery(
     [AttachmentActions.mapAttachmentsFulfilled, FormLayoutActions.fetchFulfilled],
     mapFileUploaderWithTagSaga,
   );

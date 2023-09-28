@@ -1,4 +1,4 @@
-import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, take, takeEvery } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { ApplicationMetadataActions } from 'src/features/applicationMetadata/applicationMetadataSlice';
@@ -24,7 +24,7 @@ export function* watchMapAttachmentsSaga(): SagaIterator {
     take(ApplicationMetadataActions.getFulfilled),
   ]);
   yield call(mapAttachments);
-  yield takeLatest(AttachmentActions.mapAttachments, mapAttachments);
+  yield takeEvery(AttachmentActions.mapAttachments, mapAttachments);
 }
 
 export const SelectInstanceData = (state: IRuntimeState): IData[] | undefined => state.instanceData.instance?.data;

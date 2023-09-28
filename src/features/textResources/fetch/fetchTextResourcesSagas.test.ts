@@ -1,4 +1,4 @@
-import { all, call, select, take, takeLatest } from 'redux-saga/effects';
+import { all, call, select, take, takeEvery } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
 import { ApplicationMetadataActions } from 'src/features/applicationMetadata/applicationMetadataSlice';
@@ -28,8 +28,8 @@ describe('fetchTextResourcesSagas', () => {
     expect(generator.next().value).toEqual(select(makeGetAllowAnonymousSelector()));
     expect(generator.next().value).toEqual(await waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchTextResources));
-    expect(generator.next().value).toEqual(takeLatest(TextResourcesActions.fetch, fetchTextResources));
-    expect(generator.next().value).toEqual(takeLatest(ProfileActions.updateSelectedAppLanguage, fetchTextResources));
+    expect(generator.next().value).toEqual(takeEvery(TextResourcesActions.fetch, fetchTextResources));
+    expect(generator.next().value).toEqual(takeEvery(ProfileActions.updateSelectedAppLanguage, fetchTextResources));
     expect(generator.next().done).toBeTruthy();
   });
   it('should fetch text resources using default language when allowAnonymous is true', () => {

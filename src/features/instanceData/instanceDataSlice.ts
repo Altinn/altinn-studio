@@ -20,7 +20,7 @@ export const instanceDataSlice = () => {
     initialState,
     actions: {
       get: mkAction<IGetInstanceData>({
-        takeLatest: getInstanceDataSaga,
+        takeEvery: getInstanceDataSaga,
       }),
       getFulfilled: mkAction<IGetInstanceDataFulfilled>({
         reducer: (state, action) => {
