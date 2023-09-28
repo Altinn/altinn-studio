@@ -29,12 +29,9 @@ export const EditBooleanValue = ({
     return Array.isArray(value);
   };
 
-  const label = getComponentPropertyLabel(propertyKey, t);
-
   return (
     <FormField
       id={component.id}
-      label={label}
       value={component[propertyKey] || false}
       onChange={handleChange}
       propertyPath={component.propertyPath}
@@ -54,7 +51,7 @@ export const EditBooleanValue = ({
             id={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(value)}
           >
-            {label}
+            {getComponentPropertyLabel(propertyKey, t)}
           </Switch>
         );
       }}
