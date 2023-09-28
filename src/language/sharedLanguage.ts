@@ -40,7 +40,7 @@ export const getParsedLanguageFromText = (
   },
   inline = true,
 ) => {
-  const dirty = marked.parse(text || '', { headerIds: false });
+  const dirty = marked.parse(text || '');
   const actualOptions: DOMPurify.Config = {};
   if (purifyOptions?.allowedTags) {
     actualOptions.ALLOWED_TAGS = purifyOptions.allowedTags;
