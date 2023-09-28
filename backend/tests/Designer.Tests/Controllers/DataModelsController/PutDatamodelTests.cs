@@ -179,5 +179,10 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
             new Tuple<string, string>("#/properties/objectField/properties/emptySubobject", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
             new Tuple<string, string>("#/$defs/emptyObjectType", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
         },
+        new object[]
+        {
+            "testModel.schema.json", "Model/JsonSchema/Incompatible/InvalidReferenceSchema.json", "ttd", "hvem-er-hvem", "testUser",
+            new Tuple<string,string>("#/properties/property1", JsonSchemaValidationErrorCodes.InvalidReference)
+        }
     };
 }

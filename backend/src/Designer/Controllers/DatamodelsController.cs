@@ -240,6 +240,11 @@ namespace Altinn.Studio.Designer.Controllers
                 return true;
             }
 
+            if (validationResult.IsValid)
+            {
+                return true;
+            }
+
             problemDetails = new ValidationProblemDetails
             {
                 Detail = "Json schema has invalid structure",
