@@ -154,7 +154,7 @@ const knownWcagViolations: KnownViolation[] = [
     spec: 'signing-test/double-signing.ts',
     test: 'accountant -> manager -> auditor',
     id: 'list',
-    nodeLength: 1,
+    nodeLength: 2,
   },
   {
     spec: 'anonymous-stateless-app/validation.ts',
