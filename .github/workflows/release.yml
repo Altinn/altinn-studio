@@ -9,7 +9,7 @@ jobs:
     name: Build
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: app-frontend
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
@@ -28,7 +28,7 @@ jobs:
         run: yarn build
 
       - name: Checkout Altinn-CDN repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'Altinn/altinn-cdn'
           token: ${{secrets.ALTINN_CDN_TOKEN}}
