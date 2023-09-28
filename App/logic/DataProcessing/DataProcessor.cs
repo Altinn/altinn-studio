@@ -1,15 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Altinn.App.Models;
 
-namespace Altinn.App.AppLogic.DataProcessing
+namespace Altinn.App.Logic.DataProcessing
 {
   /// <summary>
   /// Represents a business logic class responsible for running calculations on an instance.
   /// </summary>
-  public class DataProcessingHandler
+  public class DataProcessor : IDataProcessor
   {
     /// <summary>
     /// Perform data processing on data read. When reading data from App API
@@ -65,7 +66,7 @@ namespace Altinn.App.AppLogic.DataProcessing
       }
     }
 
-    private void SetJournalNumber( Journalnummerdatadef33316 journalNumber)
+    private void SetJournalNumber(Journalnummerdatadef33316 journalNumber)
     {
       if (journalNumber?.value == 0)
       {

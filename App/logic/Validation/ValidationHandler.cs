@@ -1,28 +1,18 @@
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 //// using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
-namespace Altinn.App.AppLogic.Validation
+namespace Altinn.App.Logic.Validation
 {
     /// <summary>
     /// Represents a business logic class responsible for running validation at different steps of a process.
     /// </summary>
-    public class ValidationHandler
+    public class InstanceValidator : IInstanceValidator
     {
-        private IHttpContextAccessor _httpContextAccessor;
-
-        /// <summary>
-        /// Initialize a new instance of the <see cref="ValidationHandler"/> class with access to the Http Context.
-        /// </summary>
-        /// <param name="httpContextAccessor">An http context accessor.</param>
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
-
         /// <summary>
         /// Handles all custom validations that are not covered by the data model validation.
         /// </summary>

@@ -1,13 +1,13 @@
 using System.Threading.Tasks;
-using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Interface;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 
-namespace Altinn.App.AppLogic.Print
+namespace Altinn.App.Logic.Pdf
 {
     /// <summary>
     /// Handler for formatting PDF.
     /// </summary>
-    public class PdfHandler : ICustomPdfHandler
+    public class PdfFormatter : IPdfFormatter
     {
         /// <summary>
         /// Method to format PDF dynamic
@@ -25,5 +25,5 @@ namespace Altinn.App.AppLogic.Print
         {
             return await Task.FromResult(layoutSettings);
         }
-    }   
+    }
 }
