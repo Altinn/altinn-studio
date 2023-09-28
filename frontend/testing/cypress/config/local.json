@@ -5,8 +5,7 @@
     "orgFullName": "Testdepartementet",
     "orgUserName": "ttd",
     "deployAppName": "auto-deploy-app-v3",
-    "designerAppName": "auto-designer-app-local",
-    "testEmail": "test1@test.com"
+    "designerAppName": "auto-designer-app-local"
   },
   "defaultCommandTimeout": 10000,
   "requestTimeout": 10000
