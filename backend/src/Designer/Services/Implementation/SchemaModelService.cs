@@ -85,18 +85,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var altinnAppGitRepository =
-                    _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+            cancellationToken.ThrowIfCancellationRequested();
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
 
-                return await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath);
-            }
-            catch (FileNotFoundException)
-            {
-                return null;
-            }
+            return await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath);
 
         }
 

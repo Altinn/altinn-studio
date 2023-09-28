@@ -212,20 +212,23 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("xsd-from-repo")]
         public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
         {
-            Guard.AssertArgumentNotNull(filePath, nameof(filePath));
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
+            try
+            {
+                Guard.AssertArgumentNotNull(filePath, nameof(filePath));
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
-            string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
-            if (xsd == null)
+                string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+                using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+                string modelName = Path.GetFileName(filePath);
+                string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
+
+                return Created(filePath, jsonSchema);
+            }
+            catch (FileNotFoundException)
             {
                 return NoContent();
             }
-            using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            string modelName = Path.GetFileName(filePath);
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
-
-            return Created(filePath, jsonSchema);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)

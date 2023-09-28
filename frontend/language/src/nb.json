@@ -45,6 +45,7 @@
   "administration.service_owner_is": "Denne appen er opprettet for:",
   "administration.service_saved_name_administration_description": "Benyttes (sammen med eier) som unik identifikator for appen både i URLer og APIer. Kan ikke endres etter at appen er satt i produksjon.",
   "api_errors.GT_01": "Deling av endringer mislyktes. Vennligst prøv igjen.",
+  "api_errors.ResourceNotFound": "Fant ikke en fil applikasjonen din prøvde å få tak i.",
   "app_create_release.application_builds_based_on": "Applikasjonen bygges basert på",
   "app_create_release.build_version": "Bygg versjon",
   "app_create_release.check_status": "Sjekker status på applikasjonen din...",
