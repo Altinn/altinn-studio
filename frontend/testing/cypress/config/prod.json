@@ -2,8 +2,8 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "https://altinn.studio",
   "env": {
-    "autoTestUser": "prod_cypress_testuser",
-    "useCaseUser": "prod_bruksmonster",
+    "autoTestUser": "AutoTest",
+    "useCaseUser": "bruksmonster",
     "orgFullName": "Testdepartementet",
     "orgUserName": "ttd",
     "deployAppName": "auto-deploy-app-v3",
