@@ -73,12 +73,7 @@ void ConfigureWebHostBuilder(IWebHostBuilder builder)
 }
 
 void Configure()
-{
-    if (app.Environment.IsDevelopment())
     {
-        app.UseDeveloperExceptionPage();
-    }
-
     string applicationId = StartupHelper.GetApplicationId();
     if (!string.IsNullOrEmpty(applicationId))
     {
@@ -90,16 +85,5 @@ void Configure()
             c.RoutePrefix = applicationId + "/swagger";
         });
     }
-
-    app.UseDefaultSecurityHeaders();
-    app.UseRouting();
-    app.UseStaticFiles('/' + applicationId);
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapControllers();
-    });
-    app.UseHealthChecks("/health");
+    app.UseAltinnAppCommonConfiguration();
 }

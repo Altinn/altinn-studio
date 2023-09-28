@@ -1,18 +1,18 @@
-﻿using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Registers;
 
 namespace Altinn.App.logic.DataProcessing
 {
     public class InstantiationProcessor : IInstantiationProcessor
     {
-        private IRegister _registerService;
+        private IAltinnPartyClient _registerService;
 
-        public InstantiationProcessor(IRegister registerService)
+        public InstantiationProcessor(IAltinnPartyClient registerService)
         {
             _registerService = registerService;
 
