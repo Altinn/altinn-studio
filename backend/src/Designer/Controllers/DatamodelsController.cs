@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
             {
-                return BadRequest(validationProblemDetails);
+                return UnprocessableEntity(validationProblemDetails);
             }
 
             await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);

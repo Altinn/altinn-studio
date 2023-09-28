@@ -88,7 +88,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
 
     [Theory]
     [MemberData(nameof(IncompatibleSchemasTestData))]
-    public async Task IncompatibleSchema_ShouldReturn400(string modelPath, string schemaPath, string org, string repo, string user, params Tuple<string, string>[] expectedValidationIssues)
+    public async Task IncompatibleSchema_ShouldReturn422(string modelPath, string schemaPath, string org, string repo, string user, params Tuple<string, string>[] expectedValidationIssues)
     {
         string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
         await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
@@ -101,7 +101,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
         };
 
         var response = await HttpClient.Value.SendAsync(request);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         string content = await response.Content.ReadAsStringAsync();
 
         var errorResponse = JsonSerializer.Deserialize<ValidationProblemDetails>(content, new JsonSerializerOptions()
