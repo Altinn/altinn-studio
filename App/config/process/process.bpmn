@@ -33,10 +33,12 @@
                         <altinn:action>reject</altinn:action>
                         <altinn:action>sign</altinn:action> 
                     </altinn:actions>
-                    <altinn:dataTypesToSign>
-                        <altinn:dataType>data</altinn:dataType>
-                    </altinn:dataTypesToSign>
-                    <altinn:signatureDataType>signature1</altinn:signatureDataType>
+                    <altinn:signatureConfig>
+                        <altinn:dataTypesToSign>
+                            <altinn:dataType>data</altinn:dataType>
+                        </altinn:dataTypesToSign>
+                        <altinn:signatureDataType>signature1</altinn:signatureDataType>
+                    </altinn:signatureConfig>
                 </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
@@ -49,10 +51,12 @@
                     <altinn:actions>
                         <altinn:action>sign</altinn:action> 
                     </altinn:actions>
-                    <altinn:dataTypesToSign>
-                        <altinn:dataType>data</altinn:dataType>
-                    </altinn:dataTypesToSign>
-                    <altinn:signatureDataType>signature2</altinn:signatureDataType>
+                    <altinn:signatureConfig>
+                        <altinn:dataTypesToSign>
+                            <altinn:dataType>data</altinn:dataType>
+                        </altinn:dataTypesToSign>
+                        <altinn:signatureDataType>signature2</altinn:signatureDataType>
+                    </altinn:signatureConfig>
                 </altinn:taskExtension>
             </bpmn:extensionElements>
         </bpmn:task>
