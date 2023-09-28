@@ -44,7 +44,7 @@ namespace DataModeling.Tests.TestDataClasses
         {
             new object[]
             {
-                "Model/JsonSchema/General/IncompatibleJsonSchema.json",
+                "Model/JsonSchema/Incompatible/SchemaWithEmptyObjects.json",
                 new Tuple<string, string>("#/properties/emptyObjectField", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
                 new Tuple<string, string>("#/properties/emptyObjectArray/items", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
                 new Tuple<string, string>("#/properties/objectField/properties/emptySubobject", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
