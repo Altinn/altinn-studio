@@ -35,7 +35,7 @@ export const EditBooleanValue = ({
     <FormField
       id={component.id}
       label={label}
-      value={component[propertyKey]}
+      value={component[propertyKey] || false}
       onChange={handleChange}
       propertyPath={component.propertyPath}
       componentType={component.type}
