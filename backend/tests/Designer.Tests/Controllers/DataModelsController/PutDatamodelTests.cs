@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -13,6 +16,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
+using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
@@ -20,6 +24,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using Json.Pointer;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -34,9 +39,6 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
     private string TargetTestRepository { get; }
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
-
-    private const string OneOfAndPropertiesSchema =
-        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"oneOf\":[{\"$ref\":\"#/$defs/otherType\"}],\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}},\"otherType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
     public PutDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
@@ -85,11 +87,13 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
     }
 
     [Theory]
-    [InlineData("testModel.schema.json", OneOfAndPropertiesSchema, DatamodelingErrorCodes.JsonSchemaConvertError, "ttd", "hvem-er-hvem", "testUser")]
-    public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files2(string modelPath, string schema, string expectedErrorCode, string org, string repo, string user)
+    [MemberData(nameof(IncompatibleSchemasTestData))]
+    public async Task IncompatibleSchema_ShouldReturn400(string modelPath, string schemaPath, string org, string repo, string user, params Tuple<string, string>[] expectedValidationIssues)
     {
         string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
         await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+
+        string schema = SharedResourcesHelper.LoadTestDataAsString(schemaPath);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -97,15 +101,20 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
         };
 
         var response = await HttpClient.Value.SendAsync(request);
-        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-        var content = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        string content = await response.Content.ReadAsStringAsync();
 
-        var errorResponse = JsonSerializer.Deserialize<ProblemDetails>(content, new JsonSerializerOptions()
+        var errorResponse = JsonSerializer.Deserialize<ValidationProblemDetails>(content, new JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true
         });
-        Assert.True(errorResponse.Extensions.TryGetValue("errorCode", out object expected));
-        ((JsonElement)expected).GetString().Should().Be(expectedErrorCode);
+
+        foreach ((string pointer, string errorCode) in expectedValidationIssues)
+        {
+            var pointerObject = JsonPointer.Parse(pointer);
+            Assert.Single(errorResponse.Errors.Keys.Where(p => JsonPointer.Parse(p) == pointerObject));
+            errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)].Contains(errorCode).Should().BeTrue();
+        }
     }
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
@@ -154,4 +163,21 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
         var fileContent = File.ReadAllText(path);
         expectedContent.Should().Be(fileContent);
     }
+
+    public static IEnumerable<object[]> IncompatibleSchemasTestData => new List<object[]>
+    {
+        new object[]
+        {
+            "testModel.schema.json", "Model/JsonSchema/Incompatible/OneOfAndPropertiesSchema.json", "ttd", "hvem-er-hvem", "testUser",
+            new Tuple<string,string>("#", JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema)
+        },
+        new object[]
+        {
+            "testModel.schema.json", "Model/JsonSchema/Incompatible/SchemaWithEmptyObjects.json", "ttd", "hvem-er-hvem", "testUser",
+            new Tuple<string, string>("#/properties/emptyObjectField", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
+            new Tuple<string, string>("#/properties/emptyObjectArray/items", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
+            new Tuple<string, string>("#/properties/objectField/properties/emptySubobject", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
+            new Tuple<string, string>("#/$defs/emptyObjectType", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
+        },
+    };
 }

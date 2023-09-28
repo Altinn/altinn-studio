@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -27,14 +28,17 @@ namespace Altinn.Studio.Designer.Controllers
     public class DatamodelsController : ControllerBase
     {
         private readonly ISchemaModelService _schemaModelService;
+        private readonly IJsonSchemaValidator _jsonSchemaValidator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(ISchemaModelService schemaModelService)
+        /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
+        public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator)
         {
             _schemaModelService = schemaModelService;
+            _jsonSchemaValidator = jsonSchemaValidator;
         }
 
         /// <summary>
@@ -72,6 +76,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string content = payload.ToString();
+
+            if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
+            {
+                return BadRequest(validationProblemDetails);
+            }
 
             await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
 
@@ -216,6 +225,43 @@ namespace Altinn.Studio.Designer.Controllers
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
             return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
+        }
+
+        private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)
+        {
+            JsonSchemaValidationResult validationResult;
+            problemDetails = null;
+            try
+            {
+                validationResult = _jsonSchemaValidator.Validate(schema);
+            }
+            catch // Validator is quite new and not 100% stable yet. If it fails, we won't assume the schema is invalid.
+            {
+                return true;
+            }
+
+            problemDetails = new ValidationProblemDetails
+            {
+                Detail = "Json schema has invalid structure",
+                Status = (int)HttpStatusCode.BadRequest
+            };
+
+            foreach (var validationIssue in validationResult.ValidationIssues)
+            {
+                if (!problemDetails.Errors.TryGetValue(validationIssue.IssuePointer, out string[] errorCodes))
+                {
+                    problemDetails.Errors.Add(validationIssue.IssuePointer, new[] { validationIssue.ErrorCode });
+
+                    continue;
+                }
+
+                problemDetails.Errors[validationIssue.IssuePointer] = new List<string>(errorCodes)
+                {
+                    validationIssue.ErrorCode,
+                }.ToArray();
+            }
+
+            return validationResult.IsValid;
         }
     }
 }
