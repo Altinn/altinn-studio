@@ -11,7 +11,6 @@ import type { IGetProcessStateFulfilled, IProcessPermissions } from 'src/feature
 import type { ProcessTaskType } from 'src/types';
 
 export const PermissionsEditor = () => {
-  const shouldShow = useAppSelector((state) => state.applicationMetadata.applicationMetadata?.features?.processActions);
   const { read, write, actions, taskType, taskId } = useAppSelector((state) => state.process);
   const dispatch = useDispatch();
 
@@ -28,10 +27,6 @@ export const PermissionsEditor = () => {
 
     dispatch(ProcessActions.getFulfilled(processState));
     dispatch(FormLayoutActions.updateLayouts({}));
-  }
-
-  if (!shouldShow) {
-    return null;
   }
 
   return (

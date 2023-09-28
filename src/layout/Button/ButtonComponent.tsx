@@ -24,16 +24,11 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
 
   const dispatch = useAppDispatch();
   const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process?.currentTask?.altinnTaskType);
-  const processActionsFeature = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata?.features?.processActions,
-  );
   const { actions, write } = useAppSelector((state) => state.process);
   const { canSubmit, busyWithId, message } = useCanSubmitForm();
 
   const disabled =
-    !canSubmit ||
-    (processActionsFeature &&
-      ((currentTaskType === 'data' && !write) || (currentTaskType === 'confirmation' && !actions?.confirm)));
+    !canSubmit || (currentTaskType === 'data' && !write) || (currentTaskType === 'confirmation' && !actions?.confirm);
 
   const parentIsPage = node.parent instanceof LayoutPage;
 
@@ -60,10 +55,8 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
             componentId,
           }),
         );
-      } else if (currentTaskType === 'confirmation' && processActionsFeature) {
+      } else if (currentTaskType === 'confirmation') {
         dispatch(ProcessActions.complete({ componentId, action: 'confirm' }));
-      } else {
-        dispatch(ProcessActions.complete({ componentId }));
       }
     }
   };

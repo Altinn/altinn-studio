@@ -16,11 +16,8 @@ import type { BaseButtonProps } from 'src/layout/Button/WrappedButton';
 export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: string }) => {
   const confirmingId = useAppSelector((state) => state.process.completingId);
   const [validateId, setValidateId] = useState<string | null>(null);
-  const processActionsFeature = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata?.features?.processActions,
-  );
   const { actions } = useAppSelector((state) => state.process);
-  const disabled = processActionsFeature && !actions?.confirm;
+  const disabled = !actions?.confirm;
   const resolvedNodes = useExprContext();
 
   const dispatch = useAppDispatch();
@@ -42,11 +39,7 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
             }),
           );
           if (serverValidations.length === 0) {
-            if (processActionsFeature) {
-              dispatch(ProcessActions.complete({ componentId: props.id, action: 'confirm' }));
-            } else {
-              dispatch(ProcessActions.complete({ componentId: props.id }));
-            }
+            dispatch(ProcessActions.complete({ componentId: props.id, action: 'confirm' }));
           }
         })
         .catch((error) => {
