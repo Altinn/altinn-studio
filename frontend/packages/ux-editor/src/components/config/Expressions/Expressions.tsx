@@ -6,7 +6,8 @@ import { useText } from '../../../hooks';
 import {
   Expression,
   SubExpression,
-  getExpressionPropertiesBasedOnComponentType, ExpressionProperty
+  getExpressionPropertiesBasedOnComponentType,
+  ExpressionProperty
 } from '../../../types/Expressions';
 import {
   addExpressionIfLimitNotReached,
