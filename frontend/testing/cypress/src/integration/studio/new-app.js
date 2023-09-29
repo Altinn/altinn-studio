@@ -8,9 +8,9 @@ import { gitea } from "../../selectors/gitea";
 
 context('New App', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');
@@ -18,7 +18,7 @@ context('New App', () => {
     dashboard.getSearchReposField().should('be.visible');
   });
   after(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('is possible to start app creation and exit', () => {
@@ -34,7 +34,7 @@ context('New App', () => {
   it('shows error on app creation with existing name', () => {
     // Create an app
     const appName = 'my-existing-app';
-    cy.createapp(Cypress.env('autoTestUser'), appName);
+    cy.createApp(Cypress.env('autoTestUser'), appName);
     administration.getHeader().should('be.visible');
 
     // Return to dashboard
@@ -64,10 +64,11 @@ context('New App', () => {
   });
 
   it('is possible to create an app and delete it', () => {
-    cy.createapp(Cypress.env('autoTestUser'), 'new-app');
+    const appName = 'new-app';
+    cy.createApp(Cypress.env('autoTestUser'), appName);
     administration.getHeader().should('be.visible');
-    cy.visit(`/repos/${Cypress.env('autoTestUser')}/new-app/settings`);
+    cy.visit(`/repos/${Cypress.env('autoTestUser')}/${appName}/settings`);
     gitea.getDeleteButton().should('be.visible').click();
-    gitea.getDeleteRepositoryNameField().should('be.visible').type('new-app');
+    gitea.getDeleteRepositoryNameField().should('be.visible').type(appName);
   });
 });
