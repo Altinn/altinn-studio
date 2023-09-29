@@ -13,9 +13,7 @@ export const About = () => {
   return (
     <div className={classes.about}>
       <div className={classes.container}>
-        <div>
-          <h1 className={classes.header}>{metadata?.title?.nb}</h1>
-        </div>
+        <h1 className={classes.header}>{metadata?.title?.nb}</h1>
         <div className={classes.content}>
           <main className={classes.main}>
             <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
