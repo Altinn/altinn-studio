@@ -4,6 +4,7 @@ import { Button, LegacyTextField, Paragraph } from '@digdir/design-system-react'
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { Trans } from 'react-i18next';
 
 type RemoveChangesModalProps = {
   /**
@@ -66,7 +67,11 @@ export const RemoveChangesModal = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('administration.reset_repo_confirm_heading')}>
       <Paragraph size='small'>
-        {t('administration.reset_repo_confirm_info', { repositoryName: repo })}
+        <Trans
+            i18nKey={'administration.reset_repo_confirm_info'}
+            values={{ repositoryName: repo }}
+            components={{ bold: <strong/> }}
+        />
       </Paragraph>
       <div className={classes.textFieldWrapper}>
         <LegacyTextField
