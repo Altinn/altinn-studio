@@ -94,7 +94,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:frontend/packages/schema-editor"
   dependencies:
-    "@mui/lab": 5.0.0-alpha.144
+    "@mui/lab": 5.0.0-alpha.145
     jest: 29.7.0
     jsonpointer: 5.0.1
   peerDependencies:
@@ -2825,28 +2825,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/base@npm:5.0.0-beta.15":
-  version: 5.0.0-beta.15
-  resolution: "@mui/base@npm:5.0.0-beta.15"
-  dependencies:
-    "@babel/runtime": ^7.22.15
-    "@floating-ui/react-dom": ^2.0.2
-    "@mui/types": ^7.2.4
-    "@mui/utils": ^5.14.9
-    "@popperjs/core": ^2.11.8
-    clsx: ^2.0.0
-    prop-types: ^15.8.1
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 1c3d0a2a7ca3a5087c4fb0130f3baa3584d2f61644abd3fcdba59772b7ad3bdb1e884a5e81e385eaca9e039b6742db3952205974560d535791313f45ad0496f0
-  languageName: node
-  linkType: hard
-
 "@mui/base@npm:5.0.0-beta.16":
   version: 5.0.0-beta.16
   resolution: "@mui/base@npm:5.0.0-beta.16"
@@ -2876,15 +2854,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/lab@npm:5.0.0-alpha.144":
-  version: 5.0.0-alpha.144
-  resolution: "@mui/lab@npm:5.0.0-alpha.144"
+"@mui/lab@npm:5.0.0-alpha.145":
+  version: 5.0.0-alpha.145
+  resolution: "@mui/lab@npm:5.0.0-alpha.145"
   dependencies:
     "@babel/runtime": ^7.22.15
-    "@mui/base": 5.0.0-beta.15
-    "@mui/system": ^5.14.9
+    "@mui/base": 5.0.0-beta.16
+    "@mui/system": ^5.14.10
     "@mui/types": ^7.2.4
-    "@mui/utils": ^5.14.9
+    "@mui/utils": ^5.14.10
     "@mui/x-tree-view": 6.0.0-alpha.1
     clsx: ^2.0.0
     prop-types: ^15.8.1
@@ -2902,7 +2880,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: 88fd938887ef027c96b030efd043cd3e73c1cbd2a9ae7ee3356f2261b6e9ac650b344e349735584e4e33b586b48fb5b5aafa028f19fd590ad89888dd8a417064
+  checksum: 3962250b807a07a74d8d2bff97cef7b2ed32168fe7d6a9f2472fe5f5b856c8871be8b9f4c95f4c0ad48e5dbc0416e7baa29babf91d0ad50899e4e198d0814aab
   languageName: node
   linkType: hard
 
@@ -2977,7 +2955,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/system@npm:^5.14.10, @mui/system@npm:^5.14.9":
+"@mui/system@npm:^5.14.10":
   version: 5.14.10
   resolution: "@mui/system@npm:5.14.10"
   dependencies:
@@ -3032,7 +3010,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.14.10, @mui/utils@npm:^5.14.3, @mui/utils@npm:^5.14.9":
+"@mui/utils@npm:^5.14.10, @mui/utils@npm:^5.14.3":
   version: 5.14.10
   resolution: "@mui/utils@npm:5.14.10"
   dependencies:
