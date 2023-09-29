@@ -8,11 +8,11 @@ import { common } from '../../selectors/common';
 
 context('Dashboard', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createapp(Cypress.env('autoTestUser'), 'auto-app');
-    cy.createapp(Cypress.env('autoTestUser'), 'test-app');
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), 'auto-app');
+    cy.createApp(Cypress.env('autoTestUser'), 'test-app');
   });
 
   beforeEach(() => {
@@ -74,11 +74,11 @@ context('Dashboard', () => {
   it('is possible to change context and view only Testdepartementet apps', () => {
     cy.visit('/dashboard');
     header.getAvatar().should('be.visible').click();
-    header.getMenuItemOrg(Cypress.env('appOwnerUsername'))
+    header.getMenuItemOrg(Cypress.env('orgUserName'))
       .should('be.visible')
       .click();
     cy.wait('@fetchApps');
-    dashboard.getOrgAppsHeader(Cypress.env('appOwner')).should('be.visible');
+    dashboard.getOrgAppsHeader(Cypress.env('orgFullName')).should('be.visible');
   });
 
   it('is possible to search an app by name', () => {
@@ -158,6 +158,6 @@ context('Dashboard', () => {
   });
 
   after(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

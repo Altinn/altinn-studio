@@ -6,24 +6,24 @@ import { administration } from "../../selectors/administration";
 import { designer } from "../../selectors/designer";
 import { header } from "../../selectors/header";
 
+const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
+
 context('Designer', () => {
   before(() => {
     cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    const [orgName, appName] = Cypress.env('designerApp').split('/');
-    cy.createapp(orgName, appName);
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
     cy.clearCookies();
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');
   });
 
   it('is possible to edit information about the app', () => {
-    const designerApp = Cypress.env('designerApp');
     // Navigate to designerApp
-    cy.visit('/editor/' + Cypress.env('designerApp'));
+    cy.visit('/editor/' + designerAppId);
     administration.getHeader().should('be.visible');
     cy.findByRole('button', { name: texts['general.edit'] }).click();
     administration.getAppNameField().clear().type('New app name');
@@ -37,7 +37,7 @@ context('Designer', () => {
     cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
 
     // Navigate to designerApp
-    cy.visit('/editor/' + Cypress.env('designerApp'));
+    cy.visit('/editor/' + designerAppId);
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
@@ -58,12 +58,12 @@ context('Designer', () => {
       .then(($elements) => expect($elements.length).eq(2));
 
     // Delete components on page
-    cy.deletecomponents();
+    cy.deleteComponents();
   });
 
   // Disabled for now, as this generates too many copies of the same app
   // it('is possible to delete local changes of an app ', () => {
-  //   cy.searchAndOpenApp(Cypress.env('designerApp'));
+  //   cy.searchAndOpenApp(Cypress.env('designerAppName'));
   //   cy.intercept('GET', '**/layout-settings').as('getLayoutSettings');
   //   cy.get(designer.appMenu['edit']).click();
   //   cy.wait('@getLayoutSettings');

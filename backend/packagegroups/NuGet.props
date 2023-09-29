@@ -42,7 +42,7 @@
     <PackageReference Update="Moq" Version="4.20.69" />
     <PackageReference Update="xunit" Version="2.5.0" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.5.0" />
-    <PackageReference Update="coverlet.collector" Version="3.2.0" />
+    <PackageReference Update="coverlet.collector" Version="6.0.0" />
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.5" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />

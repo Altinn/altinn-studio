@@ -12,7 +12,7 @@ context('Login', () => {
   });
 
   it('is possible to login with valid user credentials and logout', () => {
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     dashboard.getSearchReposField().should('be.visible');
     header.getAvatar().should('be.visible').click();
     header.getMenuItemLogout().should('be.visible').click();
@@ -21,7 +21,7 @@ context('Login', () => {
   });
 
   it('is not possible to login with invalid user credentials', () => {
-    cy.studiologin(Cypress.env('autoTestUser'), 'test123');
+    cy.studioLogin(Cypress.env('autoTestUser'), 'test123');
     gitea.getLoginErrorMessage().should('be.visible');
   });
 });
