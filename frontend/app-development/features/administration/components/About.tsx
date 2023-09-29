@@ -1,15 +1,16 @@
 import React from 'react';
 import classes from './About.module.css';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { Administration } from './Administration';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { PageSpinner } from 'app-shared/components/PageSpinner';
 
 export const About = () => {
   const { org, app } = useStudioUrlParams();
-  const { data: metadata } = useAppMetadataQuery(org, app);
+  const { data: metadata, isLoading } = useAppMetadataQuery(org, app);
 
-  return shouldDisplayFeature('newAbout') ? (
+  if (isLoading) return <PageSpinner />;
+
+  return (
     <div className={classes.about}>
       <div className={classes.container}>
         <div>
@@ -33,7 +34,5 @@ export const About = () => {
         </div>
       </div>
     </div>
-  ) : (
-    <Administration />
   );
 };
