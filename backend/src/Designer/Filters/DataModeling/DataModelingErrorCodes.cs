@@ -1,6 +1,6 @@
-﻿namespace Altinn.Studio.Designer.Filters
+﻿namespace Altinn.Studio.Designer.Filters.DataModeling
 {
-    public static class DatamodelingErrorCodes
+    public static class DataModelingErrorCodes
     {
         public const string CsharpGenerationError = "DM_01";
         public const string XmlSchemaConvertError = "DM_02";

@@ -4,6 +4,7 @@ using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
+using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
@@ -69,6 +70,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
             services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
             services.RegisterSettings<CSharpGenerationSettings>(configuration);
+            services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
             RegisterXsdKeywords();
             return services;
         }

@@ -1,0 +1,31 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/test.schema.json",
+  "info": { "rootNode": "" },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "test",
+  "type": "object",
+  "$defs": { "emptyObjectType": { "type": "object" } },
+  "properties": {
+    "emptyObjectField": { "type": "object" },
+    "emptyObjectArray": { "type": "array", "items": { "type": "object" } },
+    "objectField": {
+      "type": "object",
+      "properties": {
+        "emptySubobject": { "type": "object" },
+        "field": { "type": "string" }
+      }
+    },
+    "name": { "$ref": "#/$defs/emptyObjectType" }
+  }
+}

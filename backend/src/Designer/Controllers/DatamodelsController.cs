@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -27,14 +28,17 @@ namespace Altinn.Studio.Designer.Controllers
     public class DatamodelsController : ControllerBase
     {
         private readonly ISchemaModelService _schemaModelService;
+        private readonly IJsonSchemaValidator _jsonSchemaValidator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(ISchemaModelService schemaModelService)
+        /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
+        public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator)
         {
             _schemaModelService = schemaModelService;
+            _jsonSchemaValidator = jsonSchemaValidator;
         }
 
         /// <summary>
@@ -72,6 +76,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string content = payload.ToString();
+
+            if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
+            {
+                return UnprocessableEntity(validationProblemDetails);
+            }
 
             await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
 
@@ -172,7 +181,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
+            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer,
+                createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
@@ -202,20 +212,70 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("xsd-from-repo")]
         public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
         {
-            Guard.AssertArgumentNotNull(filePath, nameof(filePath));
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
+            try
+            {
+                Guard.AssertArgumentNotNull(filePath, nameof(filePath));
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
-            string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
-            var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
+                string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+                using var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+                string modelName = Path.GetFileName(filePath);
+                string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, modelName, xsdStream);
 
-            return Created(filePath, jsonSchema);
+                return Created(filePath, jsonSchema);
+            }
+            catch (FileNotFoundException)
+            {
+                return NoContent();
+            }
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
             return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
+        }
+
+        private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)
+        {
+            JsonSchemaValidationResult validationResult;
+            problemDetails = null;
+            try
+            {
+                validationResult = _jsonSchemaValidator.Validate(schema);
+            }
+            catch // Validator is quite new and not 100% stable yet. If it fails, we won't assume the schema is invalid.
+            {
+                return true;
+            }
+
+            if (validationResult.IsValid)
+            {
+                return true;
+            }
+
+            problemDetails = new ValidationProblemDetails
+            {
+                Detail = "Json schema has invalid structure",
+                Status = (int)HttpStatusCode.BadRequest
+            };
+
+            foreach (var validationIssue in validationResult.ValidationIssues)
+            {
+                if (!problemDetails.Errors.TryGetValue(validationIssue.IssuePointer, out string[] errorCodes))
+                {
+                    problemDetails.Errors.Add(validationIssue.IssuePointer, new[] { validationIssue.ErrorCode });
+
+                    continue;
+                }
+
+                problemDetails.Errors[validationIssue.IssuePointer] = new List<string>(errorCodes)
+                {
+                    validationIssue.ErrorCode,
+                }.ToArray();
+            }
+
+            return validationResult.IsValid;
         }
     }
 }
