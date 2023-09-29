@@ -20,6 +20,7 @@ const rootId = 'rootId';
 const uniqueDomId = ':r0:';
 const onDrop = jest.fn();
 const renderItem = () => <div>test</div>;
+const gap = '1rem';
 const defaultlistItemProps: DragAndDropListItemProps = {
   itemId,
   renderItem,
@@ -29,6 +30,7 @@ const defaultlistItemContextProps: DragAndDropListItemContextProps = {
   itemId: parentId,
 };
 const defaultRootContextProps: DragAndDropRootContextProps<string> = {
+  gap,
   onDrop,
   rootId,
   uniqueDomId,

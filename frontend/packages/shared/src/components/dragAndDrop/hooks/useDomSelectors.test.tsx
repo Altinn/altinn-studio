@@ -18,7 +18,7 @@ describe('useDomSelectors', () => {
     const { result } = renderHook(() => useDomSelectors(id), {
       wrapper: ({ children }) => (
         <DragAndDropRootContext.Provider
-          value={{ uniqueDomId, rootId: 'rootId', onDrop: jest.fn() }}
+          value={{ uniqueDomId, rootId: 'rootId', onDrop: jest.fn(), gap: '1rem' }}
         >
           {children}
         </DragAndDropRootContext.Provider>
