@@ -559,6 +559,22 @@ describe('formLayoutUtils', () => {
       expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(id);
       expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
     });
+
+    it('Added NavigationButtons should contain expected properties', () => {
+      const id = 'navigationButtons';
+      const layout = addNavigationButtons(mockInternal, id);
+      const navButtonsComponent = layout.components[id];
+      const expectedProperties = [
+        'id',
+        'itemType',
+        'onClickAction',
+        'showBackButton',
+        'textResourceBindings',
+        'type',
+      ];
+
+      expect(Object.keys(navButtonsComponent)).toEqual(expectedProperties);
+    })
   });
 
   describe('moveLayoutItem', () => {
