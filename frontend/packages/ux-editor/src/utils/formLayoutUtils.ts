@@ -374,8 +374,6 @@ export const removeComponentsByType = (layout: IInternalLayout, componentType: C
  */
 export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
   const navigationButtons: FormComponent = {
-    componentType: ComponentType.NavigationButtons,
-    dataModelBindings: {},
     id,
     itemType: 'COMPONENT',
     onClickAction: () => {},
