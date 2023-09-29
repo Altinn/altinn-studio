@@ -41,21 +41,10 @@ describe('LayoutSetsContainer', () => {
     });
 
     expect(dispatch).toHaveBeenCalledTimes(1);
-  });
-
-  it('handles onChange event', async () => {
-    render();
-
-    await waitFor(async () => {
-      await userEvent.selectOptions(
-        screen.getByRole('combobox'),
-        screen.getByRole('option', { name: layoutSetsMock.sets[0].id }),
-      );
+    expect(dispatch).toHaveBeenCalledWith({
+      payload: layoutSetsMock.sets[0].id,
+      type: 'formDesigner/updateSelectedLayoutSet',
     });
-
-    expect(
-      await screen.findByRole('option', { name: layoutSetsMock.sets[0].id }),
-    ).toBeInTheDocument();
   });
 });
 

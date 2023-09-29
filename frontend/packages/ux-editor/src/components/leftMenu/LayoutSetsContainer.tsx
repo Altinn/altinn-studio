@@ -22,6 +22,8 @@ export function LayoutSetsContainer() {
     typedLocalStorage.setItem<string>('layoutSet/' + app, set);
   };
 
+  if (!layoutSetNames) return null;
+
   return (
     <div className={classes.dropDownContainer}>
       <NativeSelect
@@ -29,14 +31,13 @@ export function LayoutSetsContainer() {
         onChange={(event) => onLayoutSetClick(event.target.value)}
         value={selectedLayoutSet}
       >
-        {layoutSetNames &&
-          layoutSetNames.map((set: string) => {
-            return (
-              <option key={set} value={set}>
-                {set}
-              </option>
-            );
-          })}
+        {layoutSetNames.map((set: string) => {
+          return (
+            <option key={set} value={set}>
+              {set}
+            </option>
+          );
+        })}
       </NativeSelect>
     </div>
   );
