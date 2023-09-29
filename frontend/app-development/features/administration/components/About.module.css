@@ -1,0 +1,63 @@
+.about {
+  background-color: #e6eff8;
+  background-image: url('./about-header.svg');
+  background-position: center -230px;
+  background-size: 1600px auto;
+  background-repeat: no-repeat;
+}
+
+.container {
+  margin: auto;
+  padding: var(--fds-spacing-12);
+  max-width: 1400px;
+}
+
+.header {
+  color: var(--primary-color-700);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  margin: 0;
+  font-size: 37.5px;
+  padding: var(--fds-spacing-6) 0 var(--fds-spacing-6) 0;
+}
+
+.content {
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  padding: var(--fds-spacing-10);
+  position: relative;
+  gap: var(--fds-spacing-10);
+}
+
+.main,
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-10);
+}
+
+.main {
+  flex: 9;
+}
+
+.aside {
+  flex: 3;
+}
+
+.divider {
+  background-color: #efefef;
+  border: none;
+  height: 2px;
+  opacity: 0.5;
+  width: 100%;
+}
+
+/* TODO: remove when all sections are implemented */
+.placeholder {
+  background-color: #fbfbfc;
+  border: solid 2px #efefef;
+  border-radius: 6px;
+  height: 500px;
+}

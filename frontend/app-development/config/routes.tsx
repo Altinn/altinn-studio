@@ -1,6 +1,6 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
-import { Administration } from '../features/administration/components/Administration';
+import { About } from '../features/administration/components/About';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
@@ -45,7 +45,7 @@ export const routes: IRoute[] = [
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     menu: 'about',
-    subapp: Administration,
+    subapp: About,
   },
   {
     path: '/:org/:app/datamodel',
