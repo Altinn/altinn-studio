@@ -26,11 +26,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes the resource for a given language id
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>A boolean indicating if delete was ok</returns>
-        bool DeleteLanguage(string org, string app, string id);
+        bool DeleteLanguage(AltinnRepoEditingContext altinnRepoEditingContext, string id);
 
         /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
@@ -54,21 +53,19 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repositoryName">the name of the local repository to reset</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
-        bool ResetLocalRepository(string org, string repositoryName);
+        bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Returns the app texts
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
         /// <returns>The text resources</returns>
-        Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app);
+        Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Saves policy to git repository
@@ -101,10 +98,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets the widget settings for an app
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>The content as string</returns>
-        string GetWidgetSettings(string org, string app);
+        string GetWidgetSettings(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Lists the content of a repository

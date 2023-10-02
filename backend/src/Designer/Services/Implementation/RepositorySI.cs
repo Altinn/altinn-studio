@@ -139,29 +139,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
         }
 
-        /// <summary>
-        /// Returns the app texts
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <remarks>
-        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
-        /// </remarks>
-        /// <returns>The texts in a dictionary</returns>
-        public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app)
+        /// <inheritdoc/>
+        public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             Dictionary<string, Dictionary<string, TextResourceElement>> appTextsAllLanguages = new();
 
             // Get app level text resources
-            string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetLanguageResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             appTextsAllLanguages = MergeResourceTexts(resourcePath, appTextsAllLanguages);
 
             // Get Org level text resources
-            string orgResourcePath = _settings.GetOrgTextResourcePath(org, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string orgResourcePath = _settings.GetOrgTextResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Developer);
             appTextsAllLanguages = MergeResourceTexts(orgResourcePath, appTextsAllLanguages);
 
             // Get Altinn common level text resources
-            string commonResourcePath = _settings.GetCommonTextResourcePath(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string commonResourcePath = _settings.GetCommonTextResourcePath(altinnRepoEditingContext.Developer);
             appTextsAllLanguages = MergeResourceTexts(commonResourcePath, appTextsAllLanguages);
 
             return appTextsAllLanguages;
@@ -218,9 +210,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetWidgetSettings(string org, string app)
+        public string GetWidgetSettings(AltinnRepoEditingContext altinnRepoEditingContext)
         {
-            string filePath = _settings.GetWidgetSettingsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filePath = _settings.GetWidgetSettingsPath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             string fileData = null;
             if (File.Exists(filePath))
             {
@@ -230,16 +222,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return fileData;
         }
 
-        /// <summary>
-        /// Deletes the language resource for a given language id
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
-        /// <returns>A boolean indicating if the delete was a success</returns>
-        public bool DeleteLanguage(string org, string app, string id)
+        public bool DeleteLanguage(AltinnRepoEditingContext altinnRepoEditingContext, string id)
         {
-            string filename = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
+            string filename = _settings.GetLanguageResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer) + $"resource.{id.AsFileName()}.json";
             bool deleted = false;
 
             if (File.Exists(filename))
@@ -357,21 +342,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repository;
         }
 
-        /// <summary>
-        /// Deletes the local repository for the user and makes a new clone of the repo
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repositoryName">the name of the local repository to reset</param>
-        /// <returns>True if the reset was successful, otherwise false.</returns>
-        public bool ResetLocalRepository(string org, string repositoryName)
+        /// <inheritdoc />
+        public bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string repoPath = _settings.GetServicePath(org, repositoryName, developer);
+            string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
             if (Directory.Exists(repoPath))
             {
-                FireDeletionOfLocalRepo(org, repositoryName, developer);
-                _sourceControl.CloneRemoteRepository(org, repositoryName);
+                FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+                _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
                 return true;
             }
 

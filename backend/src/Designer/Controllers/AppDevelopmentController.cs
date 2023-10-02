@@ -496,7 +496,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("widget-settings")]
         public ActionResult GetWidgetSettings(string org, string app)
         {
-            string widgetSettings = _repository.GetWidgetSettings(org, app);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string widgetSettings = _repository.GetWidgetSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
             return Ok(widgetSettings);
         }
 
