@@ -77,14 +77,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         RepoStatus PullRemoteChanges(string org, string repository);
 
         /// <summary>
-        /// Gets the number of commits the local repository is behind the remote
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>The number of commits behind</returns>
-        int? CheckRemoteUpdates(string org, string repository);
-
-        /// <summary>
         /// Pull remote changes
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
@@ -130,14 +122,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The name of repository</param>
         /// <returns>The repostatus</returns>
         RepoStatus RepositoryStatus(string org, string repository);
-
-        /// <summary>
-        /// Verifies if developer has a local repo
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the local repo.</param>
-        /// <returns>true if it exists</returns>
-        bool IsLocalRepo(string org, string repository);
 
         /// <summary>
         /// Push commits to repository
