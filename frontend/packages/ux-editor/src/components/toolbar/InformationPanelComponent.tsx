@@ -43,21 +43,6 @@ export const InformationPanelComponent = ({
       <div className={classNames(classes.informationPanelText)}>
         {getComponentHelperTextByComponentType(selectedComponent, t)}
       </div>
-      <div className={classNames(classes.informationPanelText)}>
-        <InformationSquareFillIcon className={classes.informationIcon} />
-        {!thirdPartyLibrary
-          ? t('ux_editor.information_altinn_library')
-          : t('ux_editor.information_third_party_library')}
-      </div>
-      <div className={classNames(classes.informationPanelLink)}>
-        <a
-          href='https://docs.altinn.studio/app/development/ux/components/'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          {t('ux_editor.information_more_info_link')}
-        </a>
-      </div>
     </Popover>
   );
 };

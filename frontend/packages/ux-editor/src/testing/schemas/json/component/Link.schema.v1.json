@@ -21,6 +21,9 @@
       "properties": {
         "title": {
           "type": "string"
+        },
+        "target": {
+          "type": "string"
         }
       },
       "required": [
