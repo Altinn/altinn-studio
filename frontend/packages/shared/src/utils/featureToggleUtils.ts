@@ -10,7 +10,7 @@ export type SupportedFeatureFlags =
   | 'settingsModal'
   | 'processEditor'
   | 'configureLayoutSet'
-  | 'newAbout';
+  | 'newAdministration';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

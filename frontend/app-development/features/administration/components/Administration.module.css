@@ -1,35 +1,63 @@
-.avatar {
-  max-height: '2em';
+.administration {
+  background-color: #e6eff8;
+  background-image: url('./administration-header.svg');
+  background-position: center -230px;
+  background-size: 1600px auto;
+  background-repeat: no-repeat;
 }
-.sidebarHeader {
-  margin-bottom: 20;
-  font-size: 20;
+
+.container {
+  margin: auto;
+  padding: var(--fds-spacing-12);
+  max-width: 1400px;
+}
+
+.header {
+  color: var(--primary-color-700);
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
+  margin: 0;
+  font-size: 37.5px;
+  padding: var(--fds-spacing-6) 0 var(--fds-spacing-6) 0;
 }
 
-.sidebarHeaderSecond {
-  margin-top: 36;
+.content {
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  padding: var(--fds-spacing-10);
+  position: relative;
+  gap: var(--fds-spacing-10);
 }
 
-.sidebarInfoText {
-  font-size: 16;
-  margin-bottom: 12;
+.main,
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-10);
 }
 
-.iconStyling {
-  font-size: 35;
-  text-align: 'right';
+.main {
+  flex: 9;
 }
 
-.sidebarServiceOwner {
-  margin-top: 10;
+.aside {
+  flex: 3;
 }
 
-.sidebarCreatedBy {
-  font-size: 16;
-  margin-top: 10;
+.divider {
+  background-color: #efefef;
+  border: none;
+  height: 2px;
+  opacity: 0.5;
+  width: 100%;
 }
 
-.margin-bottom_24 {
-  margin-bottom: 24;
+/* TODO: remove when all sections are implemented */
+.placeholder {
+  background-color: #fbfbfc;
+  border: solid 2px #efefef;
+  border-radius: 6px;
+  height: 500px;
 }

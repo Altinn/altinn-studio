@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react';
-import { Administration } from './Administration';
+import { LegacyAdministration } from './LegacyAdministration';
 import type { ICommit } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
@@ -100,8 +100,8 @@ describe('Administration', () => {
           serviceNameObj: {
             ...mockServiceInformation.serviceNameObj,
             name: null,
-          }
-        }
+          },
+        },
       },
     });
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
@@ -142,7 +142,7 @@ describe('Administration', () => {
   });
 
   it('should handle successfully updating app description', async () => {
-    const utils = renderWithProviders(<Administration />, {
+    const utils = renderWithProviders(<LegacyAdministration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
@@ -151,7 +151,9 @@ describe('Administration', () => {
     const mockEvent = { target: { value: 'New description' } };
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-    const inputElement = screen.getByRole('textbox', { name: textMock('administration.service_comment') });
+    const inputElement = screen.getByRole('textbox', {
+      name: textMock('administration.service_comment'),
+    });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
 
     fireEvent.change(inputElement, mockEvent);
@@ -173,7 +175,7 @@ describe('Administration', () => {
   });
 
   it('should handle sucessfully updating app id', async () => {
-    const utils = renderWithProviders(<Administration />, {
+    const utils = renderWithProviders(<LegacyAdministration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
@@ -182,7 +184,9 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New id' } };
 
-    const inputElement = screen.getByRole('textbox', { name: textMock('administration.service_id') });
+    const inputElement = screen.getByRole('textbox', {
+      name: textMock('administration.service_id'),
+    });
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
     fireEvent.change(inputElement, mockEvent);
