@@ -46,7 +46,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 Guard.AssertValidXmlContent(bpmnFileContent);
             }
-            catch(ArgumentException)
+            catch (ArgumentException)
             {
                 return BadRequest("BPMN file is not valid XML");
             }

@@ -215,19 +215,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<string> GetProcessDefinition(AltinnRepoEditingContext altinnAppContext, CancellationToken cancellationToken = default)
+        public Task<string> GetProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnAppContext.Org, altinnAppContext.Repo, altinnAppContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             return altinnAppGitRepository.GetProcessDefinitionFile(cancellationToken);
 
         }
 
         /// <inheritdoc />
-        public Task<string> SaveProcessDefinition(AltinnRepoEditingContext altinnAppContext, string bpmnXml, CancellationToken cancellationToken = default)
+        public Task<string> SaveProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string bpmnXml, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnAppContext.Org, altinnAppContext.Repo, altinnAppContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             return altinnAppGitRepository.SaveProcessDefinitionFile(bpmnXml, cancellationToken);
         }
     }
