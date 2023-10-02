@@ -1,30 +1,36 @@
 import React from 'react';
 
-import { act, screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { IOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Dropdown'>> = {}) => {
-  const countries = {
-    id: 'countries',
-    options: [
-      {
-        label: 'Norway',
-        value: 'norway',
-      },
-      {
-        label: 'Sweden',
-        value: 'sweden',
-      },
-      {
-        label: 'Denmark',
-        value: 'denmark',
-      },
-    ],
-  };
+const countries = {
+  id: 'countries',
+  options: [
+    {
+      label: 'Norway',
+      value: 'norway',
+    },
+    {
+      label: 'Sweden',
+      value: 'sweden',
+    },
+    {
+      label: 'Denmark',
+      value: 'denmark',
+    },
+  ] as IOption[],
+};
+
+interface Props extends Partial<RenderGenericComponentTestProps<'Dropdown'>> {
+  options?: IOption[];
+}
+
+const render = ({ component, genericProps, options }: Props = {}) => {
   renderGenericComponentTest({
     type: 'Dropdown',
     renderer: (props) => <DropdownComponent {...props} />,
@@ -38,80 +44,56 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
       isValid: true,
       ...genericProps,
     },
-    manipulateState: (state) => {
-      state.optionState = {
-        options: {
-          countries,
-          loadingOptions: {
-            id: 'loadingOptions',
-            options: undefined,
-            loading: true,
-          },
-        },
-        error: {
-          name: '',
-          message: '',
-        },
-        loading: true,
-      };
+    mockedQueries: {
+      fetchOptions: () =>
+        options ? Promise.resolve(options) : Promise.reject(new Error('No options provided to render()')),
     },
   });
 };
 
 describe('DropdownComponent', () => {
-  jest.useFakeTimers();
-
-  const user = userEvent.setup({
-    advanceTimers: (time) => {
-      act(() => {
-        jest.advanceTimersByTime(time);
-      });
-    },
-  });
-
   it('should trigger handleDataChange when option is selected', async () => {
     const handleDataChange = jest.fn();
     render({
       genericProps: {
         handleDataChange,
       },
+      options: countries.options,
     });
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByText('Sweden')));
+    await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
 
     expect(handleDataChange).not.toHaveBeenCalled();
-
-    jest.runOnlyPendingTimers();
-
-    expect(handleDataChange).toHaveBeenCalledWith('sweden', { validate: true });
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('Sweden'));
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('sweden', { validate: true }));
   });
 
-  it('should show as disabled when readOnly is true', () => {
+  it('should show as disabled when readOnly is true', async () => {
     render({
       component: {
         readOnly: true,
       },
+      options: countries.options,
     });
 
-    const select = screen.getByRole('combobox');
-
+    const select = await screen.findByRole('combobox');
     expect(select).toHaveProperty('disabled', true);
   });
 
-  it('should not show as disabled when readOnly is false', () => {
+  it('should not show as disabled when readOnly is false', async () => {
     render({
       component: {
         readOnly: false,
       },
+      options: countries.options,
     });
 
-    const select = screen.getByRole('combobox');
-
+    const select = await screen.findByRole('combobox');
     expect(select).toHaveProperty('disabled', false);
   });
 
-  it('should trigger handleDataChange when preselectedOptionIndex is set', () => {
+  it('should trigger handleDataChange when preselectedOptionIndex is set', async () => {
     const handleDataChange = jest.fn();
     render({
       component: {
@@ -120,9 +102,10 @@ describe('DropdownComponent', () => {
       genericProps: {
         handleDataChange,
       },
+      options: countries.options,
     });
 
-    expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true });
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
     expect(handleDataChange).toHaveBeenCalledTimes(1);
   });
 
@@ -135,45 +118,36 @@ describe('DropdownComponent', () => {
       genericProps: {
         handleDataChange,
       },
+      options: countries.options,
     });
 
-    expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true });
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
     const select = screen.getByRole('combobox');
 
-    await act(() => user.click(select));
-
     expect(handleDataChange).toHaveBeenCalledTimes(1);
+    await userEvent.click(select);
 
-    await act(() => user.tab());
-
-    expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true });
+    await userEvent.tab();
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
     expect(handleDataChange).toHaveBeenCalledTimes(2);
   });
 
-  it('should show spinner while waiting for options', () => {
-    render({
-      component: {
-        optionsId: 'loadingOptions',
-      },
-    });
-
-    expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
-  });
-
-  it('should not show spinner when options are present', () => {
+  it('should show spinner', async () => {
     render({
       component: {
         optionsId: 'countries',
       },
+      options: countries.options,
     });
-
-    expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+    expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
   });
 
   it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
     render({
       component: {
+        optionsId: undefined,
         source: {
           group: 'someGroup',
           label: 'option.from.rep.group.label',
@@ -183,25 +157,19 @@ describe('DropdownComponent', () => {
       genericProps: {
         handleDataChange,
       },
+      options: undefined,
     });
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByText('The value from the group is: Label for first')));
-
     expect(handleDataChange).not.toHaveBeenCalled();
-
-    jest.runOnlyPendingTimers();
-
-    expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true });
-
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByText('The value from the group is: Label for second')));
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('The value from the group is: Label for first'));
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true }));
 
     expect(handleDataChange).toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('The value from the group is: Label for second'));
 
-    jest.runOnlyPendingTimers();
-
-    expect(handleDataChange).toHaveBeenCalledWith('Value for second', { validate: true });
+    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for second', { validate: true }));
     expect(handleDataChange).toHaveBeenCalledTimes(2);
   });
 });

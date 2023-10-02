@@ -59,25 +59,6 @@ export function getKeyWithoutIndexIndicators(keyWithIndexIndicators: string): st
   return keyWithIndexIndicators.replaceAll(GLOBAL_INDEX_KEY_INDICATOR_REGEX, '');
 }
 
-export function keyHasIndexIndicators(key: string): boolean {
-  const result = key.match(GLOBAL_INDEX_KEY_INDICATOR_REGEX)?.length;
-
-  return !!(result && result > 0);
-}
-
-/** Replaces index indicators with indexes
- * @param key The key with index indicators
- * @param indexes The indexes to replace the index indicators with
- * Example input:
- *  keyWithIndexIndicators: SomeField.Group[{0}].SubGroup[{1}].Field
- *  index: [0, 1]
- * Example output:
- *  SomeField.Group[0].SubGroup[1].Field
- */
-export function replaceIndexIndicatorsWithIndexes(key: string, indexes: number[] = []) {
-  return indexes.reduce((acc, index) => acc.replace(INDEX_KEY_INDICATOR_REGEX, `[${index}]`), key);
-}
-
 /*
   Gets possible combinations of repeating group or nested groups
   Example input ["group", "group.subGroup"] (note that sub groups should)
@@ -136,19 +117,6 @@ export function getIndexCombinations(
   }
 
   return combinations;
-}
-
-/**
- * Returns base group data bindings
- * SomeField.Group[{0}].SubGroup[{1}].Field
- *                  ^             ^
- * Will return ["SomeField.Group", "SomeField.Group.SubGroup"]
- */
-export function getBaseGroupDataModelBindingFromKeyWithIndexIndicators(key: string): string[] {
-  const baseGroups: string[] = [];
-  const matches = key.match(GLOBAL_INDEX_KEY_INDICATOR_REGEX);
-  matches?.forEach((match) => baseGroups.push(getKeyWithoutIndexIndicators(key.substring(0, key.indexOf(match)))));
-  return baseGroups;
 }
 
 /**

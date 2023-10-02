@@ -292,6 +292,9 @@ const common = {
           ),
       ),
       new CG.prop('source', CG.common('IOptionSource').optional()),
+    ),
+  ISelectionComponentFull: () =>
+    new CG.obj(
       new CG.prop(
         'preselectedOptionIndex',
         new CG.int()
@@ -299,7 +302,7 @@ const common = {
           .setTitle('Preselected option index')
           .setDescription('Index of the option to preselect (if no option has been selected yet)'),
       ),
-    ),
+    ).extends(CG.common('ISelectionComponent')),
 
   // Table configuration:
   ITableColumnsAlignText: () =>

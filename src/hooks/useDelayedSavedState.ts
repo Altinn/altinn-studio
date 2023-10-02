@@ -19,7 +19,9 @@ export function useDelayedSavedState(
   const immediateStateRef = useRef(formValue);
   const [saveNextChangeImmediately, setSaveNextChangeImmediately] = useState(false);
   const [skipNextValidation, setSkipNextValidation] = useState(false);
-  const saveAfterMs = typeof saveAfter === 'number' ? saveAfter : 400;
+
+  const overridden = global && (global as any).delayedSaveState && (global as any).delayedSaveState;
+  const saveAfterMs = typeof overridden === 'number' ? overridden : typeof saveAfter === 'number' ? saveAfter : 400;
 
   const setImmediateState = useCallback(
     (value: string | undefined) => {

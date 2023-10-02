@@ -20,6 +20,7 @@ import { ThemeWrapper } from 'src/components/ThemeWrapper';
 import { AppQueriesContextProvider } from 'src/contexts/appQueriesContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { LayoutValidationProvider } from 'src/features/layoutValidation/useLayoutValidationCurrentPage';
+import { AllOptionsProvider } from 'src/features/options/useAllOptions';
 import * as queries from 'src/queries/queries';
 import { initSagas } from 'src/redux/sagas';
 import { setupStore } from 'src/redux/store';
@@ -27,19 +28,19 @@ import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 
 import 'src/index.css';
 
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      staleTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   const { store, sagaMiddleware } = setupStore();
   initSagas(sagaMiddleware);
-
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        staleTime: 10 * 60 * 1000,
-        refetchOnWindowFocus: false,
-      },
-    },
-  });
 
   const container = document.getElementById('root');
   const root = container && createRoot(container);
@@ -53,9 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <AppQueriesContextProvider {...queries}>
                   <ExprContextWrapper>
                     <LayoutValidationProvider>
-                      <DevTools>
-                        <App />
-                      </DevTools>
+                      <AllOptionsProvider>
+                        <DevTools>
+                          <App />
+                        </DevTools>
+                      </AllOptionsProvider>
                     </LayoutValidationProvider>
                   </ExprContextWrapper>
                 </AppQueriesContextProvider>

@@ -31,10 +31,19 @@ describe('Receipt', () => {
 
     cy.snapshot('stateless:feedback');
 
+    cy.reloadAndWait();
+    cy.get(appFrontend.feedback).should('contain.text', 'Firmanavn: Foo bar AS');
+
     cy.moveProcessNext();
     cy.get(appFrontend.feedback).should('not.exist');
 
     cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
     cy.snapshot('stateless:receipt');
+
+    cy.reloadAndWait();
+
+    // TODO: Should this even work? How can we load a deleted instance and confirm that it is, indeed, deleted
+    // by observing this text in the receipt page?
+    cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
   });
 });

@@ -9,16 +9,13 @@ import {
   selectAttachmentState,
   selectFormData,
   selectFormLayoutState,
-  selectOptions,
 } from 'src/features/layout/update/updateFormLayoutSagas';
-import { OptionsActions } from 'src/features/options/optionsSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import { shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
 import { findChildAttachments, removeGroupData } from 'src/utils/databindings';
 import { findChildren, removeRepeatingGroupFromUIConfig, splitDashedKey } from 'src/utils/formLayout';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
-import { removeGroupOptionsByIndex } from 'src/utils/options';
 import { createLayoutValidationResult, emptyValidation } from 'src/utils/validation/validationHelpers';
 import type { IAttachmentState } from 'src/features/attachments';
 import type {
@@ -29,7 +26,7 @@ import type { IFormData } from 'src/features/formData';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IRepGroupDelRow } from 'src/features/layout/formLayoutTypes';
 import type { CompGroupExternal } from 'src/layout/Group/config.generated';
-import type { IOptions, IRepeatingGroups } from 'src/types';
+import type { IRepeatingGroups } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadAction<IRepGroupDelRow>): SagaIterator {
@@ -78,7 +75,6 @@ export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadA
 
     const formData: IFormData = yield select(selectFormData);
     const attachments: IAttachmentState = yield select(selectAttachmentState);
-    const options: IOptions = yield select(selectOptions);
     const repeatingGroup = repeatingGroups[groupId];
 
     // Find uploaded attachments inside group and delete them
@@ -158,16 +154,6 @@ export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadA
           }),
         );
       }
-
-      // Remove options associated with the group
-      const updatedOptions = removeGroupOptionsByIndex({
-        groupId,
-        index,
-        repeatingGroups,
-        options,
-        layout: currentLayout,
-      });
-      yield put(OptionsActions.setOptions({ options: updatedOptions }));
 
       updatedRepeatingGroups[groupId].deletingIndex = updatedRepeatingGroups[groupId].deletingIndex?.filter(
         (value) => value !== index,

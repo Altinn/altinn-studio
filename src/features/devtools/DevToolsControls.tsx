@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Tabs } from '@digdir/design-system-react';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { DevHiddenFunctionality } from 'src/features/devtools/components/DevHiddenFunctionality/DevHiddenFunctionality';
 import { DevLanguageSelector } from 'src/features/devtools/components/DevLanguageSelector/DevLanguageSelector';
@@ -44,6 +45,7 @@ export const DevToolsControls = () => {
                 <PermissionsEditor />
                 <DevLanguageSelector />
                 <DownloadXMLButton />
+                <ReactQueryDevtools initialIsOpen={false} />
               </div>
             ),
           },

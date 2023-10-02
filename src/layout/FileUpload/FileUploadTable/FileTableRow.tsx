@@ -7,6 +7,7 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
+import { useFileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -14,24 +15,13 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 class IFileUploadTableRowProps {
   attachment: IAttachment;
   mobileView: boolean;
-  index: number;
   node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
   tagLabel: string | undefined;
-  editIndex: number;
-  setEditIndex: (index: number) => void;
 }
 
 export const bytesInOneMB = 1048576;
 
-export function FileTableRow({
-  node,
-  attachment,
-  mobileView,
-  index,
-  tagLabel,
-  editIndex,
-  setEditIndex,
-}: IFileUploadTableRowProps) {
+export function FileTableRow({ node, attachment, mobileView, tagLabel }: IFileUploadTableRowProps) {
   const { langAsString } = useLanguage();
   const hasTag = node.item.type === 'FileUploadWithTag';
 
@@ -50,12 +40,7 @@ export function FileTableRow({
         readableSize={readableSize}
         hasTag={hasTag}
       />
-      {hasTag && (
-        <FileTypeCell
-          tagLabel={tagLabel}
-          index={index}
-        />
-      )}
+      {hasTag && <FileTypeCell tagLabel={tagLabel} />}
       {!(hasTag && mobileView) && (
         <StatusCellContent
           uploaded={attachment.uploaded}
@@ -66,10 +51,7 @@ export function FileTableRow({
         node={node}
         attachment={attachment}
         deleting={attachment.deleting}
-        index={index}
         mobileView={mobileView}
-        editIndex={editIndex}
-        setEditIndex={setEditIndex}
       />
     </tr>
   );
@@ -128,8 +110,9 @@ const NameCell = ({
   );
 };
 
-const FileTypeCell = ({ index, tagLabel }) => {
+const FileTypeCell = ({ tagLabel }: { tagLabel: string | undefined }) => {
   const { langAsString } = useLanguage();
+  const { index } = useFileTableRowContext();
   return <td key={`attachment-tag-${index}`}>{tagLabel && langAsString(tagLabel)}</td>;
 };
 
@@ -163,7 +146,14 @@ const StatusCellContent = ({ uploaded, mobileView }) => {
   );
 };
 
-const ButtonCellContent = ({ deleting, node, index, mobileView, editIndex, setEditIndex, attachment }) => {
+interface IButtonCellContentProps {
+  deleting: boolean;
+  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
+  mobileView: boolean;
+  attachment: IAttachment;
+}
+
+const ButtonCellContent = ({ deleting, node, mobileView, attachment }: IButtonCellContentProps) => {
   const { langAsString } = useLanguage();
   return (
     <td>
@@ -176,10 +166,7 @@ const ButtonCellContent = ({ deleting, node, index, mobileView, editIndex, setEd
       ) : (
         <FileTableButtons
           node={node}
-          index={index}
           mobileView={mobileView}
-          editIndex={editIndex}
-          setEditIndex={setEditIndex}
           attachment={attachment}
           editWindowIsOpen={false}
         />

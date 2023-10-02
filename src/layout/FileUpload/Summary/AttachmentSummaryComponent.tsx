@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useAllOptions } from 'src/features/options/useAllOptions';
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
-import { getOptionLookupKey } from 'src/utils/options';
+import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IAttachmentSummaryComponent {
@@ -15,23 +15,13 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
   const attachments = useUploaderSummaryData(targetNode);
   const { lang, langAsString } = useLanguage();
   const component = targetNode.item;
+  const allOptions = useAllOptions();
   const hasTag = component.type === 'FileUploadWithTag';
-  const options = useAppSelector((state) => {
-    if (hasTag) {
-      return state.optionState.options[
-        getOptionLookupKey({
-          id: component.optionsId,
-          mapping: component.mapping,
-        })
-      ]?.options;
-    } else {
-      return undefined;
-    }
-  });
+  const options = hasTag ? allOptions[component.id] : undefined;
 
-  const getOptionsTagLabel = ({ tags }: { tags: string[] }) =>
-    options?.find((option) => option.value === tags[0])?.label;
-  const tryToGetTextResource = (attachment) => {
+  const getOptionsTagLabel = ({ tags }: { tags?: string[] }) =>
+    options?.find((option) => option.value === (tags && tags[0]))?.label;
+  const tryToGetTextResource = (attachment: IAttachment) => {
     const optionsTagLabel = getOptionsTagLabel(attachment);
     return langAsString(optionsTagLabel);
   };

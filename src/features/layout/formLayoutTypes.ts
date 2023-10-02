@@ -1,8 +1,7 @@
 import type { IFormData } from 'src/features/formData';
-import type { IOption, Triggers } from 'src/layout/common.generated';
+import type { Triggers } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';
 import type {
-  IFileUploadersWithTag,
   IHiddenLayoutsExternal,
   ILayoutSets,
   ILayoutSettings,
@@ -73,36 +72,6 @@ export interface IUpdateRepeatingGroupsEditIndex {
 export interface IUpdateRepeatingGroupsEditIndexFulfilled {
   group: string;
   index: number;
-}
-
-export interface IUpdateFileUploadersWithTagFulfilled {
-  uploaders: IFileUploadersWithTag;
-}
-
-export interface IUpdateFileUploaderWithTagEditIndex {
-  componentId: string;
-  baseComponentId: string;
-  index: number;
-  attachmentId?: string;
-}
-
-export interface IUpdateFileUploaderWithTagEditIndexFulfilled {
-  componentId: string;
-  baseComponentId: string;
-  index: number;
-}
-
-export interface IUpdateFileUploaderWithTagChosenOptions {
-  componentId: string;
-  baseComponentId: string;
-  id: string;
-  option: IOption;
-}
-export interface IUpdateFileUploaderWithTagChosenOptionsFulfilled {
-  componentId: string;
-  baseComponentId: string;
-  id: string;
-  option: IOption;
 }
 
 /**

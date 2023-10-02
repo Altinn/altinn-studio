@@ -2,21 +2,8 @@ import { Triggers } from 'src/layout/common.generated';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
-import type { ILayoutNavigation, IMapping, IOption } from 'src/layout/common.generated';
+import type { ILayoutNavigation, IMapping } from 'src/layout/common.generated';
 import type { RootState } from 'src/redux/store';
-
-export interface IFormFileUploaderWithTag {
-  chosenOptions: IOptionsChosen;
-  editIndex: number;
-}
-
-export interface IOptionsChosen {
-  [id: string]: string;
-}
-
-export interface IFileUploadersWithTag {
-  [componentId: string]: IFormFileUploaderWithTag | undefined;
-}
 
 export interface ILayoutSets {
   sets: ILayoutSet[];
@@ -54,24 +41,6 @@ export interface IComponentsSettings {
 export interface INavigationConfig {
   [id: string]: ILayoutNavigation | undefined;
 }
-
-export interface IOptions {
-  [key: string]: IOptionData | undefined;
-}
-
-export interface IOptionsActualData {
-  options?: IOption[];
-}
-
-export interface IOptionsMetaData {
-  id: string;
-  mapping?: IMapping;
-  fixedQueryParameters?: Record<string, string>;
-  loading?: boolean;
-  secure?: boolean;
-}
-
-export type IOptionData = IOptionsActualData & IOptionsMetaData;
 
 export interface IRepeatingGroup {
   index: number;
@@ -119,7 +88,6 @@ export interface IUiConfig {
   focus: string | null | undefined;
   hiddenFields: string[];
   repeatingGroups: IRepeatingGroups | null;
-  fileUploadersWithTag?: IFileUploadersWithTag;
   navigationConfig?: INavigationConfig;
   tracks: ITracks;
   excludePageFromPdf: string[] | null;

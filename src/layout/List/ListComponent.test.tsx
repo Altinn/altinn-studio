@@ -4,8 +4,9 @@ import { screen } from '@testing-library/react';
 
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { IDataList } from 'src/features/dataLists';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
-
+const paginationData = { alternatives: [2, 5], default: 2 };
 const countries = [
   {
     Name: 'Norway',
@@ -46,6 +47,11 @@ const countries = [
 ];
 
 const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'List'>> = {}) => {
+  const fetchDataList = () =>
+    Promise.resolve({
+      listItems: [...countries],
+      _metaData: paginationData,
+    } as unknown as IDataList);
   renderGenericComponentTest({
     type: 'List',
     renderer: (props) => <ListComponent {...props} />,
@@ -58,7 +64,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
         FlagLink: 'FlagLink',
       },
       sortableColumns: ['population', 'highestMountain'],
-      pagination: { alternatives: [2, 5], default: 2 },
+      pagination: paginationData,
       dataListId: 'countries',
       ...component,
     },
@@ -66,19 +72,8 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
       legend: () => <span>legend</span>,
       ...genericProps,
     },
-    manipulateState: (state) => {
-      state.dataListState = {
-        dataLists: {
-          ['list-component-id']: { listItems: countries, id: 'countries' },
-        },
-        error: {
-          name: '',
-          message: '',
-        },
-        dataListCount: 1,
-        dataListLoadedCount: 1,
-        loading: false,
-      };
+    mockedQueries: {
+      fetchDataList,
     },
   });
 };
@@ -86,9 +81,10 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
 describe('ListComponent', () => {
   jest.useFakeTimers();
 
-  it('should render rows that is sent in but not rows that is not sent in', () => {
+  it('should render rows that is sent in but not rows that is not sent in', async () => {
     render();
-    expect(screen.getByText('Norway')).toBeInTheDocument();
+
+    expect(await screen.findByText('Norway')).toBeInTheDocument();
     expect(screen.getByText('Sweden')).toBeInTheDocument();
     expect(screen.queryByText('Italy')).not.toBeInTheDocument();
   });
@@ -96,6 +92,6 @@ describe('ListComponent', () => {
   it('should render columns as markup', async () => {
     render();
 
-    expect(screen.getByRole('link', { name: /Norwegian flag/ })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /Norwegian flag/ })).toBeInTheDocument();
   });
 });

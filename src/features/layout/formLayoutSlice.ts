@@ -1,7 +1,6 @@
-import { put, takeEvery } from 'redux-saga/effects';
+import { takeEvery } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
-import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
 import { removeHiddenValidationsSaga } from 'src/features/dynamics/conditionalRenderingSagas';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import {
@@ -9,9 +8,6 @@ import {
   watchFetchFormLayoutSaga,
   watchFetchFormLayoutSettingsSaga,
 } from 'src/features/layout/fetch/fetchFormLayoutSagas';
-import { updateFileUploaderWithTagChosenOptionsSaga } from 'src/features/layout/fileUpload/updateFileUploaderWithTagChosenOptionsSaga';
-import { updateFileUploaderWithTagEditIndexSaga } from 'src/features/layout/fileUpload/updateFileUploaderWithTagEditIndexSaga';
-import { watchMapFileUploaderWithTagSaga } from 'src/features/layout/fileUpload/watchMapFileUploaderWithTagSaga';
 import { initRepeatingGroupsSaga } from 'src/features/layout/repGroups/initRepeatingGroupsSaga';
 import { repGroupAddRowSaga } from 'src/features/layout/repGroups/repGroupAddRowSaga';
 import { repGroupDeleteRowSaga } from 'src/features/layout/repGroups/repGroupDeleteRowSaga';
@@ -22,7 +18,6 @@ import {
   updateCurrentViewSaga,
   watchInitialCalculatePageOrderAndMoveToNextPageSaga,
 } from 'src/features/layout/update/updateFormLayoutSagas';
-import { OptionsActions } from 'src/features/options/optionsSlice';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type * as LayoutTypes from 'src/features/layout/formLayoutTypes';
 import type { ILayouts } from 'src/layout/layout';
@@ -43,7 +38,6 @@ export const initialState: ILayoutState = {
     focus: null,
     hiddenFields: [],
     repeatingGroups: null,
-    fileUploadersWithTag: {},
     receiptLayoutName: undefined,
     currentView: 'FormLayout',
     navigationConfig: {},
@@ -81,7 +75,7 @@ export const formLayoutSlice = () => {
     return {
       name: 'formLayout',
       initialState,
-      extraSagas: [watchMapFileUploaderWithTagSaga, watchInitialCalculatePageOrderAndMoveToNextPageSaga],
+      extraSagas: [watchInitialCalculatePageOrderAndMoveToNextPageSaga],
       actions: {
         fetch: mkAction<void>({
           saga: () => watchFetchFormLayoutSaga,
@@ -95,10 +89,6 @@ export const formLayoutSlice = () => {
             state.uiConfig.tracks.hiddenExpr = hiddenLayoutsExpressions;
             state.error = null;
             state.uiConfig.repeatingGroups = null;
-          },
-          *takeEvery() {
-            yield put(OptionsActions.fetch());
-            yield put(DataListsActions.fetch());
           },
         }),
         fetchRejected: genericReject,
@@ -252,49 +242,6 @@ export const formLayoutSlice = () => {
             }
           },
         }),
-        updateFileUploadersWithTagFulfilled: mkAction<LayoutTypes.IUpdateFileUploadersWithTagFulfilled>({
-          reducer: (state, action) => {
-            const { uploaders } = action.payload;
-            state.uiConfig.fileUploadersWithTag = uploaders;
-          },
-        }),
-        updateFileUploaderWithTagRejected: genericReject,
-        updateFileUploaderWithTagEditIndex: mkAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndex>({
-          takeEvery: updateFileUploaderWithTagEditIndexSaga,
-        }),
-        updateFileUploaderWithTagEditIndexFulfilled: mkAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>(
-          {
-            reducer: (state, action) => {
-              const { componentId, index } = action.payload;
-              state.uiConfig.fileUploadersWithTag = state.uiConfig.fileUploadersWithTag || {};
-              const uploader = state.uiConfig.fileUploadersWithTag[componentId];
-              if (uploader) {
-                uploader.editIndex = index;
-              }
-            },
-          },
-        ),
-        updateFileUploaderWithTagEditIndexRejected: genericReject,
-        updateFileUploaderWithTagChosenOptions: mkAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptions>({
-          takeEvery: updateFileUploaderWithTagChosenOptionsSaga,
-        }),
-        updateFileUploaderWithTagChosenOptionsFulfilled:
-          mkAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>({
-            reducer: (state, action) => {
-              const { componentId, id, option } = action.payload;
-              state.uiConfig.fileUploadersWithTag = state.uiConfig.fileUploadersWithTag || {};
-              const uploader = state.uiConfig.fileUploadersWithTag[componentId];
-              if (uploader) {
-                uploader.chosenOptions[id] = option.value;
-              } else {
-                state.uiConfig.fileUploadersWithTag[componentId] = {
-                  editIndex: -1,
-                  chosenOptions: { [id]: option.value },
-                };
-              }
-            },
-          }),
-        updateFileUploaderWithTagChosenOptionsRejected: genericReject,
         calculatePageOrderAndMoveToNextPage: mkAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPage>({
           takeEvery: calculatePageOrderAndMoveToNextPageSaga,
         }),

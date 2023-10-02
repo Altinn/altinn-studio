@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { createSelector } from 'reselect';
 
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
+import { allOptions } from 'src/features/options/useAllOptions';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { staticUseLanguageFromState, useLanguage } from 'src/hooks/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
@@ -95,7 +96,7 @@ export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources
     formData: state.formData.formData,
     attachments: state.attachments.attachments,
     uiConfig: state.formLayout.uiConfig,
-    options: state.optionState.options,
+    options: allOptions,
     applicationSettings: state.applicationSettings.applicationSettings,
     instanceContext: buildInstanceContext(state.instanceData?.instance),
     hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
@@ -139,7 +140,7 @@ function useResolvedExpressions() {
   const formData = useAppSelector((state) => state.formData.formData);
   const attachments = useAppSelector((state) => state.attachments.attachments);
   const uiConfig = useAppSelector((state) => state.formLayout.uiConfig);
-  const options = useAppSelector((state) => state.optionState.options);
+  const options = allOptions;
   const process = useAppSelector((state) => state.process);
   const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);
   const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);

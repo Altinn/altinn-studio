@@ -1,5 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { IOption } from 'src/layout/common.generated';
+
 const appFrontend = new AppFrontend();
 
 describe('Options', () => {
@@ -41,5 +43,48 @@ describe('Options', () => {
     cy.findByRole('option', { name: 'Endre fra: 3, Endre til: 4' }).should('be.visible');
     cy.findByRole('option', { name: 'Endre fra: 1, Endre til: 2' }).click();
     cy.get(appFrontend.group.options).should('have.value', 'Endre fra: 1, Endre til: 2');
+  });
+
+  it('mapping updates options, but does not always unselect previous options', () => {
+    for (const optionsId of ['references', 'test']) {
+      cy.intercept({ method: 'GET', url: `**/options/${optionsId}**` }, (req) => {
+        req.reply((res) => {
+          const options = res.body as IOption[];
+          options.push({
+            value: 'fixedValue',
+            label: 'My fixed value',
+          });
+          res.send(JSON.stringify(options));
+        });
+      }).as(`interceptOptions(${optionsId})`);
+    }
+
+    cy.goto('changename');
+
+    // All options are fetched once at first (with 'undefined' in mapping, as no value for source has been set)
+    cy.get('@interceptOptions(references).all').should('have.length', 1);
+    cy.get('@interceptOptions(test).all').should('have.length', 1);
+
+    // This field uses preselectedOptionIndex to select 'Altinn'
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
+
+    // At that point our options have new mappings, so requests should have fired again
+    cy.get('@interceptOptions(references).all').should('have.length', 2);
+    cy.get('@interceptOptions(test).all').should('have.length', 2);
+
+    cy.get(appFrontend.changeOfName.reference).dsSelect('My fixed value');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'My fixed value');
+    cy.get(appFrontend.changeOfName.reference2).dsSelect('My fixed value');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'My fixed value');
+
+    // Selecting a new source now causes requests to fire once more with new mapping,
+    // but the fixed value should stay in place as they were present in both the old and new options responses
+    cy.get(appFrontend.changeOfName.sources).dsSelect('Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
+    cy.get('@interceptOptions(references).all').should('have.length', 3);
+    cy.get('@interceptOptions(test).all').should('have.length', 3);
+
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'My fixed value');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'My fixed value');
   });
 });

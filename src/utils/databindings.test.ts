@@ -1,7 +1,6 @@
 import {
   filterOutInvalidData,
   flattenObject,
-  getBaseGroupDataModelBindingFromKeyWithIndexIndicators,
   getIndexCombinations,
   getKeyIndex,
   getKeyWithoutIndex,
@@ -373,20 +372,6 @@ describe('utils/databindings.ts', () => {
           'group[1].field': 'another value',
         });
       });
-    });
-  });
-
-  describe('getBaseGroupDataModelBindingFromKeyWithIndexIndicators', () => {
-    it('should return base group databindings', () => {
-      const result = getBaseGroupDataModelBindingFromKeyWithIndexIndicators(
-        'someBaseProp.someGroup[{0}].someOtherGroup[{1}].someProp',
-      );
-      expect(result).toEqual(['someBaseProp.someGroup', 'someBaseProp.someGroup.someOtherGroup']);
-    });
-
-    it('should return an empty array if no groups are present', () => {
-      const result = getBaseGroupDataModelBindingFromKeyWithIndexIndicators('someField.someProp');
-      expect(result).toEqual([]);
     });
   });
 

@@ -15,9 +15,27 @@ function fillOutChangeName() {
     // make this mistake in designing their form.
     cy.navPage('grid').click();
     cy.get(appFrontend.grid.totalAmount).type('1000000');
+
+    // These fields are filled out every meticulously, because the number formatting and complex state management
+    // as a result of number formatting + data fetched from the server causes them to be very flaky. In later
+    // versions of the design system the number formatting should be a feature we add to the TextField, not a feature
+    // we get from it, so we might be able to reduce the flakiness when we upgrade. Test flakiness again by
+    // deleting all the lines apart from the 'type' commands.
+    // @see https://github.com/Altinn/app-frontend-react/issues/1520
+    cy.get(appFrontend.grid.bolig.percent).should('have.value', '0 %');
     cy.get(appFrontend.grid.bolig.percent).type('80');
+    cy.get(appFrontend.grid.bolig.percent).blur();
+    cy.get(appFrontend.grid.bolig.percent).should('have.value', '80 %');
+
+    cy.get(appFrontend.grid.studie.percent).should('have.value', '0 %');
     cy.get(appFrontend.grid.studie.percent).type('15');
+    cy.get(appFrontend.grid.studie.percent).blur();
+    cy.get(appFrontend.grid.studie.percent).should('have.value', '15 %');
+
+    cy.get(appFrontend.grid.kredittkort.percent).should('have.value', '0 %');
     cy.get(appFrontend.grid.kredittkort.percent).type('5');
+    cy.get(appFrontend.grid.kredittkort.percent).blur();
+    cy.get(appFrontend.grid.kredittkort.percent).should('have.value', '5 %');
 
     cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).type('a');

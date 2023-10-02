@@ -8,36 +8,27 @@ import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
+import { useFileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IFileTableButtonsProps {
   node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
   attachment: IAttachment;
-  index: number;
   mobileView: boolean;
-  editIndex: number;
-  setEditIndex: (index: number) => void;
   editWindowIsOpen: boolean;
 }
 
-export function FileTableButtons({
-  node,
-  index,
-  attachment,
-  mobileView,
-  editIndex,
-  setEditIndex,
-  editWindowIsOpen,
-}: IFileTableButtonsProps) {
+export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpen }: IFileTableButtonsProps) {
   const { id, baseComponentId, dataModelBindings, alertOnDelete, type } = node.item;
   const [popoverOpen, setPopoverOpen] = useState(false);
   const hasTag = type === 'FileUploadWithTag';
   const showEditButton = hasTag && !editWindowIsOpen;
   const { lang, langAsString } = useLanguage();
   const dispatch = useAppDispatch();
+  const { index, setEditIndex, editIndex } = useFileTableRowContext();
 
-  //Edit button
+  // Edit button
   const handleEdit = (index: number) => {
     if (editIndex === -1 || editIndex !== index) {
       setEditIndex(index);

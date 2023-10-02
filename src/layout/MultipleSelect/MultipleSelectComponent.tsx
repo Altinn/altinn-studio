@@ -2,15 +2,14 @@ import React from 'react';
 
 import { Select } from '@digdir/design-system-react';
 
+import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
-import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useLanguage } from 'src/hooks/useLanguage';
-import { duplicateOptionFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
-
+const defaultSelectedOptions: string[] = [];
 export function MultipleSelectComponent({
   node,
   handleDataChange,
@@ -18,12 +17,23 @@ export function MultipleSelectComponent({
   isValid,
   overrideDisplay,
 }: IMultipleSelectProps) {
-  const { options, optionsId, mapping, queryParameters, source, id, readOnly, textResourceBindings } = node.item;
-  const apiOptions = useGetOptions({ optionsId, mapping, queryParameters, source, node });
-  const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding);
+  const { id, readOnly, textResourceBindings } = node.item;
+  const { value: _value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding);
+  const value = _value ?? formData?.simpleBinding ?? '';
+  const selected = value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
+  const { options: calculatedOptions } = useGetOptions({
+    ...node.item,
+    node,
+    formData: {
+      type: 'multi',
+      values: selected,
+      setValues: (values) => {
+        setValue(values.join(','));
+      },
+    },
+    removeDuplicates: true,
+  });
   const { langAsString } = useLanguage();
-
-  const calculatedOptions = (apiOptions || options)?.filter(duplicateOptionFilter);
 
   const formattedOptions = useFormattedOptions(calculatedOptions, true);
 

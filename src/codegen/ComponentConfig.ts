@@ -89,9 +89,9 @@ export class ComponentConfig extends GenerateComponentLike {
     return super.addProperty(prop);
   }
 
-  makeSelectionComponent(): this {
+  makeSelectionComponent(full = true): this {
     this.ensureNotOverridden();
-    return super.makeSelectionComponent();
+    return super.makeSelectionComponent(full);
   }
 
   addTextResourcesForLabel(): this {

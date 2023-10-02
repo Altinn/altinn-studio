@@ -1,4 +1,3 @@
-import { SortDirection } from 'src/layout/List/types';
 import {
   dataElementUrl,
   fileTagUrl,
@@ -350,7 +349,7 @@ describe('Frontend urlHelper.ts', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
         sortColumn: 'id',
-        sortDirection: SortDirection.Descending,
+        sortDirection: 'desc',
       });
       expect(result).toEqual(
         'https://local.altinn.cloud/ttd/test/api/datalists/country?sortColumn=id&sortDirection=desc',
@@ -369,11 +368,8 @@ describe('Frontend urlHelper.ts', () => {
     it('should return correct url when formData/dataMapping is provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
-        formData: {
-          country: 'Norway',
-        },
-        dataMapping: {
-          country: 'selectedCountry',
+        mappedData: {
+          selectedCountry: 'Norway',
         },
       });
 
@@ -383,16 +379,13 @@ describe('Frontend urlHelper.ts', () => {
     it('should render correct url when formData/Mapping, language, pagination and sorting paramters are provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
-        formData: {
-          country: 'Norway',
-        },
-        dataMapping: {
-          country: 'selectedCountry',
+        mappedData: {
+          selectedCountry: 'Norway',
         },
         pageSize: '10',
         pageNumber: '2',
         sortColumn: 'id',
-        sortDirection: SortDirection.Descending,
+        sortDirection: 'desc',
         language: 'no',
       });
 

@@ -15,7 +15,13 @@ describe('Summary', () => {
         component.hidden = ['equals', ['component', 'newFirstName'], 'hidePrevName'];
       }
     });
+
     cy.goto('changename');
+
+    //Fixing flaky test by making sure that options are loaded before testing them in the summary
+    // Make sure we wait until the option is visible, as it's not instant
+    cy.get('[role=option][value="nordmann"]').should('exist');
+
     cy.gotoNavPage('summary');
 
     // Verify empty summary components
@@ -265,6 +271,9 @@ describe('Summary', () => {
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.row(4).nestedGroup.row(0).nestedSource).should('have.value', 'Altinn');
+    cy.get('[role=option][value="nordmann"]').should('exist');
+
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.gotoNavPage('summary');
@@ -293,6 +302,11 @@ describe('Summary', () => {
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('contain.text', `Skjul kommentar felt : ${texts.emptySummary}`);
+    cy.get('[data-testid=summary-group-component]')
+      .children()
+      .last()
+      .first()
+      .should('contain.text', `hvor fikk du vite om skjemaet? : Altinn`);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-source-4] > div')
       .children()
       .last()

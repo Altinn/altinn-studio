@@ -230,6 +230,7 @@ export class AppFrontend {
           comments: `#comments-${idx}-${subIdx}`,
           uploadTagMulti: makeUploaderSelectors('subUploader', `${idx}-${subIdx}`, 2, 'tagged'),
           nestedDynamics: `#nestedDynamics-${idx}-${subIdx} input[type=checkbox]`,
+          nestedSource: `#nested-source-${idx}-${subIdx}`,
           nestedOptions: [
             `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(0)`,
             `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(1)`,

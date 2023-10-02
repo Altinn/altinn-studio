@@ -164,16 +164,10 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       language: 'nb',
     },
     optionState: {
-      options: {},
       error: null,
-      loading: false,
     },
     dataListState: {
-      dataLists: {},
       error: null,
-      dataListCount: 0,
-      dataListLoadedCount: 0,
-      loading: false,
     },
     applicationSettings: {
       applicationSettings: applicationSettingsMock,

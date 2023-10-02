@@ -1,7 +1,6 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { getOptionList } from 'src/features/options/getOptionList';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
@@ -27,7 +26,7 @@ export class Likert extends LikertDef {
     }
 
     const value = formData[node.item.dataModelBindings.simpleBinding] || '';
-    const optionList = getOptionList(node.item, options, langTools, node, formData);
+    const optionList = options[node.item.id] || [];
     return getSelectedValueToText(value, langTools, optionList) || '';
   }
 

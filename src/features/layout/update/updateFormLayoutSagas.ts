@@ -34,7 +34,6 @@ export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectFormData = (state: IRuntimeState) => state.formData.formData;
 export const selectFormLayouts = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectAttachmentState = (state: IRuntimeState) => state.attachments;
-export const selectOptions = (state: IRuntimeState) => state.optionState.options;
 export const selectAllLayouts = (state: IRuntimeState) => state.formLayout.uiConfig.tracks.order;
 export const selectCurrentLayout = (state: IRuntimeState) => state.formLayout.uiConfig.currentView;
 const selectUiConfig = (state: IRuntimeState) => state.formLayout.uiConfig;

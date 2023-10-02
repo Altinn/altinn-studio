@@ -1,6 +1,3 @@
-import { put } from 'redux-saga/effects';
-
-import { OptionsActions } from 'src/features/options/optionsSlice';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import { getLanguageQueryParam } from 'src/utils/party';
 import type { IFetchProfileFulfilled, IFetchProfileRejected, IProfileState } from 'src/features/profile/index';
@@ -42,9 +39,6 @@ export const profileSlice = () => {
         },
       }),
       updateSelectedAppLanguage: mkAction<IUpdateSelectedAppLanguage>({
-        *takeEvery() {
-          yield put(OptionsActions.fetch());
-        },
         reducer: (state, action) => {
           const { selected } = action.payload;
           localStorage.setItem(getLanguageStorageKey(state.profile.userId), selected);

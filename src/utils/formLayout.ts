@@ -1,10 +1,9 @@
 import { groupIsRepeatingExt, groupIsRepeatingLikertExt } from 'src/layout/Group/tools';
-import type { IAttachmentState } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
 import type { ILayoutNavigation } from 'src/layout/common.generated';
 import type { CompGroupExternal, IGroupEditPropertiesInternal, IGroupFilter } from 'src/layout/Group/config.generated';
 import type { CompExternal, ILayout } from 'src/layout/layout';
-import type { IFileUploadersWithTag, ILayoutSets, IOptionsChosen, IRepeatingGroups } from 'src/types';
+import type { ILayoutSets, IRepeatingGroups } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -161,31 +160,6 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
     }
   });
   return repeatingGroups;
-}
-
-export function mapFileUploadersWithTag(formLayout: ILayout, attachmentState: IAttachmentState) {
-  const fileUploaders: IFileUploadersWithTag = {};
-  for (const componentId of Object.keys(attachmentState.attachments)) {
-    const baseComponentId = splitDashedKey(componentId).baseComponentId;
-    const component = formLayout.find((layoutElement) => layoutElement.id === baseComponentId);
-    if (!component || component.type !== 'FileUploadWithTag') {
-      continue;
-    }
-
-    const attachments = attachmentState.attachments[componentId];
-    const chosenOptions: IOptionsChosen = {};
-    for (let index = 0; index < attachments.length; index++) {
-      const tags = attachments[index].tags;
-      if (tags) {
-        chosenOptions[attachments[index].id] = tags[0];
-      }
-    }
-    fileUploaders[componentId] = {
-      editIndex: -1,
-      chosenOptions,
-    };
-  }
-  return fileUploaders;
 }
 
 /**

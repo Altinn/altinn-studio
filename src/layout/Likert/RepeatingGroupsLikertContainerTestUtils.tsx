@@ -42,7 +42,7 @@ export const generateMockFormData = (likertQuestions: IQuestion[]): Record<strin
     {},
   );
 
-export const defaultMockOptions = [
+export const defaultMockOptions: IOption[] = [
   {
     label: 'Bra',
     value: '1',
@@ -128,7 +128,6 @@ const createLayout = (
     },
     currentView: 'FormLayout',
     focus: null,
-    fileUploadersWithTag: {},
     navigationConfig: {},
     tracks: {
       order: null,
@@ -221,26 +220,19 @@ export const render = ({
     formData: mockData,
     formValidations: createFormValidationsForCurrentView(validations),
     textResources: createTextResource(mockQuestions, extraTextResources),
-    optionState: {
-      options: {
-        'option-test': {
-          id: 'option-test',
-          options: mockOptions,
-          loading: false,
-        },
-      },
-      error: null,
-      loading: false,
-    },
   });
 
   const mockStore = setupStore(preloadedState).store;
   const mockStoreDispatch = jest.fn();
   mockStore.dispatch = mockStoreDispatch;
   setScreenWidth(mobileView ? 600 : 1200);
-  renderWithProviders(<ContainerTester id={mockLikertContainer.id} />, {
-    store: mockStore,
-  });
+  renderWithProviders(
+    <ContainerTester id={mockLikertContainer.id} />,
+    {
+      store: mockStore,
+    },
+    { fetchOptions: () => Promise.resolve(mockOptions) },
+  );
 
   return { mockStoreDispatch };
 };
@@ -254,29 +246,29 @@ export function ContainerTester(props: { id: string }) {
   return <RepeatingGroupsLikertContainer node={node} />;
 }
 
-export const validateTableLayout = (questions: IQuestion[], options: IOption[]) => {
+export const validateTableLayout = async (questions: IQuestion[], options: IOption[]) => {
   screen.getByRole('table');
 
   for (const option of defaultMockOptions) {
-    const columnHeader = screen.getByRole('columnheader', {
+    const columnHeader = await screen.findByRole('columnheader', {
       name: new RegExp(option.label),
     });
     expect(columnHeader).toBeInTheDocument();
   }
 
-  validateRadioLayout(questions, options);
+  await validateRadioLayout(questions, options);
 };
 
-export const validateRadioLayout = (questions: IQuestion[], options: IOption[], mobileView = false) => {
+export const validateRadioLayout = async (questions: IQuestion[], options: IOption[], mobileView = false) => {
   if (mobileView) {
-    expect(screen.getAllByRole('radiogroup')).toHaveLength(questions.length);
+    const radioGroups = await screen.findAllByRole('radiogroup');
+    expect(radioGroups).toHaveLength(questions.length);
   } else {
-    // Header and questions
-    expect(screen.getAllByRole('row')).toHaveLength(questions.length + 1);
+    expect(await screen.findAllByRole('row')).toHaveLength(questions.length + 1);
   }
 
   for (const question of questions) {
-    const row = screen.getByRole(mobileView ? 'radiogroup' : 'row', {
+    const row = await screen.findByRole(mobileView ? 'radiogroup' : 'row', {
       name: question.Question,
     });
 

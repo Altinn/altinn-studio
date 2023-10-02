@@ -24,9 +24,13 @@ Object.defineProperty(document, 'fonts', {
   value: { ready: Promise.resolve({}) },
 });
 
+// Forcing a low timeout for useDelayedSaveState()
+(global as any).delayedSaveState = 50;
+
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
 window.org = 'ttd';
 window.app = 'test';
+window.instanceId = 'test-instance-id';
 window.logError = jest.fn();
 window.logWarn = jest.fn();
 window.logInfo = jest.fn();

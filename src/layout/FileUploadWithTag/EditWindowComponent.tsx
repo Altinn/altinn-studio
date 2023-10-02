@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Button, Select } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
@@ -6,28 +6,23 @@ import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
-import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
+import { useFileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import { renderValidationMessages } from 'src/utils/render';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/layout/common.generated';
-import type { IRuntimeState } from 'src/types';
 
 export interface EditWindowProps {
   node: PropsFromGenericComponent<'FileUploadWithTag'>['node'];
   attachment: IAttachment;
   mobileView: boolean;
   options?: IOption[];
-  setEditIndex: (index: number) => void;
-  index: number;
-  editIndex: number;
   attachmentValidations: {
     id: string;
     message: string;
@@ -41,52 +36,39 @@ export interface EditWindowProps {
 
 export function EditWindowComponent({
   attachment,
-  index,
-  editIndex,
   attachmentValidations,
   mobileView,
   node,
   options,
-  setEditIndex,
   validationsWithTag,
   setValidationsWithTag,
 }: EditWindowProps): React.JSX.Element {
-  const dispatch = useAppDispatch();
   const { id, baseComponentId, textResourceBindings, readOnly } = node.item;
   const { lang, langAsString } = useLanguage();
-
+  const { setEditIndex } = useFileTableRowContext();
+  const dispatch = useAppDispatch();
+  const rawSelectedTag = attachment.tags ? attachment.tags[0] : undefined;
+  const [chosenOption, setChosenOption] = useState<IOption | undefined>(
+    rawSelectedTag ? options?.find((o) => o.value === rawSelectedTag) : undefined,
+  );
   const formattedOptions = useFormattedOptions(options);
 
-  const onDropdownDataChange = (attachmentId: string, value: string) => {
+  const onDropdownDataChange = (value: string) => {
     if (value !== undefined) {
       const option = options?.find((o) => o.value === value);
       if (option !== undefined) {
-        dispatch(
-          FormLayoutActions.updateFileUploaderWithTagChosenOptions({
-            componentId: id,
-            baseComponentId: baseComponentId || id,
-            id: attachmentId,
-            option,
-          }),
-        );
+        setChosenOption(option);
       } else {
         console.error(`Could not find option for ${value}`);
       }
     }
   };
 
-  const chosenOptions = useAppSelector(
-    (state: IRuntimeState) =>
-      (state.formLayout.uiConfig.fileUploadersWithTag &&
-        state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions) ??
-      {},
-  );
-
-  const handleSave = (attachment: IAttachment) => {
-    if (chosenOptions[attachment.id] !== undefined && chosenOptions[attachment.id].length !== 0) {
+  const handleSave = () => {
+    if (chosenOption) {
       setEditIndex(-1);
-      if (attachment.tags === undefined || chosenOptions[attachment.id] !== attachment.tags[0]) {
-        setAttachmentTag(attachment, chosenOptions[attachment.id]);
+      if (attachment.tags === undefined || chosenOption.value !== attachment.tags[0]) {
+        setAttachmentTag(chosenOption);
       }
       setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== attachment.id)); // Remove old validation if exists
     } else {
@@ -103,20 +85,15 @@ export function EditWindowComponent({
     }
   };
 
-  const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
-    const option = options?.find((o) => o.value === optionValue);
-    if (option !== undefined) {
-      dispatch(
-        AttachmentActions.updateAttachment({
-          attachment,
-          componentId: id,
-          baseComponentId: baseComponentId || id,
-          tag: option.value,
-        }),
-      );
-    } else {
-      console.error(`Could not find option for ${optionValue}`);
-    }
+  const setAttachmentTag = (option: IOption) => {
+    dispatch(
+      AttachmentActions.updateAttachment({
+        attachment,
+        componentId: id,
+        baseComponentId: baseComponentId || id,
+        tag: option.value,
+      }),
+    );
   };
 
   const saveIsDisabled = attachment.updating === true || attachment.uploaded === false || readOnly;
@@ -171,10 +148,7 @@ export function EditWindowComponent({
             <div>
               <FileTableButtons
                 node={node}
-                index={index}
                 mobileView={mobileView}
-                editIndex={editIndex}
-                setEditIndex={setEditIndex}
                 attachment={attachment}
                 editWindowIsOpen={true}
               />
@@ -208,13 +182,13 @@ export function EditWindowComponent({
           >
             <Select
               inputId={`attachment-tag-dropdown-${attachment.id}`}
-              onChange={(value) => onDropdownDataChange(attachment.id, value)}
+              onChange={onDropdownDataChange}
               options={formattedOptions}
               disabled={saveIsDisabled}
               error={attachmentValidations.filter((i) => i.id === attachment.id).length > 0}
               label={langAsString('general.choose')}
               hideLabel={true}
-              value={chosenOptions[attachment.id]}
+              value={chosenOption?.value}
             />
           </Grid>
           <Grid
@@ -233,7 +207,7 @@ export function EditWindowComponent({
             ) : (
               <Button
                 size='small'
-                onClick={() => handleSave(attachment)}
+                onClick={() => handleSave()}
                 id={`attachment-save-tag-button-${attachment.id}`}
                 disabled={saveIsDisabled}
               >

@@ -4,6 +4,7 @@ import type { FileRejection } from 'react-dropzone';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
+import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
@@ -17,7 +18,6 @@ import {
   getFileUploadWithTagComponentValidations,
   parseFileUploadComponentWithTagValidationObject,
 } from 'src/utils/formComponentUtils';
-import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -53,19 +53,12 @@ export function FileUploadComponent({ componentValidations, node }: IFileUploadW
   const langTools = useLanguage();
   const { lang, langAsString } = langTools;
 
-  const options = useAppSelector((state) => {
-    const mapping = ('mapping' in node.item && node.item?.mapping) || undefined;
-    const optionsId = 'optionsId' in node.item && node.item.optionsId;
-    if (optionsId) {
-      return state.optionState.options[
-        getOptionLookupKey({
-          id: optionsId,
-          mapping,
-        })
-      ]?.options;
-    } else {
-      return undefined;
-    }
+  const { options } = useGetOptions({
+    ...node.item,
+    node,
+    formData: {
+      disable: 'I have read the code and know that core functionality will be missing',
+    },
   });
 
   // Get data from validations based on hasTag.

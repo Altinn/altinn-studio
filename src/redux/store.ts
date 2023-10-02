@@ -4,11 +4,14 @@ import createSagaMiddleware from 'redux-saga';
 import type { PreloadedState } from 'redux';
 import type { SagaMiddleware } from 'redux-saga';
 
+import { queryClient } from '..';
+
 import { combinedReducers } from 'src/redux/reducers';
 import { appApi } from 'src/services/AppApi';
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
+  sagaMiddleware.setContext({ queryClient });
   const middlewares = [sagaMiddleware, appApi.middleware];
   const actionLog: any[] = [];
 

@@ -5,19 +5,14 @@ import { LegacyCheckboxGroup } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
-import { useGetOptions } from 'src/hooks/useGetOptions';
-import { useHasChangedIgnoreUndefined } from 'src/hooks/useHasChangedIgnoreUndefined';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { shouldUseRowLayout } from 'src/utils/layout';
-import { getOptionLookupKey } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IOption } from 'src/layout/common.generated';
 
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 
-const defaultOptions: IOption[] = [];
 const defaultSelectedOptions: string[] = [];
 
 export const CheckboxContainerComponent = ({
@@ -27,53 +22,27 @@ export const CheckboxContainerComponent = ({
   handleDataChange,
   overrideDisplay,
 }: ICheckboxContainerProps) => {
-  const {
-    id,
-    options,
-    optionsId,
-    preselectedOptionIndex,
-    layout,
-    readOnly,
-    mapping,
-    queryParameters,
-    source,
-    textResourceBindings,
-    required,
-    labelSettings,
-  } = node.item;
-  const apiOptions = useGetOptions({ optionsId, mapping, queryParameters, source, node });
-  const calculatedOptions = apiOptions || options || defaultOptions;
-  const hasSelectedInitial = React.useRef(false);
-  const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
-  const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
-  const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
+  const { id, layout, readOnly, textResourceBindings, required, labelSettings } = node.item;
   const { lang, langAsString } = useLanguage();
+  const {
+    value: _value,
+    setValue,
+    saveValue,
+  } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '', 200);
 
-  const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '', 200);
-
+  const value = _value ?? formData?.simpleBinding ?? '';
   const selected = value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
-
-  React.useEffect(() => {
-    const shouldSelectOptionAutomatically =
-      !formData?.simpleBinding &&
-      typeof preselectedOptionIndex !== 'undefined' &&
-      preselectedOptionIndex >= 0 &&
-      calculatedOptions &&
-      preselectedOptionIndex < calculatedOptions.length &&
-      hasSelectedInitial.current === false;
-
-    if (shouldSelectOptionAutomatically) {
-      setValue(calculatedOptions[preselectedOptionIndex].value, true);
-      hasSelectedInitial.current = true;
-    }
-  }, [formData?.simpleBinding, calculatedOptions, setValue, preselectedOptionIndex]);
-
-  React.useEffect(() => {
-    if (optionsHasChanged && formData.simpleBinding) {
-      // New options have been loaded, we have to reset form data.
-      setValue(undefined, true);
-    }
-  }, [setValue, optionsHasChanged, formData]);
+  const { options: calculatedOptions, isFetching } = useGetOptions({
+    ...node.item,
+    node,
+    formData: {
+      type: 'multi',
+      values: selected,
+      setValues: (values) => {
+        setValue(values.join(','));
+      },
+    },
+  });
 
   const handleChange = (checkedItems: string[]) => {
     const checkedItemsString = checkedItems.join(',');
@@ -102,7 +71,7 @@ export const CheckboxContainerComponent = ({
 
   const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1;
 
-  return fetchingOptions ? (
+  return isFetching ? (
     <AltinnSpinner />
   ) : (
     <div

@@ -15,6 +15,7 @@ import { _private } from 'src/utils/layout/hierarchy';
 import { generateEntireHierarchy, generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
+import type { AllOptionsMap } from 'src/features/options/useAllOptions';
 import type { HierarchyDataSources } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
 import type { IApplicationSettings } from 'src/types/shared';
@@ -73,6 +74,7 @@ describe('Expressions shared function tests', () => {
           return;
         }
 
+        const options: AllOptionsMap = {};
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
@@ -84,6 +86,7 @@ describe('Expressions shared function tests', () => {
             textResources: textResources ? resourcesAsMap(textResources) : {},
             profileLanguage: profileSettings?.language,
           }),
+          options,
         };
 
         const _layouts = convertLayouts(layouts);
@@ -100,6 +103,14 @@ describe('Expressions shared function tests', () => {
           ? generateEntireHierarchy(_layouts, currentLayout, repeatingGroups, dataSources, getLayoutComponentObject)
           : resolvedNodesInLayouts(_layouts, currentLayout, repeatingGroups, dataSources);
         const component = findComponent(context, rootCollection);
+
+        for (const node of rootCollection.allNodes()) {
+          if ('options' in node.item) {
+            // Extremely simple mock of useGetOptions() and useAllOptions(), assuming
+            // all components use plain static options
+            options[node.item.id] = node.item.options;
+          }
+        }
 
         if (expectsFailure) {
           expect(() => {
