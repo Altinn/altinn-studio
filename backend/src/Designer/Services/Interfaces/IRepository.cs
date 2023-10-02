@@ -15,13 +15,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     public interface IRepository
     {
         /// <summary>
-        /// Method that creates service metadata for a new app
-        /// </summary>
-        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/>.</param>
-        /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        bool CreateServiceMetadata(ModelMetadata serviceMetadata);
-
-        /// <summary>
         /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
