@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
                 return Ok(formLayouts);
             }
@@ -121,7 +121,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
                 return Ok();
             }
@@ -151,7 +151,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 _appDevelopmentService.DeleteFormLayout(editingContext, layoutSetName, layoutName);
                 return Ok();
             }
@@ -182,7 +182,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 _appDevelopmentService.UpdateFormLayoutName(editingContext, layoutSetName, layoutName, newName);
                 return Ok();
             }
@@ -214,7 +214,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettings, layoutSetName, cancellationToken);
                 return Ok();
             }
@@ -245,7 +245,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 var layoutSettings = await _appDevelopmentService.GetLayoutSettings(editingContext, layoutSetName, cancellationToken);
                 return Ok(layoutSettings);
             }
@@ -274,7 +274,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
                 if (layoutSets is null)
                 {
@@ -311,7 +311,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
 
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 LayoutSets layoutSets = await _appDevelopmentService.ConfigureLayoutSet(editingContext, layoutSetName, cancellationToken);
                 return Ok(layoutSets);
             }
@@ -339,7 +339,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
                 return Ok();
             }
@@ -369,7 +369,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 string ruleHandler = await _appDevelopmentService.GetRuleHandler(editingContext, layoutSetName, cancellationToken);
                 return Content(ruleHandler);
             }
@@ -407,7 +407,7 @@ namespace Altinn.Studio.Designer.Controllers
                 using (StreamReader reader = new(Request.Body))
                 {
                     content = await reader.ReadToEndAsync();
-                    var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                    var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                     await _appDevelopmentService.SaveRuleHandler(editingContext, content, layoutSetName, cancellationToken);
                 }
 
@@ -441,7 +441,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 await _appDevelopmentService.SaveRuleConfig(editingContext, ruleConfig, layoutSetName, cancellationToken);
                 return Ok();
             }
@@ -471,7 +471,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.From(org, app, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 string ruleConfig = await _appDevelopmentService.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(editingContext, layoutSetName, cancellationToken);
                 return Content(ruleConfig);
             }

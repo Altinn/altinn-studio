@@ -28,7 +28,7 @@ namespace Altinn.Studio.Designer.Models
             }
         }
 
-        public static AltinnRepoEditingContext From(string org, string repo, string developer)
+        public static AltinnRepoEditingContext FromOrgRepoDeveloper(string org, string repo, string developer)
         {
             return new AltinnRepoEditingContext(org, repo, developer);
         }

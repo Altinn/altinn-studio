@@ -27,7 +27,7 @@ public class AppDevelopmentServiceTest : IDisposable
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
         IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.From(org, targetRepository, developer), null);
+        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), null);
 
         layoutSettings.Should().NotBeNull();
     }
@@ -58,8 +58,8 @@ public class AppDevelopmentServiceTest : IDisposable
 
         var layoutSettingsUpdated = JsonNode.Parse(jsonSettingsUpdatedString);
 
-        await appDevelopmentService.SaveLayoutSettings(AltinnRepoEditingContext.From(org, targetRepository, developer), layoutSettingsUpdated, null);
-        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.From(org, targetRepository, developer), null);
+        await appDevelopmentService.SaveLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), layoutSettingsUpdated, null);
+        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), null);
 
         layoutSettings.Should().NotBeNull();
         (layoutSettings["pages"]["order"] as JsonArray).Should().HaveCount(3);
@@ -77,7 +77,7 @@ public class AppDevelopmentServiceTest : IDisposable
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
         IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.From(org, targetRepository, developer), layoutSetName);
+        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), layoutSetName);
 
         layoutSettings.Should().NotBeNull();
     }
@@ -95,7 +95,7 @@ public class AppDevelopmentServiceTest : IDisposable
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
         IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.From(org, targetRepository, developer), layoutSetName);
+        var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), layoutSetName);
 
         layoutSettings.Should().NotBeNull();
         (layoutSettings["pages"]["order"] as JsonArray).Should().HaveCount(2);
