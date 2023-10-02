@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import classes from './Administration.module.css';
+import classes from './LegacyAdministration.module.css';
 import type { Repository } from 'app-shared/types/Repository';
 import { PageSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
@@ -16,7 +16,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
   const { org, app } = useStudioUrlParams();
   const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector(
-    (state) => state.serviceInformation.serviceDescriptionObj.description
+    (state) => state.serviceInformation.serviceDescriptionObj.description,
   );
   const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
   const dispatch = useAppDispatch();
@@ -57,7 +57,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
-        })
+        }),
       );
       setEditAppName(false);
     }
@@ -76,7 +76,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
-        })
+        }),
       );
       setEditAppDescription(false);
     }
@@ -95,7 +95,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
-        })
+        }),
       );
       setEditAppId(false);
     }

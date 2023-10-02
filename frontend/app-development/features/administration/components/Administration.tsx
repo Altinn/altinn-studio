@@ -1,48 +1,36 @@
 import React from 'react';
-import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import { PageSpinner } from 'app-shared/components';
-import { DatamodelsAdministration } from './DatamodelsAdministration';
-import { RepositoryType } from 'app-shared/types/global';
-import { ServiceAdministration } from './ServiceAdministration';
-import { SideMenuContent } from './SideMenuContent';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import { useAppSelector } from '../../../hooks';
-import { useTranslation } from 'react-i18next';
+import classes from './Administration.module.css';
+import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { PageSpinner } from 'app-shared/components/PageSpinner';
 
-export function AdministrationComponent() {
-  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
-  const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
-  const { t } = useTranslation();
+export const Administration = () => {
   const { org, app } = useStudioUrlParams();
-  const repositoryType = getRepositoryType(org, app);
+  const { data: metadata, isLoading } = useAppMetadataQuery(org, app);
+
+  if (isLoading) return <PageSpinner />;
 
   return (
-    <div>
-      {repository && (
-        <AltinnColumnLayout
-          sideMenuChildren={
-            <SideMenuContent
-              initialCommit={initialCommit}
-              service={repository}
-              repoType={repositoryType}
-            />
-          }
-          header={t('administration.administration')}
-        >
-          {repositoryType === RepositoryType.App && (
-            <ServiceAdministration repository={repository} />
-          )}
-          {repositoryType === RepositoryType.Datamodels && (
-            <DatamodelsAdministration />
-          )}
-        </AltinnColumnLayout>
-      )}
-      {!repository && (
-        <PageSpinner />
-      )}
+    <div className={classes.administration}>
+      <div className={classes.container}>
+        <h1 className={classes.header}>{metadata?.title?.nb}</h1>
+        <div className={classes.content}>
+          <main className={classes.main}>
+            <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
+            <hr className={classes.divider} />
+            <div className={classes.placeholder} style={{ height: '300px' }}>
+              {/* NAVIGATION PLACEHOLDER */}
+            </div>
+          </main>
+          <aside className={classes.aside}>
+            <div className={classes.placeholder} style={{ height: '300px' }}>
+              {/* DOCUMENTATION PLACEHOLDER */}
+            </div>
+            <hr className={classes.divider} />
+            <div className={classes.placeholder}>{/* NEWS PLACEHOLDER */}</div>
+          </aside>
+        </div>
+      </div>
     </div>
   );
-}
-
-export const Administration = AdministrationComponent;
+};

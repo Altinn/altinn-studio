@@ -1,116 +1,43 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Administration } from './Administration';
-import type { ICommit } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import type { Repository } from 'app-shared/types/Repository';
+import { queriesMock } from 'app-development/test/mocks';
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+// Test data
+const org = 'my-org';
+const app = 'my-app';
+const title = 'test';
 
 describe('Administration', () => {
-  const mockService: Repository = {
-    clone_url: '',
-    created_at: '',
-    default_branch: '',
-    description: '',
-    empty: false,
-    fork: false,
-    forks_count: 0,
-    full_name: '',
-    html_url: '',
-    id: 123,
-    is_cloned_to_local: true,
-    mirror: false,
-    name: 'CoolService',
-    open_issues_count: 0,
-    owner: {
-      avatar_url: '',
-      email: '',
-      full_name: 'Mons Monsen',
-      id: 234,
-      login: 'Mons',
-      UserType: 2,
-    },
-    permissions: {
-      admin: true,
-      pull: true,
-      push: true,
-    },
-    private: false,
-    repositoryCreatedStatus: 0,
-    size: 0,
-    ssh_url: '',
-    stars_count: 1337,
-    updated_at: '',
-    watchers_count: 0,
-    website: '',
-  };
-  const mockServiceName = 'AppName';
-  const mockInitialCommit: ICommit = {
-    message: '',
-    author: {
-      email: '',
-      name: 'Per',
-      when: '',
-    },
-    comitter: {
-      email: '',
-      name: 'Per',
-      when: '',
-    },
-    sha: '',
-    messageShort: '',
-    encoding: '',
-  };
-  const mockServiceDescription = 'AppDescription';
-  const mockServiceId = 'AppId';
-  const mockServiceInformation: IHandleServiceInformationState = {
-    initialCommit: mockInitialCommit,
-    repositoryInfo: mockService,
-    serviceDescriptionObj: {
-      description: mockServiceDescription,
-      saving: false,
-    },
-    serviceIdObj: {
-      serviceId: mockServiceId,
-      saving: false,
-    },
-    serviceNameObj: {
-      name: mockServiceName,
-      saving: false,
-    },
-    error: null,
-  };
-
-  it('should show spinner when loading required data', () => {
+  it('shows spinner when loading required data', () => {
     renderWithProviders(<Administration />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument();
   });
 
-  it('should show Apps view when repository is app repository', () => {
+  it('renders component', async () => {
     renderWithProviders(<Administration />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-      preloadedState: {
-        serviceInformation: mockServiceInformation,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+      queries: {
+        ...queriesMock,
+        getAppMetadata: jest.fn().mockImplementation(() =>
+          Promise.resolve({
+            title: {
+              nb: title,
+            },
+          }),
+        ),
       },
     });
-    const serviceIdText = screen.getByText(textMock('administration.service_id'));
-    expect(serviceIdText).not.toBeNull();
-  });
 
-  it('should show Datamodels view when repository name matches "<org>-datamodels" format', () => {
-    renderWithProviders(<Administration />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-org-datamodels`,
-      preloadedState: {
-        serviceInformation: mockServiceInformation,
-      },
-    });
-    const infoText = screen.getByText(textMock('administration.datamodels_info1'));
-    expect(infoText).not.toBeNull();
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+
+    expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
   });
 });
