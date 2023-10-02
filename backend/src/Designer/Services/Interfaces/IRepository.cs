@@ -106,33 +106,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetWidgetSettings(string org, string app);
 
         /// <summary>
-        /// Create a new file in blob storage.
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="filepath">The filepath</param>
-        /// <param name="stream">Data to be written to blob storage.</param>
-        /// <returns>The size of the blob.</returns>
-        Task WriteData(string org, string repo, string filepath, Stream stream);
-
-        /// <summary>
-        /// Reads a data file from blob storage
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="path">Path to be file to read blob storage.</param>
-        /// <returns>The stream with the file</returns>
-        Task<Stream> ReadData(string org, string repo, string path);
-
-        /// <summary>
-        /// Deletes the data element permanently
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="path">Path to the file to delete.</param>
-        void DeleteData(string org, string repo, string path);
-
-        /// <summary>
         /// Lists the content of a repository
         /// </summary>
         List<FileSystemObject> GetContents(string org, string repository, string path = "");

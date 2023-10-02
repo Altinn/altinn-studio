@@ -428,52 +428,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await _gitea.CreateRepository(org, options);
         }
 
-        /// <summary>
-        /// Create a new file in blob storage.
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="filepath">The filepath</param>
-        /// <param name="stream">Data to be written to blob storage.</param>
-        /// <returns>The size of the blob.</returns>
-        public async Task WriteData(string org, string repo, string filepath, Stream stream)
-        {
-            string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            stream.Seek(0, SeekOrigin.Begin);
-            using (FileStream outputFileStream = new(repopath + filepath, FileMode.Create))
-            {
-                await stream.CopyToAsync(outputFileStream);
-                await outputFileStream.FlushAsync();
-            }
-        }
-
-        /// <summary>
-        /// Reads a data file from blob storage
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="path">Path to be file to read blob storage.</param>
-        /// <returns>The stream with the file</returns>
-        public async Task<Stream> ReadData(string org, string repo, string path)
-        {
-            string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            Stream fs = File.OpenRead(repopath + path);
-            return await Task.FromResult(fs);
-        }
-
-        /// <summary>
-        /// Deletes the data element permanently
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="path">Path to the file to delete.</param>
-        public void DeleteData(string org, string repo, string path)
-        {
-            string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Delete(repopath + path);
-        }
-
         // IKKE SLETT
         private void UpdateAuthorizationPolicyFile(string org, string app)
         {
