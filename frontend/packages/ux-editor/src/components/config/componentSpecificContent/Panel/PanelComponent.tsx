@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyCheckbox, Select } from '@digdir/design-system-react';
+import { Switch, Select } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
@@ -18,7 +18,7 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
   };
 
   return (
-    <div>
+    <>
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}
@@ -28,13 +28,14 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
       />
       <FormField
         id={component.id}
-        label={t('ux_editor.show_icon')}
-        value={component?.showIcon}
+        value={component?.showIcon || false}
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
       >
         {({ value, onChange }) => (
-          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
+            {t('ux_editor.show_icon')}
+          </Switch>
         )}
       </FormField>
       <FormField
@@ -53,6 +54,6 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
           />
         )}
       </FormField>
-    </div>
+    </>
   );
 };
