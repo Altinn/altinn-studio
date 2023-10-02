@@ -6,7 +6,8 @@ import { useText } from '../../../hooks';
 import {
   Expression,
   SubExpression,
-  getExpressionPropertiesBasedOnComponentType
+  getExpressionPropertiesBasedOnComponentType,
+  ExpressionProperty
 } from '../../../types/Expressions';
 import {
   addExpressionIfLimitNotReached,
@@ -30,7 +31,7 @@ export const Expressions = () => {
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
   const [expressionInEditModeId, setExpressionInEditModeId] = React.useState<string | undefined>(undefined);
-  const [successfullyAddedExpressionIndex, setSuccessfullyAddedExpressionIndex] = React.useState<number | undefined>(undefined);
+  const [successfullyAddedExpressionProperty, setSuccessfullyAddedExpressionProperty] = React.useState<ExpressionProperty | undefined>(undefined);
   const t = useText();
   
   useEffect(() => {
@@ -61,8 +62,8 @@ export const Expressions = () => {
   const saveExpressionAndSetCheckMark = async (index: number, expression: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
-    // Need to use index as expression reference since the id will be changed when the component is updated.
-    setSuccessfullyAddedExpressionIndex(index);
+    // Need to use property as expression reference since the id will be changed when the component is updated.
+    setSuccessfullyAddedExpressionProperty(expression.property);
     setExpressionInEditModeId(undefined);
   };
 
@@ -142,7 +143,7 @@ export const Expressions = () => {
             onGetProperties={() => getProperties(expression)}
             showRemoveExpressionButton={showRemoveExpressionButton}
             onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
-            successfullyAddedExpression={index === successfullyAddedExpressionIndex}
+            successfullyAddedExpression={expression.property === successfullyAddedExpressionProperty}
             expressionInEditMode={expression.id === expressionInEditModeId}
             onUpdateExpression={newExpression => updateExpression(index, newExpression)}
             onRemoveExpression={() => deleteExpression(expression)}

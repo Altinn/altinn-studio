@@ -70,6 +70,18 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
 
   return (
     <div className={cn(className, classes.rightMenu)}>
+      {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
+        <>
+          <LayoutSetsContainer />
+          <div className={classes.addButton}>
+            <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
+              {t('left_menu.layout_sets_add')}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <ConfigureLayoutSetPanel />
+      )}
       <Accordion color='subtle'>
         {shouldDisplayFeature('configureLayoutSet') && (
           <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>

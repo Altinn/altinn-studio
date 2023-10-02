@@ -211,7 +211,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
             items.map((itemId: string, itemIndex: number) => (
               <DragAndDrop.ListItem<ComponentType>
                 key={itemId}
-                index={itemIndex}
                 itemId={itemId}
                 renderItem={(itemDragHandleRef) => {
                   const component = components[itemId];

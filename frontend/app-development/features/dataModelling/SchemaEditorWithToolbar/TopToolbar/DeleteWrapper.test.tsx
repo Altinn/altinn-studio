@@ -48,7 +48,7 @@ const render = (
 describe('DeleteWrapper', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should not be able to open the delete dialog if no option is selected', async () => {
+  it('should not be able to open the delete dialog if no option is selected', () => {
     render({ selectedOption: null });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });

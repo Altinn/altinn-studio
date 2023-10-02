@@ -89,6 +89,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
 
             return await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath);
+
         }
 
         /// <inheritdoc/>
