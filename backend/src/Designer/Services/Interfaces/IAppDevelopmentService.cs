@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnAppContext">Context of an app.</param>
         /// <returns>Bpmn file.</returns>
-        public Task<string> GetProcessDefinition(AltinnAppContext altinnAppContext);
+        public Task<string> GetProcessDefinition(AltinnRepoEditingContext altinnAppContext);
 
         /// <summary>
         /// Saves the process definition for an app.
@@ -140,6 +140,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnAppContext">Context of an app.</param>
         /// <param name="bpmnXml">Content of process definition file to save.</param>
         /// <returns>Saved file.</returns>
-        public Task<string> SaveProcessDefinition(AltinnAppContext altinnAppContext, string bpmnXml);
+        public Task<string> SaveProcessDefinition(AltinnRepoEditingContext altinnAppContext, string bpmnXml);
     }
 }
