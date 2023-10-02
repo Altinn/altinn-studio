@@ -1,10 +1,17 @@
 import React from 'react';
 import { IconProps } from '../../types/IconProps';
 
+/**
+ * This is just a sample icon component for demo purposes.
+ * @param {IconProps} props the icon props
+ * @returns {JSX.Element} the icon as a react component
+ * @example
+ * import { SampleIcon } from '@altinn/icons';
+ * @deprecated This is just a sample icon component for demo purposes.
+ */
 export const SampleIcon = ({ title, ...rest }: IconProps): JSX.Element => {
   return (
     <svg
-      role='img'
       width='24'
       height='24'
       viewBox='0 0 24 24'

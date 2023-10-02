@@ -8,7 +8,7 @@ const altinnIcons = Object.keys(AltinnIcons);
 
 it.each(altinnIcons)('should render %s icon with fill currentColor', (iconName) => {
   const IconComponent = AltinnIcons[iconName];
-  render(<IconComponent title={iconName} />);
+  render(<IconComponent role='img' />);
 
   const iconElement = screen.getByRole('img');
 
