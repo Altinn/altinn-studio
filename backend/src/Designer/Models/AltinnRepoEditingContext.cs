@@ -13,8 +13,8 @@ namespace Altinn.Studio.Designer.Models
         /// Developer that is editing the repository.
         /// </summary>
         public string Developer { get; }
-        
-        public AltinnRepoEditingContext(string org, string repo, string developer) : base(org, repo)
+
+        private AltinnRepoEditingContext(string org, string repo, string developer) : base(org, repo)
         {
             ValidateDeveloper(developer);
             Developer = developer;
@@ -26,6 +26,11 @@ namespace Altinn.Studio.Designer.Models
             {
                 throw new ArgumentException("Provided developer name is not valid");
             }
+        }
+
+        public static AltinnRepoEditingContext From(string org, string repo, string developer)
+        {
+            return new AltinnRepoEditingContext(org, repo, developer);
         }
     }
 }

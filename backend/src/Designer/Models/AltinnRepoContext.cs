@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         public string Repo { get; }
 
-        public AltinnRepoContext(string org, string repo)
+        protected AltinnRepoContext(string org, string repo)
         {
             ValidateOrganization(org);
             Guard.AssertValidAppRepoName(repo);
