@@ -10,7 +10,7 @@ describe('useParentId', () => {
       wrapper: ({ children }) => (
         <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
           <DragAndDrop.List>
-            <DragAndDrop.ListItem index={0} itemId={parentId} renderItem={() => children} />
+            <DragAndDrop.ListItem itemId={parentId} renderItem={() => children} />
           </DragAndDrop.List>
         </DragAndDrop.Provider>
       ),

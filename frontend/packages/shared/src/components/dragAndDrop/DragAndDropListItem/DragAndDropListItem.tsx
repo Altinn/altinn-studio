@@ -4,7 +4,7 @@ import {
   DndItem,
   ExistingDndItem,
 } from '../../../types/dndTypes';
-import React, { ReactNode, useMemo, useRef, useState } from 'react';
+import React, { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { ConnectDragSource, useDrag, useDrop } from 'react-dnd';
 import { calculateNewPosition, getDragCursorPosition } from '../../../utils/dndUtils';
 import classes from './DragAndDropListItem.module.css';
@@ -12,11 +12,10 @@ import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { DragAndDropListItemContext } from '../DragAndDropListItem';
 import { useParentId } from '../hooks/useParentId';
 import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
+import { useDomSelectors } from 'app-shared/components/dragAndDrop/hooks/useDomSelectors';
+import { findPositionInList } from 'app-shared/components/dragAndDrop/utils/domUtils';
 
-export interface DragAndDropListItemProps<T> {
-  /** The index of the item. */
-  index: number;
-
+export interface DragAndDropListItemProps {
   /** The id of the item. */
   itemId: string;
 
@@ -28,14 +27,15 @@ interface DragCollectedProps {
   isDragging: boolean;
 }
 
-export function DragAndDropListItem<T>({ index, itemId, renderItem }: DragAndDropListItemProps<T>) {
+export function DragAndDropListItem<T>({ itemId, renderItem }: DragAndDropListItemProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dragCursorPosition, setDragCursorPosition] = useState<DragCursorPosition>(
-    DragCursorPosition.Outside
+    DragCursorPosition.Outside,
   );
   const isParentDisabled = useIsParentDisabled();
   const parentId = useParentId();
   const onDrop = useOnDrop<T>();
+  const domSelectors = useDomSelectors(itemId);
 
   const boxShadow = useMemo(() => {
     switch (dragCursorPosition) {
@@ -48,13 +48,13 @@ export function DragAndDropListItem<T>({ index, itemId, renderItem }: DragAndDro
     }
   }, [dragCursorPosition]);
 
-  const item: ExistingDndItem = useMemo(
+  const item: () => ExistingDndItem = useCallback(
     () => ({
       isNew: false,
       id: itemId,
-      position: { index, parentId },
+      position: { index: findPositionInList(domSelectors.baseId, itemId), parentId },
     }),
-    [index, itemId, parentId]
+    [itemId, parentId, domSelectors.baseId],
   );
 
   const [{ isDragging }, drag, dragPreview] = useDrag<DndItem<T>, unknown, DragCollectedProps>({
@@ -68,7 +68,7 @@ export function DragAndDropListItem<T>({ index, itemId, renderItem }: DragAndDro
   const [, drop] = useDrop<DndItem<T>, unknown, void>({
     accept: Object.values(DraggableEditorItemType),
     drop: (draggedItem) => {
-      const position = calculateNewPosition<T>(draggedItem, item, dragCursorPosition);
+      const position = calculateNewPosition<T>(draggedItem, item(), dragCursorPosition);
       if (position) onDrop(draggedItem, position);
       setDragCursorPosition(DragCursorPosition.Idle);
     },
@@ -77,9 +77,9 @@ export function DragAndDropListItem<T>({ index, itemId, renderItem }: DragAndDro
       const currentDragPosition = getDragCursorPosition<T>(
         monitor,
         draggedItem,
-        item,
+        item(),
         wrapperRef,
-        isParentDisabled
+        isParentDisabled,
       );
       if (currentDragPosition !== dragCursorPosition) setDragCursorPosition(currentDragPosition);
     },
@@ -93,7 +93,7 @@ export function DragAndDropListItem<T>({ index, itemId, renderItem }: DragAndDro
   const opacity = isDragging ? 0.25 : 1;
 
   return (
-    <div ref={wrapperRef}>
+    <div ref={wrapperRef} {...domSelectors.item}>
       <div ref={drop} className={classes.wrapper}>
         <div ref={dragPreview} style={{ opacity, boxShadow }}>
           <DragAndDropListItemContext.Provider
