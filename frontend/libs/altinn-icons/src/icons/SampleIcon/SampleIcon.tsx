@@ -1,6 +1,5 @@
-import React, { SVGProps } from 'react';
-
-type IconProps = { title?: string } & SVGProps<SVGSVGElement>;
+import React from 'react';
+import { IconProps } from '../../types/IconProps';
 
 export const SampleIcon = ({ title, ...rest }: IconProps): JSX.Element => {
   return (
