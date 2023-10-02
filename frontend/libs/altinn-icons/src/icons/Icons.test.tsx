@@ -8,12 +8,15 @@ const altinnIcons = Object.keys(AltinnIcons);
 
 it.each(altinnIcons)('should render %s icon with correct attributes', (iconName) => {
   const IconComponent = AltinnIcons[iconName];
-  render(<IconComponent role='img' />);
+  render(<IconComponent role='img' title='icon-title' />);
 
   const iconElement = screen.getByRole('img');
+
+  const iconTitle = screen.getByTitle('icon-title');
 
   expect(iconElement).toHaveAttribute('fill', 'currentColor');
   expect(iconElement).toHaveAttribute('width', '24');
   expect(iconElement).toHaveAttribute('height', '24');
   expect(iconElement).toHaveAttribute('viewBox', '0 0 24 24');
+  expect(iconTitle).toBeInTheDocument();
 });
