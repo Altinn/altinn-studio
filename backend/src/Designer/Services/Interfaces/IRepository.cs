@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -17,10 +18,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The service metadata for an app.</returns>
-        Task<ModelMetadata> GetModelMetadata(string org, string app);
+        Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes the resource for a given language id
@@ -175,15 +176,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         string GetAppPath(string org, string app);
-
-        /// <summary>
-        ///  Updates application model with new app logic model
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
-        /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
-        /// <param name="classRef">The class ref</param>
-        Task UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
 
         /// <summary>
         /// Deletes the repository both locally and remotely.

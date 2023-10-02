@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -109,21 +110,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
-        /// <summary>
-        /// Returns the <see cref="ModelMetadata"/> for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The model metadata for an app.</returns>
-        public async Task<ModelMetadata> GetModelMetadata(string org, string app)
+        /// <inheritdoc />
+        public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
         {
-            string modelName = await GetModelName(org, app);
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string filename = _settings.GetMetadataPath(org, app, developer) + $"{modelName}.metadata.json";
+            cancellationToken.ThrowIfCancellationRequested();
+            string modelName = await GetModelName(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
+            string filename = _settings.GetMetadataPath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer) + $"{modelName}.metadata.json";
 
             if (File.Exists(filename))
             {
-                string filedata = File.ReadAllText(filename, Encoding.UTF8);
+                string filedata = await File.ReadAllTextAsync(filename, Encoding.UTF8, cancellationToken);
                 return JsonConvert.DeserializeObject<ModelMetadata>(filedata);
             }
 
@@ -253,41 +249,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return deleted;
-        }
-
-        /// <summary>
-        ///  Updates application model with new app logic model
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
-        /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
-        /// <param name="classRef">The class ref</param>
-        public async Task UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef)
-        {
-            PlatformStorageModels.Application application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            if (application.DataTypes == null)
-            {
-                application.DataTypes = new List<PlatformStorageModels.DataType>();
-            }
-
-            PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault(d => d.AppLogic != null);
-            PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
-
-            if (logicElement == null)
-            {
-                logicElement = new PlatformStorageModels.DataType
-                {
-                    Id = dataTypeId,
-                    TaskId = existingLogicElement == null ? "Task_1" : null,
-                    AllowedContentTypes = new List<string>() { "application/xml" },
-                    MaxCount = 1,
-                    MinCount = 1,
-                };
-                application.DataTypes.Add(logicElement);
-            }
-
-            logicElement.AppLogic = new PlatformStorageModels.ApplicationLogic { AutoCreate = true, ClassRef = classRef };
-            _applicationMetadataService.UpdateApplicationMetaDataLocally(org, app, application);
         }
 
         /// <summary>
