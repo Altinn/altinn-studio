@@ -9,9 +9,11 @@ import { gitea } from '../selectors/gitea';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from '../../../../packages/shared/src/constants';
 
 /**
- * Login to studio with user name and password
+ * Clear cookies and login to studio with user name and password
  */
 Cypress.Commands.add('studioLogin', (userName, userPwd) => {
+  cy.clearCookies();
+  Cypress.session.clearAllSavedSessions();
   cy.session([userName, userPwd], () => {
     cy.visit('/');
     login.getLoginButton().should('be.visible').click();
@@ -20,6 +22,7 @@ Cypress.Commands.add('studioLogin', (userName, userPwd) => {
     gitea.getUsernameField().should('be.visible').type(userName);
     gitea.getPasswordField().should('be.visible').type(userPwd, { log: false });
     gitea.getLoginButton().should('be.visible').click();
+    cy.url().should('contain', '/dashboard');
   });
 });
 

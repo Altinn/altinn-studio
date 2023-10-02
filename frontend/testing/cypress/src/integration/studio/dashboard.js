@@ -8,11 +8,11 @@ import { common } from '../../selectors/common';
 
 context('Dashboard', () => {
   before(() => {
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createApp(Cypress.env('autoTestUser'), 'auto-app');
-    cy.createApp(Cypress.env('autoTestUser'), 'test-app');
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
+      cy.createApp(Cypress.env('autoTestUser'), 'auto-app');
+      cy.createApp(Cypress.env('autoTestUser'), 'test-app');
+    });
   });
 
   beforeEach(() => {

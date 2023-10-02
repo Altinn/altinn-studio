@@ -8,6 +8,7 @@ import {gitea} from "../../selectors/gitea";
 
 context('Login', () => {
   beforeEach(() => {
+    cy.clearCookies();
     cy.visit('/');
   });
 
@@ -21,7 +22,12 @@ context('Login', () => {
   });
 
   it('is not possible to login with invalid user credentials', () => {
-    cy.studioLogin(Cypress.env('autoTestUser'), 'test123');
+    login.getLoginButton().should('be.visible').click();
+    gitea.getLanguageMenu().should('be.visible').click();
+    gitea.getLanguageMenuItem('Norsk').should('be.visible').click();
+    gitea.getUsernameField().should('be.visible').type(Cypress.env('autoTestUser'));
+    gitea.getPasswordField().should('be.visible').type('123', { log: false });
+    gitea.getLoginButton().should('be.visible').click();
     gitea.getLoginErrorMessage().should('be.visible');
   });
 });

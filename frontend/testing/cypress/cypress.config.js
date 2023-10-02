@@ -4,6 +4,7 @@ const path = require('path');
 module.exports = defineConfig({
   projectId: 'o7mikf',
   e2e: {
+    experimentalRunAllSpecs: true,
     supportFile: 'src/support/index.js',
     specPattern: 'src/integration/',
     testIsolation: false,
