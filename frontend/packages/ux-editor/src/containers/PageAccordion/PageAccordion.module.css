@@ -1,0 +1,19 @@
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-inline: 15px;
+}
+
+.accordion {
+  width: 100%;
+}
+
+.navigationMenu {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-block: 12px;
+  padding-left: 10px;
+  height: 100%;
+}

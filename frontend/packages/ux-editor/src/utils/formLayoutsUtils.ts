@@ -25,7 +25,7 @@ export const addOrRemoveNavigationButtons = async (
   layouts: IFormLayouts,
   callback: (layoutName: string, layout: IInternalLayout) => Promise<void>,
   currentLayoutName?: string,
-  receiptLayoutName?: string
+  receiptLayoutName?: string,
 ): Promise<IFormLayouts> => {
   if (currentLayoutName && !layouts[currentLayoutName]) {
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
@@ -36,7 +36,9 @@ export const addOrRemoveNavigationButtons = async (
 
   // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.
   const allLayoutNames = Object.keys(layouts);
-  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter((name) => name !== receiptLayoutName);
+  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter(
+    (name) => name !== receiptLayoutName,
+  );
   if (layoutsThatShouldHaveNavigationButtons.length === 1) {
     // There is only one layout
     const name = layoutsThatShouldHaveNavigationButtons[0];
@@ -71,7 +73,7 @@ interface AllLayouts {
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: FormLayoutsResponse
+  layouts: FormLayoutsResponse,
 ): AllLayouts => {
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];

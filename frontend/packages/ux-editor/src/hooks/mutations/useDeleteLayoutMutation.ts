@@ -18,8 +18,12 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
+
+  // Dette er layoutsene som blir mapped og har dataen
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
+  // Dette er den andre
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
+
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -40,8 +44,9 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
         layouts,
         saveLayout,
         undefined,
-        formLayoutSettings.receiptLayoutName
+        formLayoutSettings.receiptLayoutName,
       );
+      console.log('allLayouts returned', layouts);
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },

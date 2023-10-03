@@ -1,12 +1,9 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
-import {
-  selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
-} from '../selectors/formLayoutSelectors';
+import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
@@ -22,6 +19,7 @@ import {
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
+  IFormLayouts,
   IInternalLayout,
 } from '../types/global';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
@@ -67,15 +65,17 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
 
+  const layoutOrder = formLayoutSettingsQuery.data.pages.order;
+  console.log('layoutOrder', layoutOrder);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
-
-  const selectedLayoutName = useSelector(selectedLayoutNameSelector);
 
   const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
@@ -91,10 +91,26 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
    * TODO @David - Move this to utilrs maybe?
    * TODO @David - Find out if this needs to be sorted
    */
-  const mappedFormLayoutData: FormLayout[] = Object.entries(layouts).map(([key, value]) => ({
-    page: key,
-    data: value,
-  }));
+  const mapIFormLayoutsToFormLayouts = (iFormLayours: IFormLayouts): FormLayout[] => {
+    return Object.entries(iFormLayours).map(([key, value]) => ({
+      page: key,
+      data: value,
+    }));
+  };
+
+  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(
+    mapIFormLayoutsToFormLayouts(layouts),
+  );
+  console.log(
+    'mappedFormLayoutData',
+    formLayoutData.map((m) => m.page),
+  );
+
+  useEffect(() => {
+    console.log('in usefectt');
+    setOpenAccordion(searchParamsLayout);
+    setFormLayoutData(mapIFormLayoutsToFormLayouts(layouts));
+  }, [layouts, searchParamsLayout]);
 
   /**
    * Checks if the layout name provided is valid
@@ -104,7 +120,7 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
    * @returns boolean value for the validity
    */
   const isValidLayout = (layoutName: string): boolean => {
-    const isExistingLayout = mappedFormLayoutData.map((el) => el.page).includes(layoutName);
+    const isExistingLayout = formLayoutData.map((el) => el.page).includes(layoutName);
     const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
     return isExistingLayout || isReceipt;
   };
@@ -131,13 +147,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     }
   };
 
-  // TODO @David
-  // Det er et problem når man legger til en ny side dersom Kvittering eksisterer.
-  // Problemet er at etter man har lagt til siden, så åpner kvitterings accordionen seg, isteden for
-  // at accordionen som tilhører den nye siden åpner seg..
-  // Dersom du refresher siden, så er riktig accoridon åpen, og kvittering lukket.
-  // Mistenker at det kan ha noe med funksjonen "getAccordionOpenStatus()" å gjøre, eller at
-  // selectedLayoutName blir satt et eller anent sted i koden, typ en useEffect eller noe.
   const handleAddPage = (isReceipt: boolean) => {
     if (isReceipt) {
       console.log('in add');
@@ -145,8 +154,15 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
       setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
       setOpenAccordion('Kvittering');
     } else {
-      const newNum = mappedFormLayoutData.filter((p) => p.page !== 'Kvittering').length + 1;
-      const newLayoutName = `${t('left_menu.page')}${newNum}`;
+      let newNum = 1;
+      let newLayoutName = `${t('left_menu.page')}${layoutOrder.length + newNum}`;
+
+      while (layoutOrder.indexOf(newLayoutName) > -1) {
+        console.log('in while');
+        newNum += 1;
+        newLayoutName = `${t('left_menu.page')}${newNum}`;
+      }
+
       addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: false });
       setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
       setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
@@ -219,29 +235,37 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     );
   };
 
-  const displayPageAccordions = mappedFormLayoutData
-    .filter((layout) => layout.page !== 'Kvittering')
-    .map((layout, i) => {
-      const { order, containers, components } = layout.data || {};
-      return (
-        <PageAccordion
-          pageName={layout.page}
-          key={i} /* TODO @David - Fikse key */
-          isOpen={layout.page === openAccordion}
-          onClick={() => handleClickAccordion(layout.page)}
-        >
-          {layout.page === openAccordion &&
-            renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
-        </PageAccordion>
-      );
-    });
+  /**
+   * Displays the pages as an ordered list
+   */
+  const displayPageAccordions = layoutOrder.map((pageName, i) => {
+    const layout = formLayoutData.find((formLayout) => formLayout.page === pageName);
+
+    // If the layout does not exist, return null
+    if (layout === undefined) return null;
+
+    // Display the accordion with the layout data
+    const { order, containers, components } = layout.data;
+    return (
+      <PageAccordion
+        pageName={layout.page}
+        key={i}
+        isOpen={layout.page === openAccordion}
+        onClick={() => handleClickAccordion(layout.page)}
+      >
+        {layout.page === openAccordion &&
+          renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+      </PageAccordion>
+    );
+  });
 
   const displayReceipt = () => {
     if (receiptName) {
-      const receiptData = mappedFormLayoutData.find((d) => d.page === receiptName).data;
-      const { order, containers, components } = receiptData || {};
+      const receiptData = formLayoutData.find((d) => d.page === receiptName);
+      if (receiptData === undefined) return null;
 
-      // TODO @William - Fix so that it is possible to drag components inside up and down too
+      const { order, containers, components } = receiptData.data || {};
+
       return (
         <PageAccordion
           pageName={receiptName}
@@ -269,8 +293,10 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
 
   return (
     <div className={className}>
-      {displayPageAccordions}
-      {displayReceipt()}
+      <div className={classes.accordionWrapper}>
+        {displayPageAccordions}
+        {displayReceipt()}
+      </div>
       <div className={cn(classes.button, classes.addButton)}>
         <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small'>
           {t('left_menu.pages_add')}
