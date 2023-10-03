@@ -211,7 +211,7 @@ namespace Designer.Tests.Services
                 var relativeFilePath = $"{relativeDirectory}/{fileName}";
 
                 // Act
-                var jsonSchema = await schemaModelService.BuildSchemaFromXsd(editingContext, fileName, xsdStream);
+                await schemaModelService.BuildSchemaFromXsd(editingContext, fileName, xsdStream);
 
                 // Assert
                 var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
@@ -249,7 +249,7 @@ namespace Designer.Tests.Services
                 var relativeFilePath = $"{relativeDirectory}/{fileName}";
 
                 // Act
-                var jsonSchema = await schemaModelService.BuildSchemaFromXsd(editingContext, fileName, xsdStream);
+                await schemaModelService.BuildSchemaFromXsd(editingContext, fileName, xsdStream);
 
                 // Assert
                 var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
