@@ -33,8 +33,8 @@ describe('FileUploadComponent', () => {
     await render();
   });
 
-  it('render radio button for all fil types', async () => {
-    await render();
+  it("render radio button for all fil types when 'hasCustomFileEndings' is true", async () => {
+    await render({ component: { ...component, hasCustomFileEndings: true } });
     <FileUploadComponent {...defaultProps} />;
     const radioButtonForAllFile = screen.getByRole('radio', {
       name: textMock('ux_editor.modal_properties_valid_file_endings_all'),
@@ -42,8 +42,17 @@ describe('FileUploadComponent', () => {
     expect(radioButtonForAllFile).toBeInTheDocument();
   });
 
-  it('render radio button for custom file types', async () => {
-    await render();
+  it("render radio button for all fil types when 'hasCustomFileEndings' is false", async () => {
+    await render({ component: { ...component, hasCustomFileEndings: false } });
+    <FileUploadComponent {...defaultProps} />;
+    const radioButtonForAllFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_all'),
+    });
+    expect(radioButtonForAllFile).toBeInTheDocument();
+  });
+
+  it("render radio button for custom file types when 'hasCustomFileEndings' is true", async () => {
+    await render({ component: { ...component, hasCustomFileEndings: true } });
     <FileUploadComponent {...defaultProps} />;
     const radioButtonForCustomFile = screen.getByRole('radio', {
       name: textMock('ux_editor.modal_properties_valid_file_endings_custom'),
@@ -51,8 +60,17 @@ describe('FileUploadComponent', () => {
     expect(radioButtonForCustomFile).toBeInTheDocument();
   });
 
-  it('render radio button when a simple file is uploaded', async () => {
-    await render();
+  it("render radio button for custom file types when 'hasCustomFileEndings' is false", async () => {
+    await render({ component: { ...component, hasCustomFileEndings: false } });
+    <FileUploadComponent {...defaultProps} />;
+    const radioButtonForCustomFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_custom'),
+    });
+    expect(radioButtonForCustomFile).toBeInTheDocument();
+  });
+
+  it("render radio button for a simple file and 'displayMode' is 'simple' ", async () => {
+    await render({ component: { ...component, displayMode: 'simple' } });
     <FileUploadComponent {...defaultProps} />;
     const radioButtonForSimpleFile = screen.getByRole('radio', {
       name: textMock('ux_editor.modal_properties_file_upload_simple'),
@@ -60,13 +78,13 @@ describe('FileUploadComponent', () => {
     expect(radioButtonForSimpleFile).toBeInTheDocument();
   });
 
-  it('render radio button when a list of files is uploaded', async () => {
-    await render();
+  it("render radio button for list of files and 'displayMode' is 'list' ", async () => {
+    await render({ component: { ...component, displayMode: 'list' } });
     <FileUploadComponent {...defaultProps} />;
-    const radioButtonForList = screen.getByRole('radio', {
+    const radioButtonForSimpleFile = screen.getByRole('radio', {
       name: textMock('ux_editor.modal_properties_file_upload_list'),
     });
-    expect(radioButtonForList).toBeInTheDocument();
+    expect(radioButtonForSimpleFile).toBeInTheDocument();
   });
 });
 
