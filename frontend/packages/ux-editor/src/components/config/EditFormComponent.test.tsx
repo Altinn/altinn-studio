@@ -95,7 +95,7 @@ describe('EditFormComponent', () => {
     };
 
     Object.keys(labels).map(async (label) =>
-      expect(await screen.findByRole(labels[label], { name: label }))
+      expect(await screen.findByRole(labels[label], { name: label })),
     );
     expect(screen.getByRole('combobox'));
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
@@ -110,11 +110,12 @@ describe('EditFormComponent', () => {
 
     expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id'));
     await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' }))
+      expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })),
     );
   });
 
   test('should return file uploader specific content when type file uploader', async () => {
+    console.error = jest.fn();
     await render({
       componentProps: {
         type: ComponentType.FileUpload,
@@ -209,7 +210,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
-    { getDatamodelMetadata }
+    { getDatamodelMetadata },
   )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
@@ -243,13 +244,13 @@ const render = async ({
 
   renderWithMockStore(
     {},
-    { getDatamodelMetadata }
+    { getDatamodelMetadata },
   )(
     <EditFormComponent
       editFormId={''}
       component={allComponentProps}
       handleComponentUpdate={handleComponentUpdate}
-    />
+    />,
   );
 
   return { allComponentProps };

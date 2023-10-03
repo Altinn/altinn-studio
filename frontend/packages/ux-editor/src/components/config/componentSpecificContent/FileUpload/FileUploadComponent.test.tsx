@@ -29,6 +29,7 @@ const defaultProps: IGenericEditComponent = {
 
 describe('FileUploadComponent', () => {
   it('Renders without errors', async () => {
+    console.error = jest.fn();
     await render();
   });
 });

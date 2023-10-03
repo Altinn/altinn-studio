@@ -66,14 +66,20 @@ export const FileUploadComponent = ({
       <FormField
         id={component.id}
         onChange={handleHasCustomFileEndingsChange}
-        value={fileUploaderComponent.hasCustomFileEndings ? 'true' : 'false'}
+        value={fileUploaderComponent.hasCustomFileEndings}
         propertyPath={`${component.propertyPath}/properties/hasCustomFileEndings`}
       >
         {({ value }) => (
-          <Radio.Group name={`${component.id}-valid-file-endings`} inline={true} value={value}>
+          <Radio.Group
+            name={`${component.id}-valid-file-endings`}
+            inline={true}
+            value={value === true ? 'true' : 'false'}
+          >
             {Children.toArray([
-              <Radio value='false'>{t('ux_editor.modal_properties_valid_file_endings_all')}</Radio>,
-              <Radio value='true'>
+              <Radio value='false' onChange={() => handleHasCustomFileEndingsChange('false')}>
+                {t('ux_editor.modal_properties_valid_file_endings_all')}
+              </Radio>,
+              <Radio value='true' onChange={() => handleHasCustomFileEndingsChange('true')}>
                 {t('ux_editor.modal_properties_valid_file_endings_custom')}
               </Radio>,
             ])}
