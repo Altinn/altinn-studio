@@ -7,16 +7,14 @@
   /* webpackIgnore: true */
   background-image: url('/designer/img/Altinn-studio.svg');
   background-position: center -220px;
-  background-size: 100% auto;
+  background-size: 1620px auto;
   background-repeat: no-repeat;
 
   content: ' ';
   display: block;
   position: absolute;
-  left: 0;
-  right: 0;
   margin: auto;
-  width: 1620px;
+  width: 100%;
   height: 100%;
   opacity: 0.1;
 }
