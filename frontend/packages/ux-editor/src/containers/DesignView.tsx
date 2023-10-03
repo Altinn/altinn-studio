@@ -230,7 +230,8 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
           isOpen={layout.page === openAccordion}
           onClick={() => handleClickAccordion(layout.page)}
         >
-          {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+          {layout.page === openAccordion &&
+            renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
         </PageAccordion>
       );
     });

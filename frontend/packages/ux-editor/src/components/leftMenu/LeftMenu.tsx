@@ -48,10 +48,6 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
 
   const t = useText();
 
-  useEffect(() => {
-    console.log('selectedLayout in useEffect', selectedLayout);
-  });
-
   // TODO @David - Denne funksjonaliteten må flyttes inn i DesignView.tsx for å legge til flere sider
   // Burde vi kanskje gitt brukeren mulighet til å velge et navn selv?
   function handleAddPage() {

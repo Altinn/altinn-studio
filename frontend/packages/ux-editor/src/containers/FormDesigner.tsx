@@ -63,7 +63,7 @@ export const FormDesigner = ({
     selectedLayout,
     selectedLayoutSet,
   );
-  const { layout: searchParamsLayout } = useParams();
+  const [searchParams] = useSearchParams();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
@@ -94,7 +94,7 @@ export const FormDesigner = ({
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    // const searchParamsLayout = searchParams.get('layout');
+    const searchParamsLayout = searchParams.get('layout');
     // const searchParamsLayout = layout; // searchParams.get('layout');
 
     const isValidLayout = (layoutName: string): boolean => {
@@ -109,14 +109,7 @@ export const FormDesigner = ({
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       return;
     }
-  }, [
-    dispatch,
-    formLayoutSettings?.receiptLayoutName,
-    instanceId,
-    layoutPagesOrder,
-    selectedLayout,
-    searchParamsLayout,
-  ]);
+  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -150,6 +143,9 @@ export const FormDesigner = ({
       } else triggerDepthAlert();
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
+      console.log('id', id);
+      console.log('newContainerId', parentId);
+      console.log('newPosition', index);
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
       validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
     };
