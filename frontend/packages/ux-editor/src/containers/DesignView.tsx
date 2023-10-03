@@ -57,7 +57,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
       >
         <DragAndDrop.List<ComponentType>>
           {items?.length ? (
-            items.map((itemId: string, itemIndex: number) => (
+            items.map((itemId: string) => (
               <DragAndDrop.ListItem<ComponentType>
                 key={itemId}
                 itemId={itemId}
