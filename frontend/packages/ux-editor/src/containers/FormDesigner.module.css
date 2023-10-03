@@ -10,6 +10,10 @@
     var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance)
   );
   --margin-top: 50px;
+  --elements-width-fraction: 1;
+  --structure-width-fraction: 1;
+  --properties-width-fraction: 2;
+  --preview-width-fraction: 3;
 
   flex-grow: 1;
   height:calc(100vh - var(--header-height));
@@ -24,7 +28,7 @@
   top: 69px;
 }
 
-.item {
+.container > div {
   min-width: 240px;
   overflow-x: hidden;
   padding: 0;
@@ -32,40 +36,8 @@
   max-height: calc(100vh - var(--header-height));
 }
 
-.leftContent {
+.container > div:not(:last-child) {
   border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
-  flex: 2;
-  min-width: 283px;
-}
-
-.leftContent h1[class*='Accordion-module_header'] > button:focus,
-.rightContent h1[class*='Accordion-module_header'] > button:focus {
-  border-radius: unset;
-  box-shadow: unset;
-  outline: unset;
-  outline-offset: unset;
-}
-
-.mainContent {
-  display: flex;
-  flex-direction: column;
-  flex: 6;
-  min-width: 682px !important;
-  overflow-y: auto;
-}
-
-.mainContent > *:last-child {
-  flex: 1;
-}
-
-.rightContent {
-  border-left: 1px solid var(--fds-semantic-border-neutral-subtle);
-  flex: 4;
-}
-
-.leftContent,
-.rightContent {
-  background: var(--fds-semantic-surface-neutral-subtle);
 }
 
 .warningMessage {

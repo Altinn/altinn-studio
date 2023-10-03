@@ -2,17 +2,16 @@ const { defineConfig } = require('cypress');
 const path = require('path');
 
 module.exports = defineConfig({
+  chromeWebSecurity: false,
   projectId: 'o7mikf',
   e2e: {
     supportFile: 'src/support/index.js',
     specPattern: 'src/integration/',
     testIsolation: false,
     setupNodeEvents(on, config) {
-      return require(path.resolve(
-        __dirname,
-        'config',
-        `${config.env.environment || 'local'}.json`
-      ));
+      return require(
+        path.resolve(__dirname, 'config', `${config.env.environment || 'local'}.json`),
+      );
     },
   },
   video: false,
