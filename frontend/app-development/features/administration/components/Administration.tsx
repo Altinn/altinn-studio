@@ -12,6 +12,7 @@ export const Administration = () => {
 
   return (
     <div className={classes.administration}>
+      <div className={classes.overlay}></div>
       <div className={classes.container}>
         <h1 className={classes.header}>{metadata?.title?.nb}</h1>
         <div className={classes.content}>

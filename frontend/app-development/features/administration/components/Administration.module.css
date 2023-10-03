@@ -1,15 +1,31 @@
 .administration {
   background-color: #e6eff8;
-  background-image: url('./administration-header.svg');
-  background-position: center -230px;
-  background-size: 1600px auto;
+  position: relative;
+}
+
+.administration::before {
+  /* webpackIgnore: true */
+  background-image: url('/designer/img/Altinn-studio.svg');
+  background-position: center -220px;
+  background-size: 100% auto;
   background-repeat: no-repeat;
+
+  content: ' ';
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 1620px;
+  height: 100%;
+  opacity: 0.1;
 }
 
 .container {
   margin: auto;
   padding: var(--fds-spacing-12);
   max-width: 1400px;
+  position: relative;
 }
 
 .header {
