@@ -11,3 +11,10 @@
   padding-bottom: var(--fds-spacing-3);
   padding-top: var(--fds-spacing-2);
 }
+
+.componentsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: var(--fds-spacing-2);
+}

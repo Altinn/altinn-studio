@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { Button } from '@digdir/design-system-react';
+import { Button, Heading } from '@digdir/design-system-react';
 import { PagesContainer } from './PagesContainer';
 import { ReceiptPageElement } from './ReceiptPageElement';
 import { deepCopy } from 'app-shared/pure';
@@ -25,6 +25,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import classes from './Elements.module.css';
+import {Divider} from "app-shared/primitives";
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
@@ -75,13 +76,17 @@ export const Elements = () => {
             </div>
           </Accordion.Content>
         </Accordion.Item>
-        <Accordion.Item defaultOpen={true}>
-          <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
-          <Accordion.Content>
-            {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
-          </Accordion.Content>
-        </Accordion.Item>
       </Accordion>
+      <div className={classes.componentsList}>
+        <div className={classes.componentsHeader}>
+          <Heading size='xxsmall'>
+            {t('left_menu.components')}
+          </Heading>
+          <Divider marginless />
+        </div>
+        
+        {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
+      </div>
     </div>
   );
 };
