@@ -39,7 +39,7 @@ export const AltinnHeader = ({
   return (
     <div id='altinn-header-container'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
-        <div className={classes.leftContent}>
+        <div className={classes.elements}>
           <a href='/'>
             <AltinnStudioLogo />
           </a>
@@ -47,7 +47,7 @@ export const AltinnHeader = ({
           <span className={classes.appName}>{app || ''}</span>
         </div>
         <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
-        <div className={classes.rightContent}>
+        <div className={classes.properties}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
               {buttonActions.map((action) => (
