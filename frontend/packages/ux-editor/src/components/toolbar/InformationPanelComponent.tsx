@@ -2,7 +2,6 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import { Popover } from '@mui/material';
 
 import {
