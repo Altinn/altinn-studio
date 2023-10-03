@@ -1,8 +1,8 @@
-.leftContent svg {
+.elements svg {
   color: #fff;
 }
 
-.rightContent {
+.properties {
   display: flex;
   align-items: center;
   gap: 1rem;
