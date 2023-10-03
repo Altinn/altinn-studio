@@ -1,19 +1,29 @@
-import React, { ReactNode, useEffect, useId, useLayoutEffect, useState } from 'react';
+import React, {
+  HTMLAttributes,
+  ReactNode,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { TreeViewRootContext } from '../TreeViewRoot';
 import classes from './TreeViewRoot.module.css';
 import { findFirstNodeId } from 'app-shared/components/TreeView/utils/domUtils';
 import { focusableNodeId } from 'app-shared/components/TreeView/utils/treeViewItemUtils';
+import cn from 'classnames';
 
-export interface TreeViewRootProps {
+export type TreeViewRootProps = {
   children: ReactNode;
   onSelect?: (nodeId: string) => void;
   selectedId?: string;
-}
+} & HTMLAttributes<HTMLUListElement>;
 
 export const TreeViewRoot = ({
   children,
+  className,
   onSelect,
   selectedId: selectedIdFromProps,
+  ...rest
 }: TreeViewRootProps) => {
   const rootId = useId();
   const [selectedId, setSelectedId] = useState<string | undefined>(selectedIdFromProps);
@@ -45,7 +55,7 @@ export const TreeViewRoot = ({
         focusableId,
       }}
     >
-      <ul role='tree' id={rootId} className={classes.list}>
+      <ul role='tree' {...rest} id={rootId} className={cn(classes.list, className)}>
         {children}
       </ul>
     </TreeViewRootContext.Provider>
