@@ -1,5 +1,5 @@
 .toolbarItem {
-  background-color: #e9eaec;
+  background-color: var(--fds-semantic-background-subtle);;
   cursor: grab;
   margin: 6px;
   display: flex;

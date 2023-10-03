@@ -25,7 +25,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import classes from './Elements.module.css';
-import {Divider} from "app-shared/primitives";
+import { Divider } from "app-shared/primitives";
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
