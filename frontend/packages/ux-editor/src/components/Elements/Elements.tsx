@@ -5,12 +5,9 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Button } from '@digdir/design-system-react';
 import { PagesContainer } from './PagesContainer';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
 import { deepCopy } from 'app-shared/pure';
 import { useSearchParams } from 'react-router-dom';
-import cn from 'classnames';
-import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
 import {
   selectedLayoutNameSelector,
@@ -27,12 +24,9 @@ import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import classes from './Elements.module.css';
 
-export interface LeftMenuProps {
-  className?: string;
-}
-
-export const LeftMenu = ({ className }: LeftMenuProps) => {
+export const Elements = () => {
   const { org, app } = useStudioUrlParams();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -67,27 +61,20 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   }
 
   return (
-    <div className={cn(className, classes.rightMenu)}>
+    <div className={classes.root}>
+      {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
+        <>
+          <LayoutSetsContainer />
+          <div className={classes.addButton}>
+            <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
+              {t('left_menu.layout_sets_add')}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <ConfigureLayoutSetPanel />
+      )}
       <Accordion color='subtle'>
-        {shouldDisplayFeature('configureLayoutSet') && (
-          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
-            <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
-            <Accordion.Content>
-              {layoutSetNames ? (
-                <>
-                  <LayoutSetsContainer />
-                  <div className={classes.addButton}>
-                    <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
-                      {t('left_menu.layout_sets_add')}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <ConfigureLayoutSetPanel />
-              )}
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>

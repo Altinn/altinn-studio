@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<string> GetProcessDefinition(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            return await _appDevelopmentService.GetProcessDefinition(new AltinnAppContext(org, repo, developer));
+            return await _appDevelopmentService.GetProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer));
         }
 
         [HttpPut("process-definition")]
@@ -46,13 +46,13 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 Guard.AssertValidXmlContent(bpmnFileContent);
             }
-            catch (Exception)
+            catch (ArgumentException)
             {
                 return BadRequest("BPMN file is not valid XML");
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _appDevelopmentService.SaveProcessDefinition(new AltinnAppContext(org, repo, developer), bpmnFileContent);
+            await _appDevelopmentService.SaveProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), bpmnFileContent);
             return Ok(bpmnFileContent);
         }
 

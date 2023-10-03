@@ -38,7 +38,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   const renderContainer = (
     id: string,
     isBaseContainer: boolean,
-    dragHandleRef?: ConnectDragSource
+    dragHandleRef?: ConnectDragSource,
   ) => {
     if (!id) return null;
 
@@ -60,7 +60,6 @@ export const DesignView = ({ className }: DesignViewProps) => {
             items.map((itemId: string, itemIndex: number) => (
               <DragAndDrop.ListItem<ComponentType>
                 key={itemId}
-                index={itemIndex}
                 itemId={itemId}
                 renderItem={(itemDragHandleRef) => {
                   const component = components[itemId];
@@ -93,7 +92,7 @@ export const DesignView = ({ className }: DesignViewProps) => {
   };
 
   return (
-    <div className={className}>
+    <div className={classes.root}>
       <h1 className={classes.pageHeader}>{layoutName}</h1>
       {layout && renderContainer(BASE_CONTAINER_ID, true)}
     </div>
