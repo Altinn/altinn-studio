@@ -10,12 +10,10 @@ const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerApp
 
 context('Designer', () => {
   before(() => {
-    cy.visit('/');
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    cy.clearCookies();
-    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
+      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
+    });
   });
   beforeEach(() => {
     cy.visit('/dashboard');
