@@ -76,28 +76,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public bool IsLocalRepo(string org, string repository)
-        {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (Directory.Exists(localServiceRepoFolder))
-            {
-                try
-                {
-                    using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-
-            return false;
-        }
-
-        /// <inheritdoc />
         public RepoStatus PullRemoteChanges(string org, string repository)
         {
             RepoStatus status = new();
@@ -160,26 +138,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
                     Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Gets the number of commits the local repository is behind the remote
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>The number of commits behind</returns>
-        public int? CheckRemoteUpdates(string org, string repository)
-        {
-            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
-            {
-                Branch branch = repo.Branches["master"];
-                if (branch == null)
-                {
-                    return null;
-                }
-
-                return branch.TrackingDetails.BehindBy;
             }
         }
 
@@ -409,17 +367,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return commit;
-        }
-
-        /// <summary>
-        /// Creates the remote repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="options">Options for the remote repository</param>
-        /// <returns>The repostory from API</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, RepositoryClient.Model.CreateRepoOption options)
-        {
-            return await _gitea.CreateRepository(org, options);
         }
 
         /// <summary>

@@ -66,20 +66,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public int? CheckRemoteUpdates(string org, string repository)
-        {
-            try
-            {
-                return _decoratedService.CheckRemoteUpdates(org, repository);
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "CheckRemoteUpdates", org, repository);
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
         public string CloneRemoteRepository(string org, string repository)
         {
             try
@@ -257,20 +243,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             catch (Exception ex)
             {
                 LogError(ex, "GetLatestCommitForCurrentUser", org, repository);
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public bool IsLocalRepo(string org, string repository)
-        {
-            try
-            {
-                return _decoratedService.IsLocalRepo(org, repository);
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "IsLocalRepo", org, repository);
                 throw;
             }
         }
