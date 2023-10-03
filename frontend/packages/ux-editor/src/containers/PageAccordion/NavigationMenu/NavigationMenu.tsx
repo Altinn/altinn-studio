@@ -97,6 +97,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
     }
   };
 
+  // TODO - Implement way to edit name
   return (
     <div>
       <Button
