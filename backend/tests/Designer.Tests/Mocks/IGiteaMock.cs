@@ -142,11 +142,6 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
-        {
-            throw new NotImplementedException();
-        }
-
         private static string GetTextsResourcePath(string filePath, string shortCommitId)
         {
             string[] pathArray = filePath.Split("/");
