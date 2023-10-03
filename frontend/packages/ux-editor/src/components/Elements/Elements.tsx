@@ -62,26 +62,19 @@ export const Elements = () => {
 
   return (
     <div className={classes.root}>
+      {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
+        <>
+          <LayoutSetsContainer />
+          <div className={classes.addButton}>
+            <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
+              {t('left_menu.layout_sets_add')}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <ConfigureLayoutSetPanel />
+      )}
       <Accordion color='subtle'>
-        {shouldDisplayFeature('configureLayoutSet') && (
-          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
-            <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
-            <Accordion.Content>
-              {layoutSetNames ? (
-                <>
-                  <LayoutSetsContainer />
-                  <div className={classes.addButton}>
-                    <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
-                      {t('left_menu.layout_sets_add')}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <ConfigureLayoutSetPanel />
-              )}
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>
