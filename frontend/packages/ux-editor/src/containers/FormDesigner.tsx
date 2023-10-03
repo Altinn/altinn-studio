@@ -23,6 +23,16 @@ import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+
+// TODO @David - Move function to utils
+const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
+  if (instanceId) {
+    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
+    localStorage.setItem(instanceId, layoutName);
+  }
+};
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -53,6 +63,9 @@ export const FormDesigner = ({
     selectedLayout,
     selectedLayoutSet,
   );
+  const { layout } = useParams();
+
+  const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const layoutOrder = useMemo(
     () => formLayouts?.[selectedLayout]?.order || {},
@@ -77,6 +90,33 @@ export const FormDesigner = ({
     }
   };
 
+  /**
+   * Set the correct selected layout based on url parameters
+   */
+  useEffect(() => {
+    // const searchParamsLayout = searchParams.get('layout');
+    const searchParamsLayout = layout; // searchParams.get('layout');
+
+    const isValidLayout = (layoutName: string): boolean => {
+      const isExistingLayout = layoutPagesOrder?.includes(layoutName);
+      const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
+      return isExistingLayout || isReceipt;
+    };
+
+    if (isValidLayout(searchParamsLayout)) {
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
+      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
+      return;
+    }
+  }, [
+    dispatch,
+    formLayoutSettings?.receiptLayoutName,
+    instanceId,
+    layoutPagesOrder,
+    selectedLayout,
+    layout,
+  ]);
+
   useEffect((): void => {
     const addInitialPage = (): void => {
       const layoutName = `${t('general.page')}1`;
@@ -100,8 +140,12 @@ export const FormDesigner = ({
     const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
     const layout = formLayouts[selectedLayout];
 
+    console.log('formLayouts', formLayouts);
+    console.log('selectedLayout', selectedLayout);
+
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
+
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
       if (validateDepth(updatedLayout)) {
         addItemToLayout({ componentType: type, newId, parentId, index });

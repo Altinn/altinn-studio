@@ -31,7 +31,6 @@ import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettin
 import { PlusIcon } from '@navikt/aksel-icons';
 import { PageAccordion } from './PageAccordion';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
-import { deepCopy } from 'app-shared/pure';
 import cn from 'classnames';
 
 // TODO @David - Move type to another place
@@ -112,48 +111,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   };
 
   /**
-   * Gets the status of if an accordion is open or not
-   *
-   * @param layoutName the layout displayed in the accordion
-   *
-   * @returns boolean valud for if it is open or not
-   */
-  const getAccordionOpenStatus = (layoutName: string): boolean => {
-    // TODO @David - jeg har lagt på en del kommentarer her for å prøve debuge hva som skjer.
-    // Det viser seg at begge disse to loges i consolen:
-    // - layout and selected match on: Kvittering
-    // - layout and search param match on: Side8
-    // Det er rart at selected er satt til Kvittering når man legger til en ny en.
-
-    /*layoutName === searchParamsLayout &&
-      console.log('layout and search param match on: ', layoutName);
-    layoutName === selectedLayoutName && console.log('layout and selected match on: ', layoutName);
-    // Dersom vi kommer inn på siden første gang, og eksisterende selectedLayoutName er 'default', sett til
-    // det som kommer fra params, dersom params er gyldig og matcher den som er sent inn til funksjonen.
-    // Om de ikke er valid, return false.
-    if (selectedLayoutName === 'default') {
-      console.log('if');
-      if (isValidLayout(searchParamsLayout) && isValidLayout(layoutName)) {
-        return searchParamsLayout === layoutName;
-      } else {
-        return false;
-      }
-    }
-    // Om den ikke er default, sjekk om layoutName som kommer inn matcher den som er lagret i
-    // selectedLayoutName. om ikke, returner false.
-    else {
-      console.log('else');
-      //if ()
-      if (isValidLayout(selectedLayoutName) && isValidLayout(layoutName)) {
-        return selectedLayoutName === layoutName;
-      } else {
-        return false;
-      }
-    }*/
-    return layoutName === openAccordion;
-  };
-
-  /**
    * Handles the click of an accordion. It updates the URL and sets the
    * local storage for which page view that is open
    *
@@ -185,13 +142,14 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const handleAddPage = (isReceipt: boolean) => {
     if (isReceipt) {
       addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
-      setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
+      setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
+
       setOpenAccordion('Kvittering');
     } else {
       const newNum = mappedFormLayoutData.filter((p) => p.page !== 'Kvittering').length + 1;
       const newLayoutName = `${t('left_menu.page')}${newNum}`;
       addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: false });
-      setSearchParams({ ...deepCopy(searchParams), layout: newLayoutName });
+      setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
       setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
       dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
       setOpenAccordion(newLayoutName);
@@ -270,7 +228,7 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
         <PageAccordion
           pageName={layout.page}
           key={i} /* TODO @David - Fikse key */
-          isOpen={getAccordionOpenStatus(layout.page)}
+          isOpen={layout.page === openAccordion}
           onClick={() => handleClickAccordion(layout.page)}
         >
           {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
@@ -286,7 +244,7 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
       return (
         <PageAccordion
           pageName={receiptName}
-          isOpen={getAccordionOpenStatus(receiptName)}
+          isOpen={receiptName === openAccordion}
           onClick={() => handleClickAccordion(receiptName)}
         >
           {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
