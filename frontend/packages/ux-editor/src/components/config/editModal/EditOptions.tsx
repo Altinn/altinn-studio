@@ -1,4 +1,4 @@
-import React, { Children, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
 import { Button, Fieldset, Radio, LegacyTextField } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
@@ -104,31 +104,22 @@ export function EditOptions({
   const handleAddOption = () =>
     handleComponentChange(addOptionToComponent(component, generateRandomOption()));
 
+  if (component.type != 'RadioButtons') return null;
+
   return (
     <>
       <Radio.Group
         onChange={handleOptionsTypeChange}
-        legend={
-          component.type === 'RadioButtons'
-            ? t('ux_editor.modal_properties_add_radio_button_options')
-            : t('ux_editor.modal_properties_add_check_box_options')
-        }
+        legend={t('ux_editor.modal_properties_add_radio_button_options')}
         name={`${component.id}-options`}
         value={selectedOptionsType}
         inline={true}
       >
-        {Children.toArray(
-          component.type === 'RadioButtons' && [
-            <Radio value={SelectedOptionsType.CodeList} defaultChecked>
-              {t('ux_editor.modal_add_options_codelist')}
-            </Radio>,
-            <Radio value={SelectedOptionsType.Manual}>
-              {t('ux_editor.modal_add_options_manual')}
-            </Radio>,
-          ],
-        )}
+        <Radio value={SelectedOptionsType.CodeList} defaultChecked>
+          {t('ux_editor.modal_add_options_codelist')}
+        </Radio>
+        <Radio value={SelectedOptionsType.Manual}>{t('ux_editor.modal_add_options_manual')}</Radio>
       </Radio.Group>
-
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}

@@ -1,4 +1,4 @@
-import React, { Children } from 'react';
+import React from 'react';
 import { LegacyFieldSet, Radio, LegacyTextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
@@ -75,14 +75,12 @@ export const FileUploadComponent = ({
             inline={true}
             value={value === true ? 'true' : 'false'}
           >
-            {Children.toArray([
-              <Radio value='false' onChange={() => handleHasCustomFileEndingsChange('false')}>
-                {t('ux_editor.modal_properties_valid_file_endings_all')}
-              </Radio>,
-              <Radio value='true' onChange={() => handleHasCustomFileEndingsChange('true')}>
-                {t('ux_editor.modal_properties_valid_file_endings_custom')}
-              </Radio>,
-            ])}
+            <Radio value='false' onChange={(e) => handleHasCustomFileEndingsChange(e.target.value)}>
+              {t('ux_editor.modal_properties_valid_file_endings_all')}
+            </Radio>
+            <Radio value='true' onChange={(e) => handleHasCustomFileEndingsChange(e.target.value)}>
+              {t('ux_editor.modal_properties_valid_file_endings_custom')}
+            </Radio>
           </Radio.Group>
         )}
       </FormField>
@@ -111,10 +109,8 @@ export const FileUploadComponent = ({
         >
           {() => (
             <Radio.Group name={`${component.id}-display-mode`} inline={true}>
-              {Children.toArray([
-                <Radio value='simple'>{t('ux_editor.modal_properties_file_upload_simple')}</Radio>,
-                <Radio value='list'>{t('ux_editor.modal_properties_file_upload_list')}</Radio>,
-              ])}
+              <Radio value='simple'>{t('ux_editor.modal_properties_file_upload_simple')}</Radio>
+              <Radio value='list'>{t('ux_editor.modal_properties_file_upload_list')}</Radio>
             </Radio.Group>
           )}
         </FormField>

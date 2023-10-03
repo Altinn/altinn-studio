@@ -115,7 +115,6 @@ describe('EditFormComponent', () => {
   });
 
   test('should return file uploader specific content when type file uploader', async () => {
-    console.error = jest.fn();
     await render({
       componentProps: {
         type: ComponentType.FileUpload,
