@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
@@ -31,6 +31,8 @@ import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettin
 import { PlusIcon } from '@navikt/aksel-icons';
 import { PageAccordion } from './PageAccordion';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
+import { deepCopy } from 'app-shared/pure';
+import cn from 'classnames';
 
 // TODO @David - Move type to another place
 export interface FormLayout {
@@ -68,6 +70,8 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
@@ -80,6 +84,8 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const { t } = useTranslation();
 
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
+
+  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
 
   /**
    * Maps the IFormLayouts object to a list of FormLayouts
@@ -119,13 +125,14 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     // - layout and search param match on: Side8
     // Det er rart at selected er satt til Kvittering når man legger til en ny en.
 
-    layoutName === searchParamsLayout &&
+    /*layoutName === searchParamsLayout &&
       console.log('layout and search param match on: ', layoutName);
     layoutName === selectedLayoutName && console.log('layout and selected match on: ', layoutName);
     // Dersom vi kommer inn på siden første gang, og eksisterende selectedLayoutName er 'default', sett til
     // det som kommer fra params, dersom params er gyldig og matcher den som er sent inn til funksjonen.
     // Om de ikke er valid, return false.
     if (selectedLayoutName === 'default') {
+      console.log('if');
       if (isValidLayout(searchParamsLayout) && isValidLayout(layoutName)) {
         return searchParamsLayout === layoutName;
       } else {
@@ -135,12 +142,15 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     // Om den ikke er default, sjekk om layoutName som kommer inn matcher den som er lagret i
     // selectedLayoutName. om ikke, returner false.
     else {
+      console.log('else');
+      //if ()
       if (isValidLayout(selectedLayoutName) && isValidLayout(layoutName)) {
         return selectedLayoutName === layoutName;
       } else {
         return false;
       }
-    }
+    }*/
+    return layoutName === openAccordion;
   };
 
   /**
@@ -155,10 +165,12 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
         setSelectedLayoutInLocalStorage(instanceId, pageName);
         dispatch(FormLayoutActions.updateSelectedLayout(pageName));
         setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
+        setOpenAccordion(pageName);
       } else {
         setSelectedLayoutInLocalStorage(instanceId, undefined);
         dispatch(FormLayoutActions.updateSelectedLayout(undefined));
         setSearchParams(undefined);
+        setOpenAccordion('');
       }
     }
   };
@@ -171,14 +183,19 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   // Mistenker at det kan ha noe med funksjonen "getAccordionOpenStatus()" å gjøre, eller at
   // selectedLayoutName blir satt et eller anent sted i koden, typ en useEffect eller noe.
   const handleAddPage = (isReceipt: boolean) => {
-    const newNum = mappedFormLayoutData.filter((p) => p.page !== 'Kvittering').length + 1;
-    const newLayoutName = isReceipt ? 'Kvittering' : t('left_menu.page') + newNum;
-    console.log(newNum);
-
-    addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: isReceipt });
-    setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
-    dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
-    setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
+    if (isReceipt) {
+      addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
+      setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
+      setOpenAccordion('Kvittering');
+    } else {
+      const newNum = mappedFormLayoutData.filter((p) => p.page !== 'Kvittering').length + 1;
+      const newLayoutName = `${t('left_menu.page')}${newNum}`;
+      addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: false });
+      setSearchParams({ ...deepCopy(searchParams), layout: newLayoutName });
+      setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
+      dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
+      setOpenAccordion(newLayoutName);
+    }
   };
 
   // TODO @David - Denne kan potensielt flyttes til separate filer.
@@ -245,30 +262,39 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
     );
   };
 
-  const displayPageAccordions = mappedFormLayoutData.map((layout, i) => {
-    const { order, containers, components } = layout.data || {};
-    return (
-      <PageAccordion
-        pageName={layout.page}
-        key={i} /* TODO @David - Fikse key */
-        isOpen={getAccordionOpenStatus(layout.page)}
-        onClick={() => handleClickAccordion(layout.page)}
-      >
-        {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
-      </PageAccordion>
-    );
-  });
+  const displayPageAccordions = mappedFormLayoutData
+    .filter((layout) => layout.page !== 'Kvittering')
+    .map((layout, i) => {
+      const { order, containers, components } = layout.data || {};
+      return (
+        <PageAccordion
+          pageName={layout.page}
+          key={i} /* TODO @David - Fikse key */
+          isOpen={getAccordionOpenStatus(layout.page)}
+          onClick={() => handleClickAccordion(layout.page)}
+        >
+          {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+        </PageAccordion>
+      );
+    });
 
-  return (
-    <div className={className}>
-      {displayPageAccordions}
-      <div className={classes.addButton}>
-        <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small'>
-          {t('left_menu.pages_add')}
-        </Button>
-      </div>
-      {mappedFormLayoutData.filter((p) => p.page === 'Kvittering').length === 0 && (
-        <div className={classes.receiptButton}>
+  const displayReceipt = () => {
+    if (receiptName) {
+      const receiptData = mappedFormLayoutData.find((d) => d.page === receiptName).data;
+      const { order, containers, components } = receiptData || {};
+
+      return (
+        <PageAccordion
+          pageName={receiptName}
+          isOpen={getAccordionOpenStatus(receiptName)}
+          onClick={() => handleClickAccordion(receiptName)}
+        >
+          {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+        </PageAccordion>
+      );
+    } else {
+      return (
+        <div className={classes.button}>
           <Button
             variant='quiet'
             onClick={() => handleAddPage(true)}
@@ -278,7 +304,19 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
             {t('receipt.create')}
           </Button>
         </div>
-      )}
+      );
+    }
+  };
+
+  return (
+    <div className={className}>
+      {displayPageAccordions}
+      {displayReceipt()}
+      <div className={cn(classes.button, classes.addButton)}>
+        <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small'>
+          {t('left_menu.pages_add')}
+        </Button>
+      </div>
     </div>
   );
 };

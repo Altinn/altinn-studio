@@ -5,9 +5,12 @@
 .emptyContainerText {
   padding: 0 var(--margin-horizontal);
 }
-
-.addButton {
+.button {
   display: flex;
   justify-content: center;
   padding-top: var(--fds-spacing-5);
+}
+
+.addButton {
+  padding-bottom: 50px;
 }
