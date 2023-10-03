@@ -21,7 +21,6 @@ export enum TopBarMenu {
   Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
   ProcessEditor = 'top_menu.process-editor',
-  SettingsModalButton = 'top_menu.settings-modal',
   None = '',
 }
 
@@ -52,19 +51,13 @@ export const menu: TopBarMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
     featureFlagName: 'processEditor',
   },
-  {
-    key: TopBarMenu.SettingsModalButton,
-    link: '/:org/:app/settings',
-    repositoryTypes: [RepositoryType.App],
-    featureFlagName: 'settingsModal',
-  },
 ];
 
 export const getTopBarMenu = (
   org: string,
   app: string,
   repositoryType: RepositoryType,
-  t: TFunction
+  t: TFunction,
 ): AltinnHeaderMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))

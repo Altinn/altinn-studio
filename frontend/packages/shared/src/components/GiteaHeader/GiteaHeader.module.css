@@ -1,11 +1,17 @@
 .wrapper {
+  display: flex;
+  justify-content: space-between;
   width: 100%;
 }
 
-.contentWrapper {
+.leftContentWrapper {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+}
+
+.rightContentWrapper {
+  display: flex;
+  align-items: center;
   gap: 1rem;
   height: 60px;
   background-color: #284e6a;

@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
-import { Heading } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Heading, Paragraph, Spinner } from '@digdir/design-system-react';
 import {
   CogIcon,
   InformationSquareIcon,
@@ -14,14 +14,18 @@ import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
-import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AbouTab';
-import { AppConfig } from 'app-shared/types/AppConfig';
-import { Repository } from 'app-shared/types/Repository';
 import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import {
+  useAppPolicyQuery,
+  useAppConfigQuery,
+  useAppMetadataQuery,
+} from 'app-development/hooks/queries';
+import { useRepoInitialCommitQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { Center } from 'app-shared/components/Center';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 
 export type SettingsModalProps = {
   /**
@@ -34,10 +38,6 @@ export type SettingsModalProps = {
    */
   onClose: () => void;
   /**
-   * The policy of the app
-   */
-  policy: Policy;
-  /**
    * The org
    */
   org: string;
@@ -45,22 +45,6 @@ export type SettingsModalProps = {
    * The app
    */
   app: string;
-  /**
-   * The config for the application
-   */
-  appConfig: AppConfig;
-  /**
-   * The repository of the app
-   */
-  repository: Repository;
-  /**
-   * The name of the user that created the app
-   */
-  createdBy: string;
-  /*
-   * The application's metadata
-   */
-  appMetadata: ApplicationMetadata;
 };
 
 /**
@@ -69,29 +53,39 @@ export type SettingsModalProps = {
  *
  * @property {boolean}[isOpen] - Flag for if the modal is open
  * @property {function}[onClose] - Function to be executed on close
- * @property {Policy}[policy] - The policy of the app
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {AppConfig}[appConfig] - The serice name
- * @property {Repository}[repository] - The repository of the app
- * @property {strign}[createdBy] - The name of the user that created the app
- * @property {AppConfig}[appConfig] - The service name
- * @property {ApplicationMetadata}[appMetadata] - The application's metadata
  *
  * @returns {ReactNode} - The rendered component
  */
-export const SettingsModal = ({
-  isOpen,
-  onClose,
-  policy,
-  org,
-  app,
-  appConfig,
-  repository,
-  createdBy,
-  appMetadata,
-}: SettingsModalProps): ReactNode => {
+export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
+
+  const {
+    status: policyStatus,
+    data: policyData,
+    error: policyError,
+  } = useAppPolicyQuery(org, app);
+  const {
+    status: appConfigStatus,
+    data: appConfigData,
+    error: appConfigError,
+  } = useAppConfigQuery(org, app);
+  const {
+    status: repositoryStatus,
+    data: repositoryData,
+    error: repositoryError,
+  } = useRepoMetadataQuery(org, app);
+  const {
+    status: initialCommitStatus,
+    data: initialCommitData,
+    error: initialCommitError,
+  } = useRepoInitialCommitQuery(org, app);
+  const {
+    status: appMetadataStatus,
+    data: appMetadataData,
+    error: appMetadataError,
+  } = useAppMetadataQuery(org, app);
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
 
@@ -150,22 +144,76 @@ export const SettingsModal = ({
       case 'about': {
         return (
           <AboutTab
-            appConfig={appConfig}
+            appConfig={appConfigData}
             org={org}
             app={app}
-            repository={repository}
-            createdBy={createdBy}
+            repository={repositoryData}
+            createdBy={initialCommitData.author.name}
           />
         );
       }
       case 'policy': {
-        return <PolicyTab policy={policy} org={org} app={app} />;
+        return <PolicyTab policy={policyData} org={org} app={app} />;
       }
       case 'accessControl': {
-        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
+        return <AccessControlTab appMetadata={appMetadataData} org={org} app={app} />;
       }
       case 'localChanges': {
         return <LocalChangesTab org={org} app={app} />;
+      }
+    }
+  };
+
+  /**
+   * Based on the state of the API calls, display spinner, error or components
+   */
+  const displayModalContent = () => {
+    switch (
+      mergeQueryStatuses(
+        policyStatus,
+        appConfigStatus,
+        appMetadataStatus,
+        repositoryStatus,
+        initialCommitStatus,
+      )
+    ) {
+      case 'loading': {
+        return (
+          <div className={classes.modalContent}>
+            <Center>
+              <Spinner
+                size='2xLarge'
+                variant='interaction'
+                title={t('settings_modal.loading_content')}
+              />
+            </Center>
+          </div>
+        );
+      }
+      case 'error': {
+        return (
+          <Center>
+            <Alert severity='danger'>
+              <Paragraph>{t('general.fetch_error_message')}</Paragraph>
+              <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
+              {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
+              {appConfigError && <ErrorMessage>{appConfigError.message}</ErrorMessage>}
+              {repositoryError && <ErrorMessage>{repositoryError.message}</ErrorMessage>}
+              {initialCommitError && <ErrorMessage>{initialCommitError.message}</ErrorMessage>}
+              {appMetadataError && <ErrorMessage>{appMetadataError.message}</ErrorMessage>}
+            </Alert>
+          </Center>
+        );
+      }
+      case 'success': {
+        return (
+          <div className={classes.modalContent}>
+            <div className={classes.leftNavWrapper}>
+              <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
+            </div>
+            <div className={classes.tabWrapper}>{displayTabs()}</div>
+          </div>
+        );
       }
     }
   };
@@ -183,12 +231,7 @@ export const SettingsModal = ({
         </div>
       }
     >
-      <div className={classes.modalContent}>
-        <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
-        </div>
-        <div className={classes.tabWrapper}>{displayTabs()}</div>
-      </div>
+      {displayModalContent()}
     </Modal>
   );
 };
