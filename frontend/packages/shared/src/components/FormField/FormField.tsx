@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ErrorMessage, HelpText } from '@digdir/design-system-react';
 import classes from './FormField.module.css';
 import { useText } from '../../../../ux-editor/src/hooks';
-import { validateProperty, isPropertyRequired } from '../../../../ux-editor/src/utils/formValidationUtils';
+import {
+  validateProperty,
+  isPropertyRequired,
+} from '../../../../ux-editor/src/utils/formValidationUtils';
 import { TranslationKey } from 'language/type';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 
@@ -46,8 +49,12 @@ export const FormField = <T extends unknown, TT extends unknown>({
 }: FormFieldProps<T, TT>): JSX.Element => {
   const t = useText();
 
-  const [propertyId, setPropertyId] = useState(schema && propertyPath ? `${schema.$id}#/${propertyPath}`: null);
-  const [isRequired, setIsRequired] = useState(customRequired || isPropertyRequired(schema, propertyPath));
+  const [propertyId, setPropertyId] = useState(
+    schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null,
+  );
+  const [isRequired, setIsRequired] = useState(
+    customRequired || isPropertyRequired(schema, propertyPath),
+  );
 
   const validate = useCallback(
     (newValue: T | TT) => {
@@ -64,7 +71,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
 
       return null;
     },
-    [customValidationRules, isRequired, propertyId]
+    [customValidationRules, isRequired, propertyId],
   );
 
   const [tmpValue, setTmpValue] = useState<T | TT>(value);
@@ -81,7 +88,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
   }, [value, id, schema, validate]);
 
   useEffect(() => {
-    if (schema) setPropertyId(propertyPath ? `${schema.$id}#/${propertyPath}`: null);
+    if (schema) setPropertyId(propertyPath ? `${schema.$id}#/${propertyPath}` : null);
   }, [schema, propertyPath]);
 
   useEffect(() => {
@@ -105,12 +112,12 @@ export const FormField = <T extends unknown, TT extends unknown>({
                 required: isRequired,
                 label,
                 onChange: handleOnChange,
-                isValid: !errorCode,
                 ...child.props,
               }
             : {};
 
         if (errorCode) {
+          props.isValid = false;
           props['aria-errormessage'] = errorMessageId;
           props['aria-invalid'] = true;
         }
@@ -144,7 +151,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
               label,
               onChange: handleOnChange,
               customRequired: isRequired,
-            })
+            }),
           )}
         </div>
         <div className={classes.helpTextContainer}>
