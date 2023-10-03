@@ -63,7 +63,7 @@ export const FormDesigner = ({
     selectedLayout,
     selectedLayoutSet,
   );
-  const { layout } = useParams();
+  const { layout: searchParamsLayout } = useParams();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
@@ -95,7 +95,7 @@ export const FormDesigner = ({
    */
   useEffect(() => {
     // const searchParamsLayout = searchParams.get('layout');
-    const searchParamsLayout = layout; // searchParams.get('layout');
+    // const searchParamsLayout = layout; // searchParams.get('layout');
 
     const isValidLayout = (layoutName: string): boolean => {
       const isExistingLayout = layoutPagesOrder?.includes(layoutName);
@@ -106,6 +106,7 @@ export const FormDesigner = ({
     if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       return;
     }
   }, [
@@ -114,7 +115,7 @@ export const FormDesigner = ({
     instanceId,
     layoutPagesOrder,
     selectedLayout,
-    layout,
+    searchParamsLayout,
   ]);
 
   useEffect((): void => {
@@ -139,9 +140,6 @@ export const FormDesigner = ({
   if (formLayoutIsReady) {
     const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
     const layout = formLayouts[selectedLayout];
-
-    console.log('formLayouts', formLayouts);
-    console.log('selectedLayout', selectedLayout);
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
@@ -47,6 +47,10 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const t = useText();
+
+  useEffect(() => {
+    console.log('selectedLayout in useEffect', selectedLayout);
+  });
 
   // TODO @David - Denne funksjonaliteten må flyttes inn i DesignView.tsx for å legge til flere sider
   // Burde vi kanskje gitt brukeren mulighet til å velge et navn selv?

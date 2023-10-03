@@ -76,7 +76,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const searchParamsLayout = searchParams.get('layout');
 
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
-  console.log('selectedLayoutName', selectedLayoutName);
 
   const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
@@ -141,9 +140,9 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   // selectedLayoutName blir satt et eller anent sted i koden, typ en useEffect eller noe.
   const handleAddPage = (isReceipt: boolean) => {
     if (isReceipt) {
+      console.log('in add');
       addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
       setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
-
       setOpenAccordion('Kvittering');
     } else {
       const newNum = mappedFormLayoutData.filter((p) => p.page !== 'Kvittering').length + 1;
@@ -241,6 +240,7 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
       const receiptData = mappedFormLayoutData.find((d) => d.page === receiptName).data;
       const { order, containers, components } = receiptData || {};
 
+      // TODO @William - Fix so that it is possible to drag components inside up and down too
       return (
         <PageAccordion
           pageName={receiptName}

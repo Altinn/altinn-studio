@@ -28,7 +28,7 @@ export function App() {
   const { org, app } = useStudioUrlParams();
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetInPreviewFromLocalStorage = typedLocalStorage.getItem<string>(
-    'layoutSet/' + app
+    'layoutSet/' + app,
   );
   const selectedLayoutSetInPreview =
     selectedLayoutSetInPreviewFromLocalStorage !== ''
