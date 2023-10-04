@@ -21,6 +21,8 @@ export function LayoutSetsContainer() {
     dispatch(FormLayoutActions.updateSelectedLayoutSet(set));
     typedLocalStorage.setItem<string>('layoutSet/' + app, set);
   };
+  
+  if (!layoutSetNames) return null;
 
   if (!layoutSetNames) return null;
 

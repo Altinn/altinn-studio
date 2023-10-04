@@ -55,24 +55,12 @@ export const Elements = () => {
     dispatch(FormLayoutActions.updateSelectedLayout(name));
   }
 
-  function handleAddLayoutSet() {
-    // TODO: Add layout set with set-name as user-input
-    // auto-connect data model and process in backend?
-  }
-
   return (
     <div className={classes.root}>
       {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
-        <>
-          <LayoutSetsContainer />
-          <div className={classes.addButton}>
-            <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
-              {t('left_menu.layout_sets_add')}
-            </Button>
-          </div>
-        </>
+          <ConfigureLayoutSetPanel />
       ) : (
-        <ConfigureLayoutSetPanel />
+          <LayoutSetsContainer />
       )}
       <Accordion color='subtle'>
         <Accordion.Item defaultOpen={true}>

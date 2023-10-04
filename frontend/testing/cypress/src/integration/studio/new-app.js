@@ -8,9 +8,8 @@ import { gitea } from "../../selectors/gitea";
 
 context('New App', () => {
   before(() => {
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');
@@ -22,7 +21,6 @@ context('New App', () => {
   });
 
   it('is possible to start app creation and exit', () => {
-    cy.visit('/dashboard');
     dashboard.getNewAppLink().should('be.visible').click();
     dashboard.getAppOwnerField().should('be.visible').click();
     dashboard.getOrgOption(Cypress.env('autoTestUser')).click();
