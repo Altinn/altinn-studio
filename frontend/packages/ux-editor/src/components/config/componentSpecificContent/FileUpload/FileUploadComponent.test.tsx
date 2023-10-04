@@ -86,6 +86,36 @@ describe('FileUploadComponent', () => {
     });
     expect(radioButtonForSimpleFile).toBeInTheDocument();
   });
+
+  it("Verify that when select the radio button ('Custom File Types'), the other radio button 'All File Types' is deselected", async () => {
+    await render({ component: { ...component, hasCustomFileEndings: true } });
+    <FileUploadComponent {...defaultProps} />;
+    const radioButtonForAllFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_all'),
+    });
+    const radioButtonForCustomFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_custom'),
+    });
+    expect(radioButtonForAllFile).toBeInTheDocument();
+    expect(radioButtonForCustomFile).toBeInTheDocument();
+    expect(radioButtonForAllFile).not.toBeChecked();
+    expect(radioButtonForCustomFile).toBeChecked();
+  });
+
+  it("Verify that when select the radio button ('All File Types'), the other radio button 'Custom File Types' is deselected", async () => {
+    await render({ component: { ...component, hasCustomFileEndings: false } });
+    <FileUploadComponent {...defaultProps} />;
+    const radioButtonForAllFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_all'),
+    });
+    const radioButtonForCustomFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_custom'),
+    });
+    expect(radioButtonForAllFile).toBeInTheDocument();
+    expect(radioButtonForCustomFile).toBeInTheDocument();
+    expect(radioButtonForAllFile).toBeChecked();
+    expect(radioButtonForCustomFile).not.toBeChecked();
+  });
 });
 
 const waitForData = async () => {
