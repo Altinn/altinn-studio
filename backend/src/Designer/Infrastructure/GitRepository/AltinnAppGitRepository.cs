@@ -732,35 +732,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return optionListIds.ToArray();
         }
 
-        /// <summary>
-        /// Saves bpmn file to disk.
-        /// </summary>
-        /// <param name="file">Content of bpmn file.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException">Throws argument exception if size of syntax validation of the file fails.</exception>
-        public async Task<string> SaveProcessDefinitionFile(string file, CancellationToken cancellationToken = default)
+        public async Task SaveProcessDefinitionFile(Stream file, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Guard.AssertNotNullOrEmpty(file, nameof(file));
-            if (file.Length > 100_000)
+            if (file.Length > 1000_000)
             {
                 throw new ArgumentException("Bpmn file is too large");
             }
+            await Guard.AssertValidXmlStreamAndRewindAsync(file);
 
-            Guard.AssertValidXmlContent(file);
-
-            await WriteTextByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
-            return file;
+            await WriteStreamByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
         }
 
-        /// <summary>
-        /// Gets the Bpmn file from App/config/process/process.bpmn location
-        /// </summary>
-        /// <returns>Content of Bpmn file</returns>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <exception cref="NotFoundHttpRequestException">If file doesn't exists.</exception>
-        public async Task<string> GetProcessDefinitionFile(CancellationToken cancellationToken = default)
+        public async Task<Stream> GetProcessDefinitionFile(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
@@ -768,7 +752,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
-            return await ReadTextByRelativePathAsync(ProcessDefinitionFilePath, cancellationToken);
+            return await ReadStreamByRelativePathAsync(ProcessDefinitionFilePath, cancellationToken);
         }
 
         /// <summary>

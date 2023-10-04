@@ -126,22 +126,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task SaveRuleConfig(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode ruleConfig, string layoutSetName, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Get's process definition for an app.
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>Bpmn file.</returns>
-        public Task<string> GetProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Saves the process definition for an app.
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="bpmnXml">Content of process definition file to save.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>Saved file.</returns>
-        public Task<string> SaveProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string bpmnXml, CancellationToken cancellationToken = default);
     }
 }

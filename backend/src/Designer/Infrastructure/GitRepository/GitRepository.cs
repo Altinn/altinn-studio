@@ -139,6 +139,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Returns fileStream of a file path relative to the repository directory.
+        /// </summary>
+        /// <param name="relativeFilePath">The relative path to the file.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation in cancelled</param>
+        /// <returns>A <see cref="Stream"/>.</returns>
+        public Task<Stream> ReadStreamByRelativePathAsync(string relativeFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
+
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+
+            return Task.FromResult<Stream>(File.OpenRead(absoluteFilePath));
+        }
+
+        /// <summary>
         /// Creates a new file or overwrites an existing and writes the text to the specified file path.
         /// </summary>
         /// <param name="relativeFilePath">File to be created/updated.</param>
@@ -168,8 +184,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeFilePath">File to be created/updated.</param>
         /// <param name="stream">Content to be written to the file.</param>
         /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>
-        public async Task WriteStreamByRelativePathAsync(string relativeFilePath, Stream stream, bool createDirectory = false)
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation in cancelled</param>
+        public async Task WriteStreamByRelativePathAsync(string relativeFilePath, Stream stream, bool createDirectory = false, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
 
             string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
@@ -181,7 +199,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 CreateDirectory(absoluteFilePath);
             }
 
-            await WriteAsync(absoluteFilePath, stream);
+            await WriteAsync(absoluteFilePath, stream, cancellationToken);
         }
 
         /// <summary>
@@ -378,10 +396,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
         }
 
-        private static async Task WriteAsync(string absoluteFilePath, Stream stream)
+        private static async Task WriteAsync(string absoluteFilePath, Stream stream, CancellationToken cancellationToken = default)
         {
             await using FileStream targetStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
-            await stream.CopyToAsync(targetStream, bufferSize: 4096);
+            await stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken);
         }
     }
 }
