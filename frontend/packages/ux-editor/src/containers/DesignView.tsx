@@ -1,25 +1,17 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FormContainer } from './FormContainer';
-import type { FormContainer as IFormContainer } from '../types/FormContainer';
-import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
-import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useFormContext } from './FormContext';
-import { ConnectDragSource } from 'react-dnd';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { Button } from '@digdir/design-system-react';
 import {
+  IFormLayouts,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
-  IFormLayouts,
 } from '../types/global';
 import type { FormLayout } from '../types/FormLayout';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
@@ -31,6 +23,7 @@ import { PageAccordion } from './PageAccordion';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import cn from 'classnames';
 import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
+import { RenderedFormContainer } from './RenderedFormContainer';
 
 /**
  * @component
@@ -53,8 +46,6 @@ export const DesignView = (): ReactNode => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
-
-  const { formId, form, handleDiscard, handleEdit, handleSave, debounceSave } = useFormContext();
 
   const { t } = useTranslation();
 
@@ -116,6 +107,10 @@ export const DesignView = (): ReactNode => {
     }
   };
 
+  /**
+   * Handles the click of add page. It adds either a receipt page or a
+   * normal page based on the isReceipt variable.
+   */
   const handleAddPage = (isReceipt: boolean) => {
     if (isReceipt) {
       addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
@@ -138,67 +133,21 @@ export const DesignView = (): ReactNode => {
     }
   };
 
-  // TODO @David - Denne kan potensielt flyttes til separate filer.
-  // Det er i komponentene her at stylingen må skje for å matche Figma.
-  const renderContainer = (
-    id: string,
-    isBaseContainer: boolean,
+  /**
+   * Displays the rendered form container
+   */
+  const displayRenderedFormContainer = (
     order: IFormLayoutOrder,
     containers: IFormDesignerContainers,
     components: IFormDesignerComponents,
-    dragHandleRef?: ConnectDragSource,
   ) => {
-    if (!id) return null;
-
-    const items = order[id];
-
     return (
-      <FormContainer
-        container={formId === id ? (form as IFormContainer) : containers[id]}
-        dragHandleRef={dragHandleRef}
-        handleDiscard={handleDiscard}
-        handleEdit={handleEdit}
-        handleSave={handleSave}
-        id={id}
-        isBaseContainer={isBaseContainer}
-        isEditMode={formId === id}
-      >
-        <DragAndDrop.List<ComponentType>>
-          {items?.length ? (
-            items.map((itemId: string) => (
-              <DragAndDrop.ListItem<ComponentType>
-                key={itemId}
-                itemId={itemId}
-                renderItem={(itemDragHandleRef) => {
-                  const component = components[itemId];
-                  if (component) {
-                    return (
-                      <FormComponent
-                        id={itemId}
-                        isEditMode={formId === itemId}
-                        component={
-                          formId === itemId ? (form as IFormComponent) : components[itemId]
-                        }
-                        handleEdit={handleEdit}
-                        handleSave={handleSave}
-                        debounceSave={debounceSave}
-                        handleDiscard={handleDiscard}
-                        dragHandleRef={itemDragHandleRef}
-                      />
-                    );
-                  }
-                  return (
-                    containers[itemId] &&
-                    renderContainer(itemId, false, order, containers, components, itemDragHandleRef)
-                  );
-                }}
-              />
-            ))
-          ) : (
-            <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>
-          )}
-        </DragAndDrop.List>
-      </FormContainer>
+      <RenderedFormContainer
+        containerId={BASE_CONTAINER_ID}
+        formLayoutOrder={order}
+        formDesignerContainers={containers}
+        formDesignerComponents={components}
+      />
     );
   };
 
@@ -221,11 +170,15 @@ export const DesignView = (): ReactNode => {
         onClick={() => handleClickAccordion(layout.page)}
       >
         {layout.page === openAccordion &&
-          renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+          displayRenderedFormContainer(order, containers, components)}
       </PageAccordion>
     );
   });
 
+  /**
+   * Displays accordion with receipt components if receipt exists, otherwise
+   * it displays the button to add it
+   */
   const displayReceipt = () => {
     if (receiptName) {
       const receiptData = formLayoutData.find((d) => d.page === receiptName);
@@ -239,7 +192,7 @@ export const DesignView = (): ReactNode => {
           isOpen={receiptName === openAccordion}
           onClick={() => handleClickAccordion(receiptName)}
         >
-          {renderContainer(BASE_CONTAINER_ID, true, order, containers, components)}
+          {displayRenderedFormContainer(order, containers, components)}
         </PageAccordion>
       );
     } else {
