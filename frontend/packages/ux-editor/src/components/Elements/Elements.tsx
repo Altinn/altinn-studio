@@ -78,13 +78,9 @@ export const Elements = () => {
         </Accordion.Item>
       </Accordion>
       <div className={classes.componentsList}>
-        <div className={classes.componentsHeader}>
-          <Heading size='xxsmall'>
-            {t('left_menu.components')}
-          </Heading>
-          <Divider marginless />
-        </div>
-        
+        <Heading size='xxsmall' className={classes.componentsHeader}>
+          {t('left_menu.components')}
+        </Heading>
         {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
       </div>
     </div>
