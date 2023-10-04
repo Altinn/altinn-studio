@@ -9,10 +9,8 @@ import { common } from '../../selectors/common';
 context('Dashboard', () => {
   before(() => {
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.createApp(Cypress.env('autoTestUser'), 'auto-app');
-      cy.createApp(Cypress.env('autoTestUser'), 'test-app');
-    });
+    cy.createApp(Cypress.env('autoTestUser'), 'auto-app');
+    cy.createApp(Cypress.env('autoTestUser'), 'test-app');
   });
 
   beforeEach(() => {
@@ -21,6 +19,10 @@ context('Dashboard', () => {
     cy.intercept('GET', '**/repos/search**').as('fetchApps');
     dashboard.getSearchReposField().should('be.visible');
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
+  });
+
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('does not have broken links', () => {
