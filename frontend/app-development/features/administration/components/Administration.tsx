@@ -3,6 +3,7 @@ import classes from './Administration.module.css';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { PageSpinner } from 'app-shared/components/PageSpinner';
+import { Heading } from '@digdir/design-system-react';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -13,7 +14,9 @@ export const Administration = () => {
   return (
     <div className={classes.administration}>
       <div className={classes.container}>
-        <h1 className={classes.header}>{appConfigData.serviceName}</h1>
+        <div className={classes.header}>
+          <Heading size='xlarge'>{appConfigData.serviceName}</Heading>
+        </div>
         <div className={classes.content}>
           <main className={classes.main}>
             <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
