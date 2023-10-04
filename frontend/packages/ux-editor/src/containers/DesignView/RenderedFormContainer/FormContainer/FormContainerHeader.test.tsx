@@ -5,9 +5,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormContainerHeaderProps } from './FormContainerHeader';
 import { FormContainerHeader } from './FormContainerHeader';
-import { renderWithMockStore } from '../testing/mocks';
-import { container1IdMock } from '../testing/layoutMock';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { renderWithMockStore } from '../../../../testing/mocks';
+import { container1IdMock } from '../../../../testing/layoutMock';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -17,7 +17,9 @@ describe('FormContainerHeader', () => {
   it('should render the component', async () => {
     await render();
 
-    expect(screen.getByText(textMock('ux_editor.component_group_header', { id: container1IdMock }))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.component_group_header', { id: container1IdMock })),
+    ).toBeInTheDocument();
 
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
   });
@@ -37,7 +39,9 @@ describe('FormContainerHeader', () => {
       const text = await screen.findByText(textMock('ux_editor.component_deletion_text'));
       expect(text).toBeInTheDocument();
 
-      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_deletion_confirm') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('ux_editor.component_deletion_confirm'),
+      });
       expect(confirmButton).toBeInTheDocument();
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -50,7 +54,9 @@ describe('FormContainerHeader', () => {
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await act(() => user.click(deleteButton));
 
-      const confirmButton = screen.getByRole('button', { name: textMock('ux_editor.component_deletion_confirm') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('ux_editor.component_deletion_confirm'),
+      });
       await act(() => user.click(confirmButton));
 
       expect(handleDeleteMock).toBeCalledTimes(1);
@@ -92,12 +98,12 @@ const render = async (props: Partial<IFormContainerHeaderProps> = {}) => {
     handleExpanded: jest.fn(),
     handleDelete: handleDeleteMock,
     dragHandleRef: null,
-    ...props
+    ...props,
   };
 
   return renderWithMockStore()(
     <DndProvider backend={HTML5Backend}>
       <FormContainerHeader {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };

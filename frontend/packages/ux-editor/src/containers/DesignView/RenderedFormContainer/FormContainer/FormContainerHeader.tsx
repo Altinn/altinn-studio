@@ -1,11 +1,11 @@
 import React, { memo, useState } from 'react';
 import { ConnectDragSource } from 'react-dnd';
 import cn from 'classnames';
-import '../styles/index.css';
+import '../../../../styles/index.css';
 import { Button } from '@digdir/design-system-react';
 import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, ChevronDownIcon } from '@navikt/aksel-icons';
-import { DragHandle } from '../components/FormComponent/DragHandle';
+import { DragHandle } from '../../../../components/FormComponent/DragHandle';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 

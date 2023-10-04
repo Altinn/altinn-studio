@@ -88,7 +88,6 @@ export const FormDesigner = ({
    */
   useEffect(() => {
     const searchParamsLayout = searchParams.get('layout');
-    // const searchParamsLayout = layout; // searchParams.get('layout');
 
     const isValidLayout = (layoutName: string): boolean => {
       const isExistingLayout = layoutPagesOrder?.includes(layoutName);

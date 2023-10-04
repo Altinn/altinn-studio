@@ -1,12 +1,12 @@
 import React, { useCallback, useState, ReactNode } from 'react';
 import cn from 'classnames';
-import '../styles/index.css';
+import '../../../../styles/index.css';
 import classes from './FormContainer.module.css';
-import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import type { FormContainer as IFormContainer } from '../types/FormContainer';
+import { useDeleteFormContainerMutation } from '../../../../hooks/mutations/useDeleteFormContainerMutation';
+import type { FormContainer as IFormContainer } from '../../../../types/FormContainer';
 import { FormContainerHeader } from './FormContainerHeader';
 import { ConnectDragSource } from 'react-dnd';
-import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { selectedLayoutSetSelector } from '../../../../selectors/formLayoutSelectors';
 import { useSelector } from 'react-redux';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 

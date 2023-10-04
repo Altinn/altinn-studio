@@ -2,7 +2,7 @@ import React, { ReactNode, useRef, useEffect, ChangeEvent, useState } from 'reac
 import classes from './InputPopover.module.css';
 import { Button, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { validateLayoutNameAndLayoutSetName } from '../../../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
+import { validateLayoutNameAndLayoutSetName } from '../../../../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 
 export type InputPopoverProps = {
   /**

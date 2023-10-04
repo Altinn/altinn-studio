@@ -1,29 +1,25 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
-import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
+import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Button } from '@digdir/design-system-react';
-import {
-  IFormLayouts,
-  IFormDesignerComponents,
-  IFormDesignerContainers,
-  IFormLayoutOrder,
-} from '../types/global';
-import type { FormLayout } from '../types/FormLayout';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { IFormLayouts } from '../../types/global';
+import type { FormLayout } from '../../types/FormLayout';
+import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useSearchParams } from 'react-router-dom';
-import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { PageAccordion } from './PageAccordion';
-import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
+import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import cn from 'classnames';
-import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
+import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
+import { PageAccordion } from './PageAccordion';
 import { RenderedFormContainer } from './RenderedFormContainer';
+import { ReceiptContent } from './ReceiptContent';
 
 /**
  * @component
@@ -118,11 +114,11 @@ export const DesignView = (): ReactNode => {
       setOpenAccordion('Kvittering');
     } else {
       let newNum = 1;
-      let newLayoutName = `${t('left_menu.page')}${layoutOrder.length + newNum}`;
+      let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
       while (layoutOrder.indexOf(newLayoutName) > -1) {
         newNum += 1;
-        newLayoutName = `${t('left_menu.page')}${newNum}`;
+        newLayoutName = `${t('ux_editor.page')}${newNum}`;
       }
 
       addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: false });
@@ -131,24 +127,6 @@ export const DesignView = (): ReactNode => {
       dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
       setOpenAccordion(newLayoutName);
     }
-  };
-
-  /**
-   * Displays the rendered form container
-   */
-  const displayRenderedFormContainer = (
-    order: IFormLayoutOrder,
-    containers: IFormDesignerContainers,
-    components: IFormDesignerComponents,
-  ) => {
-    return (
-      <RenderedFormContainer
-        containerId={BASE_CONTAINER_ID}
-        formLayoutOrder={order}
-        formDesignerContainers={containers}
-        formDesignerComponents={components}
-      />
-    );
   };
 
   /**
@@ -169,57 +147,33 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === openAccordion}
         onClick={() => handleClickAccordion(layout.page)}
       >
-        {layout.page === openAccordion &&
-          displayRenderedFormContainer(order, containers, components)}
+        {layout.page === openAccordion && (
+          <RenderedFormContainer
+            containerId={BASE_CONTAINER_ID}
+            formLayoutOrder={order}
+            formDesignerContainers={containers}
+            formDesignerComponents={components}
+          />
+        )}
       </PageAccordion>
     );
   });
-
-  /**
-   * Displays accordion with receipt components if receipt exists, otherwise
-   * it displays the button to add it
-   */
-  const displayReceipt = () => {
-    if (receiptName) {
-      const receiptData = formLayoutData.find((d) => d.page === receiptName);
-      if (receiptData === undefined) return null;
-
-      const { order, containers, components } = receiptData.data || {};
-
-      return (
-        <PageAccordion
-          pageName={receiptName}
-          isOpen={receiptName === openAccordion}
-          onClick={() => handleClickAccordion(receiptName)}
-        >
-          {displayRenderedFormContainer(order, containers, components)}
-        </PageAccordion>
-      );
-    } else {
-      return (
-        <div className={classes.button}>
-          <Button
-            variant='quiet'
-            onClick={() => handleAddPage(true)}
-            className={classes.button}
-            size='small'
-          >
-            {t('receipt.create')}
-          </Button>
-        </div>
-      );
-    }
-  };
 
   return (
     <div className={classes.root}>
       <div>
         {displayPageAccordions}
-        {displayReceipt()}
+        <ReceiptContent
+          receiptName={receiptName}
+          selectedAccordion={openAccordion}
+          formLayoutData={formLayoutData}
+          onClickAccordion={() => handleClickAccordion(receiptName)}
+          onClickAddPage={() => handleAddPage(true)}
+        />
       </div>
       <div className={cn(classes.button, classes.addButton)}>
         <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small'>
-          {t('left_menu.pages_add')}
+          {t('ux_editor.pages_add')}
         </Button>
       </div>
     </div>

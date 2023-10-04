@@ -1,14 +1,14 @@
 import React from 'react';
-import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
+import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '../../../../testing/mocks/i18nMock';
-import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormContext } from './FormContext';
+import { FormContext } from '../FormContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 
@@ -62,7 +62,7 @@ describe('DesignView', () => {
     };
     await render(queries);
     expect(
-      screen.queryByText((content) => content.startsWith(`Gruppe - $`))
+      screen.queryByText((content) => content.startsWith(`Gruppe - $`)),
     ).not.toBeInTheDocument();
   });
 });
@@ -70,12 +70,12 @@ describe('DesignView', () => {
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
   const { result } = renderHookWithMockStore(
     {},
-    queries
+    queries,
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
   await waitFor(() => result.current.isSuccess);
   return renderWithMockStore(
     {},
-    queries
+    queries,
   )(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormContext.Provider
@@ -91,6 +91,6 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
       >
         <DesignView />
       </FormContext.Provider>
-    </DragAndDrop.Provider>
+    </DragAndDrop.Provider>,
   );
 };

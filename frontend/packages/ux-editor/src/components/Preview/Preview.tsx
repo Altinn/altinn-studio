@@ -2,7 +2,10 @@ import React from 'react';
 import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import {
+  selectedLayoutNameSelector,
+  selectedLayoutSetSelector,
+} from '../../selectors/formLayoutSelectors';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
@@ -29,4 +32,4 @@ export const Preview = () => {
       />
     </div>
   );
-}
+};

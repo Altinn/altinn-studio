@@ -4,15 +4,15 @@ import {
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
-} from '../../types/global';
+} from '../../../types/global';
 import { ConnectDragSource } from 'react-dnd';
-import { FormContainer } from '../FormContainer';
-import type { FormContainer as IFormContainer } from '../../types/FormContainer';
-import type { FormComponent as IFormComponent } from '../../types/FormComponent';
+import { FormContainer } from './FormContainer';
+import type { FormContainer as IFormContainer } from '../../../types/FormContainer';
+import type { FormComponent as IFormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { FormComponent } from '../../components/FormComponent';
-import { useFormContext } from '../FormContext';
+import { FormComponent } from '../../../components/FormComponent';
+import { useFormContext } from '../../FormContext';
 import { useTranslation } from 'react-i18next';
 
 export type RenderedFormContainerProps = {

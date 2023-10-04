@@ -33,7 +33,7 @@ export type PageAccordionProps = {
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
  *
- * @returns
+ * @returns {ReactNode} - The rendered component
  */
 export const PageAccordion = ({
   pageName,

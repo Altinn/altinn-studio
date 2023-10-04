@@ -4,19 +4,14 @@ import classes from './FormComponent.module.css';
 import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../../types/FormComponent';
 import { Button } from '@digdir/design-system-react';
-import { ComponentPreview } from '../../containers/ComponentPreview';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './DragHandle';
 import { ITextResource } from 'app-shared/types/global';
-import { MonitorIcon, TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../../utils/language';
-import {
-  selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
-} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
 import { useTextResourcesSelector } from '../../hooks';
@@ -52,7 +47,6 @@ export const FormComponent = memo(function FormComponent({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const Icon = formItemConfigs[component.type]?.icon;
@@ -63,38 +57,16 @@ export const FormComponent = memo(function FormComponent({
     selectedLayoutSetName,
   );
 
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
-
-  const previewableComponents = [
-    ComponentType.Checkboxes,
-    ComponentType.RadioButtons,
-    ComponentType.Button,
-    ComponentType.NavigationButtons,
-  ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
-
-  const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
-
   const handleDelete = (): void => {
     deleteFormComponent(id);
     if (isEditMode) handleDiscard();
   };
 
-  const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setIsPreviewMode((previous) => !previous);
-  };
-
-  const textResource = !isPreviewMode
-    ? getTextResource(component.textResourceBindings?.title, textResources)
-    : null;
+  const textResource = getTextResource(component.textResourceBindings?.title, textResources);
 
   return (
     <div
-      className={cn(
-        classes.wrapper,
-        isEditMode && classes.editMode,
-        isPreviewMode && classes.previewMode,
-      )}
+      className={cn(classes.wrapper, isEditMode && classes.editMode)}
       role='listitem'
       onClick={async (event: React.MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
@@ -109,28 +81,17 @@ export const FormComponent = memo(function FormComponent({
           <DragHandle />
         </div>
         <div className={classes.formComponent} tabIndex={0}>
-          {isPreviewMode ? (
-            <ComponentPreview
-              component={component}
-              handleComponentChange={async (updatedComponent) => {
-                handleEdit(updatedComponent);
-                debounceSave(id, updatedComponent);
-              }}
-              layoutName={selectedLayout}
-            />
-          ) : (
-            <div className={classes.formComponentTitle}>
-              <span className={classes.icon}>
-                {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)} />}
-              </span>
-              <span id={`${id}-title`}>
-                {textResource
-                  ? truncate(textResource, 80)
-                  : getComponentTitleByComponentType(component.type, t) ||
-                    t('ux_editor.component_unknown')}
-              </span>
-            </div>
-          )}
+          <div className={classes.formComponentTitle}>
+            <span className={classes.icon}>
+              {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)} />}
+            </span>
+            <span id={`${id}-title`}>
+              {textResource
+                ? truncate(textResource, 80)
+                : getComponentTitleByComponentType(component.type, t) ||
+                  t('ux_editor.component_unknown')}
+            </span>
+          </div>
         </div>
       </div>
       <div className={classes.buttons}>
@@ -156,16 +117,6 @@ export const FormComponent = memo(function FormComponent({
         >
           <p>{t('ux_editor.component_deletion_text')}</p>
         </AltinnConfirmDialog>
-        {isPreviewable && (
-          <Button
-            color='secondary'
-            icon={<MonitorIcon title={t('general.preview')} />}
-            onClick={handlePreview}
-            title={'Forhåndsvisning (under utvikling)'}
-            variant='quiet'
-            size='small'
-          />
-        )}
       </div>
     </div>
   );

@@ -9,18 +9,18 @@ import {
   TrashIcon,
 } from '@navikt/aksel-icons';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { useUpdateLayoutOrderMutation } from '../../../hooks/mutations/useUpdateLayoutOrderMutation';
-import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
+import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
+import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
+import { useUpdateLayoutNameMutation } from '../../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
-import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
-import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
-import type { IAppState } from '../../../types/global';
+import { useDeleteLayoutMutation } from '../../../../hooks/mutations/useDeleteLayoutMutation';
+import { selectedLayoutSetSelector } from '../../../../selectors/formLayoutSelectors';
+import type { IAppState } from '../../../../types/global';
 import { Divider } from 'app-shared/primitives';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useSearchParams } from 'react-router-dom';
-import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
+import { firstAvailableLayout } from '../../../../utils/formLayoutsUtils';
 import { InputPopover } from './InputPopover';
 import { deepCopy } from 'app-shared/pure';
 
@@ -114,7 +114,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
           <AltinnMenuItem
             onClick={(event) => onMenuItemClick(event, 'up')}
             disabled={disableUp || invalid}
-            text={t('left_menu.page_menu_up')}
+            text={t('ux_editor.page_menu_up')}
             icon={ArrowUpIcon}
             id='move-page-up-button'
           />
@@ -123,7 +123,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
           <AltinnMenuItem
             onClick={(event) => onMenuItemClick(event, 'down')}
             disabled={disableDown || invalid}
-            text={t('left_menu.page_menu_down')}
+            text={t('ux_editor.page_menu_down')}
             icon={ArrowDownIcon}
             id='move-page-down-button'
           />
@@ -140,7 +140,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
           trigger={
             <AltinnMenuItem
               onClick={(event) => onMenuItemClick(event, 'edit')}
-              text={t('left_menu.page_menu_edit')}
+              text={t('ux_editor.page_menu_edit')}
               icon={PencilIcon}
               id='edit-page-button'
               disabled={invalid}
@@ -150,7 +150,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
         <Divider marginless />
         <AltinnConfirmDialog
           open={isConfirmDeleteDialogOpen}
-          confirmText={t('left_menu.page_delete_confirm')}
+          confirmText={t('ux_editor.page_delete_confirm')}
           onConfirm={() => {
             handleConfirmDelete();
             setMenuAnchorEl(null);
@@ -162,14 +162,14 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
           trigger={
             <AltinnMenuItem
               onClick={(event) => onMenuItemClick(event, 'delete')}
-              text={t('left_menu.page_menu_delete')}
+              text={t('ux_editor.page_menu_delete')}
               icon={TrashIcon}
               id='delete-page-button'
             />
           }
         >
-          <p>{t('left_menu.page_delete_text')}</p>
-          <p>{t('left_menu.page_delete_information')}</p>
+          <p>{t('ux_editor.page_delete_text')}</p>
+          <p>{t('ux_editor.page_delete_information')}</p>
         </AltinnConfirmDialog>
       </AltinnMenu>
     </div>
