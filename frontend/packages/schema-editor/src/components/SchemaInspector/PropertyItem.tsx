@@ -1,6 +1,6 @@
 import type { ChangeEventHandler, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { LegacyCheckbox, Select, Switch } from '@digdir/design-system-react';
+import { Select, Switch } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';

@@ -6,7 +6,7 @@ import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { Label } from 'app-shared/components/Label';
 import classes from './StringRestrictions.module.css';
-import { LegacyCheckbox, ErrorMessage, LegacyTextField, Switch } from '@digdir/design-system-react';
+import { ErrorMessage, LegacyTextField, Switch } from '@digdir/design-system-react';
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerAction,

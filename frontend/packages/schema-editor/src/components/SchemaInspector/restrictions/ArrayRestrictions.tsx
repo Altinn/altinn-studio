@@ -5,7 +5,6 @@ import { LegacyTextField, Switch } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { LegacyCheckbox } from '@digdir/design-system-react';
 
 export function ArrayRestrictions({
   restrictions,

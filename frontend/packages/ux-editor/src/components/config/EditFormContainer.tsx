@@ -5,13 +5,7 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import {
-  Switch,
-  Checkbox,
-  LegacyCheckboxGroup,
-  LegacyFieldSet,
-  LegacyTextField,
-} from '@digdir/design-system-react';
+import { Switch, Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';

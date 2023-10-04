@@ -3,13 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import {
-  Button,
-  Checkbox,
-  Fieldset,
-  LegacyCheckbox,
-  LegacyFieldSet,
-} from '@digdir/design-system-react';
+import { Button, Checkbox, Fieldset } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
