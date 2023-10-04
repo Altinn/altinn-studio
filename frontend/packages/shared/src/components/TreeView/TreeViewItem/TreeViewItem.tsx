@@ -1,4 +1,12 @@
-import React, { ElementType, KeyboardEvent, ReactNode, useEffect, useRef, useState } from 'react';
+import React, {
+  ElementType,
+  HTMLAttributes,
+  KeyboardEvent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTreeViewRootContext } from '../hooks/useTreeViewRootContext';
 import { useTreeViewItemContext } from '../hooks/useTreeViewItemContext';
 import {
@@ -16,21 +24,25 @@ import { TreeViewItemContext } from './TreeViewItemContext';
 import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { Button } from '@digdir/design-system-react';
 import classes from './TreeViewItem.module.css';
+import cn from 'classnames';
 
-export interface TreeViewItemProps {
+export type TreeViewItemProps = {
   as?: ElementType;
   children?: ReactNode;
+  className?: string;
   label: ReactNode;
   labelWrapper?: (children: ReactNode) => ReactNode;
   nodeId: string;
-}
+} & HTMLAttributes<HTMLDivElement>;
 
 export const TreeViewItem = ({
   as = 'li',
+  className,
   children,
   label,
   labelWrapper = (lab) => lab,
   nodeId,
+  ...rest
 }: TreeViewItemProps) => {
   const [open, setOpen] = useState(false);
   const { selectedId, setSelectedId, rootId, focusedId, setFocusedId, focusableId } =
@@ -113,7 +125,7 @@ export const TreeViewItem = ({
 
   return (
     <TreeViewItemContext.Provider value={{ level: level + 1 }}>
-      <Component role='none' className={classes.listItem}>
+      <Component role='none' {...rest} className={cn(classes.listItem, className)}>
         {labelWrapper(renderLabel())}
         {children && (
           <AnimateHeight open={open}>

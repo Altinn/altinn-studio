@@ -46,7 +46,7 @@ export const PageAccordion = ({
       <div className={classes.accordion}>
         <Accordion color='neutral'>
           <Accordion.Item open={isOpen}>
-            <Accordion.Header level={3} onHeaderClick={onClick}>
+            <Accordion.Header style={{ borderRadius: 'none' }} level={3} onHeaderClick={onClick}>
               {pageName}
             </Accordion.Header>
             <Accordion.Content>{children}</Accordion.Content>

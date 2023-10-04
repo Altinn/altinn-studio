@@ -1,10 +1,19 @@
 import {
-  DraggableEditorItemType,
-  DragCursorPosition,
   DndItem,
+  DragCursorPosition,
+  DraggableEditorItemType,
   ExistingDndItem,
 } from '../../../types/dndTypes';
-import React, { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  CSSProperties,
+  ElementType,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ConnectDragSource, useDrag, useDrop } from 'react-dnd';
 import { calculateNewPosition, getDragCursorPosition } from '../../../utils/dndUtils';
 import classes from './DragAndDropListItem.module.css';
@@ -14,10 +23,17 @@ import { useParentId } from '../hooks/useParentId';
 import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
 import { useDomSelectors } from 'app-shared/components/dragAndDrop/hooks/useDomSelectors';
 import { findPositionInList } from 'app-shared/components/dragAndDrop/utils/domUtils';
+import { useGapValue } from 'app-shared/components/dragAndDrop/hooks/useGapValue';
 
 export interface DragAndDropListItemProps {
+  /** The type of the HTML item to render as the root. */
+  as?: ElementType;
+
   /** The id of the item. */
   itemId: string;
+
+  /** Function that is called when something is being dragged over the item. */
+  onDragOver?: () => void;
 
   /** Function that renders the item content. It takes a drag handle ref as a parameter - this must be used as the ref to the drag handle component. */
   renderItem: (dragHandleRef: ConnectDragSource) => ReactNode;
@@ -27,7 +43,16 @@ interface DragCollectedProps {
   isDragging: boolean;
 }
 
-export function DragAndDropListItem<T>({ itemId, renderItem }: DragAndDropListItemProps) {
+type WrapperStyle = CSSProperties & {
+  '--list-item-gap': string;
+};
+
+export function DragAndDropListItem<T>({
+  as = 'div',
+  itemId,
+  onDragOver,
+  renderItem,
+}: DragAndDropListItemProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dragCursorPosition, setDragCursorPosition] = useState<DragCursorPosition>(
     DragCursorPosition.Outside,
@@ -36,6 +61,17 @@ export function DragAndDropListItem<T>({ itemId, renderItem }: DragAndDropListIt
   const parentId = useParentId();
   const onDrop = useOnDrop<T>();
   const domSelectors = useDomSelectors(itemId);
+  const gap = useGapValue();
+
+  const isBeingDraggedOver = [
+    DragCursorPosition.UpperHalf,
+    DragCursorPosition.LowerHalf,
+    DragCursorPosition.Self,
+  ].includes(dragCursorPosition);
+
+  useEffect(() => {
+    if (isBeingDraggedOver) onDragOver?.();
+  }, [isBeingDraggedOver, onDragOver]);
 
   const boxShadow = useMemo(() => {
     switch (dragCursorPosition) {
@@ -81,7 +117,7 @@ export function DragAndDropListItem<T>({ itemId, renderItem }: DragAndDropListIt
         wrapperRef,
         isParentDisabled,
       );
-      if (currentDragPosition !== dragCursorPosition) setDragCursorPosition(currentDragPosition);
+      setDragCursorPosition(currentDragPosition);
     },
     collect: (monitor) => {
       if (!monitor.isOver({ shallow: true })) {
@@ -91,10 +127,18 @@ export function DragAndDropListItem<T>({ itemId, renderItem }: DragAndDropListIt
   });
 
   const opacity = isDragging ? 0.25 : 1;
+  const wrapperStyle: WrapperStyle = {
+    '--list-item-gap': gap,
+  };
+  const Component = as;
 
   return (
-    <div ref={wrapperRef} {...domSelectors.item}>
-      <div ref={drop} className={classes.wrapper}>
+    <Component
+      ref={wrapperRef}
+      className={classes.root + ' ' + domSelectors.item.className}
+      id={domSelectors.item.id}
+    >
+      <div ref={drop} style={wrapperStyle} className={classes.wrapper}>
         <div ref={dragPreview} style={{ opacity, boxShadow }}>
           <DragAndDropListItemContext.Provider
             value={{ isDisabled: isDragging || isParentDisabled, itemId }}
@@ -103,6 +147,6 @@ export function DragAndDropListItem<T>({ itemId, renderItem }: DragAndDropListIt
           </DragAndDropListItemContext.Provider>
         </div>
       </div>
-    </div>
+    </Component>
   );
 }

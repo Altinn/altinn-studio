@@ -10,7 +10,7 @@ const org = 'org';
 const app = 'app';
 const layoutName = 'layoutName';
 const selectedLayoutSet = 'test-layout-set';
-const defaultArgs: AddLayoutMutationArgs = { layoutName }
+const defaultArgs: AddLayoutMutationArgs = { layoutName };
 
 describe('useAddLayoutMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -18,9 +18,9 @@ describe('useAddLayoutMutation', () => {
   it('Calls saveFormLayout with new layout', async () => {
     await renderAndWaitForData();
 
-    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const addLayoutResult = renderHookWithMockStore()(() =>
+      useAddLayoutMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
     addLayoutResult.current.mutate(defaultArgs);
 
@@ -36,19 +36,22 @@ describe('useAddLayoutMutation', () => {
         data: {
           layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
           hidden: undefined,
-        }
-      }
+        },
+      },
     );
   });
 
   it('Calls saveFormLayout with new layout for receiptPage', async () => {
     await renderAndWaitForData();
 
-    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const addLayoutResult = renderHookWithMockStore()(() =>
+      useAddLayoutMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
-    addLayoutResult.current.mutate({ layoutName: formLayoutSettingsMock.receiptLayoutName, isReceipt: true });
+    addLayoutResult.current.mutate({
+      layoutName: formLayoutSettingsMock.receiptLayoutName,
+      isReceipt: true,
+    });
 
     await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
 
@@ -62,15 +65,19 @@ describe('useAddLayoutMutation', () => {
         data: {
           layout: [],
           hidden: undefined,
-        }
-      }
+        },
+      },
     );
   });
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-}
+};

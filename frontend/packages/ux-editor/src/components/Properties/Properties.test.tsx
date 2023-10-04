@@ -1,5 +1,5 @@
 import React from 'react';
-import { RightMenu, RightMenuProps } from './RightMenu';
+import { Properties } from './Properties';
 import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
@@ -34,7 +34,7 @@ jest.mock('./Calculations', () => ({
 }));
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-describe('RightMenu', () => {
+describe('Properties', () => {
   describe('Content', () => {
     it('Closes content on load', () => {
       render();
@@ -112,15 +112,14 @@ describe('RightMenu', () => {
   });
 });
 
-const getComponent = (formContextProps: Partial<FormContext> = {}, rightMenuProps: Partial<RightMenuProps> = {}) => (
+const getComponent = (formContextProps: Partial<FormContext> = {}) => (
   <FormContext.Provider value={{
     ...formContextProviderMock,
     ...formContextProps
   }}>
-    <RightMenu {...rightMenuProps} />
+    <Properties />
   </FormContext.Provider>
 );
 
-const render = (formContextProps: Partial<FormContext> = {}, rightMenuProps: Partial<RightMenuProps> = {}) => {
-  return rtlRender(getComponent(formContextProps, rightMenuProps));
-};
+const render = (formContextProps: Partial<FormContext> = {}) =>
+  rtlRender(getComponent(formContextProps));

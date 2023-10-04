@@ -5,8 +5,6 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import cn from 'classnames';
-import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
 import {
   selectedLayoutNameSelector,
@@ -19,12 +17,9 @@ import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
 import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import classes from './Elements.module.css';
 
-export interface LeftMenuProps {
-  className?: string;
-}
-
-export const LeftMenu = ({ className }: LeftMenuProps) => {
+export const Elements = () => {
   const { org, app } = useStudioUrlParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
@@ -43,18 +38,11 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   }
 
   return (
-    <div className={cn(className, classes.rightMenu)}>
+    <div className={classes.root}>
       {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
-        <>
-          <LayoutSetsContainer />
-          <div className={classes.addButton}>
-            <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
-              {t('left_menu.layout_sets_add')}
-            </Button>
-          </div>
-        </>
-      ) : (
         <ConfigureLayoutSetPanel />
+      ) : (
+        <LayoutSetsContainer />
       )}
       <Accordion color='subtle'>
         {shouldDisplayFeature('configureLayoutSet') && (

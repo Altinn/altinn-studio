@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { RightMenu } from '../components/rightMenu/RightMenu';
+import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
-import { LeftMenu } from '../components/leftMenu/LeftMenu';
+import { Elements } from '../components/Elements';
 import { FormContextProvider } from './FormContext';
 import { useText } from '../hooks';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
@@ -25,6 +25,7 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { useSearchParams } from 'react-router-dom';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { Preview } from '../components/Preview';
 
 // TODO @David - Move function to utils
 const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
@@ -154,11 +155,12 @@ export const FormDesigner = ({
       <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <LeftMenu className={classes.leftContent + ' ' + classes.item} />
+            <Elements />
             <FormContextProvider>
-              <DesignView className={classes.mainContent + ' ' + classes.item} />
-              <RightMenu className={classes.rightContent + ' ' + classes.item} />
+              <DesignView />
+              <Properties />
             </FormContextProvider>
+            <Preview />
           </div>
         </div>
       </DragAndDrop.Provider>
