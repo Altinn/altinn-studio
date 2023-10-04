@@ -21,7 +21,7 @@ class Program
         var projectFileOption = new Option<string>(name: "--project", description: "The project file to read relative to --folder", getDefaultValue: () => "App/App.csproj");
         var processFileOption = new Option<string>(name: "--process", description: "The process file to read relative to --folder", getDefaultValue: () => "App/config/process/process.bpmn");
         var appSettingsFolderOption = new Option<string>(name: "--appsettings-folder", description: "The folder where the appsettings.*.json files are located", getDefaultValue: () => "App");
-        var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "8.0.0-preview.9");
+        var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "8.0.0-preview.10");
         var skipCsprojUpgradeOption = new Option<bool>(name: "--skip-csproj-upgrade", description: "Skip csproj file upgrade", getDefaultValue: () => false);
         var skipCodeUpgradeOption = new Option<bool>(name: "--skip-code-upgrade", description: "Skip code upgrade", getDefaultValue: () => false);
         var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade", description: "Skip process file upgrade", getDefaultValue: () => false);
