@@ -46,15 +46,21 @@ export const PageAccordion = ({
       <div className={classes.accordionWrapper}>
         <Accordion color='neutral'>
           <Accordion.Item className={classes.accordionItem} open={isOpen}>
-            <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
-              {pageName}
-            </Accordion.Header>
+            <div className={classes.accordionHeaderRow}>
+              <Accordion.Header
+                className={classes.accordionHeader}
+                level={3}
+                onHeaderClick={onClick}
+              >
+                {pageName}
+              </Accordion.Header>
+              <div className={classes.navigationMenu}>
+                <NavigationMenu pageName={pageName} />
+              </div>
+            </div>
             <Accordion.Content className={classes.accordionContent}>{children}</Accordion.Content>
           </Accordion.Item>
         </Accordion>
-      </div>
-      <div className={classes.navigationMenu}>
-        <NavigationMenu pageName={pageName} />
       </div>
     </div>
   );

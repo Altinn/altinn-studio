@@ -22,8 +22,13 @@
   padding-left: 10px;
 }
 
+.accordionHeader {
+  flex: 1;
+}
+
 .accordionHeader button {
   border: none;
+  background-color: var(--fds-semantic-background-default);
 }
 
 .accordionContent {
@@ -33,4 +38,8 @@
 
 .accordionItem > div:last-child {
   border-bottom: none !important;
+}
+
+.accordionHeaderRow {
+  display: flex;
 }
