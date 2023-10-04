@@ -72,7 +72,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
 
   const layoutOrder = formLayoutSettingsQuery.data.pages.order;
-  console.log('layoutOrder', layoutOrder);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
@@ -87,9 +86,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
 
   /**
    * Maps the IFormLayouts object to a list of FormLayouts
-   *
-   * TODO @David - Move this to utilrs maybe?
-   * TODO @David - Find out if this needs to be sorted
    */
   const mapIFormLayoutsToFormLayouts = (iFormLayours: IFormLayouts): FormLayout[] => {
     return Object.entries(iFormLayours).map(([key, value]) => ({

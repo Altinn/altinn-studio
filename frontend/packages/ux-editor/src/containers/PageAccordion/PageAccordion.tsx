@@ -3,15 +3,38 @@ import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
 
-// TODO @David - Dokumentasjon
 export type PageAccordionProps = {
+  /**
+   * The name of the page
+   */
   pageName: string;
+  /**
+   * The children of the component
+   */
   children: ReactNode;
+  /**
+   * If the accordion is open or not
+   */
   isOpen: boolean;
+  /**
+   * Function to execute when the accordion is clicked
+   * @returns void
+   */
   onClick: () => void;
 };
 
-// TODO @David - Kunne vi kanskje wrappet dette i en Drag and Drop slik at Accordionsene kan flyttes opp og ned?
+/**
+ * @component
+ *    Displays an accordion for a page, as well as a menu button where the user can
+ *    move accordions, edit the name on them and delete them
+ *
+ * @property {string}[pageName] - The name of the page
+ * @property {ReactNode}[children] - The children of the component
+ * @property {boolean}[isOpen] - If the accordion is open or not
+ * @property {function}[onClick] - Function to execute when the accordion is clicked
+ *
+ * @returns
+ */
 export const PageAccordion = ({
   pageName,
   children,

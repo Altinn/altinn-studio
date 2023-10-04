@@ -23,7 +23,7 @@ import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
 // TODO @David - Move function to utils

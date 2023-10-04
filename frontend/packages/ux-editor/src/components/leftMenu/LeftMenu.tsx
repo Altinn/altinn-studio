@@ -1,14 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { Button, Paragraph } from '@digdir/design-system-react';
-import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { ReceiptPageElement } from './ReceiptPageElement';
-import { deepCopy } from 'app-shared/pure';
-import { useSearchParams } from 'react-router-dom';
 import cn from 'classnames';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
@@ -16,17 +12,13 @@ import {
   selectedLayoutNameSelector,
   selectedLayoutSetSelector,
 } from '../../selectors/formLayoutSelectors';
-import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
-import { useDispatch } from 'react-redux';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
 import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
 export interface LeftMenuProps {
   className?: string;
@@ -34,36 +26,16 @@ export interface LeftMenuProps {
 
 export const LeftMenu = ({ className }: LeftMenuProps) => {
   const { org, app } = useStudioUrlParams();
-  const dispatch = useDispatch();
-  const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { pages, receiptLayoutName } = formLayoutSettingsQuery.data;
-  const layoutOrder = pages.order;
+  const { receiptLayoutName } = formLayoutSettingsQuery.data;
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
 
   const t = useText();
-
-  // TODO @David - Denne funksjonaliteten må flyttes inn i DesignView.tsx for å legge til flere sider
-  // Burde vi kanskje gitt brukeren mulighet til å velge et navn selv?
-  function handleAddPage() {
-    let count = 1;
-    let name = t('left_menu.page') + (layoutOrder.length + count);
-    while (layoutOrder.indexOf(name) > -1) {
-      count += 1;
-      name = t('left_menu.page') + (layoutOrder.length + count);
-    }
-    addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
-    setSearchParams({ ...deepCopy(searchParams), layout: name });
-    localStorage.setItem(instanceId, name);
-    dispatch(FormLayoutActions.updateSelectedLayout(name));
-  }
 
   function handleAddLayoutSet() {
     // TODO: Add layout set with set-name as user-input
@@ -104,24 +76,6 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
             </Accordion.Content>
           </Accordion.Item>
         )}
-        {/* TODO @David - Dette er den gamle visningen av sider.
-              - Dette må evt. fjernes når klart
-              - Komponenter inni må enten slettes eller brukes et annet sted
-              - Vi må flytte over knappen for å legge til sider
-              - Vi må ha med funksjonalitet for å slette pages, samt. mulighet til å flytte de opp og ned
-
-        <Accordion.Item defaultOpen={true}>
-          <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
-          <Accordion.Content className={classes.pagesContent}>
-            <PagesContainer />
-            <ReceiptPageElement />
-            <div className={classes.addButton}>
-              <Button icon={<PlusIcon />} onClick={handleAddPage} size='small'>
-                {t('left_menu.pages_add')}
-              </Button>
-            </div>
-          </Accordion.Content>
-        </Accordion.Item>*/}
         <Accordion.Item defaultOpen={!hideComponents}>
           <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
           <Accordion.Content>

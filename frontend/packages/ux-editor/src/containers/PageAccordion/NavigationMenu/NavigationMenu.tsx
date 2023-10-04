@@ -1,12 +1,4 @@
-import React, {
-  ReactNode,
-  MouseEvent,
-  ChangeEvent,
-  KeyboardEvent,
-  SyntheticEvent,
-  useState,
-  useEffect,
-} from 'react';
+import React, { ReactNode, MouseEvent, SyntheticEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@digdir/design-system-react';
 import {
@@ -21,7 +13,7 @@ import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayout
 import { useUpdateLayoutOrderMutation } from '../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
 import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import type { IAppState } from '../../../types/global';
@@ -33,9 +25,20 @@ import { InputPopover } from './InputPopover';
 import { deepCopy } from 'app-shared/pure';
 
 export type NavigationMenuProps = {
+  /**
+   * The name of the page
+   */
   pageName: string;
 };
 
+/**
+ * @component
+ *    Displays the buttons to move a page accoridon up or down, edit the name and delete the page
+ *
+ * @property {string}[pageName] - The name of the page
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -96,11 +99,9 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
     setSearchParams({ ...deepCopy(searchParams), layout: newName });
   };
 
-  // TODO - Implement way to edit name
   return (
     <div>
       <Button
-        // className={classes.ellipsisButton}
         icon={<MenuElipsisVerticalIcon />}
         onClick={onPageSettingsClick}
         style={menuAnchorEl ? { visibility: 'visible' } : {}}
