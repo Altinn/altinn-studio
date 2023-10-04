@@ -19,6 +19,7 @@ import {
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../hooks/mutations/useUpdateLayoutOrderMutation';
+import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
@@ -28,6 +29,8 @@ import { Divider } from 'app-shared/primitives';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useSearchParams } from 'react-router-dom';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
+import { InputPopover } from './InputPopover';
+import { deepCopy } from 'app-shared/pure';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -52,20 +55,14 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
 
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
   const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
+  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
 
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
-  const [editMode, setEditMode] = useState<boolean>(false);
-  const [newName, setNewName] = useState<string>('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout = searchParams.get('layout');
-
-  useEffect(() => {
-    if (pageName !== selectedLayout) {
-      setEditMode(false);
-    }
-  }, [pageName, selectedLayout]);
 
   const onPageSettingsClick = (event: MouseEvent<HTMLButtonElement>) =>
     setMenuAnchorEl(event.currentTarget);
@@ -75,11 +72,10 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
   const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
       setIsConfirmDeleteDialogOpen((prevState) => !prevState);
+    } else if (action === 'edit') {
+      setIsEditDialogOpen((prevState) => !prevState);
     } else {
-      if (action === 'edit') {
-        setEditMode(true);
-        setNewName(pageName);
-      } else if (action === 'up' || action === 'down') {
+      if (action === 'up' || action === 'down') {
         updateLayoutOrder({ layoutName: pageName, direction: action });
       }
       setMenuAnchorEl(null);
@@ -88,13 +84,16 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
 
   const handleConfirmDelete = () => {
     deleteLayout(pageName);
-    console.log('pageName', pageName);
 
     if (selectedLayout === pageName) {
       const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-      console.log('firstAvailable', layoutToSelect);
       setSearchParams({ layout: layoutToSelect });
     }
+  };
+
+  const handleSaveNewName = (newName: string) => {
+    updateLayoutName({ oldName: pageName, newName });
+    setSearchParams({ ...deepCopy(searchParams), layout: newName });
   };
 
   // TODO - Implement way to edit name
@@ -128,12 +127,24 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
             id='move-page-down-button'
           />
         )}
-        <AltinnMenuItem
-          onClick={(event) => onMenuItemClick(event, 'edit')}
-          text={t('left_menu.page_menu_edit')}
-          icon={PencilIcon}
-          id='edit-page-button'
-          disabled={invalid}
+        <InputPopover
+          oldName={pageName}
+          layoutOrder={layoutOrder}
+          saveNewName={handleSaveNewName}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setMenuAnchorEl(null);
+          }}
+          open={isEditDialogOpen}
+          trigger={
+            <AltinnMenuItem
+              onClick={(event) => onMenuItemClick(event, 'edit')}
+              text={t('left_menu.page_menu_edit')}
+              icon={PencilIcon}
+              id='edit-page-button'
+              disabled={invalid}
+            />
+          }
         />
         <Divider marginless />
         <AltinnConfirmDialog

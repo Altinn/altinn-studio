@@ -107,7 +107,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
               - Komponenter inni må enten slettes eller brukes et annet sted
               - Vi må flytte over knappen for å legge til sider
               - Vi må ha med funksjonalitet for å slette pages, samt. mulighet til å flytte de opp og ned
-
+*/}
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>
@@ -120,7 +120,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
             </div>
           </Accordion.Content>
         </Accordion.Item>
-*/}
+
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
           <Accordion.Content>
