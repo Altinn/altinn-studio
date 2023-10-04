@@ -16,15 +16,12 @@ export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSet
       const layoutSettings = deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings.pages;
       const currentIndex = order.indexOf(layoutName);
-      console.log('currentIndex', currentIndex);
       let destination: number;
       if (direction === 'up') {
         destination = currentIndex - 1;
       } else if (direction === 'down') {
         destination = currentIndex + 1;
       }
-      console.log('destination', destination);
-
       order.splice(currentIndex, 1);
       order.splice(destination, 0, layoutName);
       return formLayoutSettingsMutation.mutateAsync(layoutSettings);

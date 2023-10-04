@@ -26,21 +26,13 @@ import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation'
 import { useSearchParams } from 'react-router-dom';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
-
-// TODO @David - Move function to utils
-const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
-  if (instanceId) {
-    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-    localStorage.setItem(instanceId, layoutName);
-  }
-};
+import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 
 export interface FormDesignerProps {
   selectedLayout: string;
   selectedLayoutSet: string | undefined;
 }
 
-// TODO @David - Dette er rotfilen for Form Designer. Kanskje vi burde fikse mappestrukturen for disse filene nå mens vi er her?
 export const FormDesigner = ({
   selectedLayout,
   selectedLayoutSet,
@@ -144,9 +136,6 @@ export const FormDesigner = ({
       } else triggerDepthAlert();
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
-      console.log('id', id);
-      console.log('newContainerId', parentId);
-      console.log('newPosition', index);
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
       validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
     };

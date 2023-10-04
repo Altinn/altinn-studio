@@ -20,8 +20,8 @@ import {
   IFormDesignerContainers,
   IFormLayoutOrder,
   IFormLayouts,
-  IInternalLayout,
 } from '../types/global';
+import type { FormLayout } from '../types/FormLayout';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useSearchParams } from 'react-router-dom';
@@ -30,24 +30,11 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { PageAccordion } from './PageAccordion';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import cn from 'classnames';
-
-// TODO @David - Move type to another place
-export interface FormLayout {
-  page: string;
-  data: IInternalLayout;
-}
-
-// TODO @David - Move function to utils
-const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
-  if (instanceId) {
-    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-    localStorage.setItem(instanceId, layoutName);
-  }
-};
+import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 
 /**
  * @component
- *    TODO @David  - documentation
+ *    Displays the column containing accordions with componnets for each page
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -90,7 +77,6 @@ export const DesignView = (): ReactNode => {
   );
 
   useEffect(() => {
-    console.log('in usefectt');
     setOpenAccordion(searchParamsLayout);
     setFormLayoutData(mapIFormLayoutsToFormLayouts(layouts));
   }, [layouts, searchParamsLayout]);

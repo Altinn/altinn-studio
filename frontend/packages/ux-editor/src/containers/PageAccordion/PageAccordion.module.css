@@ -4,6 +4,9 @@
   justify-content: space-between;
   overflow-wrap: anywhere;
   border-bottom: 1px solid #d2d5d8;
+
+  --background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--background-color);
 }
 
 .wrapper:first-child {
@@ -19,7 +22,8 @@
   justify-content: flex-start;
   align-items: stretch;
   padding-block: 12px;
-  padding-left: 10px;
+  margin-left: 10px;
+  background-color: var(--background-color);
 }
 
 .accordionHeader {
@@ -28,7 +32,7 @@
 
 .accordionHeader button {
   border: none;
-  background-color: var(--fds-semantic-background-default);
+  background-color: var(--background-color);
 }
 
 .accordionContent {
@@ -42,4 +46,5 @@
 
 .accordionHeaderRow {
   display: flex;
+  background-color: var(--background-color);
 }

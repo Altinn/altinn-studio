@@ -46,7 +46,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
         undefined,
         formLayoutSettings.receiptLayoutName,
       );
-      console.log('allLayouts returned', layouts);
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
