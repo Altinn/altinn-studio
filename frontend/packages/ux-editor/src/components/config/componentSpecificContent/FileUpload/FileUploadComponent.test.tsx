@@ -7,6 +7,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 import { waitFor, screen, act } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
 
 // Test data:
 const component: FormFileUploaderComponent = {
@@ -118,16 +119,16 @@ describe('FileUploadComponent', () => {
   });
 
   it('Ensure that the onChange function is called when a radio button is clicked', async () => {
+    const user = userEvent.setup();
     await render({ component: { ...component, hasCustomFileEndings: false } });
     <FileUploadComponent {...defaultProps} />;
     const radioButtonForCustomFile = screen.getByRole('radio', {
       name: textMock('ux_editor.modal_properties_valid_file_endings_custom'),
     });
-    expect(radioButtonForCustomFile).toBeInTheDocument();
     expect(radioButtonForCustomFile).not.toBeChecked();
-    act(() => {
-      radioButtonForCustomFile.click();
-    });
+
+    await user.click(radioButtonForCustomFile);
+
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component,
       hasCustomFileEndings: true,
