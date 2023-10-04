@@ -16,7 +16,7 @@
   color: #fff;
 }
 
-.altinnHeaderBar .elements {
+.altinnHeaderBar .leftContent {
   align-items: center;
   border-right: 1px solid #fff2;
   display: flex;
@@ -38,7 +38,7 @@
   padding: 0 0.5rem;
 }
 
-.altinnHeaderBar .properties {
+.altinnHeaderBar .rightContent {
   align-items: center;
   display: flex;
   flex: 3;
