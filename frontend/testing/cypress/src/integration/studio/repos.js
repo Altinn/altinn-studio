@@ -7,15 +7,16 @@ import { header } from '../../selectors/header';
 context('Repository', () => {
   before(() => {
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    });
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
     cy.visit('/');
-    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.searchAndOpenApp(Cypress.env('designerAppName'));
+  });
+
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('is possible to open repository of an app from app development page', () => {
