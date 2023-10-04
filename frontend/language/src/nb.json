@@ -508,6 +508,7 @@
   "left_menu.layout_dropdown_menu_label": "Velg sidegruppe",
   "left_menu.layout_sets": "Sidegrupper",
   "left_menu.layout_sets_add": "Legg til ny sidegruppe",
+  "left_menu.no_components_selected": "Velg en side for å se komponenter",
   "left_menu.page": "Side",
   "left_menu.page_delete_confirm": "Ja, slett skjemasiden",
   "left_menu.page_delete_information": "Alt innholdet på siden vil bli fjernet.",

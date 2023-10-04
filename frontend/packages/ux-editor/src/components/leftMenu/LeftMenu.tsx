@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
@@ -45,6 +45,8 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
   const { pages, receiptLayoutName } = formLayoutSettingsQuery.data;
   const layoutOrder = pages.order;
   const layoutSetNames = layoutSetsQuery?.data?.sets;
+
+  const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
 
   const t = useText();
 
@@ -107,7 +109,7 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
               - Komponenter inni må enten slettes eller brukes et annet sted
               - Vi må flytte over knappen for å legge til sider
               - Vi må ha med funksjonalitet for å slette pages, samt. mulighet til å flytte de opp og ned
-*/}
+
         <Accordion.Item defaultOpen={true}>
           <Accordion.Header>{t('left_menu.pages')}</Accordion.Header>
           <Accordion.Content className={classes.pagesContent}>
@@ -119,12 +121,17 @@ export const LeftMenu = ({ className }: LeftMenuProps) => {
               </Button>
             </div>
           </Accordion.Content>
-        </Accordion.Item>
-
-        <Accordion.Item defaultOpen={true}>
+        </Accordion.Item>*/}
+        <Accordion.Item defaultOpen={!hideComponents}>
           <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
           <Accordion.Content>
-            {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
+            {hideComponents ? (
+              <Paragraph size='small'>{t('left_menu.no_components_selected')}</Paragraph>
+            ) : receiptLayoutName === selectedLayout ? (
+              <ConfPageToolbar />
+            ) : (
+              <DefaultToolbar />
+            )}
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>
