@@ -43,13 +43,13 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   return (
     <div className={classes.wrapper}>
-      <div className={classes.accordion}>
+      <div className={classes.accordionWrapper}>
         <Accordion color='neutral'>
-          <Accordion.Item open={isOpen}>
-            <Accordion.Header style={{ borderRadius: 'none' }} level={3} onHeaderClick={onClick}>
+          <Accordion.Item className={classes.accordionItem} open={isOpen}>
+            <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
               {pageName}
             </Accordion.Header>
-            <Accordion.Content>{children}</Accordion.Content>
+            <Accordion.Content className={classes.accordionContent}>{children}</Accordion.Content>
           </Accordion.Item>
         </Accordion>
       </div>

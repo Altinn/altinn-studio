@@ -2,18 +2,35 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-inline: 5px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid #d2d5d8;
 }
 
-.accordion {
-  width: 100%;
+.wrapper:first-child {
+  border-top: 1px solid #d2d5d8;
+}
+
+.accordionWrapper {
+  flex: 1;
 }
 
 .navigationMenu {
   display: flex;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: stretch;
   padding-block: 12px;
   padding-left: 10px;
-  height: 100%;
+}
+
+.accordionHeader button {
+  border: none;
+}
+
+.accordionContent {
+  padding: 0;
+  padding-inline: 5px;
+}
+
+.accordionItem > div:last-child {
+  border-bottom: none !important;
 }

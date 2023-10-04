@@ -45,22 +45,13 @@ const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string)
   }
 };
 
-export interface DesignViewProps {
-  /**
-   * Additional classnames to add to the component's wrapper
-   */
-  className?: string;
-}
-
 /**
  * @component
  *    TODO @David  - documentation
  *
- * @property {string}[className] - Additional classnames to add to the component's wrapper
- *
  * @returns {ReactNode} - The rendered component
  */
-export const DesignView = ({ className }: DesignViewProps): ReactNode => {
+export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
@@ -96,10 +87,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
 
   const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(
     mapIFormLayoutsToFormLayouts(layouts),
-  );
-  console.log(
-    'mappedFormLayoutData',
-    formLayoutData.map((m) => m.page),
   );
 
   useEffect(() => {
@@ -145,7 +132,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
 
   const handleAddPage = (isReceipt: boolean) => {
     if (isReceipt) {
-      console.log('in add');
       addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
       setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
       setOpenAccordion('Kvittering');
@@ -154,7 +140,6 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
       let newLayoutName = `${t('left_menu.page')}${layoutOrder.length + newNum}`;
 
       while (layoutOrder.indexOf(newLayoutName) > -1) {
-        console.log('in while');
         newNum += 1;
         newLayoutName = `${t('left_menu.page')}${newNum}`;
       }
@@ -288,8 +273,8 @@ export const DesignView = ({ className }: DesignViewProps): ReactNode => {
   };
 
   return (
-    <div className={className}>
-      <div className={classes.accordionWrapper}>
+    <div className={classes.root}>
+      <div>
         {displayPageAccordions}
         {displayReceipt()}
       </div>
