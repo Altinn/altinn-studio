@@ -5,14 +5,14 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <!-- <PackageReference Include="Altinn.App.Api" Version="8.0.0-preview.9"> -->
-    <!--   <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory> -->
-    <!-- </PackageReference> -->
-    <!-- <PackageReference Include="Altinn.App.Core" Version="8.0.0-preview.9" /> -->
-    <ProjectReference Include="/Users/bjornar/Altinn/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj">
+    <PackageReference Include="Altinn.App.Api" Version="8.0.0-preview.10">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </ProjectReference>
-    <ProjectReference Include="/Users/bjornar/Altinn/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    </PackageReference>
+    <PackageReference Include="Altinn.App.Core" Version="8.0.0-preview.10" />
+    <!-- <ProjectReference Include="/Users/bjornar/Altinn/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj"> -->
+    <!--   <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory> -->
+    <!-- </ProjectReference> -->
+    <!-- <ProjectReference Include="/Users/bjornar/Altinn/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" /> -->
     <PackageReference Include="Altinn.Codelists" Version="0.6.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
