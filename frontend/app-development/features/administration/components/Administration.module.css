@@ -27,12 +27,12 @@
 }
 
 .header {
-  color: var(--primary-color-700);
   font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  margin: 0;
-  font-size: 37.5px;
   padding: var(--fds-spacing-6) 0 var(--fds-spacing-6) 0;
+}
+
+.header h1 {
+  color: var(--primary-color-700);
 }
 
 .content {
