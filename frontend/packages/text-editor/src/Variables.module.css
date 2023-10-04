@@ -5,15 +5,34 @@
 
 .chip {
   border-radius: 20px;
-  width: 90%;
   margin: 5px;
   background-color: gray;
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: white;
   padding-left: 10px;
-  font-size: 14px;
   vertical-align: text-bottom;
 }
+
+.keyDataSource {
+  display: inline-block;
+  overflow: hidden;
+  width: 90%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: white;
+  font-size: 14px;
+}
+
+.defaultValue {
+  display: inline-block;
+  overflow: hidden;
+  width: 90%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: white;
+  font-size: 14px;
+}
+
+.defaultValue::before {
+  content: 'Default: ';
+  font-weight: bold;
+}
+

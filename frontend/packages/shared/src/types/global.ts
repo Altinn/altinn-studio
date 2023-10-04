@@ -1,3 +1,5 @@
+import { TextResourceVariable } from '@altinn/text-editor/src/types';
+
 export interface ISelfLinks {
   apps: string;
   platform: string;
@@ -98,12 +100,7 @@ export interface ITextResource {
   id: string;
   value: string;
   unparsedValue?: string;
-  variables?: ITextResourceVariable[];
-}
-
-export interface ITextResourceVariable {
-  key: string;
-  dataSource: string;
+  variables?: TextResourceVariable[];
 }
 
 export interface ITextResourcesObjectFormat {

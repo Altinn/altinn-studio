@@ -23,6 +23,7 @@ export type TextResourceMap = {
 export type TextResourceVariable = {
   key: string;
   dataSource: string;
+  defaultValue?: string;
 };
 
 type Option = {

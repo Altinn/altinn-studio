@@ -15,7 +15,8 @@ export const Variables = ({ variables }: VariablesProps) => {
     <div title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}>
       {variables.map((variable) => (
         <div key={variable.key} className={classes.chip}>
-          {`${variable.key}: ${variable.dataSource}`}
+          <span className={classes.keyDataSource}>{`${variable.key}: ${variable.dataSource}`}</span>
+          <span className={classes.defaultValue}>{`${variable.defaultValue}`}</span>
         </div>
       ))}
       {variables.length > 0 && (
