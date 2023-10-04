@@ -15,6 +15,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
 
 /**
  * This is the main React component responsible for controlling
@@ -27,19 +28,31 @@ export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
   const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const selectedLayoutSetInPreviewFromLocalStorage = typedLocalStorage.getItem<string>(
-    'layoutSet/' + app
-  );
-  const selectedLayoutSetInPreview =
-    selectedLayoutSetInPreviewFromLocalStorage !== ''
-      ? selectedLayoutSetInPreviewFromLocalStorage
-      : null;
+  const [
+    selectedLayoutSetInPreview,
+    setSelectedLayoutSetInPreview,
+    removeSelectedLayoutSetInPreview,
+  ] = useLocalStorage('layoutSet/' + app, null);
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
     useDatamodelMetadataQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+
+  useEffect(() => {
+    if (
+      areLayoutSetsFetched &&
+      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSetInPreview))
+    )
+      removeSelectedLayoutSetInPreview();
+  }, [
+    areLayoutSetsFetched,
+    layoutSets,
+    selectedLayoutSetInPreview,
+    setSelectedLayoutSetInPreview,
+    removeSelectedLayoutSetInPreview,
+  ]);
 
   const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
 
@@ -74,12 +87,7 @@ export function App() {
 
   useEffect(() => {
     const layoutSetInEditor = selectedLayoutSetInPreview ?? selectedLayoutSet;
-    if (
-      layoutSets &&
-      layoutSetInEditor !== null &&
-      layoutSetInEditor !== '' &&
-      layoutSetInEditor !== ''
-    ) {
+    if (layoutSets && layoutSetInEditor !== null && layoutSetInEditor !== '') {
       typedLocalStorage.setItem<string>('layoutSet/' + app, layoutSetInEditor);
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetInEditor));
     }
