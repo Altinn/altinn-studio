@@ -732,7 +732,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return optionListIds.ToArray();
         }
 
-        public async Task SaveProcessDefinitionFile(Stream file, CancellationToken cancellationToken = default)
+        public async Task SaveProcessDefinitionFileAsync(Stream file, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (file.Length > 1000_000)
@@ -744,15 +744,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await WriteStreamByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
         }
 
-        public async Task<Stream> GetProcessDefinitionFile(CancellationToken cancellationToken = default)
+        public Stream GetProcessDefinitionFile()
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
             {
                 throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
-            return await ReadStreamByRelativePathAsync(ProcessDefinitionFilePath, cancellationToken);
+            return OpenStreamByRelativePath(ProcessDefinitionFilePath);
         }
 
         /// <summary>

@@ -126,5 +126,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task SaveRuleConfig(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode ruleConfig, string layoutSetName, CancellationToken cancellationToken = default);
+
+
+        /// <summary>
+        /// Get's the version of the app-lib used in repo
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <returns>A <see cref="System.Version"/> holding the version of the app-lib used in app.</returns>
+        public System.Version GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
     }
 }

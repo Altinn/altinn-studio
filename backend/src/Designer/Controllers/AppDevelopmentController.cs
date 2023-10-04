@@ -517,5 +517,12 @@ namespace Altinn.Studio.Designer.Controllers
                 return NoContent();
             }
         }
+
+        [HttpGet("app-lib-version")]
+        public Version GetVersionOfTheAppLib(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            return _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
+        }
     }
 }

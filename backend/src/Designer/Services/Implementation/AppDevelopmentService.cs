@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -212,6 +215,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
             await altinnAppGitRepository.SaveRuleConfiguration(layoutSetName, ruleConfig, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Version GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            var csprojFiles = altinnAppGitRepository.FindFiles(new[] {"*.csproj"});
+
+            foreach (string csprojFile in csprojFiles)
+            {
+                if(PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out Version version))
+                {
+                    return version;
+                }
+            }
+
+            throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
         }
     }
 }

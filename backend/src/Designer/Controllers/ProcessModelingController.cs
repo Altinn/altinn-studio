@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -28,11 +28,11 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet("process-definition")]
-        public async Task<FileStreamResult> GetProcessDefinition(string org, string repo, CancellationToken cancellationToken)
+        public FileStreamResult GetProcessDefinition(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            Stream processDefinitionStream = await _processModelingService.GetProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
+            Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer));
 
             return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
         }
@@ -51,16 +51,27 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _processModelingService.SaveProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), Request.Body, cancellationToken);
+            await _processModelingService.SaveProcessDefinitionAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), Request.Body, cancellationToken);
             return Ok();
         }
 
-        [HttpGet("templates")]
-        public async Task<string> GetTemplates(string org, string repo)
+        [HttpGet("templates/{appVersion}")]
+        public IEnumerable<string> GetTemplates(string appVersion)
         {
+            Version version = Version.Parse(appVersion);
+            return _processModelingService.GetProcessDefinitionTemplates(version);
+        }
+
+        [HttpPost("templates/{appVersion}/{templateName}")]
+        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, string appVersion, string templateName, CancellationToken cancellationToken)
+        {
+            Version version = Version.Parse(appVersion);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            // return await _appDevelopmentService.GetTemplates(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer));
-            return null;
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            await _processModelingService.SaveProcessDefinitionFromTemplateAsync(editingContext, templateName,version, cancellationToken);
+
+            Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(editingContext);
+            return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
         }
     }
 }

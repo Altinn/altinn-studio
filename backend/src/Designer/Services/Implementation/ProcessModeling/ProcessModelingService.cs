@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -16,22 +18,53 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
-        public Task<IEnumerable<AltinnCoreFile>> GetProcessDefinitionTemplateNames(SemanticVersion version, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task SaveProcessDefinitionFromTemplate(string templateName, SemanticVersion version, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        private string TemplatesLocation(Version version) => Path.Combine(Path.GetDirectoryName(typeof(ProcessModelingService).Assembly.Location)!, nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
 
         /// <inheritdoc/>
-        public async Task SaveProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, Stream bpmnStream, CancellationToken cancellationToken = default)
+        public IEnumerable<string> GetProcessDefinitionTemplates(Version version)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            await altinnAppGitRepository.SaveProcessDefinitionFile(bpmnStream, cancellationToken);
+            return EnumerateTemplatesAsFilePaths(version).Select(Path.GetFileName)!;
         }
+
         /// <inheritdoc/>
-        public Task<Stream> GetProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
+        public async Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, Version version, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            return altinnAppGitRepository.GetProcessDefinitionFile(cancellationToken);
+            await using Stream templateStream = GetTemplateStream(version, templateName);
+            await altinnAppGitRepository.SaveProcessDefinitionFileAsync(templateStream, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task SaveProcessDefinitionAsync(AltinnRepoEditingContext altinnRepoEditingContext, Stream bpmnStream, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            await altinnAppGitRepository.SaveProcessDefinitionFileAsync(bpmnStream, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Stream GetProcessDefinitionStream(AltinnRepoEditingContext altinnRepoEditingContext)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            return altinnAppGitRepository.GetProcessDefinitionFile();
+        }
+
+        private IEnumerable<string> EnumerateTemplatesAsFilePaths(Version version)
+        {
+            if (!Directory.Exists(TemplatesLocation(version)))
+            {
+                return Array.Empty<string>();
+            }
+
+            return Directory.EnumerateFiles(TemplatesLocation(version))!;
+        }
+
+        private Stream GetTemplateStream(Version version, string templateName)
+        {
+            var templates = EnumerateTemplatesAsFilePaths(version);
+            string templatePath = templates.Single(template => template.EndsWith(templateName));
+            return File.OpenRead(templatePath);
         }
     }
 }

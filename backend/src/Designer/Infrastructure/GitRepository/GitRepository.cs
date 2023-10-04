@@ -144,14 +144,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeFilePath">The relative path to the file.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation in cancelled</param>
         /// <returns>A <see cref="Stream"/>.</returns>
-        public Task<Stream> ReadStreamByRelativePathAsync(string relativeFilePath, CancellationToken cancellationToken = default)
+        public Stream OpenStreamByRelativePath(string relativeFilePath)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-            return Task.FromResult<Stream>(File.OpenRead(absoluteFilePath));
+            return File.OpenRead(absoluteFilePath);
         }
 
         /// <summary>
