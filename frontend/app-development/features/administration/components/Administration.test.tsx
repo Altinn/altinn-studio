@@ -25,11 +25,9 @@ describe('Administration', () => {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
       queries: {
         ...queriesMock,
-        getAppMetadata: jest.fn().mockImplementation(() =>
+        getAppConfig: jest.fn().mockImplementation(() =>
           Promise.resolve({
-            title: {
-              nb: title,
-            },
+            serviceName: title,
           }),
         ),
       },
