@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   Button,
-  LegacyCheckbox,
   LegacyFieldSet,
   HelpText,
   LegacyTextField,
+  Switch,
 } from '@digdir/design-system-react';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
@@ -134,7 +134,7 @@ export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked);
-  return <LegacyCheckbox checkboxId={id} onChange={handleChange} checked={value} />;
+  return <Switch id={id} onChange={handleChange} checked={value} />;
 };
 
 export const UnsupportedInput = () => {

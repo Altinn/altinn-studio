@@ -838,6 +838,7 @@
   "right_menu.rules_empty": "Ingen regler lagt til...",
   "right_menu.show_new_dynamics": "Vis ny editor for dynamiske uttrykk (BETA)",
   "right_menu.warning_dynamics_deprecated": "Denne funksjonaliteten utgår og vi kommer ikke til å vedlikeholde den. Vi anbefaler å bruke <0 href=\"{{expressionDocs}}\" >dynamiske uttrykk.</0>",
+  "schema_editor.active_languages": "Aktive språk:",
   "schema_editor.add": "Legg til",
   "schema_editor.add_combination": "Legg til kombinasjon",
   "schema_editor.add_element": "Legg til element",

@@ -1,6 +1,6 @@
 import type { ChangeEventHandler, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { LegacyCheckbox, Select } from '@digdir/design-system-react';
+import { LegacyCheckbox, Select, Switch } from '@digdir/design-system-react';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';
@@ -43,7 +43,7 @@ export function PropertyItem({
       setPropertyName(data, {
         path: fullPath,
         name: newNodeName,
-      })
+      }),
     );
   };
 
@@ -52,7 +52,7 @@ export function PropertyItem({
       setRequired(data, {
         path: fullPath,
         required: e.target.checked,
-      })
+      }),
     );
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
@@ -83,11 +83,10 @@ export function PropertyItem({
         />
       </div>
       <span className={`${classes.requiredCheckCell} ${classes.gridItem}`}>
-        <LegacyCheckbox
+        <Switch
+          aria-label={t('schema_editor.required')}
           checked={required ?? false}
           disabled={readOnly}
-          hideLabel
-          label={t('schema_editor.required')}
           name='checkedArray'
           onChange={changeRequiredHandler}
         />

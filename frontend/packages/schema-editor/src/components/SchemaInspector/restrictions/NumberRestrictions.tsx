@@ -6,7 +6,7 @@ import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { Label } from 'app-shared/components/Label';
 import classes from './StringRestrictions.module.css';
-import { LegacyCheckbox, ErrorMessage, LegacyTextField } from '@digdir/design-system-react';
+import { LegacyCheckbox, ErrorMessage, LegacyTextField, Switch } from '@digdir/design-system-react';
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerAction,
@@ -99,14 +99,14 @@ export function NumberRestrictions({
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <LegacyCheckbox
-            aria-checked='true'
+          <Switch
             checked={formatState.isMinInclusive}
-            label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
             }
-          />
+          >
+            {t('schema_editor.format_date_inclusive')}
+          </Switch>
         </div>
       </div>
       <div>
@@ -123,15 +123,15 @@ export function NumberRestrictions({
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <LegacyCheckbox
-            checkboxId='include-minimum-value-checkbox'
-            aria-checked='true'
+          <Switch
+            id='include-minimum-value-checkbox'
             checked={formatState.isMaxInclusive}
-            label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)
             }
-          />
+          >
+            {t('schema_editor.format_date_inclusive')}
+          </Switch>
         </div>
       </div>
       <div>

@@ -9,11 +9,11 @@ import {
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import {
-  LegacyCheckbox,
   LegacyFieldSet,
   Select,
   TextArea,
   LegacyTextField,
+  Switch,
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -168,12 +168,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
-        <LegacyCheckbox
+        <Switch
           checked={isArray}
-          label={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
-        />
+        >
+          {t('schema_editor.multiple_answers')}
+        </Switch>
       )}
       {objectKind === ObjectKind.Combination && (
         <Select
@@ -186,13 +187,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind === ObjectKind.Combination && (
-        <LegacyCheckbox
-          checkboxId='multiple-answers-checkbox'
+        <Switch
+          id='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
-          label={t('schema_editor.nullable')}
           name='checkedNullable'
           onChange={onChangeNullable}
-        />
+        >
+          {t('schema_editor.nullable')}
+        </Switch>
       )}
       <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (

@@ -7,6 +7,7 @@ import { idExists } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import {
   Switch,
+  Checkbox,
   LegacyCheckboxGroup,
   LegacyFieldSet,
   LegacyTextField,
@@ -212,24 +213,30 @@ export const EditFormContainer = ({
               value={items}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
             >
-              {({ value }) => (
-                <LegacyCheckboxGroup
-                  error={tableHeadersError}
-                  items={items
-                    .filter((id) => !!components[id])
-                    .map((id) => ({
-                      label:
-                        getTextResource(
+              {({ value }) => {
+                const filteredItems = items.filter((id) => !!components[id]);
+                const checkboxes = filteredItems.map((id) => ({
+                  id,
+                  name: id,
+                  checked:
+                    container.tableHeaders === undefined || container.tableHeaders.includes(id),
+                }));
+                return (
+                  <Checkbox.Group
+                    error={tableHeadersError}
+                    legend={t('ux_editor.modal_properties_group_table_headers')}
+                  >
+                    {checkboxes.map(({ id, name, checked }) => (
+                      <Checkbox key={id} name={name} checked={checked} value={value}>
+                        {getTextResource(
                           components[id]?.textResourceBindings?.title,
                           textResources,
-                        ) || id,
-                      name: id,
-                      checked:
-                        container.tableHeaders === undefined || container.tableHeaders.includes(id),
-                    }))}
-                  legend={t('ux_editor.modal_properties_group_table_headers')}
-                />
-              )}
+                        ) || id}
+                      </Checkbox>
+                    ))}
+                  </Checkbox.Group>
+                );
+              }}
             </FormField>
           )}
         </>

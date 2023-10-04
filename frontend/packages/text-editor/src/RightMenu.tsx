@@ -3,7 +3,13 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Button, LegacyCheckbox, LegacyFieldSet } from '@digdir/design-system-react';
+import {
+  Button,
+  Checkbox,
+  Fieldset,
+  LegacyCheckbox,
+  LegacyFieldSet,
+} from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
@@ -50,18 +56,20 @@ export const RightMenu = ({
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.RightMenu__verticalContent}>
-        <LegacyFieldSet legend='Aktive språk:'>
+        <Fieldset legend={t('schema_editor.active_languages')}>
           <div className={classes.RightMenu__radioGroup}>
             {availableLanguages?.map((langCode) => {
               return (
                 <div key={langCode}>
                   <div className={classes.RightMenu__radio}>
-                    <LegacyCheckbox
-                      label={getLangName({ code: langCode })}
+                    <Checkbox
+                      value={getLangName({ code: langCode })}
                       name={langCode}
                       onChange={handleSelectChange}
                       checked={selectedLanguages.includes(langCode)}
-                    />
+                    >
+                      {getLangName({ code: langCode })}
+                    </Checkbox>
                     <AltinnConfirmDialog
                       open={langCode === langCodeToDelete}
                       confirmText={t('schema_editor.language_confirm_deletion')}
@@ -74,7 +82,7 @@ export const RightMenu = ({
                           color='danger'
                           onClick={() =>
                             setLangCodeToDelete((prevState) =>
-                              prevState === langCode ? undefined : langCode
+                              prevState === langCode ? undefined : langCode,
                             )
                           }
                           disabled={!canDeleteLang(langCode)}
@@ -92,7 +100,7 @@ export const RightMenu = ({
               );
             })}
           </div>
-        </LegacyFieldSet>
+        </Fieldset>
       </div>
       <div className={classes.RightMenu__verticalContent}>
         <div className={classes['LangEditor__title-sm']}>
