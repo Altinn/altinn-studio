@@ -5,7 +5,7 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
-import { waitFor, screen } from '@testing-library/react';
+import { waitFor, screen, act } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
@@ -115,6 +115,23 @@ describe('FileUploadComponent', () => {
     expect(radioButtonForCustomFile).toBeInTheDocument();
     expect(radioButtonForAllFile).toBeChecked();
     expect(radioButtonForCustomFile).not.toBeChecked();
+  });
+
+  it('Ensure that the onChange function is called when a radio button is clicked', async () => {
+    await render({ component: { ...component, hasCustomFileEndings: false } });
+    <FileUploadComponent {...defaultProps} />;
+    const radioButtonForCustomFile = screen.getByRole('radio', {
+      name: textMock('ux_editor.modal_properties_valid_file_endings_custom'),
+    });
+    expect(radioButtonForCustomFile).toBeInTheDocument();
+    expect(radioButtonForCustomFile).not.toBeChecked();
+    act(() => {
+      radioButtonForCustomFile.click();
+    });
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component,
+      hasCustomFileEndings: true,
+    });
   });
 });
 
