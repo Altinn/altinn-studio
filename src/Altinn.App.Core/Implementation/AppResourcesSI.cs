@@ -119,7 +119,7 @@ namespace Altinn.App.Core.Implementation
                         Show = applicationMetadata.OnEntry.Show
                     };
                 }
-                
+
                 return application;
             }
             catch (AggregateException ex)
@@ -459,6 +459,22 @@ namespace Altinn.App.Core.Implementation
             if (File.Exists(filename))
             {
                 filedata = await File.ReadAllTextAsync(filename, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
+        /// <inheritdoc />
+        public string? GetValidationConfiguration(string modelId)
+        {
+            string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
+            string filename = $"{legalPath}{modelId}.{_settings.ValidationConfigurationFileName}";
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
+            string? filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
             }
 
             return filedata;

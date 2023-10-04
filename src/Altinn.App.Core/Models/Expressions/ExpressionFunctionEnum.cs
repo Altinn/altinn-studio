@@ -106,6 +106,10 @@ public enum ExpressionFunction
     /// </summary>
     not,
     /// <summary>
+    /// Returns a positional argument
+    /// </summary>
+    argv,
+    /// <summary>
     /// Get the action performed in task prior to bpmn gateway
     /// </summary>
     gatewayAction,

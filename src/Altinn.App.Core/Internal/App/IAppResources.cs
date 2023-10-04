@@ -170,5 +170,11 @@ namespace Altinn.App.Core.Internal.App
         /// </summary>
         /// <returns>The layout settings</returns>
         byte[] GetRuleHandlerForSet(string id);
+
+        /// <summary>
+        /// Gets the the rule handler for a layoutset
+        /// </summary>
+        /// <returns>The layout settings</returns>
+        string? GetValidationConfiguration(string modelId);
     }
 }

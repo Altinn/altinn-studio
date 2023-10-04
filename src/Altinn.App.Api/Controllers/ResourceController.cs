@@ -265,8 +265,23 @@ namespace Altinn.App.Api.Controllers
             {
                 return NoContent();
             }
-            
+
             return Ok(layout);
+        }
+
+        /// <summary>
+        /// Get validation configuration file.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <param name="id">Unique identifier of the model to fetch validations for.</param>
+        /// <returns>The validation configuration file as json.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/validationconfig/{id}")]
+        public ActionResult GetValidationConfiguration(string org, string app, string id)
+        {
+            string? validationConfiguration = _appResourceService.GetValidationConfiguration(id);
+            return Ok(validationConfiguration);
         }
     }
 }

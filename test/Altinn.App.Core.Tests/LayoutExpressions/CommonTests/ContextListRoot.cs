@@ -1,5 +1,6 @@
 #nullable enable
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using Altinn.App.Core.Models.Layout;
@@ -31,7 +32,7 @@ public class ContextListRoot
     public LayoutModel ComponentModel { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]
-    public JsonElement? DataModel { get; set; }
+    public JsonObject? DataModel { get; set; }
 
     [JsonPropertyName("expectedContexts")]
     public List<ComponentContextForTestSpec> Expected { get; set; } = default!;

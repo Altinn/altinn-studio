@@ -24,6 +24,11 @@ namespace Altinn.App.Core.Configuration
         public const string JSON_SCHEMA_FILENAME = "schema.json";
 
         /// <summary>
+        /// Constant for the location of validation configuration file
+        /// </summary>
+        public const string VALIDATION_CONFIG_FILENAME = "validation.json";
+
+        /// <summary>
         /// The app configuration baseUrl where files are stored in the container
         /// </summary>
         public string AppBasePath { get; set; } = string.Empty;
@@ -83,7 +88,7 @@ namespace Altinn.App.Core.Configuration
         /// </summary>
         public string LayoutSetsFileName { get; set; } = "layout-sets.json";
 
-                /// <summary>
+        /// <summary>
         /// Gets or sets the name of the layout setting file name
         /// </summary>
         public string FooterFileName { get; set; } = "footer.json";
@@ -102,6 +107,11 @@ namespace Altinn.App.Core.Configuration
         /// Gets or sets The JSON schema file name
         /// </summary>
         public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
+
+        /// <summary>
+        /// Gets or sets The JSON schema file name
+        /// </summary>
+        public string ValidationConfigurationFileName { get; set; } = VALIDATION_CONFIG_FILENAME;
 
         /// <summary>
         /// Gets or sets the filename for application meta data
@@ -214,8 +224,18 @@ namespace Altinn.App.Core.Configuration
         public string AppVersion { get; set; }
 
         /// <summary>
-        /// Enable the preview functionality to load layout in backend and remove data from hidden components before validation and task completion
+        /// Enable the functionality to load layout in backend and remove data from hidden components before task completion
         /// </summary>
-        public bool RemoveHiddenDataPreview { get; set; } = false;
+        public bool RemoveHiddenData { get; set; } = false;
+
+        /// <summary>
+        /// Enable the functionality to load layout in backend and validate required fields as defined in the layout
+        /// </summary>
+        public bool RequiredValidation { get; set; } = false;
+
+        /// <summary>
+        /// Enable the functionality to run expression validation in backend
+        /// </summary>
+        public bool ExpressionValidation { get; set; } = false;
     }
 }

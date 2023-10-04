@@ -165,7 +165,7 @@ public class DefaultTaskEvents : ITaskEvents
 
     private async Task RunRemoveHiddenData(Instance instance, Guid instanceGuid, List<DataType>? dataTypesToLock)
     {
-        if (_appSettings?.RemoveHiddenDataPreview == true)
+        if (_appSettings?.RemoveHiddenData == true)
         {
             await RemoveHiddenData(instance, instanceGuid, dataTypesToLock);
         }
@@ -269,7 +269,7 @@ public class DefaultTaskEvents : ITaskEvents
                 object data = await _dataClient.GetFormData(
                     instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataElementId);
 
-                if (_appSettings?.RemoveHiddenDataPreview == true)
+                if (_appSettings?.RemoveHiddenData == true)
                 {
                     // Remove hidden data before validation, ignore hidden rows. TODO: Determine how hidden rows should be handled going forward.
                     var layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);

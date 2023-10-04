@@ -1,5 +1,7 @@
 ﻿using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Reflection;
+using altinn_app_cli.v7Tov8.AppSettingsRewriter;
 using altinn_app_cli.v7Tov8.CodeRewriters;
 using altinn_app_cli.v7Tov8.ProcessRewriter;
 using altinn_app_cli.v7Tov8.ProjectChecks;
@@ -18,27 +20,42 @@ class Program
         var projectFolderOption = new Option<string>(name: "--folder", description: "The project folder to read", getDefaultValue: () => "CurrentDirectory");
         var projectFileOption = new Option<string>(name: "--project", description: "The project file to read relative to --folder", getDefaultValue: () => "App/App.csproj");
         var processFileOption = new Option<string>(name: "--process", description: "The process file to read relative to --folder", getDefaultValue: () => "App/config/process/process.bpmn");
+        var appSettingsFolderOption = new Option<string>(name: "--appsettings-folder", description: "The folder where the appsettings.*.json files are located", getDefaultValue: () => "App");
         var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "8.0.0-preview.9");
         var skipCsprojUpgradeOption = new Option<bool>(name: "--skip-csproj-upgrade", description: "Skip csproj file upgrade", getDefaultValue: () => false);
         var skipCodeUpgradeOption = new Option<bool>(name: "--skip-code-upgrade", description: "Skip code upgrade", getDefaultValue: () => false);
         var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade", description: "Skip process file upgrade", getDefaultValue: () => false);
+        var skipAppSettingsUpgradeOption = new Option<bool>(name: "--skip-appsettings-upgrade", description: "Skip appsettings file upgrade", getDefaultValue: () => false);
         var rootCommand = new RootCommand("Command line interface for working with Altinn 3 Applications");
         var upgradeCommand = new Command("upgrade", "Upgrade an app from v7 to v8")
         {
             projectFolderOption,
             projectFileOption,
             processFileOption,
+            appSettingsFolderOption,
             targetVersionOption,
             skipCsprojUpgradeOption,
             skipCodeUpgradeOption,
             skipProcessUpgradeOption,
+            skipAppSettingsUpgradeOption,
         };
         rootCommand.AddCommand(upgradeCommand);
         var versionCommand = new Command("version", "Print version of altinn-app-cli");
         rootCommand.AddCommand(versionCommand);
 
-        upgradeCommand.SetHandler(async (projectFolder, projectFile, processFile, targetVersion, skipCodeUpgrade, skipProcessUpgrade, skipCsprojUpgrade) =>
+        upgradeCommand.SetHandler(
+            async (InvocationContext context) =>
             {
+                var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption)!;
+                var projectFile = context.ParseResult.GetValueForOption(projectFileOption)!;
+                var processFile = context.ParseResult.GetValueForOption(processFileOption)!;
+                var appSettingsFolder = context.ParseResult.GetValueForOption(appSettingsFolderOption)!;
+                var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption)!;
+                var skipCodeUpgrade = context.ParseResult.GetValueForOption(skipCodeUpgradeOption)!;
+                var skipProcessUpgrade = context.ParseResult.GetValueForOption(skipProcessUpgradeOption)!;
+                var skipCsprojUpgrade = context.ParseResult.GetValueForOption(skipCsprojUpgradeOption)!;
+                var skipAppSettingsUpgrade = context.ParseResult.GetValueForOption(skipAppSettingsUpgradeOption)!;
+
                 if (projectFolder == "CurrentDirectory")
                 {
                     projectFolder = Directory.GetCurrentDirectory();
@@ -63,11 +80,13 @@ class Program
                 {
                     projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, projectFile);
                     processFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, processFile);
+                    appSettingsFolder = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, appSettingsFolder);
                 }
                 else
                 {
                     projectFile = Path.Combine(projectFolder, projectFile);
                     processFile = Path.Combine(projectFolder, processFile);
+                    appSettingsFolder = Path.Combine(projectFolder, appSettingsFolder);
                 }
 
                 var projectChecks = new ProjectChecks(projectFile);
@@ -77,6 +96,7 @@ class Program
                     returnCode = 2;
                     return;
                 }
+
                 if (!skipCsprojUpgrade)
                 {
                     returnCode = await UpgradeNugetVersions(projectFile, targetVersion);
@@ -92,6 +112,11 @@ class Program
                     returnCode = await UpgradeProcess(processFile);
                 }
 
+                if (!skipAppSettingsUpgrade && returnCode == 0)
+                {
+                    returnCode = await UpgradeAppSettings(appSettingsFolder);
+                }
+
                 if (returnCode == 0)
                 {
                     Console.WriteLine("Upgrade completed without errors. Please verify that the application is still working as expected.");
@@ -100,8 +125,9 @@ class Program
                 {
                     Console.WriteLine("Upgrade completed with errors. Please check for errors in the log above.");
                 }
-            },
-            projectFolderOption, projectFileOption, processFileOption, targetVersionOption, skipCodeUpgradeOption, skipProcessUpgradeOption, skipCsprojUpgradeOption);
+            }
+        );
+
         versionCommand.SetHandler(() =>
         {
             var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "Unknown";
@@ -185,6 +211,35 @@ class Program
         }
 
         Console.WriteLine(warnings.Any() ? "Process file upgraded with warnings. Review the warnings above and make sure that the process file is still valid." : "Process file upgraded");
+
+        return 0;
+    }
+
+    static async Task<int> UpgradeAppSettings(string appSettingsFolder)
+    {
+        if (!Directory.Exists(appSettingsFolder))
+        {
+            Console.WriteLine($"App settings folder {appSettingsFolder} does not exist. Please supply location with --appsettings-folder [path/to/appsettings]");
+            return 1;
+        }
+
+        if (Directory.GetFiles(appSettingsFolder, AppSettingsRewriter.APP_SETTINGS_FILE_PATTERN).Count() == 0)
+        {
+            Console.WriteLine($"No appsettings*.json files found in {appSettingsFolder}");
+            return 1;
+        }
+
+        Console.WriteLine("Trying to upgrade appsettings*.json files");
+        AppSettingsRewriter rewriter = new(appSettingsFolder);
+        rewriter.Upgrade();
+        await rewriter.Write();
+        var warnings = rewriter.GetWarnings();
+        foreach (var warning in warnings)
+        {
+            Console.WriteLine(warning);
+        }
+
+        Console.WriteLine(warnings.Any() ? "AppSettings files upgraded with warnings. Review the warnings above and make sure that the appsettings files are still valid." : "AppSettings files upgraded");
 
         return 0;
     }

@@ -1,5 +1,6 @@
 #nullable enable
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
@@ -8,6 +9,7 @@ using FluentAssertions;
 
 using Newtonsoft.Json;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CSharpTests;
 
@@ -96,8 +98,8 @@ public class TestDataModel
         modelHelper.GetModelData("friends.name.value", new int[] { 1 }).Should().Be("Dolly Duck");
 
         // Run the same tests with JsonDataModel
-        using var doc = JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(model));
-        modelHelper = new JsonDataModel(doc.RootElement);
+        var doc = JsonSerializer.Deserialize<JsonObject>(JsonSerializer.Serialize(model));
+        modelHelper = new JsonDataModel(doc);
         modelHelper.GetModelData("friends.name.value", default).Should().BeNull();
         modelHelper.GetModelData("friends[0].name.value", default).Should().Be("Donald Duck");
         modelHelper.GetModelData("friends.name.value", new int[] { 0 }).Should().Be("Donald Duck");
@@ -176,8 +178,8 @@ public class TestDataModel
         modelHelper.GetModelDataCount("friends.friends", new int[] { 1 }).Should().Be(1);
 
         // Run the same tests with JsonDataModel
-        using var doc = JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(model));
-        modelHelper = new JsonDataModel(doc.RootElement);
+        var doc = JsonSerializer.Deserialize<JsonObject>(JsonSerializer.Serialize(model));
+        modelHelper = new JsonDataModel(doc);
         modelHelper.GetModelData("friends[1].friends[0].name.value", default).Should().Be("Onkel Skrue");
         modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 0, 0 }).Should().BeNull();
         modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1, 0 }).Should().BeNull("context indexes should not be used after literal index is used");
