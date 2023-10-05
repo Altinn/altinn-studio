@@ -89,7 +89,8 @@ export const InputPopover = ({
    */
   const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
-    if (pageNameExists(newNameCandidate)) {
+
+    if (pageNameExists(newNameCandidate) && oldName !== newNameCandidate) {
       setErrorMessage(t('ux_editor.pages_error_unique'));
     } else if (!newNameCandidate) {
       setErrorMessage(t('ux_editor.pages_error_empty'));
@@ -99,8 +100,8 @@ export const InputPopover = ({
       setErrorMessage(t('ux_editor.pages_error_format'));
     } else {
       setErrorMessage('');
-      setNewName(newNameCandidate);
     }
+    setNewName(newNameCandidate);
   };
 
   /**

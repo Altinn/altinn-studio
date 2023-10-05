@@ -21,6 +21,7 @@ export type PageAccordionProps = {
    * @returns void
    */
   onClick: () => void;
+  pageIsReceipt?: boolean;
 };
 
 /**
@@ -40,6 +41,7 @@ export const PageAccordion = ({
   children,
   isOpen,
   onClick,
+  pageIsReceipt,
 }: PageAccordionProps): ReactNode => {
   return (
     <div className={classes.wrapper}>
@@ -55,7 +57,7 @@ export const PageAccordion = ({
                 {pageName}
               </Accordion.Header>
               <div className={classes.navigationMenu}>
-                <NavigationMenu pageName={pageName} />
+                <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
               </div>
             </div>
             <Accordion.Content className={classes.accordionContent}>{children}</Accordion.Content>

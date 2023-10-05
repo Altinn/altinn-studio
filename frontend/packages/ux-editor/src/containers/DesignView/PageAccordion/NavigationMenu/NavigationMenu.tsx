@@ -29,6 +29,7 @@ export type NavigationMenuProps = {
    * The name of the page
    */
   pageName: string;
+  pageIsReceipt: boolean;
 };
 
 /**
@@ -39,7 +40,7 @@ export type NavigationMenuProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => {
+export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps): ReactNode => {
   const { t } = useTranslation();
 
   const { org, app } = useStudioUrlParams();
@@ -104,28 +105,29 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): ReactNode => 
       <Button
         icon={<MenuElipsisVerticalIcon />}
         onClick={onPageSettingsClick}
-        style={menuAnchorEl ? { visibility: 'visible' } : {}}
         variant='quiet'
         title={t('general.options')}
         size='small'
       />
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
-        {layoutOrder.includes(pageName) && (
+        {!pageIsReceipt && (
           <AltinnMenuItem
-            onClick={(event) => onMenuItemClick(event, 'up')}
+            onClick={(event) => !(disableUp || invalid) && onMenuItemClick(event, 'up')}
             disabled={disableUp || invalid}
             text={t('ux_editor.page_menu_up')}
             icon={ArrowUpIcon}
             id='move-page-up-button'
+            testId='move-page-up-button-test-id'
           />
         )}
-        {layoutOrder.includes(pageName) && (
+        {!pageIsReceipt && (
           <AltinnMenuItem
-            onClick={(event) => onMenuItemClick(event, 'down')}
+            onClick={(event) => !(disableDown || invalid) && onMenuItemClick(event, 'down')}
             disabled={disableDown || invalid}
             text={t('ux_editor.page_menu_down')}
             icon={ArrowDownIcon}
             id='move-page-down-button'
+            testId='move-page-down-button-test-id'
           />
         )}
         <InputPopover

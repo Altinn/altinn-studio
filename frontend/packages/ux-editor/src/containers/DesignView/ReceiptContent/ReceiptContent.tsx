@@ -64,6 +64,7 @@ export const ReceiptContent = ({
         pageName={receiptName}
         isOpen={receiptName === selectedAccordion}
         onClick={onClickAccordion}
+        pageIsReceipt
       >
         <RenderedFormContainer
           containerId={BASE_CONTAINER_ID}

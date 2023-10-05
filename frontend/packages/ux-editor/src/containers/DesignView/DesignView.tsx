@@ -52,8 +52,8 @@ export const DesignView = (): ReactNode => {
   /**
    * Maps the IFormLayouts object to a list of FormLayouts
    */
-  const mapIFormLayoutsToFormLayouts = (iFormLayours: IFormLayouts): FormLayout[] => {
-    return Object.entries(iFormLayours).map(([key, value]) => ({
+  const mapIFormLayoutsToFormLayouts = (iFormLayouts: IFormLayouts): FormLayout[] => {
+    return Object.entries(iFormLayouts).map(([key, value]) => ({
       page: key,
       data: value,
     }));

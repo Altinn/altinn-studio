@@ -18,7 +18,7 @@ const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
 
 const user = userEvent.setup();
 
-jest.mock('../hooks/mutations/useDeleteFormContainerMutation');
+jest.mock('../../../../hooks/mutations/useDeleteFormContainerMutation');
 const mockDeleteFormContainer = jest.fn();
 const mockUseDeleteFormContainerMutation = useDeleteFormContainerMutation as jest.MockedFunction<
   typeof useDeleteFormContainerMutation
