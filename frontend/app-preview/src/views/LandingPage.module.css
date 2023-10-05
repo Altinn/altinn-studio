@@ -39,3 +39,20 @@
   background-color: #efefef;
   z-index: 1;
 }
+
+.previewLimitationsInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #f0f0f0; /* Background color of the alert container */
+  padding: 20px;
+}
+
+.previewLimitationsInfo div {
+  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  width: 80%;
+}

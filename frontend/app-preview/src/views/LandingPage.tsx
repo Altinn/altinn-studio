@@ -14,6 +14,7 @@ import {
 } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
+import { Alert } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
 
@@ -93,6 +94,11 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
           {previewViewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
+        </div>
+        <div className={classes.previewLimitationsInfo}>
+          <Alert severity='info'>
+            {t('preview.limitations_info')}
+          </Alert>
         </div>
       </>
     </PreviewContext>
