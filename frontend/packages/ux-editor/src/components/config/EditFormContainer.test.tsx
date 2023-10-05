@@ -26,7 +26,7 @@ describe('EditFormContainer', () => {
     await render();
 
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_group_change_id'))
+      screen.getByText(textMock('ux_editor.modal_properties_group_change_id')),
     ).toBeInTheDocument();
   });
 
@@ -34,7 +34,7 @@ describe('EditFormContainer', () => {
     await render();
 
     const containerIdInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_group_change_id')
+      textMock('ux_editor.modal_properties_group_change_id'),
     );
     await act(() => user.type(containerIdInput, 'test'));
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
@@ -44,22 +44,47 @@ describe('EditFormContainer', () => {
     await render();
 
     const containerIdInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_group_change_id')
+      textMock('ux_editor.modal_properties_group_change_id'),
     );
     await act(() => user.type(containerIdInput, 'test@'));
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid'))
+      screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid')),
     ).toBeInTheDocument();
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
+  });
+
+  test('user should be able to choose which titles to display in table', async () => {
+    await render({
+      container: {
+        ...layoutMock.containers[container1IdMock],
+        id: 'test',
+        maxCount: 2,
+      },
+    });
+
+    const repeatingGroupSwitch = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_group_repeating'),
+    );
+
+    await act(() => user.click(repeatingGroupSwitch));
+
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_group_table_headers')),
+    ).toBeInTheDocument();
+
+    const firstCheckbox = screen.getByRole('checkbox', { name: 'Component-1' });
+    await act(() => user.click(firstCheckbox));
+
+    expect(handleContainerUpdateMock).toHaveBeenCalled();
   });
 });
 
 const waitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet)
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
   const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet)
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
     .renderHookResult.result;
