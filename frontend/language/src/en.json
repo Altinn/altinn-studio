@@ -951,7 +951,7 @@
   "ux_editor.checkboxes_option_value_error_duplicate": "There is already another checkbox with this value.",
   "ux_editor.checkboxes_option_value_error_empty": "The value cannot be empty.",
   "ux_editor.choose_variant": "Choose message variant",
-  "ux_editor.collapsable_schema_components": "Form",
+  "ux_editor.collapsable_standard_components": "Standard",
   "ux_editor.collapsable_text_advanced_components": "Advanced",
   "ux_editor.collapsable_text_components": "Text",
   "ux_editor.collapsable_text_thirdparty_components": "Custom components",

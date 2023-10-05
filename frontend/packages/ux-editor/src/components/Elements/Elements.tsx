@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { Button, Paragraph } from '@digdir/design-system-react';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+import { Button, Heading, Paragraph } from '@digdir/design-system-react';
 import { useText } from '../../hooks';
 import {
   selectedLayoutNameSelector,
@@ -64,19 +64,21 @@ export const Elements = () => {
             </Accordion.Content>
           </Accordion.Item>
         )}
-        <Accordion.Item defaultOpen={!hideComponents}>
-          <Accordion.Header>{t('left_menu.components')}</Accordion.Header>
-          <Accordion.Content>
-            {hideComponents ? (
-              <Paragraph size='small'>{t('left_menu.no_components_selected')}</Paragraph>
-            ) : receiptLayoutName === selectedLayout ? (
-              <ConfPageToolbar />
-            ) : (
-              <DefaultToolbar />
-            )}
-          </Accordion.Content>
-        </Accordion.Item>
       </Accordion>
+      <div className={classes.componentsList}>
+        <Heading size='xxsmall' className={classes.componentsHeader}>
+          {t('left_menu.components')}
+        </Heading>
+        {hideComponents ? (
+          <Paragraph className={classes.noPageSelected} size='small'>
+            {t('left_menu.no_components_selected')}
+          </Paragraph>
+        ) : receiptLayoutName === selectedLayout ? (
+          <ConfPageToolbar />
+        ) : (
+          <DefaultToolbar />
+        )}
+      </div>
     </div>
   );
 };

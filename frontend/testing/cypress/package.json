@@ -3,14 +3,14 @@
   "description": "studio tests",
   "version": "1.0.0",
   "devDependencies": {
-    "@faker-js/faker": "8.0.2",
+    "@faker-js/faker": "8.1.0",
     "@testing-library/cypress": "10.0.1",
-    "axe-core": "4.8.1",
-    "cypress": "13.2.0",
+    "axe-core": "4.8.2",
+    "cypress": "13.3.0",
     "cypress-axe": "1.5.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.49.0",
-    "eslint-plugin-cypress": "2.14.0"
+    "eslint": "8.50.0",
+    "eslint-plugin-cypress": "2.15.1"
   },
   "main": "index.js",
   "scripts": {
