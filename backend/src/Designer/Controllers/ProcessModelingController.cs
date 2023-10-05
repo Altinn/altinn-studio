@@ -56,19 +56,19 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet("templates/{appVersion}")]
-        public IEnumerable<string> GetTemplates(string appVersion)
+        public IEnumerable<string> GetTemplates(string org, string repo, Version appVersion)
         {
-            Version version = Version.Parse(appVersion);
-            return _processModelingService.GetProcessDefinitionTemplates(version);
+            Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
+            return _processModelingService.GetProcessDefinitionTemplates(appVersion);
         }
 
         [HttpPost("templates/{appVersion}/{templateName}")]
-        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, string appVersion, string templateName, CancellationToken cancellationToken)
+        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, Version appVersion, string templateName, CancellationToken cancellationToken)
         {
-            Version version = Version.Parse(appVersion);
+            Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.SaveProcessDefinitionFromTemplateAsync(editingContext, templateName,version, cancellationToken);
+            await _processModelingService.SaveProcessDefinitionFromTemplateAsync(editingContext, templateName, appVersion, cancellationToken);
 
             Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(editingContext);
             return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
