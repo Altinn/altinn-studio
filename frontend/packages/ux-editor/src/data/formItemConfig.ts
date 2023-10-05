@@ -1,6 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
-import { FormPanelVariant } from '../types/FormComponent';
+import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import {
   FingerButtonIcon,
   FileTextIcon,
@@ -20,7 +20,7 @@ import {
   ChevronDownDoubleIcon,
   LinkIcon,
   PresentationIcon,
-  InformationSquareIcon
+  InformationSquareIcon,
 } from '@navikt/aksel-icons';
 import React, { RefAttributes, SVGProps } from 'react';
 import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
@@ -28,7 +28,8 @@ import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.s
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
-  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> & RefAttributes<SVGSVGElement>;
+  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
+    RefAttributes<SVGSVGElement>;
 };
 
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
@@ -42,6 +43,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Alert,
       severity: 'info',
       propertyPath: 'definitions/alertComponent',
+      pageIndex: null,
     },
     icon: ExclamationmarkIcon,
   },
@@ -52,6 +54,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
+      pageIndex: null,
     },
     icon: ChevronDownIcon,
   },
@@ -62,6 +65,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.AccordionGroup,
       propertyPath: 'definitions/accordionGroupComponent',
+      pageIndex: null,
     },
     icon: ChevronDownDoubleIcon,
   },
@@ -75,6 +79,7 @@ export const formItemConfigs: FormItemConfigs = {
         title: '', // To avoid undefined as text when previewing default component
       },
       buttonStyle: ActionButtonSchema.properties.buttonStyle.enum[0], // To avoid rendering error in app-frontend when previewing default component
+      pageIndex: null,
     },
     icon: FingerButtonIcon,
   },
@@ -87,6 +92,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       simplified: true,
       propertyPath: 'definitions/addressComponent',
+      pageIndex: null,
     },
     icon: PinIcon,
   },
@@ -99,6 +105,7 @@ export const formItemConfigs: FormItemConfigs = {
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 0,
       propertyPath: 'definitions/attachmentListComponent',
+      pageIndex: null,
     },
     icon: PaperclipIcon,
   },
@@ -108,8 +115,9 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.Button,
-      onClickAction: () => { },
+      onClickAction: () => {},
       propertyPath: 'definitions/actionButtonComponent',
+      pageIndex: null,
     },
     icon: FingerButtonIcon,
   },
@@ -120,6 +128,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.ButtonGroup,
       propertyPath: 'definitions/buttonGroupComponent',
+      pageIndex: null,
     },
     icon: FingerButtonIcon,
   },
@@ -132,6 +141,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
+      pageIndex: null,
     },
     icon: BulletListIcon,
   },
@@ -143,6 +153,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Custom,
       tagName: 'tag',
       framework: 'framework',
+      pageIndex: null,
     },
   },
   [ComponentType.Datepicker]: {
@@ -157,6 +168,7 @@ export const formItemConfigs: FormItemConfigs = {
       timeStamp: false,
       required: true,
       propertyPath: 'definitions/datepickerComponent',
+      pageIndex: null,
     },
     icon: CalendarIcon,
   },
@@ -170,6 +182,7 @@ export const formItemConfigs: FormItemConfigs = {
       optionsId: '',
       required: true,
       propertyPath: 'definitions/selectionComponents',
+      pageIndex: null,
     },
     icon: ChevronDownIcon,
   },
@@ -185,6 +198,7 @@ export const formItemConfigs: FormItemConfigs = {
       maxFileSizeInMB: 25,
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
+      pageIndex: null,
       propertyPath: 'definitions/fileUploadComponent',
     },
     icon: PaperclipIcon,
@@ -202,6 +216,7 @@ export const formItemConfigs: FormItemConfigs = {
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
       optionsId: '',
+      pageIndex: null,
       propertyPath: 'definitions/fileUploadWithTagComponent',
     },
     icon: PaperclipIcon,
@@ -212,6 +227,7 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.Grid,
+      pageIndex: null,
       propertyPath: 'definitions/gridComponent',
       rows: [],
     },
@@ -220,7 +236,9 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Group]: {
     name: ComponentType.Group,
     defaultProperties: {
+      id: '',
       itemType: 'CONTAINER',
+      pageIndex: null,
       propertyPath: 'definitions/groupComponent',
     },
     icon: TabsIcon,
@@ -232,6 +250,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Header,
       size: 'L',
+      pageIndex: null,
       propertyPath: 'definitions/headerComponent',
     },
     icon: BookmarkIcon,
@@ -241,6 +260,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.IFrame,
       sandbox: {},
     },
@@ -257,6 +277,7 @@ export const formItemConfigs: FormItemConfigs = {
         width: '100%',
         align: 'center',
       },
+      pageIndex: null,
       propertyPath: 'definitions/imageComponent',
     },
     icon: ImageIcon,
@@ -268,6 +289,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Input,
       dataModelBindings: {},
+      pageIndex: null,
       required: true,
       propertyPath: 'definitions/inputComponent',
     },
@@ -278,6 +300,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.InstanceInformation,
       propertyPath: 'definitions/instanceInformationComponent',
     },
@@ -288,6 +311,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.InstantiationButton,
     },
     icon: FingerButtonIcon,
@@ -299,6 +323,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Likert,
       dataModelBindings: {},
+      pageIndex: null,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
     icon: BulletListIcon,
@@ -308,6 +333,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.Link,
     },
     icon: LinkIcon,
@@ -317,6 +343,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.List,
       propertyPath: 'definitions/listComponent',
     },
@@ -327,6 +354,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.Map,
       dataModelBindings: {},
       centerLocation: {
@@ -344,6 +372,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.MultipleSelect,
       dataModelBindings: {},
       optionsId: '',
@@ -357,6 +386,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.NavigationBar,
       propertyPath: 'definitions/navigationBarComponent',
     },
@@ -367,8 +397,9 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.NavigationButtons,
-      onClickAction: () => { },
+      onClickAction: () => {},
       propertyPath: 'definitions/navigationButtonsComponent',
     },
     icon: FingerButtonIcon,
@@ -378,6 +409,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.Panel,
       variant: FormPanelVariant.Info,
       showIcon: true,
@@ -390,6 +422,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.Paragraph,
     },
     icon: FileTextIcon,
@@ -399,6 +432,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.PrintButton,
     },
     icon: FingerButtonIcon,
@@ -408,6 +442,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.RadioButtons,
       dataModelBindings: {},
       required: true,
@@ -420,6 +455,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.Summary,
       propertyPath: 'definitions/summaryComponent',
     },
@@ -430,6 +466,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
+      pageIndex: null,
       type: ComponentType.TextArea,
       dataModelBindings: {},
       required: true,

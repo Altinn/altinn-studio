@@ -11,10 +11,7 @@ export interface IFormDesignerNameSpace<T1, T2> {
   formDesigner: T1;
   appData: T2;
 }
-export type IAppState = IFormDesignerNameSpace<
-  IFormDesignerState,
-  IAppDataState
->;
+export type IAppState = IFormDesignerNameSpace<IFormDesignerState, IAppDataState>;
 
 export interface IOption {
   label: string;
@@ -36,6 +33,9 @@ export interface IInternalLayout {
   customRootProperties: KeyValuePairs;
   customDataProperties: KeyValuePairs;
 }
+
+export type InternalLayoutData = Omit<IInternalLayout, 'customRootProperties'>;
+export type InternalLayoutComponents = Omit<InternalLayoutData, 'customDataProperties'>;
 
 export interface IInternalLayoutWithName {
   layout: IInternalLayout;

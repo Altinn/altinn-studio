@@ -17,6 +17,7 @@ export const component1Mock: FormComponent = {
   type: component1TypeMock,
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
+  pageIndex: null,
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
@@ -24,7 +25,7 @@ export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
   itemType: 'COMPONENT',
-  propertyPath: undefined,
+  pageIndex: null,
 };
 export const container1IdMock = 'Container-1';
 export const customRootPropertiesMock: KeyValuePairs = {
@@ -42,11 +43,15 @@ export const layoutMock: IInternalLayout = {
   },
   containers: {
     [baseContainerIdMock]: {
+      id: baseContainerIdMock,
       itemType: 'CONTAINER',
       index: 0,
+      pageIndex: null,
     },
     [container1IdMock]: {
+      id: container1IdMock,
       itemType: 'CONTAINER',
+      pageIndex: null,
       propertyPath: 'definitions/groupComponent',
     },
   },
@@ -96,12 +101,12 @@ export const layoutSetsMock: LayoutSets = {
     {
       id: 'test-layout-set',
       dataTypes: 'datamodel',
-      tasks: ['Task_1']
+      tasks: ['Task_1'],
     },
     {
       id: 'test-layout-set-2',
       dataTypes: 'datamodel-2',
-      tasks: ['Task_2']
-    }
-  ]
+      tasks: ['Task_2'],
+    },
+  ],
 };

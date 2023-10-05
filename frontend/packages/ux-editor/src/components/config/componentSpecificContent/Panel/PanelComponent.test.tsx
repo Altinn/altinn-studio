@@ -2,20 +2,21 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
-import { FormPanelComponent, FormPanelVariant } from '../../../../types/FormComponent';
+import { FormComponent } from '../../../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
-const component: FormPanelComponent = {
+const component: FormComponent<ComponentType.Panel> = {
   id: '',
   itemType: 'COMPONENT',
   type: ComponentType.Panel,
@@ -30,10 +31,10 @@ const user = userEvent.setup();
 
 const waitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet)
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
   const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet)
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
     .renderHookResult.result;
@@ -45,7 +46,7 @@ const waitForData = async () => {
 const render = async () => {
   await waitForData();
   renderWithMockStore()(
-    <PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />
+    <PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />,
   );
 };
 
