@@ -62,7 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
             return _processModelingService.GetProcessDefinitionTemplates(appVersion);
         }
 
-        [HttpPost("templates/{appVersion}/{templateName}")]
+        [HttpPut("templates/{appVersion}/{templateName}")]
         public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, Version appVersion, string templateName, CancellationToken cancellationToken)
         {
             Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
