@@ -68,7 +68,7 @@ export interface IToolbarElement {
 }
 
 export enum CollapsableMenus {
-  Components = 'schema',
+  Components = 'standard',
   Texts = 'texts',
   AdvancedComponents = 'advanced',
   // TODO : Uncomment when we have widgets components
