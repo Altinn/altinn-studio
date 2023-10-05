@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
 
@@ -58,6 +58,11 @@ const PreviewFrame = () => {
         title={t('ux_editor.preview')}
         src={previewPage(org, app, selectedLayoutSet)}
       />
+      <div className={classes.previewLimitationsInfo}>
+        <Alert severity='info'>
+          {t('preview.limitations_info')}
+        </Alert>
+      </div>
     </div>
   );
 };

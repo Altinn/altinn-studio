@@ -10,6 +10,8 @@ export interface AltinnHeaderButtonProps {
 export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
   const { t } = useTranslation();
 
+  if (!action) return null;
+  
   return (
     <Button
       className={action.headerButtonsClasses}

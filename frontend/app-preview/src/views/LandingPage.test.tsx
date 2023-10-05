@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, queryByAttribute } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { renderWithMockStore } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
-import {textMock} from "../../../testing/mocks/i18nMock";
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('LandingPage', () => {
     

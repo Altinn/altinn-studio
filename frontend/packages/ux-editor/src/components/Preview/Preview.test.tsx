@@ -32,5 +32,12 @@ describe('Preview', () => {
     const mockedLayout = { layout: { selectedLayout: undefined } } as IAppState['formDesigner'];
     renderWithMockStore({ formDesigner: mockedLayout }, {}, queryClientMock)(<Preview />);
     expect(screen.getByText(textMock('ux_editor.no_components_selected'))).toBeInTheDocument();
+
+  it('Renders the information alert with preview being limited', () => {
+    const previewIframeRef = createRef<HTMLIFrameElement>();
+    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);
+
+    const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
+    expect(previewLimitationsAlert).toBeInTheDocument();
   });
 });

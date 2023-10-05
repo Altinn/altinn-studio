@@ -24,3 +24,9 @@
   width: 100%;
   height: 100%;
 }
+
+.previewLimitationsInfo {
+  padding: 10px;
+  background-color: #efefef;
+  align-content: center;
+}
