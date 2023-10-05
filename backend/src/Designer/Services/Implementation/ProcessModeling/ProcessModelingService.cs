@@ -18,14 +18,12 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
-        private string TemplatesLocation(Version version) => Path.Combine(Path.GetDirectoryName(typeof(ProcessModelingService).Assembly.Location)!, nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
-
         private string TemplatesFolderIdentifier(Version version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
 
         /// <inheritdoc/>
         public IEnumerable<string> GetProcessDefinitionTemplates(Version version)
         {
-            return EnumerateTemplates(version)
+            return EnumerateTemplateResources(version)
                 .Select(
                 templateName => templateName.Split(TemplatesFolderIdentifier(version)).Last().TrimStart('.'))!;
         }
@@ -54,7 +52,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return altinnAppGitRepository.GetProcessDefinitionFile();
         }
 
-        private IEnumerable<string> EnumerateTemplates(Version version)
+        private IEnumerable<string> EnumerateTemplateResources(Version version)
         {
             return typeof(ProcessModelingService).Assembly.GetManifestResourceNames()
                 .Where(resourceName => resourceName.Contains(TemplatesFolderIdentifier(version)));
@@ -62,9 +60,9 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
 
         private Stream GetTemplateStream(Version version, string templateName)
         {
-            var templates = EnumerateTemplates(version);
-            string templatePath = templates.Single(template => template.EndsWith(templateName));
-            return File.OpenRead(templatePath);
+            var templates = EnumerateTemplateResources(version);
+            string template = templates.Single(template => template.EndsWith(templateName));
+            return typeof(ProcessModelingService).Assembly.GetManifestResourceStream(template);
         }
     }
 }

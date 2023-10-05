@@ -9,7 +9,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 {
     public interface IProcessModelingService
     {
+        /// <summary>
+        /// Gets defined process definition templates for a given version.
+        /// </summary>
+        /// <param name="version">Version of the app-lib</param>
+        /// <returns>An <see cref="IEnumerable{string}"/> containing supported templates for given version.</returns>
         IEnumerable<string> GetProcessDefinitionTemplates(Version version);
+
+        /// <summary>
+        /// Saves the process definition file for a given app from a template.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="templateName">Name of the template.</param>
+        /// <param name="version">Version of the app-lib.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, Version version, CancellationToken cancellationToken = default);
 
         /// <summary>
