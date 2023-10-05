@@ -1,10 +1,8 @@
-import classes from './RightMenu.module.css';
 import React, { useEffect } from 'react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
-import cn from 'classnames';
 import { Expressions } from '../config/Expressions';
 import { Accordion, Switch } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
@@ -13,12 +11,9 @@ import {
   removeFeatureFlagFromLocalStorage,
   shouldDisplayFeature
 } from 'app-shared/utils/featureToggleUtils';
+import classes from './Properties.module.css';
 
-export interface RightMenuProps {
-  className?: string;
-}
-
-export const RightMenu = ({ className }: RightMenuProps) => {
+export const Properties = () => {
   const { t } = useTranslation();
   const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(shouldDisplayFeature('expressions'));
   const { formId } = useFormContext();
@@ -52,7 +47,7 @@ export const RightMenu = ({ className }: RightMenuProps) => {
   };
 
   return (
-    <div className={cn(className, classes.rightMenu)}>
+    <div className={classes.root}>
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>

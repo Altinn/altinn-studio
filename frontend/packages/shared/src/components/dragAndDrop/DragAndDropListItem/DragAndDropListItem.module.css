@@ -1,3 +1,7 @@
+.root {
+  list-style-type: none;
+}
+
 .wrapper {
   padding: calc(var(--list-item-gap) / 2) 0;
 }

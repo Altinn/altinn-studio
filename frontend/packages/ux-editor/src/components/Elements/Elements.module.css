@@ -1,7 +1,6 @@
-.addButton {
-  display: flex;
-  justify-content: center;
-  padding-top: var(--fds-spacing-5);
+.root {
+  background: var(--fds-semantic-surface-neutral-subtle);
+  flex: var(--elements-width-fraction);
 }
 
 .pagesContent {

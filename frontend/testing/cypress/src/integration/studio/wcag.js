@@ -6,15 +6,13 @@ import { header } from "../../selectors/header";
 
 context('WCAG', () => {
   before(() => {
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
     cy.visit('/');
-    cy.intercept('GET', 'designer/api/repos/search?**').as('fetchApps');
+    cy.intercept('GET', '**/repos/search**').as('fetchApps');
     dashboard.getSearchReposField().should('be.visible');
     cy.wait('@fetchApps')
       .its('response.statusCode')
@@ -22,6 +20,10 @@ context('WCAG', () => {
         expect([200, 302]).to.contain(statusCode);
       });
   });
+
+    after(() => {
+        cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    });
 
   it('accessibility test for dashboard', () => {
     cy.testWcag();

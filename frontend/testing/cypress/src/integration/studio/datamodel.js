@@ -7,8 +7,6 @@ import * as texts from '../../../../../language/src/nb.json';
 
 context('datamodel', () => {
   before(() => {
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });

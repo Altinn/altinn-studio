@@ -3,9 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { Button } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/design-system-react';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useText } from '../../hooks';
+import classes from './LayoutSetsContainer.module.css';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioUrlParams();
@@ -13,27 +15,30 @@ export function LayoutSetsContainer() {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const t = useText();
 
   const onLayoutSetClick = (set: string) => {
     dispatch(FormLayoutActions.updateSelectedLayoutSet(set));
     typedLocalStorage.setItem<string>('layoutSet/' + app, set);
   };
+  
+  if (!layoutSetNames) return null;
 
   return (
-    <>
-      {layoutSetNames &&
-        layoutSetNames.map((set: string) => {
+    <div className={classes.dropDownContainer}>
+      <NativeSelect
+        label={t('left_menu.layout_dropdown_menu_label')}
+        onChange={(event) => onLayoutSetClick(event.target.value)}
+        value={selectedLayoutSet}
+      >
+        {layoutSetNames.map((set: string) => {
           return (
-            <Button
-              variant={selectedLayoutSet === set ? 'filled' : 'quiet'}
-              key={set}
-              onClick={() => onLayoutSetClick(set)}
-              size='small'
-            >
+            <option key={set} value={set}>
               {set}
-            </Button>
+            </option>
           );
         })}
-    </>
+      </NativeSelect>
+    </div>
   );
 }
