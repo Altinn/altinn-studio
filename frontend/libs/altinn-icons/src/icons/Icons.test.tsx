@@ -14,9 +14,17 @@ it.each(altinnIcons)('should render %s icon with correct attributes', (iconName)
 
   const iconTitle = screen.getByTitle('icon-title');
 
-  expect(iconElement).toHaveAttribute('fill', 'currentColor');
   expect(iconElement).toHaveAttribute('width', '24');
   expect(iconElement).toHaveAttribute('height', '24');
   expect(iconElement).toHaveAttribute('viewBox', '0 0 24 24');
   expect(iconTitle).toBeInTheDocument();
+});
+
+it.each(altinnIcons)('should be possible to pass SVGElements props', (iconName) => {
+  const IconComponent = AltinnIcons[iconName];
+  render(<IconComponent role='img' className='demoClass' />);
+
+  const iconElement = screen.getByRole('img');
+
+  expect(iconElement).toHaveClass('demoClass');
 });

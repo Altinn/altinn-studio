@@ -1,1 +1,0 @@
-export { SampleIcon } from './SampleIcon';
