@@ -20,10 +20,14 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
 
         private string TemplatesLocation(Version version) => Path.Combine(Path.GetDirectoryName(typeof(ProcessModelingService).Assembly.Location)!, nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
 
+        private string TemplatesFolderIdentifier(Version version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
+
         /// <inheritdoc/>
         public IEnumerable<string> GetProcessDefinitionTemplates(Version version)
         {
-            return EnumerateTemplatesAsFilePaths(version).Select(Path.GetFileName)!;
+            return EnumerateTemplates(version)
+                .Select(
+                templateName => templateName.Split(TemplatesFolderIdentifier(version)).Last().TrimStart('.'))!;
         }
 
         /// <inheritdoc/>
@@ -50,19 +54,15 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return altinnAppGitRepository.GetProcessDefinitionFile();
         }
 
-        private IEnumerable<string> EnumerateTemplatesAsFilePaths(Version version)
+        private IEnumerable<string> EnumerateTemplates(Version version)
         {
-            if (!Directory.Exists(TemplatesLocation(version)))
-            {
-                return Array.Empty<string>();
-            }
-
-            return Directory.EnumerateFiles(TemplatesLocation(version))!;
+            return typeof(ProcessModelingService).Assembly.GetManifestResourceNames()
+                .Where(resourceName => resourceName.Contains(TemplatesFolderIdentifier(version)));
         }
 
         private Stream GetTemplateStream(Version version, string templateName)
         {
-            var templates = EnumerateTemplatesAsFilePaths(version);
+            var templates = EnumerateTemplates(version);
             string templatePath = templates.Single(template => template.EndsWith(templateName));
             return File.OpenRead(templatePath);
         }

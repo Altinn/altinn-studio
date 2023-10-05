@@ -135,9 +135,7 @@
 
 
   <ItemGroup>
-      <Content Include="Services\Implementation\ProcessModeling\Templates\**\*.*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+    <EmbeddedResource Include="Services\Implementation\ProcessModeling\Templates\**\*.*" />
   </ItemGroup>
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">

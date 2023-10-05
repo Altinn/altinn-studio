@@ -30,7 +30,6 @@ namespace Designer.Tests.Services
             }
         }
 
-
         public static IEnumerable<object[]> TemplatesTestData => new List<object[]>
         {
             new object[]
