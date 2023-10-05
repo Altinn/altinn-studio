@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "@microsoft/applicationinsights-react-js": "^17.0.0",
+    "@microsoft/applicationinsights-react-js": "^17.0.1",
     "@microsoft/applicationinsights-web": "^3.0.2",
     "@mui/material": "5.14.11",
     "@reduxjs/toolkit": "1.9.6",
