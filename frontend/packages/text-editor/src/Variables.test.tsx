@@ -33,4 +33,14 @@ describe('Variables', () => {
     expect(b).toBeInTheDocument();
     expect(c).toBeInTheDocument();
   });
+  it('renders two span elements and correct default value if it exists', () => {
+    const variables = [
+      { key: 'some key', dataSource: 'some data source', defaultValue: 'some default value' },
+    ]
+    renderVariables({
+      variables: variables,
+    });
+    const defaultValue = screen.getByText(variables[0].defaultValue);
+    expect(defaultValue).toBeInTheDocument();
+  });
 });

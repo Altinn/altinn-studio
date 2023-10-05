@@ -16,7 +16,7 @@ export const Variables = ({ variables }: VariablesProps) => {
       {variables.map((variable) => (
         <div key={variable.key} className={classes.chip}>
           <span className={classes.keyDataSource}>{`${variable.key}: ${variable.dataSource}`}</span>
-          <span className={classes.defaultValue}>{`${variable.defaultValue}`}</span>
+          {variable.defaultValue && <span className={classes.defaultValue}>{`${variable.defaultValue}`}</span>}
         </div>
       ))}
       {variables.length > 0 && (
