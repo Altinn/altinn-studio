@@ -11,3 +11,9 @@
   padding-bottom: var(--fds-spacing-3);
   padding-top: var(--fds-spacing-2);
 }
+
+.componentsHeader {
+  margin: var(--fds-spacing-3);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--semantic-surface-neutral-subtle-hover);
+}
