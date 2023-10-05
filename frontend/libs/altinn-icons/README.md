@@ -8,10 +8,8 @@ All icons must stick to the same rules for their colors and sizes. We've set up 
 
 - Icons should be 24 pixels wide and 24 pixels tall, `width="24" height="24"`.
 - The viewbox should be `viewbox="0 0 24 24"`.
-- The fill color should always be currentColor, `fill="currentColor"`.
+- All colors should always be currentColor.
 - All icons should use the shared `IconProps`, to ensure consistency in the icon API.
-
-Please see `SampleIcon` as an example to get started.
 
 ## How to install Altinn Icons
 
