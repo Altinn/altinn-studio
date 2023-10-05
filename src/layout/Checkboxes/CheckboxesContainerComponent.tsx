@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { LegacyCheckboxGroup } from '@digdir/design-system-react';
+import { Checkbox, HelpText } from '@digdir/design-system-react';
+import cn from 'classnames';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
@@ -8,7 +9,9 @@ import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useLanguage } from 'src/hooks/useLanguage';
+import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
+import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
@@ -59,17 +62,24 @@ export const CheckboxContainerComponent = ({
   };
 
   const labelText = (
-    <span style={{ fontSize: '1rem' }}>
+    <span className={classes.checkBoxLabelContainer}>
       {lang(node.item.textResourceBindings?.title)}
       <RequiredIndicator required={required} />
       <OptionalIndicator
         labelSettings={labelSettings}
         required={required}
       />
+      {textResourceBindings?.help && (
+        <HelpText title={langAsString(textResourceBindings?.help)}>{lang(textResourceBindings?.help)}</HelpText>
+      )}
     </span>
   );
-
+  const horizontal = shouldUseRowLayout({
+    layout,
+    optionsCount: calculatedOptions.length,
+  });
   const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1;
+  const ariaLabel = overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined;
 
   return isFetching ? (
     <AltinnSpinner />
@@ -79,35 +89,38 @@ export const CheckboxContainerComponent = ({
       key={`checkboxes_group_${id}`}
       onBlur={handleBlur}
     >
-      <LegacyCheckboxGroup
-        compact={false}
+      <Checkbox.Group
+        className={cn({ [classes.horizontal]: horizontal })}
+        legend={labelText}
+        description={lang(textResourceBindings?.description)}
         disabled={readOnly}
         onChange={(values) => handleChange(values)}
-        legend={overrideDisplay?.renderLegend === false ? null : labelText}
-        description={textResourceBindings?.description && lang(textResourceBindings.description)}
+        hideLegend={overrideDisplay?.renderLegend}
         error={!isValid}
-        fieldSetProps={{
-          'aria-label': overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined,
-        }}
-        helpText={textResourceBindings?.help && lang(textResourceBindings.help)}
-        variant={
-          shouldUseRowLayout({
-            layout,
-            optionsCount: calculatedOptions.length,
-          })
-            ? 'horizontal'
-            : 'vertical'
-        }
-        items={calculatedOptions.map((option) => ({
-          name: option.value,
-          checkboxId: `${id}-${option.label.replace(/\s/g, '-')}`,
-          checked: selected.includes(option.value),
-          hideLabel,
-          label: langAsString(option.label),
-          description: langAsString(option.description),
-          helpText: option.helpText && langAsString(option.helpText),
-        }))}
-      />
+        aria-label={ariaLabel}
+        value={selected}
+      >
+        {calculatedOptions.map((option) => (
+          <Checkbox
+            id={`${id}-${option.label.replace(/\s/g, '-')}`}
+            name={option.value}
+            key={option.value}
+            description={lang(option.description)}
+            value={option.value}
+            checked={selected.includes(option.value)}
+            size='small'
+          >
+            {hideLabel ? null : (
+              <span className={classes.checkBoxLabelContainer}>
+                {langAsString(option.label)}
+                {option.helpText && (
+                  <HelpText title={getPlainTextFromNode(option.helpText)}>{lang(option.helpText)}</HelpText>
+                )}
+              </span>
+            )}
+          </Checkbox>
+        ))}
+      </Checkbox.Group>
     </div>
   );
 };
