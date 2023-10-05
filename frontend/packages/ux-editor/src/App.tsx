@@ -15,7 +15,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 
 /**
  * This is the main React component responsible for controlling
@@ -43,6 +43,7 @@ export function App() {
   useEffect(() => {
     if (
       areLayoutSetsFetched &&
+      selectedLayoutSetInPreview &&
       (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSetInPreview))
     )
       removeSelectedLayoutSetInPreview();

@@ -18,6 +18,7 @@ const useWebStorage = <T>(
 
   const removeStorageValue = useCallback(() => {
     typedStorage.removeItem(key);
+    setValue(undefined);
   }, [key, typedStorage]);
 
   return [value, setStorageValue, removeStorageValue];
