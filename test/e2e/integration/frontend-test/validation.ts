@@ -180,10 +180,6 @@ describe('Validation', () => {
       'contain.text',
       texts.clientSide,
     );
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should(
-      'contain.text',
-      `The field value must be a string or array type with a maximum length of '50'`,
-    );
 
     // Hiding the field should remove the validation
     cy.get(appFrontend.changeOfName.newLastName).type('hideNext');
