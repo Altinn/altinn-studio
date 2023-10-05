@@ -8,6 +8,7 @@ import {gitea} from "../../selectors/gitea";
 
 context('Login', () => {
   beforeEach(() => {
+    Cypress.session.clearAllSavedSessions();
     cy.clearCookies();
     cy.visit('/');
   });
