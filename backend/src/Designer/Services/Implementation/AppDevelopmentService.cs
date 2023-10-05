@@ -222,11 +222,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            var csprojFiles = altinnAppGitRepository.FindFiles(new[] {"*.csproj"});
+            var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
 
             foreach (string csprojFile in csprojFiles)
             {
-                if(PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out Version version))
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out Version version))
                 {
                     return version;
                 }

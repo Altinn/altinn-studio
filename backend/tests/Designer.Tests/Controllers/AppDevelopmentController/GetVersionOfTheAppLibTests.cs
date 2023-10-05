@@ -25,7 +25,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            Dictionary<string,string> replacements = new Dictionary<string, string>() { { "[[appLibVersion]]", version } };
+            Dictionary<string, string> replacements = new Dictionary<string, string>() { { "[[appLibVersion]]", version } };
             await AddCsProjToRepo("App/App.csproj", csprojTemplate, replacements);
 
             string url = VersionPrefix(org, targetRepository);
