@@ -203,11 +203,11 @@ export const EditFormContainer = ({
           {items?.length > 0 && (
             <FormField
               id={container.id}
-              onChange={handleTableHeadersChange}
               value={items}
+              onChange={handleTableHeadersChange}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
             >
-              {({ value }) => {
+              {() => {
                 const filteredItems = items.filter((id) => !!components[id]);
                 const checkboxes = filteredItems.map((id) => ({
                   id,
@@ -221,7 +221,7 @@ export const EditFormContainer = ({
                     legend={t('ux_editor.modal_properties_group_table_headers')}
                   >
                     {checkboxes.map(({ id, name, checked }) => (
-                      <Checkbox key={id} name={name} checked={checked} value={value}>
+                      <Checkbox key={id} name={name} checked={checked} value={id}>
                         {getTextResource(
                           components[id]?.textResourceBindings?.title,
                           textResources,
