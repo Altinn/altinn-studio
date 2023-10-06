@@ -2,9 +2,8 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { PlusIcon } from '@navikt/aksel-icons';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { Button, Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useText } from '../../hooks';
 import {
   selectedLayoutNameSelector,
@@ -32,11 +31,6 @@ export const Elements = () => {
 
   const t = useText();
 
-  function handleAddLayoutSet() {
-    // TODO: Add layout set with set-name as user-input
-    // auto-connect data model and process in backend?
-  }
-
   return (
     <div className={classes.root}>
       {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
@@ -49,18 +43,7 @@ export const Elements = () => {
           <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
             <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
             <Accordion.Content>
-              {layoutSetNames ? (
-                <>
-                  <LayoutSetsContainer />
-                  <div className={classes.addButton}>
-                    <Button icon={<PlusIcon />} onClick={handleAddLayoutSet} size='small'>
-                      {t('left_menu.layout_sets_add')}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <ConfigureLayoutSetPanel />
-              )}
+              {layoutSetNames ? <LayoutSetsContainer /> : <ConfigureLayoutSetPanel />}
             </Accordion.Content>
           </Accordion.Item>
         )}

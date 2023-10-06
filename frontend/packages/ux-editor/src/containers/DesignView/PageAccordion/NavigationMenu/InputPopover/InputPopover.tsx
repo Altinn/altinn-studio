@@ -2,7 +2,7 @@ import React, { ReactNode, useRef, useEffect, ChangeEvent, useState } from 'reac
 import classes from './InputPopover.module.css';
 import { Button, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { validateLayoutNameAndLayoutSetName } from '../../../../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
+import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 
 export type InputPopoverProps = {
   /**
@@ -78,29 +78,16 @@ export const InputPopover = ({
   }, [onClose, open]);
 
   /**
-   * Checks if the new written page name already exists
-   */
-  const pageNameExists = (candidateName: string): boolean =>
-    layoutOrder.some((p: string) => p.toLowerCase() === candidateName.toLowerCase());
-
-  /**
    * Handles the change of the new page name. If the name exists, is empty, is too
    * long, or has a wrong format, an error is set, otherwise the value displayed is changed.
    */
   const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
+    const newNameCandidate = event.target.value;
 
-    if (pageNameExists(newNameCandidate) && oldName !== newNameCandidate) {
-      setErrorMessage(t('ux_editor.pages_error_unique'));
-    } else if (!newNameCandidate) {
-      setErrorMessage(t('ux_editor.pages_error_empty'));
-    } else if (newNameCandidate.length >= 30) {
-      setErrorMessage(t('ux_editor.pages_error_length'));
-    } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
-      setErrorMessage(t('ux_editor.pages_error_format'));
-    } else {
-      setErrorMessage('');
-    }
+    const nameError: string = getPageNameErrorKey(newNameCandidate, oldName, layoutOrder);
+
+    setErrorMessage(nameError === '' ? '' : t(nameError));
+
     setNewName(newNameCandidate);
   };
 

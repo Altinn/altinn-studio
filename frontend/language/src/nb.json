@@ -1371,7 +1371,7 @@
   "ux_editor.page_menu_edit": "Gi nytt navn",
   "ux_editor.page_menu_up": "Flytt opp",
   "ux_editor.pages_add": "Legg til ny side",
-  "ux_editor.pages_error_empty": "Navnet kan ikke vært tomt.",
+  "ux_editor.pages_error_empty": "Navnet kan ikke være tomt.",
   "ux_editor.pages_error_format": "Navnet må bestå av bokstaver (a-z), tall, eller \"-\", \"_\" og \".\".",
   "ux_editor.pages_error_length": "Navnet kan ikke være lengre enn 30 tegn.",
   "ux_editor.pages_error_unique": "Navnet må være unikt.",
