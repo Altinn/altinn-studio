@@ -22,13 +22,6 @@
   padding: 4px 12px;
 }
 
-.radioButtonContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
 .likertTableRow:hover {
   background-color: #e3f7ff;
 }
