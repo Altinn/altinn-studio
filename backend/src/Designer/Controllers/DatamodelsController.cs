@@ -81,11 +81,6 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string content = payload.ToString();
 
-            if (!TryValidateSchema(content, out ValidationProblemDetails validationProblemDetails))
-            {
-                return UnprocessableEntity(validationProblemDetails);
-            }
-
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             await _schemaModelService.UpdateSchema(editingContext, modelPath, content, saveOnly, cancellationToken);
 
