@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string CONFIG_FOLDER_PATH = "App/config/";
         private const string OPTIONS_FOLDER_PATH = "App/options/";
         private const string LAYOUTS_FOLDER_NAME = "App/ui/";
-        private const string IMAGES_FOLDER_NAME = "App/wwwroot/images";
+        private const string IMAGES_FOLDER_NAME = "App/wwwroot/";
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
@@ -763,13 +763,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets specified image from App/wwwroot/images folder of repo
         /// </summary>
-        /// <param name="imageFileName">The file name of the image</param>
+        /// <param name="imageFilePath">The file name of the image</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The image as bytearray</returns>
-        public async Task<byte[]> GetImage(string imageFileName, CancellationToken cancellationToken = default)
+        public async Task<byte[]> GetImage(string imageFilePath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string imagePath = GetPathToImage(imageFileName);
+            string imagePath = GetPathToImage(imageFilePath);
             if (FileExistsByRelativePath(imagePath))
             {
                 return await ReadBytesByRelativePath(imagePath, cancellationToken);
@@ -793,9 +793,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
-        private static string GetPathToImage(string imageFileName)
+        private static string GetPathToImage(string imageFilePath)
         {
-            return Path.Combine(IMAGES_FOLDER_NAME, imageFileName);
+            return Path.Combine(IMAGES_FOLDER_NAME, imageFilePath);
         }
 
         private static string GetPathToJsonTextsFile(string fileName)
