@@ -43,8 +43,8 @@ jobs:
            --cdn ../cdn \
            --commit \
            --azure-sync-cdn \
-           --azure-sa-name "${{ secrets.STAGING_STORAGEACCOUNT_NAME }}" \
-           --azure-sa-token "${{ secrets.STAGING_ALTINN_CDN_SAS_TOKEN }}"
+           --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
+           --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
       - name: Run release script (pre-release)
         working-directory: app-frontend
@@ -56,8 +56,8 @@ jobs:
            --commit \
            --pre-release \
            --azure-sync-cdn \
-           --azure-sa-name "${{ secrets.STAGING_STORAGEACCOUNT_NAME }}" \
-           --azure-sa-token "${{ secrets.STAGING_ALTINN_CDN_SAS_TOKEN }}"
+           --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
+           --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
       - name: Push to CDN
         working-directory: cdn
