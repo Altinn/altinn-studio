@@ -4,22 +4,9 @@ import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
 
 export type PageAccordionProps = {
-  /**
-   * The name of the page
-   */
   pageName: string;
-  /**
-   * The children of the component
-   */
   children: ReactNode;
-  /**
-   * If the accordion is open or not
-   */
   isOpen: boolean;
-  /**
-   * Function to execute when the accordion is clicked
-   * @returns void
-   */
   onClick: () => void;
   pageIsReceipt?: boolean;
 };
@@ -33,6 +20,7 @@ export type PageAccordionProps = {
  * @property {ReactNode}[children] - The children of the component
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
+ * @property {boolean}[pageIsReceipt] - If the page is receipt or not
  *
  * @returns {ReactNode} - The rendered component
  */
