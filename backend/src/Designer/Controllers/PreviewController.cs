@@ -78,6 +78,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action for getting local app-images
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="imageFileName">Filename for the image to be fetched from app frontend</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The application metadata for the app</returns>
+        [HttpGet]
+        [Route("images/{imageFileName}")]
+        public async Task<ActionResult> Image(string org, string app, string imageFileName, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            byte[] image = await altinnAppGitRepository.GetImage(imageFileName, cancellationToken);
+            return new FileContentResult(image, MimeTypeMap.GetMimeType(Path.GetExtension(imageFileName).ToLower()));
+        }
+
+        /// <summary>
         /// Action for getting the application metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
