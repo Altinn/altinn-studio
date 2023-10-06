@@ -4,7 +4,7 @@ import type { FormLayout } from '../../../types/FormLayout';
 import { PageAccordion } from '../PageAccordion';
 import { RenderedFormContainer } from '../RenderedFormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { Button } from '@digdir/design-system-react';
+import { Accordion, Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 export type ReceiptContentProps = {
@@ -60,19 +60,25 @@ export const ReceiptContent = ({
     const { order, containers, components } = receiptData.data || {};
 
     return (
-      <PageAccordion
-        pageName={receiptName}
-        isOpen={receiptName === selectedAccordion}
-        onClick={onClickAccordion}
-        pageIsReceipt
-      >
-        <RenderedFormContainer
-          containerId={BASE_CONTAINER_ID}
-          formLayoutOrder={order}
-          formDesignerContainers={containers}
-          formDesignerComponents={components}
-        />
-      </PageAccordion>
+      <div className={classes.wrapper}>
+        <div className={classes.accordionWrapper}>
+          <Accordion color='neutral' className={classes.accordion}>
+            <PageAccordion
+              pageName={receiptName}
+              isOpen={receiptName === selectedAccordion}
+              onClick={onClickAccordion}
+              pageIsReceipt
+            >
+              <RenderedFormContainer
+                containerId={BASE_CONTAINER_ID}
+                formLayoutOrder={order}
+                formDesignerContainers={containers}
+                formDesignerComponents={components}
+              />
+            </PageAccordion>{' '}
+          </Accordion>
+        </div>
+      </div>
     );
   }
   return (

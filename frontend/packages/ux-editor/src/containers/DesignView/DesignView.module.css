@@ -23,3 +23,17 @@
 .addButton {
   padding-bottom: 50px;
 }
+
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow-wrap: anywhere;
+
+  --background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--background-color);
+}
+
+.accordionWrapper {
+  flex: 1;
+}

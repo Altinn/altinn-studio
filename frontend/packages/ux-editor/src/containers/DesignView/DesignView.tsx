@@ -6,7 +6,7 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Button } from '@digdir/design-system-react';
+import { Accordion, Button } from '@digdir/design-system-react';
 import { IFormLayouts } from '../../types/global';
 import type { FormLayout } from '../../types/FormLayout';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -162,7 +162,13 @@ export const DesignView = (): ReactNode => {
   return (
     <div className={classes.root}>
       <div>
-        {displayPageAccordions}
+        <div className={classes.wrapper}>
+          <div className={classes.accordionWrapper}>
+            <Accordion color='neutral' className={classes.accordion}>
+              {displayPageAccordions}
+            </Accordion>
+          </div>
+        </div>
         <ReceiptContent
           receiptName={receiptName}
           selectedAccordion={openAccordion}

@@ -44,26 +44,16 @@ export const PageAccordion = ({
   pageIsReceipt,
 }: PageAccordionProps): ReactNode => {
   return (
-    <div className={classes.wrapper}>
-      <div className={classes.accordionWrapper}>
-        <Accordion color='neutral'>
-          <Accordion.Item className={classes.accordionItem} open={isOpen}>
-            <div className={classes.accordionHeaderRow}>
-              <Accordion.Header
-                className={classes.accordionHeader}
-                level={3}
-                onHeaderClick={onClick}
-              >
-                {pageName}
-              </Accordion.Header>
-              <div className={classes.navigationMenu}>
-                <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
-              </div>
-            </div>
-            <Accordion.Content className={classes.accordionContent}>{children}</Accordion.Content>
-          </Accordion.Item>
-        </Accordion>
+    <Accordion.Item className={classes.accordionItem} open={isOpen}>
+      <div className={classes.accordionHeaderRow}>
+        <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
+          {pageName}
+        </Accordion.Header>
+        <div className={classes.navigationMenu}>
+          <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
+        </div>
       </div>
-    </div>
+      <Accordion.Content className={classes.accordionContent}>{children}</Accordion.Content>
+    </Accordion.Item>
   );
 };

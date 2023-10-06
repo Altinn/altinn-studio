@@ -1,22 +1,3 @@
-.wrapper {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  overflow-wrap: anywhere;
-  border-bottom: 1px solid #d2d5d8;
-
-  --background-color: var(--fds-semantic-surface-neutral-subtle);
-  background-color: var(--background-color);
-}
-
-.wrapper:first-child {
-  border-top: 1px solid #d2d5d8;
-}
-
-.accordionWrapper {
-  flex: 1;
-}
-
 .navigationMenu {
   display: flex;
   justify-content: flex-start;
@@ -38,6 +19,10 @@
 .accordionContent {
   padding: 0;
   padding-inline: 5px;
+}
+
+.accordionItem {
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 /* TODO - Remove this "hack" when the design system handles it */
