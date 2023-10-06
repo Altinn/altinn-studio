@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
+import { Paragraph } from '@digdir/design-system-react';
 
 export const Preview = () => {
   const { org, app } = useStudioUrlParams();
@@ -18,18 +19,29 @@ export const Preview = () => {
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
 
+  const hideComponents = layoutName === 'default' || layoutName === undefined;
+
   useUpdate(() => {
     previewIframeRef.current?.contentWindow?.location.reload();
   }, [layoutName, previewIframeRef]);
 
-  return (
-    <div className={classes.root}>
+  const displayContent = () => {
+    if (hideComponents) {
+      return (
+        <div className={classes.noComponentSelected}>
+          <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
+        </div>
+      );
+    }
+    return (
       <iframe
         ref={previewIframeRef}
         className={classes.iframe}
         title={t('ux_editor.preview')}
         src={previewPage(org, app, selectedLayoutSet)}
       />
-    </div>
-  );
+    );
+  };
+
+  return <div className={classes.root}>{displayContent()}</div>;
 };

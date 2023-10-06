@@ -1360,6 +1360,7 @@
   "ux_editor.modal_text_key": "Tekstnøkkel",
   "ux_editor.modal_text_resource_body": "Tekstinnhold",
   "ux_editor.modal_text_resource_body_add": "Legg til tekst",
+  "ux_editor.no_components_selected": "Velg en side for å se forhåndsvisningen",
   "ux_editor.no_text": "Ingen tekst",
   "ux_editor.page": "Side",
   "ux_editor.page_delete_confirm": "Ja, slett skjemasiden",
