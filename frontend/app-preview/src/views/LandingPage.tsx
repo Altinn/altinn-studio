@@ -85,6 +85,11 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
               />
             }
           />
+          <div className={classes.previewLimitationsInfo}>
+            <Alert severity='info'>
+              {t('preview.limitations_info')}
+            </Alert>
+          </div>
         </div>
         <div className={classes.iframeMobileViewContainer}>
           <iframe
@@ -94,11 +99,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
           {previewViewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
-        </div>
-        <div className={classes.previewLimitationsInfo}>
-          <Alert severity='info'>
-            {t('preview.limitations_info')}
-          </Alert>
         </div>
       </>
     </PreviewContext>
