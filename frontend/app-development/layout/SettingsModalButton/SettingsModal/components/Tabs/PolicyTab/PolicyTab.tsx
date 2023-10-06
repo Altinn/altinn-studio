@@ -1,9 +1,13 @@
 import React, { ReactNode } from 'react';
 import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
-import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
+import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
+import { useAppPolicyQuery } from 'app-development/hooks/queries';
+import { ErrorMessage } from '@digdir/design-system-react';
+import { LoadingTabData } from '../../LoadingTabData';
+import { TabDataError } from '../../TabDataError';
 
 /**
  * The different actions a policy can have. TODO - Find out if there should be more.
@@ -56,10 +60,6 @@ const subjectData: PolicySubject[] = [
 
 export type PolicyTabProps = {
   /**
-   * The policy to show
-   */
-  policy: Policy;
-  /**
    * The org
    */
   org: string;
@@ -73,30 +73,54 @@ export type PolicyTabProps = {
  * @component
  *    Displays the tab rendering the polciy for an app
  *
- * @property {Policy}[policy] - The policy to show
  * @property {string}[org] - The org
  * @property {string}[app] - The app
  *
  * @returns {ReactNode} - The rendered component
  */
-export const PolicyTab = ({ policy, org, app }: PolicyTabProps): ReactNode => {
+export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
   const { t } = useTranslation();
+
+  const {
+    status: policyStatus,
+    data: policyData,
+    error: policyError,
+  } = useAppPolicyQuery(org, app);
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
+  const displayContent = () => {
+    switch (policyStatus) {
+      case 'loading': {
+        return <LoadingTabData />;
+      }
+      case 'error': {
+        return (
+          <TabDataError>
+            {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
+          </TabDataError>
+        );
+      }
+      case 'success': {
+        return (
+          <PolicyEditorImpl
+            policy={policyData}
+            actions={actionData}
+            // TODO - Find out the list of subjects: Issue: #10882
+            subjects={subjectData}
+            onSave={updateAppPolicyMutation}
+            // TODO - Find out how errors should be handled for apps, then refactor. Issue: #10881
+            showAllErrors={false}
+            usageType='app'
+          />
+        );
+      }
+    }
+  };
   return (
     <div>
       <TabHeader text={t('settings_modal.policy_tab_heading')} />
-      <PolicyEditorImpl
-        policy={policy}
-        actions={actionData}
-        // TODO - Find out the list of subjects: Issue: #10882
-        subjects={subjectData}
-        onSave={updateAppPolicyMutation}
-        // TODO - Find out how errors should be handled for apps, then refactor. Issue: #10881
-        showAllErrors={false}
-        usageType='app'
-      />
+      {displayContent()}
     </div>
   );
 };

@@ -1,5 +1,10 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import {
+  act,
+  render as rtlRender,
+  screen,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import { PolicyTab, PolicyTabProps } from './PolicyTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -23,30 +28,56 @@ mockUpdateAppPolicyMutation.mockReturnValue({
   mutate: updateAppPolicyMutation,
 } as unknown as UseMutationResult<void, unknown, Policy, unknown>);
 
+const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
+
+const defaultProps: PolicyTabProps = {
+  org: mockOrg,
+  app: mockApp,
+};
+
 describe('PolicyTab', () => {
-  const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
-  const defaultProps: PolicyTabProps = {
-    policy: mockPolicy,
-    org: mockOrg,
-    app: mockApp,
-  };
+  it('initially displays the spinner when loading data', () => {
+    render();
+
+    expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
+  });
+
+  it('fetches policy on mount', () => {
+    render();
+    expect(getAppPolicy).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an error message if an error occured on the getPolicy query', async () => {
+    const errorMessage = 'error-message-test';
+    render({ getAppPolicy: () => Promise.reject({ message: errorMessage }) });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
 
   it('displays the PolicyEditor component with the provided policy and data', async () => {
-    render({}, createQueryClientMock(), defaultProps);
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToRemove();
 
     // Fix to remove act error
     await act(() => user.tab());
 
     const elementInPolicyEditor = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
     expect(elementInPolicyEditor).toBeInTheDocument();
   });
 
   it('should update app policy when "onSave" is called', async () => {
-    render({}, createQueryClientMock(), defaultProps);
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToRemove();
 
     const addButton = screen.getByRole('button', {
       name: textMock('policy_editor.card_button_text'),
@@ -58,19 +89,27 @@ describe('PolicyTab', () => {
   });
 });
 
+const resolveAndWaitForSpinnerToRemove = async () => {
+  getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+  render();
+  await waitForElementToBeRemoved(() =>
+    screen.queryByTitle(textMock('settings_modal.loading_content')),
+  );
+};
+
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: PolicyTabProps
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
+    getAppPolicy,
     ...queries,
   };
 
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <PolicyTab {...props} />
-    </ServicesContextProvider>
+      <PolicyTab {...defaultProps} />
+    </ServicesContextProvider>,
   );
 };

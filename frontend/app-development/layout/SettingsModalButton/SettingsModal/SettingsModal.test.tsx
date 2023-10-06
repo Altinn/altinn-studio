@@ -14,44 +14,10 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
-import { mockPolicy } from './mocks/policyMock';
-import { mockAppConfig } from './mocks/appConfigMock';
-import { mockRepository1 } from './mocks/repositoryMock';
-import { mockAppMetadata } from './mocks/applicationMetadataMock';
-import { Commit, CommitAuthor } from 'app-shared/types/Commit';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-
-const mockCommitAuthor: CommitAuthor = {
-  email: '',
-  name: 'Mock Mockesen',
-  when: new Date(2023, 9, 22),
-};
-
-const mockInitialCommit: Commit = {
-  message: '',
-  author: mockCommitAuthor,
-  comitter: mockCommitAuthor,
-  sha: '',
-  messageShort: '',
-  encoding: '',
-};
-
-const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-
-const resolveMocks = () => {
-  getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
-  getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
-  getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
-  getRepoInitialCommit.mockImplementation(() => Promise.resolve(mockInitialCommit));
-  getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
-};
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -82,58 +48,6 @@ describe('SettingsModal', () => {
     org: mockOrg,
     app: mockApp,
   };
-
-  it('fetches policy on mount', () => {
-    render(defaultProps);
-    expect(getAppPolicy).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetches appConfig on mount', () => {
-    render(defaultProps);
-    expect(getAppConfig).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetches repoMetaData on mount', () => {
-    render(defaultProps);
-    expect(getRepoMetadata).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetches commit data on mount', () => {
-    render(defaultProps);
-    expect(getRepoInitialCommit).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetches appMetadata on mount', () => {
-    render(defaultProps);
-    expect(getAppMetadata).toHaveBeenCalledTimes(1);
-  });
-
-  it('initially displays the spinner when loading data', () => {
-    render(defaultProps);
-
-    expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
-  });
-
-  it.each([
-    'getAppPolicy',
-    'getAppConfig',
-    'getAppMetadata',
-    'getRepoMetadata',
-    'getRepoInitialCommit',
-  ])('shows an error message if an error occured on the %s query', async (queryName) => {
-    const errorMessage = 'error-message-test';
-    render(defaultProps, {
-      [queryName]: () => Promise.reject({ message: errorMessage }),
-    });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content')),
-    );
-
-    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
-  });
 
   it('closes the modal when the close button is clicked', async () => {
     render(defaultProps);
@@ -286,7 +200,6 @@ describe('SettingsModal', () => {
    * to be removed from the screen
    */
   const resolveAndWaitForSpinnerToRemove = async () => {
-    resolveMocks();
     render(defaultProps);
 
     await waitForElementToBeRemoved(() =>
@@ -302,11 +215,6 @@ const render = (
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAppPolicy,
-    getAppConfig,
-    getRepoMetadata,
-    getRepoInitialCommit,
-    getAppMetadata,
     ...queries,
   };
   return rtlRender(
