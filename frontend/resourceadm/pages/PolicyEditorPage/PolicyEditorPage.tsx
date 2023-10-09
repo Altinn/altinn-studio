@@ -4,13 +4,13 @@ import { useParams } from 'react-router-dom';
 import { PolicyEditor } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
+import { useResourcePolicyQuery } from 'resourceadm/hooks/queries';
+import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
+import { useTranslation } from 'react-i18next';
 import {
-  useResourcePolicyQuery,
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
-} from 'resourceadm/hooks/queries';
-import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
-import { useTranslation } from 'react-i18next'
+} from 'app-shared/hooks/queries';
 
 type PolicyEditorPageProps = {
   /**
@@ -37,22 +37,22 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
   const { data: policyData, isLoading: policyLoading } = useResourcePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
   const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
     selectedContext,
-    repo
+    repo,
   );
   const { data: subjectData, isLoading: subjectsLoading } = useResourcePolicySubjectsQuery(
     selectedContext,
-    repo
+    repo,
   );
 
   // Mutation function to update policy
   const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
 
   /**
@@ -73,7 +73,11 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
     if (policyLoading || actionLoading || subjectsLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.policy_editor_spinner')} />
+          <Spinner
+            size='3xLarge'
+            variant='interaction'
+            title={t('resourceadm.policy_editor_spinner')}
+          />
         </div>
       );
     }

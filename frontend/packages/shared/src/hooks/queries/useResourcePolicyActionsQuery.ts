@@ -2,9 +2,10 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PolicyAction } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { AxiosError } from 'axios';
 
 /**
- * Query to get the list of actions for the policy of a resource.
+ * Query to get the list of actions for a policy.
  *
  * @param org the organisation of the user
  * @param repo the repo the user is in
@@ -13,11 +14,11 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  */
 export const useResourcePolicyActionsQuery = (
   org: string,
-  repo: string
-): UseQueryResult<PolicyAction[]> => {
+  repo: string,
+): UseQueryResult<PolicyAction[], AxiosError> => {
   const { getPolicyActions } = useServicesContext();
 
-  return useQuery<PolicyAction[]>([QueryKey.ResourcePolicyActions, org, repo], () =>
-    getPolicyActions(org, repo)
+  return useQuery<PolicyAction[], AxiosError>([QueryKey.ResourcePolicyActions, org, repo], () =>
+    getPolicyActions(org, repo),
   );
 };

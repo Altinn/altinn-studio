@@ -19,11 +19,19 @@ export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Poli
     [QueryKey.AppPolicy, org, app],
     () => getAppPolicy(org, app),
     {
-      select: (data) => ({
-        rules: data.rules ?? [],
-        requiredAuthenticationLevelEndUser: '3',
-        requiredAuthenticationLevelOrg: '3',
-      }),
-    }
+      select: (data) => {
+        // Convert subject string list from uppercase to lowercase
+        const rules = data?.rules?.map((rule) => ({
+          ...rule,
+          subject: rule.subject.map((s) => s.toLowerCase()),
+        }));
+        const policy: Policy = {
+          rules: rules,
+          requiredAuthenticationLevelEndUser: '3',
+          requiredAuthenticationLevelOrg: '3',
+        };
+        return policy;
+      },
+    },
   );
 };

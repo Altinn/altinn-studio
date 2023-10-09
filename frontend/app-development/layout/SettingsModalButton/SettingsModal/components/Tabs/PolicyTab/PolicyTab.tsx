@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
-import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -8,55 +7,11 @@ import { useAppPolicyQuery } from 'app-development/hooks/queries';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-
-/**
- * The different actions a policy can have. TODO - Find out if there should be more.
- * Issue: #10882
- */
-const actionData: PolicyAction[] = [
-  { actionId: 'read', actionTitle: 'Les', actionDescription: null },
-  { actionId: 'write', actionTitle: 'Skriv', actionDescription: null },
-  { actionId: 'delete', actionTitle: 'Slett', actionDescription: null },
-  {
-    actionId: 'instantiate',
-    actionTitle: 'Instansier',
-    actionDescription: null,
-  },
-  { actionId: 'confirm', actionTitle: 'Bekreft', actionDescription: null },
-  { actionId: 'complete', actionTitle: 'Fullfør', actionDescription: null },
-  { actionId: 'sign', actionTitle: 'Sign', actionDescription: null },
-];
-
-/**
- * The different subjects a policy can have. TODO - Find out if there should be more.
- * Issue: #10882
- */
-const subjectData: PolicySubject[] = [
-  {
-    subjectDescription: 'Daglig leder fra enhetsregisteret',
-    subjectId: 'DAGL',
-    subjectSource: 'altinn:rolecode',
-    subjectTitle: 'Daglig leder',
-  },
-  {
-    subjectDescription: 'Regnskapsfører',
-    subjectId: 'REGNA',
-    subjectSource: 'altinn:rolecode',
-    subjectTitle: 'Regnskapsfører',
-  },
-  {
-    subjectDescription: '[ORG] - TODO',
-    subjectId: '[ORG]',
-    subjectSource: '[ORG]',
-    subjectTitle: '[ORG]',
-  },
-  {
-    subjectDescription: 'Subject 4',
-    subjectId: 'sub4',
-    subjectSource: 'altinn:rolecode',
-    subjectTitle: 'Subject 4',
-  },
-];
+import {
+  useResourcePolicyActionsQuery,
+  useResourcePolicySubjectsQuery,
+} from 'app-shared/hooks/queries';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 
 export type PolicyTabProps = {
   /**
@@ -86,11 +41,21 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
     data: policyData,
     error: policyError,
   } = useAppPolicyQuery(org, app);
+  const {
+    status: actionStatus,
+    data: actionData,
+    error: actionError,
+  } = useResourcePolicyActionsQuery(org, app);
+  const {
+    status: subjectStatus,
+    data: subjectData,
+    error: subjectError,
+  } = useResourcePolicySubjectsQuery(org, app, true);
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
   const displayContent = () => {
-    switch (policyStatus) {
+    switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus)) {
       case 'loading': {
         return <LoadingTabData />;
       }
@@ -98,6 +63,8 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
         return (
           <TabDataError>
             {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
+            {actionError && <ErrorMessage>{actionError.message}</ErrorMessage>}
+            {subjectError && <ErrorMessage>{subjectError.message}</ErrorMessage>}
           </TabDataError>
         );
       }
@@ -106,7 +73,6 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
           <PolicyEditorImpl
             policy={policyData}
             actions={actionData}
-            // TODO - Find out the list of subjects: Issue: #10882
             subjects={subjectData}
             onSave={updateAppPolicyMutation}
             // TODO - Find out how errors should be handled for apps, then refactor. Issue: #10881
