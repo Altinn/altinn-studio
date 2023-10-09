@@ -10,6 +10,7 @@ import { useAllOptionsInitiallyLoaded } from 'src/features/options/useAllOptions
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { useApplicationMetadataQuery } from 'src/hooks/queries/useApplicationMetadataQuery';
 import { useApplicationSettingsQuery } from 'src/hooks/queries/useApplicationSettingsQuery';
+import { useCustomValidationConfig } from 'src/hooks/queries/useCustomValidationConfig';
 import { useFooterLayoutQuery } from 'src/hooks/queries/useFooterLayoutQuery';
 import { useFormDataQuery } from 'src/hooks/queries/useFormDataQuery';
 import { useCurrentPartyQuery } from 'src/hooks/queries/useGetCurrentPartyQuery';
@@ -61,6 +62,7 @@ type AppInternalProps = {
 };
 
 const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | null => {
+  useCustomValidationConfig();
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
   const allowAnonymous = useAppSelector(allowAnonymousSelector);
 

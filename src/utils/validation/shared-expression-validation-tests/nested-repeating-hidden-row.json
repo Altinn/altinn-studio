@@ -1,0 +1,179 @@
+{
+  "name": "Should work in nested repeating groups with some hidden rows",
+  "expects": [
+    {
+      "message": "zero is not allowed",
+      "severity": "errors",
+      "field": "form.people[1].number",
+      "componentId": "number-input-1"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "errors",
+      "field": "form.people[1].names[2].name",
+      "componentId": "name-input-1-2"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "errors",
+      "field": "form.people[2].names[2].name",
+      "componentId": "name-input-2-2"
+    }
+  ],
+  "validationConfig": {
+    "$schema": "https://altinncdn.no/schemas/json/validation/validation.schema.v1.json",
+    "validations": {
+      "form.people.number": ["zero-is-not-allowed"],
+      "form.people.names.name": ["none-is-not-allowed"]
+    },
+    "definitions": {
+      "zero-is-not-allowed": {
+        "message": "zero is not allowed",
+        "severity": "errors",
+        "condition": ["equals", ["dataModel", ["argv", 0]], 0]
+      },
+      "none-is-not-allowed": {
+        "message": "none is not allowed",
+        "severity": "errors",
+        "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
+      }
+    }
+  },
+  "formData": {
+    "form": {
+      "people": [
+        {
+          "number": "0",
+          "hidden": true,
+          "names": [
+            {
+              "name": "none",
+              "hidden": true
+            },
+            {
+              "name": "John",
+              "hidden": false
+            },
+            {
+              "name": "none",
+              "hidden": false
+            },
+            {
+              "name": "Jane",
+              "hidden": true
+            }
+          ]
+        },
+        {
+          "number": "0",
+          "hidden": false,
+          "names": [
+            {
+              "name": "none",
+              "hidden": true
+            },
+            {
+              "name": "John",
+              "hidden": false
+            },
+            {
+              "name": "none",
+              "hidden": false
+            },
+            {
+              "name": "Jane",
+              "hidden": true
+            }
+          ]
+        },
+        {
+          "number": "1234",
+          "hidden": false,
+          "names": [
+            {
+              "name": "none",
+              "hidden": true
+            },
+            {
+              "name": "John",
+              "hidden": false
+            },
+            {
+              "name": "none",
+              "hidden": false
+            },
+            {
+              "name": "Jane",
+              "hidden": true
+            }
+          ]
+        },
+        {
+          "number": "5678",
+          "hidden": true,
+          "names": [
+            {
+              "name": "none",
+              "hidden": true
+            },
+            {
+              "name": "John",
+              "hidden": false
+            },
+            {
+              "name": "none",
+              "hidden": false
+            },
+            {
+              "name": "Jane",
+              "hidden": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "people-group",
+            "type": "Group",
+            "dataModelBindings": {
+              "group": "form.people"
+            },
+            "maxCount": 99,
+            "children": ["number-input", "names-group"],
+            "hiddenRow": ["dataModel", "form.people.hidden"]
+          },
+          {
+            "id": "number-input",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "form.people.number"
+            }
+          },
+          {
+            "id": "names-group",
+            "type": "Group",
+            "dataModelBindings": {
+              "group": "form.people.names"
+            },
+            "maxCount": 99,
+            "children": ["name-input"],
+            "hiddenRow": ["dataModel", "form.people.names.hidden"]
+          },
+          {
+            "id": "name-input",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "form.people.names.name"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

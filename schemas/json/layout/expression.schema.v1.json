@@ -73,7 +73,8 @@
         { "$ref": "#/definitions/func-text" },
         { "$ref": "#/definitions/func-language" },
         { "$ref": "#/definitions/func-lowerCase" },
-        { "$ref": "#/definitions/func-upperCase" }
+        { "$ref": "#/definitions/func-upperCase" },
+        { "$ref": "#/definitions/func-argv"}
       ]
     },
     "boolean": {
@@ -428,6 +429,16 @@
       "items": [
         { "const":  "upperCase" },
         { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-argv": {
+      "title": "Positional argument function",
+      "description": "This function returns the value of the positional argument at the specified index passed to the expression (currently only available for validation conditions)",
+      "type": "array",
+      "items": [
+        { "const":  "argv" },
+        { "$ref": "#/definitions/number" }
       ],
       "additionalItems": false
     }

@@ -35,8 +35,9 @@ Other remote environments could also be used (see `e2e/config/*.json`).
 1. Clone the apps (
    [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test),
    [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app),
-   [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app), and
-   [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
+   [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app),
+   [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test), and
+   [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
    ) to be tested.
 
 2. Create (or update) `.env` file with the correct paths (see `template.env`)

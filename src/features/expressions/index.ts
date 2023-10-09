@@ -20,6 +20,7 @@ import type {
   Expression,
   ExprFunction,
   ExprObjConfig,
+  ExprPositionalArgs,
   ExprResolved,
   ExprValToActual,
   FuncDef,
@@ -34,6 +35,7 @@ export interface EvalExprOptions {
   errorIntroText?: string;
   onBeforeFunctionCall?: (path: string[], func: ExprFunction, args: any[]) => void;
   onAfterFunctionCall?: (path: string[], func: ExprFunction, args: any[], result: any) => void;
+  positionalArguments?: ExprPositionalArgs;
 }
 
 export interface EvalExprInObjArgs<T> {
@@ -179,10 +181,16 @@ export function evalExpr(
   dataSources: ContextDataSources,
   options?: EvalExprOptions,
 ) {
-  let ctx = ExprContext.withBlankPath(expr, node, dataSources, {
-    onBeforeFunctionCall: options?.onBeforeFunctionCall,
-    onAfterFunctionCall: options?.onAfterFunctionCall,
-  });
+  let ctx = ExprContext.withBlankPath(
+    expr,
+    node,
+    dataSources,
+    {
+      onBeforeFunctionCall: options?.onBeforeFunctionCall,
+      onAfterFunctionCall: options?.onAfterFunctionCall,
+    },
+    options?.positionalArguments,
+  );
   try {
     const result = innerEvalExpr(ctx);
     if ((result === null || result === undefined) && options && options.config) {
@@ -334,6 +342,21 @@ const authContextKeys: { [key in keyof IAuthContext]: true } = {
  * All the functions available to execute inside expressions
  */
 export const ExprFunctions = {
+  argv: defineFunc({
+    impl(idx) {
+      if (!this.positionalArguments?.length) {
+        throw new ExprRuntimeError(this, 'No positional arguments available');
+      }
+
+      if (typeof idx !== 'number' || idx < 0 || idx >= this.positionalArguments.length) {
+        throw new ExprRuntimeError(this, 'Invalid argv index');
+      }
+
+      return this.positionalArguments[idx];
+    },
+    args: [ExprVal.Number] as const,
+    returns: ExprVal.Any,
+  }),
   equals: defineFunc({
     impl: (arg1, arg2) => arg1 === arg2,
     args: [ExprVal.String, ExprVal.String] as const,

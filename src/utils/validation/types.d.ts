@@ -1,6 +1,7 @@
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IAttachments } from 'src/features/attachments';
 import type { IJsonSchemas } from 'src/features/datamodel';
+import type { Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayoutSets } from 'src/types';
@@ -19,6 +20,7 @@ export type IValidationContext = {
   instance: IInstance | null;
   layoutSets: ILayoutSets | null;
   schemas: IJsonSchemas;
+  customValidation: IExpressionValidations | null;
 };
 
 export type ValidationContextGenerator = (node: LayoutNode | undefined) => IValidationContext;
@@ -124,3 +126,49 @@ export interface BackendValidationIssue {
   source?: string;
   customTextKey?: string;
 }
+
+/**
+ * Expression validation object.
+ */
+export type IExpressionValidation = {
+  message: string;
+  condition: Expression | ExprValToActual;
+  severity: ValidationSeverity;
+};
+
+/**
+ * Expression validations for all fields.
+ */
+export type IExpressionValidations = {
+  [field: string]: IExpressionValidation[];
+};
+
+/**
+ * Expression validation or definition with references resolved.
+ */
+export type IExpressionValidationRefResolved = {
+  message: string;
+  condition: Expression | ExprValToActual;
+  severity?: ValidationSeverity;
+};
+
+/**
+ * Unresolved expression validation or definition from the configuration file.
+ */
+export type IExpressionValidationRefUnresolved =
+  | IExpressionValidationRefResolved
+  | {
+      // If extending using a reference, assume that message and condition are inherited if undefined. This must be verified at runtime.
+      message?: string;
+      condition?: Expression | ExprValToActual;
+      severity?: ValidationSeverity;
+      ref: string;
+    };
+
+/**
+ * Expression validation configuration file type.
+ */
+export type IExpressionValidationConfig = {
+  validations: { [field: string]: (IExpressionValidationRefUnresolved | string)[] };
+  definitions: { [name: string]: IExpressionValidationRefUnresolved };
+};

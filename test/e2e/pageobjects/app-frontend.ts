@@ -13,6 +13,9 @@ export class AppFrontend {
 
     /** @see https://dev.altinn.studio/repos/ttd/signing-test */
     signingTest: 'signing-test',
+
+    /** @see https://dev.altinn.studio/repos/ttd/expression-validation-test */
+    expressionValidationTest: 'expression-validation-test',
   };
 
   //Start app instance page
@@ -281,6 +284,13 @@ export class AppFrontend {
     auditorConfirmPanel: '#form-content-Panel-confirm2',
     sentToAuditor: '#form-content-Header-noaccess',
     noAccessPanel: '#form-content-Panel-noaccess',
+  };
+
+  public expressionValidationTest = {
+    kjønn: '#kjonn',
+    bosted: '#bosted',
+    groupTag: 'input[id^=attachment-tag]',
+    uploaders: '[id^=Vedlegg-]',
   };
 }
 

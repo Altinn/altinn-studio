@@ -47,6 +47,7 @@ function runGetSchemaValidationErrors(formData: IFormData, schema: object) {
     instance,
     layoutSets,
     schemas,
+    customValidation: null,
   });
 }
 

@@ -4,7 +4,7 @@ import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
 import type { IAttachments } from 'src/features/attachments';
 import type { EvalExprOptions } from 'src/features/expressions/index';
-import type { ExprConfig, Expression } from 'src/features/expressions/types';
+import type { ExprConfig, Expression, ExprPositionalArgs } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { AllOptionsMap } from 'src/features/options/useAllOptions';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
@@ -42,6 +42,7 @@ export class ExprContext {
     public node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
     public dataSources: ContextDataSources,
     public callbacks: Pick<EvalExprOptions, 'onBeforeFunctionCall' | 'onAfterFunctionCall'>,
+    public positionalArguments?: ExprPositionalArgs,
   ) {}
 
   /**
@@ -52,8 +53,9 @@ export class ExprContext {
     node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
     dataSources: ContextDataSources,
     callbacks: Pick<EvalExprOptions, 'onBeforeFunctionCall' | 'onAfterFunctionCall'>,
+    positionalArguments?: ExprPositionalArgs,
   ): ExprContext {
-    return new ExprContext(expr, node, dataSources, callbacks);
+    return new ExprContext(expr, node, dataSources, callbacks, positionalArguments);
   }
 
   /**
@@ -66,6 +68,7 @@ export class ExprContext {
       prevInstance.node,
       prevInstance.dataSources,
       prevInstance.callbacks,
+      prevInstance.positionalArguments,
     );
     newInstance.path = newPath;
 

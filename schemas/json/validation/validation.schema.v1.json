@@ -1,0 +1,86 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/validation/validation.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Altinn 3 Validation",
+  "description": "Schema that describes the custom validation configuration for Altinn applications.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "validations": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/validation"
+              },
+              {
+                "type": "string",
+                "title": "Reference to another validation",
+                "description": "A reference to another validation to extend from. The referenced validation must be defined in the same validation configuration file."
+              }
+            ]
+          }
+        }
+      }
+    },
+    "definitions": {
+      "patternProperties": {
+        "^.*$": {
+          "ref": "#/definitions/validation"
+        }
+      }
+    }
+  },
+  "required": [
+    "validations"
+  ],
+  "definitions": {
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "title": "Validation message",
+          "description": "The message to display when the validation fails.",
+          "type": "string"
+        },
+        "condition": {
+          "title": "Expression returning a boolean value",
+          "description": "The expression must return a boolean value. The expression can contain references to other fields in the form.",
+          "$ref": "../layout/expression.schema.v1.json#/definitions/boolean"
+        },
+        "severity": {
+          "title": "Severity",
+          "description": "The severity of the validation message.",
+          "type": "string",
+          "default": "errors",
+          "enum": [
+            "errors",
+            "warnings",
+            "info",
+            "success"
+          ]
+        },
+        "ref": {
+          "title": "Reference to another validation",
+          "description": "A reference to another validation to extend from. The referenced validation must be defined in the same validation configuration file.",
+          "type": "string"
+        }
+      },
+      "if": {
+        "required": [
+          "ref"
+        ]
+      },
+      "else": {
+        "required": [
+          "message",
+          "condition"
+        ]
+      }
+    }
+  }
+}

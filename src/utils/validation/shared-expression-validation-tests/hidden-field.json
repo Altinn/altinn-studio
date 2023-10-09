@@ -1,0 +1,39 @@
+{
+  "name": "Should not return an error if component is hidden",
+  "expects": [],
+  "validationConfig": {
+    "$schema": "https://altinncdn.no/schemas/json/validation/validation.schema.v1.json",
+    "validations": {
+      "form.name": ["none-is-not-allowed"]
+    },
+    "definitions": {
+      "none-is-not-allowed": {
+        "message": "none is not allowed",
+        "severity": "errors",
+        "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
+      }
+    }
+  },
+  "formData": {
+    "form": {
+      "name": "none"
+    }
+  },
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "name-input",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "form.name"
+            },
+            "hidden": true
+          }
+        ]
+      }
+    }
+  }
+}

@@ -384,6 +384,10 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     return rowIndices;
   }
 
+  public getDataSources(): HierarchyDataSources {
+    return this.dataSources;
+  }
+
   /**
    * Runs frontend validations for this node and returns an array of IValidationObject
    */

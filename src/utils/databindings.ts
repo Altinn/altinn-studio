@@ -55,6 +55,16 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
   );
 }
 
+export function getBaseDataModelBindings(dataModelBindings: IDataModelBindings): IDataModelBindings {
+  if (typeof dataModelBindings === 'undefined') {
+    return undefined;
+  }
+
+  return Object.fromEntries(
+    Object.entries(dataModelBindings).map(([bindingKey, field]) => [bindingKey, getKeyWithoutIndex(field)]),
+  );
+}
+
 export function getKeyWithoutIndexIndicators(keyWithIndexIndicators: string): string {
   return keyWithIndexIndicators.replaceAll(GLOBAL_INDEX_KEY_INDICATOR_REGEX, '');
 }
