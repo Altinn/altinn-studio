@@ -768,6 +768,7 @@
   "resourceadm.resource_navigation_modal_text": "Noen felt på siden har manglende informasjon eller feil i utfylling. Du kan endre eller fikse informasjonen når som helst før ressursen publiseres.",
   "resourceadm.resource_navigation_modal_title_policy": "Manglende informasjon i tilgangsregler",
   "resourceadm.resource_navigation_modal_title_resource": "Manglende informasjon i ressurs",
+  "resourceadm.resource_published_success": "Ressursen ble publisert.",
   "resourceadm.right_translation_bar_alert": "For å kunne publisere ressursen må du legge til nynorsk og engelsk oversettelse.",
   "resourceadm.right_translation_bar_title": "Oversettelse",
   "resourceadm.switch_should": "skal",

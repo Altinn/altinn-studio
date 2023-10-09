@@ -90,13 +90,6 @@ export const DeployResourcePage = ({
     }
   }, [validatePolicyData, validatePolicyLoading]);
 
-  // TODO -  might need to adjust this in future
-  /*useEffect(() => {
-    if (!versionLoading) {
-      setNewVersionText(versionData.resourceVersion ?? '');
-    }
-  }, [versionData, versionLoading]);*/
-
   /**
    * Constantly check the repostatus to see if we are behind or ahead of master
    */
