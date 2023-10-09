@@ -28,6 +28,7 @@ import {
   Select,
   ShortText,
   TableIcon,
+  TasklistIcon,
 } from '@altinn/icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
