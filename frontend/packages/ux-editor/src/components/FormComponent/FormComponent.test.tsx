@@ -183,9 +183,7 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(
-        screen.getByRole('img', { name: textMock('ux_editor.component_input') })
-      ).toBeInTheDocument();
+      expect(screen.getByTitle(textMock('ux_editor.component_input'))).toBeInTheDocument();
     });
   });
 });
@@ -195,7 +193,7 @@ const waitForData = async () => {
     {},
     {
       getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
-    }
+    },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
@@ -217,6 +215,6 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
   return renderWithMockStore()(
     <DndProvider backend={HTML5Backend}>
       <FormComponent {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };
