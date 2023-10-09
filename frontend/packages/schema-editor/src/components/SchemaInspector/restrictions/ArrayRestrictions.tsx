@@ -39,6 +39,7 @@ export function ArrayRestrictions({
       </div>
       <div>
         <Switch
+          size='small'
           checked={restrictions[ArrRestrictionKey.uniqueItems]}
           onChange={(e) =>
             onChangeRestrictionValue(path, ArrRestrictionKey.uniqueItems, e.target.checked)

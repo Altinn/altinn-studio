@@ -93,7 +93,12 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   return (
     <>
       {!pointerIsDefinition(pointer) && (
-        <Switch checked={isRequired} name='checkedRequired' onChange={handleRequiredChanged}>
+        <Switch
+          size='small'
+          checked={isRequired}
+          name='checkedRequired'
+          onChange={handleRequiredChanged}
+        >
           {t('schema_editor.required')}
         </Switch>
       )}

@@ -84,6 +84,7 @@ export function PropertyItem({
       </div>
       <span className={`${classes.requiredCheckCell} ${classes.gridItem}`}>
         <Switch
+          size='small'
           aria-label={t('schema_editor.required')}
           checked={required ?? false}
           disabled={readOnly}

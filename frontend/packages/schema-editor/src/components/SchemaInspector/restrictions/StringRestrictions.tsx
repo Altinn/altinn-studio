@@ -100,6 +100,7 @@ export function StringRestrictions({
                 value={formatState.earliest}
               />
               <Switch
+                size='small'
                 checked={formatState.earliestIsInclusive}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
@@ -120,6 +121,7 @@ export function StringRestrictions({
                 value={formatState.latest}
               />
               <Switch
+                size='small'
                 checked={formatState.latestIsInclusive}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)

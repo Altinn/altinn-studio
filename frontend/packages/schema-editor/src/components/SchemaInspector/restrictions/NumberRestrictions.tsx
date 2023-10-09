@@ -100,6 +100,7 @@ export function NumberRestrictions({
             </div>
           </div>
           <Switch
+            size='small'
             checked={formatState.isMinInclusive}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
@@ -124,6 +125,7 @@ export function NumberRestrictions({
             </div>
           </div>
           <Switch
+            size='small'
             id='include-minimum-value-checkbox'
             checked={formatState.isMaxInclusive}
             onChange={(e) =>

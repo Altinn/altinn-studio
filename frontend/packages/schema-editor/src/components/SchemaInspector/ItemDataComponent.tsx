@@ -169,6 +169,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
         <Switch
+          size='small'
           checked={isArray}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
@@ -188,6 +189,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {objectKind === ObjectKind.Combination && (
         <Switch
+          size='small'
           id='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
           name='checkedNullable'

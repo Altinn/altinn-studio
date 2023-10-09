@@ -134,7 +134,7 @@ export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked);
-  return <Switch id={id} onChange={handleChange} checked={value} />;
+  return <Switch size='small' id={id} onChange={handleChange} checked={value} />;
 };
 
 export const UnsupportedInput = () => {
