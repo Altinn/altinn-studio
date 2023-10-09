@@ -63,15 +63,18 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   } = schemaNode;
   const dispatch = useDispatch();
   const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { t } = useTranslation();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title || '');
+  const [itemDescription, setItemItemDescription] = useState<string>(description || '');
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
 
   useEffect(() => {
     setNodeName(getNameFromPointer({ pointer }));
-  }, [pointer]);
+    setItemItemTitle(title);
+    setItemItemDescription(description);
+  }, [pointer, title, description]);
 
-  const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
@@ -132,13 +135,11 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     );
   };
 
-  const { t } = useTranslation();
-
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
 
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
-
+  
   return (
     <div className={classes.root}>
       {!isCombinationItem && (
@@ -210,7 +211,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
             onChange={(e: ChangeEvent) => setItemItemTitle((e.target as HTMLInputElement)?.value)}
-            value={itemTitle}
+            value={itemTitle ?? ''}
           />
         </div>
         <div>
@@ -223,7 +224,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               setItemItemDescription(event.target.value)
             }
             style={{ height: 100 }}
-            value={itemDescription}
+            value={itemDescription ?? ''}
           />
         </div>
       </LegacyFieldSet>
