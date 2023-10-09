@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import { Preview } from './Preview';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { queryClientMock, renderWithMockStore } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
