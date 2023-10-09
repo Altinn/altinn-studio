@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
@@ -12,12 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-public class GetPermissions : DisagnerEndpointsTestsBase<DeploymentsController, GetPermissions>
+namespace Designer.Tests.Controllers.DeploymentsController;
+
+public class GetPermissions : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.DeploymentsController, GetPermissions>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
     private readonly Mock<IGitea> _giteaMock;
 
-    public GetPermissions(WebApplicationFactory<DeploymentsController> factory) : base(factory)
+    public GetPermissions(WebApplicationFactory<Altinn.Studio.Designer.Controllers.DeploymentsController> factory) : base(factory)
     {
         _giteaMock = new Mock<IGitea>();
         _giteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");

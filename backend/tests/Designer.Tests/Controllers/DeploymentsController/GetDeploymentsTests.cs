@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -19,11 +18,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, GetDeployments>
+namespace Designer.Tests.Controllers.DeploymentsController;
+
+public class GetDeployments : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.DeploymentsController, GetDeployments>
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
-    public GetDeployments(WebApplicationFactory<DeploymentsController> factory) : base(factory)
+    public GetDeployments(WebApplicationFactory<Altinn.Studio.Designer.Controllers.DeploymentsController> factory) : base(factory)
     {
     }
 
