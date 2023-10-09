@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconProps } from '../../types/IconProps';
+import { SvgTemplate } from '../SvgTemplate';
 
 /**
  * @param {IconProps} props the icon props
@@ -7,17 +8,9 @@ import { IconProps } from '../../types/IconProps';
  * @example
  * import { Title } from '@altinn/icons';
  */
-export const Title = ({ title, ...rest }: IconProps): JSX.Element => {
+export const Title = (props: IconProps): JSX.Element => {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...rest}
-    >
-      {title && <title>{title}</title>}
+    <SvgTemplate {...props}>
       <path d='M4 15.8467H20' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' />
       <path
         d='M4.00098 19.6934H12.001'
@@ -37,6 +30,6 @@ export const Title = ({ title, ...rest }: IconProps): JSX.Element => {
         strokeWidth='1.5'
         strokeLinecap='round'
       />
-    </svg>
+    </SvgTemplate>
   );
 };

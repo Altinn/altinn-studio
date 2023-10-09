@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconProps } from '../../types/IconProps';
+import { SvgTemplate } from '../SvgTemplate';
 
 /**
  * @param {IconProps} props the icon props
@@ -7,17 +8,9 @@ import { IconProps } from '../../types/IconProps';
  * @example
  * import { Checkbox } from '@altinn/icons';
  */
-export const Checkbox = ({ title, ...rest }: IconProps): JSX.Element => {
+export const Checkbox = (props: IconProps): JSX.Element => {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...rest}
-    >
-      {title && <title>{title}</title>}
+    <SvgTemplate {...props}>
       <rect x='4' y='4' width='16' height='16' rx='3' stroke='currentColor' strokeWidth='1.5' />
       <path
         d='M8.39258 11.1729L11.2534 14.177'
@@ -31,6 +24,6 @@ export const Checkbox = ({ title, ...rest }: IconProps): JSX.Element => {
         strokeWidth='1.5'
         strokeLinecap='round'
       />
-    </svg>
+    </SvgTemplate>
   );
 };

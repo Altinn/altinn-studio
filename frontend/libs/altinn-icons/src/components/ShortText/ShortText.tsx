@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconProps } from '../../types/IconProps';
+import { SvgTemplate } from '../SvgTemplate';
 
 /**
  * @param {IconProps} props the icon props
@@ -7,17 +8,9 @@ import { IconProps } from '../../types/IconProps';
  * @example
  * import { ShortText } from '@altinn/icons';
  */
-export const ShortText = ({ title, ...rest }: IconProps): JSX.Element => {
+export const ShortText = ({ ...props }: IconProps): JSX.Element => {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...rest}
-    >
-      {title && <title>{title}</title>}
+    <SvgTemplate {...props}>
       <rect
         x='3'
         y='6.83301'
@@ -34,6 +27,6 @@ export const ShortText = ({ title, ...rest }: IconProps): JSX.Element => {
         strokeWidth='1.5'
         strokeLinecap='round'
       />
-    </svg>
+    </SvgTemplate>
   );
 };

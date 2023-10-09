@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconProps } from '../../types/IconProps';
+import { SvgTemplate } from '../SvgTemplate';
 
 /**
  * @param {IconProps} props the icon props
@@ -7,17 +8,9 @@ import { IconProps } from '../../types/IconProps';
  * @example
  * import { Likert } from '@altinn/icons';
  */
-export const Likert = ({ title, ...rest }: IconProps): JSX.Element => {
+export const Likert = (props: IconProps): JSX.Element => {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...rest}
-    >
-      {title && <title>{title}</title>}
+    <SvgTemplate {...props}>
       <path
         d='M4.43774 12.9028L19.9998 12.9028'
         stroke='currentColor'
@@ -84,6 +77,6 @@ export const Likert = ({ title, ...rest }: IconProps): JSX.Element => {
         strokeWidth='1.5'
         strokeLinecap='round'
       />
-    </svg>
+    </SvgTemplate>
   );
 };
