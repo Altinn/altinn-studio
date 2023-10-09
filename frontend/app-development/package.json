@@ -9,6 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@altinn/icons": "workspace:^",
     "@mui/material": "5.14.11",
     "@reduxjs/toolkit": "1.9.6",
     "axios": "1.5.1",

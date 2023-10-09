@@ -72,7 +72,7 @@
     "swc-loader": "0.2.3",
     "terser-webpack-plugin": "5.3.9",
     "ts-loader": "9.4.4",
-    "ts-morph": "19.0.0",
+    "ts-morph": "20.0.0",
     "typescript": "5.2.2",
     "typescript-plugin-css-modules": "5.0.1",
     "webpack": "5.88.2",
@@ -120,6 +120,7 @@
     "frontend/packages/text-editor",
     "frontend/packages/ux-editor",
     "frontend/packages/process-editor",
-    "frontend/packages/policy-editor"
+    "frontend/packages/policy-editor",
+    "frontend/libs/**"
   ]
 }

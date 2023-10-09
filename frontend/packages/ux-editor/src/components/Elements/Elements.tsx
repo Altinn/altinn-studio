@@ -58,9 +58,9 @@ export const Elements = () => {
   return (
     <div className={classes.root}>
       {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
-          <ConfigureLayoutSetPanel />
+        <ConfigureLayoutSetPanel />
       ) : (
-          <LayoutSetsContainer />
+        <LayoutSetsContainer />
       )}
       <Accordion color='subtle'>
         <Accordion.Item defaultOpen={true}>
