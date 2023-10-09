@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -94,11 +95,11 @@ namespace Designer.Tests.Controllers.ApiTests
         {
             if (!string.IsNullOrWhiteSpace(TestRepoPath))
             {
-                TestDataHelper.DeleteDirectory(TestRepoPath);
+                Directory.Delete(TestRepoPath, true);
             }
             if (!string.IsNullOrWhiteSpace(RemoteTestRepoPath))
             {
-                TestDataHelper.DeleteDirectory(RemoteTestRepoPath);
+                Directory.Delete(RemoteTestRepoPath, true);
             }
             if (HttpClient.IsValueCreated)
             {
