@@ -11,6 +11,8 @@ import { TopBarMenu } from './AppBar/appBarConfig';
 import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
+import { SettingsModalButton } from './SettingsModalButton';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type SubMenuContentProps = {
   org: string;
@@ -18,7 +20,16 @@ type SubMenuContentProps = {
 };
 
 export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
-  return <GiteaHeader org={org} app={app} hasCloneModal />;
+  return (
+    <GiteaHeader
+      org={org}
+      app={app}
+      hasCloneModal
+      leftComponent={
+        shouldDisplayFeature('settingsModal') && <SettingsModalButton org={org} app={app} />
+      }
+    />
+  );
 };
 
 export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {

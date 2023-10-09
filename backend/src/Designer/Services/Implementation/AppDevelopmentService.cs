@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -215,20 +218,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<string> GetProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
+        public Version GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            return altinnAppGitRepository.GetProcessDefinitionFile(cancellationToken);
 
-        }
+            var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
 
-        /// <inheritdoc />
-        public Task<string> SaveProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string bpmnXml, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            return altinnAppGitRepository.SaveProcessDefinitionFile(bpmnXml, cancellationToken);
+            foreach (string csprojFile in csprojFiles)
+            {
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out Version version))
+                {
+                    return version;
+                }
+            }
+
+            throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
         }
     }
 }

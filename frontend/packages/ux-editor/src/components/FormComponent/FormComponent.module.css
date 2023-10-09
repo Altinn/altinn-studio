@@ -1,9 +1,6 @@
 .wrapper {
   align-items: stretch;
   display: flex;
-  margin-left: var(--margin-left-with-handle);
-  margin-right: var(--margin-right-with-buttons);
-  min-height: 80px;
 }
 
 .formComponentWithHandle {

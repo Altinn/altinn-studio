@@ -22,7 +22,10 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
-      updateFormLayoutName(org, app, oldName, newName, layoutSetName).then(() => ({ oldName, newName })),
+      updateFormLayoutName(org, app, oldName, newName, layoutSetName).then(() => ({
+        oldName,
+        newName,
+      })),
     onSuccess: ({ oldName, newName }) => {
       dispatch(FormLayoutActions.updateSelectedLayout(newName));
       queryClient.setQueryData(
@@ -32,13 +35,13 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
           newLayouts[newName] = newLayouts[oldName];
           delete newLayouts[oldName];
           return newLayouts;
-        }
+        },
       );
       const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
       if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
-    }
+    },
   });
-}
+};

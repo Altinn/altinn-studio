@@ -11,9 +11,33 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
+import { Paragraph } from '@digdir/design-system-react';
+import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
 
 export const Preview = () => {
+  const layoutName = useSelector(selectedLayoutNameSelector);
+  const noPageSelected = layoutName === 'default' || layoutName === undefined;
+
+  return (
+    <div className={classes.root}>
+      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
+    </div>
+  );
+};
+
+// Message to display when no page is selected
+const NoSelectedPageMessage = () => {
+  const { t } = useTranslation();
+  return (
+    <Center>
+      <Paragraph size='medium'>{t('ux_editor.no_page_selected')}</Paragraph>
+    </Center>
+  );
+};
+
+// The actual preview frame that displays the selected page
+const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);

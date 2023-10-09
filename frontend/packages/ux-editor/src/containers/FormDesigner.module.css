@@ -16,7 +16,7 @@
   --preview-width-fraction: 3;
 
   flex-grow: 1;
-  height:calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
   overflow-y: hidden;
 }
 
@@ -28,9 +28,8 @@
   top: 69px;
 }
 
-.container > div {
+.container > * {
   min-width: 240px;
-  overflow-x: hidden;
   padding: 0;
   overflow-y: auto;
   max-height: calc(100vh - var(--header-height));
