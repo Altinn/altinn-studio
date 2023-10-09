@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
+using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models
 {
@@ -22,6 +23,7 @@ namespace Altinn.Studio.Designer.Models
 
         private static void ValidateDeveloper(string developer)
         {
+            Guard.AssertNotNullOrEmpty(developer, nameof(developer));
             if (!Regex.IsMatch(developer, "^[a-zA-Z0-9][a-zA-Z0-9-_\\.]*$"))
             {
                 throw new ArgumentException("Provided developer name is not valid");

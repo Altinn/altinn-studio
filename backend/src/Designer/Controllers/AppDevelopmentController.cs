@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -516,6 +517,14 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NoContent();
             }
+        }
+
+        [HttpGet("app-lib-version")]
+        public VersionResponse GetVersionOfTheAppLib(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var version = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
+            return new VersionResponse { Version = version };
         }
     }
 }

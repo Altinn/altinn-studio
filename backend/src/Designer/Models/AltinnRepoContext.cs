@@ -30,6 +30,7 @@ namespace Altinn.Studio.Designer.Models
 
         private void ValidateOrganization(string org)
         {
+            Guard.AssertNotNullOrEmpty(org, nameof(org));
             if (!Regex.IsMatch(org, "^[a-zA-Z0-9][a-zA-Z0-9-_\\.]*$"))
             {
                 throw new ArgumentException("Provided organization name is not valid");
