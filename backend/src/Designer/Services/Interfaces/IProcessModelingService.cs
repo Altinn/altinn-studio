@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Gets defined process definition templates for a given version.
         /// </summary>
         /// <param name="version">Version of the app-lib</param>
-        /// <returns>An <see cref="IEnumerable{string}"/> containing supported templates for given version.</returns>
+        /// <returns>An IEnumerable containing supported templates for given version.</returns>
         IEnumerable<string> GetProcessDefinitionTemplates(Version version);
 
         /// <summary>
