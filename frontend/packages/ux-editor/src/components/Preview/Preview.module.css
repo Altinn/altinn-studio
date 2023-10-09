@@ -1,10 +1,25 @@
 .root {
   display: flex;
+  flex-direction: column;
   flex: var(--preview-width-fraction);
 }
 
 .iframe {
-  border: 0;
+  border: 10px;
+  margin: 0 auto;
+}
+
+.iframe.mobile {
+  width: 390px;
+  height: 844px;
+
+  margin-top: 22px;
+  border-radius: 40px;
+  border: 16px solid #1f1f1f;
+  outline: 8px solid #000;
+}
+
+.iframe.desktop {
   width: 100%;
   height: 100%;
 }
