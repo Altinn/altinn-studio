@@ -21,7 +21,6 @@ import { useAlwaysPromptForParty } from 'src/hooks/useAlwaysPromptForParty';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useKeepAlive } from 'src/hooks/useKeepAlive';
-import { useUpdatePdfState } from 'src/hooks/useUpdatePdfState';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import type { IApplicationSettings } from 'src/types/shared';
@@ -78,7 +77,6 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
   const appOwner = useAppSelector(selectAppOwner);
 
   useKeepAlive(applicationSettings.appOidcProvider, allowAnonymous);
-  useUpdatePdfState(allowAnonymous);
   const { isFetching: isFormDataFetching } = useFormDataQuery();
   const optionsInitiallyLoaded = useAllOptionsInitiallyLoaded();
 

@@ -28,7 +28,6 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.optionState.error ||
     state.attachments.error ||
     state.dataListState.error ||
-    state.pdf.error ||
     state.applicationSettings.error ||
     state.textResources.error ||
     state.formDynamics.error ||

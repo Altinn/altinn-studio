@@ -5607,6 +5607,7 @@ __metadata:
     css-loader: 6.8.1
     cypress: 13.3.0
     cypress-axe: 1.5.0
+    cypress-network-idle: ^1.14.2
     cypress-plugin-tab: 1.0.5
     cypress-wait-until: ^2.0.0
     dompurify: 3.0.6
@@ -7431,6 +7432,13 @@ __metadata:
     axe-core: ^3 || ^4
     cypress: ^10 || ^11 || ^12 || ^13
   checksum: 7b5574da4ea2c1a1141f79cb4465a4f30879e30b9ac08da4aca935dfc7662d3fa170254be8c4eff26841bc065e6115bf6e6b8a8eee5ff7cb9812bbcbeb863ff2
+  languageName: node
+  linkType: hard
+
+"cypress-network-idle@npm:^1.14.2":
+  version: 1.14.2
+  resolution: "cypress-network-idle@npm:1.14.2"
+  checksum: 3f4780a38713ac3b6a07d5a6f0bb524c336a88b82020e323c09ab745a22031c345556bfea34043e30e2a89a147ca14ebe2f950ffa43362150a385a9314eb1829
   languageName: node
   linkType: hard
 

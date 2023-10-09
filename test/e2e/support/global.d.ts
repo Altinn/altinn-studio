@@ -199,6 +199,9 @@ declare global {
        * Useful when taking snapshots; clear all selections and wait for the app to finish loading and stabilizing.
        */
       clearSelectionAndWait(viewport?: 'desktop' | 'tablet' | 'mobile'): Chainable<null>;
+
+      getSummary(label: string): Chainable<Element>;
+      testPdf(callback: () => void, returnToForm: boolean = false): Chainable<null>;
     }
   }
 }

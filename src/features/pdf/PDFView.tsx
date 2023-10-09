@@ -3,14 +3,12 @@ import React from 'react';
 import { Heading } from '@digdir/design-system-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
 import classes from 'src/features/pdf/PDFView.module.css';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { usePdfPage } from 'src/hooks/usePdfPage';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { useExprContext } from 'src/utils/layout/ExprContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface PDFViewProps {
@@ -57,14 +55,9 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
 };
 
 export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
-  const { readyForPrint, method } = useAppSelector((state) => state.pdf);
-  const { uiConfig } = useAppSelector((state) => state.formLayout);
+  const pdfPage = usePdfPage();
 
-  const nodes = useExprContext();
-  const pdfLayoutName = method === 'custom' ? uiConfig.pdfLayoutName : method === 'auto' ? PDF_LAYOUT_NAME : undefined;
-  const pdfPage = nodes?.findLayout(pdfLayoutName);
-
-  if (!readyForPrint || !pdfPage) {
+  if (!pdfPage) {
     return null;
   }
 
