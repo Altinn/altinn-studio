@@ -11,10 +11,7 @@ export interface IFormDesignerNameSpace<T1, T2> {
   formDesigner: T1;
   appData: T2;
 }
-export type IAppState = IFormDesignerNameSpace<
-  IFormDesignerState,
-  IAppDataState
->;
+export type IAppState = IFormDesignerNameSpace<IFormDesignerState, IAppDataState>;
 
 export interface IOption {
   label: string;

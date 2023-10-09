@@ -1,0 +1,1 @@
+export { SvgTemplate } from './SvgTemplate';
