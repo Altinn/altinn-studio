@@ -59,7 +59,7 @@ describe('SettingsModal', () => {
   });
 
   it('displays left navigation bar when promises resolves', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_about') }),
@@ -76,7 +76,7 @@ describe('SettingsModal', () => {
   });
 
   it('displays the about tab, and not the other tabs, when promises resolves first time', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
     expect(
@@ -94,7 +94,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "about" to "policy" when policy tab is clicked', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -121,7 +121,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "policy" to "about" when about tab is clicked', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const policyTab = screen.getByRole('button', {
       name: textMock('settings_modal.left_nav_tab_policy'),
@@ -143,7 +143,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -169,7 +169,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -199,7 +199,7 @@ describe('SettingsModal', () => {
    * Resolves the mocks, renders the component and waits for the spinner
    * to be removed from the screen
    */
-  const resolveAndWaitForSpinnerToRemove = async () => {
+  const resolveAndWaitForSpinnerToDisappear = async () => {
     render(defaultProps);
 
     await waitForElementToBeRemoved(() =>

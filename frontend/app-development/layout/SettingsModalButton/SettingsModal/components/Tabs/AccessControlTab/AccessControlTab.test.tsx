@@ -77,7 +77,7 @@ describe('AccessControlTab', () => {
   });
 
   it('should render all checkboxes with the correct values based on the party types allowed', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const bankruptcyEstateCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
@@ -102,7 +102,7 @@ describe('AccessControlTab', () => {
 
   it('handles checkbox changes', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const organisationCheckboxBefore = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_organisation'),
@@ -119,7 +119,7 @@ describe('AccessControlTab', () => {
 
   it('calles saving function when checboxgroup is blurred', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const organisationCheckboxBefore = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_organisation'),
@@ -131,7 +131,7 @@ describe('AccessControlTab', () => {
   });
 });
 
-const resolveAndWaitForSpinnerToRemove = async (props: Partial<AccessControlTabProps> = {}) => {
+const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AccessControlTabProps> = {}) => {
   getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
   render(props);
   await waitForElementToBeRemoved(() =>

@@ -64,7 +64,7 @@ describe('PolicyTab', () => {
 
   it('displays the PolicyEditor component with the provided policy and data', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -77,7 +77,7 @@ describe('PolicyTab', () => {
 
   it('should update app policy when "onSave" is called', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const addButton = screen.getByRole('button', {
       name: textMock('policy_editor.card_button_text'),
@@ -89,7 +89,7 @@ describe('PolicyTab', () => {
   });
 });
 
-const resolveAndWaitForSpinnerToRemove = async () => {
+const resolveAndWaitForSpinnerToDisappear = async () => {
   getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
   render();
   await waitForElementToBeRemoved(() =>

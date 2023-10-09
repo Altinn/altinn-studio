@@ -15,13 +15,7 @@ import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 
 export type AboutTabProps = {
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
 };
 

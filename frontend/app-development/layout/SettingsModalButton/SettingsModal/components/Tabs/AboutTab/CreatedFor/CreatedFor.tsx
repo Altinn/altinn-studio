@@ -8,23 +8,14 @@ import { PersonCircleIcon } from '@navikt/aksel-icons';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 
 export type CreatedForProps = {
-  /**
-   * The repository type
-   */
   repositoryType: RepositoryType;
-  /**
-   * The repository
-   */
   repository: Repository;
-  /**
-   * The name of the author
-   */
   authorName: string;
 };
 
 /**
  * @component
- *    Displays the section for created for in the About Tab in the Settings modal
+ *    Displays the section for "created for" in the About Tab in the Settings modal
  *
  * @property {RepositoryType}[repositoryType] - The repository type
  * @property {Repository}[repository] - The repository

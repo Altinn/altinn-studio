@@ -100,7 +100,7 @@ describe('AboutTab', () => {
   );
 
   it('displays the "repo" input as readonly', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const repoNameInput = screen.getByLabelText(textMock('settings_modal.about_tab_repo_label'));
     expect(repoNameInput).toHaveValue(mockAppConfig.repositoryName);
@@ -109,7 +109,7 @@ describe('AboutTab', () => {
 
   it('displays correct value in "name" input field, and updates the value on change', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
     expect(appName).toHaveValue(mockAppConfig.serviceName);
@@ -121,7 +121,7 @@ describe('AboutTab', () => {
 
   it('displays correct value in "alternative id" input field, and updates the value on change', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
     expect(altId).toHaveValue(mockAppConfig.serviceId);
@@ -133,7 +133,7 @@ describe('AboutTab', () => {
 
   it('should update app config when saving', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
     await act(() => user.type(altId, mockNewText));
@@ -143,7 +143,7 @@ describe('AboutTab', () => {
   });
 
   it('displays owners full name when it is set', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByText(mockRepository1.owner.full_name)).toBeInTheDocument();
     expect(screen.queryByText(mockRepository1.owner.login)).not.toBeInTheDocument();
@@ -161,7 +161,7 @@ describe('AboutTab', () => {
   });
 
   it('displays the created date mapped correctly', async () => {
-    await resolveAndWaitForSpinnerToRemove();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const formatedDateString: string = formatDateToDateAndTimeString(mockRepository1.created_at);
 
@@ -173,7 +173,7 @@ describe('AboutTab', () => {
   });
 });
 
-const resolveAndWaitForSpinnerToRemove = async (props: Partial<AboutTabProps> = {}) => {
+const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AboutTabProps> = {}) => {
   getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
   getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
   getRepoInitialCommit.mockImplementation(() => Promise.resolve(mockInitialCommit));
