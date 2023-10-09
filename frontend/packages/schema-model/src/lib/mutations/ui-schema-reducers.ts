@@ -211,8 +211,7 @@ export type SetCustomPropertiesArgs = {
 export const setCustomProperties: UiSchemaReducer<SetCustomPropertiesArgs> =
   (uiSchema, { path, properties }) => {
     const newSchema = deepCopy(uiSchema);
-    const uiSchemaNode = getNodeByPointer(newSchema, path);
-    uiSchemaNode.custom = properties;
+    getNodeByPointer(newSchema, path).custom = properties;
     return newSchema;
   };
 

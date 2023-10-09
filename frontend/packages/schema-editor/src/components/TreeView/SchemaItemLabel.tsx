@@ -120,7 +120,7 @@ export const SchemaItemLabel = ({
   const isArray = selectedNode.isArray || refNode?.isArray;
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
-  const capabilties = getCapabilities(selectedNode);
+  const capabilities = getCapabilities(selectedNode);
 
   return (
     <div
@@ -134,6 +134,7 @@ export const SchemaItemLabel = ({
           <i className={`fa ${icon}`} />
         </span>{' '}
         <span>{getNameFromPointer(selectedNode)}</span>
+        TEST
         {selectedNode.isRequired && <span aria-hidden> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (
@@ -170,7 +171,7 @@ export const SchemaItemLabel = ({
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {capabilties.includes(Capabilites.CanHaveReferenceAdded) && (
+        {capabilities.includes(Capabilites.CanHaveReferenceAdded) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddReference}
             id='add-reference-to-node-button'
@@ -180,7 +181,7 @@ export const SchemaItemLabel = ({
             icon={LinkIcon}
           />
         )}
-        {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
+        {capabilities.includes(Capabilites.CanHaveFieldAdded) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddField}
             id='add-field-to-node-button'
@@ -190,7 +191,7 @@ export const SchemaItemLabel = ({
             icon={BulletListIcon}
           />
         )}
-        {capabilties.includes(Capabilites.CanHaveCombinationAdded) && (
+        {capabilities.includes(Capabilites.CanHaveCombinationAdded) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuAddCombination}
             id='add-combination-to-node-button'
@@ -200,7 +201,7 @@ export const SchemaItemLabel = ({
             icon={TabsIcon}
           />
         )}
-        {capabilties.includes(Capabilites.CanBeConvertedToReference) && (
+        {capabilities.includes(Capabilites.CanBeConvertedToReference) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuConvertToReference}
             id='convert-node-to-reference-button'
@@ -210,7 +211,7 @@ export const SchemaItemLabel = ({
             icon={ArrowUpIcon}
           />
         )}
-        {capabilties.includes(Capabilites.CanBeConvertedToField) && (
+        {capabilities.includes(Capabilites.CanBeConvertedToField) && (
           <AltinnMenuItem
             testId={SchemaItemLabelTestIds.contextMenuConvertToField}
             id='convert-node-to-field-buttonn'
@@ -221,7 +222,7 @@ export const SchemaItemLabel = ({
             disabled={true}
           />
         )}
-        {capabilties.includes(Capabilites.CanBeDeleted) && (
+        {capabilities.includes(Capabilites.CanBeDeleted) && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
