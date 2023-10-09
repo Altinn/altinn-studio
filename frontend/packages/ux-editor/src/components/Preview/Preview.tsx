@@ -31,7 +31,7 @@ const NoSelectedPageMessage = () => {
   const { t } = useTranslation();
   return (
     <Center>
-      <Paragraph size='medium'>{t('ux_editor.no_page_selected')}</Paragraph>
+      <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
     </Center>
   );
 };

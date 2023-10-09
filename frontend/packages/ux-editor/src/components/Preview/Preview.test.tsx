@@ -31,6 +31,6 @@ describe('Preview', () => {
   it('should render a message when no page is selected', () => {
     const mockedLayout = { layout: { selectedLayout: undefined } } as IAppState['formDesigner'];
     renderWithMockStore({ formDesigner: mockedLayout }, {}, queryClientMock)(<Preview />);
-    expect(screen.getByText(textMock('ux_editor.no_page_selected'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.no_components_selected'))).toBeInTheDocument();
   });
 });
