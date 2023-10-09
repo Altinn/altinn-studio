@@ -88,11 +88,13 @@ describe('PolicyTab', () => {
     expect(getPolicySubjects).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['getAppPolicy, getPolicyActions, getPolicySubjects'])(
+  it.each(['getAppPolicy', 'getPolicyActions', 'getPolicySubjects'])(
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
-      render({ [queryName]: () => Promise.reject({ message: errorMessage }) });
+      render({
+        [queryName]: () => Promise.reject({ message: errorMessage }),
+      });
 
       await waitForElementToBeRemoved(() =>
         screen.queryByTitle(textMock('settings_modal.loading_content')),
