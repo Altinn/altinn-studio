@@ -78,7 +78,6 @@ export const EditDataModelBindings = ({
           />
         ) : (
           <CheckmarkIcon
-            name='Checkmark'
             className={classes.checkmarkIcon}
             onClick={() => {
               setCheckmarkClicked(true);
@@ -89,7 +88,6 @@ export const EditDataModelBindings = ({
         )}
 
         <TrashIcon
-          name='trashIcon'
           className={classes.trashIcon}
           onClick={() => {
             setDropdownVisible(false);
