@@ -1,0 +1,36 @@
+.navigationMenu {
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-block: 12px;
+  margin-left: 10px;
+  background-color: var(--background-color);
+}
+
+.accordionHeader {
+  flex: 1;
+}
+
+.accordionHeader button {
+  border: none;
+  background-color: var(--background-color);
+}
+
+.accordionContent {
+  padding: 0;
+  padding-inline: 5px;
+}
+
+.accordionItem {
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+/* TODO - Remove this "hack" when the design system handles it */
+.accordionItem > div:last-child {
+  border-bottom: none !important;
+}
+
+.accordionHeaderRow {
+  display: flex;
+  background-color: var(--background-color);
+}
