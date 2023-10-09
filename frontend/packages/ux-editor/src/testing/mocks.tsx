@@ -44,14 +44,17 @@ export const queriesMock: ServicesContextProps = {
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   getDatamodelMetadata: jest.fn().mockImplementation(() => Promise.resolve({ elements: {} })),
+  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve(expressionSchema)),
   getFormLayoutSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
   getInstanceIdForPreview: jest.fn(),
-  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
+  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve(layoutSchema)),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve(numberFormatSchema)),
+  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
@@ -62,9 +65,6 @@ export const queriesMock: ServicesContextProps = {
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
   upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
-  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve(expressionSchema)),
-  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve(layoutSchema)),
-  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve(numberFormatSchema)),
 };
 
 export const queryClientMock = new QueryClient({

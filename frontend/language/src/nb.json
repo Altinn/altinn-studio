@@ -1115,7 +1115,7 @@
   "ux_editor.checkboxes_option_value_error_duplicate": "Det finnes allerede en sjekkboks med denne verdien.",
   "ux_editor.checkboxes_option_value_error_empty": "Du må angi en verdi.",
   "ux_editor.choose_variant": "Velg meldingstype",
-  "ux_editor.collapsable_schema_components": "Skjema",
+  "ux_editor.collapsable_standard_components": "Standard",
   "ux_editor.collapsable_text_advanced_components": "Avansert",
   "ux_editor.collapsable_text_components": "Tekst",
   "ux_editor.collapsable_text_custom_components": "Egendefinerte komponenter",
