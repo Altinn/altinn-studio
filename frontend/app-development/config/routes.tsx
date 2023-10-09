@@ -6,7 +6,6 @@ import DataModellingContainer from '../features/dataModelling/containers/DataMod
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
 import { ProcessEditor } from 'app-development/features/processEditor';
-import { SettingsModalButton } from 'app-development/features/SettingsModalButton';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -90,13 +89,5 @@ export const routes: IRoute[] = [
     exact: true,
     menu: 'process-editor',
     subapp: ProcessEditor,
-  },
-  {
-    activeSubHeaderSelection: TopBarMenu.SettingsModalButton,
-    activeLeftMenuSelection: '',
-    path: '/:org/:app/settings',
-    exact: true,
-    menu: 'Settings',
-    subapp: SettingsModalButton,
   },
 ];

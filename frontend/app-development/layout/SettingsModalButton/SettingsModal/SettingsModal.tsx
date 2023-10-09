@@ -14,14 +14,10 @@ import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
-import { Policy } from '@altinn/policy-editor';
 import { PolicyTab } from './components/Tabs/PolicyTab';
-import { AboutTab } from './components/Tabs/AbouTab';
-import { AppConfig } from 'app-shared/types/AppConfig';
-import { Repository } from 'app-shared/types/Repository';
+import { AboutTab } from './components/Tabs/AboutTab';
 import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export type SettingsModalProps = {
   /**
@@ -34,10 +30,6 @@ export type SettingsModalProps = {
    */
   onClose: () => void;
   /**
-   * The policy of the app
-   */
-  policy: Policy;
-  /**
    * The org
    */
   org: string;
@@ -45,22 +37,6 @@ export type SettingsModalProps = {
    * The app
    */
   app: string;
-  /**
-   * The config for the application
-   */
-  appConfig: AppConfig;
-  /**
-   * The repository of the app
-   */
-  repository: Repository;
-  /**
-   * The name of the user that created the app
-   */
-  createdBy: string;
-  /*
-   * The application's metadata
-   */
-  appMetadata: ApplicationMetadata;
 };
 
 /**
@@ -69,28 +45,12 @@ export type SettingsModalProps = {
  *
  * @property {boolean}[isOpen] - Flag for if the modal is open
  * @property {function}[onClose] - Function to be executed on close
- * @property {Policy}[policy] - The policy of the app
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {AppConfig}[appConfig] - The serice name
- * @property {Repository}[repository] - The repository of the app
- * @property {strign}[createdBy] - The name of the user that created the app
- * @property {AppConfig}[appConfig] - The service name
- * @property {ApplicationMetadata}[appMetadata] - The application's metadata
  *
  * @returns {ReactNode} - The rendered component
  */
-export const SettingsModal = ({
-  isOpen,
-  onClose,
-  policy,
-  org,
-  app,
-  appConfig,
-  repository,
-  createdBy,
-  appMetadata,
-}: SettingsModalProps): ReactNode => {
+export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
@@ -148,21 +108,13 @@ export const SettingsModal = ({
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return (
-          <AboutTab
-            appConfig={appConfig}
-            org={org}
-            app={app}
-            repository={repository}
-            createdBy={createdBy}
-          />
-        );
+        return <AboutTab org={org} app={app} />;
       }
       case 'policy': {
-        return <PolicyTab policy={policy} org={org} app={app} />;
+        return <PolicyTab org={org} app={app} />;
       }
       case 'accessControl': {
-        return <AccessControlTab appMetadata={appMetadata} org={org} app={app} />;
+        return <AccessControlTab org={org} app={app} />;
       }
       case 'localChanges': {
         return <LocalChangesTab org={org} app={app} />;
