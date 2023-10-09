@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import classes from './LegacyAdministration.module.css';
 import type { Repository } from 'app-shared/types/Repository';
 import { PageSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
@@ -104,7 +103,7 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
   const render = repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div className={classes.root}>
+    <div>
       {render ? (
         <MainContent
           appDescription={newDescription}
