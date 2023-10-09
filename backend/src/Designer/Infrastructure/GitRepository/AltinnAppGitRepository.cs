@@ -732,6 +732,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return optionListIds.ToArray();
         }
 
+        /// <summary>
+        /// Saves the processdefinition file on disk.
+        /// </summary>
+        /// <param name="file">Stream of the file to be saved.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         public async Task SaveProcessDefinitionFileAsync(Stream file, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

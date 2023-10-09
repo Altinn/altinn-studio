@@ -60,7 +60,11 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
 
         private Stream GetTemplateStream(Version version, string templateName)
         {
-            var templates = EnumerateTemplateResources(version);
+            var templates = EnumerateTemplateResources(version).ToList();
+            if (!templates.Exists(template => template.EndsWith(templateName)))
+            {
+                throw new FileNotFoundException("Unknown template.");
+            }
             string template = templates.Single(template => template.EndsWith(templateName));
             return typeof(ProcessModelingService).Assembly.GetManifestResourceStream(template);
         }

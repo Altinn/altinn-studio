@@ -142,7 +142,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Returns fileStream of a file path relative to the repository directory.
         /// </summary>
         /// <param name="relativeFilePath">The relative path to the file.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation in cancelled</param>
         /// <returns>A <see cref="Stream"/>.</returns>
         public Stream OpenStreamByRelativePath(string relativeFilePath)
         {
