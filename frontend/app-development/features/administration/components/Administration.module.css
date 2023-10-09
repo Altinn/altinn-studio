@@ -27,7 +27,7 @@
 }
 
 .header {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--studio-font-family);
   padding: var(--fds-spacing-6) 0 var(--fds-spacing-6) 0;
 }
 
