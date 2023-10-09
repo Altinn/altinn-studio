@@ -96,7 +96,7 @@ export const InputField = ({
         error={!isValid}
         readOnly={readOnly}
       />
-      {!isValid && <ErrorMessage>{errorText}</ErrorMessage>}
+      {!isValid && <ErrorMessage size='small'>{errorText}</ErrorMessage>}
     </div>
   );
 };

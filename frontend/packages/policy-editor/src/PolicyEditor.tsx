@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Heading } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -85,10 +85,10 @@ export const PolicyEditor = ({
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn.resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? [])
+    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? []),
   );
   const [requiredAuthLevel, setRequiredAuthLevel] = useState<RequiredAuthLevel>(
-    policy?.requiredAuthenticationLevelEndUser ?? '3'
+    policy?.requiredAuthenticationLevelEndUser ?? '3',
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
@@ -210,8 +210,8 @@ export const PolicyEditor = ({
         subjects,
         actions,
         pr,
-        `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}` // TODO - find out if ID should be hardcoded. Issue: #10893
-      )
+        `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}`, // TODO - find out if ID should be hardcoded. Issue: #10893
+      ),
     );
 
     const updatedPolicy: Policy = {
@@ -225,13 +225,15 @@ export const PolicyEditor = ({
   return (
     <div>
       <div className={classes.alertWrapper}>
-        <Alert severity='info'>
-          {t('policy_editor.alert', {
-            usageType:
-              usageType === 'app'
-                ? t('policy_editor.alert_app')
-                : t('policy_editor.alert_resource'),
-          })}
+        <Alert severity='info' className={classes.alert}>
+          <Paragraph size='small'>
+            {t('policy_editor.alert', {
+              usageType:
+                usageType === 'app'
+                  ? t('policy_editor.alert_app')
+                  : t('policy_editor.alert_resource'),
+            })}
+          </Paragraph>
         </Alert>
       </div>
       <div className={classes.selectAuthLevelWrapper}>

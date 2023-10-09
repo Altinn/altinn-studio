@@ -138,7 +138,7 @@ export const ExpandablePolicyCard = ({
     index: number,
     field: 'id' | 'type',
     value: string,
-    ruleIndex: number
+    ruleIndex: number,
   ) => {
     const updatedResources = [...policyRule.resources];
     updatedResources[ruleIndex][index] = {
@@ -149,7 +149,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
   };
@@ -162,14 +162,14 @@ export const ExpandablePolicyCard = ({
     const newResource: PolicyRuleResource[] = createNewPolicyResource(
       usageType,
       resourceType,
-      resourceId
+      resourceId,
     );
 
     const updatedResources = [...policyRule.resources, newResource];
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -214,7 +214,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -229,7 +229,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -256,7 +256,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActions },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -285,7 +285,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjects },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -312,7 +312,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjectTitles },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -339,7 +339,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActionTitles },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -364,14 +364,14 @@ export const ExpandablePolicyCard = ({
 
     // Create a deep copy of the object so the objects don't share same object reference
     const deepCopiedResourceGroupToDuplicate: PolicyRuleResource[] = JSON.parse(
-      JSON.stringify(resourceGroupToDuplicate)
+      JSON.stringify(resourceGroupToDuplicate),
     );
 
     const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -388,7 +388,7 @@ export const ExpandablePolicyCard = ({
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,
-      rules
+      rules,
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
@@ -402,11 +402,9 @@ export const ExpandablePolicyCard = ({
    */
   const displayWarningCard = (text: string) => {
     return (
-      <div className={classes.warningCardWrapper}>
-        <ErrorMessage as='p' size='small'>
-          {text}
-        </ErrorMessage>
-      </div>
+      <ErrorMessage as='p' size='small'>
+        {text}
+      </ErrorMessage>
     );
   };
 
@@ -459,7 +457,7 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label as='p' className={classes.label} size='medium'>
+        <Label as='p' className={classes.label} size='small'>
           {t('policy_editor.rule_card_sub_resource_title')}
         </Label>
         {displayResources}
@@ -478,7 +476,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasResourceError &&
           displayWarningCard(t('policy_editor.rule_card_sub_resource_error'))}
-        <Label className={classes.label} size='medium' htmlFor={`selectAction-${uniqueId}`}>
+        <Label className={classes.label} size='small' htmlFor={`selectAction-${uniqueId}`}>
           {t('policy_editor.rule_card_actions_title')}
         </Label>
         <Paragraph size='small' className={classes.inputParagraph}>
@@ -499,7 +497,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasRightsError &&
           displayWarningCard(t('policy_editor.rule_card_actions_error'))}
-        <Label className={classes.label} size='medium' htmlFor={`selectSubject-${uniqueId}`}>
+        <Label className={classes.label} size='small' htmlFor={`selectSubject-${uniqueId}`}>
           {t('policy_editor.rule_card_subjects_title')}
         </Label>
         <Paragraph size='small' className={classes.inputParagraph}>
@@ -520,7 +518,7 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasSubjectsError &&
           displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
-        <Label className={classes.label} size='medium' htmlFor={`description-${uniqueId}`}>
+        <Label className={classes.label} size='small' htmlFor={`description-${uniqueId}`}>
           {t('policy_editor.rule_card_description_title')}
         </Label>
         <div className={classes.textAreaWrapper}>
