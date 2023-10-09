@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
+import { PolicyEditor as PolicyEditorImpl, PolicySubject } from '@altinn/policy-editor';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -12,6 +12,13 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+
+const policySubjectOrg: PolicySubject = {
+  subjectDescription: '[org]',
+  subjectId: '[org]',
+  subjectSource: '[org]',
+  subjectTitle: '[org]',
+};
 
 export type PolicyTabProps = {
   /**
@@ -54,6 +61,13 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
+  const addOrgIfNotAlreadyIn = (subjects: PolicySubject[]) => {
+    if (!subjects.some((d) => d.subjectId === policySubjectOrg.subjectId)) {
+      return [...subjects, policySubjectOrg];
+    }
+    return subjects;
+  };
+
   const displayContent = () => {
     switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus)) {
       case 'loading': {
@@ -73,7 +87,7 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
           <PolicyEditorImpl
             policy={policyData}
             actions={actionData}
-            subjects={subjectData}
+            subjects={addOrgIfNotAlreadyIn(subjectData)}
             onSave={updateAppPolicyMutation}
             showAllErrors
             usageType='app'

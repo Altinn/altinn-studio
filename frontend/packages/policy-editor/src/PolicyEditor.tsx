@@ -92,7 +92,7 @@ export const PolicyEditor = ({
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
-  const [lastRuleId, setLastRuleId] = useState((policy?.rules.length ?? 0) + 1);
+  const [lastRuleId, setLastRuleId] = useState((policy?.rules?.length ?? 0) + 1);
 
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 

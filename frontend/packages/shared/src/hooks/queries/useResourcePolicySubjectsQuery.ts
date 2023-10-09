@@ -4,13 +4,6 @@ import type { PolicySubject } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { AxiosError } from 'axios';
 
-const policySubjectOrg: PolicySubject = {
-  subjectDescription: '[org]',
-  subjectId: '[org]',
-  subjectSource: '[org]',
-  subjectTitle: '[org]',
-};
-
 /**
  * Query to get the list of subjects for a policy.
  *
@@ -27,15 +20,7 @@ export const useResourcePolicySubjectsQuery = (
 ): UseQueryResult<PolicySubject[], AxiosError> => {
   const { getPolicySubjects } = useServicesContext();
 
-  return useQuery<PolicySubject[], AxiosError>(
-    [QueryKey.ResourcePolicySubjects, org, repo],
-    () => getPolicySubjects(org, repo),
-    {
-      select: (data) => {
-        const list = data.filter((subject) => subject.subjectId !== '');
-        if (addOrgToList) list.push(policySubjectOrg);
-        return list;
-      },
-    },
+  return useQuery<PolicySubject[], AxiosError>([QueryKey.ResourcePolicySubjects, org, repo], () =>
+    getPolicySubjects(org, repo),
   );
 };
