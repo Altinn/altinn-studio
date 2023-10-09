@@ -29,5 +29,5 @@
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist"]
+  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist", "**/prettier.config.js"]
 }
