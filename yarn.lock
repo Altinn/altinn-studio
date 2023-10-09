@@ -3185,7 +3185,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:5.6.1":
+"@navikt/aksel-icons@npm:5.6.1, @navikt/aksel-icons@npm:^5.6.1":
   version: 5.6.1
   resolution: "@navikt/aksel-icons@npm:5.6.1"
   checksum: 06a8ef3b2d63a60a4a3cdd0aad8e6e97199567ef989e66b40df71654027a6bb5b3a8ac817f74cfdd57548e05bb4c1b05a8209125c03204e5bc2ca624071eaa55
@@ -3196,13 +3196,6 @@ __metadata:
   version: 3.3.1
   resolution: "@navikt/aksel-icons@npm:3.3.1"
   checksum: 1e3a8b2aac7c31f7d534625870625a6aebc7b788257357b683a6b72ea1468c5b417592ca98f826577d86d8695386dbc7aaa9caf999713664d4e1833172bbecd4
-  languageName: node
-  linkType: hard
-
-"@navikt/aksel-icons@npm:^5.6.1":
-  version: 5.6.1
-  resolution: "@navikt/aksel-icons@npm:5.6.1"
-  checksum: 06a8ef3b2d63a60a4a3cdd0aad8e6e97199567ef989e66b40df71654027a6bb5b3a8ac817f74cfdd57548e05bb4c1b05a8209125c03204e5bc2ca624071eaa55
   languageName: node
   linkType: hard
 
@@ -5619,6 +5612,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
+    "@altinn/icons": "workspace:^"
     "@mui/material": 5.14.11
     "@reduxjs/toolkit": 1.9.6
     axios: 1.5.1
