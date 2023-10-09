@@ -59,18 +59,18 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('ux_editor.pages_error_format');
     });
 
-    it('returns empty string oldname and new name is the same', () => {
+    it('returns null when oldname and new name is the same', () => {
       const nameError = getPageNameErrorKey(mockOldName, mockOldName, mockLayoutOrder);
-      expect(nameError).toEqual('');
+      expect(nameError).toEqual(null);
     });
 
-    it('returns empty string when there are no errors', () => {
+    it('returns null when there are no errors', () => {
       const nameError = getPageNameErrorKey(
         mockNewNameCandidateCorrect,
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameError).toEqual('');
+      expect(nameError).toEqual(null);
     });
   });
 });

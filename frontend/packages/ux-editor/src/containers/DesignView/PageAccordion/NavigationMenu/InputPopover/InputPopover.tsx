@@ -60,7 +60,7 @@ export const InputPopover = ({
 
   const ref = useRef(null);
 
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>(null);
   const [newName, setNewName] = useState<string>(oldName);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const InputPopover = ({
 
     const nameError: string = getPageNameErrorKey(newNameCandidate, oldName, layoutOrder);
 
-    setErrorMessage(nameError === '' ? '' : t(nameError));
+    setErrorMessage(nameError === null ? null : t(nameError));
 
     setNewName(newNameCandidate);
   };
@@ -95,11 +95,11 @@ export const InputPopover = ({
    * If there is no error and the name is changed, the new name is saved.
    */
   const handleOnBlur = () => {
-    if (errorMessage === '' && oldName !== newName) {
+    if (errorMessage === null && oldName !== newName) {
       saveNewName(newName);
     } else {
       setNewName(oldName);
-      setErrorMessage('');
+      setErrorMessage(null);
     }
   };
 
@@ -114,7 +114,7 @@ export const InputPopover = ({
     } else if (event.key === 'Escape') {
       onClose();
       setNewName(oldName);
-      setErrorMessage('');
+      setErrorMessage(null);
     }
   };
 
@@ -128,7 +128,7 @@ export const InputPopover = ({
           onKeyDown={handleKeyPress}
           onChange={handleOnChange}
           value={newName}
-          error={errorMessage !== ''}
+          error={errorMessage !== null}
         />
         <ErrorMessage className={classes.errorMessage} size='small'>
           {errorMessage}

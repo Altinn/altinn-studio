@@ -1,3 +1,4 @@
+import { TranslationKey } from 'language/type';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 
 /**
@@ -19,7 +20,7 @@ export const getPageNameErrorKey = (
   newNameCandidate: string,
   oldName: string,
   layoutOrder: string[],
-): string => {
+): TranslationKey => {
   if (pageNameExists(newNameCandidate, layoutOrder) && oldName !== newNameCandidate) {
     return 'ux_editor.pages_error_unique';
   } else if (!newNameCandidate) {
@@ -29,6 +30,6 @@ export const getPageNameErrorKey = (
   } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
     return 'ux_editor.pages_error_format';
   } else {
-    return '';
+    return null;
   }
 };

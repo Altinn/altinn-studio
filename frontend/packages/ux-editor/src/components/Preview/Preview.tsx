@@ -11,6 +11,7 @@ import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
+import { Center } from 'app-shared/components/Center';
 
 export const Preview = () => {
   const { org, app } = useStudioUrlParams();
@@ -28,9 +29,9 @@ export const Preview = () => {
   const displayContent = () => {
     if (hideComponents) {
       return (
-        <div className={classes.noComponentSelected}>
+        <Center>
           <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
-        </div>
+        </Center>
       );
     }
     return (
