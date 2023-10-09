@@ -75,8 +75,7 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
             actions={actionData}
             subjects={subjectData}
             onSave={updateAppPolicyMutation}
-            // TODO - Find out how errors should be handled for apps, then refactor. Issue: #10881
-            showAllErrors={false}
+            showAllErrors
             usageType='app'
           />
         );
