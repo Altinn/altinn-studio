@@ -88,7 +88,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The application metadata for the app</returns>
         [HttpGet]
         [Route("{imageFilePath}/{*AllValues}")]
-        public async Task<ActionResult> Image(string org, string app, string imageFilePath, string AllValues, CancellationToken cancellationToken)
+        public FileStreamResult Image(string org, string app, string imageFilePath, string AllValues, CancellationToken cancellationToken)
         {
             string imagePath = imageFilePath;
             if (AllValues != null)
@@ -104,8 +104,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            byte[] image = await altinnAppGitRepository.GetImage(imagePath, cancellationToken);
-            return new FileContentResult(image, MimeTypeMap.GetMimeType(Path.GetExtension(imagePath).ToLower()));
+            Stream imageStream = altinnAppGitRepository.GetImage(imagePath);
+            return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imagePath).ToLower()));
         }
 
         /// <summary>

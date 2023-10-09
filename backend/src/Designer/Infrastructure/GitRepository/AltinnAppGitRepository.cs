@@ -765,14 +765,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="imageFilePath">The file name of the image</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The image as bytearray</returns>
-        public async Task<byte[]> GetImage(string imageFilePath, CancellationToken cancellationToken = default)
+        /// <returns>The image as stream</returns>
+        public Stream GetImage(string imageFilePath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string imagePath = GetPathToImage(imageFilePath);
             if (FileExistsByRelativePath(imagePath))
             {
-                return await ReadBytesByRelativePath(imagePath, cancellationToken);
+                return OpenStreamByRelativePath(imagePath);
             }
 
             throw new FileNotFoundException("Image not found.");
