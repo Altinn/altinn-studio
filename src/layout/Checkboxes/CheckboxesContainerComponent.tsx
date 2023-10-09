@@ -61,7 +61,7 @@ export const CheckboxContainerComponent = ({
     }
   };
 
-  const labelText = (
+  const labelTextGroup = (
     <span className={classes.checkBoxLabelContainer}>
       {lang(node.item.textResourceBindings?.title)}
       <RequiredIndicator required={required} />
@@ -91,11 +91,11 @@ export const CheckboxContainerComponent = ({
     >
       <Checkbox.Group
         className={cn({ [classes.horizontal]: horizontal })}
-        legend={labelText}
+        legend={labelTextGroup}
         description={lang(textResourceBindings?.description)}
         disabled={readOnly}
         onChange={(values) => handleChange(values)}
-        hideLegend={overrideDisplay?.renderLegend}
+        hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}
         aria-label={ariaLabel}
         value={selected}
@@ -110,14 +110,14 @@ export const CheckboxContainerComponent = ({
             checked={selected.includes(option.value)}
             size='small'
           >
-            {hideLabel ? null : (
-              <span className={classes.checkBoxLabelContainer}>
+            {
+              <span className={cn({ 'sr-only': hideLabel }, classes.checkBoxLabelContainer)}>
                 {langAsString(option.label)}
                 {option.helpText && (
                   <HelpText title={getPlainTextFromNode(option.helpText)}>{lang(option.helpText)}</HelpText>
                 )}
               </span>
-            )}
+            }
           </Checkbox>
         ))}
       </Checkbox.Group>

@@ -62,17 +62,16 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
         >
           <Radio.Group
             legend={
-              overrideDisplay?.renderLegend === false ? null : (
-                <span className={classes.label}>
-                  {labelText}
-                  {textResourceBindings?.help ? (
-                    <HelpText title={langAsString(textResourceBindings?.help)}>
-                      {lang(textResourceBindings?.help)}
-                    </HelpText>
-                  ) : null}
-                </span>
-              )
+              <span className={classes.label}>
+                {labelText}
+                {textResourceBindings?.help ? (
+                  <HelpText title={langAsString(textResourceBindings?.help)}>
+                    {lang(textResourceBindings?.help)}
+                  </HelpText>
+                ) : null}
+              </span>
             }
+            hideLegend={overrideDisplay?.renderLegend === false}
             description={lang(textResourceBindings?.description)}
             error={!isValid}
             disabled={readOnly}
