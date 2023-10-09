@@ -16227,6 +16227,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ux-editor@workspace:frontend/packages/ux-editor"
   dependencies:
+    "@altinn/icons": "workspace:^"
     "@mui/material": 5.14.11
     "@reduxjs/toolkit": 1.9.6
     axios: 1.5.1

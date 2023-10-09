@@ -1,7 +1,20 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from '../types/FormComponent';
+import React, { RefAttributes, SVGProps } from 'react';
+import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
 import {
+  Accordion,
+  Checkbox,
+  Group,
+  Likert,
+  LongText,
+  NavBar,
+  Paragraph,
+  RadioButton,
+  Select,
+  ShortText,
+  Title,
   FingerButtonIcon,
   FileTextIcon,
   PaperclipIcon,
@@ -9,26 +22,21 @@ import {
   ChevronDownIcon,
   TasklistIcon,
   PinIcon,
-  ExclamationmarkIcon,
-  MenuHamburgerIcon,
   ImageIcon,
-  TabsIcon,
   TableIcon,
-  CaptionsIcon,
-  BulletListIcon,
-  BookmarkIcon,
   ChevronDownDoubleIcon,
   LinkIcon,
   PresentationIcon,
-  InformationSquareIcon
-} from '@navikt/aksel-icons';
-import React, { RefAttributes, SVGProps } from 'react';
-import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
+  InformationSquareIcon,
+  HouseIcon,
+  ExclamationmarkTriangleIcon,
+} from '@altinn/icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
-  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> & RefAttributes<SVGSVGElement>;
+  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
+    RefAttributes<SVGSVGElement>;
 };
 
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
@@ -43,7 +51,7 @@ export const formItemConfigs: FormItemConfigs = {
       severity: 'info',
       propertyPath: 'definitions/alertComponent',
     },
-    icon: ExclamationmarkIcon,
+    icon: ExclamationmarkTriangleIcon,
   },
   [ComponentType.Accordion]: {
     name: ComponentType.Accordion,
@@ -53,7 +61,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
     },
-    icon: ChevronDownIcon,
+    icon: Accordion,
   },
   [ComponentType.AccordionGroup]: {
     name: ComponentType.AccordionGroup,
@@ -88,7 +96,7 @@ export const formItemConfigs: FormItemConfigs = {
       simplified: true,
       propertyPath: 'definitions/addressComponent',
     },
-    icon: PinIcon,
+    icon: HouseIcon,
   },
   [ComponentType.AttachmentList]: {
     name: ComponentType.AttachmentList,
@@ -108,7 +116,7 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.Button,
-      onClickAction: () => { },
+      onClickAction: () => {},
       propertyPath: 'definitions/actionButtonComponent',
     },
     icon: FingerButtonIcon,
@@ -133,7 +141,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: BulletListIcon,
+    icon: Checkbox,
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
@@ -171,7 +179,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: ChevronDownIcon,
+    icon: Select,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
@@ -223,7 +231,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'CONTAINER',
       propertyPath: 'definitions/groupComponent',
     },
-    icon: TabsIcon,
+    icon: Group,
   },
   [ComponentType.Header]: {
     name: ComponentType.Header,
@@ -234,7 +242,7 @@ export const formItemConfigs: FormItemConfigs = {
       size: 'L',
       propertyPath: 'definitions/headerComponent',
     },
-    icon: BookmarkIcon,
+    icon: Title,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
@@ -271,7 +279,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/inputComponent',
     },
-    icon: CaptionsIcon,
+    icon: ShortText,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
@@ -301,7 +309,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: BulletListIcon,
+    icon: Likert,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
@@ -360,7 +368,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.NavigationBar,
       propertyPath: 'definitions/navigationBarComponent',
     },
-    icon: MenuHamburgerIcon,
+    icon: NavBar,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
@@ -368,7 +376,7 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.NavigationButtons,
-      onClickAction: () => { },
+      onClickAction: () => {},
       propertyPath: 'definitions/navigationButtonsComponent',
     },
     icon: FingerButtonIcon,
@@ -392,7 +400,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Paragraph,
     },
-    icon: FileTextIcon,
+    icon: Paragraph,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
@@ -413,7 +421,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: BulletListIcon,
+    icon: RadioButton,
   },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
@@ -435,7 +443,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/textAreaComponent',
     },
-    icon: CaptionsIcon,
+    icon: LongText,
   },
 };
 
