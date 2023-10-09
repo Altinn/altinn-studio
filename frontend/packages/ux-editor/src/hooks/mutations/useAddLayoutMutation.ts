@@ -44,7 +44,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
         newLayouts,
         save,
         layoutName,
-        isReceiptPage ? layoutName : layoutSettings.receiptLayoutName
+        isReceiptPage ? layoutName : layoutSettings.receiptLayoutName,
       );
       return { newLayouts, layoutName, isReceiptPage };
     },
@@ -57,11 +57,12 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
       else order.push(layoutName);
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
+
       dispatch(
         FormLayoutActions.addLayoutFulfilled({
           layoutOrder: order,
-          receiptLayoutName: layoutSettings.receiptLayoutName,
-        })
+          receiptLayoutName: isReceiptPage ? layoutSettings.receiptLayoutName : undefined,
+        }),
       );
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);

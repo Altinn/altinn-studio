@@ -1,10 +1,16 @@
+:root {
+  --studio-font-family: 'Inter', sans-serif;
+  --studio-app-background: #fff;
+  --studio-link-color: #0062ba;
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
   font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   height: 100%;
-  background: #fff;
+  background: var(--studio-app-background);
   font-size: 1rem;
 }
 
@@ -15,7 +21,7 @@ h3 {
 }
 
 a {
-  color: #0062BA;
+  color: var(--studio-link-color);
   text-decoration: none;
 }
 

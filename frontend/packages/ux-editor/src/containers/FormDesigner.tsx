@@ -6,12 +6,10 @@ import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
 import { FormContextProvider } from './FormContext';
 import { useText } from '../hooks';
-import { useSearchParams } from 'react-router-dom';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { ErrorPage } from '../components/ErrorPage';
 import { PageSpinner } from 'app-shared/components';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
@@ -25,14 +23,10 @@ import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
+import { useSearchParams } from 'react-router-dom';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
-
-const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
-  if (instanceId) {
-    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-    localStorage.setItem(instanceId, layoutName);
-  }
-};
+import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -45,12 +39,11 @@ export const FormDesigner = ({
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
@@ -61,16 +54,17 @@ export const FormDesigner = ({
     org,
     app,
     selectedLayout,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
+  const [searchParams] = useSearchParams();
+
+  const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const layoutOrder = useMemo(
     () => formLayouts?.[selectedLayout]?.order || {},
-    [formLayouts, selectedLayout]
+    [formLayouts, selectedLayout],
   );
   const t = useText();
-
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const formLayoutIsReady =
     instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
@@ -93,14 +87,7 @@ export const FormDesigner = ({
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    const firstLayoutPage = layoutPagesOrder?.[0];
-    if (!firstLayoutPage) return;
-
     const searchParamsLayout = searchParams.get('layout');
-
-    const updateLayoutInSearchParams = (layout: string) => {
-      setSearchParams((prevParams) => ({ ...prevParams, layout }));
-    };
 
     const isValidLayout = (layoutName: string): boolean => {
       const isExistingLayout = layoutPagesOrder?.includes(layoutName);
@@ -111,19 +98,10 @@ export const FormDesigner = ({
     if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       return;
     }
-
-    updateLayoutInSearchParams(firstLayoutPage);
-  }, [
-    dispatch,
-    formLayoutSettings?.receiptLayoutName,
-    instanceId,
-    layoutPagesOrder,
-    searchParams,
-    selectedLayout,
-    setSearchParams,
-  ]);
+  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
 
   useEffect((): void => {
     const addInitialPage = (): void => {
@@ -150,6 +128,7 @@ export const FormDesigner = ({
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
+
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
       if (validateDepth(updatedLayout)) {
         addItemToLayout({ componentType: type, newId, parentId, index });
@@ -169,7 +148,7 @@ export const FormDesigner = ({
               <DesignView />
               <Properties />
             </FormContextProvider>
-            <Preview/>
+            <Preview />
           </div>
         </div>
       </DragAndDrop.Provider>
