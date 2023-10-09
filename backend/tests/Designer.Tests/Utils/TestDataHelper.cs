@@ -262,7 +262,7 @@ namespace Designer.Tests.Utils
             await Parallel.ForEachAsync(files, async (file, _) =>
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-                await CopyFileWithRetryAsync(file, tempPath);
+                await CopyFileIfNotExistsAsync(file, tempPath);
             });
 
             if (copySubDirs)
@@ -276,16 +276,16 @@ namespace Designer.Tests.Utils
         }
 
         // Copy file using Streams for better performance
-        public static async Task CopyFileWithRetryAsync(FileInfo file, string destinationPath)
+        private static async Task CopyFileIfNotExistsAsync(FileInfo file, string destinationPath)
         {
-            using (FileStream sourceStream = file.OpenRead())
+            if (File.Exists(destinationPath))
             {
-                using (FileStream destinationStream = File.Create(destinationPath))
-                {
-                    await sourceStream.CopyToAsync(destinationStream);
-                }
-                File.SetAttributes(destinationPath, FileAttributes.Normal);
+                return;
             }
+            await using FileStream sourceStream = file.OpenRead();
+            await using FileStream destinationStream = File.Create(destinationPath);
+            await sourceStream.CopyToAsync(destinationStream);
+            File.SetAttributes(destinationPath, FileAttributes.Normal);
         }
 
         public static void CleanUpRemoteRepository(string org, string repository)
