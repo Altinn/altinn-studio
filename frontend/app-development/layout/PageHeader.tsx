@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type SubMenuContentProps = {
   org: string;
