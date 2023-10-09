@@ -2,9 +2,9 @@ import React, { createRef } from 'react';
 import { Preview } from './Preview';
 import { act, screen } from '@testing-library/react';
 import { queryClientMock, renderWithMockStore } from '../../testing/mocks';
+import type { IAppState } from '../../types/global';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { IFormLayouts } from '@altinn/ux-editor';
 
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', () => {
@@ -29,7 +29,7 @@ describe('Preview', () => {
   });
 
   it('should render a message when no page is selected', () => {
-    const mockedLayout = { layout: { selectedLayout: undefined } } as IFormLayouts;
+    const mockedLayout = { layout: { selectedLayout: undefined } } as IAppState['formDesigner'];
     renderWithMockStore({ formDesigner: mockedLayout }, {}, queryClientMock)(<Preview />);
     expect(screen.getByText(textMock('ux_editor.no_page_selected'))).toBeInTheDocument();
   });
