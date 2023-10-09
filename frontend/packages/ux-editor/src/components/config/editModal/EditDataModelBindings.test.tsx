@@ -1,6 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
-
+import { act, screen, within } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
@@ -21,7 +20,7 @@ const getDatamodelMetadata = () =>
         jsonSchemaPointer: '#/definitions/testModel',
         maxOccurs: 1,
         minOccurs: 1,
-        name: 'testModel',
+        name: 'testModel' || 'checkmark',
         parentElement: null,
         restrictions: [],
         texts: [],
@@ -38,7 +37,7 @@ const getDatamodelMetadata = () =>
         jsonSchemaPointer: '#/definitions/testModel/properteis/field1',
         maxOccurs: 1,
         minOccurs: 1,
-        name: 'testModel/field1',
+        name: 'testModel/field1' || 'checkmark',
         parentElement: null,
         restrictions: [],
         texts: [],
@@ -48,7 +47,11 @@ const getDatamodelMetadata = () =>
     },
   });
 
-const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({
+  dataModelBindings = {},
+  handleComponentChange = jest.fn(),
+  handleDataModelChange = jest.fn(),
+} = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
     textResources: {
@@ -58,7 +61,8 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 
   renderWithMockStore(
     { appData },
-    { getDatamodelMetadata }
+    { getDatamodelMetadata },
+    handleDataModelChange(),
   )(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
@@ -75,15 +79,19 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
         uniqueKey: 'someComponentId-datamodel-select',
         key: 'simpleBinding',
       }}
-    />
+    />,
   );
 };
 
 describe('EditDataModelBindings', () => {
   it('should show select with no selected option by default', async () => {
     await render();
+    const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
+    act(() => {
+      linkIcon.click();
+    });
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper'))
+      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
   });
@@ -94,9 +102,56 @@ describe('EditDataModelBindings', () => {
         simpleBinding: 'testModel.field1',
       },
     });
+    const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
+    act(() => {
+      linkIcon.click();
+    });
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper'))
+      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
     expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
+  });
+
+  it('should render link icon', async () => {
+    await render();
+    const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
+    expect(linkIcon).toBeInTheDocument();
+  });
+
+  it('should show dropdown when link icon is clicked', async () => {
+    await render();
+    const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
+    act(() => {
+      linkIcon.click();
+    });
+    const dropdown = screen.getByRole('combobox');
+    expect(dropdown).toBeInTheDocument();
+  });
+
+  it('should toggle dropdown on link icon click', async () => {
+    await render();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    act(() => {
+      linkIcon.click();
+    });
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('check that handleDataModelChange is called', async () => {
+    const handleDataModelChange = jest.fn();
+    const dropdownVisible = jest.fn();
+    await render({ handleDataModelChange });
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    act(() => {
+      linkIcon.click();
+    });
+    dropdownVisible(true);
+    const dropdown = screen.getByRole('combobox');
+    const option = within(dropdown).getByText('');
+    act(() => {
+      option.click();
+    });
+    expect(handleDataModelChange).toHaveBeenCalled();
   });
 });

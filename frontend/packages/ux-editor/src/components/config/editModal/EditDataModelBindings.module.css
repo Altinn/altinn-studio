@@ -1,0 +1,53 @@
+.datamodelLink {
+  display: flex;
+}
+
+.linkIcon {
+  font-size: 1.5rem;
+}
+
+.dropdownContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+  flex: 1;
+  top: -1rem;
+}
+
+.checkmarkIcon {
+  font-size: 1.5rem;
+  color: var(--fds-semantic-surface-success-default);
+  cursor: pointer;
+  margin-right: 0.5rem;
+  margin-left: 0.25rem;
+}
+
+.trashIcon {
+  font-size: 1.5rem;
+  color: var(--fds-semantic-surface-danger-default);
+  cursor: pointer;
+}
+
+.linkedDatamodelContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+}
+
+.hoveredOption:hover {
+  background-color: #eee;
+  color: #333;
+  border-radius: 0.3rem;
+}
+
+.pencilWritingIcon {
+  font-size: 1.5rem;
+  gap: var(--fds-spacing-5);
+  cursor: pointer;
+  color: var(--fds-semantic-surface-action-primary-default);
+  margin-right: 0.5rem;
+}
