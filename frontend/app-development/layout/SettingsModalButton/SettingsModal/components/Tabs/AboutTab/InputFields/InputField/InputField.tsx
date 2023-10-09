@@ -3,44 +3,14 @@ import classes from './InputField.module.css';
 import { ErrorMessage, Textfield } from '@digdir/design-system-react';
 
 export type InputFieldProps = {
-  /**
-   * The id of the field
-   */
   id: string;
-  /**
-   * The label of the text field
-   */
   label: string;
-  /**
-   * The description of the text field
-   */
   description: string;
-  /**
-   * The value in the field
-   */
   value: string;
-  /**
-   * Function that updates the value in the field
-   * @param value the new value
-   * @returns void
-   */
   onChange?: (value: string) => void;
-  /**
-   * Function to be executed on blur
-   * @returns void
-   */
   onBlur?: () => void;
-  /**
-   * Flag for if the value in the field is valid
-   */
   isValid?: boolean;
-  /**
-   * Error text to show if field is invalid
-   */
   errorText?: string;
-  /**
-   * Flag for if the field is read only
-   */
   readOnly?: boolean;
 };
 
