@@ -5484,7 +5484,7 @@ __metadata:
     eslint-plugin-testing-library: 6.0.2
     glob: 10.3.10
     html-webpack-plugin: 5.5.3
-    husky: 8.0.3
+    husky: ^8.0.0
     jest: 29.7.0
     jest-environment-jsdom: 29.7.0
     jest-fail-on-console: 3.1.1
@@ -9834,7 +9834,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:8.0.3":
+"husky@npm:^8.0.0":
   version: 8.0.3
   resolution: "husky@npm:8.0.3"
   bin:

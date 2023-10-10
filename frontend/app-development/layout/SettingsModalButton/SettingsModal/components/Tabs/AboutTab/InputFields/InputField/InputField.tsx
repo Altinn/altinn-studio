@@ -16,7 +16,7 @@ export type InputFieldProps = {
 
 /**
  * @component
- *    Displays a textfield for input fields in the Settings modal
+ *    Displays a textfield for input fields in the Settings modal.
  *
  * @example
  *    <InputField
