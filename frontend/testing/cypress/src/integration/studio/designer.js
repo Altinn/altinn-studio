@@ -69,7 +69,7 @@ context('Designer', () => {
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
-    // Add new page and ensure updated data is loaded
+    // Add two new pages to ensure that navigation-buttons will be added to page
     designer.getAddPageButton().click();
     designer.getAddPageButton().click();
 
