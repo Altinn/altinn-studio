@@ -40,6 +40,7 @@
   border-radius: 6px;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
   display: flex;
+  flex-direction: column;
   padding: var(--fds-spacing-10);
   position: relative;
   gap: var(--fds-spacing-10);
@@ -63,6 +64,7 @@
 .divider {
   background-color: #efefef;
   border: none;
+  display: none;
   height: 2px;
   opacity: 0.5;
   width: 100%;
@@ -74,4 +76,14 @@
   border: solid 2px #efefef;
   border-radius: 6px;
   height: 500px;
+}
+
+@media (min-width: 1200px) {
+  .content {
+    flex-direction: row;
+  }
+
+  .divider {
+    display: block;
+  }
 }
