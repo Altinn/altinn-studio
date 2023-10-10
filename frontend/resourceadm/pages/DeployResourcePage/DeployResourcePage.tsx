@@ -39,7 +39,6 @@ export const DeployResourcePage = ({
   resourceVersionText,
   onSaveVersion,
 }: DeployResourcePageProps): React.ReactNode => {
-  console.log(resourceVersionText);
   const { t } = useTranslation();
 
   const { selectedContext, resourceId } = useParams();
@@ -58,7 +57,6 @@ export const DeployResourcePage = ({
     repo,
     resourceId,
   );
-
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
     selectedContext,
     repo,
@@ -227,14 +225,17 @@ export const DeployResourcePage = ({
       );
     } else {
       const tt02Version: string =
-        versionData.publishedVersions.find((v) => v.environment === 'TT02')?.version ?? 'N/A';
+        versionData.publishedVersions.find((v) => v.environment === 'TT02')?.version ??
+        t('resourceadm.deploy_not_deployed');
       const prodVersion =
         versionData.publishedVersions.find((v) => v.environment === 'PROD')?.version ??
-        'Ikke publisert';
+        t('resourceadm.deploy_not_deployed');
       const at22Version =
-        versionData.publishedVersions.find((v) => v.environment === 'AT22')?.version ?? 'N/A';
+        versionData.publishedVersions.find((v) => v.environment === 'AT22')?.version ??
+        t('resourceadm.deploy_not_deployed');
       const at23Version =
-        versionData.publishedVersions.find((v) => v.environment === 'AT23')?.version ?? 'N/A';
+        versionData.publishedVersions.find((v) => v.environment === 'AT23')?.version ??
+        t('resourceadm.deploy_not_deployed');
 
       return (
         <>
