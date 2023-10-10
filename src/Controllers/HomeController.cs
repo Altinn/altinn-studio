@@ -240,7 +240,7 @@ namespace LocalTest.Controllers
         public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
 
         [HttpGet]
-        public async Task<ActionResult> FrontendVersion([FromServices]HttpClient client)
+        public async Task<ActionResult> FrontendVersion([FromServices] HttpClient client)
         {
             var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
@@ -315,7 +315,7 @@ namespace LocalTest.Controllers
 
                 var userParties = await _partiesService.GetParties(properProfile.UserId);
 
-                if (userParties.Count == 1)
+                if (userParties.Count == 1 && userParties.First().PartyId == properProfile.PartyId)
                 {
                     // Don't add singe party users to a group
                     var party = userParties.First();
@@ -349,7 +349,7 @@ namespace LocalTest.Controllers
 
         private async Task<int> GetAppAuthLevel(bool isHttp, IEnumerable<SelectListItem> testApps)
         {
-            if(!isHttp)
+            if (!isHttp)
             {
                 return 2;
             }
