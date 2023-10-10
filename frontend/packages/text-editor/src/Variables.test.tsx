@@ -2,6 +2,7 @@ import React from 'react';
 import type { VariablesProps } from './Variables';
 import { Variables } from './Variables';
 import { screen, render as rtlRender } from '@testing-library/react';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const renderVariables = (props: Partial<VariablesProps> = {}) => {
   const allProps: VariablesProps = {
@@ -15,7 +16,7 @@ describe('Variables', () => {
   it('renders nothing useful at the moment', () => {
     renderVariables();
     expect(
-      screen.getByTitle('Det er ikke lagt til støtte for redigering av variabler i Studio.')
+      screen.getByTitle(textMock('text_editor.variables_editing_not_supported'))
     ).toBeInTheDocument();
   });
   it('renders a list of the variables you must edit in a text editor', () => {
@@ -40,7 +41,7 @@ describe('Variables', () => {
     renderVariables({
       variables: variables,
     });
-    const defaultValue = screen.getByText(variables[0].defaultValue);
+    const defaultValue = screen.getByText(textMock('text_editor.variables_default_value'));
     expect(defaultValue).toBeInTheDocument();
   });
 });
