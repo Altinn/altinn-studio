@@ -18,12 +18,12 @@
   max-width: 250px;
 }
 
-.guideLink {
+.link {
   display: flex;
   margin-top: var(--fds-spacing-4);
 }
 
-.guideLinkIcon {
+.linkIcon {
   font-size: 1.4rem;
 }
 
