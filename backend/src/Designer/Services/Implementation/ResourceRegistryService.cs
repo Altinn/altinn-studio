@@ -173,10 +173,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
-            if (getResourceResponse.IsSuccessStatusCode)
+            if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
             {
                 string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
-                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent);
+                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent, new JsonSerializerOptions() {  PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
                 return res;
             }
 

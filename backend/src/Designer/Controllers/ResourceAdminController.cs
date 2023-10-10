@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -46,6 +46,7 @@ namespace Altinn.Studio.Designer.Controllers
             _altinn2MetadataClient = altinn2MetadataClient;
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
+            _resourceRegistry = resourceRegistry;
         }
 
         [HttpGet]
