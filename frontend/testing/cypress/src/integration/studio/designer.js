@@ -2,9 +2,9 @@
 /// <reference types="../../support" />
 
 import * as texts from '../../../../../language/src/nb.json';
-import { administration } from "../../selectors/administration";
-import { designer } from "../../selectors/designer";
-import { header } from "../../selectors/header";
+import { administration } from '../../selectors/administration';
+import { designer } from '../../selectors/designer';
+import { header } from '../../selectors/header';
 
 const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
 
@@ -43,22 +43,44 @@ context('Designer', () => {
 
     // Add new page and ensure updated data is loaded
     designer.getAddPageButton().click();
+
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-
-    // Verify navigation button exists in form
-    designer.getDroppableList().findByRole('listitem', { name: texts['ux_editor.component_navigation_buttons'] }).should('be.visible');
 
     // Add an input component
     designer.getToolbarItemByText(texts['ux_editor.component_input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
-    designer.getDroppableList()
+    designer
+      .getDroppableList()
       .findAllByRole('listitem')
-      .then(($elements) => expect($elements.length).eq(2));
+      .then(($elements) => expect($elements.length).eq(1));
 
     // Delete components on page
     cy.deleteComponents();
+  });
+
+  it('should add navigation buttons when adding more than one page', () => {
+    cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+    cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
+
+    // Navigate to designerApp
+    cy.visit('/editor/' + designerAppId);
+    header.getCreateLink().click();
+    cy.ensureCreatePageIsLoaded();
+
+    // Add new page and ensure updated data is loaded
+    designer.getAddPageButton().click();
+    designer.getAddPageButton().click();
+
+    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+
+    // Add an input component
+    cy.wait(500);
+    designer
+      .getDroppableList()
+      .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });
   });
 
   // Disabled for now, as this generates too many copies of the same app
