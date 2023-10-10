@@ -56,7 +56,7 @@ namespace Designer.Tests.Controllers.ReleasesController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
             IEnumerable<ReleaseEntity> actual = searchResult.Results;
@@ -87,7 +87,7 @@ namespace Designer.Tests.Controllers.ReleasesController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
             IEnumerable<ReleaseEntity> actual = searchResult.Results;

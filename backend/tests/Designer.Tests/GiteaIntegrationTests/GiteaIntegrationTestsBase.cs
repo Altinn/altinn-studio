@@ -122,7 +122,7 @@ namespace Designer.Tests.GiteaIntegrationTests
                 HttpMethod.Post,
                 $"designer/api/repos/create-app?org={org}&repository={repoName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
             InvalidateAllCookies();
         }

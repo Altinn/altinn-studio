@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.PreviewController
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
     }

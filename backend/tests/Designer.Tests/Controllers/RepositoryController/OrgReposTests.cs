@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);

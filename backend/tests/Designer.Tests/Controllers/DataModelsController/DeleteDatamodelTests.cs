@@ -40,7 +40,7 @@ public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsControl
 
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
-        using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

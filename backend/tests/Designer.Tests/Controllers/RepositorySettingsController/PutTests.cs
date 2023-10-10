@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
 
             using var payload = new StringContent(requestBody, Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            using HttpResponseMessage response = await HttpClient.Value.PutAsync(requestUrl, payload);
+            using HttpResponseMessage response = await HttpClient.PutAsync(requestUrl, payload);
             var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

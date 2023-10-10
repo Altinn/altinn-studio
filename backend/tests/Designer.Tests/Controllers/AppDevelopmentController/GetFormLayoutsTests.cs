@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, targetRepository)}/form-layouts?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();

@@ -26,7 +26,7 @@ public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<DatamodelsContro
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         var altinnCoreFiles = await response.Content.ReadAsAsync<List<AltinnCoreFile>>();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);

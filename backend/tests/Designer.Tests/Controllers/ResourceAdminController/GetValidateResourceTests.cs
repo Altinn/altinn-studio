@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             RepositoryMock.VerifyAll();
@@ -41,7 +41,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             RepositoryMock.VerifyAll();
@@ -58,7 +58,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(true));
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             RepositoryMock.VerifyAll();
@@ -75,7 +75,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(false));
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             RepositoryMock.VerifyAll();

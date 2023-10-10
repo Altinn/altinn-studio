@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.TextController
             string expectedContent = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/config/texts/resource.{language}.json");
 
             // Act
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.TextController
             string url = $"{VersionPrefix(org, app)}/language/{language}";
 
             // Act
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

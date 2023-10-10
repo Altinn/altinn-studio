@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.ResourceAdmController
             string uri = $"/resourceadm/ttd/resources";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string contenthtml = await res.Content.ReadAsStringAsync();
 
             // Assert

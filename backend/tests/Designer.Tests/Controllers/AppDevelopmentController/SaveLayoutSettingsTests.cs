@@ -43,7 +43,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 Content = new StringContent(layoutSettings, Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)

@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -56,7 +56,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);

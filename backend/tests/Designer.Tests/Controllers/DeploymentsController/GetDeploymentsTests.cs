@@ -51,7 +51,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;
@@ -83,7 +83,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;

@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string url = VersionPrefix(org, targetRepository);
 
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var responseVersion = await response.Content.ReadAsAsync<VersionResponse>();
@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await AddCsProjToRepo("App/App.csproj", csprojTemplate);
             string url = VersionPrefix(org, targetRepository);
 
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -57,7 +57,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string url = VersionPrefix(org, app);
 
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 

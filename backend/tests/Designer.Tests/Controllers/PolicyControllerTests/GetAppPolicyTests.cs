@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });

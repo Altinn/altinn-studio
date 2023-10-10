@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.TextsController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 

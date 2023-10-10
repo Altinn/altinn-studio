@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.SessionController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

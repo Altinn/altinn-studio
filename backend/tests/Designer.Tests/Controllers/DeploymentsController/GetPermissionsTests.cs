@@ -46,7 +46,7 @@ public class GetPermissions : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, JsonSerializerOptions);
 
@@ -69,7 +69,7 @@ public class GetPermissions : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, JsonSerializerOptions);
 

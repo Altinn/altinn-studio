@@ -25,7 +25,7 @@ public class GetDatamodelsTests : DisagnerEndpointsTestsBase<DatamodelsControlle
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         var altinnCoreFiles = await response.Content.ReadAsAsync<List<AltinnCoreFile>>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

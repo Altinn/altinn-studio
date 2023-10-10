@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             string url = VersionPrefix(org, targetRepository);
 
-            var response = await HttpClient.Value.PutAsync(url, new StringContent(metadata, Encoding.UTF8, MediaTypeNames.Application.Json));
+            var response = await HttpClient.PutAsync(url, new StringContent(metadata, Encoding.UTF8, MediaTypeNames.Application.Json));
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();

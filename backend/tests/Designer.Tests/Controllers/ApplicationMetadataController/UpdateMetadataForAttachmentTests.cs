@@ -41,7 +41,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             // payload
             using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
-            using var response = await HttpClient.Value.PutAsync(url, payloadContent);
+            using var response = await HttpClient.PutAsync(url, payloadContent);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 

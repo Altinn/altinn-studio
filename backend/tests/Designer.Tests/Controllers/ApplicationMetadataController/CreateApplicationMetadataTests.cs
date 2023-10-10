@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             string url = VersionPrefix(org, targetRepository);
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-            using var response = await HttpClient.Value.SendAsync(request);
+            using var response = await HttpClient.SendAsync(request);
 
             response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             string url = VersionPrefix(org, targetRepository);
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-            using var response = await HttpClient.Value.SendAsync(request);
+            using var response = await HttpClient.SendAsync(request);
 
             response.StatusCode.Should().Be(HttpStatusCode.Created);
         }

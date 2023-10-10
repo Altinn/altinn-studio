@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
             requestMessage.Content = new StringContent($"\"{attacmentIdToDelete}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            var response = await HttpClient.Value.SendAsync(requestMessage);
+            var response = await HttpClient.SendAsync(requestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string currentMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");

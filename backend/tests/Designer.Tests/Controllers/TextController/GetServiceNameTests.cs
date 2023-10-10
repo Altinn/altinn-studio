@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.TextController
             string url = $"{VersionPrefix(org, app)}/service-name";
 
             // Act
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

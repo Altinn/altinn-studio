@@ -26,10 +26,10 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=ReplacedKey";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
             string list = responseGetKeys.Content.ReadAsStringAsync().Result;
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
@@ -46,10 +46,10 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
             string list = responseGetKeys.Content.ReadAsStringAsync().Result;
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
@@ -66,10 +66,10 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
             string list = responseGetKeys.Content.ReadAsStringAsync().Result;
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
@@ -86,10 +86,10 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
             string list = responseGetKeys.Content.ReadAsStringAsync().Result;
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
@@ -107,7 +107,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         }
@@ -121,7 +121,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?wrongQueryParam=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
         }

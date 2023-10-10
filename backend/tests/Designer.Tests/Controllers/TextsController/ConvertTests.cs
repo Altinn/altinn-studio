@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.TextsController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/convert";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }

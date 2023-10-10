@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
         public async Task Get_RepositorySettings_ShouldReturnOk(string org, string repo)
         {
             string requestUrl = VersionPrefix(org, repo);
-            using HttpResponseMessage response = await HttpClient.Value.GetAsync(requestUrl);
+            using HttpResponseMessage response = await HttpClient.GetAsync(requestUrl);
             var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
         public async Task Get_RepositoryDoesNotExists_ShouldReturnNotFound(string org, string repo)
         {
             string requestUrl = VersionPrefix(org, repo);
-            using HttpResponseMessage response = await HttpClient.Value.GetAsync(requestUrl);
+            using HttpResponseMessage response = await HttpClient.GetAsync(requestUrl);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }

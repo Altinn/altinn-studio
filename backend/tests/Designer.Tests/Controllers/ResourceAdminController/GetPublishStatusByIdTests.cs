@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);

@@ -29,7 +29,7 @@ public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<DatamodelsControll
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
 
-        using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }

@@ -24,14 +24,21 @@ namespace Designer.Tests.Controllers.ApiTests;
 /// <typeparam name="TControllerTest">Controller test class type. Used for generating fluent tests.</typeparam>
 [ExcludeFromCodeCoverage]
 public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBase<TControllerTest>,
-    IClassFixture<WebApplicationFactory<TController>>
+    IClassFixture<WebApplicationFactory<TController>>, IDisposable
     where TController : ControllerBase
     where TControllerTest : class
 {
+    private HttpClient _httpClient;
+    private WebApplicationFactory<TController> _newFactory;
+
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
     /// </summary>
-    protected Lazy<HttpClient> HttpClient { get; }
+    protected HttpClient HttpClient {
+        get
+        {
+            return _httpClient ??= GetTestClient();
+        }}
 
     /// <summary>
     /// When overridden tests services will be configured.
@@ -55,7 +62,6 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     protected ApiTestsBase(WebApplicationFactory<TController> factory)
     {
         Factory = factory;
-        HttpClient = new Lazy<HttpClient>(GetTestClient);
         SetupDirtyHackIfLinux();
     }
 
@@ -67,14 +73,15 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     protected virtual HttpClient GetTestClient()
     {
         string configPath = GetConfigPath();
-
-        var client = Factory.WithWebHostBuilder(builder =>
+        _newFactory = Factory.WithWebHostBuilder(builder =>
         {
             builder.UseTestServer();
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
 
             builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
+        });
+
+        var client = _newFactory.CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
         return client;
     }
 
@@ -86,5 +93,10 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     {
         string projectDir = Directory.GetCurrentDirectory();
         return Path.Combine(projectDir, "appsettings.json");
+    }
+    public virtual void Dispose()
+    {
+        _httpClient?.Dispose();
+        _newFactory?.Dispose();
     }
 }

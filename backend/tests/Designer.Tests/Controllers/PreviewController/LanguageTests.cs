@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/texts/nb";
 
-            using HttpResponseMessage response = await HttpClient.Value.GetAsync(dataPathWithData);
+            using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
         {
             string url = VersionPrefix(org, app, version);
 
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             List<string> responseContent = await response.Content.ReadAsAsync<List<string>>();

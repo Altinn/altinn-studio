@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.PreviewController
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
             httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.PreviewController
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
             httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
     }

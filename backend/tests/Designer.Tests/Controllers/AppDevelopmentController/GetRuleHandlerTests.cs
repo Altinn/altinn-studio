@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, targetRepository)}/rule-handler?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -50,7 +50,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, app)}/rule-handler?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
             string content = await response.Content.ReadAsStringAsync();
             content.Should().Be("Could not find rule handler in app.");

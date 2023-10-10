@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.TextController
             using var httpContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
 
             // Act
-            using var response = await HttpClient.Value.PostAsync(url, httpContent);
+            using var response = await HttpClient.PostAsync(url, httpContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

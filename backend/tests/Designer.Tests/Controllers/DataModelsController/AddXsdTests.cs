@@ -39,7 +39,7 @@ public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddX
             Content = formData
         };
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
@@ -64,7 +64,7 @@ public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddX
             Content = formData
         };
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
@@ -89,7 +89,7 @@ public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddX
             Content = formData
         };
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 }

@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.TextController
                 .Should().BeTrue();
 
             // Act
-            using var response = await HttpClient.Value.DeleteAsync(url);
+            using var response = await HttpClient.DeleteAsync(url);
 
             // Assert
             Assert.Equal(200, (int)response.StatusCode);

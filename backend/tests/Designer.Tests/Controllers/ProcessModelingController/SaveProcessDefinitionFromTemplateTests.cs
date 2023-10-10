@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             string url = VersionPrefix(org, targetRepository, version, templateName);
 
-            using var response = await HttpClient.Value.PutAsync(url, null);
+            using var response = await HttpClient.PutAsync(url, null);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             string url = VersionPrefix(org, targetRepository, version, templateName);
 
-            using var response = await HttpClient.Value.PutAsync(url, null);
+            using var response = await HttpClient.PutAsync(url, null);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();

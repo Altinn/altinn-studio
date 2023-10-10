@@ -27,7 +27,7 @@ public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<DatamodelsC
         string url = $"{VersionPrefix(org, repo)}/datamodel";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
         Assert.Contains("/login/", response.Headers.Location.AbsoluteUri.ToLower());

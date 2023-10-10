@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var content = new StringContent(fileContent, Encoding.UTF8, MediaTypeNames.Application.Xml);
 
-            using var response = await HttpClient.Value.PutAsync(url, content);
+            using var response = await HttpClient.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/process/process.bpmn");
@@ -52,7 +52,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var content = new StringContent(nonXmlContent, Encoding.UTF8, MediaTypeNames.Application.Xml);
 
-            using var response = await HttpClient.Value.PutAsync(url, content);
+            using var response = await HttpClient.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
     }

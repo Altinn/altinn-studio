@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.ConfigController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { serviceName = "Alternative-form-name", serviceDescription = "", serviceId = "" });
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(TestRepositoriesLocation, org, targetRepository, "testUser");
 

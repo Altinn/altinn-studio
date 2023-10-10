@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.TextsController
             string dataPathWithData = $"{VersionPrefix(org, app)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
@@ -42,7 +42,7 @@ namespace Designer.Tests.Controllers.TextsController
             string dataPathWithData = $"{VersionPrefix(org, app)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
@@ -54,7 +54,7 @@ namespace Designer.Tests.Controllers.TextsController
             string dataPathWithData = $"{VersionPrefix(org, app)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 
@@ -69,7 +69,7 @@ namespace Designer.Tests.Controllers.TextsController
             string dataPathWithData = $"{VersionPrefix(org, app)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());

@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             ValidationProblemDetails validationDetails;
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
@@ -53,7 +53,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             ResourcePolicy resourcePolicy;
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
@@ -68,7 +68,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 
                 httpRequestMessage2.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
+                HttpResponseMessage response2 = await HttpClient.SendAsync(httpRequestMessage2);
                 response2.EnsureSuccessStatusCode();
             }
 
@@ -77,7 +77,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             ValidationProblemDetails validationDetails;
             using (HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3))
             {
-                HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
+                HttpResponseMessage response3 = await HttpClient.SendAsync(httpRequestMessage3);
                 string responseBody3 = await response3.Content.ReadAsStringAsync();
                 validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             }

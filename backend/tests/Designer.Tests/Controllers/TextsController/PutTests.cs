@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.TextsController
                 new_key_2 = "new_value_2"
             });
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
@@ -49,7 +49,7 @@ namespace Designer.Tests.Controllers.TextsController
                 markdown_key = "## This is a markdown text \n\n Here is a list \n - Item1 \n - Item2 \n - Item3 \n\n # HERE IS SOME IMPORTANT CODE \n `print(Hello world)`"
             });
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
@@ -71,7 +71,7 @@ namespace Designer.Tests.Controllers.TextsController
                 }
             });
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 

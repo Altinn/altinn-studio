@@ -42,7 +42,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/{org}/{targetRepository}/reset";
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.GetAsync(uri);
+            using HttpResponseMessage res = await HttpClient.GetAsync(uri);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);

@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             await File.WriteAllTextAsync(filePath, metadataFile);
 
             string url = VersionPrefix(org, targetRepository);
-            var response = await HttpClient.Value.GetAsync(url);
+            var response = await HttpClient.GetAsync(url);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();

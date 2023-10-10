@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.ApiTests
     /// </summary>
     /// <typeparam name="TController">Controller type.</typeparam>
     /// <typeparam name="TControllerTest">Tests class type.</typeparam>
-    public abstract class DisagnerEndpointsTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>, IDisposable
+    public abstract class DisagnerEndpointsTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>
         where TController : ControllerBase
         where TControllerTest : class
     {
@@ -91,8 +91,9 @@ namespace Designer.Tests.Controllers.ApiTests
             RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
+            base.Dispose();
             if (!string.IsNullOrWhiteSpace(TestRepoPath))
             {
                 Directory.Delete(TestRepoPath, true);
@@ -100,10 +101,6 @@ namespace Designer.Tests.Controllers.ApiTests
             if (!string.IsNullOrWhiteSpace(RemoteTestRepoPath))
             {
                 Directory.Delete(RemoteTestRepoPath, true);
-            }
-            if (HttpClient.IsValueCreated)
-            {
-                HttpClient.Value.Dispose();
             }
         }
     }
