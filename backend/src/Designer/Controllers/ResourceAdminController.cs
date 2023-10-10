@@ -405,7 +405,17 @@ namespace Altinn.Studio.Designer.Controllers
             }
             else
             {
+                (string.IsNullOrEmpty(resource.Version)
+}
+
+            {
+                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = "N/A" });
+            }
+            else
+            {
+                {
                 serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = resource.Version });
+            }
             }
 
             return serviceResourceStatus;
