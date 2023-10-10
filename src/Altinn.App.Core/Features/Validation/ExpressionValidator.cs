@@ -67,9 +67,9 @@ namespace Altinn.App.Core.Features.Validation
                                 validationIssues.Add(validationIssue);
                             }
                         }
-                        catch
+                        catch(Exception e)
                         {
-                            logger.LogError($"Error while evaluating expression validation for {resolvedField}");
+                            logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
                             throw;
                         }
                     }
