@@ -79,7 +79,7 @@ context('Designer', () => {
     // Add an input component
     cy.wait(500);
     designer
-      .getDroppableList()
+      .getPageAccordionByName('Side2')
       .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });
   });
 

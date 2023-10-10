@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
+import * as testids from '../../../../../../testing/testids';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -41,7 +42,12 @@ export const PageAccordion = ({
           <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
         </div>
       </div>
-      <Accordion.Content className={classes.accordionContent}>{children}</Accordion.Content>
+      <Accordion.Content
+        data-testid={testids.pageAccordionContent(pageName)}
+        className={classes.accordionContent}
+      >
+        {children}
+      </Accordion.Content>
     </Accordion.Item>
   );
 };
