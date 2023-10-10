@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -155,6 +156,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return await GetPublishResponse(response);
+        }
+
+        public async Task<ServiceResource> GetResource(string id, string env)
+        {
+            string resourceUrl;
+
+            //Checks if not tested locally by passing dev as env parameter
+            if (!env.ToLower().Equals("dev"))
+            {
+                resourceUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}";
+            }
+            else
+            {
+                resourceUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
+            }
+
+            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
+            if (getResourceResponse.IsSuccessStatusCode)
+            {
+                string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
+                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent);
+                return res;
+            }
+
+            return null;
         }
 
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
