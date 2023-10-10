@@ -24,7 +24,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         public async Task<string?> GetXACMLPolicy(string appId)
         {
-            return await File.ReadAllTextAsync(Path.Join(GetAppPath(appId), $"App/config/authorization/policy.xml"));
+            return await File.ReadAllTextAsync(Path.Join(GetAppConfigFolderPath(appId), "authorization","policy.xml"));
         }
 
         public async Task<Application?> GetApplicationMetadata(string? appId)
@@ -34,7 +34,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 throw new ArgumentNullException(nameof(appId), "AppMode = file does not support null as appId");
             }
 
-            var filename = Path.Join(GetAppPath(appId), $"App/config/applicationmetadata.json");
+            var filename = Path.Join(GetAppConfigFolderPath(appId), "applicationmetadata.json");
             if (File.Exists(filename))
             {
                 var content = await File.ReadAllTextAsync(filename, Encoding.UTF8);
@@ -93,7 +93,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
         {
-            string path = Path.Join(GetAppPath(app), "config", "texts", $"resource.{language.AsFileName()}.json");
+            string path = Path.Join(GetAppConfigFolderPath(app), "texts", $"resource.{language.AsFileName()}.json");
 
             if (File.Exists(path))
             {
@@ -116,9 +116,9 @@ namespace LocalTest.Services.LocalApp.Implementation
             throw new NotImplementedException();
         }
 
-        private string GetAppPath(string appId)
+        private string GetAppConfigFolderPath(string appId)
         {
-            return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last());
+            return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last(), "App", "config");
         }
 
         private async Task<Application?> GetAccessManagment()
