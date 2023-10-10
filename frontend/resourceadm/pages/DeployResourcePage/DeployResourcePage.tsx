@@ -58,6 +58,7 @@ export const DeployResourcePage = ({
     repo,
     resourceId,
   );
+
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
     selectedContext,
     repo,
@@ -225,12 +226,15 @@ export const DeployResourcePage = ({
         </div>
       );
     } else {
-      const versionInTest = versionData.publishedVersions.find(
-        (v) => v.environment === 'TT02',
-      ).version;
-      const versionInProd = versionData.publishedVersions.find(
-        (v) => v.environment === 'PROD',
-      ).version;
+      const tt02Version: string =
+        versionData.publishedVersions.find((v) => v.environment === 'TT02')?.version ?? 'N/A';
+      const prodVersion =
+        versionData.publishedVersions.find((v) => v.environment === 'PROD')?.version ??
+        'Ikke publisert';
+      const at22Version =
+        versionData.publishedVersions.find((v) => v.environment === 'AT22')?.version ?? 'N/A';
+      const at23Version =
+        versionData.publishedVersions.find((v) => v.environment === 'AT23')?.version ?? 'N/A';
 
       return (
         <>
@@ -266,20 +270,20 @@ export const DeployResourcePage = ({
             </Label>
             <div className={classes.deployCardsWrapper}>
               <ResourceDeployEnvCard
-                isDeployPossible={isDeployPossible('test', versionInTest)}
+                isDeployPossible={isDeployPossible('test', tt02Version)}
                 envName={t('resourceadm.deploy_test_env')}
-                currentEnvVersion={versionInTest}
+                currentEnvVersion={tt02Version}
                 newEnvVersion={
-                  resourceVersionText !== versionInTest ? resourceVersionText : undefined
+                  resourceVersionText !== tt02Version ? resourceVersionText : undefined
                 }
                 onClick={() => handlePublish('tt02')}
               />
               <ResourceDeployEnvCard
-                isDeployPossible={isDeployPossible('prod', versionInProd)}
+                isDeployPossible={isDeployPossible('prod', prodVersion)}
                 envName={t('resourceadm.deploy_prod_env')}
-                currentEnvVersion={versionInProd}
+                currentEnvVersion={prodVersion}
                 newEnvVersion={
-                  resourceVersionText !== versionInProd ? resourceVersionText : undefined
+                  resourceVersionText !== prodVersion ? resourceVersionText : undefined
                 }
                 onClick={() => handlePublish('prod')}
               />
@@ -287,20 +291,20 @@ export const DeployResourcePage = ({
             {selectedContext === 'ttd' && (
               <div className={classes.deployCardsWrapper}>
                 <ResourceDeployEnvCard
-                  isDeployPossible={isDeployPossible('test', versionInTest)}
+                  isDeployPossible={isDeployPossible('test', at22Version)}
                   envName={t('resourceadm.deploy_at22_env')}
-                  currentEnvVersion={versionInTest}
+                  currentEnvVersion={at22Version}
                   newEnvVersion={
-                    resourceVersionText !== versionInTest ? resourceVersionText : undefined
+                    resourceVersionText !== at22Version ? resourceVersionText : undefined
                   }
                   onClick={() => handlePublish('at22')}
                 />
                 <ResourceDeployEnvCard
-                  isDeployPossible={isDeployPossible('prod', versionInProd)}
+                  isDeployPossible={isDeployPossible('prod', at23Version)}
                   envName={t('resourceadm.deploy_at23_env')}
-                  currentEnvVersion={versionInProd}
+                  currentEnvVersion={at23Version}
                   newEnvVersion={
-                    resourceVersionText !== versionInProd ? resourceVersionText : undefined
+                    resourceVersionText !== at23Version ? resourceVersionText : undefined
                   }
                   onClick={() => handlePublish('at23')}
                 />
