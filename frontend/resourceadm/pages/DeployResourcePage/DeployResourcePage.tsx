@@ -50,6 +50,8 @@ export const DeployResourcePage = ({
   );
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
+  const [envPublishedTo, setEnvPublishedTo] = useState(null);
+
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
   const { data: versionData, isLoading: versionLoading } = useResourcePolicyPublishStatusQuery(
@@ -57,6 +59,7 @@ export const DeployResourcePage = ({
     repo,
     resourceId,
   );
+  console.log('versionData', versionData);
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
     selectedContext,
     repo,
@@ -66,15 +69,21 @@ export const DeployResourcePage = ({
     useValidateResourceQuery(selectedContext, repo, resourceId);
 
   // Query function fo rpublishing a resource
-  const { mutate: publishResource } = usePublishResourceMutation(selectedContext, repo, resourceId);
+  const { mutate: publishResource, isLoading: publisingResourceLoading } =
+    usePublishResourceMutation(selectedContext, repo, resourceId);
 
   const handlePublish = (env: 'tt02' | 'prod' | 'at22' | 'at23') => {
     console.log('Trying to publish to: ', env);
+    setEnvPublishedTo(env);
     publishResource(env, {
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success'));
+        setEnvPublishedTo(null);
       },
-      onError: (data) => console.log(data),
+      onError: (data) => {
+        console.log(data);
+        setEnvPublishedTo(null);
+      },
     });
   };
 
@@ -225,16 +234,16 @@ export const DeployResourcePage = ({
       );
     } else {
       const tt02Version: string =
-        versionData.publishedVersions.find((v) => v.environment === 'TT02')?.version ??
+        versionData.publishedVersions.find((v) => v.environment === 'tt02')?.version ??
         t('resourceadm.deploy_not_deployed');
       const prodVersion =
-        versionData.publishedVersions.find((v) => v.environment === 'PROD')?.version ??
+        versionData.publishedVersions.find((v) => v.environment === 'prod')?.version ??
         t('resourceadm.deploy_not_deployed');
       const at22Version =
-        versionData.publishedVersions.find((v) => v.environment === 'AT22')?.version ??
+        versionData.publishedVersions.find((v) => v.environment === 'at22')?.version ??
         t('resourceadm.deploy_not_deployed');
       const at23Version =
-        versionData.publishedVersions.find((v) => v.environment === 'AT23')?.version ??
+        versionData.publishedVersions.find((v) => v.environment === 'at23')?.version ??
         t('resourceadm.deploy_not_deployed');
 
       return (
@@ -278,6 +287,7 @@ export const DeployResourcePage = ({
                   resourceVersionText !== tt02Version ? resourceVersionText : undefined
                 }
                 onClick={() => handlePublish('tt02')}
+                loading={publisingResourceLoading && envPublishedTo === 'tt02'}
               />
               <ResourceDeployEnvCard
                 isDeployPossible={isDeployPossible('prod', prodVersion)}
@@ -287,6 +297,7 @@ export const DeployResourcePage = ({
                   resourceVersionText !== prodVersion ? resourceVersionText : undefined
                 }
                 onClick={() => handlePublish('prod')}
+                loading={publisingResourceLoading && envPublishedTo === 'prod'}
               />
             </div>
             {selectedContext === 'ttd' && (
@@ -299,6 +310,7 @@ export const DeployResourcePage = ({
                     resourceVersionText !== at22Version ? resourceVersionText : undefined
                   }
                   onClick={() => handlePublish('at22')}
+                  loading={publisingResourceLoading && envPublishedTo === 'at22'}
                 />
                 <ResourceDeployEnvCard
                   isDeployPossible={isDeployPossible('prod', at23Version)}
@@ -308,6 +320,7 @@ export const DeployResourcePage = ({
                     resourceVersionText !== at23Version ? resourceVersionText : undefined
                   }
                   onClick={() => handlePublish('at23')}
+                  loading={publisingResourceLoading && envPublishedTo === 'at23'}
                 />
               </div>
             )}

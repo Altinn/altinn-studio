@@ -62,14 +62,14 @@ export const ResourcePage = (): React.ReactNode => {
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
 
   // Get metadata for resource
   const { refetch: refetchValidateResource } = useValidateResourceQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
   const {
     data: resourceData,
@@ -188,21 +188,21 @@ export const ResourcePage = (): React.ReactNode => {
       aboutPageId,
       () => navigateToPage(aboutPageId),
       currentPage,
-      getResourcePageURL(selectedContext, repo, resourceId, 'about')
+      getResourcePageURL(selectedContext, repo, resourceId, 'about'),
     ),
     createNavigationTab(
       <GavelSoundBlockIcon className={classes.icon} />,
       policyPageId,
       () => navigateToPage(policyPageId),
       currentPage,
-      getResourcePageURL(selectedContext, repo, resourceId, 'policy')
+      getResourcePageURL(selectedContext, repo, resourceId, 'policy'),
     ),
     createNavigationTab(
       <UploadIcon className={classes.icon} />,
       deployPageId,
       () => navigateToPage(deployPageId),
       currentPage,
-      getResourcePageURL(selectedContext, repo, resourceId, 'deploy')
+      getResourcePageURL(selectedContext, repo, resourceId, 'deploy'),
     ),
   ];
 
@@ -211,7 +211,7 @@ export const ResourcePage = (): React.ReactNode => {
     migrationPageId,
     () => navigateToPage(migrationPageId),
     currentPage,
-    getResourcePageURL(selectedContext, repo, resourceId, 'migration')
+    getResourcePageURL(selectedContext, repo, resourceId, 'migration'),
   );
 
   /**

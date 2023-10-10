@@ -17,6 +17,7 @@ export const usePublishResourceMutation = (org: string, repo: string, id: string
     mutationFn: (env: string) => publishResource(org, repo, id, env),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.PublishResource, org, repo, id] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourcePublishStatus, org, repo, id] });
     },
   });
 };
