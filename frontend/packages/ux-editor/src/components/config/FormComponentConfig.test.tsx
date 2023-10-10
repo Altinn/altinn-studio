@@ -1,29 +1,28 @@
 import React from 'react';
-import {
-  FormComponentConfig,
-  FormComponentConfigProps,
-} from './FormComponentConfig';
+import { FormComponentConfig, FormComponentConfigProps } from './FormComponentConfig';
 import { renderWithMockStore } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('FormComponentConfig', () => {
-  it('should render expected components', () => {
+  it('should render expected components', async () => {
     render({});
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_component_change_id'))
+      screen.getByText(textMock('ux_editor.modal_properties_component_change_id')),
     ).toBeInTheDocument();
-    ['title', 'description', 'help'].forEach((key) => {
+    ['title', 'description', 'help'].forEach(async (key) => {
       expect(
-        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`))
+        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`)),
       ).toBeInTheDocument();
 
-      expect(
-        screen.getByText(textMock('ux_editor.modal_properties_data_model_helper'))
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByText(textMock('ux_editor.modal_properties_data_model_link')),
+        ).toBeInTheDocument();
+      });
 
       [
         'readOnly',
@@ -39,7 +38,7 @@ describe('FormComponentConfig', () => {
         'formatting',
       ].forEach(async (propertyKey) => {
         expect(
-          await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`))
+          await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
         ).toBeInTheDocument();
       });
     });
@@ -64,7 +63,7 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message'))
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).toBeInTheDocument();
     expect(screen.getByText('unsupportedProperty')).toBeInTheDocument();
   });
@@ -78,17 +77,17 @@ describe('FormComponentConfig', () => {
           properties: {
             ...InputSchema.properties,
             children: {
-              type: 'string'
-            }
+              type: 'string',
+            },
           },
         },
       },
     });
     expect(
-      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message'))
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).toBeInTheDocument();
     expect(screen.getByText('children')).toBeInTheDocument();
-  })
+  });
 
   it('should not render list of unsupported properties if hideUnsupported is true', () => {
     render({
@@ -109,7 +108,7 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_message'))
+      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
