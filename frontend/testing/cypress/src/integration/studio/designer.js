@@ -52,7 +52,7 @@ context('Designer', () => {
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
     designer
-      .getDroppableList()
+      .getPageAccordionByName('Side1')
       .findAllByRole('listitem')
       .then(($elements) => expect($elements.length).eq(1));
 
@@ -81,6 +81,8 @@ context('Designer', () => {
     designer
       .getPageAccordionByName('Side2')
       .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });
+
+    cy.deleteComponents();
   });
 
   // Disabled for now, as this generates too many copies of the same app
