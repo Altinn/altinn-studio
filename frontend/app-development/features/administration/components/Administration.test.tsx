@@ -1,25 +1,16 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Administration } from './Administration';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { textMock } from '../../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-development/test/mocks';
 
 // Test data
-const org = 'my-org';
-const app = 'my-app';
+const org = 'org';
+const app = 'app';
 const title = 'test';
 
 describe('Administration', () => {
-  it('shows spinner when loading required data', () => {
-    renderWithProviders(<Administration />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-    });
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument();
-  });
-
   it('renders component', async () => {
     renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
@@ -33,9 +24,24 @@ describe('Administration', () => {
       },
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: app })).not.toBeInTheDocument();
+  });
 
-    expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
+  it('shows repository name when loading app name', () => {
+    renderWithProviders(<Administration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+    });
+
+    expect(screen.getByRole('heading', { name: app })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument();
+  });
+
+  it('shows repository name if an error occured while fetching app name', () => {
+    renderWithProviders(<Administration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+    });
+    expect(screen.getByRole('heading', { name: app })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument();
   });
 });

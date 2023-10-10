@@ -2,20 +2,24 @@ import React from 'react';
 import classes from './Administration.module.css';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { Heading } from '@digdir/design-system-react';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
-  const { data: appConfigData, isLoading } = useAppConfigQuery(org, app);
+  const { data: appConfigData, isError } = useAppConfigQuery(org, app, { hideDefaultError: true });
+  const { t } = useTranslation();
 
-  if (isLoading) return <PageSpinner />;
+  if (isError) {
+    toast.error(t('administration.fetch_title_error_message'));
+  }
 
   return (
     <div className={classes.administration}>
       <div className={classes.container}>
         <div className={classes.header}>
-          <Heading size='xlarge'>{appConfigData.serviceName}</Heading>
+          <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
         </div>
         <div className={classes.content}>
           <main className={classes.main}>
