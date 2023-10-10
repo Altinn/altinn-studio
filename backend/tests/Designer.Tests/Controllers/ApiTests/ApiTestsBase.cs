@@ -34,11 +34,13 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
     /// </summary>
-    protected HttpClient HttpClient {
+    protected HttpClient HttpClient
+    {
         get
         {
             return _httpClient ??= GetTestClient();
-        }}
+        }
+    }
 
     /// <summary>
     /// When overridden tests services will be configured.
@@ -96,7 +98,6 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     }
     public virtual void Dispose()
     {
-        _httpClient?.Dispose();
         _newFactory?.Dispose();
     }
 }
