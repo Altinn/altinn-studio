@@ -176,7 +176,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
             {
                 string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
-                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent, new JsonSerializerOptions() {  PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
                 return res;
             }
 
