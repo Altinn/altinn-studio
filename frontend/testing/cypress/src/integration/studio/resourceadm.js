@@ -7,7 +7,7 @@ import * as texts from '@altinn-studio/language/src/nb.json';
 
 context('Resourceadm', () => {
   before(() => {
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
 
   beforeEach(() => {

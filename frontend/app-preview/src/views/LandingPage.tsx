@@ -1,11 +1,10 @@
 import React from 'react';
 import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
-import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -16,6 +15,7 @@ import {
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { previewPage } from 'app-shared/api/paths';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -33,11 +33,11 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
-    'layoutSet/' + app
+    'layoutSet/' + app,
   );
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
-    'desktop'
+    'desktop',
   );
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
@@ -89,13 +89,9 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={`/designer/html/preview.html?${stringify({
-              org,
-              app,
-              selectedLayoutSetInEditor,
-            })}`}
+            src={previewPage(org, app, selectedLayoutSetInEditor)}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
-          ></iframe>
+          />
           {previewViewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
         </div>
       </>

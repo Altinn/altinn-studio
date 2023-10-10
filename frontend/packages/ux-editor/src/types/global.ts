@@ -11,10 +11,7 @@ export interface IFormDesignerNameSpace<T1, T2> {
   formDesigner: T1;
   appData: T2;
 }
-export type IAppState = IFormDesignerNameSpace<
-  IFormDesignerState,
-  IAppDataState
->;
+export type IAppState = IFormDesignerNameSpace<IFormDesignerState, IAppDataState>;
 
 export interface IOption {
   label: string;
@@ -68,7 +65,7 @@ export interface IToolbarElement {
 }
 
 export enum CollapsableMenus {
-  Components = 'schema',
+  Components = 'standard',
   Texts = 'texts',
   AdvancedComponents = 'advanced',
   // TODO : Uncomment when we have widgets components

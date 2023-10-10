@@ -37,7 +37,7 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
       rest.propertyPath = formItemConfigs[rest.type].defaultProperties.propertyPath;
       convertedLayout.components[id] = {
         id,
-        ...rest
+        ...rest,
       } as FormComponent;
       convertedLayout.order[BASE_CONTAINER_ID].push(id);
     } else {
@@ -91,18 +91,15 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
 
   if (!internalFormat) return createExternalLayout(formLayout, {}, {});
 
-  const {
-    components,
-    containers,
-    order,
-    customRootProperties,
-    customDataProperties,
-  } = deepCopy(internalFormat);
+  const { components, containers, order, customRootProperties, customDataProperties } =
+    deepCopy(internalFormat);
 
-  if (!containers) return createExternalLayout(formLayout, customRootProperties, customDataProperties);
+  if (!containers)
+    return createExternalLayout(formLayout, customRootProperties, customDataProperties);
 
   const containerIds = Object.keys(containers);
-  if (!containerIds.length) return createExternalLayout(formLayout, customRootProperties, customDataProperties);
+  if (!containerIds.length)
+    return createExternalLayout(formLayout, customRootProperties, customDataProperties);
 
   let groupChildren: string[] = [];
   Object.keys(order).forEach((groupKey: string) => {
@@ -151,7 +148,7 @@ function extractChildrenFromGroupInternal(
   containers: IFormDesignerContainers,
   order: IFormLayoutOrder,
   formLayout: ExternalComponent[],
-  groupId: string
+  groupId: string,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { itemType, propertyPath, ...restOfGroup } = containers[groupId];
@@ -178,7 +175,7 @@ function extractChildrenFromGroupInternal(
 export function extractChildrenFromGroup(
   group: ExternalComponent,
   components: ExternalComponent[],
-  convertedLayout: IInternalLayout
+  convertedLayout: IInternalLayout,
 ) {
   const { id, children, type, ...restOfGroup } = group;
   convertedLayout.containers[id] = {
@@ -188,8 +185,9 @@ export function extractChildrenFromGroup(
   };
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
-    const component: ExternalComponent =
-      components.find((candidate: ExternalComponent) => candidate.id === componentId);
+    const component: ExternalComponent = components.find(
+      (candidate: ExternalComponent) => candidate.id === componentId,
+    );
     if (component.type === 'Group') {
       extractChildrenFromGroup(component, components, convertedLayout);
     } else {
@@ -202,7 +200,9 @@ export function extractChildrenFromGroup(
   });
 }
 
-export const mapComponentToToolbarElement = <T extends ComponentType>(c: FormItemConfigs[T]): IToolbarElement => ({
+export const mapComponentToToolbarElement = <T extends ComponentType>(
+  c: FormItemConfigs[T],
+): IToolbarElement => ({
   label: c.name,
   icon: c.icon,
   type: c.name,
@@ -211,7 +211,7 @@ export const mapComponentToToolbarElement = <T extends ComponentType>(c: FormIte
 export function idExists(
   id: string,
   components: IFormDesignerComponents,
-  containers: IFormDesignerContainers
+  containers: IFormDesignerContainers,
 ): boolean {
   return (
     Object.keys(containers || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1 ||
@@ -226,8 +226,10 @@ export function idExists(
  */
 export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
   const { components } = layout;
-  return Object.values(components).map(({ type }) => type).includes(ComponentType.NavigationButtons);
-}
+  return Object.values(components)
+    .map(({ type }) => type)
+    .includes(ComponentType.NavigationButtons);
+};
 
 /**
  * Finds the id of a component or a container's parent container.
@@ -238,7 +240,7 @@ export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
 export const findParentId = (layout: IInternalLayout, itemId: string): string => {
   const { order } = layout;
   return Object.keys(order).find((key) => order[key].includes(itemId));
-}
+};
 
 /**
  * Adds a component to a layout.
@@ -328,10 +330,10 @@ export const updateContainer = (
     ...oldLayout,
     containers: {
       ...oldLayout.containers,
-      [newId]: updatedContainer
-    }
+      [newId]: updatedContainer,
+    },
   };
-}
+};
 
 /**
  * Removes a component from a layout.
@@ -347,7 +349,7 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
     delete newLayout.components[componentId];
   }
   return newLayout;
-}
+};
 
 /**
  * Removes all components of a given type from a layout.
@@ -355,16 +357,18 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
  * @param componentType The type of the components to remove.
  * @returns The new layout.
  */
-export const removeComponentsByType = (layout: IInternalLayout, componentType: ComponentType): IInternalLayout => {
+export const removeComponentsByType = (
+  layout: IInternalLayout,
+  componentType: ComponentType,
+): IInternalLayout => {
   let newLayout = layout;
-  Object
-    .keys(layout.components)
+  Object.keys(layout.components)
     .filter((id) => layout.components[id].type === componentType)
     .forEach((id) => {
       newLayout = removeComponent(newLayout, id);
     });
   return newLayout;
-}
+};
 
 /**
  * Adds a navigation button component to the end of the base container of a layout.
@@ -374,38 +378,34 @@ export const removeComponentsByType = (layout: IInternalLayout, componentType: C
  */
 export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
   const navigationButtons: FormComponent = {
-    componentType: ComponentType.NavigationButtons,
-    dataModelBindings: {},
     id,
     itemType: 'COMPONENT',
     onClickAction: () => {},
     showBackButton: true,
-    textResourceBindings: { next: undefined, back: undefined, },
+    textResourceBindings: { next: undefined, back: undefined },
     type: ComponentType.NavigationButtons,
   };
   return addComponent(layout, navigationButtons);
-}
+};
 
 /**
  * Creates a layout with no components.
  * @returns The empty layout.
  */
-export const createEmptyLayout = (): IInternalLayout => (
-  {
-    components: {},
-    containers: {
-      [BASE_CONTAINER_ID]: {
-        index: 0,
-        itemType: 'CONTAINER',
-      }
+export const createEmptyLayout = (): IInternalLayout => ({
+  components: {},
+  containers: {
+    [BASE_CONTAINER_ID]: {
+      index: 0,
+      itemType: 'CONTAINER',
     },
-    order: {
-      [BASE_CONTAINER_ID]: [],
-    },
-    customRootProperties: {},
-    customDataProperties: {},
-  }
-);
+  },
+  order: {
+    [BASE_CONTAINER_ID]: [],
+  },
+  customRootProperties: {},
+  customDataProperties: {},
+});
 
 /**
  * Moves an item to another position.
@@ -425,7 +425,11 @@ export const moveLayoutItem = (
   const oldContainerId = findParentId(layout, id);
   if (oldContainerId) {
     newLayout.order[oldContainerId] = removeItemByValue(newLayout.order[oldContainerId], id);
-    newLayout.order[newContainerId] = insertArrayElementAtPos(newLayout.order[newContainerId], id, newPosition);
+    newLayout.order[newContainerId] = insertArrayElementAtPos(
+      newLayout.order[newContainerId],
+      id,
+      newPosition,
+    );
   }
   return newLayout;
 };
@@ -449,7 +453,7 @@ export const addItemOfType = <T extends ComponentType>(
   const newItem = generateFormItem<T>(componentType, id);
   if (newItem.itemType === 'COMPONENT') return addComponent(layout, newItem, parentId, position);
   else return addContainer(layout, newItem, id, parentId, position);
-}
+};
 
 /**
  * Checks if a given item is a container.
@@ -477,7 +481,8 @@ export const hasSubContainers = (layout: IInternalLayout, itemId: string): boole
  */
 const numberOfContainerLevels = (layout: IInternalLayout, itemId: string): number => {
   if (!isContainer(layout, itemId) || !hasSubContainers(layout, itemId)) return 0;
-  else return 1 + Math.max(...layout.order[itemId].map((id) => numberOfContainerLevels(layout, id)));
+  else
+    return 1 + Math.max(...layout.order[itemId].map((id) => numberOfContainerLevels(layout, id)));
 };
 
 /**

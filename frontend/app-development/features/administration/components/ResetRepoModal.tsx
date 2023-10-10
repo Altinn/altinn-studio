@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import * as testids from '../../../../testing/testids';
 import { toast } from 'react-toastify';
+import { Trans } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -31,13 +33,15 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const onDeleteRepoNameChange = (event: any) => setDeleteRepoName(event.target.value);
 
   const repoResetMutation = useResetRepositoryMutation(props.org, props.repositoryName);
+  const queryClient = useQueryClient();
   const onResetWrapper = () => {
     setCanDelete(false);
     repoResetMutation.mutate(undefined, {
       onSuccess: () => {
-        onCloseWrapper();
         toast.success(t('administration.reset_repo_completed'));
-      },
+        queryClient.removeQueries();
+        onCloseWrapper();
+      }
     });
   };
 
@@ -71,9 +75,11 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
         <div className={classes.modalContainer}>
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
           <div>
-            {t('administration.reset_repo_confirm_info', {
-              repositoryName: props.repositoryName,
-            })}
+            <Trans
+                i18nKey={'administration.reset_repo_confirm_info'}
+                values={{ repositoryName: props.repositoryName }}
+                components={{ bold: <strong/> }}
+            />
           </div>
           <label htmlFor='delete-repo-name'>
             <div>{t('administration.reset_repo_confirm_repo_name')}</div>

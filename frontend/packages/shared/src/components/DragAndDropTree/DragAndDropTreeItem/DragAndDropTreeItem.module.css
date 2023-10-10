@@ -1,0 +1,7 @@
+.item {
+  border-radius: var(--fds-border_radius-small);
+}
+
+.item.hasHoveredItem {
+  outline: 1px dotted var(--fds-semantic-border-action-primary-hover);
+}

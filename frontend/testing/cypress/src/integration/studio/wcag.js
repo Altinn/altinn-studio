@@ -6,15 +6,13 @@ import { header } from "../../selectors/header";
 
 context('WCAG', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createapp(Cypress.env('autoTestUser'), 'designer');
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
     cy.visit('/');
-    cy.intercept('GET', 'designer/api/repos/search?**').as('fetchApps');
+    cy.intercept('GET', '**/repos/search**').as('fetchApps');
     dashboard.getSearchReposField().should('be.visible');
     cy.wait('@fetchApps')
       .its('response.statusCode')
@@ -22,6 +20,10 @@ context('WCAG', () => {
         expect([200, 302]).to.contain(statusCode);
       });
   });
+
+    after(() => {
+        cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    });
 
   it('accessibility test for dashboard', () => {
     cy.testWcag();
@@ -33,7 +35,7 @@ context('WCAG', () => {
   });
 
   it('accessibility test for app designer', () => {
-    cy.searchAndOpenApp(Cypress.env('designerApp'));
+    cy.searchAndOpenApp(Cypress.env('designerAppName'));
     cy.testWcag();
 
     // Forms editor

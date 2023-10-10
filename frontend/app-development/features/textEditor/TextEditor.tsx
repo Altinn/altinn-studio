@@ -2,7 +2,7 @@ import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PageSpinner } from 'app-shared/components';
-import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
 import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
@@ -21,7 +21,7 @@ export const TextEditor = () => {
   const selectedLanguagesStorageKey = `${org}:${app}:selectedLanguages`;
   const [selectedLangCodes, setSelectedLangCodes] = useLocalStorage<string[]>(
     selectedLanguagesStorageKey,
-    [defaultLangCode]
+    [defaultLangCode],
   );
   const getSearchQuery = () => searchParams.get('search') || '';
 

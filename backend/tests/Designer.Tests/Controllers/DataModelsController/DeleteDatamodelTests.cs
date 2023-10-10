@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using static Designer.Tests.Controllers.DataModelsController.Utils.MockUtils;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
@@ -23,7 +22,6 @@ public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsControl
     public DeleteDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
         _repositoryMock = new Mock<IRepository>();
-        MockRepositoryCalls(_repositoryMock, TestRepositoriesLocation, "testUser");
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
