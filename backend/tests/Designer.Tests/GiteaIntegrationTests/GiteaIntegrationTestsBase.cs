@@ -19,7 +19,7 @@ using Xunit;
 namespace Designer.Tests.GiteaIntegrationTests
 {
     [Collection(nameof(GiteaCollection))]
-    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>, IDisposable
+    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>
         where TController : ControllerBase
         where TControllerTest : class
     {
@@ -40,8 +40,9 @@ namespace Designer.Tests.GiteaIntegrationTests
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
+            base.Dispose();
             DeleteDirectoryIfExists(CreatedFolderPath);
         }
 
