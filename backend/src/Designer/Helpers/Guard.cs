@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -127,5 +128,31 @@ namespace Altinn.Studio.Designer.Helpers
                 throw new ArgumentException("Invalid xml content.");
             }
         }
+
+        public static async Task AssertValidXmlStreamAndRewindAsync(Stream xmlStream)
+        {
+            XmlReaderSettings settings = new XmlReaderSettings
+            {
+                ConformanceLevel = ConformanceLevel.Document,
+                Async = true
+            };
+            try
+            {
+                using XmlReader reader = XmlReader.Create(xmlStream, settings);
+                while (await reader.ReadAsync())
+                {
+                    // Check if node is formatted correctly
+                }
+            }
+            catch (XmlException)
+            {
+                throw new ArgumentException("Invalid xml stream.");
+            }
+            finally
+            {
+                xmlStream.Seek(0, SeekOrigin.Begin);
+            }
+        }
+
     }
 }

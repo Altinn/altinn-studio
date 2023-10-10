@@ -177,7 +177,7 @@ export const SchemaItemLabel = ({
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={t('schema_editor.add_reference')}
-            icon={LinkIcon}    
+            icon={LinkIcon}
           />
         )}
         {capabilties.includes(Capabilites.CanHaveFieldAdded) && (

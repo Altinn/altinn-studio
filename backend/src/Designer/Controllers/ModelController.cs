@@ -1,6 +1,9 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,15 +40,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model as JSON</returns>
         [Obsolete("GetJson is deprecated. Please create new method in SchemaModelService (or AppDevelopmentService?) to serve Studio frontend with the datamodel fields for the specified datamodel.")]
         [HttpGet]
         [Route("metadata")]
-        public async Task<ActionResult> GetJson(string org, string app)
+        public async Task<ActionResult> GetJson(string org, string app, CancellationToken cancellationToken)
         {
             try
             {
-                ModelMetadata metadata = await _repository.GetModelMetadata(org, app);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                ModelMetadata metadata = await _repository.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), cancellationToken);
                 return Json(metadata, new JsonSerializerSettings { Formatting = Formatting.Indented });
             }
             catch

@@ -106,7 +106,7 @@ export function getComponentTitleByComponentType(type: ComponentType, t: typeof 
 export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof i18next.t): string {
   switch (menu) {
     case CollapsableMenus.Components: {
-      return t('ux_editor.collapsable_schema_components');
+      return t('ux_editor.collapsable_standard_components');
     }
     case CollapsableMenus.Texts: {
       return t('ux_editor.collapsable_text_components');

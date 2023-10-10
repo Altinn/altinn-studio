@@ -41,7 +41,7 @@ export const PageLayout = (): React.ReactNode => {
       selectableOrgs: organizations,
       user,
     }),
-    [organizations, user]
+    [organizations, user],
   );
 
   return (
@@ -53,7 +53,7 @@ export const PageLayout = (): React.ReactNode => {
           org={selectedContext}
           app={repo}
           menuOnlyHasRepository
-          className={classes.extraPadding}
+          rightContentClassName={classes.extraPadding}
         />
       </HeaderContext.Provider>
       <Outlet />

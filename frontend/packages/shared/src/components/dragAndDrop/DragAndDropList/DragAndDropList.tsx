@@ -6,6 +6,7 @@ import * as testids from '../../../../../../testing/testids';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { useParentId } from '../hooks/useParentId';
 import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
+import { useDomSelectors } from 'app-shared/components/dragAndDrop/hooks/useDomSelectors';
 
 export interface DragAndDropListProps {
   /** The list of existing items. */
@@ -19,10 +20,11 @@ export interface DragAndDropListCollectedProps {
 export function DragAndDropList<T>({ children }: DragAndDropListProps) {
   const disabledDrop = useIsParentDisabled();
   const parentId = useParentId();
+  const domSelectors = useDomSelectors(parentId);
   const onDrop = useOnDrop<T>();
   const canDrop = useCallback(
     (monitor: DropTargetMonitor) => monitor.isOver({ shallow: true }) && !disabledDrop,
-    [disabledDrop]
+    [disabledDrop],
   );
   const [{ canBeDropped }, drop] = useDrop<DndItem<T>, unknown, DragAndDropListCollectedProps>({
     accept: Object.values(DraggableEditorItemType),
@@ -38,8 +40,9 @@ export function DragAndDropList<T>({ children }: DragAndDropListProps) {
   const backgroundColor = canBeDropped ? 'var(--list-empty-space-hover-color)' : 'transparent';
   return (
     <div
-      className={classes.root}
+      className={classes.root + ' ' + domSelectors.list.className}
       data-testid={testids.droppableList}
+      id={domSelectors.list.id}
       ref={drop}
       style={{ backgroundColor }}
     >

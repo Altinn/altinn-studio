@@ -25,8 +25,15 @@ const texts = {
   'general.cancel': resetModalCancel,
 };
 
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    ...mockUseTranslation(texts),
+    i18n: {
+      exists: (key: string) => texts[key] !== undefined,
+    },
+  }),
+  Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
+}));
 
 describe('ResetRepoModal', () => {
   let mockAnchorEl: any;
@@ -42,7 +49,7 @@ describe('ResetRepoModal', () => {
 
   const render = (
     props?: Partial<IResetRepoModalProps>,
-    queries?: Partial<ServicesContextProps>
+    queries?: Partial<ServicesContextProps>,
   ) => {
     const defaultProps = {
       anchorRef: mockAnchorEl,
@@ -52,8 +59,7 @@ describe('ResetRepoModal', () => {
       repositoryName: mockRepoName,
       org: 'testOrg',
     };
-    return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />);
-  };
+    return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />)};
 
   it('renders the component', () => {
     render();

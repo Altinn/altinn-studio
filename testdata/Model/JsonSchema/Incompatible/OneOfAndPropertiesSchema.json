@@ -1,0 +1,31 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/otherType"
+    }
+  ],
+  "properties": {
+    "root": {
+      "$ref": "#/$defs/rootType"
+    }
+  },
+  "$defs": {
+    "rootType": {
+      "properties": {
+        "keyword": {
+          "type": "string"
+        }
+      }
+    },
+    "otherType": {
+      "properties": {
+        "keyword": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

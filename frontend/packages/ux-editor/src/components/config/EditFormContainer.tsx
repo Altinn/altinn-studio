@@ -6,7 +6,7 @@ import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import {
-  LegacyCheckbox,
+  Switch,
   LegacyCheckboxGroup,
   LegacyFieldSet,
   LegacyTextField,
@@ -168,12 +168,13 @@ export const EditFormContainer = ({
       </FormField>
       <FormField
         id={container.id}
-        label={t('ux_editor.modal_properties_group_repeating')}
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
       >
         {({ value, onChange }) => (
-          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
+            {t('ux_editor.modal_properties_group_repeating')}
+          </Switch>
         )}
       </FormField>
       {container.maxCount > 1 && (

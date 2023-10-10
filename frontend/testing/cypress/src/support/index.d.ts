@@ -2,51 +2,51 @@ declare namespace Cypress {
   interface Chainable {
     /**
      * Custom command to create an org using gitea api
-     * @example cy.createorg(ttd, token)
+     * @example cy.createOrg(ttd, token)
      */
-    createorg(orgname: string, token: string): Chainable<Element>;
+    createOrg(orgName: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to delete an org using gitea api
-     * @example cy.deleteorg(ttd, token)
+     * @example cy.deleteOrg(ttd, token)
      */
-    deleteorg(orgname: string, token: string): Chainable<Element>;
+    deleteOrg(orgName: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to delete all apps of an org using gitea api
-     * @example cy.deleteallapps(ttd, token)
+     * @example cy.deleteAllApps(ttd, token)
      */
-    deleteallapps(orgname: string, token: string): Chainable<Element>;
+    deleteAllApps(orgName: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to make an user owner of an org using gitea api
-     * @example cy.makeuserowner(ttd, testuser, token)
+     * @example cy.makeUserOwner(ttd, testUser, token)
      */
-    makeuserowner(orgname: string, username: string, token: string): Chainable<Element>;
+    makeUserOwner(orgName: string, userName: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to delete an user using gitea api
-     * @example cy.deleteuser(testuser, token)
+     * @example cy.deleteUser(testUser, token)
      */
-    deleteuser(username: string, token: string): Chainable<Element>;
+    deleteUser(userName: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to login to studio with username and pwd
-     * @example cy.studiologin(testuser, userpwd)
+     * @example cy.studioLogin(testUser, userPwd)
      */
-    studiologin(username: string, userpwd: string): Chainable<Element>;
+    studioLogin(userName: string, userPwd: string): Chainable<Element>;
 
     /**
      * Custom command to create an app from studio dashboard
-     * @example cy.createapp(ttd, testapp)
+     * @example cy.createApp(ttd, testApp)
      */
-    createapp(orgname: string, appname: string): Chainable<Element>;
+    createApp(orgName: string, appName: string): Chainable<Element>;
 
     /**
      * Select and delete all the added ui components in an app's ui editor
-     * @example cy.deletecomponents()
+     * @example cy.deleteComponents()
      */
-    deletecomponents(): Chainable<Element>;
+    deleteComponents(): Chainable<Element>;
 
     /**
      * Test for WCAG violations of impact critical, serious, moderate
@@ -61,7 +61,7 @@ declare namespace Cypress {
     deleteLocalChanges(appId: String): Chainable<Element>;
 
     /**
-     * Get body of ifram from the DOM
+     * Get body of iframe from the DOM
      * @example cy.getIframeBody()
      */
     getIframeBody(): Chainable<Element>;
@@ -72,22 +72,29 @@ declare namespace Cypress {
     isVisible(): Chainable<Element>;
 
     /**
-     * Custom command to search and open an app
-     * @example cy.searchAndOpenApp('ttd/app')
+     * Custom command to search and open an app based on only app name
+     * @example cy.searchAndOpenApp('appName')
      */
-    searchAndOpenApp(appId: string): Chainable<Element>;
+    searchAndOpenApp(appName: string): Chainable<Element>;
+
+    /**
+     * Switch selected context in dashboard
+     * @param context The context to switch to. Either 'self', 'all', or org user name.
+     * @example cy.searchAndOpenApp('self')
+     */
+    switchSelectedContext(context: string): Chainable<Element>;
 
     /**
      * Custom command to create a repo for an user
-     * @example cy.createrepository(user, app, token)
+     * @example cy.createRepository(user, app, token)
      */
-    createrepository(username: string, appName: string, token: string): Chainable<Element>;
+    createRepository(username: string, appName: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to get a repo and return response
-     * @example cy.getrepo('ttd/app', token)
+     * @example cy.getRepoByAppId('ttd/app', token)
      */
-    getrepo(appId: string, token: string): Chainable<Element>;
+    getRepoByAppId(appId: string, token: string): Chainable<Element>;
 
   }
 }

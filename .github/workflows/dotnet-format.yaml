@@ -18,7 +18,7 @@ jobs:
     container:
       image: mcr.microsoft.com/dotnet/sdk:6.0.410-alpine3.18 # hardcode version until microsoft fixes issue in github runners
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: FormatCheck

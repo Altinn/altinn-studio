@@ -5,7 +5,7 @@ const giteaBaseUrl = Cypress.config().baseUrl + '/repos/api/v1';
 /**
  * create an org with org name, authenticated using access token
  */
-Cypress.Commands.add('createorg', (orgName, accessToken) =>
+Cypress.Commands.add('createOrg', (orgName, accessToken) =>
   cy.request('POST', `${giteaBaseUrl}/orgs?token=${accessToken}`, {
     username: orgName,
   })
@@ -14,7 +14,7 @@ Cypress.Commands.add('createorg', (orgName, accessToken) =>
 /**
  * delete an org with org name, authenticated using access token
  */
-Cypress.Commands.add('deleteorg', (orgName, accessToken) =>
+Cypress.Commands.add('deleteOrg', (orgName, accessToken) =>
   cy
     .request({
       method: 'GET',
@@ -30,7 +30,7 @@ Cypress.Commands.add('deleteorg', (orgName, accessToken) =>
 /**
  * delete all the apps of an org, authenticated using access token
  */
-Cypress.Commands.add('deleteallapps', (ownerName, accessToken, isOrg) => {
+Cypress.Commands.add('deleteAllApps', (ownerName, accessToken, isOrg) => {
   const getReposEndpoint = isOrg
     ? `${giteaBaseUrl}/orgs/${ownerName}/repos?token=${accessToken}`
     : `${giteaBaseUrl}/users/${ownerName}/repos?token=${accessToken}`;
@@ -48,7 +48,7 @@ Cypress.Commands.add('deleteallapps', (ownerName, accessToken, isOrg) => {
 /**
  * make an user as the owner of an org's repo, authenticated using access token
  */
-Cypress.Commands.add('makeuserowner', (orgName, userName, accessToken) =>
+Cypress.Commands.add('makeUserOwner', (orgName, userName, accessToken) =>
   cy
     .request('GET', `${giteaBaseUrl}/orgs/${orgName}/teams?token=${accessToken}`)
     .then((response) => {
@@ -68,7 +68,7 @@ Cypress.Commands.add('makeuserowner', (orgName, userName, accessToken) =>
 /**
  * Delete an user by username, authenticated using access token
  */
-Cypress.Commands.add('deleteuser', (userName, accessToken) => {
+Cypress.Commands.add('deleteUser', (userName, accessToken) => {
   const endpoint = `${giteaBaseUrl}/admin/users/${userName}?token=${accessToken}`;
   cy.request('DELETE', endpoint);
 });
@@ -76,7 +76,7 @@ Cypress.Commands.add('deleteuser', (userName, accessToken) => {
 /**
  * create a repo with app name, authenticated using access token
  */
-Cypress.Commands.add('createrepository', (userName, appName, accessToken) => {
+Cypress.Commands.add('createRepository', (userName, appName, accessToken) => {
   cy.request('POST', `${giteaBaseUrl}/admin/users/${userName}/repos?token=${accessToken}`, {
     auto_init: false,
     default_branch: 'master',
@@ -88,7 +88,7 @@ Cypress.Commands.add('createrepository', (userName, appName, accessToken) => {
 /**
  * get an app repo and return response
  */
-Cypress.Commands.add('getrepo', (appId, accessToken) =>
+Cypress.Commands.add('getRepoByAppId', (appId, accessToken) =>
   cy.request({
     method: 'GET',
     url: `${giteaBaseUrl}/repos/${appId}?token=${accessToken}`,

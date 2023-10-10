@@ -7,7 +7,11 @@ import { DragAndDrop } from '../';
 const draggedItemId = 'draggedItemId';
 jest.mock('react-dnd', () => ({
   ...jest.requireActual('react-dnd'),
-  useDrag: (args) => [{ isDragging: args.item.id === draggedItemId }, jest.fn(), jest.fn()],
+  useDrag: (args) => [{ isDragging: args.item().id === draggedItemId }, jest.fn(), jest.fn()],
+}));
+jest.mock('../utils/domUtils', () => ({
+  ...jest.requireActual('../utils/domUtils'),
+  findPositionInList: jest.fn().mockReturnValue(0),
 }));
 
 describe('useIsParentDisabled', () => {
@@ -38,7 +42,7 @@ describe('useIsParentDisabled', () => {
       wrapper: ({ children }) => (
         <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
           <DragAndDrop.List>
-            <DragAndDrop.ListItem index={0} itemId={draggedItemId} renderItem={() => children} />
+            <DragAndDrop.ListItem itemId={draggedItemId} renderItem={() => children} />
           </DragAndDrop.List>
         </DragAndDrop.Provider>
       ),
@@ -52,11 +56,10 @@ describe('useIsParentDisabled', () => {
         <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
           <DragAndDrop.List>
             <DragAndDrop.ListItem
-              index={0}
               itemId={draggedItemId}
               renderItem={() => (
                 <DragAndDrop.List>
-                  <DragAndDrop.ListItem index={0} itemId='subitem' renderItem={() => children} />
+                  <DragAndDrop.ListItem itemId='subitem' renderItem={() => children} />
                 </DragAndDrop.List>
               )}
             />
@@ -72,7 +75,7 @@ describe('useIsParentDisabled', () => {
       wrapper: ({ children }) => (
         <DragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
           <DragAndDrop.List>
-            <DragAndDrop.ListItem index={0} itemId='item' renderItem={() => children} />
+            <DragAndDrop.ListItem itemId='item' renderItem={() => children} />
           </DragAndDrop.List>
         </DragAndDrop.Provider>
       ),

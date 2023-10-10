@@ -1,13 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Altinn.Studio.DataModeling.Converter.Interfaces;
-using Altinn.Studio.DataModeling.Converter.Json;
-using Altinn.Studio.DataModeling.Converter.Xml;
-using Altinn.Studio.Designer;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -162,22 +156,6 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_CheckRemoteUpdates_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.CheckRemoteUpdates("org_should_not_exists", "repo_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
         public void DecoratedISourceControlService_Commit_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
@@ -281,22 +259,6 @@ namespace Designer.Tests.Services
             try
             {
                 service.GetLatestCommitForCurrentUser("org_should_not_exists", "repo_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
-        public void DecoratedISourceControlService_IsLocalRepo_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.IsLocalRepo("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
