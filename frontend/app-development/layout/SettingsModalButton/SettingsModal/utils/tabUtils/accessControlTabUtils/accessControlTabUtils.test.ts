@@ -17,14 +17,14 @@ describe('accessControlTabUtils', () => {
   describe('partyTypesAllowedMap', () => {
     it('should map keys to text strings', () => {
       expect(partyTypesAllowedMap.bankruptcyEstate).toBe(
-        'settings_modal.access_control_tab_option_bankruptcy_estate'
+        'settings_modal.access_control_tab_option_bankruptcy_estate',
       );
       expect(partyTypesAllowedMap.organisation).toBe(
-        'settings_modal.access_control_tab_option_organisation'
+        'settings_modal.access_control_tab_option_organisation',
       );
       expect(partyTypesAllowedMap.person).toBe('settings_modal.access_control_tab_option_person');
       expect(partyTypesAllowedMap.subUnit).toBe(
-        'settings_modal.access_control_tab_option_sub_unit'
+        'settings_modal.access_control_tab_option_sub_unit',
       );
     });
   });

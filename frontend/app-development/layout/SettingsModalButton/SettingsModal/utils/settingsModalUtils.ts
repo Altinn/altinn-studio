@@ -16,7 +16,7 @@ export const createNavigationTab = (
   icon: ReactNode,
   tabId: SettingsModalTab,
   onClick: () => void,
-  currentTab: SettingsModalTab
+  currentTab: SettingsModalTab,
 ): LeftNavigationTab => {
   return {
     icon,
