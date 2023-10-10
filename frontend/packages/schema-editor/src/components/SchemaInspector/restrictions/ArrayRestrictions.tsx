@@ -1,11 +1,10 @@
 import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
-import { LegacyTextField } from '@digdir/design-system-react';
+import { LegacyTextField, Switch } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { LegacyCheckbox } from '@digdir/design-system-react';
 
 export function ArrayRestrictions({
   restrictions,
@@ -39,13 +38,15 @@ export function ArrayRestrictions({
         </div>
       </div>
       <div>
-        <LegacyCheckbox
+        <Switch
+          size='small'
           checked={restrictions[ArrRestrictionKey.uniqueItems]}
-          label={t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
           onChange={(e) =>
             onChangeRestrictionValue(path, ArrRestrictionKey.uniqueItems, e.target.checked)
           }
-        />
+        >
+          {t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
+        </Switch>
       </div>
     </>
   );
