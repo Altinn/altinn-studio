@@ -32,8 +32,6 @@ export const useResourcePolicySubjectsQuery = (
     () => getPolicySubjects(org, repo),
     {
       onSuccess: (data: PolicySubject[]) => {
-        console.log(data);
-
         if (addOrgToList && !data.some((d) => d.subjectId === policySubjectOrg.subjectId))
           data.push(policySubjectOrg);
         return data;
