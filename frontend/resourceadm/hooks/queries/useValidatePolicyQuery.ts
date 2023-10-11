@@ -2,6 +2,7 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Validation } from 'app-shared/types/ResourceAdm';
+import { AxiosError } from 'axios';
 
 /**
  * Query to get the validation status of a policy.
@@ -15,26 +16,33 @@ import type { Validation } from 'app-shared/types/ResourceAdm';
 export const useValidatePolicyQuery = (
   org: string,
   repo: string,
-  id: string
-): UseQueryResult<Validation> => {
+  id: string,
+): UseQueryResult<Validation, AxiosError> => {
   const { getValidatePolicy } = useServicesContext();
 
-  return useQuery<Validation>(
+  return useQuery<Validation, AxiosError>(
     [QueryKey.ValidatePolicy, org, repo, id],
     () => getValidatePolicy(org, repo, id),
     {
       select: (data) => {
-        const allErrors2D: string[][] = Object.values(data.errors);
-        const allErrors = allErrors2D.reduce(
-          (flattenArr, row, i) => flattenArr.concat(row.map((s) => `rule${i + 1}.${s}`)),
-          []
-        );
+        const errorsArray: string[][] = Object.values(data.errors);
+        let allErrors: string[] = [];
+
+        if (errorsArray.length > 1) {
+          allErrors = errorsArray.reduce(
+            (flattenArr, row, i) => flattenArr.concat(row.map((s) => `rule${i + 1}.${s}`)),
+            [],
+          );
+        } else {
+          allErrors = errorsArray.reduce(
+            (flattenArr, row, i) =>
+              flattenArr.concat(`${data.status === 404 ? '' : 'rule' + (i + 1) + '.'}${row}`),
+            [],
+          );
+        }
 
         return { status: data.status, errors: allErrors };
       },
-      meta: {
-        hideDefaultError: true,
-      },
-    }
+    },
   );
 };

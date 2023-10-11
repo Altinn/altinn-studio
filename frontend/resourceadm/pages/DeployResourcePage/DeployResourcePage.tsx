@@ -2,7 +2,16 @@ import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { Textfield, Spinner, Heading, Label, Paragraph, Link } from '@digdir/design-system-react';
+import {
+  Textfield,
+  Spinner,
+  Heading,
+  Label,
+  Paragraph,
+  Link,
+  Alert,
+  ErrorMessage,
+} from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
 import {
@@ -15,12 +24,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
 import { toast } from 'react-toastify';
 
-type DeployResourcePageProps = {
-  /**
-   * Function that navigates to a page with errors
-   * @param page the page to navigate to
-   * @returns void
-   */
+export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
   resourceVersionText: string;
   onSaveVersion: (version: string) => void;
@@ -31,6 +35,8 @@ type DeployResourcePageProps = {
  *    Displays the deploy page for resources
  *
  * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ * @property {string}[resourceVersionText] - The current version stored
+ * @property {function}[onSaveVersion] - Saves the version to backend
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -45,35 +51,35 @@ export const DeployResourcePage = ({
   const repo = `${selectedContext}-resources`;
 
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
-  const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
-    'none',
-  );
+
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
   const [envPublishedTo, setEnvPublishedTo] = useState(null);
 
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
-  const { data: versionData, isLoading: versionLoading } = useResourcePolicyPublishStatusQuery(
-    selectedContext,
-    repo,
-    resourceId,
-  );
-  console.log('versionData', versionData);
-  const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
-    selectedContext,
-    repo,
-    resourceId,
-  );
-  const { data: validateResourceData, isLoading: validateResourceLoading } =
-    useValidateResourceQuery(selectedContext, repo, resourceId);
+  const {
+    data: publishStatusData,
+    isLoading: publishStatusLoading,
+    error: publishStatusError,
+  } = useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
+  const {
+    data: validatePolicyData,
+    isLoading: validatePolicyLoading,
+    error: validatePolicyError,
+  } = useValidatePolicyQuery(selectedContext, repo, resourceId);
+  console.log(validatePolicyData);
+  const {
+    data: validateResourceData,
+    isLoading: validateResourceLoading,
+    error: validateResourceError,
+  } = useValidateResourceQuery(selectedContext, repo, resourceId);
 
   // Query function fo rpublishing a resource
   const { mutate: publishResource, isLoading: publisingResourceLoading } =
     usePublishResourceMutation(selectedContext, repo, resourceId);
 
   const handlePublish = (env: 'tt02' | 'prod' | 'at22' | 'at23') => {
-    console.log('Trying to publish to: ', env);
     setEnvPublishedTo(env);
     publishResource(env, {
       onSuccess: () => {
@@ -86,17 +92,6 @@ export const DeployResourcePage = ({
       },
     });
   };
-
-  /**
-   * Set the value for policy error
-   */
-  useEffect(() => {
-    if (!validatePolicyLoading) {
-      if (validatePolicyData === undefined) setHasPolicyError('notExisting');
-      else if (validatePolicyData.status === 400) setHasPolicyError('validationFailed');
-      else setHasPolicyError('none');
-    }
-  }, [validatePolicyData, validatePolicyLoading]);
 
   /**
    * Constantly check the repostatus to see if we are behind or ahead of master
@@ -119,7 +114,7 @@ export const DeployResourcePage = ({
   const getStatusCardType = (): 'danger' | 'success' => {
     if (
       validateResourceData.status !== 200 ||
-      hasPolicyError !== 'none' ||
+      validatePolicyData.status !== 200 ||
       !isLocalRepoInSync ||
       resourceVersionText === ''
     )
@@ -127,11 +122,27 @@ export const DeployResourcePage = ({
     return 'success';
   };
 
+  const getPolicyValidationErrorMessage = () => {
+    switch (validatePolicyData.status) {
+      case 400: {
+        return t('resourceadm.deploy_status_card_error_policy_page', {
+          num: validatePolicyData.errors.length,
+        });
+      }
+      case 404: {
+        return t('resourceadm.deploy_status_card_error_policy_page_missing');
+      }
+      default: {
+        return t('resourceadm.deploy_status_card_error_policy_page_default');
+      }
+    }
+  };
+
   /**
    * Returns the correct error type for the deploy page
    */
   const getStatusError = (): DeployError[] | string => {
-    if (validateResourceData.status !== 200 || hasPolicyError !== 'none') {
+    if (validateResourceData.status !== 200 || validatePolicyData.status !== 200) {
       const errorList: DeployError[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
@@ -143,16 +154,11 @@ export const DeployResourcePage = ({
           pageWithError: 'about',
         });
       }
-      if (hasPolicyError !== 'none') {
+      if (validatePolicyData.status !== 200) {
         errorList.push({
-          message:
-            hasPolicyError === 'validationFailed'
-              ? validatePolicyData.errors
-                ? t('resourceadm.deploy_status_card_error_policy_page', {
-                    num: validatePolicyData.errors.length,
-                  })
-                : t('resourceadm.deploy_status_card_error_policy_page_default')
-              : t('resourceadm.deploy_status_card_error_policy_page_missing'),
+          message: validatePolicyData.errors
+            ? getPolicyValidationErrorMessage()
+            : t('resourceadm.deploy_status_card_error_policy_page_default'),
           pageWithError: 'policy',
         });
       }
@@ -226,24 +232,37 @@ export const DeployResourcePage = ({
    * Display the content on the page
    */
   const displayContent = () => {
-    if (versionLoading || validatePolicyLoading || validateResourceLoading) {
+    const isLoading: boolean =
+      publishStatusLoading || validatePolicyLoading || validateResourceLoading;
+
+    if (isLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deply_spinner')} />
+          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
         </div>
+      );
+    } else if (publishStatusError || validatePolicyError || validateResourceError) {
+      return (
+        <Alert severity='danger'>
+          <Paragraph>{t('general.fetch_error_message')}</Paragraph>
+          <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
+          {publishStatusError && <ErrorMessage>{publishStatusError.message}</ErrorMessage>}
+          {validatePolicyError && <ErrorMessage>{validatePolicyError.message}</ErrorMessage>}
+          {validateResourceError && <ErrorMessage>{validateResourceError.message}</ErrorMessage>}
+        </Alert>
       );
     } else {
       const tt02Version: string =
-        versionData.publishedVersions.find((v) => v.environment === 'tt02')?.version ??
+        publishStatusData.publishedVersions.find((v) => v.environment === 'tt02')?.version ??
         t('resourceadm.deploy_not_deployed');
       const prodVersion =
-        versionData.publishedVersions.find((v) => v.environment === 'prod')?.version ??
+        publishStatusData.publishedVersions.find((v) => v.environment === 'prod')?.version ??
         t('resourceadm.deploy_not_deployed');
       const at22Version =
-        versionData.publishedVersions.find((v) => v.environment === 'at22')?.version ??
+        publishStatusData.publishedVersions.find((v) => v.environment === 'at22')?.version ??
         t('resourceadm.deploy_not_deployed');
       const at23Version =
-        versionData.publishedVersions.find((v) => v.environment === 'at23')?.version ??
+        publishStatusData.publishedVersions.find((v) => v.environment === 'at23')?.version ??
         t('resourceadm.deploy_not_deployed');
 
       return (
