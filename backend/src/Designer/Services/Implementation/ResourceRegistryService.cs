@@ -211,6 +211,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
                 }
             }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                return new ContentResult() { Content = responseContent, StatusCode = (int)HttpStatusCode.Forbidden };
+            }
             else
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
