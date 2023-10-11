@@ -91,9 +91,13 @@ namespace Designer.Tests.Controllers.ApiTests
             RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
+            if (!disposing)
+            {
+                return;
+            }
             if (!string.IsNullOrWhiteSpace(TestRepoPath))
             {
                 Directory.Delete(TestRepoPath, true);
