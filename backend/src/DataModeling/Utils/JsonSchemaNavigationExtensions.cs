@@ -1,5 +1,3 @@
-#nullable enable
-using System.Linq;
 using Json.Pointer;
 using Json.Schema;
 

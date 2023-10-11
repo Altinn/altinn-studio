@@ -392,7 +392,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             string modelPath = $"/App/models/{dataType.Id}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
-            string formData = await _schemaModelService.GetSchema(org, app, developer, decodedPath, cancellationToken);
+            string formData = await _schemaModelService.GetSchema(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), decodedPath, cancellationToken);
             return Ok(formData);
         }
 
@@ -584,7 +584,7 @@ namespace Altinn.Studio.Designer.Controllers
             string modelPath = $"/App/models/{datamodel}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string json = await _schemaModelService.GetSchema(org, app, developer, decodedPath, cancellationToken);
+            string json = await _schemaModelService.GetSchema(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), decodedPath, cancellationToken);
             return Ok(json);
         }
 

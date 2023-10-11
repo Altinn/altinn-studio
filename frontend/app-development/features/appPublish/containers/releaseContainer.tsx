@@ -9,7 +9,7 @@ import { CreateReleaseComponent } from '../components/createAppReleaseComponent'
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery } from '../../../hooks';
+import { useMediaQuery } from 'app-shared/hooks/useMediaQuery';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -29,7 +29,7 @@ export function ReleaseContainer() {
   const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
     org,
     app,
-    'master'
+    'master',
   );
 
   const latestRelease: AppRelease = releases && releases[0] ? releases[0] : null;

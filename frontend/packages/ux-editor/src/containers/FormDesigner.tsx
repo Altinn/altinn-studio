@@ -1,20 +1,17 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { RightMenu } from '../components/rightMenu/RightMenu';
+import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
-import { LeftMenu } from '../components/leftMenu/LeftMenu';
+import { Elements } from '../components/Elements';
 import { FormContextProvider } from './FormContext';
 import { useText } from '../hooks';
-import { useSearchParams } from 'react-router-dom';
-import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { ErrorPage } from '../components/ErrorPage';
 import { PageSpinner } from 'app-shared/components';
-import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -25,13 +22,10 @@ import { generateComponentId } from '../utils/generateId';
 import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-
-const setSelectedLayoutInLocalStorage = (instanceId: string, layoutName: string) => {
-  if (instanceId) {
-    // Need to use InstanceId as storage key since apps uses it and it is needed to sync layout between preview and editor
-    localStorage.setItem(instanceId, layoutName);
-  }
-};
+import { useSearchParams } from 'react-router-dom';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { Preview } from '../components/Preview';
+import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -44,32 +38,27 @@ export const FormDesigner = ({
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
   const { mutate: updateFormLayout } = useFormLayoutMutation(
     org,
     app,
     selectedLayout,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
-
-  const layoutOrder = useMemo(
-    () => formLayouts?.[selectedLayout]?.order || {},
-    [formLayouts, selectedLayout]
-  );
-  const t = useText();
+  const [searchParams] = useSearchParams();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
+
+  const t = useText();
 
   const formLayoutIsReady =
     instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
@@ -92,14 +81,7 @@ export const FormDesigner = ({
    * Set the correct selected layout based on url parameters
    */
   useEffect(() => {
-    const firstLayoutPage = layoutPagesOrder?.[0];
-    if (!firstLayoutPage) return;
-
     const searchParamsLayout = searchParams.get('layout');
-
-    const updateLayoutInSearchParams = (layout: string) => {
-      setSearchParams((prevParams) => ({ ...prevParams, layout }));
-    };
 
     const isValidLayout = (layoutName: string): boolean => {
       const isExistingLayout = layoutPagesOrder?.includes(layoutName);
@@ -110,33 +92,10 @@ export const FormDesigner = ({
     if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       return;
     }
-
-    updateLayoutInSearchParams(firstLayoutPage);
-  }, [
-    dispatch,
-    formLayoutSettings?.receiptLayoutName,
-    instanceId,
-    layoutPagesOrder,
-    searchParams,
-    selectedLayout,
-    setSearchParams,
-  ]);
-
-  useEffect((): void => {
-    const addInitialPage = (): void => {
-      const layoutName = `${t('general.page')}1`;
-      addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
-    };
-
-    const layoutsWithContentExist = layoutOrder && !Object.keys(layoutOrder).length;
-    // Old apps might have selectedLayout='default' even when there exist a single layout.
-    // Should only add initial page if no layouts exist.
-    if (selectedLayout === DEFAULT_SELECTED_LAYOUT_NAME && !layoutsWithContentExist) {
-      addInitialPage();
-    }
-  }, [app, dispatch, org, selectedLayout, t, layoutOrder, addLayoutMutation]);
+  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
@@ -149,6 +108,7 @@ export const FormDesigner = ({
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
+
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
       if (validateDepth(updatedLayout)) {
         addItemToLayout({ componentType: type, newId, parentId, index });
@@ -163,11 +123,12 @@ export const FormDesigner = ({
       <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <LeftMenu className={classes.leftContent + ' ' + classes.item} />
+            <Elements />
             <FormContextProvider>
-              <DesignView className={classes.mainContent + ' ' + classes.item} />
-              <RightMenu className={classes.rightContent + ' ' + classes.item} />
+              <DesignView />
+              <Properties />
             </FormContextProvider>
+            <Preview />
           </div>
         </div>
       </DragAndDrop.Provider>

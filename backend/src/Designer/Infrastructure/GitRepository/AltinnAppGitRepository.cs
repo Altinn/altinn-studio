@@ -733,38 +733,30 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Saves bpmn file to disk.
+        /// Saves the processdefinition file on disk.
         /// </summary>
-        /// <param name="file">Content of bpmn file.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException">Throws argument exception if size of syntax validation of the file fails.</exception>
-        public async Task<string> SaveProcessDefinitionFile(string file)
+        /// <param name="file">Stream of the file to be saved.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public async Task SaveProcessDefinitionFileAsync(Stream file, CancellationToken cancellationToken = default)
         {
-            Guard.AssertNotNullOrEmpty(file, nameof(file));
-            if (file.Length > 100_000)
+            cancellationToken.ThrowIfCancellationRequested();
+            if (file.Length > 1000_000)
             {
                 throw new ArgumentException("Bpmn file is too large");
             }
+            await Guard.AssertValidXmlStreamAndRewindAsync(file);
 
-            Guard.AssertValidXmlContent(file);
-
-            await WriteTextByRelativePathAsync(ProcessDefinitionFilePath, file, true);
-            return file;
+            await WriteStreamByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
         }
 
-        /// <summary>
-        /// Gets the Bpmn file from App/config/process/process.bpmn location
-        /// </summary>
-        /// <returns>Content of Bpmn file</returns>
-        /// <exception cref="NotFoundHttpRequestException">If file doesn't exists.</exception>
-        public async Task<string> GetProcessDefinitionFile()
+        public Stream GetProcessDefinitionFile()
         {
             if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
             {
                 throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
-            return await ReadTextByRelativePathAsync(ProcessDefinitionFilePath);
+            return OpenStreamByRelativePath(ProcessDefinitionFilePath);
         }
 
         /// <summary>

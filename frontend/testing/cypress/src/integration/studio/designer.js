@@ -2,28 +2,28 @@
 /// <reference types="../../support" />
 
 import * as texts from '../../../../../language/src/nb.json';
-import { administration } from "../../selectors/administration";
-import { designer } from "../../selectors/designer";
-import { header } from "../../selectors/header";
+import { administration } from '../../selectors/administration';
+import { designer } from '../../selectors/designer';
+import { header } from '../../selectors/header';
+
+const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
 
 context('Designer', () => {
   before(() => {
-    cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    const [orgName, appName] = Cypress.env('designerApp').split('/');
-    cy.createapp(orgName, appName);
-    cy.clearCookies();
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');
   });
 
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+  });
+
   it('is possible to edit information about the app', () => {
-    const designerApp = Cypress.env('designerApp');
     // Navigate to designerApp
-    cy.visit('/editor/' + Cypress.env('designerApp'));
+    cy.visit('/editor/' + designerAppId);
     administration.getHeader().should('be.visible');
     cy.findByRole('button', { name: texts['general.edit'] }).click();
     administration.getAppNameField().clear().type('New app name');
@@ -37,33 +37,57 @@ context('Designer', () => {
     cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
 
     // Navigate to designerApp
-    cy.visit('/editor/' + Cypress.env('designerApp'));
+    cy.visit('/editor/' + designerAppId);
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
     // Add new page and ensure updated data is loaded
     designer.getAddPageButton().click();
+
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-
-    // Verify navigation button exists in form
-    designer.getDroppableList().findByRole('listitem', { name: texts['ux_editor.component_navigation_buttons'] }).should('be.visible');
 
     // Add an input component
     designer.getToolbarItemByText(texts['ux_editor.component_input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
-    designer.getDroppableList()
-      .findAllByRole('listitem')
-      .then(($elements) => expect($elements.length).eq(2));
+    designer
+      .getPageAccordionByName('Side1')
+      .findByRole('listitem', { name: texts['ux_editor.component_input'] });
+    //.findAllByRole('listitem')
+    // .then(($elements) => expect($elements.length).eq(1));
 
     // Delete components on page
-    cy.deletecomponents();
+    cy.deleteComponents();
+  });
+
+  it('should add navigation buttons when adding more than one page', () => {
+    cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+    cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
+
+    // Navigate to designerApp
+    cy.visit('/editor/' + designerAppId);
+    header.getCreateLink().click();
+    cy.ensureCreatePageIsLoaded();
+
+    // Add two new pages to ensure that navigation-buttons will be added to page
+    designer.getAddPageButton().click();
+    designer.getAddPageButton().click();
+
+    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+
+    cy.wait(500);
+    designer
+      .getPageAccordionByName('Side2')
+      .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });
+
+    cy.deleteComponents();
   });
 
   // Disabled for now, as this generates too many copies of the same app
   // it('is possible to delete local changes of an app ', () => {
-  //   cy.searchAndOpenApp(Cypress.env('designerApp'));
+  //   cy.searchAndOpenApp(Cypress.env('designerAppName'));
   //   cy.intercept('GET', '**/layout-settings').as('getLayoutSettings');
   //   cy.get(designer.appMenu['edit']).click();
   //   cy.wait('@getLayoutSettings');

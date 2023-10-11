@@ -4,10 +4,9 @@
 }
 
 .administration::before {
-  /* webpackIgnore: true */
   background-image: url('/designer/img/Altinn-studio.svg');
-  background-position: center -220px;
-  background-size: 1620px auto;
+  background-position: left -220px;
+  background-size: 1600px auto;
   background-repeat: no-repeat;
 
   content: ' ';
@@ -27,7 +26,7 @@
 }
 
 .header {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--studio-font-family);
   padding: var(--fds-spacing-6) 0 var(--fds-spacing-6) 0;
 }
 
@@ -40,6 +39,7 @@
   border-radius: 6px;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
   display: flex;
+  flex-direction: column;
   padding: var(--fds-spacing-10);
   position: relative;
   gap: var(--fds-spacing-10);
@@ -53,7 +53,7 @@
 }
 
 .main {
-  flex: 9;
+  flex: 5;
 }
 
 .aside {
@@ -63,6 +63,7 @@
 .divider {
   background-color: #efefef;
   border: none;
+  display: none;
   height: 2px;
   opacity: 0.5;
   width: 100%;
@@ -74,4 +75,20 @@
   border: solid 2px #efefef;
   border-radius: 6px;
   height: 500px;
+}
+
+@media (min-width: 960px) {
+  .content {
+    flex-direction: row;
+  }
+
+  .divider {
+    display: block;
+  }
+}
+
+@media (min-width: 1600px) {
+  .administration::before {
+    background-position: center -220px;
+  }
 }

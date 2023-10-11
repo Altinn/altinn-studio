@@ -250,7 +250,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                _repository.ResetLocalRepository(org, repository);
+                _repository.ResetLocalRepository(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer));
                 return Ok();
             }
             catch (Exception)

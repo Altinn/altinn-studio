@@ -1,18 +1,16 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as texts from "@altinn-studio/language/src/nb.json";
+import * as texts from '@altinn-studio/language/src/nb.json';
 import { header } from '../../selectors/header';
 import { dashboard } from '../../selectors/dashboard';
 import { common } from '../../selectors/common';
 
 context('Dashboard', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createapp(Cypress.env('autoTestUser'), 'auto-app');
-    cy.createapp(Cypress.env('autoTestUser'), 'test-app');
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), 'auto-app');
+    cy.createApp(Cypress.env('autoTestUser'), 'test-app');
   });
 
   beforeEach(() => {
@@ -23,14 +21,18 @@ context('Dashboard', () => {
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
 
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+  });
+
   it('does not have broken links', () => {
-    cy.findAllByRole('link').each(link => {
+    cy.findAllByRole('link').each((link) => {
       if (link.prop('href'))
         cy.request({
           url: link.prop('href'),
-          failOnStatusCode: true
-        })
-      cy.log( link.prop('href'));
+          failOnStatusCode: true,
+        });
+      cy.log(link.prop('href'));
     });
   });
 
@@ -46,9 +48,17 @@ context('Dashboard', () => {
         .eq(1) // Pick the first row after the header row
         .then((row) => {
           cy.get(row).findByLabelText(texts['dashboard.star']).click();
-          common.getCellByColumnHeader(apps, row, texts['dashboard.name']).invoke('text').should('not.be.empty');
-          common.getCellByColumnHeader(apps, row, texts['dashboard.created_by']).should('have.text', createdBy);
-          common.getCellByColumnHeader(apps, row, texts['dashboard.last_modified']).invoke('text').should('not.be.empty');
+          common
+            .getCellByColumnHeader(apps, row, texts['dashboard.name'])
+            .invoke('text')
+            .should('not.be.empty');
+          common
+            .getCellByColumnHeader(apps, row, texts['dashboard.created_by'])
+            .should('have.text', createdBy);
+          common
+            .getCellByColumnHeader(apps, row, texts['dashboard.last_modified'])
+            .invoke('text')
+            .should('not.be.empty');
         });
     });
     cy.wait('@addFavourite').its('response.statusCode').should('eq', 204);
@@ -74,11 +84,9 @@ context('Dashboard', () => {
   it('is possible to change context and view only Testdepartementet apps', () => {
     cy.visit('/dashboard');
     header.getAvatar().should('be.visible').click();
-    header.getMenuItemOrg(Cypress.env('appOwnerUsername'))
-      .should('be.visible')
-      .click();
+    header.getMenuItemOrg(Cypress.env('orgUserName')).should('be.visible').click();
     cy.wait('@fetchApps');
-    dashboard.getOrgAppsHeader(Cypress.env('appOwner')).should('be.visible');
+    dashboard.getOrgAppsHeader(Cypress.env('orgFullName')).should('be.visible');
   });
 
   it('is possible to search an app by name', () => {
@@ -148,7 +156,7 @@ context('Dashboard', () => {
     dashboard
       .getUserAppsList()
       .findByRole('cell', { name: 'auto-app' })
-      .siblings('div[data-field=\'links\']')
+      .siblings("div[data-field='links']")
       .findByRole('menuitem', { name: texts['dashboard.repository'] })
       .click();
     cy.get('.repo-header').should('be.visible');
@@ -158,6 +166,6 @@ context('Dashboard', () => {
   });
 
   after(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

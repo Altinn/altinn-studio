@@ -2,15 +2,13 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { administration } from "../../selectors/administration";
-import { header } from "../../selectors/header";
+import { administration } from '../../selectors/administration';
+import { header } from '../../selectors/header';
 
 context('Sync app and deploy', () => {
   before(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createapp(Cypress.env('autoTestUser'), 'designer');
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
@@ -25,8 +23,12 @@ context('Sync app and deploy', () => {
     cy.visit('/dashboard');
   });
 
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+  });
+
   it('is possible to sync changes', () => {
-    cy.searchAndOpenApp(Cypress.env('designerApp'));
+    cy.searchAndOpenApp(Cypress.env('designerAppName'));
     // Make some changes
     cy.findByRole('button', { name: 'Endre' }).click();
     administration.getAppNameField().should('be.enabled').clear().type(Date.now());

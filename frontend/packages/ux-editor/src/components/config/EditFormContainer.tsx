@@ -5,12 +5,7 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import {
-  LegacyCheckbox,
-  LegacyCheckboxGroup,
-  LegacyFieldSet,
-  LegacyTextField,
-} from '@digdir/design-system-react';
+import { Switch, Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
@@ -168,12 +163,13 @@ export const EditFormContainer = ({
       </FormField>
       <FormField
         id={container.id}
-        label={t('ux_editor.modal_properties_group_repeating')}
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
       >
         {({ value, onChange }) => (
-          <LegacyCheckbox checked={value} onChange={(e) => onChange(e.target.checked, e)} />
+          <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
+            {t('ux_editor.modal_properties_group_repeating')}
+          </Switch>
         )}
       </FormField>
       {container.maxCount > 1 && (
@@ -207,28 +203,34 @@ export const EditFormContainer = ({
           {items?.length > 0 && (
             <FormField
               id={container.id}
-              onChange={handleTableHeadersChange}
               value={items}
+              onChange={handleTableHeadersChange}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
             >
-              {({ value }) => (
-                <LegacyCheckboxGroup
-                  error={tableHeadersError}
-                  items={items
-                    .filter((id) => !!components[id])
-                    .map((id) => ({
-                      label:
-                        getTextResource(
+              {() => {
+                const filteredItems = items.filter((id) => !!components[id]);
+                const checkboxes = filteredItems.map((id) => ({
+                  id,
+                  name: id,
+                  checked:
+                    container.tableHeaders === undefined || container.tableHeaders.includes(id),
+                }));
+                return (
+                  <Checkbox.Group
+                    error={tableHeadersError}
+                    legend={t('ux_editor.modal_properties_group_table_headers')}
+                  >
+                    {checkboxes.map(({ id, name, checked }) => (
+                      <Checkbox key={id} name={name} checked={checked} value={id}>
+                        {getTextResource(
                           components[id]?.textResourceBindings?.title,
                           textResources,
-                        ) || id,
-                      name: id,
-                      checked:
-                        container.tableHeaders === undefined || container.tableHeaders.includes(id),
-                    }))}
-                  legend={t('ux_editor.modal_properties_group_table_headers')}
-                />
-              )}
+                        ) || id}
+                      </Checkbox>
+                    ))}
+                  </Checkbox.Group>
+                );
+              }}
             </FormField>
           )}
         </>

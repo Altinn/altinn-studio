@@ -1,0 +1,18 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroupWrapper {
+  border-color: #6a6a6a;
+  border-style: solid;
+  border-width: 1px 0;
+  background-color: #0062ba08;
+}
+
+.formGroupWrapper.editMode {
+  border-color: #008fd6;
+  border-style: dashed;
+  box-shadow: 0 0 4px #1eadf740;
+  box-sizing: border-box;
+}

@@ -2,13 +2,10 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "http://studio.localhost",
   "env": {
-    "testEmail": "test1@test.com",
-    "deployApp": "ttd/auto-deploy-app-v3",
-    "designerApp": "ttd/designer",
-    "datamodelApp": "cypress_testuser/datamodel",
-    "withoutDataModelApp": "ttd/appwithout-dm",
-    "appOwner": "Testdepartementet",
-    "appOwnerUsername": "ttd"
+    "orgFullName": "Testdepartementet",
+    "orgUserName": "ttd",
+    "deployAppName": "auto-deploy-app-v3",
+    "designerAppName": "auto-designer-app-local"
   },
   "defaultCommandTimeout": 10000,
   "requestTimeout": 10000

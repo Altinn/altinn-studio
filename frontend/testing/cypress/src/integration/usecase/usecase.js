@@ -2,14 +2,14 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as texts from "@altinn-studio/language/src/nb.json";
-import { administration } from "../../selectors/administration";
-import { deploy } from "../../selectors/deploy";
-import { designer } from "../../selectors/designer";
-import { gitea } from "../../selectors/gitea";
+import * as texts from '@altinn-studio/language/src/nb.json';
+import { administration } from '../../selectors/administration';
+import { deploy } from '../../selectors/deploy';
+import { designer } from '../../selectors/designer';
+import { gitea } from '../../selectors/gitea';
 import { header } from '../../selectors/header';
-import { preview } from "../../selectors/preview";
-import { textEditor } from "../../selectors/textEditor";
+import { preview } from '../../selectors/preview';
+import { textEditor } from '../../selectors/textEditor';
 
 context(
   'Bruksmønster',
@@ -20,18 +20,18 @@ context(
   },
   () => {
     before(() => {
-      cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
-      cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
+      cy.studioLogin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
+      const deployAppId = `${Cypress.env('orgUserName')}/${Cypress.env('deployAppName')}`;
+      cy.getRepoByAppId(deployAppId, Cypress.env('accessToken')).then((response) => {
         if (response.status === 404) {
-          const [_, appName] = Cypress.env('deployApp').split('/');
-          cy.createapp('Testdepartementet', appName);
+          cy.createApp(Cypress.env('orgFullName'), Cypress.env('deployAppName'));
         }
       });
     });
     beforeEach(() => {
-      cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
+      cy.studioLogin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       cy.visit('/');
-      cy.searchAndOpenApp(Cypress.env('deployApp'));
+      cy.searchAndOpenApp(Cypress.env('deployAppName'));
       administration.getHeader().should('be.visible');
     });
 
@@ -40,7 +40,7 @@ context(
       administration
         .getAppNameField()
         .invoke('val')
-        .should('contain', Cypress.env('deployApp').split('/')[1]);
+        .should('contain', Cypress.env('deployAppName'));
 
       // Forms editor
       header.getCreateLink().click();
@@ -52,15 +52,19 @@ context(
 
       // Preview
       header.getPreviewButton().should('be.visible').click();
-      cy.visit('/preview/' + Cypress.env('deployApp'));
+      cy.visit(`/preview/${Cypress.env('orgUserName')}/${Cypress.env('deployAppName')}`);
       preview.getBackToEditorButton().should('be.visible').click();
 
       // Repos
       header.getProfileIcon().should('be.visible').click();
-      header.getOpenRepoLink().should('be.visible').invoke('attr', 'href').then(href => {
-        cy.visit(href);
-        gitea.getRepositoryHeader().should('be.visible');
-      });
+      header
+        .getOpenRepoLink()
+        .should('be.visible')
+        .invoke('attr', 'href')
+        .then((href) => {
+          cy.visit(href);
+          gitea.getRepositoryHeader().should('be.visible');
+        });
     });
 
     // it('Gitea connection - Pull changes', () => {
@@ -82,5 +86,5 @@ context(
         cy.get(table).find('tbody > tr').should('have.length.gte', 1);
       });
     });
-  }
+  },
 );

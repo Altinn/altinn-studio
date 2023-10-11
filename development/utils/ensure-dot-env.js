@@ -4,13 +4,13 @@ const os = require('os');
 const getCommit = require('./git-commit-hash');
 const randomPass = () =>
   [Math.random().toString(36).substring(2, 5), Math.random().toString(36).substring(2, 5)].join(
-    'DIG@'
+    'DIG@',
   );
 
 const defaultEnvVars = {
   CYPRESS_TEST_APP: 'autodeploy-v3',
   DEVELOP_APP_DEVELOPMENT: 0,
-  DEVELOP_RESOURCE_ADMIN: true,
+  DEVELOP_RESOURCE_ADMIN: 0,
   DEVELOP_BACKEND: 0,
   DEVELOP_DASHBOARD: 0,
   DEVELOP_PREVIEW: 0,

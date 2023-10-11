@@ -57,15 +57,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
 
         /// <summary>
-        /// Search the repository for the given parameters
-        /// </summary>
-        /// <param name="onlyAdmin">search parameter to search only admin repositories</param>
-        /// <param name="keyWord">the search keyword</param>
-        /// <param name="page">the page to search</param>
-        /// <returns>The repositories matching the search</returns>
-        Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
-
-        /// <summary>
         /// Search the repository for the given searchOptions
         /// </summary>
         /// <param name="searchOption">the search options</param>
