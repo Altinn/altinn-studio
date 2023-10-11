@@ -1,11 +1,13 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
+import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
 import { ProcessEditor } from 'app-development/features/processEditor';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -45,7 +47,7 @@ export const routes: IRoute[] = [
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     menu: 'about',
-    subapp: Administration,
+    subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
   },
   {
     path: '/:org/:app/datamodel',
