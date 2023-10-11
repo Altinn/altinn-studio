@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
@@ -6,13 +6,12 @@ import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
 import { FormContextProvider } from './FormContext';
 import { useText } from '../hooks';
-import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
 import { PageSpinner } from 'app-shared/components';
-import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -48,7 +47,6 @@ export const FormDesigner = ({
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
   const { mutate: updateFormLayout } = useFormLayoutMutation(
     org,
@@ -60,10 +58,6 @@ export const FormDesigner = ({
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
-  const layoutOrder = useMemo(
-    () => formLayouts?.[selectedLayout]?.order || {},
-    [formLayouts, selectedLayout],
-  );
   const t = useText();
 
   const formLayoutIsReady =
@@ -102,20 +96,6 @@ export const FormDesigner = ({
       return;
     }
   }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
-
-  useEffect((): void => {
-    const addInitialPage = (): void => {
-      const layoutName = `${t('general.page')}1`;
-      addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
-    };
-
-    const layoutsWithContentExist = layoutOrder && !Object.keys(layoutOrder).length;
-    // Old apps might have selectedLayout='default' even when there exist a single layout.
-    // Should only add initial page if no layouts exist.
-    if (selectedLayout === DEFAULT_SELECTED_LAYOUT_NAME && !layoutsWithContentExist) {
-      addInitialPage();
-    }
-  }, [app, dispatch, org, selectedLayout, t, layoutOrder, addLayoutMutation]);
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
