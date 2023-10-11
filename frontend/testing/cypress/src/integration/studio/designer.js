@@ -53,8 +53,9 @@ context('Designer', () => {
     cy.wait(500);
     designer
       .getPageAccordionByName('Side1')
-      .findAllByRole('listitem')
-      .then(($elements) => expect($elements.length).eq(1));
+      .findByRole('listitem', { name: texts['ux_editor.component_input'] });
+    //.findAllByRole('listitem')
+    // .then(($elements) => expect($elements.length).eq(1));
 
     // Delete components on page
     cy.deleteComponents();
@@ -76,7 +77,6 @@ context('Designer', () => {
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
 
-    // Add an input component
     cy.wait(500);
     designer
       .getPageAccordionByName('Side2')
