@@ -41,7 +41,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
         toast.success(t('administration.reset_repo_completed'));
         queryClient.removeQueries();
         onCloseWrapper();
-      }
+      },
     });
   };
 
@@ -76,9 +76,9 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
           <div>
             <Trans
-                i18nKey={'administration.reset_repo_confirm_info'}
-                values={{ repositoryName: props.repositoryName }}
-                components={{ bold: <strong/> }}
+              i18nKey={'administration.reset_repo_confirm_info'}
+              values={{ repositoryName: props.repositoryName }}
+              components={{ bold: <strong /> }}
             />
           </div>
           <label htmlFor='delete-repo-name'>
@@ -103,7 +103,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
               >
                 {t('administration.reset_repo_button')}
               </Button>
-              <Button color='secondary' onClick={onCloseWrapper} variant='outline' size='small'>
+              <Button color='second' onClick={onCloseWrapper} variant='outline' size='small'>
                 {t('general.cancel')}
               </Button>
             </div>

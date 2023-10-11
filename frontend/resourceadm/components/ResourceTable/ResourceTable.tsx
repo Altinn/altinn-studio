@@ -5,7 +5,7 @@ import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
 import { ResourceTableDataRow } from './ResourceTableDataRow';
 import { Button } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type ResourceTableProps = {
   /**
@@ -29,7 +29,10 @@ export type ResourceTableProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTable = ({ list, onClickEditResource }: ResourceTableProps): React.ReactNode => {
+export const ResourceTable = ({
+  list,
+  onClickEditResource,
+}: ResourceTableProps): React.ReactNode => {
   const { t } = useTranslation();
 
   const [isSortedByNewest, setIsSortedByNewest] = useState(true);
@@ -43,10 +46,10 @@ export const ResourceTable = ({ list, onClickEditResource }: ResourceTableProps)
         key={resource.identifier}
         resource={resource}
         onClickEditResource={() => {
-          onClickEditResource(resource.identifier)
+          onClickEditResource(resource.identifier);
         }}
       />
-    )
+    );
   });
 
   const handleSortTable = () => {
@@ -63,22 +66,18 @@ export const ResourceTable = ({ list, onClickEditResource }: ResourceTableProps)
           <th className={cn(classes.tableHeaderMedium, classes.tableHeaderLastChanged)}>
             <Button
               variant='quiet'
-              icon={
-                isSortedByNewest ? (
-                  <CaretDownFillIcon />
-                ) : (
-                  <CaretUpFillIcon  />
-                )
-              }
+              icon={isSortedByNewest ? <CaretDownFillIcon /> : <CaretUpFillIcon />}
               onClick={handleSortTable}
               iconPlacement='right'
-              color='secondary'
+              color='second'
               size='small'
             >
               {t('resourceadm.dashboard_table_header_last_changed')}
             </Button>
           </th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>{t('resourceadm.dashboard_table_header_policy_rules')}</th>
+          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>
+            {t('resourceadm.dashboard_table_header_policy_rules')}
+          </th>
           <th
             className={cn(classes.tableHeaderSmall, classes.tableHeader)}
             aria-label={t('resourceadm.dashboard_table_header_edit')}

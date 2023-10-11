@@ -11,7 +11,7 @@ import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import {
   LegacyFieldSet,
   Select,
-  TextArea,
+  LegacyTextArea,
   LegacyTextField,
   Switch,
 } from '@digdir/design-system-react';
@@ -218,7 +218,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           />
         </div>
         <div>
-          <TextArea
+          <LegacyTextArea
             id={descriptionId}
             aria-label={t('schema_editor.description')}
             label={t('schema_editor.description')}

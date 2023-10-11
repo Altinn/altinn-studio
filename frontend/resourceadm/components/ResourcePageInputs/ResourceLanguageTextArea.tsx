@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Paragraph, Label, TextArea } from '@digdir/design-system-react';
+import { Paragraph, Label, LegacyTextArea } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceLanguageTextAreaProps = {
@@ -102,7 +102,7 @@ export const ResourceLanguageTextArea = forwardRef<
           <Paragraph size='small' spacing className={classes.description}>
             {description}
           </Paragraph>
-          <TextArea
+          <LegacyTextArea
             value={value}
             resize='vertical'
             onChange={(e) => onChangeValue(e.currentTarget.value)}
