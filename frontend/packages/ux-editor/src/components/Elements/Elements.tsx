@@ -23,8 +23,8 @@ export const Elements = () => {
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { receiptLayoutName } = formLayoutSettingsQuery.data;
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
@@ -56,7 +56,7 @@ export const Elements = () => {
           <Paragraph className={classes.noPageSelected} size='small'>
             {t('left_menu.no_components_selected')}
           </Paragraph>
-        ) : receiptLayoutName === selectedLayout ? (
+        ) : receiptName === selectedLayout ? (
           <ConfPageToolbar />
         ) : (
           <DefaultToolbar />

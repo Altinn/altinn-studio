@@ -20,10 +20,11 @@ import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { RenderedFormContainer } from './RenderedFormContainer';
 import { ReceiptContent } from './ReceiptContent';
+import {PageSpinner} from "app-shared/components";
 
 /**
  * @component
- *    Displays the column containing accordions with componnets for each page
+ *    Displays the column containing accordions with components for each page
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -31,37 +32,34 @@ export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
-
-  const layoutOrder = formLayoutSettingsQuery.data.pages.order;
+  
+  const receiptName = formLayoutSettings?.receiptLayoutName;
+  const layoutOrder = formLayoutSettings?.pages.order;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
+  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
 
   const { t } = useTranslation();
-
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-
-  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
 
   /**
    * Maps the IFormLayouts object to a list of FormLayouts
    */
   const mapIFormLayoutsToFormLayouts = (iFormLayouts: IFormLayouts): FormLayout[] => {
+    if (!layouts) return [];
     return Object.entries(iFormLayouts).map(([key, value]) => ({
       page: key,
       data: value,
     }));
   };
+  
+  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(mapIFormLayoutsToFormLayouts(layouts));
 
-  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(
-    mapIFormLayoutsToFormLayouts(layouts),
-  );
+  const designViewIsReady = formLayoutData && formLayoutSettings;
 
   useEffect(() => {
     setOpenAccordion(searchParamsLayout);
@@ -133,7 +131,7 @@ export const DesignView = (): ReactNode => {
    * Displays the pages as an ordered list
    */
   const displayPageAccordions = layoutOrder.map((pageName, i) => {
-    const layout = formLayoutData.find((formLayout) => formLayout.page === pageName);
+    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageName);
 
     // If the layout does not exist, return null
     if (layout === undefined) return null;
@@ -158,6 +156,8 @@ export const DesignView = (): ReactNode => {
       </PageAccordion>
     );
   });
+
+  if (!designViewIsReady) return <PageSpinner/>
 
   return (
     <div className={classes.root}>

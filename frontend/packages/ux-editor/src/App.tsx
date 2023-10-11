@@ -42,9 +42,9 @@ export function App() {
 
   useEffect(() => {
     if (
-      areLayoutSetsFetched &&
-      selectedLayoutSetInPreview &&
-      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSetInPreview))
+        areLayoutSetsFetched &&
+        selectedLayoutSetInPreview &&
+        (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSetInPreview))
     )
       removeSelectedLayoutSetInPreview();
   }, [
