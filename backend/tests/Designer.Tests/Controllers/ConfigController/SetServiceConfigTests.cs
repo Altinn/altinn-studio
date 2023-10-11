@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ConfigController
 {
-    public class SetServiceConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ConfigController, SetServiceConfigTests>
+    public class SetServiceConfigTests : DisagnerEndpointsTestsBase<SetServiceConfigTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
-        public SetServiceConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ConfigController> factory) : base(factory)
+        public SetServiceConfigTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

@@ -7,9 +7,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdmController
 {
-    public class IndexTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ResourceAdmController, IndexTests>
+    public class IndexTests : DisagnerEndpointsTestsBase<IndexTests>
     {
-        public IndexTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdmController> factory) : base(factory)
+        public IndexTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

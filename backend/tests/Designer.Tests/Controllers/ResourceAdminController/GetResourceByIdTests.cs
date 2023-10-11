@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetResourceByIdTests : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>
     {
 
-        public GetResourceByIdTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetResourceByIdTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

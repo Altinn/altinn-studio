@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class CreateApplicationMetadataTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, CreateApplicationMetadataTests>
+    public class CreateApplicationMetadataTests : DisagnerEndpointsTestsBase<CreateApplicationMetadataTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public CreateApplicationMetadataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public CreateApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

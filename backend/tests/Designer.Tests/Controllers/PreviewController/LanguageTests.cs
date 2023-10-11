@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class LanguageTests : PreviewControllerTestsBase<LanguageTests>
     {
 
-        public LanguageTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public LanguageTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

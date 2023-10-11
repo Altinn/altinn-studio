@@ -14,11 +14,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CopyAppTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, CopyAppTests>
+    public class CopyAppTests : DisagnerEndpointsTestsBase<CopyAppTests>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";
-        public CopyAppTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
+        public CopyAppTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

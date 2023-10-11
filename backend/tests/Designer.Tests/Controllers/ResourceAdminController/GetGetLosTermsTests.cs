@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetGetLosTermsTests : ResourceAdminControllerTestsBaseClass<GetGetLosTermsTests>
     {
 
-        public GetGetLosTermsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetGetLosTermsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

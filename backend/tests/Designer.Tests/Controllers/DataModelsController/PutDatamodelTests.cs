@@ -31,14 +31,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, PutDatamodelTests>
+public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private string TargetTestRepository { get; }
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
-    public PutDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public PutDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         TargetTestRepository = TestDataHelper.GenerateTestRepoName();
     }

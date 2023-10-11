@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextKeysController
 {
-    public class PutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextKeysController, GetTests>
+    public class PutTests : DisagnerEndpointsTestsBase<GetTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
-        public PutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextKeysController> factory) : base(factory)
+        public PutTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

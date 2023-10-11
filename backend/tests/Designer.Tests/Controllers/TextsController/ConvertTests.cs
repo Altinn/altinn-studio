@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class ConvertTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController, ConvertTests>
+    public class ConvertTests : DisagnerEndpointsTestsBase<ConvertTests>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
-        public ConvertTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
+        public ConvertTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

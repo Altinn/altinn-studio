@@ -18,10 +18,8 @@ namespace Designer.Tests.Controllers.ApiTests
     /// More adjusted version of the ApiTestsBase class that is used for testing controllers that contains org and repo in the path.
     /// Provides functionality for copying a repository from the test repositories location to a temporary location for testing which is disposed after execution of the test.
     /// </summary>
-    /// <typeparam name="TController">Controller type.</typeparam>
     /// <typeparam name="TControllerTest">Tests class type.</typeparam>
-    public abstract class DisagnerEndpointsTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>
-        where TController : ControllerBase
+    public abstract class DisagnerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         /// <summary>
@@ -50,7 +48,7 @@ namespace Designer.Tests.Controllers.ApiTests
             Converters = { new JsonStringEnumConverter() }
         };
 
-        public DisagnerEndpointsTestsBase(WebApplicationFactory<TController> factory) : base(factory)
+        public DisagnerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

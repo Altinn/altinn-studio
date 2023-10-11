@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
 {
     public class AnonymousTests : PreviewControllerTestsBase<AnonymousTests>
     {
-        public AnonymousTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public AnonymousTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

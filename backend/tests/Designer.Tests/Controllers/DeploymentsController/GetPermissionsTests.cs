@@ -13,12 +13,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class GetPermissions : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.DeploymentsController, GetPermissions>
+public class GetPermissions : DisagnerEndpointsTestsBase<GetPermissions>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
     private readonly Mock<IGitea> _giteaMock;
 
-    public GetPermissions(WebApplicationFactory<Altinn.Studio.Designer.Controllers.DeploymentsController> factory) : base(factory)
+    public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)
     {
         _giteaMock = new Mock<IGitea>();
         _giteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");

@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetRuleConfigurationTests : PreviewControllerTestsBase<GetRuleConfigurationTests>
     {
 
-        public GetRuleConfigurationTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetRuleConfigurationTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

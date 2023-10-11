@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class KeepAliveTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.SessionController, KeepAliveTests>
+    public class KeepAliveTests : DisagnerEndpointsTestsBase<KeepAliveTests>
     {
         private static string VersionPrefix => "/designer/api/session";
-        public KeepAliveTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.SessionController> factory) : base(factory)
+        public KeepAliveTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

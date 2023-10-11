@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetAltinn2LinkServicesTests : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>
     {
 
-        public GetAltinn2LinkServicesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetAltinn2LinkServicesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

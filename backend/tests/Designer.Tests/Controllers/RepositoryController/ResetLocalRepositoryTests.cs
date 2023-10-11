@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, ResetLocalRepositoryTests>
+    public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<ResetLocalRepositoryTests>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public ResetLocalRepositoryTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
+        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

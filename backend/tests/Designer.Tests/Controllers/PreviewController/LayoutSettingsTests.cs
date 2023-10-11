@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.PreviewController
 {
     public class LayoutSettingsTests : PreviewControllerTestsBase<LayoutSettingsTests>
     {
-        public LayoutSettingsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public LayoutSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<DatamodelsController, UseXsdFromRepoTests>
+public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<UseXsdFromRepoTests>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public UseXsdFromRepoTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public UseXsdFromRepoTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 

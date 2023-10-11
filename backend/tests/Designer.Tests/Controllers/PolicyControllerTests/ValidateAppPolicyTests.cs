@@ -14,11 +14,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class ValidateAppPolicyTests : DisagnerEndpointsTestsBase<PolicyController, ValidateAppPolicyTests>
+    public class ValidateAppPolicyTests : DisagnerEndpointsTestsBase<ValidateAppPolicyTests>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public ValidateAppPolicyTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public ValidateAppPolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

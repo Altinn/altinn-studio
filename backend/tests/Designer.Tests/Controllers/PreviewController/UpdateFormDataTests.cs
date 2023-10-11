@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class UpdateFormDataTests : PreviewControllerTestsBase<UpdateFormDataTests>
     {
 
-        public UpdateFormDataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public UpdateFormDataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

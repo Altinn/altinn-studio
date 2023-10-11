@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class GetSessionDetailsTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.SessionController, GetSessionDetailsTests>
+    public class GetSessionDetailsTests : DisagnerEndpointsTestsBase<GetSessionDetailsTests>
     {
         private static string VersionPrefix => "/designer/api/session";
-        public GetSessionDetailsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.SessionController> factory) : base(factory)
+        public GetSessionDetailsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetRuleHandlerTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetRuleHandlerTests>
+    public class GetRuleHandlerTests : DisagnerEndpointsTestsBase<GetRuleHandlerTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public GetRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public GetRuleHandlerTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

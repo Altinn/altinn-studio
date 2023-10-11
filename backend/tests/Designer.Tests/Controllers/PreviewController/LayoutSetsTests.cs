@@ -8,7 +8,7 @@ namespace Designer.Tests.Controllers.PreviewController
 {
     public class LayoutSetsTests : PreviewControllerTestsBase<LayoutSetsTests>
     {
-        public LayoutSetsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public LayoutSetsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

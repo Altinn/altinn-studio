@@ -9,7 +9,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetRuleHandlerTests : PreviewControllerTestsBase<GetRuleHandlerTests>
     {
 
-        public GetRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetRuleHandlerTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

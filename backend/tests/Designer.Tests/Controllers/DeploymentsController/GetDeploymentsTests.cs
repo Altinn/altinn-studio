@@ -20,11 +20,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class GetDeployments : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.DeploymentsController, GetDeployments>
+public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
-    public GetDeployments(WebApplicationFactory<Altinn.Studio.Designer.Controllers.DeploymentsController> factory) : base(factory)
+    public GetDeployments(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 

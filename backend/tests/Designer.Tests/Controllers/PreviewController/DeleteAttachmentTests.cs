@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class DeleteAttachmentTests : PreviewControllerTestsBase<DeleteAttachmentTests>
     {
 
-        public DeleteAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public DeleteAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

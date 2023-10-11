@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class PostAttachmentTests : PreviewControllerTestsBase<PostAttachmentTests>
     {
 
-        public PostAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public PostAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

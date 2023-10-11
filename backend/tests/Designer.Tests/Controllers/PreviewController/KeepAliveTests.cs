@@ -9,7 +9,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class KeepAliveTests : PreviewControllerTestsBase<KeepAliveTests>
     {
 
-        public KeepAliveTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public KeepAliveTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

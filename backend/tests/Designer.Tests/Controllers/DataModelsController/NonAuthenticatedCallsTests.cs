@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<DatamodelsController, NonAuthenticatedCallsTests>
+public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<NonAuthenticatedCallsTests>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    private readonly WebApplicationFactory<DatamodelsController> _factory;
+    private readonly WebApplicationFactory<Program> _factory;
 
-    public NonAuthenticatedCallsTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public NonAuthenticatedCallsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         _factory = factory;
     }

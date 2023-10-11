@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class ApplicationMetadataTests : PreviewControllerTestsBase<ApplicationMetadataTests>
     {
 
-        public ApplicationMetadataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public ApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

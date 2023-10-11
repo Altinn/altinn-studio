@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class ImportResourceTests : ResourceAdminControllerTestsBaseClass<ImportResourceTests>
     {
 
-        public ImportResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public ImportResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

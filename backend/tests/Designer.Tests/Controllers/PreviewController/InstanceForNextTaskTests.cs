@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class InstanceForNextTaskTests : PreviewControllerTestsBase<InstanceForNextTaskTests>
     {
 
-        public InstanceForNextTaskTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public InstanceForNextTaskTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

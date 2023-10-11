@@ -16,10 +16,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, UpdateTextsForKeysTests>
+    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<UpdateTextsForKeysTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public UpdateTextsForKeysTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public UpdateTextsForKeysTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

@@ -9,11 +9,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class GetTemplatesTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, GetTemplatesTests>
+    public class GetTemplatesTests : DisagnerEndpointsTestsBase<GetTemplatesTests>
     {
         private static string VersionPrefix(string org, string repository, string appVersion) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}";
 
-        public GetTemplatesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ProcessModelingController> factory) : base(factory)
+        public GetTemplatesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

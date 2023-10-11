@@ -16,10 +16,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetFormLayoutsTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTests>
+    public class GetFormLayoutsTests : DisagnerEndpointsTestsBase<GetFormLayoutsTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public GetFormLayoutsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public GetFormLayoutsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

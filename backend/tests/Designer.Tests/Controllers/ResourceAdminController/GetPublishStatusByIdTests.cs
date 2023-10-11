@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 {
     public class GetPublishStatusByIdTests : ResourceAdminControllerTestsBaseClass<GetPublishStatusByIdTests>
     {
-        public GetPublishStatusByIdTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetPublishStatusByIdTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

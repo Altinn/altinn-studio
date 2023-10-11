@@ -9,7 +9,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetApplicationLanguagesTests : PreviewControllerTestsBase<GetApplicationLanguagesTests>
     {
 
-        public GetApplicationLanguagesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

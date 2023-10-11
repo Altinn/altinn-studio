@@ -14,12 +14,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, DeleteDatamodelTests>
+public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DeleteDatamodelTests>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;
 
-    public DeleteDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public DeleteDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         _repositoryMock = new Mock<IRepository>();
     }

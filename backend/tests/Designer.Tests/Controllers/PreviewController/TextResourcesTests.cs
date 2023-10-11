@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class TextResourcesTests : PreviewControllerTestsBase<TextResourcesTests>
     {
 
-        public TextResourcesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public TextResourcesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

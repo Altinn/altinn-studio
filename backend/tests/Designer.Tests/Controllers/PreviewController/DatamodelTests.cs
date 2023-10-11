@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class DatamodelTests : PreviewControllerTestsBase<DatamodelTests>
     {
 
-        public DatamodelTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public DatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

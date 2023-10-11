@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetFormLayoutsForStatefulApps : PreviewControllerTestsBase<GetFormLayoutsForStatefulApps>
     {
 
-        public GetFormLayoutsForStatefulApps(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetFormLayoutsForStatefulApps(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

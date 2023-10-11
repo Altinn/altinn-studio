@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetRepositoryResourceListTests : ResourceAdminControllerTestsBaseClass<GetRepositoryResourceListTests>
     {
 
-        public GetRepositoryResourceListTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetRepositoryResourceListTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

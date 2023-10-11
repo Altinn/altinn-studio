@@ -12,11 +12,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class GetProcessDefinitionTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, GetProcessDefinitionTests>
+    public class GetProcessDefinitionTests : DisagnerEndpointsTestsBase<GetProcessDefinitionTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-        public GetProcessDefinitionTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ProcessModelingController> factory) : base(factory)
+        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

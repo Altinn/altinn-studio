@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetFormDataTests : PreviewControllerTestsBase<GetFormDataTests>
     {
 
-        public GetFormDataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetFormDataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

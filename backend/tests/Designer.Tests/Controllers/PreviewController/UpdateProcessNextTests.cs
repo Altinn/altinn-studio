@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class UpdateProcessNextTests : PreviewControllerTestsBase<UpdateProcessNextTests>
     {
 
-        public UpdateProcessNextTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public UpdateProcessNextTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

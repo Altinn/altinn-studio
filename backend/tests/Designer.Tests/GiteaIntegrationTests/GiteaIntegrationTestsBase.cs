@@ -19,8 +19,7 @@ using Xunit;
 namespace Designer.Tests.GiteaIntegrationTests
 {
     [Collection(nameof(GiteaCollection))]
-    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>
-        where TController : ControllerBase
+    public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         protected readonly GiteaFixture GiteaFixture;
@@ -73,7 +72,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         }
 
-        protected GiteaIntegrationTestsBase(WebApplicationFactory<TController> factory, GiteaFixture giteaFixture) : base(factory)
+        protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
         {
             GiteaFixture = giteaFixture;
         }

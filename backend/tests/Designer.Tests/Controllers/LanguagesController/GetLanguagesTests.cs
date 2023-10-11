@@ -9,11 +9,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.LanguagesController
 {
-    public class GetLanguagesTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.LanguagesController, GetLanguagesTests>
+    public class GetLanguagesTests : DisagnerEndpointsTestsBase<GetLanguagesTests>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetLanguagesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.LanguagesController> factory) : base(factory)
+        public GetLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

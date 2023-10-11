@@ -11,11 +11,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class UpdateResourcePolicyTests : DisagnerEndpointsTestsBase<PolicyController, UpdateResourcePolicyTests>
+    public class UpdateResourcePolicyTests : DisagnerEndpointsTestsBase<UpdateResourcePolicyTests>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public UpdateResourcePolicyTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public UpdateResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

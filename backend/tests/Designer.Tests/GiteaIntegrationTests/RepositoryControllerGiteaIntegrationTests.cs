@@ -21,14 +21,14 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryController, RepositoryControllerGiteaIntegrationTests>
+    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryControllerGiteaIntegrationTests>
     {
 
         // Gitea needs some time to process changes to the repo, so we need to retry a few times
         private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
-        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<RepositoryController> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
         }
 

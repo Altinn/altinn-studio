@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ReleasesController
 {
-    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ReleasesController, GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<GetTests>
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;
@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.ReleasesController
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
-        public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ReleasesController> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Program> factory) : base(factory)
         {
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());

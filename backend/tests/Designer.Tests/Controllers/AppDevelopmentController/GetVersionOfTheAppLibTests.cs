@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetVersionOfTheAppLibTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetVersionOfTheAppLibTests>
+    public class GetVersionOfTheAppLibTests : DisagnerEndpointsTestsBase<GetVersionOfTheAppLibTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development/app-lib-version";
-        public GetVersionOfTheAppLibTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public GetVersionOfTheAppLibTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

@@ -9,7 +9,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class PreviewStatusTests : PreviewControllerTestsBase<PreviewStatusTests>
     {
 
-        public PreviewStatusTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public PreviewStatusTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

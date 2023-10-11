@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class ValidateInstantiationTests : PreviewControllerTestsBase<ValidateInstantiationTests>
     {
 
-        public ValidateInstantiationTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public ValidateInstantiationTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

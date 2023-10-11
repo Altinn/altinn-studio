@@ -17,16 +17,13 @@ namespace Designer.Tests.Controllers.ApiTests;
 /// <summary>
 /// Base class for testing controller endpoints.
 /// </summary>
-/// <typeparam name="TController">Provided controller type.</typeparam>
 /// <typeparam name="TControllerTest">Controller test class type. Used for generating fluent tests.</typeparam>
 [ExcludeFromCodeCoverage]
-public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBase<TControllerTest>,
-    IClassFixture<WebApplicationFactory<TController>>, IDisposable
-    where TController : ControllerBase
-    where TControllerTest : class
+public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable,
+    IClassFixture<WebApplicationFactory<Program>> where TControllerTest : class
 {
     private HttpClient _httpClient;
-    private WebApplicationFactory<TController> _newFactory;
+    private WebApplicationFactory<Program> _newFactory;
 
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
@@ -56,9 +53,9 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     protected virtual string TestRepositoriesLocation =>
         Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Repositories");
 
-    protected readonly WebApplicationFactory<TController> Factory;
+    protected readonly WebApplicationFactory<Program> Factory;
 
-    protected ApiTestsBase(WebApplicationFactory<TController> factory)
+    protected ApiTestsBase(WebApplicationFactory<Program> factory)
     {
         Factory = factory;
         SetupDirtyHackIfLinux();
@@ -93,7 +90,6 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     public void Dispose()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);
     }
     protected virtual void Dispose(bool disposing)
     {

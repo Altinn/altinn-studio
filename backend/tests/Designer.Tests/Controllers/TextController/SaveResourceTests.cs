@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class SaveResourceTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, SaveResourceTests>
+    public class SaveResourceTests : DisagnerEndpointsTestsBase<SaveResourceTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public SaveResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public SaveResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

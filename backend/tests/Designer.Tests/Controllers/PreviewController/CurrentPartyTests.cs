@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class CurrentPartyTests : PreviewControllerTestsBase<CurrentPartyTests>
     {
 
-        public CurrentPartyTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public CurrentPartyTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

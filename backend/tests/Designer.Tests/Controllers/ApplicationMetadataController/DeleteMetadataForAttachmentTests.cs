@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, DeleteMetadataForAttachmentTests>
+    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<DeleteMetadataForAttachmentTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

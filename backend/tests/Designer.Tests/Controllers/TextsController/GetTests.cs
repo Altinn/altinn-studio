@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController, GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<GetTests>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
-        public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

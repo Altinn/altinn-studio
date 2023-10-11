@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetValidateResourceTests : ResourceAdminControllerTestsBaseClass<GetValidateResourceTests>
     {
 
-        public GetValidateResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetValidateResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

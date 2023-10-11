@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class ApplicationSettingsTests : PreviewControllerTestsBase<ApplicationSettingsTests>
     {
 
-        public ApplicationSettingsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public ApplicationSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

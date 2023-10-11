@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositorySettingsController
 {
-    public class PutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositorySettingsController, GetTests>
+    public class PutTests : DisagnerEndpointsTestsBase<GetTests>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/repository-settings";
-        public PutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositorySettingsController> factory) : base(factory)
+        public PutTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

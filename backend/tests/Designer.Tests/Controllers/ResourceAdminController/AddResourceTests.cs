@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class AddResourceTests : ResourceAdminControllerTestsBaseClass<AddResourceTests>
     {
 
-        public AddResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public AddResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
