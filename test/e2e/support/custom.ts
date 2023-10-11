@@ -469,8 +469,6 @@ Cypress.Commands.add('getSummary', (label) => {
 });
 
 Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
-  const DEFAULT_COMMAND_TIMEOUT = Cypress.config().defaultCommandTimeout;
-
   cy.log('Testing PDF');
 
   // Make sure instantiation is completed before we get the url
@@ -488,15 +486,13 @@ Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
   });
   cy.reload();
 
-  // Wait for readyForPrint, after this everything should be rendered so setting the command timeout to zero
-  cy.get('#pdfView > #readyForPrint').should('exist');
-  cy.then(() => Cypress.config('defaultCommandTimeout', 0));
-
-  // Run tests from callback
-  callback();
-
-  // Reset command timeout and go back to regular view
-  cy.then(() => Cypress.config('defaultCommandTimeout', DEFAULT_COMMAND_TIMEOUT));
+  // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
+  cy.get('#pdfView > #readyForPrint')
+    .should('exist')
+    .then({ timeout: 0 }, () => {
+      // Run tests from callback
+      callback();
+    });
 
   if (returnToForm) {
     cy.location('href').then((href) => {
