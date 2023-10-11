@@ -4,7 +4,6 @@
 }
 
 .administration::before {
-  /* webpackIgnore: true */
   background-image: url('/designer/img/Altinn-studio.svg');
   background-position: center -220px;
   background-size: 1620px auto;
