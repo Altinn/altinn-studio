@@ -31,10 +31,10 @@ export const useResourcePolicySubjectsQuery = (
     [QueryKey.ResourcePolicySubjects, org, repo],
     () => getPolicySubjects(org, repo),
     {
-      onSuccess: (data: PolicySubject[]) => {
-        if (addOrgToList && !data.some((d) => d.subjectId === policySubjectOrg.subjectId))
-          data.push(policySubjectOrg);
-        return data;
+      onSuccess: (policySubjects: PolicySubject[]) => {
+        if (addOrgToList && !policySubjects.some((d) => d.subjectId === policySubjectOrg.subjectId))
+          policySubjects.push(policySubjectOrg);
+        return policySubjects;
       },
     },
   );
