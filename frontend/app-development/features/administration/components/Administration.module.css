@@ -53,7 +53,7 @@
 }
 
 .main {
-  flex: 9;
+  flex: 5;
 }
 
 .aside {
@@ -77,7 +77,7 @@
   height: 500px;
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .content {
     flex-direction: row;
   }
