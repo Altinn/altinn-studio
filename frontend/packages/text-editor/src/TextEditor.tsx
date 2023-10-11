@@ -88,7 +88,7 @@ export const TextEditor = ({
           <div>
             <SearchField
               id='text-editor-search'
-              label='Søk etter tekst eller id'
+              label={t('text_editor.search_for_text')}
               value={searchQuery}
               onChange={handleSearchChange}
             />
