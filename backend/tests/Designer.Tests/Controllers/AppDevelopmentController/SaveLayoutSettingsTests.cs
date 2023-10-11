@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveLayoutSettingsTests : DisagnerEndpointsTestsBase<SaveFormLayoutTestsBase>
+    public class SaveLayoutSettingsTests : DisagnerEndpointsTestsBase<SaveLayoutSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 

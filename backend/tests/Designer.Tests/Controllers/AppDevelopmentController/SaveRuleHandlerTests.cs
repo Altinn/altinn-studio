@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveRuleHandlerTests : DisagnerEndpointsTestsBase<SaveRuleHandlerTests>
+    public class SaveRuleHandlerTests : DisagnerEndpointsTestsBase<SaveRuleHandlerTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 

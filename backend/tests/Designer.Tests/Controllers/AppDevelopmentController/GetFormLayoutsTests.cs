@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetFormLayoutsTests : DisagnerEndpointsTestsBase<GetFormLayoutsTests>
+    public class GetFormLayoutsTests : DisagnerEndpointsTestsBase<GetFormLayoutsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetFormLayoutsTests(WebApplicationFactory<Program> factory) : base(factory)

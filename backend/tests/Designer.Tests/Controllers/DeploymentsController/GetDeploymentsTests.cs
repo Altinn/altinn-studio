@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>
+public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";

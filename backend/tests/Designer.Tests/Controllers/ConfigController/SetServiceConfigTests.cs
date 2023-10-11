@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ConfigController
 {
-    public class SetServiceConfigTests : DisagnerEndpointsTestsBase<SetServiceConfigTests>
+    public class SetServiceConfigTests : DisagnerEndpointsTestsBase<SetServiceConfigTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
         public SetServiceConfigTests(WebApplicationFactory<Program> factory) : base(factory)

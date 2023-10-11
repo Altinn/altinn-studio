@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CopyAppTests : DisagnerEndpointsTestsBase<CopyAppTests>
+    public class CopyAppTests : DisagnerEndpointsTestsBase<CopyAppTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";

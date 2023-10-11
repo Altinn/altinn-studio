@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryControllerGiteaIntegrationTests>
+    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         // Gitea needs some time to process changes to the repo, so we need to retry a few times

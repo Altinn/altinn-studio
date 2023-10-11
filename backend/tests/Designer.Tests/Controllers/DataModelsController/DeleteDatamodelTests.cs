@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DeleteDatamodelTests>
+public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DeleteDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;

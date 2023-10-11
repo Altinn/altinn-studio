@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class AnonymousTests : PreviewControllerTestsBase<AnonymousTests>
+    public class AnonymousTests: PreviewControllerTestsBase<AnonymousTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         public AnonymousTests(WebApplicationFactory<Program> factory) : base(factory)
         {

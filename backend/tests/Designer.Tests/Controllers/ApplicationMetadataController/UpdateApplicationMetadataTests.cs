@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class UpdateApplicationMetadataTests : DisagnerEndpointsTestsBase<UpdateApplicationMetadataTests>
+    public class UpdateApplicationMetadataTests : DisagnerEndpointsTestsBase<UpdateApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public UpdateApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)

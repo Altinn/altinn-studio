@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetVersionOfTheAppLibTests : DisagnerEndpointsTestsBase<GetVersionOfTheAppLibTests>
+    public class GetVersionOfTheAppLibTests : DisagnerEndpointsTestsBase<GetVersionOfTheAppLibTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development/app-lib-version";
         public GetVersionOfTheAppLibTests(WebApplicationFactory<Program> factory) : base(factory)

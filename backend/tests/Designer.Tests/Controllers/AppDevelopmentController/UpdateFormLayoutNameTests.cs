@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class UpdateFormLayoutNameTests : DisagnerEndpointsTestsBase<UpdateFormLayoutNameTests>
+    public class UpdateFormLayoutNameTests : DisagnerEndpointsTestsBase<UpdateFormLayoutNameTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public UpdateFormLayoutNameTests(WebApplicationFactory<Program> factory) : base(factory)

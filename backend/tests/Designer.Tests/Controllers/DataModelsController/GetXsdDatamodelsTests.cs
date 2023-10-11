@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<GetXsdDatamodelsTests>
+public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<GetXsdDatamodelsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public GetXsdDatamodelsTests(WebApplicationFactory<Program> factory) : base(factory)

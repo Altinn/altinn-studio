@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class SaveProcessDefinitionTests : DisagnerEndpointsTestsBase<SaveProcessDefinitionTests>
+    public class SaveProcessDefinitionTests : DisagnerEndpointsTestsBase<SaveProcessDefinitionTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 

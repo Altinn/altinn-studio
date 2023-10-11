@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetAltinn2LinkServicesTests : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>
+    public class GetAltinn2LinkServicesTests : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public GetAltinn2LinkServicesTests(WebApplicationFactory<Program> factory) : base(factory)

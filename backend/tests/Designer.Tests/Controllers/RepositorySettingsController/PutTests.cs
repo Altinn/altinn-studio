@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositorySettingsController
 {
-    public class PutTests : DisagnerEndpointsTestsBase<GetTests>
+    public class PutTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/repository-settings";
         public PutTests(WebApplicationFactory<Program> factory) : base(factory)

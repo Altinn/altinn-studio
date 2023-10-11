@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetRepositoryTests : ResourceAdminControllerTestsBaseClass<GetRepositoryTests>
+    public class GetRepositoryTests : ResourceAdminControllerTestsBaseClass<GetRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         public GetRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
         {

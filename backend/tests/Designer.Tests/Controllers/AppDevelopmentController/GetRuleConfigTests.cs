@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetRuleConfigTests : DisagnerEndpointsTestsBase<GetRuleConfigTests>
+    public class GetRuleConfigTests : DisagnerEndpointsTestsBase<GetRuleConfigTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetRuleConfigTests(WebApplicationFactory<Program> factory) : base(factory)

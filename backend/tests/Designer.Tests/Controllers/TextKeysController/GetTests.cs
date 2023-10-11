@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextKeysController
 {
-    public class GetTests : DisagnerEndpointsTestsBase<GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
         public GetTests(WebApplicationFactory<Program> factory) : base(factory)

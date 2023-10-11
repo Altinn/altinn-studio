@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class GetSessionDetailsTests : DisagnerEndpointsTestsBase<GetSessionDetailsTests>
+    public class GetSessionDetailsTests : DisagnerEndpointsTestsBase<GetSessionDetailsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/session";
         public GetSessionDetailsTests(WebApplicationFactory<Program> factory) : base(factory)

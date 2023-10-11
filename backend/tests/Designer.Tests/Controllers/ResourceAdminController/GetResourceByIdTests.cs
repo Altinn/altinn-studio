@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetResourceByIdTests : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>
+    public class GetResourceByIdTests : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public GetResourceByIdTests(WebApplicationFactory<Program> factory) : base(factory)

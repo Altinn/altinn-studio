@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PostAttachmentTests : PreviewControllerTestsBase<PostAttachmentTests>
+    public class PostAttachmentTests: PreviewControllerTestsBase<PostAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public PostAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)

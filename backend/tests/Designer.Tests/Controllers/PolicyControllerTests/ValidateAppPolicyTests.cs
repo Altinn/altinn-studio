@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class ValidateAppPolicyTests : DisagnerEndpointsTestsBase<ValidateAppPolicyTests>
+    public class ValidateAppPolicyTests : DisagnerEndpointsTestsBase<ValidateAppPolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 

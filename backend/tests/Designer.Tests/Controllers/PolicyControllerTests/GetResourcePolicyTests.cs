@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class GetResourcePolicyTests : DisagnerEndpointsTestsBase<GetResourcePolicyTests>
+    public class GetResourcePolicyTests : DisagnerEndpointsTestsBase<GetResourcePolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 

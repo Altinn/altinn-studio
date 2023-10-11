@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetApplicationLanguagesTests : PreviewControllerTestsBase<GetApplicationLanguagesTests>
+    public class GetApplicationLanguagesTests: PreviewControllerTestsBase<GetApplicationLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)

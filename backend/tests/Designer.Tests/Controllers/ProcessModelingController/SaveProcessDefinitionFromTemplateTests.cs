@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class SaveProcessDefinitionFromTemplateTests : DisagnerEndpointsTestsBase<SaveProcessDefinitionFromTemplateTests>
+    public class SaveProcessDefinitionFromTemplateTests : DisagnerEndpointsTestsBase<SaveProcessDefinitionFromTemplateTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         private static string VersionPrefix(string org, string repository, string appVersion, string templateName) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}/{templateName}";

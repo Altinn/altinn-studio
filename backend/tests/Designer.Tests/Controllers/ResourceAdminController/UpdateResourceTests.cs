@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class UpdateResourceTests : ResourceAdminControllerTestsBaseClass<UpdateResourceTests>
+    public class UpdateResourceTests : ResourceAdminControllerTestsBaseClass<UpdateResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public UpdateResourceTests(WebApplicationFactory<Program> factory) : base(factory)

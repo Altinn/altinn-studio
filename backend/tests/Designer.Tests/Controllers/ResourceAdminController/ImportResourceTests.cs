@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class ImportResourceTests : ResourceAdminControllerTestsBaseClass<ImportResourceTests>
+    public class ImportResourceTests : ResourceAdminControllerTestsBaseClass<ImportResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public ImportResourceTests(WebApplicationFactory<Program> factory) : base(factory)

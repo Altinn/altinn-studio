@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ReleasesController
 {
-    public class GetTests : DisagnerEndpointsTestsBase<GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;

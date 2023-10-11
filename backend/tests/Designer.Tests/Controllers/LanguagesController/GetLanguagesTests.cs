@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.LanguagesController
 {
-    public class GetLanguagesTests : DisagnerEndpointsTestsBase<GetLanguagesTests>
+    public class GetLanguagesTests : DisagnerEndpointsTestsBase<GetLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 

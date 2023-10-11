@@ -19,8 +19,7 @@ namespace Designer.Tests.Controllers.ApiTests;
 /// </summary>
 /// <typeparam name="TControllerTest">Controller test class type. Used for generating fluent tests.</typeparam>
 [ExcludeFromCodeCoverage]
-public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable,
-    IClassFixture<WebApplicationFactory<Program>> where TControllerTest : class
+public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable where TControllerTest : class
 {
     private HttpClient _httpClient;
     private WebApplicationFactory<Program> _newFactory;

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetSectorsTests : ResourceAdminControllerTestsBaseClass<GetSectorsTests>
+    public class GetSectorsTests : ResourceAdminControllerTestsBaseClass<GetSectorsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public GetSectorsTests(WebApplicationFactory<Program> factory) : base(factory)

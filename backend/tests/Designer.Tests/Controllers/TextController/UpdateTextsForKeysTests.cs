@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<UpdateTextsForKeysTests>
+    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<UpdateTextsForKeysTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
         public UpdateTextsForKeysTests(WebApplicationFactory<Program> factory) : base(factory)

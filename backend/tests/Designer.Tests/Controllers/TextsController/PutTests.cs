@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class PutTests : DisagnerEndpointsTestsBase<PutTests>
+    public class PutTests : DisagnerEndpointsTestsBase<PutTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
         public PutTests(WebApplicationFactory<Program> factory) : base(factory)

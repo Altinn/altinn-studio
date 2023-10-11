@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PostTests : DisagnerEndpointsTestsBase<PostTests>
+public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public PostTests(WebApplicationFactory<Program> factory) : base(factory)

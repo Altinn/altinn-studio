@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetServiceNameTests : DisagnerEndpointsTestsBase<GetServiceNameTests>
+    public class GetServiceNameTests : DisagnerEndpointsTestsBase<GetServiceNameTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
         public GetServiceNameTests(WebApplicationFactory<Program> factory) : base(factory)

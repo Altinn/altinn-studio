@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>
+    public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
         public DeleteTests(WebApplicationFactory<Program> factory) : base(factory)

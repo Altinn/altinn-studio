@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdmController
 {
-    public class IndexTests : DisagnerEndpointsTestsBase<IndexTests>
+    public class IndexTests : DisagnerEndpointsTestsBase<IndexTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         public IndexTests(WebApplicationFactory<Program> factory) : base(factory)
         {
