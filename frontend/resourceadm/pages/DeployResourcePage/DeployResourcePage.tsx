@@ -68,7 +68,6 @@ export const DeployResourcePage = ({
     isLoading: validatePolicyLoading,
     error: validatePolicyError,
   } = useValidatePolicyQuery(selectedContext, repo, resourceId);
-  console.log(validatePolicyData);
   const {
     data: validateResourceData,
     isLoading: validateResourceLoading,
@@ -122,6 +121,9 @@ export const DeployResourcePage = ({
     return 'success';
   };
 
+  /**
+   * Returns the different error messages for a policy based on the status
+   */
   const getPolicyValidationErrorMessage = () => {
     switch (validatePolicyData.status) {
       case 400: {

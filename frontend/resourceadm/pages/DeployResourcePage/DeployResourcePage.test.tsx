@@ -28,6 +28,14 @@ const mockRepoStatus: RepoStatus = {
   repositoryStatus: 'Ok',
 };
 
+const mockRepoStatusAhead: RepoStatus = {
+  aheadBy: 1,
+  behindBy: 0,
+  contentStatus: [],
+  hasMergeConflict: false,
+  repositoryStatus: 'Ok',
+};
+
 const mockVersionTT02: Version = { version: null, environment: 'tt02' };
 const mockVersionPROD: Version = { version: null, environment: 'prod' };
 const mockVersionAT22: Version = { version: null, environment: 'at22' };
@@ -209,10 +217,45 @@ describe('DeployResourcePage', () => {
     expect(mockNavigateToPageWithError).toHaveBeenCalledWith('policy');
   });
 
-  it('renders status card with repo not in sync errors when repo is behind or ahead of master', () => {});
+  it('renders status card with repo not in sync errors when repo is behind or ahead of master', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getRepoStatus: () => Promise.resolve(mockRepoStatusAhead),
+    });
 
-  it('renders status card with missing version number error when version number is missing', () => {});
-  it('renders status card with no errors when the resource is ready for deploy', () => {});
+    const statusCardTitle = screen.getByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitle).toBeInTheDocument();
+
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_repo');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
+  it('renders status card with missing version number error when version number is missing', async () => {
+    await resolveAndWaitForSpinnerToDisappear({}, { resourceVersionText: '' });
+
+    const statusCardTitle = screen.getByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitle).toBeInTheDocument();
+
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_version');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
+  it('renders status card with no errors when the resource is ready for deploy', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+
+    const statusCardTitleError = screen.queryByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitleError).not.toBeInTheDocument();
+
+    const statusCardTitleSuccess = screen.getByText(
+      textMock('resourceadm.deploy_status_card_success'),
+    );
+    expect(statusCardTitleSuccess).toBeInTheDocument();
+  });
 
   it('updates the version text when typing in the textfield', () => {});
   it('calls "onSaveVersion" when text field is blurred', () => {});
@@ -231,7 +274,6 @@ describe('DeployResourcePage', () => {
 
 const resolveAndWaitForSpinnerToDisappear = async (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock(),
   props: Partial<DeployResourcePageProps> = {},
 ) => {
   getRepoStatus.mockImplementation(() => Promise.resolve(mockRepoStatus));
@@ -239,7 +281,7 @@ const resolveAndWaitForSpinnerToDisappear = async (
   getValidatePolicy.mockImplementation(() => Promise.resolve(mockValidatePolicyData1));
   getValidateResource.mockImplementation(() => Promise.resolve(mockValidateResourceData1));
 
-  render(queries, queryClient, props);
+  render(queries, props);
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('resourceadm.deploy_spinner')),
   );
@@ -247,8 +289,8 @@ const resolveAndWaitForSpinnerToDisappear = async (
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock(),
   props: Partial<DeployResourcePageProps> = {},
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
