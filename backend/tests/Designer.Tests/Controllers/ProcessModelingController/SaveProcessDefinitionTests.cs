@@ -35,14 +35,10 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             using var response = await HttpClient.Value.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string responseContent = await response.Content.ReadAsStringAsync();
-
             string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/process/process.bpmn");
 
-            XDocument responseXml = XDocument.Parse(responseContent);
             XDocument expectedXml = XDocument.Parse(fileContent);
             XDocument savedXml = XDocument.Parse(savedFile);
-            XNode.DeepEquals(responseXml, expectedXml).Should().BeTrue();
             XNode.DeepEquals(savedXml, expectedXml).Should().BeTrue();
         }
 

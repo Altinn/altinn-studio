@@ -8,9 +8,7 @@ import { header } from "../../selectors/header";
 context('Sync app and deploy', () => {
   before(() => {
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    });
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
@@ -23,6 +21,10 @@ context('Sync app and deploy', () => {
     cy.intercept('GET', '**/Deployments**').as('getAppDeploys');
     cy.intercept('POST', '**/form-layout/**').as('postLayout');
     cy.visit('/dashboard');
+  });
+
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('is possible to sync changes', () => {

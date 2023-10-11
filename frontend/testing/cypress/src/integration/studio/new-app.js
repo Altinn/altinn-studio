@@ -9,7 +9,6 @@ import { gitea } from "../../selectors/gitea";
 context('New App', () => {
   before(() => {
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');

@@ -4,7 +4,7 @@ import { PreviewContext } from '../PreviewContext';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage } from 'app-shared/hooks/useWebStorage';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -33,11 +33,11 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const repoType = getRepositoryType(org, app);
   const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
-    'layoutSet/' + app
+    'layoutSet/' + app,
   );
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
-    'desktop'
+    'desktop',
   );
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';

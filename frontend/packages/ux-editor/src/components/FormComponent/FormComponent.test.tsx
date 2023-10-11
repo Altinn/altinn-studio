@@ -108,6 +108,22 @@ describe('FormComponent', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
+    it('should call "handleDiscard" when "isEditMode: true"', async () => {
+      await render({ isEditMode: true, handleDiscard: handleDiscardMock });
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await act(() => user.click(deleteButton));
+
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('ux_editor.component_deletion_confirm'),
+      });
+      await act(() => user.click(confirmButton));
+
+      expect(mockDeleteFormComponent).toBeCalledTimes(1);
+      expect(handleDiscardMock).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
     it('should close when clicking outside the popover', async () => {
       await render();
 
@@ -183,7 +199,7 @@ const waitForData = async () => {
     {},
     {
       getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
-    }
+    },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
@@ -205,6 +221,6 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
   return renderWithMockStore()(
     <DndProvider backend={HTML5Backend}>
       <FormComponent {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };

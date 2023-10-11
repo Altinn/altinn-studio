@@ -2,21 +2,25 @@
 /// <reference types="../../support" />
 
 import * as texts from '../../../../../language/src/nb.json';
-import { administration } from "../../selectors/administration";
-import { designer } from "../../selectors/designer";
-import { header } from "../../selectors/header";
+import { administration } from '../../selectors/administration';
+import { designer } from '../../selectors/designer';
+import { header } from '../../selectors/header';
 
 const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
 
 context('Designer', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    });
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');
+  });
+
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('is possible to edit information about the app', () => {
@@ -41,21 +45,43 @@ context('Designer', () => {
 
     // Add new page and ensure updated data is loaded
     designer.getAddPageButton().click();
+
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-
-    // Verify navigation button exists in form
-    designer.getDroppableList().findByRole('listitem', { name: texts['ux_editor.component_navigation_buttons'] }).should('be.visible');
 
     // Add an input component
     designer.getToolbarItemByText(texts['ux_editor.component_input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
-    designer.getDroppableList()
-      .findAllByRole('listitem')
-      .then(($elements) => expect($elements.length).eq(2));
+    designer
+      .getPageAccordionByName('Side1')
+      .findByRole('listitem', { name: texts['ux_editor.component_input'] });
 
     // Delete components on page
+    cy.deleteComponents();
+  });
+
+  it('should add navigation buttons when adding more than one page', () => {
+    cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+    cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
+
+    // Navigate to designerApp
+    cy.visit('/editor/' + designerAppId);
+    header.getCreateLink().click();
+    cy.ensureCreatePageIsLoaded();
+
+    // Add two new pages to ensure that navigation-buttons will be added to page
+    designer.getAddPageButton().click();
+    designer.getAddPageButton().click();
+
+    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+
+    cy.wait(500);
+    designer
+      .getPageAccordionByName('Side2')
+      .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });
+
     cy.deleteComponents();
   });
 

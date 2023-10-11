@@ -25,6 +25,6 @@ export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSet
       order.splice(currentIndex, 1);
       order.splice(destination, 0, layoutName);
       return formLayoutSettingsMutation.mutateAsync(layoutSettings);
-    }
-  })
-}
+    },
+  });
+};

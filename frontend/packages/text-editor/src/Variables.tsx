@@ -4,6 +4,7 @@ import { Button } from '@digdir/design-system-react';
 import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import React, { useState } from 'react';
 import type { TextResourceVariable } from './types';
+import { useTranslation, Trans } from 'react-i18next';
 
 export type VariablesProps = {
   variables: TextResourceVariable[];
@@ -11,11 +12,21 @@ export type VariablesProps = {
 
 export const Variables = ({ variables }: VariablesProps) => {
   const [infoboxOpen, setInfoboxOpen] = useState(false);
+  const { t } = useTranslation();
   return (
-    <div title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}>
+    <div title={t('text_editor.variables_editing_not_supported')}>
       {variables.map((variable) => (
         <div key={variable.key} className={classes.chip}>
-          {`${variable.key}: ${variable.dataSource}`}
+          <span className={classes.variables}>{`${variable.key}: ${variable.dataSource}`}</span>
+          {variable.defaultValue &&
+                <span className={classes.variables}>
+                  <Trans
+                      i18nKey={'text_editor.variables_default_value'}
+                      values={{ defaultValue: variable.defaultValue }}
+                      components={{ bold: <strong/> }}
+                  />
+                </span>
+              }
         </div>
       ))}
       {variables.length > 0 && (
@@ -27,7 +38,7 @@ export const Variables = ({ variables }: VariablesProps) => {
             open={infoboxOpen}
             onOpenChange={setInfoboxOpen}
           >
-            <div>Det er ikke mulig å redigere variabler i Studio.</div>
+            <div>{t('text_editor.variables_editing_not_supported')}</div>
           </PopoverPanel>
         </span>
       )}

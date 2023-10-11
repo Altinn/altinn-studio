@@ -7,10 +7,8 @@ import * as texts from '../../../../../language/src/nb.json';
 
 context('datamodel', () => {
   before(() => {
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    });
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {

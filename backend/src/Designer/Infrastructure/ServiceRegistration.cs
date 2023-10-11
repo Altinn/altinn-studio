@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,6 +58,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IResourceRegistry, ResourceRegistryService>();
+            services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterUserRequestSynchronization(configuration);
 

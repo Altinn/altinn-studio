@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyFieldSet, LegacyRadioGroup, LegacyTextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, Radio, LegacyTextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -65,26 +65,19 @@ export const FileUploadComponent = ({
     <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={component.id}
-        onChange={handleHasCustomFileEndingsChange}
         value={fileUploaderComponent.hasCustomFileEndings}
         propertyPath={`${component.propertyPath}/properties/hasCustomFileEndings`}
       >
         {({ value }) => (
-          <LegacyRadioGroup
-            items={[
-              {
-                label: t('ux_editor.modal_properties_valid_file_endings_all'),
-                value: 'false',
-              },
-              {
-                label: t('ux_editor.modal_properties_valid_file_endings_custom'),
-                value: 'true',
-              },
-            ]}
+          <Radio.Group
+            onChange={(val) => handleHasCustomFileEndingsChange(val)}
             name={`${component.id}-valid-file-endings`}
-            variant='horizontal'
+            inline={true}
             value={value === true ? 'true' : 'false'}
-          />
+          >
+            <Radio value='false'>{t('ux_editor.modal_properties_valid_file_endings_all')}</Radio>
+            <Radio value='true'>{t('ux_editor.modal_properties_valid_file_endings_custom')}</Radio>
+          </Radio.Group>
         )}
       </FormField>
       {fileUploaderComponent.hasCustomFileEndings && (
@@ -111,20 +104,10 @@ export const FileUploadComponent = ({
           propertyPath={`${component.propertyPath}/properties/displayMode`}
         >
           {() => (
-            <LegacyRadioGroup
-              items={[
-                {
-                  label: t('ux_editor.modal_properties_file_upload_simple'),
-                  value: 'simple',
-                },
-                {
-                  label: t('ux_editor.modal_properties_file_upload_list'),
-                  value: 'list',
-                },
-              ]}
-              name={`${component.id}-display-mode`}
-              variant='horizontal'
-            />
+            <Radio.Group name={`${component.id}-display-mode`} inline={true}>
+              <Radio value='simple'>{t('ux_editor.modal_properties_file_upload_simple')}</Radio>
+              <Radio value='list'>{t('ux_editor.modal_properties_file_upload_list')}</Radio>
+            </Radio.Group>
           )}
         </FormField>
       )}

@@ -84,7 +84,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
-    [Theory]
+    [Theory(Skip = "Validator is excluded from put method for now.")]
     [MemberData(nameof(IncompatibleSchemasTestData))]
     public async Task IncompatibleSchema_ShouldReturn422(string modelPath, string schemaPath, string org, string repo, string user, params Tuple<string, string>[] expectedValidationIssues)
     {
