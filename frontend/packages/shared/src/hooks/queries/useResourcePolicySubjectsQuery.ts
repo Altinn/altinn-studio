@@ -32,7 +32,11 @@ export const useResourcePolicySubjectsQuery = (
     () => getPolicySubjects(org, repo),
     {
       onSuccess: (policySubjects: PolicySubject[]) => {
-        if (addOrgToList && !policySubjects.some((d) => d.subjectId === policySubjectOrg.subjectId))
+        if (
+          addOrgToList &&
+          policySubjects.length > 0 &&
+          !policySubjects.some((d) => d.subjectId === policySubjectOrg.subjectId)
+        )
           policySubjects.push(policySubjectOrg);
         return policySubjects;
       },
