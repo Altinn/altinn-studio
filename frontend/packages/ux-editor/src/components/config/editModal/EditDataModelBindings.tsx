@@ -6,10 +6,11 @@ import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { LinkIcon, CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@navikt/aksel-icons';
-import { Link } from 'react-router-dom';
+import { LinkIcon, CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@altinn/icons';
+import { Button } from '@digdir/design-system-react';
 import classes from './EditDataModelBindings.module.css';
 import cn from 'classnames';
+import { InputWrapperAction } from './InputWrapperAction';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -66,8 +67,10 @@ export const EditDataModelBindings = ({
     return (
       <div>
         {isLinkedDatamodelHovered ? (
-          <PencilWritingIcon
+          <Button
             className={classes.pencilWritingIcon}
+            icon={<PencilWritingIcon />}
+            variant='quiet'
             onClick={() => {
               setDropdownVisible(true);
               setLinkIconVisible(false);
@@ -77,7 +80,9 @@ export const EditDataModelBindings = ({
             }}
           />
         ) : (
-          <CheckmarkIcon
+          <Button
+            icon={<CheckmarkIcon />}
+            variant='quiet'
             className={classes.checkmarkIcon}
             onClick={() => {
               setCheckmarkClicked(true);
@@ -87,8 +92,10 @@ export const EditDataModelBindings = ({
           />
         )}
 
-        <TrashIcon
+        <Button
+          icon={<TrashIcon />}
           className={classes.trashIcon}
+          variant='quiet'
           onClick={() => {
             setDropdownVisible(false);
             setLinkIconVisible(true);
@@ -104,12 +111,12 @@ export const EditDataModelBindings = ({
   return (
     <div key={uniqueKey || ''}>
       {linkIconVisible && (
-        <Link to='' onClick={toggleDropdown}>
+        <Button onClick={toggleDropdown} variant='quiet'>
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}
           </div>
-        </Link>
+        </Button>
       )}
       <div className={classes.dropdownContainer}>
         {dropdownVisible && (
