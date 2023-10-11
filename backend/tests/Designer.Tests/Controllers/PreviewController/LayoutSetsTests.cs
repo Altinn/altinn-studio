@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class LayoutSetsTests: PreviewControllerTestsBase<LayoutSetsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class LayoutSetsTests : PreviewControllerTestsBase<LayoutSetsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         public LayoutSetsTests(WebApplicationFactory<Program> factory) : base(factory)
         {

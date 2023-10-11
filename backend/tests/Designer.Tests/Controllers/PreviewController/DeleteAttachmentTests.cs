@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class DeleteAttachmentTests: PreviewControllerTestsBase<DeleteAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class DeleteAttachmentTests : PreviewControllerTestsBase<DeleteAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public DeleteAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)

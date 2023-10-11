@@ -22,7 +22,6 @@ namespace Designer.Tests.Controllers.ApiTests;
 public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable where TControllerTest : class
 {
     private HttpClient _httpClient;
-    private WebApplicationFactory<Program> _newFactory;
 
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
@@ -68,13 +67,11 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     protected virtual HttpClient GetTestClient()
     {
         string configPath = GetConfigPath();
-        _newFactory = Factory.WithWebHostBuilder(builder =>
+        return Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
             builder.ConfigureTestServices(ConfigureTestServices);
-        });
-
-        return _newFactory.CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
+        }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
 
     /// <summary>
@@ -92,9 +89,5 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     }
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            _newFactory?.Dispose();
-        }
     }
 }

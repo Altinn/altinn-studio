@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetRuleConfigurationStatefulTests: PreviewControllerTestsBase<GetRuleConfigurationStatefulTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRuleConfigurationStatefulTests : PreviewControllerTestsBase<GetRuleConfigurationStatefulTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public GetRuleConfigurationStatefulTests(WebApplicationFactory<Program> factory) : base(factory)

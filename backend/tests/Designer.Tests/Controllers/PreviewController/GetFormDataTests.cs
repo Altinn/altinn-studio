@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetFormDataTests: PreviewControllerTestsBase<GetFormDataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetFormDataTests : PreviewControllerTestsBase<GetFormDataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         public GetFormDataTests(WebApplicationFactory<Program> factory) : base(factory)
