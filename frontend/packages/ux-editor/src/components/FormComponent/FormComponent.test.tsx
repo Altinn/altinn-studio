@@ -161,7 +161,9 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_title.Input'));
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        textMock('ux_editor.component_title.Input'),
+      );
     });
 
     it('should display the component type when the title is undefined', async () => {
@@ -174,7 +176,9 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_title.Input'));
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        textMock('ux_editor.component_title.Input'),
+      );
     });
   });
 
@@ -187,9 +191,7 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(
-        screen.getByRole('img', { name: textMock('ux_editor.component_title.Input') })
-      ).toBeInTheDocument();
+      expect(screen.getByTitle(textMock('ux_editor.component_title.Input'))).toBeInTheDocument();
     });
   });
 });
