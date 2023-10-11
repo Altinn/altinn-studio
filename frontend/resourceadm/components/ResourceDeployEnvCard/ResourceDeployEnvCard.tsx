@@ -5,26 +5,10 @@ import { ArrowRightIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
 export type ResourceDeployEnvCardProps = {
-  /**
-   * Flag for if deploy is possible or not
-   */
   isDeployPossible: boolean;
-  /**
-   * The name of the environment
-   */
   envName: string;
-  /**
-   * The current version in the environment
-   */
   currentEnvVersion: string;
-  /**
-   * The new version the resource will deploy to
-   */
   newEnvVersion?: string;
-  /**
-   * Function to be executed on click
-   * @returns void
-   */
   onClick: () => void;
   loading: boolean;
 };
@@ -39,6 +23,7 @@ export type ResourceDeployEnvCardProps = {
  * @property {string}[currentEnvVersion] - The current version in the environment
  * @property {string}[newEnvVersion] - The new version the resource will deploy to
  * @property {function}[onClick] - Function to be executed on click
+ * @property {boolean}[loading] - if a spinner should be shown
  *
  * @returns {React.ReactNode} - The rendered component
  */

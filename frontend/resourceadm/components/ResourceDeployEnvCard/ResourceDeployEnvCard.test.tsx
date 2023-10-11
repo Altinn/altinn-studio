@@ -19,7 +19,13 @@ describe('ResourceDeployEnvCard', () => {
     currentEnvVersion: mockCurrentEnvVersion,
     newEnvVersion: mockNewEnvVersion,
     onClick: mockOnClick,
+    loading: false,
   };
+
+  it('displayes a spinner when loading is true', () => {
+    render(<ResourceDeployEnvCard {...defaultProps} loading />);
+    expect(screen.getByText(textMock('resourceadm.deploy_deploying'))).toBeInTheDocument();
+  });
 
   it('renders the environment name', () => {
     render(<ResourceDeployEnvCard {...defaultProps} />);
@@ -29,13 +35,13 @@ describe('ResourceDeployEnvCard', () => {
 
   it('renders the current environment version', () => {
     render(<ResourceDeployEnvCard {...defaultProps} />);
-    const currentVersion = screen.getByText(`v${mockCurrentEnvVersion}`);
+    const currentVersion = screen.getByText(mockCurrentEnvVersion);
     expect(currentVersion).toBeInTheDocument();
   });
 
   it('renders the new environment version and arrow icon if new version exists', () => {
     render(<ResourceDeployEnvCard {...defaultProps} />);
-    const newVersion = screen.getByText(`v${mockNewEnvVersion}`);
+    const newVersion = screen.getByText(mockNewEnvVersion);
     const arrowIcon = screen.getByTitle(
       textMock('resourceadm.deploy_card_arrow_icon', { env: mockTestEnv }),
     );
