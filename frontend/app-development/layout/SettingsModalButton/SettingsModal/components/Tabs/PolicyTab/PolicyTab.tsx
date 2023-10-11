@@ -50,7 +50,7 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
     status: subjectStatus,
     data: subjectData,
     error: subjectError,
-  } = useResourcePolicySubjectsQuery(org, app);
+  } = useResourcePolicySubjectsQuery(org, app, true);
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
