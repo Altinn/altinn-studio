@@ -23,6 +23,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
 import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
 import { toast } from 'react-toastify';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -59,18 +60,18 @@ export const DeployResourcePage = ({
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
   const {
+    status: publishStatusStatus,
     data: publishStatusData,
-    isLoading: publishStatusLoading,
     error: publishStatusError,
   } = useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
   const {
+    status: validatePolicyStatus,
     data: validatePolicyData,
-    isLoading: validatePolicyLoading,
     error: validatePolicyError,
   } = useValidatePolicyQuery(selectedContext, repo, resourceId);
   const {
+    status: validateResourceStatus,
     data: validateResourceData,
-    isLoading: validateResourceLoading,
     error: validateResourceError,
   } = useValidateResourceQuery(selectedContext, repo, resourceId);
 
@@ -234,120 +235,121 @@ export const DeployResourcePage = ({
    * Display the content on the page
    */
   const displayContent = () => {
-    const isLoading: boolean =
-      publishStatusLoading || validatePolicyLoading || validateResourceLoading;
+    switch (mergeQueryStatuses(publishStatusStatus, validatePolicyStatus, validateResourceStatus)) {
+      case 'loading': {
+        return (
+          <div className={classes.spinnerWrapper}>
+            <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
+          </div>
+        );
+      }
+      case 'error': {
+        return (
+          <Alert severity='danger'>
+            <Paragraph>{t('general.fetch_error_message')}</Paragraph>
+            <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
+            {publishStatusError && <ErrorMessage>{publishStatusError.message}</ErrorMessage>}
+            {validatePolicyError && <ErrorMessage>{validatePolicyError.message}</ErrorMessage>}
+            {validateResourceError && <ErrorMessage>{validateResourceError.message}</ErrorMessage>}
+          </Alert>
+        );
+      }
+      case 'success': {
+        const tt02Version: string =
+          publishStatusData.publishedVersions.find((v) => v.environment === 'tt02')?.version ??
+          t('resourceadm.deploy_not_deployed');
+        const prodVersion =
+          publishStatusData.publishedVersions.find((v) => v.environment === 'prod')?.version ??
+          t('resourceadm.deploy_not_deployed');
+        const at22Version =
+          publishStatusData.publishedVersions.find((v) => v.environment === 'at22')?.version ??
+          t('resourceadm.deploy_not_deployed');
+        const at23Version =
+          publishStatusData.publishedVersions.find((v) => v.environment === 'at23')?.version ??
+          t('resourceadm.deploy_not_deployed');
 
-    if (isLoading) {
-      return (
-        <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
-        </div>
-      );
-    } else if (publishStatusError || validatePolicyError || validateResourceError) {
-      return (
-        <Alert severity='danger'>
-          <Paragraph>{t('general.fetch_error_message')}</Paragraph>
-          <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
-          {publishStatusError && <ErrorMessage>{publishStatusError.message}</ErrorMessage>}
-          {validatePolicyError && <ErrorMessage>{validatePolicyError.message}</ErrorMessage>}
-          {validateResourceError && <ErrorMessage>{validateResourceError.message}</ErrorMessage>}
-        </Alert>
-      );
-    } else {
-      const tt02Version: string =
-        publishStatusData.publishedVersions.find((v) => v.environment === 'tt02')?.version ??
-        t('resourceadm.deploy_not_deployed');
-      const prodVersion =
-        publishStatusData.publishedVersions.find((v) => v.environment === 'prod')?.version ??
-        t('resourceadm.deploy_not_deployed');
-      const at22Version =
-        publishStatusData.publishedVersions.find((v) => v.environment === 'at22')?.version ??
-        t('resourceadm.deploy_not_deployed');
-      const at23Version =
-        publishStatusData.publishedVersions.find((v) => v.environment === 'at23')?.version ??
-        t('resourceadm.deploy_not_deployed');
-
-      return (
-        <>
-          <Heading size='large' spacing level={1}>
-            {t('resourceadm.deploy_title')}
-          </Heading>
-          <div className={classes.contentWrapper}>
-            {displayStatusCard()}
-            <Paragraph size='small' className={classes.informationText}>
-              <Trans i18nKey='resourceadm.deploy_description'>
-                <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
-                  Altinn.no
-                </Link>
-              </Trans>
-            </Paragraph>
-            <div className={classes.newVersionWrapper}>
-              <div className={classes.textAndButton}>
-                <div className={classes.textfield}>
-                  <Textfield
-                    label={t('resourceadm.deploy_version_label')}
-                    description={t('resourceadm.deploy_version_text')}
-                    size='small'
-                    value={newVersionText}
-                    onChange={(e) => setNewVersionText(e.target.value)}
-                    onBlur={() => onSaveVersion(newVersionText)}
-                    error={resourceVersionText === ''}
-                  />
+        return (
+          <>
+            <Heading size='large' spacing level={1}>
+              {t('resourceadm.deploy_title')}
+            </Heading>
+            <div className={classes.contentWrapper}>
+              {displayStatusCard()}
+              <Paragraph size='small' className={classes.informationText}>
+                <Trans i18nKey='resourceadm.deploy_description'>
+                  <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
+                    Altinn.no
+                  </Link>
+                </Trans>
+              </Paragraph>
+              <div className={classes.newVersionWrapper}>
+                <div className={classes.textAndButton}>
+                  <div className={classes.textfield}>
+                    <Textfield
+                      label={t('resourceadm.deploy_version_label')}
+                      description={t('resourceadm.deploy_version_text')}
+                      size='small'
+                      value={newVersionText}
+                      onChange={(e) => setNewVersionText(e.target.value)}
+                      onBlur={() => onSaveVersion(newVersionText)}
+                      error={resourceVersionText === ''}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            <Label size='medium' spacing>
-              {t('resourceadm.deploy_select_env_label')}
-            </Label>
-            <div className={classes.deployCardsWrapper}>
-              <ResourceDeployEnvCard
-                isDeployPossible={isDeployPossible('test', tt02Version)}
-                envName={t('resourceadm.deploy_test_env')}
-                currentEnvVersion={tt02Version}
-                newEnvVersion={
-                  resourceVersionText !== tt02Version ? resourceVersionText : undefined
-                }
-                onClick={() => handlePublish('tt02')}
-                loading={publisingResourceLoading && envPublishedTo === 'tt02'}
-              />
-              <ResourceDeployEnvCard
-                isDeployPossible={isDeployPossible('prod', prodVersion)}
-                envName={t('resourceadm.deploy_prod_env')}
-                currentEnvVersion={prodVersion}
-                newEnvVersion={
-                  resourceVersionText !== prodVersion ? resourceVersionText : undefined
-                }
-                onClick={() => handlePublish('prod')}
-                loading={publisingResourceLoading && envPublishedTo === 'prod'}
-              />
-            </div>
-            {selectedContext === 'ttd' && (
+              <Label size='medium' spacing>
+                {t('resourceadm.deploy_select_env_label')}
+              </Label>
               <div className={classes.deployCardsWrapper}>
                 <ResourceDeployEnvCard
-                  isDeployPossible={isDeployPossible('test', at22Version)}
-                  envName={t('resourceadm.deploy_at22_env')}
-                  currentEnvVersion={at22Version}
+                  isDeployPossible={isDeployPossible('test', tt02Version)}
+                  envName={t('resourceadm.deploy_test_env')}
+                  currentEnvVersion={tt02Version}
                   newEnvVersion={
-                    resourceVersionText !== at22Version ? resourceVersionText : undefined
+                    resourceVersionText !== tt02Version ? resourceVersionText : undefined
                   }
-                  onClick={() => handlePublish('at22')}
-                  loading={publisingResourceLoading && envPublishedTo === 'at22'}
+                  onClick={() => handlePublish('tt02')}
+                  loading={publisingResourceLoading && envPublishedTo === 'tt02'}
                 />
                 <ResourceDeployEnvCard
-                  isDeployPossible={isDeployPossible('prod', at23Version)}
-                  envName={t('resourceadm.deploy_at23_env')}
-                  currentEnvVersion={at23Version}
+                  isDeployPossible={isDeployPossible('prod', prodVersion)}
+                  envName={t('resourceadm.deploy_prod_env')}
+                  currentEnvVersion={prodVersion}
                   newEnvVersion={
-                    resourceVersionText !== at23Version ? resourceVersionText : undefined
+                    resourceVersionText !== prodVersion ? resourceVersionText : undefined
                   }
-                  onClick={() => handlePublish('at23')}
-                  loading={publisingResourceLoading && envPublishedTo === 'at23'}
+                  onClick={() => handlePublish('prod')}
+                  loading={publisingResourceLoading && envPublishedTo === 'prod'}
                 />
               </div>
-            )}
-          </div>
-        </>
-      );
+              {selectedContext === 'ttd' && (
+                <div className={classes.deployCardsWrapper}>
+                  <ResourceDeployEnvCard
+                    isDeployPossible={isDeployPossible('test', at22Version)}
+                    envName={t('resourceadm.deploy_at22_env')}
+                    currentEnvVersion={at22Version}
+                    newEnvVersion={
+                      resourceVersionText !== at22Version ? resourceVersionText : undefined
+                    }
+                    onClick={() => handlePublish('at22')}
+                    loading={publisingResourceLoading && envPublishedTo === 'at22'}
+                  />
+                  <ResourceDeployEnvCard
+                    isDeployPossible={isDeployPossible('prod', at23Version)}
+                    envName={t('resourceadm.deploy_at23_env')}
+                    currentEnvVersion={at23Version}
+                    newEnvVersion={
+                      resourceVersionText !== at23Version ? resourceVersionText : undefined
+                    }
+                    onClick={() => handlePublish('at23')}
+                    loading={publisingResourceLoading && envPublishedTo === 'at23'}
+                  />
+                </div>
+              )}
+            </div>
+          </>
+        );
+      }
     }
   };
 

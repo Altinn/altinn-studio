@@ -34,11 +34,9 @@ export const useValidatePolicyQuery = (
             [],
           );
         } else {
-          allErrors = errorsArray.reduce(
-            (flattenArr, row, i) =>
-              flattenArr.concat(`${data.status === 404 ? '' : 'rule' + (i + 1) + '.'}${row}`),
-            [],
-          );
+          allErrors = errorsArray.flat(1).map((row) => {
+            return `${data.status === 404 ? '' : 'rule1.'}${row}`;
+          });
         }
 
         return { status: data.status, errors: allErrors };
