@@ -9,7 +9,7 @@
 }
 
 .editMode.formGroup {
-  border-left-color: #008FD6;
+  border-left-color: #008fd6;
 }
 
 .dragHandle {
@@ -31,12 +31,12 @@
 .editMode .formGroupButtons,
 .formGroup:hover .dragHandle,
 .formGroup:hover .formGroupButtons,
-.formGroupButtons:has(button[aria-expanded="true"]) {
+.formGroupButtons:has(button[aria-expanded='true']) {
   visibility: visible;
 }
 
 .formGroupBar {
-  color: #0062BA !important;
+  color: #0062ba !important;
   display: flex;
   align-items: center;
   flex: 1;
