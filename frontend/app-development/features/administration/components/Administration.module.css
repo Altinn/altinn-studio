@@ -5,8 +5,8 @@
 
 .administration::before {
   background-image: url('/designer/img/Altinn-studio.svg');
-  background-position: center -220px;
-  background-size: 1620px auto;
+  background-position: left -220px;
+  background-size: 1600px auto;
   background-repeat: no-repeat;
 
   content: ' ';
@@ -84,5 +84,11 @@
 
   .divider {
     display: block;
+  }
+}
+
+@media (min-width: 1600px) {
+  .administration::before {
+    background-position: center -220px;
   }
 }
