@@ -24,7 +24,7 @@ export async function httpDelete(url: string, options?: AxiosRequestConfig): Pro
   return await axios.delete(url, options);
 }
 
-export async function putWithoutConfig<ReturnType>(url: string): Promise<AxiosResponse<ReturnType>> {
+export async function putWithoutConfig<ReturnType>(url: string): Promise<ReturnType> {
   try {
     const response = await axios.put(url);
     return response.data ? response.data : null;

@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
-import { httpPost } from 'src/utils/network/networking';
+import { httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import {
   applicationMetadataApiUrl,
@@ -18,6 +18,7 @@ import {
   getRulehandlerUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
+  updateCookieUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { orgsListUrl } from 'src/utils/urls/urlHelper';
@@ -29,11 +30,13 @@ import type { IPartyValidationResponse } from 'src/features/party';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { IOption } from 'src/layout/common.generated';
 import type { ILayoutSets, ISimpleInstance } from 'src/types';
-import type { IAltinnOrgs, IApplicationSettings, IProfile } from 'src/types/shared';
+import type { IAltinnOrgs, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
 import type { IExpressionValidationConfig } from 'src/utils/validation/types';
 
 export const doPartyValidation = async (partyId: string): Promise<IPartyValidationResponse> =>
   (await httpPost(getPartyValidationUrl(partyId))).data;
+
+export const doSelectParty = (partyId: string) => putWithoutConfig<IParty | null>(updateCookieUrl(partyId));
 
 export const fetchActiveInstances = (partyId: string): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));

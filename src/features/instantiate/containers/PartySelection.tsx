@@ -9,7 +9,7 @@ import { AltinnParty } from 'src/components/altinnParty';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
-import { PartyActions } from 'src/features/party/partySlice';
+import { useSelectPartyMutation } from 'src/hooks/mutations/useSelectPartyMutation';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -76,6 +76,8 @@ export const PartySelection = () => {
   const match = useMatch(`/partyselection/:errorCode`);
   const errorCode = match?.params.errorCode;
 
+  const { mutate: selectPartyMutate, isSuccess: hasSelectedParty } = useSelectPartyMutation();
+
   const dispatch = useAppDispatch();
   const parties = useAppSelector((state) => state.party.parties);
   const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
@@ -93,22 +95,19 @@ export const PartySelection = () => {
   const [showSubUnits, setShowSubUnits] = React.useState(true);
   const [showDeleted, setShowDeleted] = React.useState(false);
 
-  const [hasSelected, setHasSelected] = React.useState(false);
   const navigate = useNavigate();
 
   const onSelectParty = (party: IParty) => {
-    dispatch(PartyActions.selectPartyFulfilled({ party: null }));
-    setHasSelected(true);
-    dispatch(PartyActions.selectParty({ party }));
+    selectPartyMutate(party);
     // Clear any previous instantiation errors.
     dispatch(InstantiationActions.instantiateRejected({ error: null }));
   };
 
   useEffect(() => {
-    if (selectedParty && hasSelected) {
+    if (selectedParty && hasSelectedParty) {
       navigate('/');
     }
-  }, [selectedParty, hasSelected, navigate]);
+  }, [selectedParty, navigate, hasSelectedParty]);
 
   function renderParties() {
     if (!parties || !appMetadata) {

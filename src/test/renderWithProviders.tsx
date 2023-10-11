@@ -38,6 +38,7 @@ export const renderWithProviders = (
 
     const allMockedQueries = {
       doPartyValidation: () => Promise.resolve({ valid: true, validParties: [], message: null }),
+      doSelectParty: () => Promise.resolve(null),
       fetchActiveInstances: () => Promise.resolve([]),
       fetchApplicationMetadata: () => Promise.resolve({} as unknown as IApplicationMetadata),
       fetchCurrentParty: () => Promise.resolve({}),
