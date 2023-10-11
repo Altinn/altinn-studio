@@ -74,14 +74,11 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
         string configPath = GetConfigPath();
         _newFactory = Factory.WithWebHostBuilder(builder =>
         {
-            builder.UseTestServer();
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
-
             builder.ConfigureTestServices(ConfigureTestServices);
         });
 
-        var client = _newFactory.CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
-        return client;
+        return _newFactory.CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
 
     /// <summary>
@@ -96,6 +93,7 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     public void Dispose()
     {
         Dispose(true);
+        GC.SuppressFinalize(this);
     }
     protected virtual void Dispose(bool disposing)
     {
