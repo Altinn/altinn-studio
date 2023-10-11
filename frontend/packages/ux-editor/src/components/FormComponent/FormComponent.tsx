@@ -83,7 +83,9 @@ export const FormComponent = memo(function FormComponent({
         <div className={classes.formComponent} tabIndex={0}>
           <div className={classes.formComponentTitle}>
             <span className={classes.icon}>
-              {Icon && <Icon title={getComponentTitleByComponentType(component.type, t)} />}
+              {Icon && (
+                <Icon title={getComponentTitleByComponentType(component.type, t)} aria-hidden />
+              )}
             </span>
             <span id={`${id}-title`}>
               {textResource
