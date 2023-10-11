@@ -10,6 +10,8 @@ const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerApp
 
 context('Designer', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
@@ -54,8 +56,6 @@ context('Designer', () => {
     designer
       .getPageAccordionByName('Side1')
       .findByRole('listitem', { name: texts['ux_editor.component_input'] });
-    //.findAllByRole('listitem')
-    // .then(($elements) => expect($elements.length).eq(1));
 
     // Delete components on page
     cy.deleteComponents();
