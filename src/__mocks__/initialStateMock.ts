@@ -46,7 +46,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       schemas: {},
     },
     formDynamics: {
-      apis: null,
+      APIs: null,
       conditionalRendering: null,
       error: null,
       ruleConnection: null,
@@ -54,8 +54,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     formLayout: getFormLayoutStateMock(),
     formRules: {
       error: null,
-      fetched: false,
-      fetching: false,
       model: [],
     },
     formValidations: {

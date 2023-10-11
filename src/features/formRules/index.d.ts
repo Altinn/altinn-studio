@@ -6,8 +6,6 @@ export interface IRuleModelFieldElement {
 
 export interface IFormRuleState {
   model: IRuleModelFieldElement[];
-  fetching: boolean;
-  fetched: boolean;
   error: Error | null;
 }
 

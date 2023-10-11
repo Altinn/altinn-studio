@@ -54,6 +54,8 @@ export const renderWithProviders = (
       fetchOptions: () => Promise.resolve([]),
       fetchDataList: () => Promise.resolve({} as unknown as IDataList),
       fetchPdfFormat: () => Promise.resolve({ excludedPages: [], excludedComponents: [] }),
+      fetchDynamics: () => Promise.resolve(null),
+      fetchRuleHandler: () => Promise.resolve(null),
     } as AppQueriesContext;
     const mockedQueries = { ...allMockedQueries, ...queries };
 

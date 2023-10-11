@@ -1,16 +1,11 @@
-import { fetchDynamicsSaga } from 'src/features/dynamics/fetchFormDynamicsSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
-import type {
-  IFetchServiceConfigFulfilled,
-  IFetchServiceConfigRejected,
-  IFormDynamicState,
-} from 'src/features/dynamics/index';
+import type { IFetchServiceConfigRejected, IFormDynamics, IFormDynamicState } from 'src/features/dynamics/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 
 const initialState: IFormDynamicState = {
   ruleConnection: {},
   conditionalRendering: {},
-  apis: undefined,
+  APIs: undefined,
   error: null,
 };
 
@@ -20,12 +15,9 @@ export const formDynamicsSlice = () => {
     name: 'formDynamics',
     initialState,
     actions: {
-      fetch: mkAction<IFetchServiceConfigFulfilled | undefined>({
-        takeEvery: fetchDynamicsSaga,
-      }),
-      fetchFulfilled: mkAction<IFetchServiceConfigFulfilled>({
+      fetchFulfilled: mkAction<IFormDynamics>({
         reducer: (state, action) => {
-          state.apis = action.payload.apis;
+          state.APIs = action.payload.APIs;
           state.ruleConnection = action.payload.ruleConnection;
           state.conditionalRendering = action.payload.conditionalRendering;
           state.error = null;

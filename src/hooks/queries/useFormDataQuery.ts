@@ -3,10 +3,8 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/contexts/appQueriesContext';
-import { FormDynamicsActions } from 'src/features/dynamics/formDynamicsSlice';
 import { StatelessReadyState, useStatelessReadyState } from 'src/features/entrypoint/useStatelessReadyState';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { FormRulesActions } from 'src/features/formRules/rulesSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
@@ -76,8 +74,6 @@ export function useFormDataQuery(): UseQueryResult<IFormData> {
     onSuccess: (formDataAsObj) => {
       const formData = convertModelToDataBinding(formDataAsObj);
       dispatch(FormDataActions.fetchFulfilled({ formData }));
-      dispatch(FormRulesActions.fetch());
-      dispatch(FormDynamicsActions.fetch());
     },
     onError: async (error: HttpClientError) => {
       dispatch(FormDataActions.fetchRejected({ error }));
