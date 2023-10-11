@@ -18,7 +18,7 @@ describe('settingsModalUtils', () => {
         mockIcon,
         mockTabId1,
         mockOnClick,
-        mockCurrentTab
+        mockCurrentTab,
       );
 
       expect(navigationTab.icon).toEqual(mockIcon);
@@ -34,7 +34,7 @@ describe('settingsModalUtils', () => {
         mockIcon,
         mockTabId2,
         mockOnClick,
-        mockCurrentTab
+        mockCurrentTab,
       );
 
       expect(navigationTab.isActiveTab).toEqual(false);
