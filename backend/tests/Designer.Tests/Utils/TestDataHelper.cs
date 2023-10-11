@@ -283,8 +283,8 @@ namespace Designer.Tests.Utils
                 return;
             }
             await using FileStream sourceStream = file.OpenRead();
-            await using FileStream destinationStream = File.Create(destinationPath);
-            await sourceStream.CopyToAsync(destinationStream);
+            await using FileStream destinationStream = File.Create(destinationPath, bufferSize: 4096, FileOptions.Asynchronous);
+            await sourceStream.CopyToAsync(destinationStream, bufferSize: 4096);
             File.SetAttributes(destinationPath, FileAttributes.Normal);
         }
 
