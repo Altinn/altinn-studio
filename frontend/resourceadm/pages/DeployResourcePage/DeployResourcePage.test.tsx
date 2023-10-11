@@ -257,19 +257,134 @@ describe('DeployResourcePage', () => {
     expect(statusCardTitleSuccess).toBeInTheDocument();
   });
 
-  it('updates the version text when typing in the textfield', () => {});
-  it('calls "onSaveVersion" when text field is blurred', () => {});
+  it('updates the version text when typing in the textfield', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
 
-  it('disables buttons when _______', () => {
-    // Check all 4
+    const versionInput = screen.getByLabelText(textMock('resourceadm.deploy_version_label'));
+    expect(versionInput).toHaveValue(mockResourceVersionText);
+
+    await act(() => user.type(versionInput, '1'));
+
+    expect(versionInput).toHaveValue(`${mockResourceVersionText}1`);
   });
 
-  it('calls "handlePublish" when publishing a resource', () => {
-    // Do for all 4
+  it('calls "onSaveVersion" when text field is blurred', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+
+    const versionInput = screen.getByLabelText(textMock('resourceadm.deploy_version_label'));
+    await act(() => user.type(versionInput, '1'));
+    await act(() => user.tab());
+
+    expect(mockOnSaveVersion).toHaveBeenCalledTimes(1);
+    expect(mockOnSaveVersion).toHaveBeenCalledWith(`${mockResourceVersionText}1`);
   });
 
-  it('does not display card for "at22" and "at23" when "selectedContext" is not "ttd"', () => {});
-  it('displays card for "at22" and "at23" when "selectedContext" is "ttd"', () => {});
+  it('disables the deploy buttons when there is no version text', async () => {
+    await resolveAndWaitForSpinnerToDisappear({}, { resourceVersionText: '' });
+
+    const tt02 = textMock('resourceadm.deploy_test_env');
+    const prod = textMock('resourceadm.deploy_prod_env');
+
+    const tt02Button = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
+    });
+    const prodButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
+    });
+
+    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
+    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the deploy buttons when there is validate resource error', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getValidateResource: () => Promise.resolve(mockValidateResourceData2),
+    });
+
+    const tt02 = textMock('resourceadm.deploy_test_env');
+    const prod = textMock('resourceadm.deploy_prod_env');
+
+    const tt02Button = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
+    });
+    const prodButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
+    });
+
+    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
+    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the deploy buttons when there is validate policy error', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getValidatePolicy: () => Promise.resolve(mockValidatePolicyData2),
+    });
+    const tt02 = textMock('resourceadm.deploy_test_env');
+    const prod = textMock('resourceadm.deploy_prod_env');
+
+    const tt02Button = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
+    });
+    const prodButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
+    });
+
+    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
+    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the deploy buttons when there is a local repo not in sync error', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getRepoStatus: () => Promise.resolve(mockRepoStatusAhead),
+    });
+
+    const tt02 = textMock('resourceadm.deploy_test_env');
+    const prod = textMock('resourceadm.deploy_prod_env');
+
+    const tt02Button = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
+    });
+    const prodButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
+    });
+
+    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
+    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('calls "handlePublish" when publishing a resource to tt02', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+
+    const tt02 = textMock('resourceadm.deploy_test_env');
+
+    const tt02Button = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
+    });
+
+    expect(tt02Button).not.toHaveAttribute('aria-disabled', 'true');
+
+    await act(() => user.click(tt02Button));
+    expect(publishResource).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls "handlePublish" when publishing a resource to prod', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+
+    const prod = textMock('resourceadm.deploy_prod_env');
+
+    const prodButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
+    });
+
+    expect(prodButton).not.toHaveAttribute('aria-disabled', 'true');
+
+    await act(() => user.click(prodButton));
+    expect(publishResource).toHaveBeenCalledTimes(1);
+  });
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (
