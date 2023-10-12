@@ -4,7 +4,6 @@ import type { SagaIterator } from 'redux-saga';
 import { removeHiddenValidationsSaga } from 'src/features/dynamics/conditionalRenderingSagas';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import {
-  fetchLayoutSetsSaga,
   watchFetchFormLayoutSaga,
   watchFetchFormLayoutSettingsSaga,
 } from 'src/features/layout/fetch/fetchFormLayoutSagas';
@@ -92,9 +91,6 @@ export const formLayoutSlice = () => {
           },
         }),
         fetchRejected: genericReject,
-        fetchSets: mkAction<void>({
-          takeEvery: fetchLayoutSetsSaga,
-        }),
         fetchSetsFulfilled: mkAction<LayoutTypes.IFetchLayoutSetsFulfilled>({
           reducer: (state, action) => {
             const { layoutSets } = action.payload;

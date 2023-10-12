@@ -8,7 +8,7 @@ import { QueueActions } from 'src/features/queue/queueSlice';
 import { ComponentConfigs } from 'src/layout/components.generated';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
 import { httpGet } from 'src/utils/network/networking';
-import { getLayoutSetsUrl, getLayoutSettingsUrl, getLayoutsUrl } from 'src/utils/urls/appUrlHelper';
+import { getLayoutSettingsUrl, getLayoutsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutFileExternal } from 'src/layout/common.generated';
@@ -148,20 +148,5 @@ export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
   while (true) {
     yield all([take(FormLayoutActions.fetchSettings), take(FormLayoutActions.fetchFulfilled)]);
     yield call(fetchLayoutSettingsSaga);
-  }
-}
-
-export function* fetchLayoutSetsSaga(): SagaIterator {
-  try {
-    const layoutSets: ILayoutSets = yield call(httpGet, getLayoutSetsUrl());
-    yield put(FormLayoutActions.fetchSetsFulfilled({ layoutSets }));
-  } catch (error) {
-    if (error?.response?.status === 404) {
-      // We accept that the app does not have a layout sets as this is not default
-      yield put(FormLayoutActions.fetchSetsFulfilled({ layoutSets: null }));
-    } else {
-      yield put(FormLayoutActions.fetchSetsRejected({ error }));
-      window.logError('Fetching layout sets failed:\n', error);
-    }
   }
 }
