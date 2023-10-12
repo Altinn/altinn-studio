@@ -151,7 +151,7 @@ namespace Designer.Tests.Utils
             return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
         }
 
-        public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public static async Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
             var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
@@ -245,7 +245,7 @@ namespace Designer.Tests.Utils
             return repositoryDirectory;
         }
 
-        public async static Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
+        public static async Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 
@@ -259,23 +259,33 @@ namespace Designer.Tests.Utils
             Directory.CreateDirectory(targetDirectory);
 
             FileInfo[] files = sourceDirectoryInfo.GetFiles();
-            foreach (FileInfo file in files)
+            await Parallel.ForEachAsync(files, async (file, _) =>
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-
-                var sourceBytes = ReadAllBytesWithoutLockingWithRetry(file.FullName);
-                await File.WriteAllBytesAsync(tempPath, sourceBytes);
-                File.SetAttributes(tempPath, FileAttributes.Normal);
-            }
+                await CopyFileIfNotExistsAsync(file, tempPath);
+            });
 
             if (copySubDirs)
             {
-                foreach (DirectoryInfo subdir in sourceSubDirectories)
+                await Parallel.ForEachAsync(sourceSubDirectories, async (subDir, _) =>
                 {
-                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
-                    await CopyDirectory(subdir.FullName, tempPath, copySubDirs);
-                }
+                    string tempPath = Path.Combine(targetDirectory, subDir.Name);
+                    await CopyDirectory(subDir.FullName, tempPath, copySubDirs);
+                });
             }
+        }
+
+        // Copy file using Streams for better performance
+        private static async Task CopyFileIfNotExistsAsync(FileInfo file, string destinationPath)
+        {
+            if (File.Exists(destinationPath))
+            {
+                return;
+            }
+            await using FileStream sourceStream = file.OpenRead();
+            await using FileStream destinationStream = File.Create(destinationPath, bufferSize: 4096, FileOptions.Asynchronous);
+            await sourceStream.CopyToAsync(destinationStream, bufferSize: 4096);
+            File.SetAttributes(destinationPath, FileAttributes.Normal);
         }
 
         public static void CleanUpRemoteRepository(string org, string repository)

@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class SaveResourceTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, SaveResourceTests>
+    public class SaveResourceTests : DisagnerEndpointsTestsBase<SaveResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public SaveResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public SaveResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.TextController
             using var httpContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
 
             // Act
-            using var response = await HttpClient.Value.PostAsync(url, httpContent);
+            using var response = await HttpClient.PostAsync(url, httpContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

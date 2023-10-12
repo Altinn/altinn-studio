@@ -11,11 +11,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class UpdateResourcePolicyTests : DisagnerEndpointsTestsBase<PolicyController, UpdateResourcePolicyTests>
+    public class UpdateResourcePolicyTests : DisagnerEndpointsTestsBase<UpdateResourcePolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public UpdateResourcePolicyTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public UpdateResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData))
             {
                 httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 responseBody = await response.Content.ReadAsStringAsync();
             }

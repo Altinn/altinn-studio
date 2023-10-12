@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PreviewControllerTestsBase<TTestClass> : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.PreviewController, TTestClass>
+    public class PreviewControllerTestsBase<TTestClass> : DisagnerEndpointsTestsBase<TTestClass>
     where TTestClass : class
     {
         protected const string Org = "ttd";
@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.PreviewController
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        public PreviewControllerTestsBase(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public PreviewControllerTestsBase(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 

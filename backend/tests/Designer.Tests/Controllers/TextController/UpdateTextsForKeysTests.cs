@@ -16,10 +16,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, UpdateTextsForKeysTests>
+    public class UpdateTextsForKeysTests : DisagnerEndpointsTestsBase<UpdateTextsForKeysTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public UpdateTextsForKeysTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public UpdateTextsForKeysTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -48,7 +48,7 @@ namespace Designer.Tests.Controllers.TextController
             using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
 
             // Act
-            using HttpResponseMessage response = await HttpClient.Value.PutAsync(url, httpContent);
+            using HttpResponseMessage response = await HttpClient.PutAsync(url, httpContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -68,7 +68,7 @@ namespace Designer.Tests.Controllers.TextController
             using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
 
             // Act
-            using HttpResponseMessage response = await HttpClient.Value.PutAsync(url, httpContent);
+            using HttpResponseMessage response = await HttpClient.PutAsync(url, httpContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

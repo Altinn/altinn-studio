@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextKeysController
 {
-    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextKeysController, GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
-        public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextKeysController> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = VersionPrefix(org, targetRepository);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = VersionPrefix(org, targetRepository);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         }
 
@@ -57,7 +57,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = VersionPrefix(org, targetRepository);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status500InternalServerError, (int)response.StatusCode);
         }

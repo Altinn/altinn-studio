@@ -16,10 +16,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class AddMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, AddMetadataForAttachmentTests>
+    public class AddMetadataForAttachmentTests : DisagnerEndpointsTestsBase<AddMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public AddMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public AddMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             // payload
             using var payloadContent = new StringContent(JsonSerializer.Serialize(payload, JsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using var response = await HttpClient.Value.PostAsync(url, payloadContent);
+            using var response = await HttpClient.PostAsync(url, payloadContent);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 

@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextKeysController
 {
-    public class PutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextKeysController, GetTests>
+    public class PutTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
-        public PutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextKeysController> factory) : base(factory)
+        public PutTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -26,11 +26,11 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=ReplacedKey";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -46,11 +46,11 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -66,11 +66,11 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -86,11 +86,11 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
-            HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -107,7 +107,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         }
@@ -121,7 +121,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?wrongQueryParam=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
         }

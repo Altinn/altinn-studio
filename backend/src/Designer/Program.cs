@@ -359,3 +359,5 @@ static string GetXmlCommentsPathForControllers()
 
     return xmlPath;
 }
+
+public partial class Program { }
