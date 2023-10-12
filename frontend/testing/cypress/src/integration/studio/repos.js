@@ -1,11 +1,12 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { gitea } from "../../selectors/gitea";
+import { gitea } from '../../selectors/gitea';
 import { header } from '../../selectors/header';
 
 context('Repository', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
