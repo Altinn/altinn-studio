@@ -2,14 +2,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SharedResources.Tests;
-using Xunit;
 using static Designer.Tests.Utils.TestSetupUtils;
 
 namespace Designer.Tests.Controllers.ApiTests;
