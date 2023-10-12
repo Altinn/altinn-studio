@@ -22,6 +22,7 @@ export enum ValidationIssueSources {
   File = 'File',
   ModelState = 'ModelState',
   Required = 'Required',
+  Expression = 'Expression',
 }
 
 /**
@@ -34,9 +35,14 @@ export function shouldExcludeValidationIssue(issue: BackendValidationIssue): boo
     return true;
   }
 
-  // eslint-disable-next-line sonarjs/prefer-single-boolean-return
   if (issue.source === ValidationIssueSources.ModelState) {
     // This is handled by schema validation.
+    return true;
+  }
+
+  // eslint-disable-next-line sonarjs/prefer-single-boolean-return
+  if (issue.source === ValidationIssueSources.Expression) {
+    // This is handled by the frontend
     return true;
   }
 
