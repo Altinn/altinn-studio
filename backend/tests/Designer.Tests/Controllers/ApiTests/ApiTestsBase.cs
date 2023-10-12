@@ -37,6 +37,8 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     /// </summary>
     protected abstract void ConfigureTestServices(IServiceCollection services);
 
+    protected Action<IServiceCollection> ConfigureTestForSpecificTest { get; set; } = delegate { };
+
     /// <summary>
     /// Location of the assembly of the executing unit test.
     /// </summary>
@@ -69,6 +71,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         {
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
             builder.ConfigureTestServices(ConfigureTestServices);
+            builder.ConfigureServices(ConfigureTestForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
 
