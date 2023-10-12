@@ -1261,6 +1261,7 @@
   "ux_editor.information_more_info_link": "Les mer om erfaringer og hvor elementet er i bruk",
   "ux_editor.information_third_party_library": "Dette er en komoponent som er utviklet av en tredjepart, og inngår ikke i Altinns faste bibliotek.",
   "ux_editor.input_popover_label": "Gi nytt navn til siden",
+  "ux_editor.input_popover_save_button": "Lagre",
   "ux_editor.latitude_label": "Latitude",
   "ux_editor.list_all": "ALLE",
   "ux_editor.list_favourites": "FAVORITTER",

@@ -83,11 +83,8 @@ export const InputPopover = ({
    */
   const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const newNameCandidate = event.target.value;
-
     const nameError: string = getPageNameErrorKey(newNameCandidate, oldName, layoutOrder);
-
     setErrorMessage(nameError === null ? null : t(nameError));
-
     setNewName(newNameCandidate);
   };
 
@@ -134,6 +131,15 @@ export const InputPopover = ({
           {errorMessage}
         </ErrorMessage>
         <div className={classes.buttonContainer}>
+          <Button
+            color='primary'
+            variant='filled'
+            onClick={() => errorMessage === null && newName !== oldName && saveNewName(newName)}
+            aria-disabled={errorMessage !== null || newName === oldName}
+            size='small'
+          >
+            {t('ux_editor.input_popover_save_button')}
+          </Button>
           <Button
             color='secondary'
             variant='quiet'
