@@ -14,7 +14,7 @@ export interface IRawTextResource extends ITextResource {
   id: string;
 }
 
-export interface IFetchTextResourcesFulfilled {
+export interface ITextResourceResult {
   language: string;
   resources: IRawTextResource[];
 }

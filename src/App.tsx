@@ -7,7 +7,6 @@ import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { useAllOptionsInitiallyLoaded } from 'src/features/options/useAllOptions';
-import { QueueActions } from 'src/features/queue/queueSlice';
 import { useApplicationMetadataQuery } from 'src/hooks/queries/useApplicationMetadataQuery';
 import { useApplicationSettingsQuery } from 'src/hooks/queries/useApplicationSettingsQuery';
 import { useCustomValidationConfig } from 'src/hooks/queries/useCustomValidationConfig';
@@ -16,12 +15,12 @@ import { useFooterLayoutQuery } from 'src/hooks/queries/useFooterLayoutQuery';
 import { useFormDataQuery } from 'src/hooks/queries/useFormDataQuery';
 import { useCurrentPartyQuery } from 'src/hooks/queries/useGetCurrentPartyQuery';
 import { usePartiesQuery } from 'src/hooks/queries/useGetPartiesQuery';
+import { useGetTextResourcesQuery } from 'src/hooks/queries/useGetTextResourcesQuery';
 import { useLayoutSetsQuery } from 'src/hooks/queries/useLayoutSetsQuery';
 import { useOrgsQuery } from 'src/hooks/queries/useOrgsQuery';
 import { useProfileQuery } from 'src/hooks/queries/useProfileQuery';
 import { useRulesQuery } from 'src/hooks/queries/useRulesQuery';
 import { useAlwaysPromptForParty } from 'src/hooks/useAlwaysPromptForParty';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useKeepAlive } from 'src/hooks/useKeepAlive';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
@@ -41,12 +40,6 @@ export const App = () => {
   const componentIsReady = applicationSettings && applicationMetadata;
   const componentHasError =
     hasApplicationSettingsError || hasApplicationMetadataError || hasLayoutSetError || hasOrgsError;
-
-  const dispatch = useAppDispatch();
-
-  React.useEffect(() => {
-    dispatch(QueueActions.startInitialAppTaskQueue());
-  }, [dispatch]);
 
   if (componentHasError) {
     return <UnknownError />;
@@ -68,8 +61,16 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
   const allowAnonymous = useAppSelector(allowAnonymousSelector);
 
-  const { isError: hasProfileError, isFetching: isProfileFetching } = useProfileQuery(allowAnonymous === false);
+  const {
+    isError: hasProfileError,
+    isFetching: isProfileFetching,
+    isSuccess: isProfileSucess,
+  } = useProfileQuery(allowAnonymous === false);
   const { isError: hasPartiesError, isFetching: isPartiesFetching } = usePartiesQuery(allowAnonymous === false);
+
+  const { isError: hasTextResourceError, isFetching: isTextResourceFetching } = useGetTextResourcesQuery(
+    allowAnonymous === true || isProfileSucess,
+  );
 
   const alwaysPromptForParty = useAlwaysPromptForParty();
 
@@ -86,13 +87,14 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
   const { isFetching: IsRulesFetching } = useRulesQuery(isFormDataSuccess);
   const optionsInitiallyLoaded = useAllOptionsInitiallyLoaded();
 
-  const hasComponentError = hasProfileError || hasCurrentPartyError || hasPartiesError;
+  const hasComponentError = hasProfileError || hasCurrentPartyError || hasPartiesError || hasTextResourceError;
   const isFetching =
     isProfileFetching ||
     isPartiesFetching ||
     isFormDataFetching ||
     IsDynamicsFetching ||
     IsRulesFetching ||
+    isTextResourceFetching ||
     !optionsInitiallyLoaded;
 
   // Set the title of the app

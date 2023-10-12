@@ -18,6 +18,7 @@ import {
   getRulehandlerUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
+  textResourcesUrl,
   updateCookieUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
@@ -28,6 +29,7 @@ import type { IFormDynamics } from 'src/features/dynamics';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IPartyValidationResponse } from 'src/features/party';
 import type { IPdfFormat } from 'src/features/pdf/types';
+import type { ITextResourceResult } from 'src/features/textResources';
 import type { IOption } from 'src/layout/common.generated';
 import type { ILayoutSets, ISimpleInstance } from 'src/types';
 import type { IAltinnOrgs, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
@@ -82,3 +84,6 @@ export const fetchDynamics = (layoutSetId?: string): Promise<{ data: IFormDynami
 
 export const fetchRuleHandler = (layoutSetId?: string): Promise<string | null> =>
   httpGet(getRulehandlerUrl(layoutSetId));
+
+export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
+  httpGet(textResourcesUrl(selectedLanguage));

@@ -5,7 +5,6 @@ import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { watchStartInitialInfoTaskQueueSaga } from 'src/features/queue/infoTask/infoTaskQueueSaga';
-import { TextResourcesActions } from 'src/features/textResources/textResourcesSlice';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type { IQueueError, IQueueState } from 'src/features/queue/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
@@ -52,11 +51,6 @@ export const queueSlice = () => {
         reducer: (state, action) => {
           const { error } = action.payload;
           state.stateless.error = error;
-        },
-      }),
-      startInitialAppTaskQueue: mkAction<void>({
-        *takeEvery(): SagaIterator {
-          yield put(TextResourcesActions.fetch());
         },
       }),
       startInitialDataTaskQueue: mkAction<void>({

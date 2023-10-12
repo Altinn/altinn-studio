@@ -1,9 +1,8 @@
-import { watchFetchTextResourcesSaga } from 'src/features/textResources/fetch/fetchTextResourcesSagas';
 import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type {
-  IFetchTextResourcesFulfilled,
   IFetchTextResourcesRejected,
+  ITextResourceResult,
   ITextResourcesState,
 } from 'src/features/textResources/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
@@ -20,10 +19,7 @@ export const textResourcesSlice = () => {
     name: 'textResources',
     initialState,
     actions: {
-      fetch: mkAction<void>({
-        saga: () => watchFetchTextResourcesSaga,
-      }),
-      fetchFulfilled: mkAction<IFetchTextResourcesFulfilled>({
+      fetchFulfilled: mkAction<ITextResourceResult>({
         reducer: (state, action) => {
           state.language = action.payload.language;
           state.resourceMap = resourcesAsMap(action.payload.resources);
