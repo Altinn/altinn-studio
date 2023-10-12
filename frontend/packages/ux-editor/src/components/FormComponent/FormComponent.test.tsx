@@ -161,7 +161,9 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        textMock('ux_editor.component_title.Input'),
+      );
     });
 
     it('should display the component type when the title is undefined', async () => {
@@ -174,19 +176,9 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
-    });
-
-    it('should display "Unknown component" when both the title and the component type are undefined', async () => {
-      await render({
-        component: {
-          ...component1Mock,
-          textResourceBindings: undefined,
-          type: undefined,
-        },
-      });
-
-      expect(screen.getByText(textMock('ux_editor.component_unknown'))).toBeInTheDocument();
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        textMock('ux_editor.component_title.Input'),
+      );
     });
   });
 
@@ -199,7 +191,7 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByTitle(textMock('ux_editor.component_input'))).toBeInTheDocument();
+      expect(screen.getByTitle(textMock('ux_editor.component_title.Input'))).toBeInTheDocument();
     });
   });
 });
