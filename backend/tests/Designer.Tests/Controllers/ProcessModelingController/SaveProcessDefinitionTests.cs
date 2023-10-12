@@ -13,11 +13,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class SaveProcessDefinitionTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, SaveProcessDefinitionTests>
+    public class SaveProcessDefinitionTests : DisagnerEndpointsTestsBase<SaveProcessDefinitionTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-        public SaveProcessDefinitionTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ProcessModelingController> factory) : base(factory)
+        public SaveProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var content = new StringContent(fileContent, Encoding.UTF8, MediaTypeNames.Application.Xml);
 
-            using var response = await HttpClient.Value.PutAsync(url, content);
+            using var response = await HttpClient.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/process/process.bpmn");
@@ -52,7 +52,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var content = new StringContent(nonXmlContent, Encoding.UTF8, MediaTypeNames.Application.Xml);
 
-            using var response = await HttpClient.Value.PutAsync(url, content);
+            using var response = await HttpClient.PutAsync(url, content);
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
     }

@@ -5,102 +5,26 @@ import i18next from 'i18next';
 import { UseText } from '../hooks';
 import { TranslationKey } from 'app-shared/types/language';
 
-export function getComponentHelperTextByComponentType(type: ComponentType, language: any): string {
-  switch (type) {
-    case ComponentType.Header: {
-      return language['ux_editor.helper_text_for_header'];
-    }
-    case ComponentType.Input: {
-      return language['ux_editor.helper_text_for_input'];
-    }
-    case ComponentType.Checkboxes: {
-      return language['ux_editor.helper_text_for_check_box'];
-    }
-    case ComponentType.RadioButtons: {
-      return language['ux_editor.helper_text_for_radio_button'];
-    }
-    case ComponentType.Image: {
-      return language['ux_editor.helper_text_for_image'];
-    }
-    case ComponentType.AttachmentList: {
-      return language['ux_editor.helper_text_for_attachment_list'];
-    }
-    case ComponentType.Button: {
-      return language['ux_editor.helper_text_for_attachment_button'];
-    }
-    case ComponentType.NavigationBar: {
-      return language['ux_editor.helper_text_for_nav_bar'];
-    }
-    default: {
-      // Several components does not yet have a helper text, a default is shown.
-      return language['ux_editor.helper_text_default'];
-    }
-  }
+/**
+ * Get the help text for a given component type
+ * @param type The component type
+ * @param t The translation function
+ * @returns The help text for the component, or the default help text if none is found
+ */
+export function getComponentHelperTextByComponentType(type: ComponentType, t: typeof i18next.t): string {
+  const text = t(`ux_editor.component_helpText.${type}`);
+    return text !== `ux_editor.component_helpText.${type}` ? text : t('ux_editor.component_helpText.default');
 }
 
+/**
+ * Get the title text for a given component type
+ * @param type The component type
+ * @param t The translation function
+ * @returns The title text for the component, or the type if none is found
+ */
 export function getComponentTitleByComponentType(type: ComponentType, t: typeof i18next.t): string {
-  switch (type) {
-    case ComponentType.Checkboxes: {
-      return t('ux_editor.component_checkbox');
-    }
-    case ComponentType.Dropdown: {
-      return t('ux_editor.component_dropdown');
-    }
-    case ComponentType.FileUpload: {
-      return t('ux_editor.component_file_upload');
-    }
-    case ComponentType.FileUploadWithTag: {
-      return t('ux_editor.component_file_upload_with_tag');
-    }
-    case ComponentType.Header: {
-      return t('ux_editor.component_header');
-    }
-    case ComponentType.Input: {
-      return t('ux_editor.component_input');
-    }
-    case ComponentType.Image: {
-      return t('ux_editor.component_image');
-    }
-    case ComponentType.Datepicker: {
-      return t('ux_editor.component_datepicker');
-    }
-    case ComponentType.Button: {
-      return t('ux_editor.component_button');
-    }
-    case ComponentType.TextArea: {
-      return t('ux_editor.component_text_area');
-    }
-    case ComponentType.RadioButtons: {
-      return t('ux_editor.component_radio_button');
-    }
-    case ComponentType.Paragraph: {
-      return t('ux_editor.component_paragraph');
-    }
-    case ComponentType.AddressComponent: {
-      return t('ux_editor.component_advanced_address');
-    }
-    case ComponentType.Group: {
-      return t('ux_editor.component_group');
-    }
-    case ComponentType.NavigationButtons: {
-      return t('ux_editor.component_navigation_buttons');
-    }
-    case ComponentType.AttachmentList: {
-      return t('ux_editor.component_attachment_list');
-    }
-    case ComponentType.NavigationBar: {
-      return t('ux_editor.component_navigation_bar');
-    }
-    case ComponentType.Panel: {
-      return t('ux_editor.component_information_panel');
-    }
-    case ComponentType.Map: {
-      return t('ux_editor.component_map');
-    }
-    default: {
-      return type;
-    }
-  }
+  const text = t(`ux_editor.component_title.${type}`)
+  return text !== `ux_editor.component_title.${type}` ? text : type;
 }
 
 export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof i18next.t): string {

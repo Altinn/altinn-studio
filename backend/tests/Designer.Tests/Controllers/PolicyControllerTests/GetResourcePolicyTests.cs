@@ -10,11 +10,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class GetResourcePolicyTests : DisagnerEndpointsTestsBase<PolicyController, GetResourcePolicyTests>
+    public class GetResourcePolicyTests : DisagnerEndpointsTestsBase<GetResourcePolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetResourcePolicyTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public GetResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             ResourcePolicy resourcePolicy;
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });

@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetGetLosTermsTests : ResourceAdminControllerTestsBaseClass<GetGetLosTermsTests>
+    public class GetGetLosTermsTests : ResourceAdminControllerTestsBaseClass<GetGetLosTermsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetGetLosTermsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetGetLosTermsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string sectorscontent = await res.Content.ReadAsStringAsync();
             List<LosTerm> losTerms = System.Text.Json.JsonSerializer.Deserialize<List<LosTerm>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
 

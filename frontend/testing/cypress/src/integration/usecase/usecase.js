@@ -2,14 +2,14 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as texts from "@altinn-studio/language/src/nb.json";
-import { administration } from "../../selectors/administration";
-import { deploy } from "../../selectors/deploy";
-import { designer } from "../../selectors/designer";
-import { gitea } from "../../selectors/gitea";
+import * as texts from '@altinn-studio/language/src/nb.json';
+import { administration } from '../../selectors/administration';
+import { deploy } from '../../selectors/deploy';
+import { designer } from '../../selectors/designer';
+import { gitea } from '../../selectors/gitea';
 import { header } from '../../selectors/header';
-import { preview } from "../../selectors/preview";
-import { textEditor } from "../../selectors/textEditor";
+import { preview } from '../../selectors/preview';
+import { textEditor } from '../../selectors/textEditor';
 
 context(
   'Bruksmønster',
@@ -36,6 +36,9 @@ context(
     });
 
     it('Navigation', () => {
+      cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+      cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
+
       // About app page
       administration
         .getAppNameField()
@@ -44,6 +47,9 @@ context(
 
       // Forms editor
       header.getCreateLink().click();
+      designer.getAddPageButton().click();
+      cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+      cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
       designer.getToolbarItemByText(texts['ux_editor.component_input']).should('be.visible');
 
       // Text editor
@@ -57,10 +63,14 @@ context(
 
       // Repos
       header.getProfileIcon().should('be.visible').click();
-      header.getOpenRepoLink().should('be.visible').invoke('attr', 'href').then(href => {
-        cy.visit(href);
-        gitea.getRepositoryHeader().should('be.visible');
-      });
+      header
+        .getOpenRepoLink()
+        .should('be.visible')
+        .invoke('attr', 'href')
+        .then((href) => {
+          cy.visit(href);
+          gitea.getRepositoryHeader().should('be.visible');
+        });
     });
 
     // it('Gitea connection - Pull changes', () => {
@@ -82,5 +92,5 @@ context(
         cy.get(table).find('tbody > tr').should('have.length.gte', 1);
       });
     });
-  }
+  },
 );

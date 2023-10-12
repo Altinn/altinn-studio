@@ -6,10 +6,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PreviewStatusTests : PreviewControllerTestsBase<PreviewStatusTests>
+    public class PreviewStatusTests : PreviewControllerTestsBase<PreviewStatusTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public PreviewStatusTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public PreviewStatusTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/preview/preview-status";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
