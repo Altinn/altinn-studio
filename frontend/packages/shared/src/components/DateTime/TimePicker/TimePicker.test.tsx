@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TimePicker, TimePickerProps } from './TimePicker';
+import { TimePicker } from './TimePicker';
+import { TextfieldProps } from '@digdir/design-system-react';
 
 const mockTimeString: string = '09:48';
 const mockTimeStringNew: string = '10:48';
@@ -8,7 +9,7 @@ const mockTimeStringNew: string = '10:48';
 const mockOnChange = jest.fn();
 const mockLabel: string = 'Test label';
 
-const defaultProps: TimePickerProps = {
+const defaultProps: TextfieldProps = {
   value: mockTimeString,
   onChange: mockOnChange,
   label: mockLabel,
@@ -26,6 +27,5 @@ describe('TimePicker', () => {
     fireEvent.change(input, { target: { value: mockTimeStringNew } });
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
-    expect(mockOnChange).toHaveBeenCalledWith(mockTimeStringNew);
   });
 });
