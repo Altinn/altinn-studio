@@ -1,12 +1,10 @@
-import { Textfield } from '@digdir/design-system-react';
-import React, { ReactNode, useState } from 'react';
+import { Textfield, TextfieldProps } from '@digdir/design-system-react';
+import React, { ReactNode } from 'react';
 
 export type DatePickerProps = {
   value: Date;
   onChange: (date: Date) => void;
-  label: string;
-  size?: 'xsmall' | 'small' | 'medium' | 'large';
-};
+} & Omit<TextfieldProps, 'onChange' | 'value'>;
 
 /**
  * @component
@@ -19,6 +17,7 @@ export type DatePickerProps = {
  *      value={date}
  *      onChange={(newDate: Date) => setDate(newDate)}
  *      label='Select date'
+ *      size='small'
  *    />
  *
  * @property {Date}[value] - The date to display
@@ -28,18 +27,17 @@ export type DatePickerProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const DatePicker = ({
-  value,
-  onChange,
-  label,
-  size = 'small',
-}: DatePickerProps): ReactNode => {
-  const [date, setDate] = useState(value.toISOString().split('T')[0]);
-
+export const DatePicker = ({ value, onChange, ...rest }: DatePickerProps): ReactNode => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDate(e.target.value);
     onChange(new Date(e.target.value));
   };
 
-  return <Textfield type='date' value={date} onChange={handleChange} label={label} size={size} />;
+  return (
+    <Textfield
+      type='date'
+      value={value.toISOString().split('T')[0]}
+      onChange={handleChange}
+      {...rest}
+    />
+  );
 };

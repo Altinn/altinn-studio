@@ -1,12 +1,7 @@
-import { Textfield } from '@digdir/design-system-react';
-import React, { ReactNode, useState } from 'react';
+import { Textfield, TextfieldProps } from '@digdir/design-system-react';
+import React, { ReactNode } from 'react';
 
-export type TimePickerProps = {
-  value: string;
-  onChange: (time: string) => void;
-  label: string;
-  size?: 'xsmall' | 'small' | 'medium' | 'large';
-};
+type TimePickerProps = Omit<TextfieldProps, 'type'>;
 
 /**
  * @component
@@ -17,29 +12,13 @@ export type TimePickerProps = {
  *
  *    <TimePicker
  *      value={time}
- *      onChange={(newTime: string) => setTime(newTime)}
+ *      onChange={(e) => setTime(e.target.value)}
  *      label='Select time'
+ *      size='small'
  *    />
- *
- * @property {string}[value] - The time to display
- * @property {function}[onChange] - Function that updates the time value
- * @property {string}[label] - The label of the component
- * @property {'xsmall' | 'small' | 'medium' | 'large'}[value] - the size of the component
  *
  * @returns {ReactNode} - The rendered component
  */
-export const TimePicker = ({
-  value,
-  onChange,
-  label,
-  size = 'small',
-}: TimePickerProps): ReactNode => {
-  const [date, setDate] = useState(value);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDate(e.target.value);
-    onChange(e.target.value);
-  };
-
-  return <Textfield type='time' value={date} onChange={handleChange} label={label} size={size} />;
+export const TimePicker = (props: TimePickerProps): ReactNode => {
+  return <Textfield type='time' {...props} />;
 };
