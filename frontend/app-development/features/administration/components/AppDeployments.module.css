@@ -1,0 +1,39 @@
+.appDeployments {
+  background-color: #fbfbfc;
+  border: solid 2px #efefef;
+  border-radius: 6px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  justify-content: space-between;
+
+  padding: var(--fds-spacing-4);
+
+  max-height: 250px;
+}
+
+.appDeploymentsTitle {
+  font-weight: unset !important;
+  border-bottom: solid 2px #efefef;
+  padding-bottom: var(--fds-spacing-2);
+}
+
+.versions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+  margin: 0;
+  padding: 0 var(--fds-spacing-4);
+
+  overflow: auto;
+}
+
+.versionTitle {
+  font-weight: bold;
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.noPublishedVersions {
+  font-weight: bold;
+}

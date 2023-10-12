@@ -1,0 +1,40 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+}
+
+.status p:not(:first-child) {
+  margin-top: var(--fds-spacing-5);
+}
+
+.accordion {
+  border-color: var(--fds-semantic-border-neutral-subtle);
+  border-style: solid;
+  border-width: 1px;
+
+  border-radius: 6px;
+
+  overflow: hidden;
+}
+
+.accordionItem > div {
+  border-bottom: unset !important;
+}
+
+.accordionHeader [class*='Paragraph'] {
+  font-weight: bold !important;
+}
+
+.accordionHeader button,
+.accordionHeader button:focus {
+  border: unset;
+  box-shadow: unset;
+  outline: unset;
+}
+
+.accordionContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+}

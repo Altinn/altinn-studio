@@ -5,6 +5,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Heading } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import { App } from './App';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -23,7 +24,7 @@ export const Administration = () => {
         </div>
         <div className={classes.content}>
           <main className={classes.main}>
-            <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
+            <App />
             <hr className={classes.divider} />
             <div className={classes.placeholder} style={{ height: '300px' }}>
               {/* NAVIGATION PLACEHOLDER */}
