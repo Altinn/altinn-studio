@@ -11,11 +11,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class GetActionOptionsTests : DisagnerEndpointsTestsBase<PolicyController, GetActionOptionsTests>
+    public class GetActionOptionsTests : DisagnerEndpointsTestsBase<GetActionOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetActionOptionsTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public GetActionOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });

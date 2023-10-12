@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class DeleteTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController, DeleteTests>
+    public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
-        public DeleteTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
+        public DeleteTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.TextsController
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 

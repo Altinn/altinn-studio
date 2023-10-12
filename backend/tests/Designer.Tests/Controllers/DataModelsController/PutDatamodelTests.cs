@@ -31,14 +31,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, PutDatamodelTests>
+public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private string TargetTestRepository { get; }
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
-    public PutDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public PutDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         TargetTestRepository = TestDataHelper.GenerateTestRepoName();
     }
@@ -61,7 +61,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
             Content = new StringContent(MinimumValidJsonSchema, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
 
-        var response = await HttpClient.Value.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         await FilesWithCorrectNameAndContentShouldBeCreated(modelName);
     }
@@ -80,7 +80,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
             Content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
 
-        var response = await HttpClient.Value.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -98,7 +98,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
             Content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
 
-        var response = await HttpClient.Value.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         string content = await response.Content.ReadAsStringAsync();
 

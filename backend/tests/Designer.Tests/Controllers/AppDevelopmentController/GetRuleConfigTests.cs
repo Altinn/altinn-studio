@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetRuleConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetRuleConfigTests>
+    public class GetRuleConfigTests : DisagnerEndpointsTestsBase<GetRuleConfigTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public GetRuleConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public GetRuleConfigTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -46,7 +46,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, app)}/rule-config?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
@@ -64,7 +64,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();

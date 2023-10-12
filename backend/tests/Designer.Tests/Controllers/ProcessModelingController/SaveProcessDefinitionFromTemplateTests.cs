@@ -9,12 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class SaveProcessDefinitionFromTemplateTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, SaveProcessDefinitionFromTemplateTests>
+    public class SaveProcessDefinitionFromTemplateTests : DisagnerEndpointsTestsBase<SaveProcessDefinitionFromTemplateTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         private static string VersionPrefix(string org, string repository, string appVersion, string templateName) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}/{templateName}";
 
-        public SaveProcessDefinitionFromTemplateTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ProcessModelingController> factory) : base(factory)
+        public SaveProcessDefinitionFromTemplateTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             string url = VersionPrefix(org, targetRepository, version, templateName);
 
-            using var response = await HttpClient.Value.PutAsync(url, null);
+            using var response = await HttpClient.PutAsync(url, null);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             string url = VersionPrefix(org, targetRepository, version, templateName);
 
-            using var response = await HttpClient.Value.PutAsync(url, null);
+            using var response = await HttpClient.PutAsync(url, null);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();

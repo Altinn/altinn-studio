@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class UpdateFormDataTests : PreviewControllerTestsBase<UpdateFormDataTests>
+    public class UpdateFormDataTests : PreviewControllerTestsBase<UpdateFormDataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public UpdateFormDataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public UpdateFormDataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.PreviewController
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
     }

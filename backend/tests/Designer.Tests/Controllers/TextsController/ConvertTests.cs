@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class ConvertTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController, ConvertTests>
+    public class ConvertTests : DisagnerEndpointsTestsBase<ConvertTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
-        public ConvertTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
+        public ConvertTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.TextsController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/convert";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }

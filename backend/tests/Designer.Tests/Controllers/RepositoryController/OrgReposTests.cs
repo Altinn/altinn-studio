@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class OrgReposTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, OrgReposTests>
+    public class OrgReposTests : DisagnerEndpointsTestsBase<OrgReposTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public OrgReposTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
+        public OrgReposTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);

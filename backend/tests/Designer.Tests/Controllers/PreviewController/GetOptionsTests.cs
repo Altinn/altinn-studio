@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetOptionsTests : PreviewControllerTestsBase<GetOptionsTests>
+    public class GetOptionsTests : PreviewControllerTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetOptionsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -48,7 +48,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/options/non-existing-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

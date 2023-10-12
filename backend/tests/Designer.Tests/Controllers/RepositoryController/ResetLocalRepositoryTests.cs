@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, ResetLocalRepositoryTests>
+    public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<ResetLocalRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public ResetLocalRepositoryTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
+        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -42,7 +42,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/{org}/{targetRepository}/reset";
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.GetAsync(uri);
+            using HttpResponseMessage res = await HttpClient.GetAsync(uri);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
