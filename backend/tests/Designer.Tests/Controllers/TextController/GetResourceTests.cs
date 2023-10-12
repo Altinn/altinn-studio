@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetResourceTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetResourceTests>
+    public class GetResourceTests : DisagnerEndpointsTestsBase<GetResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public GetResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public GetResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.TextController
             string expectedContent = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/config/texts/resource.{language}.json");
 
             // Act
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.TextController
             string url = $"{VersionPrefix(org, app)}/language/{language}";
 
             // Act
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

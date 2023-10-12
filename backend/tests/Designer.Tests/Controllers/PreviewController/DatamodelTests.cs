@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class DatamodelTests : PreviewControllerTestsBase<DatamodelTests>
+    public class DatamodelTests : PreviewControllerTestsBase<DatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public DatamodelTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public DatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/jsonschema/custom-dm-name";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

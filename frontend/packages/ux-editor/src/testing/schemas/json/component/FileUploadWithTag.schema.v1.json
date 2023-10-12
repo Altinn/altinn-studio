@@ -45,6 +45,9 @@
         },
         "help": {
           "type": "string"
+        },
+        "tagTitle": {
+          "type": "string"
         }
       },
       "required": [

@@ -1,11 +1,12 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { dashboard } from "../../selectors/dashboard";
-import { header } from "../../selectors/header";
+import { dashboard } from '../../selectors/dashboard';
+import { header } from '../../selectors/header';
 
 context('WCAG', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
@@ -21,9 +22,9 @@ context('WCAG', () => {
       });
   });
 
-    after(() => {
-        cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-    });
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+  });
 
   it('accessibility test for dashboard', () => {
     cy.testWcag();

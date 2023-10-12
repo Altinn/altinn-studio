@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetFormLayoutsTests : PreviewControllerTestsBase<GetFormLayoutsTests>
+    public class GetFormLayoutsTests : PreviewControllerTestsBase<GetFormLayoutsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetFormLayoutsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetFormLayoutsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/resource/FormLayout.json";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

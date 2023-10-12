@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetTests : DisagnerEndpointsTestsBase<DatamodelsController, GetTests>
+public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public GetTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public GetTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -24,7 +24,7 @@ public class GetTests : DisagnerEndpointsTestsBase<DatamodelsController, GetTest
         string url = $"{VersionPrefix(org, repo)}/datamodel?modelPath={modelPath}";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
