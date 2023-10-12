@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
             HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -50,7 +50,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
             HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -70,7 +70,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
             HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -90,7 +90,7 @@ namespace Designer.Tests.Controllers.TextKeysController
             string urlGetKeys = VersionPrefix(org, targetRepository);
             HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
             HttpResponseMessage responseGetKeys = await HttpClient.SendAsync(urlGetKeysRequest);
-            string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+            string list = await responseGetKeys.Content.ReadAsStringAsync();
             List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
