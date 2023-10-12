@@ -45,6 +45,26 @@ describe('InputPopover', () => {
     expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
   });
 
+  it('calls the "saveNewName" function when the confirm button is clicked', async () => {
+    render(<InputPopover {...defaultProps} />);
+
+    const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(input).toHaveValue(mockOldName);
+
+    await act(() => user.type(input, mockNewValue));
+
+    const inputAfter = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(inputAfter).toHaveValue(mockNewName);
+
+    const confirmButton = screen.getByRole('button', {
+      name: textMock('ux_editor.input_popover_save_button'),
+    });
+    await act(() => user.click(confirmButton));
+
+    expect(mockSaveNewName).toHaveBeenCalledTimes(2); // One when blurring the field, and one when clicking
+    expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
+  });
+
   it('does not call "saveNewName" when input is same as old value', async () => {
     render(<InputPopover {...defaultProps} />);
 
