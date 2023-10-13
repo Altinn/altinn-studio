@@ -56,7 +56,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
   }) => {
     return (
       <Alert severity={severity} className={classes.status}>
-        <Heading level={2} size='xxsmall' className={classes.envName}>
+        <Heading level={2} size='xsmall' className={classes.envName}>
           {envType.toLowerCase() === 'production' ? t('general.production') : envName.toUpperCase()}
         </Heading>
         {children}

@@ -31,7 +31,7 @@ export const AppDeployments = () => {
   return (
     <div className={classes.appDeployments}>
       <Heading level={2} size='xxsmall' className={classes.appDeploymentsTitle}>
-        {t('administration.latest_published_versions')}
+        {t('administration.activity')}
       </Heading>
       {hasSucceededDeployments ? (
         <ul className={classes.versions}>
