@@ -6,7 +6,7 @@ import { Heading } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
-import { AppStatuses } from './AppStatuses';
+import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 
 export const Administration = () => {
@@ -26,7 +26,7 @@ export const Administration = () => {
         </div>
         <div className={classes.content}>
           <main className={classes.main}>
-            <AppStatuses />
+            <AppEnvironments />
             <AppLogs />
             <hr className={classes.divider} />
             <div className={classes.placeholder} style={{ height: '300px' }}>

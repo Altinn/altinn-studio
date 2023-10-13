@@ -1,8 +1,11 @@
-.appStatuses {
+.noEnvironments,
+.appEnvironments {
   background-color: #f4f5f6;
   border-radius: 6px;
   padding: var(--fds-spacing-4);
+}
 
+.appEnvironments {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: var(--fds-spacing-4);
