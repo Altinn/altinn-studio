@@ -20,7 +20,12 @@ export type SwitchRowProps = {
  */
 export const SwitchRow = ({ checked, onSave, label }: SwitchRowProps): ReactNode => {
   return (
-    <Switch className={classes.switch} checked={checked} onChange={(e) => onSave(e.target.checked)}>
+    <Switch
+      size='small'
+      className={classes.switch}
+      checked={checked}
+      onChange={(e) => onSave(e.target.checked)}
+    >
       <Paragraph size='small'>{label}</Paragraph>
     </Switch>
   );

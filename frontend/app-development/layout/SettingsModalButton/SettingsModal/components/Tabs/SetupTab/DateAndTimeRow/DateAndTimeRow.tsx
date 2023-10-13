@@ -2,10 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import classes from './DateAndTimeRow.module.css';
 import { ErrorMessage, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import {
-  isValidDate,
-  isValidTime,
-} from 'app-development/layout/SettingsModalButton/SettingsModal/utils/tabUtils/setupTabUtils';
+import { isValidDate, isValidTime } from 'app-development/utils/dateUtils';
 
 export type DateAndTimeRowProps = {
   dateLabel: string;
@@ -38,10 +35,13 @@ export const DateAndTimeRow = ({
     const timeInvalid = !isValidTime(time);
 
     if (dateInvalid || timeInvalid) {
+      console.log('if');
       setHasDateError(dateInvalid);
       setHasTimeError(timeInvalid);
       onSave(dateValue);
     } else {
+      console.log('else');
+
       const date2 = new Date(`${date}T${time || '00:00'}:00Z`).toISOString();
       onSave(date2);
     }

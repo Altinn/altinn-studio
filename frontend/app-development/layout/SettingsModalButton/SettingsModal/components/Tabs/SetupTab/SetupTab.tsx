@@ -5,11 +5,12 @@ import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-import { ErrorMessage, Switch } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/design-system-react';
 import { DateAndTimeRow } from './DateAndTimeRow/DateAndTimeRow';
 import { TabHeader } from '../../TabHeader';
 import { Divider } from 'app-shared/primitives';
 import { SwitchRow } from './SwitchRow';
+import { isDateAfter } from 'app-development/utils/dateUtils';
 
 export type SetupTabProps = {
   org: string;
@@ -35,13 +36,6 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
   } = useAppMetadataQuery(org, app);
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
-
-  const isDateAfter = (dateString1: string, dateString2: string): boolean => {
-    const date1 = new Date(dateString1);
-    const date2 = new Date(dateString2);
-
-    return date1 > date2;
-  };
 
   const displayContent = () => {
     switch (appMetadataStatus) {
@@ -72,11 +66,27 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
                 }
                 invalidDateErrorMessage={t('settings_modal.setup_tab_start_before_end')}
               />
-              <DateAndTimeRow
-                dateLabel={t('settings_modal.setup_tab_valid_to_label')}
-                dateValue={appMetadata?.validTo}
-                onSave={(validTo: string) => updateAppMetadataMutation({ ...appMetadata, validTo })}
-              />
+              <div className={classes.endTimeWrapper}>
+                <SwitchRow
+                  checked={appMetadata?.validTo !== undefined}
+                  onSave={(checked: boolean) =>
+                    updateAppMetadataMutation({
+                      ...appMetadata,
+                      validTo: checked ? new Date().toISOString() : undefined,
+                    })
+                  }
+                  label={t('settings_modal.setup_tab_switch_autoDeleteOnProcessEnd')}
+                />
+                {appMetadata?.validTo && (
+                  <DateAndTimeRow
+                    dateLabel={t('settings_modal.setup_tab_valid_to_label')}
+                    dateValue={appMetadata?.validTo}
+                    onSave={(validTo: string) =>
+                      updateAppMetadataMutation({ ...appMetadata, validTo })
+                    }
+                  />
+                )}
+              </div>
             </div>
             <Divider className={classes.divider} marginless />
             <SwitchRow
