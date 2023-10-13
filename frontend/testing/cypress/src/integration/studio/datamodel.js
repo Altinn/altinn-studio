@@ -4,6 +4,7 @@
 import { header } from '../../selectors/header';
 import { datamodel } from '../../selectors/datamodel';
 import * as texts from '../../../../../language/src/nb.json';
+import * as testids from '../../../../testids';
 
 context('datamodel', () => {
   before(() => {
@@ -41,5 +42,15 @@ context('datamodel', () => {
 
     cy.findByRole('option', { name: texts['schema_editor.integer'] }).click();
     datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
+  });
+
+  it('Allows to upload an XSD file and displays the data model when the upload is complete', () => {
+    cy.findAllByTestId(testids.fileSelectorInput)
+      .first()
+      .selectFile('src/fixtures/DataModel.xsd', { force: true });
+    cy.findByRole('combobox', { name: texts['schema_editor.choose_model'] }).should(
+      'have.value',
+      '/App/models/DataModel.schema.json',
+    );
   });
 });

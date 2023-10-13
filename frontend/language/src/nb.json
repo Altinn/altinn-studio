@@ -847,6 +847,7 @@
   "schema_editor.any_of": "Noen av",
   "schema_editor.array": "Liste",
   "schema_editor.boolean": "Ja/nei",
+  "schema_editor.choose_model": "Velg datamodell",
   "schema_editor.choose_type": "Velg type",
   "schema_editor.close_type": "Lukk type",
   "schema_editor.combination": "Kombinasjon",
