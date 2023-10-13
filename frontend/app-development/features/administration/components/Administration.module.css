@@ -60,6 +60,17 @@
   flex: 3;
 }
 
+@media (min-width: 1200px) {
+  .main {
+    flex: 1;
+  }
+
+  .aside {
+    flex: unset;
+    width: 350px;
+  }
+}
+
 .divider {
   background-color: #efefef;
   border: none;

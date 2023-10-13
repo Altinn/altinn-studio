@@ -10,6 +10,7 @@ const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerApp
 
 context('Designer', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
@@ -54,8 +55,6 @@ context('Designer', () => {
     designer
       .getPageAccordionByName('Side1')
       .findByRole('listitem', { name: texts['ux_editor.component_input'] });
-    //.findAllByRole('listitem')
-    // .then(($elements) => expect($elements.length).eq(1));
 
     // Delete components on page
     cy.deleteComponents();
@@ -72,12 +71,17 @@ context('Designer', () => {
 
     // Add two new pages to ensure that navigation-buttons will be added to page
     designer.getAddPageButton().click();
+
+    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+
     designer.getAddPageButton().click();
 
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
 
-    cy.wait(500);
+    cy.findByRole('button', { name: 'Side2' }).click();
+
     designer
       .getPageAccordionByName('Side2')
       .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });

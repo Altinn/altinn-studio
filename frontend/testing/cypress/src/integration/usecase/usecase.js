@@ -36,6 +36,9 @@ context(
     });
 
     it('Navigation', () => {
+      cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
+      cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
+
       // About app page
       administration
         .getAppNameField()
@@ -44,6 +47,9 @@ context(
 
       // Forms editor
       header.getCreateLink().click();
+      designer.getAddPageButton().click();
+      cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+      cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
       designer.getToolbarItemByText(texts['ux_editor.component_input']).should('be.visible');
 
       // Text editor

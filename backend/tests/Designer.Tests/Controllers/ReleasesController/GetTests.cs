@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ReleasesController
 {
-    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ReleasesController, GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;
@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.ReleasesController
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
-        public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ReleasesController> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Program> factory) : base(factory)
         {
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
@@ -56,7 +56,7 @@ namespace Designer.Tests.Controllers.ReleasesController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
             IEnumerable<ReleaseEntity> actual = searchResult.Results;
@@ -87,7 +87,7 @@ namespace Designer.Tests.Controllers.ReleasesController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
             IEnumerable<ReleaseEntity> actual = searchResult.Results;

@@ -6,10 +6,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetApplicationLanguagesTests : PreviewControllerTestsBase<GetApplicationLanguagesTests>
+    public class GetApplicationLanguagesTests : PreviewControllerTestsBase<GetApplicationLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetApplicationLanguagesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/v1/applicationlanguages";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

@@ -12,11 +12,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class GetProcessDefinitionTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ProcessModelingController, GetProcessDefinitionTests>
+    public class GetProcessDefinitionTests : DisagnerEndpointsTestsBase<GetProcessDefinitionTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-        public GetProcessDefinitionTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ProcessModelingController> factory) : base(factory)
+        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository);
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -48,7 +48,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, app);
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 

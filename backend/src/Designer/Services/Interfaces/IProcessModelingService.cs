@@ -37,7 +37,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Gets the process definition file stream for a given app.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A <see cref="Stream"/> of a process definition file.</returns>
         Stream GetProcessDefinitionStream(AltinnRepoEditingContext altinnRepoEditingContext);
     }

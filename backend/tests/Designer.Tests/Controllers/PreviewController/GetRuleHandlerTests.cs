@@ -6,10 +6,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetRuleHandlerTests : PreviewControllerTestsBase<GetRuleHandlerTests>
+    public class GetRuleHandlerTests : PreviewControllerTestsBase<GetRuleHandlerTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public GetRuleHandlerTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleHandler.js";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
     }

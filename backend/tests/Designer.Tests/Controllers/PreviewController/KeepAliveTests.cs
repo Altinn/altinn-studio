@@ -6,10 +6,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class KeepAliveTests : PreviewControllerTestsBase<KeepAliveTests>
+    public class KeepAliveTests : PreviewControllerTestsBase<KeepAliveTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public KeepAliveTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public KeepAliveTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/authentication/keepAlive";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
     }
