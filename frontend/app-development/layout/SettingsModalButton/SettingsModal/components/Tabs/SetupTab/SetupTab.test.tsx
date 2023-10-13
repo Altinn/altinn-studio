@@ -32,11 +32,6 @@ mockUpdateAppMetadataMutation.mockReturnValue({
   mutate: updateAppMetadataMutation,
 } as unknown as UseMutationResult<void, unknown, ApplicationMetadata, unknown>);
 
-const mockAppMetadataQuery = useAppMetadataQuery as jest.MockedFunction<typeof useAppMetadataQuery>;
-const mockAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
-  typeof useAppMetadataMutation
->;
-
 const defaultProps: SetupTabProps = {
   org: mockOrg,
   app: mockApp,
@@ -86,22 +81,49 @@ describe('SetupTab Component', () => {
     expect(validFromDateInput).toHaveValue(validFromDate);
     expect(validFromTimeInput).toHaveValue(validFromTime);
   });
+  it('calls the "updateAppMetadataMutation" function when updating date and time in validFrom', () => {});
 
-  it.only('loads the valid from data with correct values', async () => {
+  it('loads the valid to data with correct values', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
-    const validFromDate = mockAppMetadata.validFrom.split('T')[0];
-    const validFromTime = mockAppMetadata.validFrom.split('T')[1].substring(0, 5);
-    const validFromDateInput = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_from_label'),
+    const validToDate = mockAppMetadata.validTo.split('T')[0];
+    const validToTime = mockAppMetadata.validTo.split('T')[1].substring(0, 5);
+    const validToDateInput = screen.getByLabelText(
+      textMock('settings_modal.setup_tab_valid_to_label'),
     );
-    const validFromTimeInput = screen.getAllByLabelText(
+    const validToTimeInput = screen.getAllByLabelText(
       textMock('settings_modal.setup_tab_time_label'),
-    )[0];
+    )[1];
 
-    expect(validFromDateInput).toHaveValue(validFromDate);
-    expect(validFromTimeInput).toHaveValue(validFromTime);
+    expect(validToDateInput).toHaveValue(validToDate);
+    expect(validToTimeInput).toHaveValue(validToTime);
   });
+
+  it.only('does not display the valid to components when validTo is undefined', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getAppMetadata: () => Promise.resolve({ ...mockAppMetadata, validTo: undefined }),
+    });
+
+    const validToDateInput = screen.queryByLabelText(
+      textMock('settings_modal.setup_tab_valid_to_label'),
+    );
+    expect(validToDateInput).not.toBeInTheDocument();
+  });
+  it('calls the "updateAppMetadataMutation" function when updating date and time in validTo', () => {});
+
+  it('displays an error message when validTo is an earlier date than validFrom', () => {});
+
+  it('loads the "autoDeleteOnProcessEnd" value correctly', () => {});
+  it('calls the "updateAppMetadataMutation" function when updating "autoDeleteOnProcessEnd" switch', () => {});
+
+  it('loads the "messageBoxConfig.hideSettings.hideAlways" value correctly', () => {});
+  it('calls the "updateAppMetadataMutation" function when updating "messageBoxConfig.hideSettings.hideAlways" switch', () => {});
+
+  it('loads the "copyInstanceSettings.enabled" value correctly', () => {});
+  it('calls the "updateAppMetadataMutation" function when updating "copyInstanceSettings.enabled" switch', () => {});
+
+  it('loads the "onEntry.show" value correctly', () => {});
+  it('calls the "updateAppMetadataMutation" function when updating "onEntry.show" switch', () => {});
 
   it('calls onSave when date value is changed', async () => {
     render(<SetupTab org={mockOrg} app={mockApp} />);

@@ -1,5 +1,6 @@
 .wrapper {
   width: 70%;
+  height: 110px;
 }
 
 .inputWrapper {
@@ -8,5 +9,5 @@
 }
 
 .errorMessage {
-  margin-top: 10px;
+  margin-top: 5px;
 }

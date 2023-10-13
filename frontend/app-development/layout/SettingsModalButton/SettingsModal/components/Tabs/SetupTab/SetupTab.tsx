@@ -75,7 +75,7 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
                       validTo: checked ? new Date().toISOString() : undefined,
                     })
                   }
-                  label={t('settings_modal.setup_tab_switch_autoDeleteOnProcessEnd')}
+                  label={t('settings_modal.setup_tab_switch_validTo')}
                 />
                 {appMetadata?.validTo && (
                   <DateAndTimeRow
