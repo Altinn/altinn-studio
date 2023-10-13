@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
-import { Button, TextArea } from '@digdir/design-system-react';
+import { Button, LegacyTextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
 import { AltinnSpinner } from 'app-shared/components';
 
@@ -60,10 +60,7 @@ export const SyncModal = ({
     >
       <SimpleContainer className={classes.popover}>
         {header && (
-          <h3
-            className={classNames(classes.header)}
-            id={headerId}
-          >
+          <h3 className={classNames(classes.header)} id={headerId}>
             {header}
           </h3>
         )}
@@ -85,7 +82,7 @@ export const SyncModal = ({
           </div>
         )}
         {shouldShowCommitBox && (
-          <TextArea
+          <LegacyTextArea
             aria-labelledby={headerId}
             id='test'
             value={commitMessage}
@@ -96,7 +93,7 @@ export const SyncModal = ({
         {btnText && (
           <Button
             variant='filled'
-            color='primary'
+            color='first'
             className={classes.button}
             onClick={btnClickedHandler}
             id='share_changes_modal_button'

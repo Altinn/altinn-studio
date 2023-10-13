@@ -325,6 +325,17 @@ namespace Designer.Tests.Utils
             return string.Empty;
         }
 
+        public static byte[] GetFileAsByteArrayFromRepo(string org, string repository, string developer, string relativePath)
+        {
+            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllBytes(filePath);
+            }
+
+            return new byte[0];
+        }
+
         public static bool FileExistsInRepo(string org, string repository, string developer, string relativePath)
         {
             string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);

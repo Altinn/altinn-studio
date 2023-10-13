@@ -132,7 +132,7 @@ export const InputPopover = ({
         </ErrorMessage>
         <div className={classes.buttonContainer}>
           <Button
-            color='primary'
+            color='first'
             variant='filled'
             onClick={() => errorMessage === null && newName !== oldName && saveNewName(newName)}
             aria-disabled={errorMessage !== null || newName === oldName}
@@ -141,7 +141,7 @@ export const InputPopover = ({
             {t('ux_editor.input_popover_save_button')}
           </Button>
           <Button
-            color='secondary'
+            color='second'
             variant='quiet'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();

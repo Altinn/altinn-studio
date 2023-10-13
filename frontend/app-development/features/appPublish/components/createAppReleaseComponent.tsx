@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './createAppReleaseComponent.module.css';
 import type { ChangeEvent } from 'react';
-import { LegacyTextField, TextArea, Button } from '@digdir/design-system-react';
+import { LegacyTextField, Button, LegacyTextArea } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
@@ -51,7 +51,7 @@ export function CreateReleaseComponent() {
         />
       </div>
       <div>
-        <TextArea
+        <LegacyTextArea
           label={t('app_create_release.release_description')}
           value={body}
           onChange={handleBodyChange}

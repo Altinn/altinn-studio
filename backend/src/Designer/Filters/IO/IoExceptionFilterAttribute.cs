@@ -23,5 +23,10 @@ public class IoExceptionFilterAttribute : ExceptionFilterAttribute
             // TODO: Implement custom IO exceptions Error Codes
             context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, IoErrorCodes.ResourceNotFound, HttpStatusCode.NotFound)) { StatusCode = (int)HttpStatusCode.NotFound };
         }
+        if (context.Exception is DirectoryNotFoundException)
+        {
+            // TODO: Implement custom IO exceptions Error Codes
+            context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, IoErrorCodes.ResourceNotFound, HttpStatusCode.NotFound)) { StatusCode = (int)HttpStatusCode.NotFound };
+        }
     }
 }

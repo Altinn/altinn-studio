@@ -255,7 +255,7 @@ export const DeployResourcePage = ({
                   />
                 </div>
                 <Button
-                  color='primary'
+                  color='first'
                   onClick={() => {
                     // TODO - Save new version number - Missing API call
                     alert('todo - Save new version number');
