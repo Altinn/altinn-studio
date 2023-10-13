@@ -50,7 +50,7 @@ context(
       designer.getAddPageButton().click();
       cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
       cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-      designer.getToolbarItemByText(texts['ux_editor.component_input']).should('be.visible');
+      designer.getToolbarItemByText(texts['ux_editor.component_title.Input']).should('be.visible');
 
       // Text editor
       header.getTextEditorLink().should('be.visible').click();
