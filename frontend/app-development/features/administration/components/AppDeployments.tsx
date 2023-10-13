@@ -56,9 +56,9 @@ export const AppDeployments = ({ envName }: AppDeploymentsProps) => {
                 <div>
                   {`(${appDeployment.createdBy}) ${t('general.date')}: ${formatDateTime(
                     appDeployment.created,
-                    null,
-                    ' kl. ',
-                  )} ${t('general.time_prefix')}`}
+                    undefined,
+                    ` ${t('general.time_prefix')} `,
+                  )}`}
                 </div>
               </li>
             );
