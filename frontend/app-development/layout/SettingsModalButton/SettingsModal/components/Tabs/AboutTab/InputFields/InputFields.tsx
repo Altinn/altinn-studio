@@ -54,7 +54,7 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
         id='aboutAltIdField'
         label={t('settings_modal.about_tab_alt_id_label')}
         description={t('settings_modal.about_tab_alt_id_description')}
-        value={appConfigState.serviceId}
+        value={appConfigState?.serviceId ?? ''}
         onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
         onBlur={() => onSave(appConfigState)}
       />

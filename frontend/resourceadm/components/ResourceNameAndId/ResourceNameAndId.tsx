@@ -181,7 +181,7 @@ export const ResourceNameAndId = ({
               iconPlacement='right'
               icon={<PencilWritingIcon />}
               variant='quiet'
-              color='primary'
+              color='first'
               size='small'
             >
               {t('general.edit')}

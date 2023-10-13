@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Button, Select, SingleSelectOption } from '@digdir/design-system-react';
-import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@navikt/aksel-icons';
+import {
+  MagnifyingGlassIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+  XMarkIcon,
+} from '@navikt/aksel-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -59,9 +65,11 @@ export const TextResource = ({
   const dispatch = useDispatch();
 
   const textResource: ITextResource = useTextResourcesSelector<ITextResource>(
-    textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId)
+    textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId),
   );
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
+    allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE),
+  );
   const { t } = useTranslation();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>(false);
@@ -92,7 +100,7 @@ export const TextResource = ({
       formattedLabel: <TextResourceOption textResource={tr} />,
       keywords: [tr.id, tr.value],
     })),
-    { label: t('ux_editor.search_text_resources_none'), value: '' }
+    { label: t('ux_editor.search_text_resources_none'), value: '' },
   );
 
   const renderTextResource = () => (
@@ -101,7 +109,7 @@ export const TextResource = ({
         classes.root,
         previewMode && classes.previewMode,
         isEditing && classes.isEditing,
-        isSearchMode && classes.isSearching
+        isSearchMode && classes.isSearching,
       )}
     >
       {label && <span className={classes.label}>{label}</span>}
@@ -120,7 +128,7 @@ export const TextResource = ({
           <Button
             aria-label={t('ux_editor.search_text_resources_close')}
             className={classes.button}
-            color='secondary'
+            color='second'
             icon={<XMarkIcon />}
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
@@ -141,7 +149,7 @@ export const TextResource = ({
               <Button
                 aria-label={t('general.edit')}
                 className={classes.button}
-                color='secondary'
+                color='second'
                 disabled={isEditing}
                 icon={<PencilIcon />}
                 onClick={handleEditButtonClick}
@@ -153,7 +161,7 @@ export const TextResource = ({
               <Button
                 aria-label={t('general.add')}
                 className={classes.button}
-                color='secondary'
+                color='second'
                 disabled={isEditing}
                 icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
@@ -165,7 +173,7 @@ export const TextResource = ({
             <Button
               aria-label={t('general.search')}
               className={classes.button}
-              color='secondary'
+              color='second'
               disabled={isSearchMode}
               icon={<MagnifyingGlassIcon />}
               onClick={() => setIsSearchMode(true)}
@@ -174,30 +182,32 @@ export const TextResource = ({
               size='small'
             />
             <AltinnConfirmDialog
-            open={isConfirmDeleteDialogOpen}
-            confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
-            onConfirm={handleDeleteButtonClick}
-            onClose={() => setIsConfirmDeleteDialogOpen(false)}
-            trigger={
-              <Button
-              aria-label={t('general.delete')}
-              className={classes.button}
-              color='secondary'
-              disabled={!handleRemoveTextResource || !(!!textResourceId || shouldDisplayFeature('componentConfigBeta'))}
-              icon={<TrashIcon />}
-              onClick={() => setIsConfirmDeleteDialogOpen(true)}
-              title={t('general.delete')}
-              variant='quiet'
-              size='small'
-            />
-            }
-          >
-            <div>
-              <p>{t('ux_editor.text_resource_bindings.delete_confirm_question')}</p>
-              <p>{t('ux_editor.text_resource_bindings.delete_info')}</p>
-            </div>
-
-          </AltinnConfirmDialog>
+              open={isConfirmDeleteDialogOpen}
+              confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
+              onConfirm={handleDeleteButtonClick}
+              onClose={() => setIsConfirmDeleteDialogOpen(false)}
+              trigger={
+                <Button
+                  aria-label={t('general.delete')}
+                  className={classes.button}
+                  color='second'
+                  disabled={
+                    !handleRemoveTextResource ||
+                    !(!!textResourceId || shouldDisplayFeature('componentConfigBeta'))
+                  }
+                  icon={<TrashIcon />}
+                  onClick={() => setIsConfirmDeleteDialogOpen(true)}
+                  title={t('general.delete')}
+                  variant='quiet'
+                  size='small'
+                />
+              }
+            >
+              <div>
+                <p>{t('ux_editor.text_resource_bindings.delete_confirm_question')}</p>
+                <p>{t('ux_editor.text_resource_bindings.delete_info')}</p>
+              </div>
+            </AltinnConfirmDialog>
           </span>
         </span>
       </span>

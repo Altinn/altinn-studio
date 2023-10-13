@@ -80,7 +80,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       {!readonly && (
         <div className={classes.addButtonCell}>
           <Button
-            color='secondary'
+            color='second'
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
             variant='outline'

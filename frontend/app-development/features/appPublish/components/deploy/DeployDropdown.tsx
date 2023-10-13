@@ -51,7 +51,7 @@ export const DeployDropdown = ({
       <div className={classes.deployButton}>
         <AltinnConfirmDialog
           open={isConfirmDeployDialogOpen}
-          confirmColor='primary'
+          confirmColor='first'
           onConfirm={onStartDeployClick}
           onClose={() => setIsConfirmDeployDialogOpen(false)}
           placement='right'

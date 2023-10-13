@@ -36,7 +36,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
       </div>
       <div className={classes.formGroupBar}>
         <Button
-          color='secondary'
+          color='second'
           icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
           onClick={() => handleExpanded((previous) => !previous)}
           variant='quiet'
