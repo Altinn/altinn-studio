@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs } from '@digdir/design-system-react';
-import type { TabItem } from '@digdir/design-system-react';
+import { LegacyTabs } from '@digdir/design-system-react';
+import type { LegacyTabItem } from '@digdir/design-system-react';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
@@ -19,7 +19,7 @@ export const SchemaInspector = () => {
   }
   const [tabsFor, setTabsFor] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
-  const [tabItems, setTabItems] = useState<TabItem[]>([
+  const [tabItems, setTabItems] = useState<LegacyTabItem[]>([
     {
       name: t('schema_editor.properties'),
       content: null,
@@ -68,7 +68,7 @@ export const SchemaInspector = () => {
   if (selectedItem) {
     return (
       <div className={classes.root}>
-        <Tabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
+        <LegacyTabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
       </div>
     );
   }

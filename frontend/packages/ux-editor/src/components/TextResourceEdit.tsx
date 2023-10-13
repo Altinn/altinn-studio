@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import { Button, LegacyFieldSet, TextArea } from '@digdir/design-system-react';
+import { Button, LegacyFieldSet, LegacyTextArea } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -31,24 +31,24 @@ export const TextResourceEdit = () => {
       description={t('ux_editor.field_id', { id: editId })}
     >
       <div className={classes.textBoxList}>
-      {languages.map((language) => (
-        <TextBox
-          key={language}
-          language={language}
-          t={t}
-          textResource={textResources?.[language]?.find((resource) => resource.id === editId)}
-          textResourceId={editId}
-        />
-      ))}
-      <Button
-        color='secondary'
-        icon={<XMarkIcon />}
-        onClick={() => setEditId(undefined)}
-        variant='filled'
-        size='small'
-      >
-        {t('general.close')}
-      </Button>
+        {languages.map((language) => (
+          <TextBox
+            key={language}
+            language={language}
+            t={t}
+            textResource={textResources?.[language]?.find((resource) => resource.id === editId)}
+            textResourceId={editId}
+          />
+        ))}
+        <Button
+          color='second'
+          icon={<XMarkIcon />}
+          onClick={() => setEditId(undefined)}
+          variant='filled'
+          size='small'
+        >
+          {t('general.close')}
+        </Button>
       </div>
     </LegacyFieldSet>
   );
@@ -84,7 +84,7 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
 
   return (
     <div>
-      <TextArea
+      <LegacyTextArea
         rows={5}
         resize='vertical'
         label={t(`language.${language}`)}

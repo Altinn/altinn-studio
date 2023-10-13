@@ -1,11 +1,11 @@
 import React, { useState, useId } from 'react';
 import {
   Button,
-  TextArea,
   Label,
   ErrorMessage,
   Select,
   Paragraph,
+  LegacyTextArea,
 } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
@@ -465,7 +465,7 @@ export const ExpandablePolicyCard = ({
           <Button
             type='button'
             onClick={handleClickAddResource}
-            color='secondary'
+            color='second'
             size='small'
             fullWidth
             icon={<PlusIcon fontSize='1.5rem' />}
@@ -522,7 +522,7 @@ export const ExpandablePolicyCard = ({
           {t('policy_editor.rule_card_description_title')}
         </Label>
         <div className={classes.textAreaWrapper}>
-          <TextArea
+          <LegacyTextArea
             resize='vertical'
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextTableRowEntry, UpsertTextResourceMutation } from './types';
-import { TextArea } from '@digdir/design-system-react';
+import { LegacyTextArea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';
 
@@ -30,7 +30,7 @@ export const TextEntry = ({
 
   return (
     <div className={className}>
-      <TextArea
+      <LegacyTextArea
         aria-label={lang + ' translation'}
         value={textEntryValue}
         onBlur={handleTextEntryBlur}

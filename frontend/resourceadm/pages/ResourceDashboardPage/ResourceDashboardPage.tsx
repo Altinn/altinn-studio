@@ -11,7 +11,7 @@ import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
@@ -54,8 +54,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
   const handleNavigateToResource = (id: string) => {
-    navigate(getResourcePageURL(selectedContext, repo, id, 'about'))
-  }
+    navigate(getResourcePageURL(selectedContext, repo, id, 'about'));
+  };
   /**
    * Display different content based on the loading state
    */
@@ -63,7 +63,11 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
+          <Spinner
+            size='3xLarge'
+            variant='interaction'
+            title={t('resourceadm.dashboard_spinner')}
+          />
         </div>
       );
     } else {
@@ -75,7 +79,10 @@ export const ResourceDashboardPage = (): React.ReactNode => {
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </Heading>
           </div>
-          <ResourceTable list={filteredResourceList} onClickEditResource={handleNavigateToResource} />
+          <ResourceTable
+            list={filteredResourceList}
+            onClickEditResource={handleNavigateToResource}
+          />
           {filteredResourceList.length === 0 && (
             <Paragraph size='small' className={classes.noResultText}>
               {t('resourceadm.dashboard_empty_list')}
@@ -95,7 +102,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
         <div className={classes.topRightWrapper}>
           <Button
             variant='quiet'
-            color='secondary'
+            color='second'
             icon={<MigrationIcon />}
             iconPlacement='right'
             onClick={() => setImportModalOpen(true)}
@@ -106,7 +113,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <div className={classes.verticalDivider} />
           <Button
             variant='quiet'
-            color='secondary'
+            color='second'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
             onClick={() => setNewResourceModalOpen(true)}

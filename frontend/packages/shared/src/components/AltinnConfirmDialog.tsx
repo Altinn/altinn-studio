@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { PopoverProps } from '@digdir/design-system-react';
+import type { ButtonProps, PopoverProps } from '@digdir/design-system-react';
 import { Button, Popover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
-  confirmColor?: 'inverted' | 'danger' | 'primary' | 'secondary' | 'success';
+  confirmColor?: ButtonProps['color'];
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
@@ -68,7 +68,7 @@ export function AltinnConfirmDialog({
             {confirmText || t('general.yes')}
           </Button>
           <Button
-            color='secondary'
+            color='second'
             variant='quiet'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();

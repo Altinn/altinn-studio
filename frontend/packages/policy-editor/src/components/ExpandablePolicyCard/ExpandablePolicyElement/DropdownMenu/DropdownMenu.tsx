@@ -140,7 +140,7 @@ export const DropdownMenu = ({
         onClick={handleClickMoreIcon}
         onKeyDown={() => {}}
         variant='quiet'
-        color={isError ? 'danger' : 'secondary'}
+        color={isError ? 'danger' : 'second'}
         className={isError && classes.errorButton}
         size='small'
       />

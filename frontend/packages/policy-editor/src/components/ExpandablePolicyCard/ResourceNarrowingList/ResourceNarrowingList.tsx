@@ -118,7 +118,7 @@ export const ResourceNarrowingList = ({
           <Button
             type='button'
             onClick={handleClickAddResource}
-            color='secondary'
+            color='second'
             size='small'
             dashedBorder
             variant='outline'

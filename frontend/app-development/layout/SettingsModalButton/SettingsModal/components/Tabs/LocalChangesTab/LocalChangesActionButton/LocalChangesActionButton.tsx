@@ -41,7 +41,7 @@ export type LocalChangesActionButtonProps = {
   /**
    * The color of the button
    */
-  color?: 'danger' | 'primary';
+  color?: 'danger' | 'first';
   /**
    * Icon to display in the button/link
    */
@@ -83,7 +83,7 @@ export type LocalChangesActionButtonProps = {
 export const LocalChangesActionButton = ({
   label,
   description,
-  color = 'primary',
+  color = 'first',
   icon,
   text,
   action,
