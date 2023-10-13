@@ -7,3 +7,7 @@
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: var(--fds-spacing-4);
 }
+
+.alert [class*='Paragraph-module_paragraph'] {
+  gap: var(--fds-spacing-6);
+}

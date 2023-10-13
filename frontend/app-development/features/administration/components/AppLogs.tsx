@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './AppDeployments.module.css';
+import classes from './AppLogs.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery, useEnvironmentsQuery } from 'app-development/hooks/queries';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,7 @@ import { IDeployment } from 'app-development/sharedResources/appDeployment/types
 import { Heading } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 
-export const AppDeployments = () => {
+export const AppLogs = () => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
@@ -29,22 +29,22 @@ export const AppDeployments = () => {
   const hasSucceededDeployments = succeededDeployments.length > 0;
 
   return (
-    <div className={classes.appDeployments}>
-      <Heading level={2} size='xxsmall' className={classes.appDeploymentsTitle}>
+    <div className={classes.appLogs}>
+      <Heading level={2} size='xxsmall' className={classes.appLogsTitle}>
         {t('administration.activity')}
       </Heading>
-      {hasSucceededDeployments ? (
-        <ul className={classes.versions}>
-          {succeededDeployments.map((appDeployment) => {
+      <ul className={classes.logs}>
+        {hasSucceededDeployments ? (
+          succeededDeployments.map((appDeployment) => {
             const environmentType = environmentList
               .find((env: DeployEnvironment) => env.name === appDeployment.envName)
               ?.type.toLowerCase();
             return (
               <li key={appDeployment.tagName}>
-                <div className={classes.versionTitle}>
-                  {t('general.version')} {appDeployment.tagName}{' '}
-                  {t(`general.${environmentType}_environment`)}
-                  {environmentType === 'test' && ` ${appDeployment.envName.toUpperCase()}`}
+                <div className={classes.logTitle}>
+                  {`${t('general.version')} ${appDeployment.tagName} ${t(
+                    `general.${environmentType}_environment`,
+                  )}${environmentType === 'test' && ` ${appDeployment.envName.toUpperCase()}`}`}
                 </div>
                 <div>
                   {`(${appDeployment.createdBy}) ${t('general.date')}: ${formatDateTime(
@@ -55,13 +55,11 @@ export const AppDeployments = () => {
                 </div>
               </li>
             );
-          })}
-        </ul>
-      ) : (
-        <div className={classes.noPublishedVersions}>
-          {t('administration.no_published_versions')}
-        </div>
-      )}
+          })
+        ) : (
+          <li>{t('administration.no_activity')}</li>
+        )}
+      </ul>
     </div>
   );
 };

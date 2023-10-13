@@ -1,9 +1,0 @@
-.app {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-6);
-}
-
-.status [class*='Paragraph-module_paragraph'] {
-  gap: var(--fds-spacing-6);
-}
