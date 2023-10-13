@@ -29,9 +29,15 @@ import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { deleteNode } from '@altinn/schema-model';
 import { removeSelection } from '../../features/editor/schemaEditorSlice';
-import { LinkIcon, BulletListIcon, TabsIcon, ArrowUpIcon, TrashIcon,ArrowDownIcon } from '@navikt/aksel-icons';
+import {
+  LinkIcon,
+  BulletListIcon,
+  TabsIcon,
+  ArrowUpIcon,
+  TrashIcon,
+  ArrowDownIcon,
+} from '@navikt/aksel-icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -101,14 +107,14 @@ export const SchemaItemLabel = ({
             pointer,
             props,
             callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-          })
+          }),
         )
       : save(
           addProperty(data, {
             pointer,
             props,
             callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer)),
-          })
+          }),
         );
   });
 
@@ -134,7 +140,6 @@ export const SchemaItemLabel = ({
           <i className={`fa ${icon}`} />
         </span>{' '}
         <span>{getNameFromPointer(selectedNode)}</span>
-        TEST
         {selectedNode.isRequired && <span aria-hidden> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (
@@ -244,7 +249,9 @@ export const SchemaItemLabel = ({
                   event.stopPropagation();
                   setIsConfirmDeleteDialogOpen((prevState) => !prevState);
                 }}
-                text={hasReferredNodes ? t('schema_editor.in_use_error') : t('schema_editor.delete')}
+                text={
+                  hasReferredNodes ? t('schema_editor.in_use_error') : t('schema_editor.delete')
+                }
                 icon={TrashIcon}
                 disabled={hasReferredNodes}
               />
