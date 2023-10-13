@@ -49,26 +49,30 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
 
   const Status = ({
     severity,
-    children,
+    content,
+    footer,
   }: {
     severity: 'success' | 'warning' | 'info';
-    children: React.ReactNode;
+    content: string;
+    footer: string | JSX.Element;
   }) => {
     return (
-      <Alert severity={severity} className={classes.status}>
-        <Heading level={2} size='xsmall' className={classes.envName}>
+      <Alert severity={severity} className={classes.alert}>
+        <Heading level={2} size='xsmall' className={classes.header}>
           {envType.toLowerCase() === 'production' ? t('general.production') : envName.toUpperCase()}
         </Heading>
-        {children}
+        <div className={classes.content}>{content}</div>
+        <div className={classes.footer}>{footer}</div>
       </Alert>
     );
   };
 
   if (appDeployedAndReachable && !deployInProgress) {
     return (
-      <Status severity='success'>
-        <div className={classes.content}>{t('administration.success')}</div>
-        <div className={classes.info}>
+      <Status
+        severity='success'
+        content={t('administration.success')}
+        footer={
           <Trans
             i18nKey={'administration.last_published'}
             values={{
@@ -79,34 +83,36 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
               ),
             }}
           />
-        </div>
-      </Status>
+        }
+      ></Status>
     );
   }
 
   if (noAppDeployed || (deployFailed && !appDeployedAndReachable)) {
     return (
-      <Status severity='info'>
-        <div className={classes.content}>{t('administration.no_app')}</div>
-        <div className={classes.info}>
+      <Status
+        severity='info'
+        content={t('administration.no_app')}
+        footer={
           <Trans i18nKey='administration.go_to_publish'>
             <a href={publishPath(org, app)} />
           </Trans>
-        </div>
-      </Status>
+        }
+      />
     );
   }
 
   if (deployedVersionNotReachable) {
     return (
-      <Status severity='warning'>
-        <div className={classes.content}>{t('administration.unavailable')}</div>
-        <div className={classes.info}>
+      <Status
+        severity='warning'
+        content={t('administration.unavailable')}
+        footer={
           <Trans i18nKey='administration.go_to_build_log'>
             <a href={getReleaseBuildPipelineLink(deploymentInEnv?.build.id)} />
           </Trans>
-        </div>
-      </Status>
+        }
+      />
     );
   }
 };

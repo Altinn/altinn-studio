@@ -6,7 +6,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
 import { ICreateAppDeploymentEnvObject } from 'app-development/sharedResources/appDeployment/types';
-import { AppStatus } from './AppStatus';
+import { AppStatuses } from './AppStatuses';
 import { AppDeployments } from './AppDeployments';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 
@@ -14,10 +14,9 @@ export const App = () => {
   const { org } = useStudioUrlParams();
   const { t } = useTranslation();
 
-  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironmentsQuery();
   const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgListQuery();
 
-  if (envIsLoading || orgsIsLoading) return <AltinnSpinner />;
+  if (orgsIsLoading) return <AltinnSpinner />;
 
   if (!orgs.orgs[org] || !orgs.orgs[org].environments || !orgs.orgs[org].environments.length) {
     return (
@@ -39,23 +38,9 @@ export const App = () => {
     );
   }
 
-  const deployEnvironments: ICreateAppDeploymentEnvObject[] = environmentList.filter(
-    (env: DeployEnvironment) => orgs?.orgs[org]?.environments.includes(env.name),
-  );
-
   return (
     <div className={classes.app}>
-      <div className={classes.appStatusList}>
-        {deployEnvironments.map((deployEnvironment: DeployEnvironment) => {
-          return (
-            <AppStatus
-              key={deployEnvironment.name}
-              envName={deployEnvironment.name}
-              envType={deployEnvironment.type}
-            />
-          );
-        })}
-      </div>
+      <AppStatuses />
       <AppDeployments />
     </div>
   );
