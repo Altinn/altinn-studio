@@ -20,8 +20,7 @@
       "variables": [
         {
           "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
-          "dataSource": "dataModel.nested-group",
-          "defaultValue": "test"
+          "dataSource": "dataModel.nested-group"
         }
       ]
     },
@@ -237,13 +236,11 @@
       "variables": [
         {
           "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
-          "dataSource": "dataModel.nested-group",
-          "defaultValue": "test 1"
+          "dataSource": "dataModel.nested-group"
         },
         {
           "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value",
-          "dataSource": "dataModel.nested-group",
-          "defaultValue": "test 2"
+          "dataSource": "dataModel.nested-group"
         }
       ]
     },
