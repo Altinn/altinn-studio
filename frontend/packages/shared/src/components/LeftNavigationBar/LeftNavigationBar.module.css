@@ -39,7 +39,8 @@
 
   outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
   outline-offset: var(--fds-focus-border-width);
-  box-shadow: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset,
+  box-shadow:
+    8px 0 0 0 var(--fds-semantic-border-action-active) inset,
     0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
 }
 
