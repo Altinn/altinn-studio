@@ -11,9 +11,11 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import { Alert, Button, Paragraph, Popover } from '@digdir/design-system-react';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
+import { typedSessionStorage } from "app-shared/utils/webStorage";
 
 export const Preview = () => {
   const layoutName = useSelector(selectedLayoutNameSelector);
@@ -44,6 +46,26 @@ const PreviewFrame = () => {
   const { t } = useTranslation();
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
+  const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
+  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
+  const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
+
+  if (showPreviewLimitationsInfo) {
+    const previewLimitationsInfo = document.getElementById('preview-limitations-info');
+    const dynamicHeight = previewLimitationsInfo?.scrollHeight ?? 0;
+    document.documentElement.style.setProperty('--previewLimitationsInfo-height', `${dynamicHeight}px`);
+  }
+
+  const handleHidePreviewLimitations = () => {
+    setShowPreviewLimitationsInfo(false);
+    setOpenShowSaveChoiceInSession(false);
+    document.documentElement.style.setProperty('--previewLimitationsInfo-height', '0px');
+  };
+
+  const handleRememberChoiceForSession = () => {
+    typedSessionStorage.setItem('showPreviewLimitationsInfo', false);
+    handleHidePreviewLimitations();
+  };
 
   useUpdate(() => {
     previewIframeRef.current?.contentWindow?.location.reload();
@@ -58,11 +80,22 @@ const PreviewFrame = () => {
         title={t('ux_editor.preview')}
         src={previewPage(org, app, selectedLayoutSet)}
       />
-      <div className={classes.previewLimitationsInfo}>
-        <Alert severity='info'>
-          {t('preview.limitations_info')}
-        </Alert>
-      </div>
+      {showPreviewLimitationsInfo &&
+          <Alert severity='info' className={classes.previewLimitationsInfo} id='preview-limitations-info'>
+            <div className={classes.alert}>
+              {t('preview.limitations_info')}
+              <Popover
+                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='quiet' icon={<XMarkIcon />}/>}
+                  open={openSaveChoiceInSession}
+              >
+                {t('session.reminder')}
+                <span className={classes.row}>
+                  <Button onClick={handleHidePreviewLimitations} size='small' variant='outline'>{t('session.do_show_again')}</Button>
+                  <Button onClick={handleRememberChoiceForSession} size='small' variant='outline'>{t('session.dont_show_again')}</Button>
+                </span>
+              </Popover>
+            </div>
+          </Alert>}
     </div>
   );
 };

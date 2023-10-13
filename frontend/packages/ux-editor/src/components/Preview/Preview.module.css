@@ -27,6 +27,20 @@
 
 .previewLimitationsInfo {
   padding: 10px;
-  background-color: #efefef;
+  font-size: 9px;
   align-content: center;
+}
+
+.alert {
+  display: flex;
+  flex-direction: row;
+  align-self: center;
+  align-items: center;
+  width: fit-content;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
 }

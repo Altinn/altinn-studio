@@ -1,5 +1,9 @@
+:root {
+  --previewLimitationsInfo-height: 0px;  /* Default height which will be overriden */
+}
+
 .header {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-family);
   align-items: center;
   height: var(--header-height);
   width: 100vw;
@@ -15,11 +19,17 @@
   border: none;
 }
 
-.iframeMobileViewContainer {
+.previewLimitationsInfo {
+  align-self: center;
+  width: 80%;
+  margin: 10px;
+}
+
+.iframeContainer {
   display: flex;
   justify-content: center;
   background-color: #efefef;
-  height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height) - var(--previewLimitationsInfo-height));
 }
 
 .iframeMobile {
@@ -30,26 +40,17 @@
   margin: 0;
 }
 
-/* Mobile View Overlay to cover devtools in the middle of the screen */
-.iframeMobileViewOverlay {
-  position: absolute;
-  bottom: 0;
-  height: 100px;
-  width: 100%;
-  background-color: #efefef;
-  z-index: 1;
-}
-
-.previewLimitationsInfo {
+.alert {
   display: flex;
+  flex-direction: row;
+  align-self: center;
   align-items: center;
-  justify-content: center;
-  position: fixed;
-  padding: 10px;
-  background-color: #efefef;
+  width: fit-content;
+  font-family: var(--font-family);
 }
 
-.previewLimitationsInfo div {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  width: 80%;
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
 }
