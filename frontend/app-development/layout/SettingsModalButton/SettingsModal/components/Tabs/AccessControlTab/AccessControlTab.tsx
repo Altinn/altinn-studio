@@ -43,6 +43,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     data: appMetadata,
     error: appMetadataError,
   } = useAppMetadataQuery(org, app);
+  console.log(appMetadata);
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 

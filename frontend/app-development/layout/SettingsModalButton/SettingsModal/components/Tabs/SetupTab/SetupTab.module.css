@@ -1,0 +1,9 @@
+.dateTimeWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.divider {
+  margin-block: 20px;
+}

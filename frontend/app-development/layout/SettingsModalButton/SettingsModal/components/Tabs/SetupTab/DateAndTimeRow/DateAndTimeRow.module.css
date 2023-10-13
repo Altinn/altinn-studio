@@ -1,0 +1,12 @@
+.wrapper {
+  width: 70%;
+}
+
+.inputWrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.errorMessage {
+  margin-top: 10px;
+}
