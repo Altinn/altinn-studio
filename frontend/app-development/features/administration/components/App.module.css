@@ -4,6 +4,16 @@
   gap: var(--fds-spacing-6);
 }
 
+.appStatusList {
+  background-color: #f4f5f6;
+  border-radius: 6px;
+  padding: var(--fds-spacing-4);
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--fds-spacing-2);
+}
+
 .status p:not(:first-child) {
   margin-top: var(--fds-spacing-5);
 }

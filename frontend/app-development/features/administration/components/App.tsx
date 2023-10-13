@@ -3,7 +3,7 @@ import classes from './App.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useEnvironmentsQuery, useOrgListQuery } from 'app-development/hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
-import { Accordion, Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
 import { ICreateAppDeploymentEnvObject } from 'app-development/sharedResources/appDeployment/types';
 import { AppStatus } from './AppStatus';
@@ -45,23 +45,18 @@ export const App = () => {
 
   return (
     <div className={classes.app}>
-      {deployEnvironments.map((deployEnvironment: DeployEnvironment) => {
-        const deployEnvironmentType = deployEnvironment.type.toLowerCase();
-        return (
-          <Accordion key={deployEnvironment.name} className={classes.accordion}>
-            <Accordion.Item className={classes.accordionItem} defaultOpen={true}>
-              <Accordion.Header className={classes.accordionHeader} level={2}>
-                {t(`general.${deployEnvironmentType}_environment`)}
-                {deployEnvironmentType === 'test' && ` ${deployEnvironment.name.toUpperCase()}`}
-              </Accordion.Header>
-              <Accordion.Content className={classes.accordionContent}>
-                <AppStatus envName={deployEnvironment.name} />
-                <AppDeployments envName={deployEnvironment.name} />
-              </Accordion.Content>
-            </Accordion.Item>
-          </Accordion>
-        );
-      })}
+      <div className={classes.appStatusList}>
+        {deployEnvironments.map((deployEnvironment: DeployEnvironment) => {
+          return (
+            <AppStatus
+              key={deployEnvironment.name}
+              envName={deployEnvironment.name}
+              envType={deployEnvironment.type}
+            />
+          );
+        })}
+      </div>
+      <AppDeployments />
     </div>
   );
 };

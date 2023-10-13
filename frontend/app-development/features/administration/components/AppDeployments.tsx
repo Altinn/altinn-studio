@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './AppDeployments.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery, useEnvironmentsQuery } from 'app-development/hooks/queries';
-import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
@@ -11,11 +10,7 @@ import { IDeployment } from 'app-development/sharedResources/appDeployment/types
 import { Heading } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 
-export type AppDeploymentsProps = {
-  envName: string;
-};
-
-export const AppDeployments = ({ envName }: AppDeploymentsProps) => {
+export const AppDeployments = () => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
@@ -27,9 +22,7 @@ export const AppDeployments = ({ envName }: AppDeploymentsProps) => {
 
   if (deploysAreLoading || envIsLoading) return <AltinnSpinner />;
 
-  const deployHistory: IDeployment[] = appDeployments.filter((x) => x.envName === envName);
-
-  const succeededDeployments = deployHistory.filter(
+  const succeededDeployments = appDeployments.filter(
     (deployment: IDeployment) =>
       deployment.build.result === DeploymentStatus.succeeded && deployment.build.finished !== null,
   );

@@ -1,0 +1,33 @@
+.status[class*='Alert-module_alert'] {
+  border-radius: 6px;
+  box-shadow: unset !important;
+  font-size: smaller !important;
+  display: block !important;
+  height: 115px !important;
+  position: relative;
+}
+
+.status [class*='Paragraph-module_paragraph'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+  font-size: medium !important;
+  height: 100%;
+  width: 100%;
+}
+
+.content {
+  flex: 1;
+  align-items: stretch;
+}
+
+.status svg {
+  position: absolute;
+  right: var(--fds-spacing-3);
+  top: var(--fds-spacing-3);
+}
+
+.info {
+  font-size: smaller;
+  color: #68707c;
+}
