@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   navigateToType,
@@ -53,8 +53,8 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const {
     fieldType,
     pointer,
-    title,
-    description,
+    title = '',
+    description = '',
     reference,
     isCombinationItem,
     objectKind,
@@ -65,16 +65,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
-  const [itemTitle, setItemItemTitle] = useState<string>(title || '');
-  const [itemDescription, setItemItemDescription] = useState<string>(description || '');
-  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
-
-  useEffect(() => {
-    setNodeName(getNameFromPointer({ pointer }));
-    setItemItemTitle(title);
-    setItemItemDescription(description);
-  }, [pointer, title, description]);
-
+  const [itemTitle, setItemItemTitle] = useState<string>(title);
+  const [itemDescription, setItemItemDescription] = useState<string>(description);
+  const nodeName = getNameFromPointer({ pointer });
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
@@ -139,7 +132,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
-  
+
   return (
     <div className={classes.root}>
       {!isCombinationItem && (
@@ -211,7 +204,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
             onChange={(e: ChangeEvent) => setItemItemTitle((e.target as HTMLInputElement)?.value)}
-            value={itemTitle ?? ''}
+            value={itemTitle}
           />
         </div>
         <div>
@@ -224,7 +217,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               setItemItemDescription(event.target.value)
             }
             style={{ height: 100 }}
-            value={itemDescription ?? ''}
+            value={itemDescription}
           />
         </div>
       </LegacyFieldSet>
