@@ -17,6 +17,7 @@ const useStyles = makeStyles({
   },
   // Match style in \src\components\summary\SingleInputSummary.tsx
   data: {
+    overflowWrap: 'break-word',
     fontWeight: 500,
     fontSize: '1.125rem',
     '& p': {

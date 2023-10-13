@@ -1,9 +1,26 @@
+.data {
+  overflow-wrap: break-word;
+}
+
 .row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
   border-top: 1px dashed #008fd6;
   margin-top: 10px;
   padding-top: 10px;
+}
+
+.row > div {
+  overflow-wrap: anywhere;
+}
+
+.row div:first-child {
+  justify-self: start;
+}
+
+.row div:last-child {
+  justify-self: end;
 }
 
 .emptyField {

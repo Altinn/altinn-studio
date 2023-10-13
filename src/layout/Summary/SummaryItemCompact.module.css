@@ -1,8 +1,10 @@
 .data {
   font-weight: 500;
+  overflow-wrap: break-word;
 }
 
 .emptyField {
   font-style: italic;
   font-size: 0.875rem;
+  overflow-wrap: break-word;
 }

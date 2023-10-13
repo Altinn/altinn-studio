@@ -33,7 +33,7 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
       ) : (
         attachments.map((attachment) => (
           <div
-            className={hasTag ? classes.row : ''}
+            className={hasTag ? classes.row : classes.data}
             key={`attachment-summary-${attachment.id}`}
           >
             <div key={attachment.id}>{attachment.name}</div>
