@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   navigateToType,
@@ -53,8 +53,8 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const {
     fieldType,
     pointer,
-    title,
-    description,
+    title = '',
+    description = '',
     reference,
     isCombinationItem,
     objectKind,
@@ -63,15 +63,11 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   } = schemaNode;
   const dispatch = useDispatch();
   const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { t } = useTranslation();
 
-  const [itemTitle, setItemItemTitle] = useState<string>(title || '');
-  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
-
-  useEffect(() => {
-    setNodeName(getNameFromPointer({ pointer }));
-  }, [pointer]);
-
-  const [itemDescription, setItemItemDescription] = useState<string>(description || '');
+  const [itemTitle, setItemItemTitle] = useState<string>(title);
+  const [itemDescription, setItemItemDescription] = useState<string>(description);
+  const nodeName = getNameFromPointer({ pointer });
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
@@ -131,8 +127,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       }),
     );
   };
-
-  const { t } = useTranslation();
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
 
