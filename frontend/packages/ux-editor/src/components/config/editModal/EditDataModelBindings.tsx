@@ -6,11 +6,10 @@ import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { LinkIcon, CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@altinn/icons';
+import { LinkIcon } from '@altinn/icons';
 import { Button } from '@digdir/design-system-react';
 import classes from './EditDataModelBindings.module.css';
-import cn from 'classnames';
-import { InputWrapperAction } from './InputWrapperAction';
+import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -48,80 +47,34 @@ export const EditDataModelBindings = ({
   };
 
   const { uniqueKey, key, label } = renderOptions || {};
-  const [linkIconVisible, setLinkIconVisible] = useState(true);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [CheckmarkAndTrashIconsVisible, setCheckmarkAndTrashIconsVisible] = useState(false);
-  const [checkmarkClicked, setCheckmarkClicked] = useState(false);
-  const [isLinkedDatamodelHovered, setIsLinkedDatamodelHovered] = useState(false);
-  const handleHoverActive = () => setIsLinkedDatamodelHovered(true);
-  const handleHoverDisabled = () => setIsLinkedDatamodelHovered(false);
+
+  const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | undefined>(
     component.dataModelBindings[key || 'simpleBinding'],
   );
-  const toggleDropdown = () => {
-    setDropdownVisible(true);
-    setLinkIconVisible(false);
-  };
-
-  const renderIcons = () => {
-    return (
-      <div>
-        {isLinkedDatamodelHovered ? (
-          <Button
-            className={classes.pencilWritingIcon}
-            icon={<PencilWritingIcon />}
-            variant='quiet'
-            onClick={() => {
-              setDropdownVisible(true);
-              setLinkIconVisible(false);
-              setCheckmarkAndTrashIconsVisible(false);
-              setCheckmarkClicked(false);
-              setIsLinkedDatamodelHovered(false);
-            }}
-          />
-        ) : (
-          <Button
-            icon={<CheckmarkIcon />}
-            variant='quiet'
-            className={classes.checkmarkIcon}
-            onClick={() => {
-              setCheckmarkClicked(true);
-              setDropdownVisible(false);
-              setCheckmarkAndTrashIconsVisible(false);
-            }}
-          />
-        )}
-
-        <Button
-          icon={<TrashIcon />}
-          className={classes.trashIcon}
-          variant='quiet'
-          onClick={() => {
-            setDropdownVisible(false);
-            setLinkIconVisible(true);
-            setCheckmarkAndTrashIconsVisible(false);
-            setCheckmarkClicked(false);
-            setIsLinkedDatamodelHovered(false);
-          }}
-        />
-      </div>
-    );
-  };
 
   return (
     <div key={uniqueKey || ''}>
-      {linkIconVisible && (
-        <Button onClick={toggleDropdown} variant='quiet'>
+      {!selectedOption && !dataModelSelectVisible ? (
+        <Button onClick={() => setDataModelSelectVisible(true)} variant='quiet'>
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}
           </div>
         </Button>
-      )}
-      <div className={classes.dropdownContainer}>
-        {dropdownVisible && (
-          <>
-            <div className={classes.dropdown}>
+      ) : (
+        <InputActionWrapper
+          mode={dataModelSelectVisible ? 'editMode' : 'standBy'}
+          onEditClick={() => setDataModelSelectVisible(true)}
+          onDeleteClick={() => {
+            handleDataModelChange('', key);
+            setDataModelSelectVisible(false);
+            setSelectedOption(undefined);
+          }}
+          onSaveClick={() => setDataModelSelectVisible(false)}
+        >
+          <div className={classes.SelectDataModelComponent}>
+            {dataModelSelectVisible ? (
               <SelectDataModelComponent
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
                   key || 'simpleBinding'
@@ -143,28 +96,25 @@ export const EditDataModelBindings = ({
                 onDataModelChange={(dataModelField: string) => {
                   handleDataModelChange(dataModelField, key);
                   setSelectedOption(dataModelField);
-                  setCheckmarkAndTrashIconsVisible(true);
                 }}
                 noOptionsMessage={t('general.no_options')}
                 helpText={helpText}
               />
-            </div>
-
-            {CheckmarkAndTrashIconsVisible && dropdownVisible && renderIcons()}
-          </>
-        )}
-      </div>
-      {checkmarkClicked && selectedOption && (
-        <div
-          className={cn(classes.linkedDatamodelContainer, classes.hoveredOption)}
-          onMouseOver={handleHoverActive}
-          onMouseLeave={handleHoverDisabled}
-        >
-          <LinkIcon />
-          {selectedOption}
-          {renderIcons()}
-        </div>
+            ) : (
+              <>{selectedOption && <SelectedOption selectedOption={selectedOption} />}</>
+            )}
+          </div>
+        </InputActionWrapper>
       )}
+    </div>
+  );
+};
+
+const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
+  return (
+    <div className={classes.linkedDatamodelContainer}>
+      <LinkIcon />
+      <div className={classes.selectedOption}>{selectedOption}</div>
     </div>
   );
 };
