@@ -3,7 +3,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { editorPath } from 'app-shared/api/paths';
-import { Button, Select, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, Select, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
 import classes from '../AppPreviewSubMenu.module.css';
@@ -40,7 +40,7 @@ export const getTopBarAppPreviewMenu = (
   org: string,
   app: string,
   repositoryType: RepositoryType,
-  t: TFunction
+  t: TFunction,
 ): AppPreviewMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
@@ -65,7 +65,7 @@ export const SubPreviewMenuLeftContent = ({
   return (
     <div className={classes.leftSubHeaderComponents}>
       <div className={classes.viewSizeButtons}>
-        <ToggleButtonGroup
+        <LegacyToggleButtonGroup
           items={[
             {
               label: t('preview.view_size_desktop'),
@@ -116,7 +116,7 @@ export const SubPreviewMenuRightContent = () => {
 export const appPreviewButtonActions = (
   org: string,
   app: string,
-  instanceId: string
+  instanceId: string,
 ): AltinnButtonActionItem[] => {
   const subUrl = `/ui-editor?layout=`;
   const action: AltinnButtonActionItem[] = [
@@ -128,7 +128,7 @@ export const appPreviewButtonActions = (
       headerButtonsClasses: classes.backToEditorBtn,
       handleClick: () =>
         (window.location.href = `${editorPath(org, app)}${subUrl}${window.localStorage.getItem(
-          instanceId
+          instanceId,
         )}`),
     },
   ];

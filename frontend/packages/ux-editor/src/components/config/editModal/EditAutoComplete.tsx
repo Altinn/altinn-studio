@@ -133,7 +133,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
               role='option'
               key={option}
               size='small'
-              color='secondary'
+              color='second'
               variant='quiet'
               onMouseDown={() => handleWordClick(option)}
             >

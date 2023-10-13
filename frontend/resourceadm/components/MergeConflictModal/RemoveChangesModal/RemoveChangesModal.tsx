@@ -68,9 +68,9 @@ export const RemoveChangesModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title={t('administration.reset_repo_confirm_heading')}>
       <Paragraph size='small'>
         <Trans
-            i18nKey={'administration.reset_repo_confirm_info'}
-            values={{ repositoryName: repo }}
-            components={{ bold: <strong/> }}
+          i18nKey={'administration.reset_repo_confirm_info'}
+          values={{ repositoryName: repo }}
+          components={{ bold: <strong /> }}
         />
       </Paragraph>
       <div className={classes.textFieldWrapper}>
@@ -92,7 +92,7 @@ export const RemoveChangesModal = ({
         >
           {t('administration.reset_repo_button')}
         </Button>
-        <Button color='secondary' onClick={handleClose} variant='outline' size='small'>
+        <Button color='second' onClick={handleClose} variant='outline' size='small'>
           {t('general.cancel')}
         </Button>
       </div>

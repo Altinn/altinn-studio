@@ -137,7 +137,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
             <div className={classes.addEnumButton}>
               <Button
                 aria-label={t('schema_editor.add_enum')}
-                color='secondary'
+                color='second'
                 fullWidth
                 icon={<PlusIcon />}
                 id='add-enum-button'

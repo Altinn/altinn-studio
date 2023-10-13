@@ -190,12 +190,12 @@ export const ImportResourceModal = ({
       {displayService()}
       {displayTitleAndId()}
       <div className={classes.buttonWrapper}>
-        <Button onClick={handleClose} color='primary' variant='quiet' size='small'>
+        <Button onClick={handleClose} color='first' variant='quiet' size='small'>
           {t('general.cancel')}
         </Button>
         {selectedEnv && selectedService && (
           <div className={classes.importButton}>
-            <Button onClick={handleImportResource} color='primary' size='small'>
+            <Button onClick={handleImportResource} color='first' size='small'>
               {t('resourceadm.dashboard_import_modal_import_button')}
             </Button>
           </div>
