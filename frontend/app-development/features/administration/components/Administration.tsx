@@ -6,6 +6,7 @@ import { Heading } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
+import { Navigation } from './Navigation';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -26,9 +27,7 @@ export const Administration = () => {
           <main className={classes.main}>
             <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
             <hr className={classes.divider} />
-            <div className={classes.placeholder} style={{ height: '300px' }}>
-              {/* NAVIGATION PLACEHOLDER */}
-            </div>
+            <Navigation />
           </main>
           <aside className={classes.aside}>
             <Documentation />
