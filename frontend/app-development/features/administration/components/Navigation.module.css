@@ -30,6 +30,12 @@
   width: 150px;
 }
 
+.icon {
+  font-size: 1.5rem;
+}
+
+/* TODO: Remove this custom style for links once the Link component can be displayed as a button: https://github.com/digdir/designsystem/issues/939. */
+
 .link,
 .link:focus {
   background: var(--fds-semantic-surface-action-secondary-default);
@@ -63,6 +69,4 @@
   background-color: var(--fds-semantic-surface-action-secondary-hover);
 }
 
-.icon {
-  font-size: 1.5rem;
-}
+/**********/
