@@ -92,7 +92,7 @@ export const RemoveChangesModal = ({
         >
           {t('administration.reset_repo_button')}
         </Button>
-        <Button color='secondary' onClick={handleClose} variant='outline' size='small'>
+        <Button color='second' onClick={handleClose} variant='outline' size='small'>
           {t('general.cancel')}
         </Button>
       </div>

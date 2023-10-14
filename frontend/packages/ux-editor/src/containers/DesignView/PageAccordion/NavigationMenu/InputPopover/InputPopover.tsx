@@ -135,7 +135,7 @@ export const InputPopover = ({
         </ErrorMessage>
         <div className={classes.buttonContainer}>
           <Button
-            color='secondary'
+            color='second'
             variant='quiet'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();

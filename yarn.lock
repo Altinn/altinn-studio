@@ -1740,26 +1740,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.25.1":
-  version: 0.25.1
-  resolution: "@digdir/design-system-react@npm:0.25.1"
+"@digdir/design-system-react@npm:0.29.0":
+  version: 0.29.0
+  resolution: "@digdir/design-system-react@npm:0.29.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
-    "@digdir/design-system-tokens": ^0.7.0
+    "@digdir/design-system-tokens": ^0.8.0
     "@floating-ui/react": 0.25.2
     "@navikt/aksel-icons": ^3.2.4
     react-number-format: 5.2.2
   peerDependencies:
-    react: ">=16.8"
-    react-dom: ">=16.8"
-  checksum: 9ec9e998dfdf18a2ebc242f113a71430c80fdb77ef59975a444c2bca18198f924b272ebcd7b86b0a9c23d2b47e45bcb81f3c3e435107b202081dcd2cc48a66fe
+    react: ">=18.2.0"
+    react-dom: ">=18.2.0"
+  checksum: b5fbf22469984144ae6aa3f22eb96615dd9090c517ef3ab887587423d01a1b3ec1491687cc61e9cb9f7454e173a94433f9f08071ebec99c3545e11db4a98abe9
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.7.0, @digdir/design-system-tokens@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@digdir/design-system-tokens@npm:0.7.0"
-  checksum: 8dc01c6d02d330092ac36cd1258a925549b3b2b0286a3af0b4f3254607b65d50f27199c2aa5919fa133622f385c94c6ca6f9e46cd0ebcd2b37af514b2262c695
+"@digdir/design-system-tokens@npm:0.8.0, @digdir/design-system-tokens@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@digdir/design-system-tokens@npm:0.8.0"
+  checksum: 73a9d5a134447f5a6443c3c18e843885780895e011ac6ee63043ccd6cc7557e4436308492099b1faa9d78c7c728a6623e0d1ece7154d177474063961d3228604
   languageName: node
   linkType: hard
 
@@ -5441,8 +5441,8 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.25.1
-    "@digdir/design-system-tokens": 0.7.0
+    "@digdir/design-system-react": 0.29.0
+    "@digdir/design-system-tokens": 0.8.0
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/applicationinsights-react-js": ^17.0.0

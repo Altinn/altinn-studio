@@ -65,13 +65,15 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const selectedFormat = DatamodelFormat.XSD;
   const selectedContext = useSelectedContext();
   const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext,
   );
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutate: addRepo } = useAddRepoMutation({ hideDefaultError: (error: AxiosError) => error?.response?.status === 409 });
+  const { mutate: addRepo } = useAddRepoMutation({
+    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+  });
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -105,7 +107,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
               applicationAboutPage({
                 org: repository.owner.login,
                 repo: repository.name,
-              })
+              }),
             );
           },
           onError: (error: { response: { status: number } }) => {
@@ -115,7 +117,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
 
             setPageState(PageState.Idle);
           },
-        }
+        },
       );
     }
   };
@@ -137,7 +139,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
       ) : (
         <div className={classes.buttonContainer}>
-          <Button color='primary' onClick={handleCreateService} size='small'>
+          <Button color='first' onClick={handleCreateService} size='small'>
             {t('dashboard.create_service_btn')}
           </Button>
           <Button color='inverted' onClick={() => navigate(-1)} size='small'>

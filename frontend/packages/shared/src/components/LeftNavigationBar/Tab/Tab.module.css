@@ -1,10 +1,10 @@
 .selected {
-  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-default) inset;
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-default) inset;
   box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 
 .selected:focus:not(:focus-visible) {
-  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-active) inset;
   box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 
@@ -21,7 +21,7 @@
 }
 
 .newPage:focus-within {
-  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-primary-active) inset;
+  --fdsc-alert-box-shadow-left: 8px 0 0 0 var(--fds-semantic-border-action-active) inset;
   box-shadow: var(--fdsc-alert-box-shadow-left);
 }
 

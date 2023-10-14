@@ -49,12 +49,12 @@ context('Designer', () => {
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
 
     // Add an input component
-    designer.getToolbarItemByText(texts['ux_editor.component_input']).trigger('dragstart');
+    designer.getToolbarItemByText(texts['ux_editor.component_title.Input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
     designer
       .getPageAccordionByName('Side1')
-      .findByRole('listitem', { name: texts['ux_editor.component_input'] });
+      .findByRole('listitem', { name: texts['ux_editor.component_title.Input'] });
 
     // Delete components on page
     cy.deleteComponents();
@@ -84,7 +84,7 @@ context('Designer', () => {
 
     designer
       .getPageAccordionByName('Side2')
-      .findByRole('listitem', { name: `${texts['ux_editor.component_navigation_buttons']}` });
+      .findByRole('listitem', { name: `${texts['ux_editor.component_title.NavigationButtons']}` });
 
     cy.deleteComponents();
   });

@@ -4,7 +4,7 @@ import {
   Select,
   SingleSelectOption,
   LegacyTextField,
-  ToggleButtonGroup,
+  LegacyToggleButtonGroup,
 } from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
@@ -98,7 +98,7 @@ export const DataSourceValue = ({
       );
     case DataSource.Boolean:
       return (
-        <ToggleButtonGroup
+        <LegacyToggleButtonGroup
           items={[
             { label: t('general.true'), value: 'true' },
             { label: t('general.false'), value: 'false' },

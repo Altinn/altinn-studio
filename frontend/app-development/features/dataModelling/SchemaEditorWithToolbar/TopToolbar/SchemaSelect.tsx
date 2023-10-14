@@ -2,12 +2,13 @@ import React from 'react';
 import {
   convertMetadataListToOptions,
   findMetadataOptionByRelativeUrl,
-  groupMetadataOptions
+  groupMetadataOptions,
 } from '../../../../utils/metadataUtils';
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/design-system-react';
 import classes from './SchemaSelect.module.css';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { useTranslation } from 'react-i18next';
 
 export interface ISchemaSelectProps {
   datamodels: DatamodelMetadata[];
@@ -20,9 +21,9 @@ export const SchemaSelect = ({
   datamodels,
   disabled,
   selectedOption,
-  setSelectedOption
+  setSelectedOption,
 }: ISchemaSelectProps) => {
-
+  const { t } = useTranslation();
   const options = convertMetadataListToOptions(datamodels);
   const optionGroups = groupMetadataOptions(options);
   const handleChange = (repositoyUrl: string) =>
@@ -30,6 +31,7 @@ export const SchemaSelect = ({
 
   return (
     <NativeSelect
+      aria-label={t('schema_editor.choose_model')}
       className={classes.select}
       disabled={disabled}
       onChange={(e) => handleChange(e.target.value)}

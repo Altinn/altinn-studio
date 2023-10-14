@@ -77,7 +77,7 @@ export const VerificationModal = ({
               {closeButtonText}
             </Button>
           </div>
-          <Button onClick={onPerformAction} color='primary' size='small'>
+          <Button onClick={onPerformAction} color='first' size='small'>
             {actionButtonText}
           </Button>
         </div>

@@ -104,7 +104,7 @@ export const FormComponent = memo(function FormComponent({
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
           trigger={
             <Button
-              color='secondary'
+              color='second'
               icon={<TrashIcon />}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
