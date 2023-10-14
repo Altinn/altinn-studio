@@ -303,3 +303,4 @@ export const changeChildrenOrder: UiSchemaReducer<ChangeChildrenOrderArgs> =
     if (parentNode) parentNode.children = swapArrayElements(parentNode.children, pointerA, pointerB);
     return newSchema;
   };
+
