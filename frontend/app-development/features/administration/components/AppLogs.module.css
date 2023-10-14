@@ -1,6 +1,6 @@
 .appLogs {
   background-color: #f4f5f6;
-  border-radius: 6px;
+  border-radius: 4px;
 
   display: flex;
   flex-direction: column;
@@ -18,7 +18,7 @@
 
 .logs {
   background-color: white;
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-6);

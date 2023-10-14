@@ -1,7 +1,7 @@
 .noEnvironments,
 .appEnvironments {
   background-color: #f4f5f6;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: var(--fds-spacing-4);
 }
 

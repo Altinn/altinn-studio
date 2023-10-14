@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Administration } from './Administration';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';

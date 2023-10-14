@@ -28,7 +28,6 @@ export const Administration = () => {
           <main className={classes.main}>
             <AppEnvironments />
             <AppLogs />
-            <hr className={classes.divider} />
             <div className={classes.placeholder} style={{ height: '300px' }}>
               {/* NAVIGATION PLACEHOLDER */}
             </div>

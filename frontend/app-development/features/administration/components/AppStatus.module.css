@@ -1,5 +1,5 @@
 .alert[class*='Alert-module_alert'] {
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: unset !important;
   font-size: smaller !important;
   display: block !important;
