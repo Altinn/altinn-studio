@@ -95,5 +95,6 @@ declare namespace Cypress {
      * @example cy.getRepoByAppId('ttd/app', token)
      */
     getRepoByAppId(appId: string, token: string): Chainable<Element>;
+
   }
 }

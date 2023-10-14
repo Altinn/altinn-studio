@@ -28,12 +28,7 @@ export const OldDynamicsInfo = () => {
             </span>
           </a>
         </p>
-        <a
-          className={classes.textLink}
-          href={giteaEditLink(org, app, dynamicLocation)}
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a className={classes.textLink} href={giteaEditLink(org, app, dynamicLocation)} target='_blank' rel='noreferrer'>
           {t('right_menu.dynamics_edit')}
         </a>{' '}
         ({t('right_menu.dynamics_edit_comment')})

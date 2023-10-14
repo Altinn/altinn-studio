@@ -11,18 +11,13 @@ export const useDeleteDatamodelMutation = () => {
   return useMutation({
     mutationFn: async (modelPath: string) => {
       await deleteDatamodel(org, app, modelPath);
-      const respectiveFileNameInXsdOrJson = isXsdFile(modelPath)
-        ? modelPath.replace('.xsd', '.schema.json')
-        : modelPath.replace('.schema.json', '.xsd');
+      const respectiveFileNameInXsdOrJson = isXsdFile(modelPath) ? modelPath.replace('.xsd', '.schema.json') : modelPath.replace('.schema.json', '.xsd');
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], undefined);
-      queryClient.setQueryData(
-        [QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson],
-        undefined,
-      );
+      queryClient.setQueryData([QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson], undefined);
       await Promise.all([
         queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
         queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
       ]);
     },
-  });
-};
+  })
+}

@@ -59,8 +59,7 @@ describe('ResetRepoModal', () => {
       repositoryName: mockRepoName,
       org: 'testOrg',
     };
-    return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />);
-  };
+    return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />)};
 
   it('renders the component', () => {
     render();

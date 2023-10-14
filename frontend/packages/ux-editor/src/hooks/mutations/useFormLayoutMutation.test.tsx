@@ -86,7 +86,10 @@ describe('useFormLayoutMutation', () => {
   });
 });
 
-const renderAndMutate = (layout: IInternalLayout, appContext: Partial<AppContextProps> = {}) =>
+const renderAndMutate = (
+  layout: IInternalLayout,
+  appContext: Partial<AppContextProps> = {},
+) =>
   renderHookWithMockStore(
     {},
     {},

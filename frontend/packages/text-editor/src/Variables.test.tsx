@@ -16,7 +16,7 @@ describe('Variables', () => {
   it('renders nothing useful at the moment', () => {
     renderVariables();
     expect(
-      screen.getByTitle(textMock('text_editor.variables_editing_not_supported')),
+      screen.getByTitle(textMock('text_editor.variables_editing_not_supported'))
     ).toBeInTheDocument();
   });
   it('renders a list of the variables you must edit in a text editor', () => {
@@ -37,7 +37,7 @@ describe('Variables', () => {
   it('renders two span elements and correct default value if it exists', () => {
     const variables = [
       { key: 'some key', dataSource: 'some data source', defaultValue: 'some default value' },
-    ];
+    ]
     renderVariables({
       variables: variables,
     });
