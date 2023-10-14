@@ -23,13 +23,6 @@ const render = (queries = {}, envName = envNameTest, envType = envTypeTest) => {
 };
 
 describe('AppStatus', () => {
-  // it('renders component', async () => {
-  //   render();
-
-  //   expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
-  //   expect(screen.queryByRole('heading', { name: app })).not.toBeInTheDocument();
-  // });
-
   it('shows loading spinner when loading required data', () => {
     render();
 

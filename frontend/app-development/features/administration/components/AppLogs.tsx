@@ -44,7 +44,7 @@ export const AppLogs = () => {
                 <div className={classes.logTitle}>
                   {`${t('general.version')} ${appDeployment.tagName} ${t(
                     `general.${environmentType}_environment`,
-                  )}${environmentType === 'test' && ` ${appDeployment.envName.toUpperCase()}`}`}
+                  )}${environmentType === 'test' ? ` ${appDeployment.envName.toUpperCase()}` : ''}`}
                 </div>
                 <div>
                   {`(${appDeployment.createdBy}) ${t('general.date')}: ${formatDateTime(
