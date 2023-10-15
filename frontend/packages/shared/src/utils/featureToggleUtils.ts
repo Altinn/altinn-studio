@@ -9,8 +9,7 @@ export type SupportedFeatureFlags =
   | 'expressions'
   | 'settingsModal'
   | 'processEditor'
-  | 'configureLayoutSet'
-  | 'newAdministration';
+  | 'configureLayoutSet';
 
 /*
  * Please add all the features that you want to be toggle on by default here.
