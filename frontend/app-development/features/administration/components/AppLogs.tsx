@@ -7,20 +7,28 @@ import { AltinnSpinner } from 'app-shared/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
-import { Heading } from '@digdir/design-system-react';
+import { Alert, Heading } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 
 export const AppLogs = () => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
-  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeploymentsQuery(
-    org,
-    app,
-  );
-  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironmentsQuery();
+  const {
+    data: appDeployments = [],
+    isLoading: deploysAreLoading,
+    isError: deloyesAreError,
+  } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
+  const {
+    data: environmentList = [],
+    isLoading: envIsLoading,
+    isError: envIsError,
+  } = useEnvironmentsQuery({ hideDefaultError: true });
 
   if (deploysAreLoading || envIsLoading) return <AltinnSpinner />;
+
+  if (deloyesAreError || envIsError)
+    return <Alert severity='danger'>{t('administration.app_logs_error')}</Alert>;
 
   const succeededDeployments = appDeployments.filter(
     (deployment: IDeployment) =>

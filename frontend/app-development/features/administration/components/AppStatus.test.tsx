@@ -29,6 +29,16 @@ describe('AppStatus', () => {
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
+  it('shows error message if an error occured while fetching required data', async () => {
+    render({
+      getDeployments: jest.fn().mockImplementation(() => Promise.reject()),
+    });
+
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+
+    expect(screen.getByText(textMock('administration.app_status_error'))).toBeInTheDocument();
+  });
+
   it('shows production when environment is production', async () => {
     const envNameProduction = 'production';
     const envTypeProduction = 'production';

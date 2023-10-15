@@ -13,10 +13,21 @@ export const AppEnvironments = () => {
   const { org } = useStudioUrlParams();
   const { t } = useTranslation();
 
-  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironmentsQuery();
-  const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgListQuery();
+  const {
+    data: environmentList = [],
+    isLoading: envIsLoading,
+    isError: envIsError,
+  } = useEnvironmentsQuery({ hideDefaultError: true });
+  const {
+    data: orgs = { orgs: {} },
+    isLoading: orgsIsLoading,
+    isError: orgsIsError,
+  } = useOrgListQuery({ hideDefaultError: true });
 
   if (envIsLoading || orgsIsLoading) return <AltinnSpinner />;
+
+  if (envIsError || orgsIsError)
+    return <Alert severity='danger'>{t('administration.app_environments_error')}</Alert>;
 
   const selectedOrg = orgs.orgs[org];
   const hasEnvironments = !(selectedOrg?.environments?.length ?? 0);

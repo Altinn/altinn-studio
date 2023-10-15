@@ -30,6 +30,17 @@ describe('AppEnvironments', () => {
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
+  it('shows error message if an error occured while fetching required data', async () => {
+    render({
+      getEnvironments: jest.fn().mockImplementation(() => Promise.reject()),
+      getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
+    });
+
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+
+    expect(screen.getByText(textMock('administration.app_environments_error'))).toBeInTheDocument();
+  });
+
   it('shows no environments message when organization has no environment', async () => {
     render({
       getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),

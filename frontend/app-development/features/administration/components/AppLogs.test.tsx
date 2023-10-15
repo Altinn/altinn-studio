@@ -29,6 +29,16 @@ describe('AppLogs', () => {
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
+  it('shows error message if an error occured while fetching required data', async () => {
+    render({
+      getEnvironments: jest.fn().mockImplementation(() => Promise.reject()),
+    });
+
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+
+    expect(screen.getByText(textMock('administration.app_logs_error'))).toBeInTheDocument();
+  });
+
   it('shows list of deployments', async () => {
     render({
       getDeployments: jest.fn().mockImplementation(() =>

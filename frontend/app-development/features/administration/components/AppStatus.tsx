@@ -20,10 +20,11 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
-  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeploymentsQuery(
-    org,
-    app,
-  );
+  const {
+    data: appDeployments = [],
+    isLoading: deploysAreLoading,
+    isError: deploysAreError,
+  } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
   const deployHistory: IDeployment[] = appDeployments.filter((x) => x.envName === envName);
 
@@ -46,6 +47,18 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
   const noAppDeployed = !latestDeploy || deployInProgress;
 
   if (deploysAreLoading) return <AltinnSpinner />;
+
+  if (deploysAreError)
+    return (
+      <Alert severity='danger'>
+        <Trans
+          i18nKey={'administration.app_status_error'}
+          values={{
+            envName,
+          }}
+        />
+      </Alert>
+    );
 
   const Status = ({
     severity,
