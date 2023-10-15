@@ -19,7 +19,7 @@ const actionToIconMap: Record<AvailableAction, React.ReactNode> = {
   delete: <TrashIcon />,
 };
 
-type InputActionWrapperProps = {
+export type InputActionWrapperProps = {
   children: React.ReactElement;
   mode?: ActionGroup;
   onEditClick: () => void;
@@ -76,7 +76,7 @@ export const InputActionWrapper = ({
     }
   };
 
-  // Handled Variant, size, and color in functions if we need c in the future.
+  // Handled Variant, size, and color in functions if we need to change them based on status  in the future.
   const actionToAriaLabelMap: Record<AvailableAction, string> = {
     edit: t('general.edit'),
     delete: t('general.delete'),
@@ -84,10 +84,7 @@ export const InputActionWrapper = ({
   };
 
   const handleVariant = (action: AvailableAction): 'filled' | 'quiet' | 'outline' => {
-    switch (action) {
-      default:
-        return 'quiet';
-    }
+    return 'quiet';
   };
 
   const handleColor = (action: AvailableAction): 'danger' | 'primary' | 'secondary' | 'success' => {
@@ -104,10 +101,7 @@ export const InputActionWrapper = ({
   };
 
   const handleSize = (action: AvailableAction): 'small' | 'medium' | 'large' => {
-    switch (action) {
-      default:
-        return 'large';
-    }
+    return 'large';
   };
 
   return (
