@@ -25,9 +25,12 @@ export const Administration = () => {
         </div>
         <div className={classes.content}>
           <main className={classes.main}>
-            <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
-            <hr className={classes.divider} />
-            <Navigation />
+            <div className={classes.mainBlock} style={{ height: '500px' }}>
+              {/* APP STATUS PLACEHOLDER */}
+            </div>
+            <div className={classes.mainBlock}>
+              <Navigation />
+            </div>
           </main>
           <aside className={classes.aside}>
             <Documentation />

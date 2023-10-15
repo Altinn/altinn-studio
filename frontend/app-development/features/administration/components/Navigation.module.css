@@ -38,7 +38,7 @@
 
 .link,
 .link:focus {
-  background: var(--fds-semantic-surface-action-secondary-default);
+  background: var(--fds-semantic-surface-action-second-default);
 }
 
 .link,
@@ -50,7 +50,7 @@
 }
 
 .link:active {
-  background-color: var(--fds-semantic-surface-action-secondary-active);
+  background-color: var(--fds-semantic-surface-action-second-active);
   box-shadow: unset;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .link:hover {
-  background-color: var(--fds-semantic-surface-action-secondary-hover);
+  background-color: var(--fds-semantic-surface-action-second-hover);
 }
 
 /**********/
