@@ -36,7 +36,7 @@
 
 .content {
   background-color: white;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
@@ -71,6 +71,20 @@
   }
 }
 
+.mainBlock {
+  background-color: #f4f5f6;
+  border-radius: 4px;
+  padding: var(--fds-spacing-4);
+}
+
+.asideBlock {
+  background-color: #fbfbfc;
+  border: solid 2px #efefef;
+  border-radius: 4px;
+
+  padding: var(--fds-spacing-4);
+}
+
 .divider {
   background-color: #efefef;
   border: none;
@@ -78,14 +92,6 @@
   height: 2px;
   opacity: 0.5;
   width: 100%;
-}
-
-/* TODO: remove when all sections are implemented */
-.placeholder {
-  background-color: #fbfbfc;
-  border: solid 2px #efefef;
-  border-radius: 6px;
-  height: 500px;
 }
 
 @media (min-width: 960px) {

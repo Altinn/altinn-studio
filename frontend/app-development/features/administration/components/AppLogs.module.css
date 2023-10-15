@@ -1,13 +1,8 @@
 .appLogs {
-  background-color: #f4f5f6;
-  border-radius: 4px;
-
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-4);
   justify-content: space-between;
-
-  padding: var(--fds-spacing-4);
 
   max-height: 275px;
 }

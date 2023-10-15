@@ -23,23 +23,21 @@ export const AppEnvironments = () => {
 
   if (hasEnvironments) {
     return (
-      <div className={classes.noEnvironments}>
-        <Alert severity='warning' className={classes.alert}>
-          <Heading level={2} size='small'>
-            {t('app_publish.no_env_title')}
-          </Heading>
-          <Paragraph>
-            <Trans i18nKey={'app_publish.no_env_1'}>
-              <a href='mailto:tjenesteeier@altinn.no' />
-            </Trans>
-          </Paragraph>
-          <Paragraph>
-            <Trans i18nKey={'app_publish.no_env_2'}>
-              <a target='_new' rel='noopener noreferrer' />
-            </Trans>
-          </Paragraph>
-        </Alert>
-      </div>
+      <Alert severity='warning' className={classes.alert}>
+        <Heading level={2} size='small'>
+          {t('app_publish.no_env_title')}
+        </Heading>
+        <Paragraph>
+          <Trans i18nKey={'app_publish.no_env_1'}>
+            <a href='mailto:tjenesteeier@altinn.no' />
+          </Trans>
+        </Paragraph>
+        <Paragraph>
+          <Trans i18nKey={'app_publish.no_env_2'}>
+            <a target='_new' rel='noopener noreferrer' />
+          </Trans>
+        </Paragraph>
+      </Alert>
     );
   }
 
