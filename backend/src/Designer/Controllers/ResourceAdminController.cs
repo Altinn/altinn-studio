@@ -266,7 +266,7 @@ namespace Altinn.Studio.Designer.Controllers
             if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
             {
 
-                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, enviroment);
+                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, environment);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
