@@ -294,8 +294,8 @@ describe('DeployResourcePage', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: prod }),
     });
 
-    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
-    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+    expect(tt02Button).toBeDisabled();
+    expect(prodButton).toBeDisabled();
   });
 
   it('disables the deploy buttons when there is validate resource error', async () => {
@@ -313,8 +313,8 @@ describe('DeployResourcePage', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: prod }),
     });
 
-    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
-    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+    expect(tt02Button).toBeDisabled();
+    expect(prodButton).toBeDisabled();
   });
 
   it('disables the deploy buttons when there is validate policy error', async () => {
@@ -331,8 +331,8 @@ describe('DeployResourcePage', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: prod }),
     });
 
-    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
-    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+    expect(tt02Button).toBeDisabled();
+    expect(prodButton).toBeDisabled();
   });
 
   it('disables the deploy buttons when there is a local repo not in sync error', async () => {
@@ -350,8 +350,8 @@ describe('DeployResourcePage', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: prod }),
     });
 
-    expect(tt02Button).toHaveAttribute('aria-disabled', 'true');
-    expect(prodButton).toHaveAttribute('aria-disabled', 'true');
+    expect(tt02Button).toBeDisabled();
+    expect(prodButton).toBeDisabled();
   });
 
   it('calls "handlePublish" when publishing a resource to tt02', async () => {
@@ -364,7 +364,7 @@ describe('DeployResourcePage', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
     });
 
-    expect(tt02Button).not.toHaveAttribute('aria-disabled', 'true');
+    expect(tt02Button).not.toBeDisabled();
 
     await act(() => user.click(tt02Button));
     expect(publishResource).toHaveBeenCalledTimes(1);
@@ -380,7 +380,7 @@ describe('DeployResourcePage', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: prod }),
     });
 
-    expect(prodButton).not.toHaveAttribute('aria-disabled', 'true');
+    expect(prodButton).not.toBeDisabled();
 
     await act(() => user.click(prodButton));
     expect(publishResource).toHaveBeenCalledTimes(1);
