@@ -127,6 +127,7 @@ export const ResourceNameAndId = ({
             <div className={classes.textfieldWrapper}>
               <Textfield
                 value={id}
+                size='small'
                 onChange={(e) => handleIdInput(e.target.value)}
                 id='resourceIdInputId'
                 error={resourceIdExists}
@@ -172,7 +173,7 @@ export const ResourceNameAndId = ({
           </div>
           <Paragraph size='small'>
             {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-            altinn.svv.<strong>{getIdToDisplay()}</strong>
+            <strong>{getIdToDisplay()}</strong>
           </Paragraph>
           <div className={classes.editButtonWrapper}>
             <Button
@@ -202,6 +203,7 @@ export const ResourceNameAndId = ({
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
           id='resourceNameInputId'
+          size='small'
         />
       </div>
       {displayIdTextOrInput()}
