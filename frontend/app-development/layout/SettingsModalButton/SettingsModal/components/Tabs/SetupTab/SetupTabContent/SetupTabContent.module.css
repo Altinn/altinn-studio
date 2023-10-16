@@ -1,0 +1,17 @@
+.dateWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.dateInputFields {
+  display: flex;
+  justify-content: space-between;
+}
+
+.divider {
+  margin-block: 30px;
+}
+
+.errorMessage {
+  height: 30px;
+}
