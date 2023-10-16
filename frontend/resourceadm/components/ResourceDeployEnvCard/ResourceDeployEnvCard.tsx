@@ -68,14 +68,10 @@ export const ResourceDeployEnvCard = ({
             )}
           </div>
           <div className={classes.buttonWrapper}>
-            <Button
-              aria-disabled={!isDeployPossible}
-              onClick={() => (isDeployPossible ? onClick() : undefined)}
-              size='small'
-            >
+            <Button disabled={!isDeployPossible} onClick={onClick} size='small'>
               {t('resourceadm.deploy_card_publish', { env: envName })}
             </Button>
-          </div>{' '}
+          </div>
         </>
       )}
     </div>
