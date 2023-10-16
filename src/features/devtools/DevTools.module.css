@@ -53,19 +53,18 @@
 .tabs {
   height: 100%;
   width: 100%;
-}
-
-.tabs > div {
-  height: 100%;
-  width: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.tabs [role='tabpanel'] {
+.tabList {
+  overflow-x: auto;
+}
+
+.tabs [class^='TabContent'] {
   min-height: 0;
   flex: 1;
-  margin: 0;
+  padding: 0;
 }
 
 .page {

@@ -16,7 +16,7 @@ export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintB
     <Button
       style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
       variant='outline'
-      color='primary'
+      color='first'
       size='small'
       onClick={window.print}
     >

@@ -222,7 +222,7 @@ export function RepeatingGroupTableRow({
                   aria-expanded={isEditingRow}
                   aria-controls={isEditingRow ? `group-edit-container-${id}-${index}` : undefined}
                   variant='quiet'
-                  color='secondary'
+                  color='second'
                   size='small'
                   icon={rowHasErrors ? <ErrorIcon aria-hidden='true' /> : <EditIcon aria-hidden='true' />}
                   iconPlacement='right'
@@ -269,7 +269,7 @@ export function RepeatingGroupTableRow({
                 aria-expanded={isEditingRow}
                 aria-controls={isEditingRow ? `group-edit-container-${id}-${index}` : undefined}
                 variant='quiet'
-                color='secondary'
+                color='second'
                 size='small'
                 icon={rowHasErrors ? <ErrorIcon aria-hidden='true' /> : <EditIcon aria-hidden='true' />}
                 iconPlacement='right'

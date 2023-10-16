@@ -23,6 +23,12 @@ interface ExpressionResult {
   isError: boolean;
 }
 
+function getTabKeyAndValue(i: number, output: ExpressionResult) {
+  const key = `${i}-${output.value}`;
+  const value = i === 0 ? `Gjeldende resultat` : `Tidligere (-${i})`;
+  return { key, value };
+}
+
 export const ExpressionPlayground = () => {
   const input = useAppSelector((state) => state.devTools.exprPlayground.expression);
   const forPage = useAppSelector((state) => state.devTools.exprPlayground.forPage);
@@ -150,23 +156,43 @@ export const ExpressionPlayground = () => {
           {outputs.length > 1 && (
             <div className={classes.outputs}>
               <Tabs
-                activeTab={activeOutputTab}
+                size='small'
+                value={activeOutputTab}
                 onChange={(outputName) => {
                   setActiveOutputTab(outputName);
                 }}
-                items={outputs.map((output, i) => ({
-                  name: i === 0 ? `Gjeldende resultat` : `Tidligere (-${i})`,
-                  content: (
-                    <textarea
-                      style={{ color: output.isError ? 'red' : 'black' }}
-                      className={cn(classes.textbox, classes.output)}
-                      readOnly={true}
-                      value={output.value}
-                      placeholder={'Resultatet av uttrykket vises her'}
-                    />
-                  ),
-                }))}
-              />
+              >
+                <Tabs.List className={classes.tablist}>
+                  {outputs.map((output, i) => {
+                    const { key, value } = getTabKeyAndValue(i, output);
+                    return (
+                      <Tabs.Tab
+                        value={value}
+                        key={key}
+                      >
+                        {value}
+                      </Tabs.Tab>
+                    );
+                  })}
+                </Tabs.List>
+                {outputs.map((output, i) => {
+                  const { key, value } = getTabKeyAndValue(i, output);
+                  return (
+                    <Tabs.Content
+                      value={value}
+                      key={key}
+                    >
+                      <textarea
+                        style={{ color: output.isError ? 'red' : 'black' }}
+                        className={cn(classes.textbox, classes.output)}
+                        readOnly={true}
+                        value={output.value}
+                        placeholder={'Resultatet av uttrykket vises her'}
+                      />
+                    </Tabs.Content>
+                  );
+                })}
+              </Tabs>
             </div>
           )}
         </SplitView>

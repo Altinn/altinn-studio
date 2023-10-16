@@ -31,6 +31,8 @@
 .sideBar {
   padding: 1rem;
   min-width: fit-content;
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .sideBar pre {

@@ -29,7 +29,7 @@ export const PDFPreviewButton = () => {
         onClick={handler}
         size='small'
         disabled={taskType !== ProcessTaskType.Data}
-        color='secondary'
+        color='second'
         icon={<FilePdfIcon aria-hidden />}
       >
         Forhåndsvis PDF

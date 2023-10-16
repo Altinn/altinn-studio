@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { SearchField } from '@altinn/altinn-design-system';
-import { TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -64,7 +64,7 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
           aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
         ></SearchField>
       ) : (
-        <TextField
+        <LegacyTextField
           key={inputKey}
           id={id}
           onBlur={onBlur}

@@ -79,7 +79,7 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
         className={classes.button}
         size='small'
         variant='quiet'
-        color={showEditButton ? 'secondary' : 'danger'}
+        color={showEditButton ? 'second' : 'danger'}
         onClick={() => (showEditButton ? handleEdit(index) : handleDelete())}
         icon={showEditButton ? <PencilIcon aria-hidden={true} /> : <TrashIcon aria-hidden={true} />}
         iconPlacement='right'

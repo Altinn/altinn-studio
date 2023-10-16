@@ -224,7 +224,7 @@ function RepeatingGroupsEditContainerInternal({
                       icon={<Back aria-hidden='true' />}
                       size='small'
                       variant='quiet'
-                      color='secondary'
+                      color='second'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)}
                     >
                       {lang('general.back')}
@@ -240,7 +240,7 @@ function RepeatingGroupsEditContainerInternal({
                       iconPlacement='right'
                       size='small'
                       variant='quiet'
-                      color='secondary'
+                      color='second'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)}
                     >
                       {lang('general.next')}
@@ -260,7 +260,7 @@ function RepeatingGroupsEditContainerInternal({
                   id={`next-button-grp-${id}`}
                   onClick={nextClicked}
                   variant='filled'
-                  color='primary'
+                  color='first'
                   size='small'
                 >
                   {lang(texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next')}
@@ -273,7 +273,7 @@ function RepeatingGroupsEditContainerInternal({
                   id={`add-button-grp-${id}`}
                   onClick={saveClicked}
                   variant={saveAndNextButtonVisible ? 'outline' : 'filled'}
-                  color='primary'
+                  color='first'
                   size='small'
                 >
                   {lang(texts?.save_button ? texts?.save_button : 'general.save_and_close')}

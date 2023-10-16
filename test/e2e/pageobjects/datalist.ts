@@ -5,6 +5,6 @@ export class Datalist {
   public navigateNextButton = '[data-testid=pagination-next-icon]';
   public navigatePreviousButton = '[data-testid=pagination-previous-icon]';
   public sortButton = '[data-testid="sort-icon"]';
-  public selectedRowClass = 'TableRow-module_selected__0FWjw';
+  public selectedRowClass = 'TableRow-module_selected__Jkumj';
   public searchInput = '#searchForList';
 }

@@ -59,7 +59,7 @@ export function DeleteWarningPopover({
           data-testid='warning-popover-cancel-button'
           variant='quiet'
           size='small'
-          color='secondary'
+          color='second'
           onClick={onCancelClick}
         >
           {lang('general.cancel')}

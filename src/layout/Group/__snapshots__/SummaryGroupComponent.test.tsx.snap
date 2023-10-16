@@ -18,13 +18,13 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       </span>
       <button
         aria-label="Change: Mock group"
-        class="Button-module_button__2ZuB7 utility-module_focusable__1fBKr Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_secondary__R0waJ"
+        class="Button-module_button__oVUcI utility-module_focusable__y1VLB Button-module_small__X1q5F Button-module_quiet__UEUaR Button-module_second__h-x1a"
         type="button"
       >
         Change
         <svg
           aria-hidden="true"
-          class="Button-module_icon__-43u5"
+          class="Button-module_icon__Fb-nR"
           fill="none"
           focusable="false"
           height="1em"

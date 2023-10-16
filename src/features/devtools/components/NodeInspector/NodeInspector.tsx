@@ -74,7 +74,7 @@ export const NodeInspector = () => {
               onClick={() => setSelected(undefined)}
               size='small'
               variant='quiet'
-              color='secondary'
+              color='second'
               aria-label={'close'}
               icon={<Close aria-hidden />}
             />

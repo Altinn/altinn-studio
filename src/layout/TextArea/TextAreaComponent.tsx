@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TextArea } from '@digdir/design-system-react';
+import { LegacyTextArea } from '@digdir/design-system-react';
 
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -22,7 +22,7 @@ export function TextAreaComponent({ node, formData, isValid, handleDataChange, o
   );
 
   return (
-    <TextArea
+    <LegacyTextArea
       id={id}
       onBlur={() => saveValue()}
       onChange={(e) => setValue(e.target.value)}

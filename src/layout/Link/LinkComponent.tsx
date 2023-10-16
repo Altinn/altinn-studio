@@ -13,7 +13,7 @@ export const buttonStyles: {
   [style in Exclude<LinkStyle, 'link'>]: { color: ButtonColor; variant: ButtonVariant };
 } = {
   primary: { variant: 'filled', color: 'success' },
-  secondary: { variant: 'outline', color: 'primary' },
+  secondary: { variant: 'outline', color: 'first' },
 };
 
 export type ILinkComponent = PropsFromGenericComponent<'Link'>;

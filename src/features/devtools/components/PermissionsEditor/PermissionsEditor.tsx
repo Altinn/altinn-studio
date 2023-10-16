@@ -35,6 +35,7 @@ export const PermissionsEditor = () => {
       className={classes.checkboxWrapper}
     >
       <Checkbox
+        size='small'
         checked={Boolean(write)}
         onChange={(e) => handleChange((obj) => (obj.write = e.target.checked))}
         value='nothing'
@@ -42,6 +43,7 @@ export const PermissionsEditor = () => {
         Write
       </Checkbox>
       <Checkbox
+        size='small'
         checked={Boolean(actions?.confirm)}
         onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, confirm: e.target.checked }))}
         value='nothing'
@@ -49,6 +51,7 @@ export const PermissionsEditor = () => {
         Confirm
       </Checkbox>
       <Checkbox
+        size='small'
         checked={Boolean(actions?.sign)}
         onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, sign: e.target.checked }))}
         value='nothing'
@@ -56,6 +59,7 @@ export const PermissionsEditor = () => {
         Sign
       </Checkbox>
       <Checkbox
+        size='small'
         checked={Boolean(actions?.reject)}
         onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, reject: e.target.checked }))}
         value='nothing'

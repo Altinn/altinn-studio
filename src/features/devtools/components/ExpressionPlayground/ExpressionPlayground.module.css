@@ -36,3 +36,7 @@
 .outputs > div > div:not([role='tablist']) {
   height: 100%;
 }
+
+.tabList {
+  overflow-x: auto;
+}

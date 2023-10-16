@@ -28,7 +28,7 @@
 
 .card:is(:checked, :has(:checked)) {
   background: var(--fds-semantic-surface-neutral-selected);
-  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-primary-active);
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-first-active);
 }
 
 .card:has(:focus-visible) {

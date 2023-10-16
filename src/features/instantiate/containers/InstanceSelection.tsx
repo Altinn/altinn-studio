@@ -97,7 +97,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                   <Button
                     variant='quiet'
                     size='small'
-                    color='secondary'
+                    color='second'
                     icon={<EditIcon />}
                     iconPlacement='right'
                     onClick={(ev) => openInstance(instance.id, ev)}
@@ -154,7 +154,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
                   <Button
                     variant='quiet'
                     size='small'
-                    color='secondary'
+                    color='second'
                     icon={<EditIcon />}
                     iconPlacement='right'
                     onClick={(ev) => openInstance(instance.id, ev)}

@@ -13,7 +13,7 @@ export function EditButton(props: IEditButtonProps) {
   return (
     <Button
       variant='quiet'
-      color='secondary'
+      color='second'
       size='small'
       icon={<Edit aria-hidden={true} />}
       iconPlacement='right'

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Fieldset, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Fieldset, ToggleGroup } from '@digdir/design-system-react';
 
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
@@ -37,7 +37,8 @@ export function DevHiddenFunctionality() {
   return (
     <Fieldset legend='Skjulte komponenter'>
       <div>
-        <ToggleButtonGroup
+        <ToggleGroup
+          size='small'
           onChange={(selectedValue) =>
             dispatch(
               DevToolsActions.setShowHiddenComponents({
@@ -45,22 +46,12 @@ export function DevHiddenFunctionality() {
               }),
             )
           }
-          selectedValue={state}
-          items={[
-            {
-              value: 'hide',
-              label: 'Skjul',
-            },
-            {
-              value: 'disabled',
-              label: 'Utgrået',
-            },
-            {
-              value: 'show',
-              label: 'Vis',
-            },
-          ]}
-        />
+          value={state}
+        >
+          <ToggleGroup.Item value='hide'>Skjul</ToggleGroup.Item>
+          <ToggleGroup.Item value='disabled'>Utgrået</ToggleGroup.Item>
+          <ToggleGroup.Item value='show'>Vis</ToggleGroup.Item>
+        </ToggleGroup>
       </div>
     </Fieldset>
   );

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
 
-import { Button, LegacyCheckbox, TextField } from '@digdir/design-system-react';
+import { Button, LegacyCheckbox, Textfield } from '@digdir/design-system-react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
@@ -285,7 +285,7 @@ export const PartySelection = () => {
         direction='column'
         className={classes.partySearchFieldContainer}
       >
-        <TextField
+        <Textfield
           aria-label={langAsString('party_selection.search_placeholder')}
           placeholder={langAsString('party_selection.search_placeholder')}
           onChange={onFilterStringChange}
