@@ -15,7 +15,7 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Button, LegacyFieldSet, ErrorMessage, Switch } from '@digdir/design-system-react';
+import { Button, Fieldset, ErrorMessage, Switch } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
@@ -113,7 +113,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       {[FieldType.String, FieldType.Integer, FieldType.Number].includes(fieldType as FieldType) && (
         <>
           <Divider marginless />
-          <LegacyFieldSet legend={t('schema_editor.enum_legend')}>
+          <Fieldset legend={t('schema_editor.enum_legend')}>
             {!enums?.length && (
               <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
             )}
@@ -148,7 +148,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
                 {t('schema_editor.add_enum')}
               </Button>
             </div>
-          </LegacyFieldSet>
+          </Fieldset>
         </>
       )}
     </>

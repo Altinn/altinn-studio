@@ -1,7 +1,7 @@
 import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
-import { LegacyTextField, Switch } from '@digdir/design-system-react';
+import { Textfield, Switch } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
@@ -17,23 +17,23 @@ export function ArrayRestrictions({
       <Divider marginless />
       <div className={classes.items}>
         <div className={classes.item}>
-          <LegacyTextField
+          <Textfield
             label={t('schema_editor.' + ArrRestrictionKey.minItems)}
             onChange={(e) =>
               onChangeRestrictionValue(path, ArrRestrictionKey.minItems, e.target.value)
             }
             value={restrictions[ArrRestrictionKey.minItems]}
-            formatting={{ number: {} }}
+            type='number'
           />
         </div>
         <div className={classes.item}>
-          <LegacyTextField
+          <Textfield
             label={t('schema_editor.' + ArrRestrictionKey.maxItems)}
             onChange={(e) =>
               onChangeRestrictionValue(path, ArrRestrictionKey.maxItems, e.target.value)
             }
             value={restrictions[ArrRestrictionKey.maxItems]}
-            formatting={{ number: {} }}
+            type='number'
           />
         </div>
       </div>

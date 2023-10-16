@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, LegacyTextField, Paragraph } from '@digdir/design-system-react';
+import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
@@ -74,7 +74,7 @@ export const RemoveChangesModal = ({
         />
       </Paragraph>
       <div className={classes.textFieldWrapper}>
-        <LegacyTextField
+        <Textfield
           label='Skriv inn navn på repoet for å bekrefte'
           value={deleteRepoName}
           onChange={(e) => setDeleteRepoName(e.target.value)}

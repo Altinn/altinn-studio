@@ -1,6 +1,6 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
-import { LegacyTextField } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface IRestrictionFieldProps {
@@ -32,7 +32,7 @@ export const RestrictionField = ({
   };
   return (
     <div className={className}>
-      <LegacyTextField
+      <Textfield
         aria-label={label}
         id={fieldId}
         label={label}

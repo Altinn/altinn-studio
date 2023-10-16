@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyFieldSet, Radio, LegacyTextField } from '@digdir/design-system-react';
+import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -62,7 +62,7 @@ export const FileUploadComponent = ({
   };
 
   return (
-    <LegacyFieldSet className={classes.fieldset}>
+    <Fieldset className={classes.fieldset}>
       <FormField
         id={component.id}
         value={fileUploaderComponent.hasCustomFileEndings}
@@ -89,7 +89,7 @@ export const FileUploadComponent = ({
           propertyPath={`${component.propertyPath}/properties/validFileEndings`}
         >
           {({ onChange }) => (
-            <LegacyTextField
+            <Textfield
               name='modal-properties-valid-file-endings'
               onChange={(e) => onChange(e.target.value, e)}
             />
@@ -119,9 +119,9 @@ export const FileUploadComponent = ({
         propertyPath={`${component.propertyPath}/properties/minNumberOfAttachments`}
       >
         {({ onChange }) => (
-          <LegacyTextField
+          <Textfield
             name={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
-            formatting={{ number: {} }}
+            type='number'
             onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
           />
         )}
@@ -134,9 +134,9 @@ export const FileUploadComponent = ({
         propertyPath={`${component.propertyPath}/properties/maxNumberOfAttachments`}
       >
         {({ onChange }) => (
-          <LegacyTextField
+          <Textfield
             name={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
-            formatting={{ number: {} }}
+            type='number'
             onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
           />
         )}
@@ -151,13 +151,13 @@ export const FileUploadComponent = ({
         propertyPath={`${component.propertyPath}/properties/maxFileSizeInMB`}
       >
         {({ onChange }) => (
-          <LegacyTextField
+          <Textfield
             name='modal-properties-file-size'
-            formatting={{ number: {} }}
+            type='number'
             onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
           />
         )}
       </FormField>
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };

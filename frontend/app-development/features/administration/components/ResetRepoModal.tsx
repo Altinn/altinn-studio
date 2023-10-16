@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button, LegacyTextField } from '@digdir/design-system-react';
+import { Button, Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
@@ -84,7 +84,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           <label htmlFor='delete-repo-name'>
             <div>{t('administration.reset_repo_confirm_repo_name')}</div>
           </label>
-          <LegacyTextField
+          <Textfield
             id='delete-repo-name'
             onChange={onDeleteRepoNameChange}
             autoFocus
