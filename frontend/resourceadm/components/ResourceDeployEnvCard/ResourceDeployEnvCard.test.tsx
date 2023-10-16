@@ -55,7 +55,7 @@ describe('ResourceDeployEnvCard', () => {
     const deployButton = screen.getByRole('button', {
       name: textMock('resourceadm.deploy_card_publish', { env: mockTestEnv }),
     });
-    expect(deployButton).toHaveAttribute('aria-disabled', 'true');
+    expect(deployButton).toBeDisabled();
   });
 
   it('calls onclick when the button is clicked', async () => {
