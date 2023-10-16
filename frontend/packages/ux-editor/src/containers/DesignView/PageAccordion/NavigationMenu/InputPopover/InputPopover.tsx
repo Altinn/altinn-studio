@@ -62,6 +62,7 @@ export const InputPopover = ({
 
   const [errorMessage, setErrorMessage] = useState<string>(null);
   const [newName, setNewName] = useState<string>(oldName);
+  const shoouldSavingBeEnabled = errorMessage === null && newName !== oldName;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -89,18 +90,6 @@ export const InputPopover = ({
   };
 
   /**
-   * If there is no error and the name is changed, the new name is saved.
-   */
-  const handleOnBlur = () => {
-    if (errorMessage === null && oldName !== newName) {
-      saveNewName(newName);
-    } else {
-      setNewName(oldName);
-      setErrorMessage(null);
-    }
-  };
-
-  /**
    * If there is no error and the name is changed, and enter is clicked, the new name is saved.
    * When Escape is clicked, the popover closes.
    */
@@ -121,7 +110,6 @@ export const InputPopover = ({
         <Textfield
           label={t('ux_editor.input_popover_label')}
           size='small'
-          onBlur={handleOnBlur}
           onKeyDown={handleKeyPress}
           onChange={handleOnChange}
           value={newName}
@@ -134,8 +122,8 @@ export const InputPopover = ({
           <Button
             color='first'
             variant='filled'
-            onClick={() => errorMessage === null && newName !== oldName && saveNewName(newName)}
-            aria-disabled={errorMessage !== null || newName === oldName}
+            onClick={() => saveNewName(newName)}
+            disabled={!shoouldSavingBeEnabled}
             size='small'
           >
             {t('ux_editor.input_popover_save_button')}
