@@ -86,8 +86,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// TODO: Property DeployedInEnv should not be part of the entity that is stored in db, this property is redundant and unnecessary, as it does not provide any useful information for the database. Moreover, we are returning the DeploymentEntity object directly from the controller, DTO should be used instead.
         public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
-            IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
-            IEnumerable<DeploymentEntity> deploymentEntities = results as DeploymentEntity[] ?? results.ToArray();
+            List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
             var environments = await _environmentsService.GetOrganizationEnvironments(org);
             foreach (EnvironmentModel env in environments)
