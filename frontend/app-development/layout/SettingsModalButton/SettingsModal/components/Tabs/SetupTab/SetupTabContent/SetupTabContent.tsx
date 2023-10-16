@@ -51,6 +51,17 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
 
   return (
     <div>
+      <SwitchRow
+        checked={showEndDate}
+        onSave={(checked: boolean) => {
+          setShowEndDate(checked);
+          updateAppMetadataMutation({
+            ...appMetadata,
+            validTo: checked ? endDate : undefined,
+          });
+        }}
+        label={t('settings_modal.setup_tab_switch_validTo')}
+      />
       <div className={classes.dateWrapper}>
         <div className={classes.dateInputFields}>
           <Textfield
@@ -82,17 +93,6 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
           {getErrorMessage()}
         </ErrorMessage>
       </div>
-      <SwitchRow
-        checked={showEndDate}
-        onSave={(checked: boolean) => {
-          setShowEndDate(checked);
-          updateAppMetadataMutation({
-            ...appMetadata,
-            validTo: checked ? endDate : undefined,
-          });
-        }}
-        label={t('settings_modal.setup_tab_switch_validTo')}
-      />
       <Divider className={classes.divider} marginless />
       <SwitchRow
         checked={appMetadata?.autoDeleteOnProcessEnd}
