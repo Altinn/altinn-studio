@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Enums.Altinn2;
 using Altinn.ResourceRegistry.Core.Models;
@@ -32,8 +33,10 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly CacheSettings _cacheSettings;
         private readonly IAltinn2MetadataClient _altinn2MetadataClient;
         private readonly IOrgService _orgService;
+        private readonly IResourceRegistry _resourceRegistry;
+        private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -42,6 +45,8 @@ namespace Altinn.Studio.Designer.Controllers
             _cacheSettings = cacheSettings.Value;
             _altinn2MetadataClient = altinn2MetadataClient;
             _orgService = orgService;
+            _resourceRegistrySettings = resourceRegistryEnvironment.Value;
+            _resourceRegistry = resourceRegistry;
         }
 
         [HttpGet]
@@ -99,7 +104,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
-        public ActionResult<ServiceResourceStatus> GetPublishStatusById(string org, string repository, string id = "")
+        public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id = "")
         {
             ServiceResourceStatus resourceStatus = new ServiceResourceStatus();
             ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
@@ -112,8 +117,11 @@ namespace Altinn.Studio.Designer.Controllers
 
             // Todo. Temp test values until we have integration with resource registry in place
             resourceStatus.PublishedVersions = new List<ResourceVersionInfo>();
-            resourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = "TT02", Version = "2024.2" });
-            resourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = "PROD", Version = "2024.1" });
+
+            foreach (string envir in _resourceRegistrySettings.Keys)
+            {
+                resourceStatus = await AddEnvironmentResourceStatus(envir, id, resourceStatus);
+            }
 
             return resourceStatus;
         }
@@ -298,6 +306,11 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
 
+            if (resource.Status == null)
+            {
+                ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
+            }
+
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
                 ModelState.AddModelError($"{resource.Identifier}.contactPoint", "resourceerror.missingcontactpoints");
@@ -376,6 +389,29 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return orgList;
+        }
+
+        private async Task<ServiceResourceStatus> AddEnvironmentResourceStatus(string env, string id, ServiceResourceStatus serviceResourceStatus)
+        {
+            if (serviceResourceStatus.PublishedVersions == null)
+            {
+                serviceResourceStatus.PublishedVersions = new List<ResourceVersionInfo>();
+            }
+
+            ServiceResource resource = await _resourceRegistry.GetResource(id, env);
+            if (resource == null)
+            {
+                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = null });
+            }
+            else if (string.IsNullOrEmpty(resource.Version))
+            {
+                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = "N/A" });
+            }
+            else
+            {
+                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = resource.Version });
+            }
+            return serviceResourceStatus;
         }
     }
 }

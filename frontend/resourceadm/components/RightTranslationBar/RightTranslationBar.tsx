@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
-import { TextArea, Textfield, Alert, Paragraph, Heading } from '@digdir/design-system-react';
+import { Textfield, Alert, Paragraph, Heading, LegacyTextArea } from '@digdir/design-system-react';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -96,7 +96,7 @@ export const RightTranslationBar = forwardRef<
 
       if (usesTextArea) {
         return (
-          <TextArea
+          <LegacyTextArea
             value={value[lang]}
             resize='vertical'
             onChange={(e) => handleChange(lang, e.currentTarget.value)}

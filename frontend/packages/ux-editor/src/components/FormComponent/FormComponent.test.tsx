@@ -108,6 +108,22 @@ describe('FormComponent', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
+    it('should call "handleDiscard" when "isEditMode: true"', async () => {
+      await render({ isEditMode: true, handleDiscard: handleDiscardMock });
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await act(() => user.click(deleteButton));
+
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('ux_editor.component_deletion_confirm'),
+      });
+      await act(() => user.click(confirmButton));
+
+      expect(mockDeleteFormComponent).toBeCalledTimes(1);
+      expect(handleDiscardMock).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
     it('should close when clicking outside the popover', async () => {
       await render();
 
@@ -145,7 +161,9 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        textMock('ux_editor.component_title.Input'),
+      );
     });
 
     it('should display the component type when the title is undefined', async () => {
@@ -158,19 +176,9 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(screen.getByRole('listitem')).toHaveTextContent(textMock('ux_editor.component_input'));
-    });
-
-    it('should display "Unknown component" when both the title and the component type are undefined', async () => {
-      await render({
-        component: {
-          ...component1Mock,
-          textResourceBindings: undefined,
-          type: undefined,
-        },
-      });
-
-      expect(screen.getByText(textMock('ux_editor.component_unknown'))).toBeInTheDocument();
+      expect(screen.getByRole('listitem')).toHaveTextContent(
+        textMock('ux_editor.component_title.Input'),
+      );
     });
   });
 
@@ -183,9 +191,7 @@ describe('FormComponent', () => {
         },
       });
 
-      expect(
-        screen.getByRole('img', { name: textMock('ux_editor.component_input') })
-      ).toBeInTheDocument();
+      expect(screen.getByTitle(textMock('ux_editor.component_title.Input'))).toBeInTheDocument();
     });
   });
 });
@@ -195,7 +201,7 @@ const waitForData = async () => {
     {},
     {
       getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
-    }
+    },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
@@ -217,6 +223,6 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
   return renderWithMockStore()(
     <DndProvider backend={HTML5Backend}>
       <FormComponent {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };

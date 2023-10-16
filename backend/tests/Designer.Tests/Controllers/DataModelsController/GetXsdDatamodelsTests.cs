@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<DatamodelsController, GetXsdDatamodelsTests>
+public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<GetXsdDatamodelsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public GetXsdDatamodelsTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public GetXsdDatamodelsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -26,7 +26,7 @@ public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<DatamodelsContro
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         var altinnCoreFiles = await response.Content.ReadAsAsync<List<AltinnCoreFile>>();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);

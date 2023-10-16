@@ -11,11 +11,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class UpdateApplicationPolicyTests : DisagnerEndpointsTestsBase<PolicyController, UpdateApplicationPolicyTests>
+    public class UpdateApplicationPolicyTests : DisagnerEndpointsTestsBase<UpdateApplicationPolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public UpdateApplicationPolicyTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public UpdateApplicationPolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             {
                 httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 responseBody = await response.Content.ReadAsStringAsync();
             }
@@ -54,7 +54,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData))
             {
                 httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 responseBody = await response.Content.ReadAsStringAsync();
             }

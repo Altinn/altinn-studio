@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class CreateApplicationMetadataTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, CreateApplicationMetadataTests>
+    public class CreateApplicationMetadataTests : DisagnerEndpointsTestsBase<CreateApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public CreateApplicationMetadataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public CreateApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             string url = VersionPrefix(org, targetRepository);
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-            using var response = await HttpClient.Value.SendAsync(request);
+            using var response = await HttpClient.SendAsync(request);
 
             response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             string url = VersionPrefix(org, targetRepository);
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-            using var response = await HttpClient.Value.SendAsync(request);
+            using var response = await HttpClient.SendAsync(request);
 
             response.StatusCode.Should().Be(HttpStatusCode.Created);
         }

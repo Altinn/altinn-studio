@@ -172,7 +172,7 @@ export const Expressions = () => {
       ) : (
         <Button
           title={t('right_menu.expressions_add')}
-          color='primary'
+          color='first'
           fullWidth
           icon={<PlusIcon />}
           id='right_menu.dynamics_add'

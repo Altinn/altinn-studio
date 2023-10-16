@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   navigateToType,
@@ -9,11 +9,11 @@ import {
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import {
-  LegacyCheckbox,
   LegacyFieldSet,
   Select,
-  TextArea,
+  LegacyTextArea,
   LegacyTextField,
+  Switch,
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -53,8 +53,8 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const {
     fieldType,
     pointer,
-    title,
-    description,
+    title = '',
+    description = '',
     reference,
     isCombinationItem,
     objectKind,
@@ -63,15 +63,11 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   } = schemaNode;
   const dispatch = useDispatch();
   const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { t } = useTranslation();
 
-  const [itemTitle, setItemItemTitle] = useState<string>(title || '');
-  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
-
-  useEffect(() => {
-    setNodeName(getNameFromPointer({ pointer }));
-  }, [pointer]);
-
-  const [itemDescription, setItemItemDescription] = useState<string>(description || '');
+  const [itemTitle, setItemItemTitle] = useState<string>(title);
+  const [itemDescription, setItemItemDescription] = useState<string>(description);
+  const nodeName = getNameFromPointer({ pointer });
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
@@ -132,8 +128,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     );
   };
 
-  const { t } = useTranslation();
-
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
 
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
@@ -168,12 +162,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
-        <LegacyCheckbox
+        <Switch
+          size='small'
           checked={isArray}
-          label={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
-        />
+        >
+          {t('schema_editor.multiple_answers')}
+        </Switch>
       )}
       {objectKind === ObjectKind.Combination && (
         <Select
@@ -186,13 +182,15 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {objectKind === ObjectKind.Combination && (
-        <LegacyCheckbox
-          checkboxId='multiple-answers-checkbox'
+        <Switch
+          size='small'
+          id='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
-          label={t('schema_editor.nullable')}
           name='checkedNullable'
           onChange={onChangeNullable}
-        />
+        >
+          {t('schema_editor.nullable')}
+        </Switch>
       )}
       <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (
@@ -214,7 +212,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           />
         </div>
         <div>
-          <TextArea
+          <LegacyTextArea
             id={descriptionId}
             aria-label={t('schema_editor.description')}
             label={t('schema_editor.description')}

@@ -2,11 +2,12 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { administration } from "../../selectors/administration";
-import { header } from "../../selectors/header";
+import { administration } from '../../selectors/administration';
+import { header } from '../../selectors/header';
 
 context('Sync app and deploy', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });

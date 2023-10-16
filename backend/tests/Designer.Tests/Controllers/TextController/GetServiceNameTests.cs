@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetServiceNameTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetServiceNameTests>
+    public class GetServiceNameTests : DisagnerEndpointsTestsBase<GetServiceNameTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public GetServiceNameTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
+        public GetServiceNameTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.TextController
             string url = $"{VersionPrefix(org, app)}/service-name";
 
             // Act
-            using var response = await HttpClient.Value.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

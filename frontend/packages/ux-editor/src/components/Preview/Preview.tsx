@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
+import cn from 'classnames';
 import {
   selectedLayoutNameSelector,
   selectedLayoutSetSelector,
@@ -12,37 +13,51 @@ import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
+import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
 
 export const Preview = () => {
+  const layoutName = useSelector(selectedLayoutNameSelector);
+  const noPageSelected = layoutName === 'default' || layoutName === undefined;
+
+  return (
+    <div className={classes.root}>
+      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
+    </div>
+  );
+};
+
+// Message to display when no page is selected
+const NoSelectedPageMessage = () => {
+  const { t } = useTranslation();
+  return (
+    <Center>
+      <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
+    </Center>
+  );
+};
+
+// The actual preview frame that displays the selected page
+const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
+  const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { t } = useTranslation();
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
 
-  const hideComponents = layoutName === 'default' || layoutName === undefined;
-
   useUpdate(() => {
     previewIframeRef.current?.contentWindow?.location.reload();
   }, [layoutName, previewIframeRef]);
 
-  const displayContent = () => {
-    if (hideComponents) {
-      return (
-        <Center>
-          <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
-        </Center>
-      );
-    }
-    return (
+  return (
+    <div className={classes.root}>
+      <ViewToggler onChange={setViewportToSimulate} />
       <iframe
         ref={previewIframeRef}
-        className={classes.iframe}
+        className={cn(classes.iframe, classes[viewportToSimulate])}
         title={t('ux_editor.preview')}
         src={previewPage(org, app, selectedLayoutSet)}
       />
-    );
-  };
-
-  return <div className={classes.root}>{displayContent()}</div>;
+    </div>
+  );
 };

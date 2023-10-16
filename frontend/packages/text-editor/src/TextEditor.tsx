@@ -45,13 +45,13 @@ export const TextEditor = ({
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
-    [availableLanguages]
+    [availableLanguages],
   );
 
   const handleAddNewEntryClick = () => {
     const textId = `id_${getRandNumber()}`;
     availableLangCodesFiltered.forEach((language) =>
-      upsertTextResource({ language, textId, translation: '' })
+      upsertTextResource({ language, textId, translation: '' }),
     );
     setSearchQuery('');
   };
@@ -77,18 +77,13 @@ export const TextEditor = ({
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
-          <Button
-            variant='filled'
-            color='primary'
-            onClick={handleAddNewEntryClick}
-            size='small'
-          >
+          <Button variant='filled' color='first' onClick={handleAddNewEntryClick} size='small'>
             {t('text_editor.new_text')}
           </Button>
           <div>
             <SearchField
               id='text-editor-search'
-              label='Søk etter tekst eller id'
+              label={t('text_editor.search_for_text')}
               value={searchQuery}
               onChange={handleSearchChange}
             />

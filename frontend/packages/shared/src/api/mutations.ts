@@ -26,6 +26,7 @@ import {
   datamodelAddXsdFromRepoPath,
   createDatamodelPath,
   appPolicyPath,
+  publishResourcePath,
   appMetadataPath,
   serviceConfigPath,
 } from 'app-shared/api/paths';
@@ -92,3 +93,4 @@ export const updateAppConfig = (org: string, app: string, payload: AppConfig) =>
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
+export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });

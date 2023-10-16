@@ -13,11 +13,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CreateAppTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, CreateAppTests>
+    public class CreateAppTests : DisagnerEndpointsTestsBase<CreateAppTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";
-        public CreateAppTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
+        public CreateAppTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -56,7 +56,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             // Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);

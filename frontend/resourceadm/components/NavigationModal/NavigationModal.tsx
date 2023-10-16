@@ -51,11 +51,11 @@ export const NavigationModal = ({
       </Paragraph>
       <div className={classes.buttonWrapper}>
         <div className={classes.closeButton}>
-          <Button onClick={onClose} color='primary' variant='quiet' size='small'>
+          <Button onClick={onClose} color='first' variant='quiet' size='small'>
             {t('resourceadm.resource_navigation_modal_button_stay')}
           </Button>
         </div>
-        <Button onClick={onNavigate} color='primary' size='small'>
+        <Button onClick={onNavigate} color='first' size='small'>
           {t('resourceadm.resource_navigation_modal_button_move_on')}
         </Button>
       </div>

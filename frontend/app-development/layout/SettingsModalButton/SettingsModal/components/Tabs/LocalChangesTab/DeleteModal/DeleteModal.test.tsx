@@ -32,14 +32,14 @@ describe('DeleteModal', () => {
     render(<DeleteModal {...defaultProps} />);
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label')
+      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
     );
     expect(textfield).toHaveValue('');
 
     await act(() => user.type(textfield, 'a'));
 
     const textfieldAfter = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label')
+      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
     );
     expect(textfieldAfter).toHaveValue('a');
   });
@@ -53,7 +53,7 @@ describe('DeleteModal', () => {
     expect(deleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label')
+      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
     );
     await act(() => user.type(textfield, mockAppName));
 

@@ -21,14 +21,14 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryController, RepositoryControllerGiteaIntegrationTests>
+    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
         // Gitea needs some time to process changes to the repo, so we need to retry a few times
         private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
-        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<RepositoryController> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
         }
 
@@ -58,7 +58,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             InvalidateAllCookies();
             using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Check if file is pushed to gitea
@@ -67,7 +67,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Check contents with designer endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage contentsResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
+            using HttpResponseMessage contentsResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
             contentsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
@@ -83,11 +83,11 @@ namespace Designer.Tests.GiteaIntegrationTests
             InvalidateAllCookies();
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file");
             using var commitContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit", commitContent);
+            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit", commitContent);
             commitResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             InvalidateAllCookies();
-            using HttpResponseMessage pushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/push", null);
+            using HttpResponseMessage pushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/push", null);
             pushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Check if file is pushed to gitea
@@ -110,7 +110,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Try pull file with designer endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage pullResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
+            using HttpResponseMessage pullResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
             pullResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Check if file exists locally
@@ -127,7 +127,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Check initial-commit endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage initialCommitResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/initial-commit");
+            using HttpResponseMessage initialCommitResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/initial-commit");
             initialCommitResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var commit = await initialCommitResponse.Content.ReadAsAsync<Commit>();
             commit.Message.Should().Contain("App created");
@@ -143,14 +143,14 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Call metadata endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage metadataResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/metadata");
+            using HttpResponseMessage metadataResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/metadata");
             metadataResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var deserializedRepositoryModel = await metadataResponse.Content.ReadAsAsync<Repository>();
             deserializedRepositoryModel.Name.Should().Be(targetRepo);
 
             // Call status endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage statusResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/status");
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/status");
             statusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var deserializedRepoStatusModel = await statusResponse.Content.ReadAsAsync<RepoStatus>();
             deserializedRepoStatusModel.RepositoryStatus.Should().Be(RepositoryStatus.Ok);
@@ -166,7 +166,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Call getOrgRepos endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage getOrgReposResponse = await HttpClient.Value.GetAsync($"designer/api/repos/org/{org}");
+            using HttpResponseMessage getOrgReposResponse = await HttpClient.GetAsync($"designer/api/repos/org/{org}");
             getOrgReposResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var deserializedRepositoryModel = await getOrgReposResponse.Content.ReadAsAsync<List<Repository>>();
             deserializedRepositoryModel.Should().NotBeEmpty();
@@ -186,7 +186,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage branchesResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
             {
                 InvalidateAllCookies();
-                return await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches");
+                return await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches");
             });
             branchesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var deserializedBranchesModel = await branchesResponse.Content.ReadAsAsync<List<Branch>>();
@@ -197,7 +197,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
             {
                 InvalidateAllCookies();
-                return await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master");
+                return await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master");
             });
             branchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -220,7 +220,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             // Add a file to local repo and try to push with designer
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file from studio.");
             using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         }

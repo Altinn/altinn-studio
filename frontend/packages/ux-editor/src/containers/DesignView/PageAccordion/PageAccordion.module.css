@@ -26,7 +26,12 @@
 }
 
 /* TODO - Remove this "hack" when the design system handles it */
-.accordionItem > div:last-child {
+.receiptItem {
+  border-top: none;
+}
+
+/* TODO - Remove this "hack" when the design system handles it */
+.receiptItem > div:last-child {
   border-bottom: none !important;
 }
 

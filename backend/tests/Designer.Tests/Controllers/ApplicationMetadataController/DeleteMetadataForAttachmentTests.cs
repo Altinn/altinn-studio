@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, DeleteMetadataForAttachmentTests>
+    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<DeleteMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
             requestMessage.Content = new StringContent($"\"{attacmentIdToDelete}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            var response = await HttpClient.Value.SendAsync(requestMessage);
+            var response = await HttpClient.SendAsync(requestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string currentMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");

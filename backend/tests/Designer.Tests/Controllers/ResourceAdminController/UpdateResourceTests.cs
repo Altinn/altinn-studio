@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class UpdateResourceTests : ResourceAdminControllerTestsBaseClass<UpdateResourceTests>
+    public class UpdateResourceTests : ResourceAdminControllerTestsBaseClass<UpdateResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public UpdateResourceTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public UpdateResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -48,7 +48,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             //Assert
             RepositoryMock.VerifyAll();

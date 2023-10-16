@@ -31,3 +31,8 @@
 .label {
   margin-top: 30px;
 }
+
+.alert {
+  display: flex;
+  align-items: center;
+}

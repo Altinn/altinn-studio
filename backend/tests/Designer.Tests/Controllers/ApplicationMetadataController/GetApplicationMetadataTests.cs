@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class GetApplicationMetadataTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, GetApplicationMetadataTests>
+    public class GetApplicationMetadataTests : DisagnerEndpointsTestsBase<GetApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public GetApplicationMetadataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public GetApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             await File.WriteAllTextAsync(filePath, metadataFile);
 
             string url = VersionPrefix(org, targetRepository);
-            var response = await HttpClient.Value.GetAsync(url);
+            var response = await HttpClient.GetAsync(url);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();

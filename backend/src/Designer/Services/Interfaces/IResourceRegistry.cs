@@ -14,5 +14,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="policyPath">The policy that goes with the resource</param>
         /// <returns></returns>
         Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="env"></param>
+        /// <returns></returns>
+        Task<ServiceResource> GetResource(string id, string env);
     }
 }

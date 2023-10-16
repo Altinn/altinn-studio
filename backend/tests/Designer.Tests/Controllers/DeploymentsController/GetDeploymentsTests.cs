@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -19,11 +18,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, GetDeployments>
+namespace Designer.Tests.Controllers.DeploymentsController;
+
+public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
-    public GetDeployments(WebApplicationFactory<DeploymentsController> factory) : base(factory)
+    public GetDeployments(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -50,7 +51,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;
@@ -82,7 +83,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;

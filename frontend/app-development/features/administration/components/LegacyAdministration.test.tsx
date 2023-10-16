@@ -1,0 +1,116 @@
+import React from 'react';
+import { screen } from '@testing-library/react';
+import { LegacyAdministration } from './LegacyAdministration';
+import type { ICommit } from '../../../types/global';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
+import { renderWithProviders } from '../../../test/testUtils';
+import { textMock } from '../../../../testing/mocks/i18nMock';
+import type { Repository } from 'app-shared/types/Repository';
+
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
+describe('LegacyAdministration', () => {
+  const mockService: Repository = {
+    clone_url: '',
+    created_at: '',
+    default_branch: '',
+    description: '',
+    empty: false,
+    fork: false,
+    forks_count: 0,
+    full_name: '',
+    html_url: '',
+    id: 123,
+    is_cloned_to_local: true,
+    mirror: false,
+    name: 'CoolService',
+    open_issues_count: 0,
+    owner: {
+      avatar_url: '',
+      email: '',
+      full_name: 'Mons Monsen',
+      id: 234,
+      login: 'Mons',
+      UserType: 2,
+    },
+    permissions: {
+      admin: true,
+      pull: true,
+      push: true,
+    },
+    private: false,
+    repositoryCreatedStatus: 0,
+    size: 0,
+    ssh_url: '',
+    stars_count: 1337,
+    updated_at: '',
+    watchers_count: 0,
+    website: '',
+  };
+  const mockServiceName = 'AppName';
+  const mockInitialCommit: ICommit = {
+    message: '',
+    author: {
+      email: '',
+      name: 'Per',
+      when: '',
+    },
+    comitter: {
+      email: '',
+      name: 'Per',
+      when: '',
+    },
+    sha: '',
+    messageShort: '',
+    encoding: '',
+  };
+  const mockServiceDescription = 'AppDescription';
+  const mockServiceId = 'AppId';
+  const mockServiceInformation: IHandleServiceInformationState = {
+    initialCommit: mockInitialCommit,
+    repositoryInfo: mockService,
+    serviceDescriptionObj: {
+      description: mockServiceDescription,
+      saving: false,
+    },
+    serviceIdObj: {
+      serviceId: mockServiceId,
+      saving: false,
+    },
+    serviceNameObj: {
+      name: mockServiceName,
+      saving: false,
+    },
+    error: null,
+  };
+
+  it('should show spinner when loading required data', () => {
+    renderWithProviders(<LegacyAdministration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+    });
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('should show Apps view when repository is app repository', () => {
+    renderWithProviders(<LegacyAdministration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+      preloadedState: {
+        serviceInformation: mockServiceInformation,
+      },
+    });
+    const serviceIdText = screen.getByText(textMock('administration.service_id'));
+    expect(serviceIdText).not.toBeNull();
+  });
+
+  it('should show Datamodels view when repository name matches "<org>-datamodels" format', () => {
+    renderWithProviders(<LegacyAdministration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-org-datamodels`,
+      preloadedState: {
+        serviceInformation: mockServiceInformation,
+      },
+    });
+    const infoText = screen.getByText(textMock('administration.datamodels_info1'));
+    expect(infoText).not.toBeNull();
+  });
+});

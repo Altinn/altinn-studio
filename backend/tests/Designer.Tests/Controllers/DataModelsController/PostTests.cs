@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PostTests : DisagnerEndpointsTestsBase<DatamodelsController, PostTests>
+public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public PostTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public PostTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -39,7 +39,7 @@ public class PostTests : DisagnerEndpointsTestsBase<DatamodelsController, PostTe
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
         };
 
-        using var postResponse = await HttpClient.Value.SendAsync(postRequestMessage);
+        using var postResponse = await HttpClient.SendAsync(postRequestMessage);
         Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
         Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
@@ -52,7 +52,7 @@ public class PostTests : DisagnerEndpointsTestsBase<DatamodelsController, PostTe
         // at the location provided in the post response
         var location = postResponse.Headers.Location;
         using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
-        using var getResponse = await HttpClient.Value.SendAsync(getRequestMessage);
+        using var getResponse = await HttpClient.SendAsync(getRequestMessage);
         string getContent = await getResponse.Content.ReadAsStringAsync();
         var getJsonSchema = JsonSchema.FromText(getContent);
         Assert.NotNull(getJsonSchema);
@@ -77,7 +77,7 @@ public class PostTests : DisagnerEndpointsTestsBase<DatamodelsController, PostTe
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
         };
 
-        var postResponse = await HttpClient.Value.SendAsync(postRequestMessage);
+        var postResponse = await HttpClient.SendAsync(postRequestMessage);
 
         Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
     }

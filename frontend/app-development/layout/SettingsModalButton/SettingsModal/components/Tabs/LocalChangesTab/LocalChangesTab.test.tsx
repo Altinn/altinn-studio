@@ -92,7 +92,7 @@ describe('LocalChangesTab', () => {
     expect(deleteModalDeleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label')
+      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
     );
     await act(() => user.type(textfield, mockApp));
 
@@ -135,7 +135,7 @@ describe('LocalChangesTab', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: LocalChangesTabProps
+  props: LocalChangesTabProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -145,6 +145,6 @@ const render = (
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <LocalChangesTab {...props} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };
