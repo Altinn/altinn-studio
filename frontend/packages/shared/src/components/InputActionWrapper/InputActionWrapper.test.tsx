@@ -1,130 +1,88 @@
 import React from 'react';
-import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import type { InputActionWrapperProps } from './InputActionWrapper';
 import { InputActionWrapper } from './InputActionWrapper';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
 
-jest.mock('./InputActionWrapper', () => ({
-  __esModule: true,
-  InputActionWrapper: ({ children, onEditClick, onDeleteClick, onSaveClick }: any) => (
-    <div>
-      {children}
-      <button onClick={onEditClick} aria-label='general.edit'>
-        Edit
-      </button>
-      <button onClick={onSaveClick} aria-label='general.save'>
-        Save
-      </button>
-      <button onClick={onDeleteClick} aria-label='general.delete'>
-        Delete
-      </button>
-    </div>
-  ),
-}));
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
+
+const user = userEvent.setup();
+
+const mockProps: InputActionWrapperProps = {
+  mode: 'editMode',
+  onEditClick: jest.fn(),
+  onDeleteClick: jest.fn(),
+  onSaveClick: jest.fn(),
+  children: <input />,
+};
 
 describe('InputActionWrapper', () => {
-  const mockProps: InputActionWrapperProps = {
-    children: <div />,
-    mode: 'standBy',
-    onEditClick: jest.fn(),
-    onDeleteClick: jest.fn(),
-    onSaveClick: jest.fn(),
-  };
-
-  it('render save buttont', () => {
-    render(mockProps);
-    const button = screen.getByRole('button', { name: 'general.save' });
-    expect(button).toBeInTheDocument();
-  });
-
-  it('render delete buttont', () => {
-    render(mockProps);
-    const button = screen.getByRole('button', { name: 'general.delete' });
-    expect(button).toBeInTheDocument();
-  });
-
-  it('render edite buttont', () => {
-    render(mockProps);
-    const button = screen.getByRole('button', { name: 'general.edit' });
-    expect(button).toBeInTheDocument();
-  });
-
-  it('handles focus and blur events', () => {
-    render(mockProps);
-    const wrapperSave = screen.getByRole('button', { name: 'general.save' });
-    const wrapperEdit = screen.getByRole('button', { name: 'general.edit' });
-    const wrapperDelete = screen.getByRole('button', { name: 'general.delete' });
-
-    fireEvent.focus(wrapperEdit);
-    expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
-    fireEvent.blur(wrapperEdit);
-    expect(screen.queryByText('general.edit')).not.toBeInTheDocument();
-
-    fireEvent.focus(wrapperSave);
+  it('renders save and delete buttons when mode is (editMode)', async () => {
+    await rtlRender(<InputActionWrapper {...mockProps} mode='editMode' />);
     expect(screen.getByLabelText('general.save')).toBeInTheDocument();
-    fireEvent.blur(wrapperSave);
-    expect(screen.queryByText('general.save')).not.toBeInTheDocument();
-
-    fireEvent.focus(wrapperDelete);
     expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
-    fireEvent.blur(wrapperDelete);
-    expect(screen.queryByText('general.delete')).not.toBeInTheDocument();
   });
 
-  it('handles mouse events', () => {
-    render(mockProps);
-    const wrapperEdit = screen.getByRole('button', { name: 'general.edit' });
-    const wrapperDelete = screen.getByRole('button', { name: 'general.delete' });
-
-    fireEvent.mouseOver(wrapperEdit);
+  it('renders edit button when mode is (hoverMode)', async () => {
+    await rtlRender(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
-    fireEvent.mouseLeave(wrapperEdit);
-    expect(screen.queryByText('general.edit')).not.toBeInTheDocument();
+  });
 
-    fireEvent.mouseOver(wrapperDelete);
+  it('renders delete button when mode is (hoverMode)', async () => {
+    await rtlRender(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
-    fireEvent.mouseLeave(wrapperDelete);
-    expect(screen.queryByText('general.delete')).not.toBeInTheDocument();
   });
 
-  it('check click events for delete, save, and edit', () => {
-    render(mockProps);
-    const editButton = screen.getByLabelText('general.edit');
+  it('does not render save button when mode is (hoverMode)', async () => {
+    await rtlRender(<InputActionWrapper {...mockProps} mode='hoverMode' />);
+    expect(screen.queryByLabelText('general.save')).not.toBeInTheDocument();
+  });
+
+  it('does not renders edit button when mode is (editMode)', async () => {
+    await rtlRender(<InputActionWrapper {...mockProps} mode='editMode' />);
+    expect(screen.queryByLabelText('general.edit')).not.toBeInTheDocument();
+  });
+
+  it('renders delete button when mode is (editMode)', async () => {
+    await rtlRender(<InputActionWrapper {...mockProps} mode='editMode' />);
+    expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
+  });
+
+  it('triggers save click on save button click', async () => {
+    rtlRender(<InputActionWrapper {...mockProps} />);
     const saveButton = screen.getByLabelText('general.save');
-    const deleteButton = screen.getByLabelText('general.delete');
-
-    fireEvent.click(editButton);
-    expect(mockProps.onEditClick).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(saveButton);
-    expect(mockProps.onSaveClick).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(deleteButton);
-    expect(mockProps.onDeleteClick).toHaveBeenCalledTimes(1);
+    await act(() => user.click(saveButton));
+    expect(mockProps.onSaveClick).toBeCalledTimes(1);
   });
 
-  it('renders the correct number of buttons', () => {
-    render(mockProps);
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBe(3);
+  it('triggers delete click on delete button click', async () => {
+    rtlRender(<InputActionWrapper {...mockProps} />);
+    const deleteButton = screen.getByLabelText('general.delete');
+    await act(() => user.click(deleteButton));
+    expect(mockProps.onDeleteClick).toBeCalledTimes(1);
+  });
+
+  it('check that handleActionClick is called when edit button is clicked', async () => {
+    rtlRender(<InputActionWrapper {...mockProps} mode='hoverMode' />);
+    const editButton = screen.getByLabelText('general.edit');
+    await act(() => user.click(editButton));
+    expect(mockProps.onEditClick).toBeCalledTimes(1);
+  });
+
+  it('check that handleHover is called when onMouseOver is called ', async () => {
+    rtlRender(<InputActionWrapper {...mockProps} mode='standBy' />);
+    const input = screen.getByRole('textbox');
+    await act(() => user.hover(input));
+    expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
+  });
+
+  it('check that handleBlur is called when onMouseLeave is called ', async () => {
+    rtlRender(<InputActionWrapper {...mockProps} mode='standBy' />);
+    const input = screen.getByRole('textbox');
+    await act(() => user.hover(input));
+    expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
+    await act(() => user.unhover(input));
+    expect(screen.queryByLabelText('general.edit')).not.toBeInTheDocument();
   });
 });
-
-const render = (
-  props: InputActionWrapperProps = {
-    children: undefined,
-    mode: undefined,
-    onEditClick: jest.fn(),
-    onDeleteClick: jest.fn(),
-    onSaveClick: jest.fn(),
-  },
-) => {
-  const allProps = {
-    children: undefined,
-    mode: undefined,
-    onEditClick: jest.fn(),
-    onDeleteClick: jest.fn(),
-    onSaveClick: jest.fn(),
-    ...props,
-  } as InputActionWrapperProps;
-  rtlRender(<InputActionWrapper {...allProps}></InputActionWrapper>);
-};

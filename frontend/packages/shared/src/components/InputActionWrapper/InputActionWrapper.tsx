@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@altinn/icons';
 import { useText } from '../../../../ux-editor/src/hooks/index';
-import { Button } from '@digdir/design-system-react';
+import { Button, ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
@@ -76,28 +76,16 @@ export const InputActionWrapper = ({
     }
   };
 
-  // Handled Variant, size, and color in functions if we need to change them based on status  in the future.
   const actionToAriaLabelMap: Record<AvailableAction, string> = {
     edit: t('general.edit'),
     delete: t('general.delete'),
     save: t('general.save'),
   };
 
-  const handleVariant = (action: AvailableAction): 'filled' | 'quiet' | 'outline' => {
-    return 'quiet';
-  };
-
-  const handleColor = (action: AvailableAction): 'danger' | 'primary' | 'secondary' | 'success' => {
-    switch (action) {
-      case 'delete':
-        return 'danger';
-      case 'save':
-        return 'success';
-      case 'edit':
-        return 'primary';
-      default:
-        return 'primary';
-    }
+  const actionToColorMap: Record<AvailableAction, ButtonProps['color']> = {
+    edit: 'first',
+    save: 'success',
+    delete: 'danger',
   };
 
   const handleSize = (action: AvailableAction): 'small' | 'medium' | 'large' => {
@@ -112,9 +100,9 @@ export const InputActionWrapper = ({
       })}
       {actions.map((action) => (
         <Button
-          variant={handleVariant(action)}
+          variant='quiet'
           size={handleSize(action)}
-          color={handleColor(action)}
+          color={actionToColorMap[action]}
           key={action}
           onClick={() => handleActionClick(action)}
           aria-label={actionToAriaLabelMap[action]}
