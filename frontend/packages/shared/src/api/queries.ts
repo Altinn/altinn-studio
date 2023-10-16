@@ -1,5 +1,6 @@
 import { get, put } from 'app-shared/utils/networking';
 import {
+  altinn2LinkServicesPath,
   appMetadataPath,
   appPolicyPath,
   branchStatusPath,
@@ -115,6 +116,7 @@ export const getResourceList = (org: string) => get<ResourceListItem[]>(resource
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
+export const getAltinn2LinkServices = (org: string, environment: string) => get<any>(altinn2LinkServicesPath(org, environment));
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));

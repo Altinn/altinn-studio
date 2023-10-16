@@ -4,19 +4,9 @@ import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useTranslation } from 'react-i18next';
-import { EnvironmentType, ServiceType } from 'resourceadm/types/global';
-
-const dummyServices: ServiceType[] = [
-  { name: 'Service1' },
-  { name: 'Service2' },
-  { name: 'Service3' },
-  { name: 'Service4' },
-  { name: 'Service5' },
-  { name: 'Service6' },
-  { name: 'Service7' },
-  { name: 'Service8' },
-  { name: 'Service9' },
-];
+import { EnvironmentType } from 'resourceadm/types/global';
+import { useParams } from 'react-router-dom';
+import { ServiceContent } from './ServiceContent';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -51,6 +41,8 @@ export const ImportResourceModal = ({
   onClose,
 }: ImportResourceModalProps): React.ReactNode => {
   const { t } = useTranslation();
+
+  const { selectedContext } = useParams();
 
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<string>();
@@ -120,7 +112,7 @@ export const ImportResourceModal = ({
    * Display loading (todo), the service, or nothing based on the
    * state of the selected environment
    */
-  const displayService = () => {
+  /*const displayService = () => {
     // If environment loading, display loading, else do below
     if (selectedEnv) {
       return (
@@ -136,7 +128,7 @@ export const ImportResourceModal = ({
       );
     }
     return null;
-  };
+  };*/
 
   /**
    * Display loading (todo), the title and id, or nothing based on the
@@ -182,12 +174,23 @@ export const ImportResourceModal = ({
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
-          onChange={(e: EnvironmentType) => setSelectedEnv(e)}
+          onChange={(e: EnvironmentType) => {
+            // getAltinn2Services({ selectedContext, e });
+            setSelectedEnv(e);
+          }}
           value={selectedEnv}
           label={t('resourceadm.dashboard_import_modal_select_env')}
         />
       </div>
-      {displayService()}
+      {selectedEnv && (
+        <ServiceContent
+          selectedContext={selectedContext}
+          env={selectedEnv}
+          selectedService={selectedService}
+          onSelectService={(s: string) => handleSelectService(s)}
+        />
+      )}
+      {/*displayService()*/}
       {displayTitleAndId()}
       <div className={classes.buttonWrapper}>
         <Button onClick={handleClose} color='first' variant='quiet' size='small'>
