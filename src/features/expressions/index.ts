@@ -839,6 +839,11 @@ export const ExprConfigForComponent: ExprObjConfig<CompExternal> = {
     defaultValue: false,
     resolvePerRow: false,
   },
+  alertOnChange: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    resolvePerRow: false,
+  },
 };
 
 export const ExprConfigForGroup: ExprObjConfig<CompGroupExternal> = {

@@ -155,7 +155,7 @@ describe('RepeatingGroupTable', () => {
 
       expect(screen.getByText('Er du sikker på at du vil slette denne raden?')).toBeInTheDocument();
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /slett/i })[0]));
+      await act(() => user.click(screen.getAllByRole('button', { name: /avbryt/i })[0]));
 
       expect(screen.queryByText('Er du sikker på at du vil slette denne raden?')).not.toBeInTheDocument();
     });

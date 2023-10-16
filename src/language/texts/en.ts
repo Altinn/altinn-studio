@@ -50,6 +50,8 @@ export function en() {
       body: 'Waiting for verification. When this is complete you will be forwarded to the next step or receipt automatically.',
     },
     form_filler: {
+      alert_confirm: 'Confirm',
+      checkbox_alert: 'Are you sure you want to uncheck?',
       back_to_summary: 'Return to summary',
       error_report_header: 'These need to be corrected before continuing',
       error_required: 'You have to fill out {0}',
@@ -85,6 +87,8 @@ export function en() {
       file_uploader_validation_error_no_chosen_tag: 'You have to choose one',
       placeholder_receipt_header: 'The form has been submitted',
       placeholder_user: 'OLA PRIVATPERSON',
+      radiobutton_alert_label: 'Are you sure you want to change from {0}?',
+      radiobutton_alert: 'Are you sure you want to change?',
       required_description: 'Required fields are marked with *',
       required_label: '*',
       summary_item_change: 'Change',

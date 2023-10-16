@@ -53,6 +53,8 @@ export function nb(): FixedLanguageList {
     },
     form_filler: {
       back_to_summary: 'Tilbake til oppsummering',
+      alert_confirm: 'Bekreft',
+      checkbox_alert: 'Er du sikker på at du vil fjerne avkrysningen?',
       error_report_header: 'Du må rette disse feilene før du kan gå videre',
       error_required: 'Du må fylle ut {0}',
       file_upload_valid_file_format_all: 'alle',
@@ -87,6 +89,8 @@ export function nb(): FixedLanguageList {
       file_uploader_validation_error_no_chosen_tag: 'Du må velge',
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
+      radiobutton_alert_label: 'Er du sikker på at du vil endre fra {0}?',
+      radiobutton_alert: 'Er du sikker på at du vil endre?',
       required_description: 'Obligatoriske felter er markert med *',
       required_label: '*',
       summary_item_change: 'Endre',

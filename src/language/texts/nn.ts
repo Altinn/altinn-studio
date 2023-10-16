@@ -52,6 +52,8 @@ export function nn(): FixedLanguageList {
       body: 'Vi venter på verifikasjon, når den er på plass blir du vidaresendt.',
     },
     form_filler: {
+      alert_confirm: 'Bekreft',
+      checkbox_alert: 'Er du sikker på at du vil fjerne avkrysningen?',
       back_to_summary: 'Attende til samandrag',
       error_report_header: 'Du må retta desse feila før du kan gå vidare',
       error_required: 'Du må fylle ut {0}',
@@ -87,6 +89,8 @@ export function nn(): FixedLanguageList {
       file_uploader_validation_error_no_chosen_tag: 'Du må velja',
       placeholder_receipt_header: 'Skjemaet er no fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
+      radiobutton_alert_label: 'Er du sikker på at du vil endre frå {0}?',
+      radiobutton_alert: 'Er du sikker på at du vil endre?',
       required_description: 'Obligatoriske felter er markert med *',
       required_label: '*',
       summary_item_change: 'Endre',

@@ -269,6 +269,46 @@ describe('UI Components', () => {
       .should('be.visible');
   });
 
+  it("alert on change if radioButton or checkBox has 'alertOnChange' set to true", () => {
+    cy.interceptLayout('changename', (component) => {
+      if (
+        (component.type === 'RadioButtons' && component.id === 'reason') ||
+        (component.type === 'Checkboxes' && component.id === 'confirmChangeName')
+      ) {
+        component.alertOnChange = true;
+      }
+    });
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+
+    //CheckBoxes: try to uncheck the checkbox to see if we get an alert
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.get(appFrontend.changeOfName.reasons).should('not.exist');
+
+    //RadioButtons: try to change the radiobutton to see if we get an alert
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+
+    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(0)').should('be.checked');
+
+    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(1)').click();
+    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(0)').should('be.checked');
+
+    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(1)').click();
+    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(1)').should('be.checked');
+  });
+
   it('should render components as summary', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
