@@ -21,7 +21,7 @@ export const DateAndTimeRow = ({
 }: DateAndTimeRowProps): ReactNode => {
   const { t } = useTranslation();
 
-  const [date, setDate] = useState(dateValue?.split('T')[0] ?? '');
+  const [date, setDate] = useState(dateValue); //dateValue?.split('T')[0] ?? '');
   const [time, setTime] = useState(dateValue?.split('T')[1]?.substring(0, 5) ?? '');
   const [hasDateError, setHasDateError] = useState(false);
   const [hasTimeError, setHasTimeError] = useState(false);
@@ -72,6 +72,16 @@ export const DateAndTimeRow = ({
       {/* TODO - replace with new Date and Time components */}
       <div className={classes.inputWrapper}>
         <Textfield
+          type='datetime-local'
+          value={date}
+          onChange={handleChangeDate}
+          label={dateLabel}
+          size='small'
+          onBlur={handleBlur}
+          //error={hasDateError || (!isDateValid && invalidDateErrorMessage !== undefined)}
+        />
+        {/*c
+        <Textfield
           type='date'
           value={date}
           onChange={handleChangeDate}
@@ -88,11 +98,13 @@ export const DateAndTimeRow = ({
           size='small'
           onBlur={handleBlur}
           error={hasTimeError || (!isDateValid && invalidDateErrorMessage !== undefined)}
-        />
+  />*/}
       </div>
+      {/*
+
       <ErrorMessage className={classes.errorMessage} size='small'>
         {getErrorMessage()}
-      </ErrorMessage>
+      </ErrorMessage> />*/}
     </div>
   );
 };
