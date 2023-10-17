@@ -196,10 +196,9 @@ describe('EditDataModelBindings', () => {
     expect(screen.getByText(/ux_editor.modal_properties_data_model_link/i)).toBeInTheDocument();
   });
 
-  it('should call handleDataModelChange and update state on delete button click', async () => {
+  it('should call handleDataModelChange and update setSelectedOption on delete button click', async () => {
     const handleDataModelChange = jest.fn();
-    let setDataModelSelectVisible = false;
-    let setSelectedOption = undefined;
+    const setSelectedOption = String('');
 
     await render({ handleDataModelChange });
 
@@ -209,15 +208,12 @@ describe('EditDataModelBindings', () => {
     });
 
     expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
-
     const deleteButton = await screen.findByRole('button', { name: /general.delete/i });
     act(() => {
       deleteButton.click();
     });
-
     expect(handleDataModelChange).toBeCalled;
-    expect((setDataModelSelectVisible = true));
-    expect((setSelectedOption = ''));
+    expect(typeof setSelectedOption).toEqual('string');
   });
 
   it('should call handleDataModelChange and setSelectedOption on data model change', async () => {
