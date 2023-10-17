@@ -75,7 +75,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
       id={`add-button-${id}`}
       onClick={handleOnAddButtonClick}
       onKeyUp={handleOnAddKeypress}
-      variant='outline'
+      variant='secondary'
       icon={<AddIcon aria-hidden='true' />}
       iconPlacement='left'
       fullWidth

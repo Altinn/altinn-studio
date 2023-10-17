@@ -30,7 +30,7 @@ export const GoToTaskButton = ({ children, ...props }: React.PropsWithChildren<I
       message={message}
       onClick={navigateToTask}
       {...props}
-      variant={'outline'}
+      variant={'secondary'}
     >
       {children}
     </WrappedButton>

@@ -95,7 +95,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
               <TableCell>
                 <div className={classes.tableButtonWrapper}>
                   <Button
-                    variant='quiet'
+                    variant='tertiary'
                     size='small'
                     color='second'
                     icon={<EditIcon />}
@@ -152,7 +152,7 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
               <TableCell className={classes.buttonCell}>
                 <div className={classes.tableButtonWrapper}>
                   <Button
-                    variant='quiet'
+                    variant='tertiary'
                     size='small'
                     color='second'
                     icon={<EditIcon />}

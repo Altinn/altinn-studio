@@ -41,7 +41,7 @@ export const NavBar = (props: INavBarProps) => {
             data-testid='form-back-button'
             className={classes.buttonMargin}
             onClick={props.handleBack}
-            variant='quiet'
+            variant='tertiary'
             color='second'
             size='small'
             aria-label={langAsString('general.back')}
@@ -58,7 +58,7 @@ export const NavBar = (props: INavBarProps) => {
             data-testid='form-expand-button'
             className={cn(classes.buttonMargin, { [classes.hideExpandButtonMaxWidth]: !expandedWidth })}
             onClick={handleExpand}
-            variant='quiet'
+            variant='tertiary'
             color='second'
             size='small'
             aria-label={langAsString('general.expand_form')}
@@ -83,7 +83,7 @@ export const NavBar = (props: INavBarProps) => {
             data-testid='form-close-button'
             className={classes.buttonMargin}
             onClick={props.handleClose}
-            variant='quiet'
+            variant='tertiary'
             color='second'
             size='small'
             aria-label={langAsString('general.close_schema')}

@@ -179,7 +179,7 @@ function RepeatingGroupsEditContainerInternal({
         >
           <Grid item={true}>
             <Button
-              variant='quiet'
+              variant='tertiary'
               color='danger'
               size='small'
               icon={<DeleteIcon />}
@@ -223,7 +223,7 @@ function RepeatingGroupsEditContainerInternal({
                     <Button
                       icon={<Back aria-hidden='true' />}
                       size='small'
-                      variant='quiet'
+                      variant='tertiary'
                       color='second'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)}
                     >
@@ -239,7 +239,7 @@ function RepeatingGroupsEditContainerInternal({
                       icon={<Next aria-hidden='true' />}
                       iconPlacement='right'
                       size='small'
-                      variant='quiet'
+                      variant='tertiary'
                       color='second'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)}
                     >
@@ -259,7 +259,7 @@ function RepeatingGroupsEditContainerInternal({
                 <Button
                   id={`next-button-grp-${id}`}
                   onClick={nextClicked}
-                  variant='filled'
+                  variant='primary'
                   color='first'
                   size='small'
                 >
@@ -272,7 +272,7 @@ function RepeatingGroupsEditContainerInternal({
                 <Button
                   id={`add-button-grp-${id}`}
                   onClick={saveClicked}
-                  variant={saveAndNextButtonVisible ? 'outline' : 'filled'}
+                  variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                   size='small'
                 >

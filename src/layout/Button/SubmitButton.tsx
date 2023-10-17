@@ -7,7 +7,7 @@ export const SubmitButton = ({ children, ...props }: ButtonProps) => (
   <WrappedButton
     {...props}
     color='success'
-    variant='filled'
+    variant='primary'
   >
     {children}
   </WrappedButton>

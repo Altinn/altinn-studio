@@ -48,7 +48,7 @@ export function DeleteWarningPopover({
       <div className={classes.popoverButtonContainer}>
         <Button
           data-testid='warning-popover-delete-button'
-          variant='filled'
+          variant='primary'
           size='small'
           color='danger'
           onClick={onPopoverDeleteClick}
@@ -57,7 +57,7 @@ export function DeleteWarningPopover({
         </Button>
         <Button
           data-testid='warning-popover-cancel-button'
-          variant='quiet'
+          variant='tertiary'
           size='small'
           color='second'
           onClick={onCancelClick}

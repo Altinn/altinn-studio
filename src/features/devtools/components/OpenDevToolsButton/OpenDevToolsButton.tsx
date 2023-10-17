@@ -51,7 +51,7 @@ export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonPro
         <Button
           tabIndex={-1}
           size='small'
-          variant='outline'
+          variant='secondary'
           color='second'
           onClick={onClick}
           aria-label='åpne utviklerverkøy'

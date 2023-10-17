@@ -49,7 +49,7 @@ export const DownloadXMLButton = () => {
     <Fieldset legend='Skjemadata'>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Button
-          variant='outline'
+          variant='secondary'
           size='small'
           icon={<DownloadIcon aria-hidden={true} />}
           onClick={downloadXML}
@@ -66,7 +66,7 @@ export const DownloadXMLButton = () => {
               {...getRootProps({
                 onClick: (e) => e.preventDefault(),
               })}
-              variant='outline'
+              variant='secondary'
               size='small'
               icon={<UploadIcon aria-hidden={true} />}
             >

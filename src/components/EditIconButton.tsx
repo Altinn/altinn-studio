@@ -17,7 +17,7 @@ export function EditIconButton({ id, label, onClick }: IEditIconButtonProps) {
       className={classes.editButton}
       size='small'
       id={id}
-      variant='quiet'
+      variant='tertiary'
       icon={<PencilIcon aria-hidden />}
       iconPlacement='left'
       onClick={onClick}

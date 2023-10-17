@@ -14,8 +14,8 @@ import type { ActionButtonStyle } from 'src/layout/ActionButton/config.generated
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 
 export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
-  primary: { variant: 'filled', color: 'success' },
-  secondary: { variant: 'outline', color: 'first' },
+  primary: { variant: 'primary', color: 'success' },
+  secondary: { variant: 'secondary', color: 'first' },
 };
 
 export type IActionButton = PropsFromGenericComponent<'ActionButton'>;

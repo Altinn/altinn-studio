@@ -12,8 +12,8 @@ import type { LinkStyle } from 'src/layout/Link/config.generated';
 export const buttonStyles: {
   [style in Exclude<LinkStyle, 'link'>]: { color: ButtonColor; variant: ButtonVariant };
 } = {
-  primary: { variant: 'filled', color: 'success' },
-  secondary: { variant: 'outline', color: 'first' },
+  primary: { variant: 'primary', color: 'success' },
+  secondary: { variant: 'secondary', color: 'first' },
 };
 
 export type ILinkComponent = PropsFromGenericComponent<'Link'>;

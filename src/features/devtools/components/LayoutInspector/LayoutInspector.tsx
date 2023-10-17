@@ -153,7 +153,7 @@ export const LayoutInspector = () => {
             </div>
             <Button
               onClick={() => setSelectedComponent(undefined)}
-              variant='quiet'
+              variant='tertiary'
               color='second'
               size='small'
               aria-label={'close'}
