@@ -198,8 +198,8 @@ describe('EditDataModelBindings', () => {
 
   it('should call handleDataModelChange and update state on delete button click', async () => {
     const handleDataModelChange = jest.fn();
-    let setDataModelSelectVisible: boolean = false;
-    let setSelectedOption = jest.fn();
+    let setDataModelSelectVisible = false;
+    let setSelectedOption = undefined;
 
     await render({ handleDataModelChange });
 
@@ -217,7 +217,7 @@ describe('EditDataModelBindings', () => {
 
     expect(handleDataModelChange).toBeCalled;
     expect((setDataModelSelectVisible = true));
-    expect((setSelectedOption = undefined));
+    expect((setSelectedOption = ''));
   });
 
   it('should call handleDataModelChange and setSelectedOption on data model change', async () => {
