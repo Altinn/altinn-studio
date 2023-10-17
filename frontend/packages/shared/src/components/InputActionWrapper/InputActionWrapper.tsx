@@ -88,10 +88,6 @@ export const InputActionWrapper = ({
     delete: 'danger',
   };
 
-  const handleSize = (action: AvailableAction): 'small' | 'medium' | 'large' => {
-    return 'large';
-  };
-
   return (
     <div className={classes.buttons} onMouseOver={handleHover} onMouseLeave={handleMouseLeave}>
       {React.cloneElement(children, {
@@ -101,7 +97,7 @@ export const InputActionWrapper = ({
       {actions.map((action) => (
         <Button
           variant='quiet'
-          size={handleSize(action)}
+          size='large'
           color={actionToColorMap[action]}
           key={action}
           onClick={() => handleActionClick(action)}
