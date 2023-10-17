@@ -30,11 +30,12 @@ describe('AltinnHeader', () => {
       ],
     });
     expect(screen.getByRole('button', { name: textMock('TestButton') })).toBeInTheDocument();
+    expect(screen.getAllByRole('button').length).toEqual(2); // TestButton + Profile Menu
   });
 
-  it('should not render AltinnHeaderButtons when buttonActions are provided', () => {
+  it('should not render AltinnHeaderButtons when buttonActions are not provided', () => {
     render();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button').length).toEqual(1); // Only profile menu
   });
 
   it('should render subMenu with provided subMenuContent when showSubMenu is true', () => {

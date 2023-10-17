@@ -3,7 +3,7 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './ProfileMenu';
 import { ProfileMenu } from './ProfileMenu';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -41,26 +41,26 @@ describe('ProfileMenu', () => {
     render();
 
     expect(
-      screen.queryByRole('menuitem', { name: textMock('sync_header.documentation') })
+      screen.queryByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('menuitem', { name: textMock('dashboard.open_repository') })
+      screen.queryByRole('menuitem', { name: textMock('dashboard.open_repository') }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })
+      screen.queryByRole('menuitem', { name: textMock('shared.header_logout') }),
     ).not.toBeInTheDocument();
 
     const profileBtn = screen.getByRole('img', { name: textMock('general.profile_icon') });
     await act(() => user.click(profileBtn));
 
     expect(
-      screen.getByRole('menuitem', { name: textMock('sync_header.documentation') })
+      screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: textMock('dashboard.open_repository') })
+      screen.getByRole('menuitem', { name: textMock('dashboard.open_repository') }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })
+      screen.queryByRole('menuitem', { name: textMock('shared.header_logout') }),
     ).not.toBeInTheDocument();
   });
 
@@ -70,26 +70,26 @@ describe('ProfileMenu', () => {
     render({ showlogout: true });
 
     expect(
-      screen.queryByRole('link', { name: textMock('sync_header.documentation') })
+      screen.queryByRole('link', { name: textMock('sync_header.documentation') }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('link', { name: textMock('dashboard.open_repository') })
+      screen.queryByRole('link', { name: textMock('dashboard.open_repository') }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })
+      screen.queryByRole('menuitem', { name: textMock('shared.header_logout') }),
     ).not.toBeInTheDocument();
 
     const profileBtn = screen.getByRole('img', { name: textMock('general.profile_icon') });
     await act(() => user.click(profileBtn));
 
     expect(
-      screen.getByRole('link', { name: textMock('sync_header.documentation') })
+      screen.getByRole('link', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: textMock('dashboard.open_repository') })
+      screen.getByRole('link', { name: textMock('dashboard.open_repository') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: textMock('shared.header_logout') })
+      screen.getByRole('menuitem', { name: textMock('shared.header_logout') }),
     ).toBeInTheDocument();
   });
 });

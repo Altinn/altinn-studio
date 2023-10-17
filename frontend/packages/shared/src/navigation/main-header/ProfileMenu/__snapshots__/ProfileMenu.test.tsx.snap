@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProfileMenu should match snapshot 1`] = `
+<button
+  class="Button-module_button__oVUcI utility-module_focusable__y1VLB Button-module_medium__mNn-w Button-module_quiet__UEUaR Button-module_inverted__bikfA"
+  title="[mockedText(shared.header_button)]"
+  type="button"
+>
+  <p
+    class="Paragraph-module_paragraph__1laME Paragraph-module_small__RjlFp"
+  />
+  <img
+    alt="[mockedText(general.profile_icon)]"
+    aria-haspopup="true"
+  />
+</button>
+`;
+
+exports[`ProfileMenu should match snapshot with logout text 1`] = `
+<button
+  class="Button-module_button__oVUcI utility-module_focusable__y1VLB Button-module_medium__mNn-w Button-module_quiet__UEUaR Button-module_inverted__bikfA"
+  title="[mockedText(shared.header_button)]"
+  type="button"
+>
+  <p
+    class="Paragraph-module_paragraph__1laME Paragraph-module_small__RjlFp"
+  />
+  <img
+    alt="[mockedText(general.profile_icon)]"
+    aria-haspopup="true"
+  />
+</button>
+`;

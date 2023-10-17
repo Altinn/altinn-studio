@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './ProfileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { post } from '../../utils/networking';
-import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api/paths';
+import { post } from '../../../utils/networking';
+import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { Button, Paragraph } from '@digdir/design-system-react';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
   user: User;
+  userNameAndOrg: string;
 }
 
-export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
+/**
+ * @component
+ *    Displays the menu in the Altinn Header
+ *
+ * @property {boolean}[showlogout] - Optional flag for if logout button should be shown
+ * @property {User}[user] - The user
+ * @property {string}[userNameAndOrg] - The username and org string to display in the header
+ *
+ * @returns {ReactNode} - The rendered component
+ */
+export const ProfileMenu = ({
+  showlogout,
+  user,
+  userNameAndOrg,
+}: IProfileMenuComponentProps): ReactNode => {
   const [anchorEl, setAnchorEl] = useState<null | Element>(null);
   const { org, app } = useStudioUrlParams();
   const handleClick = (event: any) => setAnchorEl(event.currentTarget);
@@ -25,7 +41,15 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
       .finally(() => true);
 
   return (
-    <div className={classes.previewProfilIcon}>
+    <Button
+      variant='quiet'
+      color='inverted'
+      onClick={handleClick}
+      title={t('shared.header_button')}
+    >
+      <Paragraph size='small' className={classes.userOrgNames}>
+        {userNameAndOrg}
+      </Paragraph>
       <img
         alt={t('general.profile_icon')}
         aria-haspopup
@@ -65,6 +89,6 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
           </MenuItem>
         )}
       </Menu>
-    </div>
+    </Button>
   );
-}
+};
