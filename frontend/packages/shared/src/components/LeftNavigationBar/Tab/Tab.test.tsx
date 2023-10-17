@@ -9,6 +9,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const mockOnClick = jest.fn();
+const mockOnKeyDown = jest.fn();
+const mockOnBlur = jest.fn();
 
 const mockTo: string = '/test';
 
@@ -37,6 +39,7 @@ const mockTab1: LeftNavigationTab = {
   tabId: mockTabId1,
   action: mockLinkAction,
   isActiveTab: true,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockTab2: LeftNavigationTab = {
@@ -52,14 +55,13 @@ const mockTab3: LeftNavigationTab = {
 describe('Tab', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockOnBlur = jest.fn();
-
   const defaultProps: TabProps = {
     tab: mockTab1,
     navElementClassName: '.navigationElement',
     onBlur: mockOnBlur,
     onClick: mockOnClick,
     newTabIdClicked: mockTabId2,
+    onKeyDown: mockOnKeyDown,
   };
 
   it('calls the onClick function when onClick is present and type is link', async () => {
@@ -92,6 +94,16 @@ describe('Tab', () => {
     expect(mockTab3.action.onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('calls the "onKeyDown" function when a tab is clicked with keyboard', async () => {
+    const user = userEvent.setup();
+    render({ ...defaultProps, tab: mockTab3 });
+
+    const tabButton = screen.getByRole('button', { name: textMock(mockTab3.tabName) });
+    await act(() => user.click(tabButton));
+    await act(() => user.keyboard('{Tab}'));
+    expect(mockOnKeyDown).toHaveBeenCalledTimes(1);
+  });
+
   it('calls the onBlur function when the tab is blurred', async () => {
     const user = userEvent.setup();
     render(defaultProps);
@@ -108,6 +120,6 @@ const render = (props: TabProps) => {
   return rtlRender(
     <MemoryRouter initialEntries={['/']}>
       <Tab {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

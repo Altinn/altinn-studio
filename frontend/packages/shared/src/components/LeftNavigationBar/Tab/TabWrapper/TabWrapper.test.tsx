@@ -7,6 +7,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockOnClick = jest.fn();
+const mockOnBlur = jest.fn();
+const mockOnKeyDown = jest.fn();
 
 const mockTo: string = '/test';
 
@@ -31,12 +33,11 @@ const mockTabName: string = 'Tab 1';
 describe('TabWrapper', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockOnBlur = jest.fn();
-
   const defaultProps: TabWrapperProps = {
     className: '.navElement',
     onBlur: mockOnBlur,
     onClick: mockOnClick,
+    onKeyDown: mockOnKeyDown,
     action: mockLinkAction,
     children: <p>{mockTabName}</p>,
   };
@@ -85,6 +86,16 @@ describe('TabWrapper', () => {
     expect(mockButtonAction.onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('calls the "onKeyDown" function when a tab is clicked with keyboard', async () => {
+    const user = userEvent.setup();
+    render({ ...defaultProps, action: mockButtonAction });
+
+    const buttonWrapper = screen.getByRole('button', { name: mockTabName });
+    await act(() => user.click(buttonWrapper));
+    await act(() => user.keyboard('{Tab}'));
+    expect(mockOnKeyDown).toHaveBeenCalledTimes(1);
+  });
+
   it('executes the onBlur when the wrapper is tabbed through and type is button', async () => {
     const user = userEvent.setup();
     render({ ...defaultProps, action: mockButtonAction });
@@ -110,6 +121,6 @@ const render = (props: TabWrapperProps) => {
   return rtlRender(
     <MemoryRouter initialEntries={['/']}>
       <TabWrapper {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

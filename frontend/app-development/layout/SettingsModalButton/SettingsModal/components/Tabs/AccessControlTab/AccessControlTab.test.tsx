@@ -18,6 +18,7 @@ import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
+const mockId: string = 'tab-content-accessControl';
 
 jest.mock('../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -33,6 +34,7 @@ const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const defaultProps: AccessControlTabProps = {
   org: mockOrg,
   app: mockApp,
+  id: mockId,
 };
 
 describe('AccessControlTab', () => {

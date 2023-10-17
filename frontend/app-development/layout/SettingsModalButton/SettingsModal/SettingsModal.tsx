@@ -20,22 +20,9 @@ import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 
 export type SettingsModalProps = {
-  /**
-   * Flag for if the modal is open
-   */
   isOpen: boolean;
-  /**
-   * Function to be executed on close
-   * @returns void
-   */
   onClose: () => void;
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
 };
 
@@ -54,6 +41,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const { t } = useTranslation();
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const [enterHasBeenClicked, setEnterHasBeenClicked] = useState<boolean>(false);
 
   /**
    * Ids for the navigation tabs
@@ -62,6 +50,23 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const policyTabId: SettingsModalTab = 'policy';
   const localChangesTabId: SettingsModalTab = 'localChanges';
   const accessControlTabId: SettingsModalTab = 'accessControl';
+
+  const handleKeyTab = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'Enter') {
+      setEnterHasBeenClicked(true);
+    }
+    // If tabbing after clicking enter, set focus to the content in the tab
+    if (e.key === 'Tab' && enterHasBeenClicked) {
+      e.preventDefault();
+      setEnterHasBeenClicked(false);
+
+      // Focus on the selected tab button
+      const selectedTabButton = document.getElementById(`tab-content-${currentTab}`);
+      if (selectedTabButton) {
+        selectedTabButton.focus();
+      }
+    }
+  };
 
   /**
    * The tabs to display in the navigation bar
@@ -72,24 +77,28 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       aboutTabId,
       () => changeTabTo(aboutTabId),
       currentTab,
+      handleKeyTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
       currentTab,
+      handleKeyTab,
     ),
     createNavigationTab(
       <PersonSuitIcon className={classes.icon} />,
       accessControlTabId,
       () => changeTabTo(accessControlTabId),
       currentTab,
+      handleKeyTab,
     ),
     createNavigationTab(
       <MonitorIcon className={classes.icon} />,
       localChangesTabId,
       () => changeTabTo(localChangesTabId),
       currentTab,
+      handleKeyTab,
     ),
   ];
 
@@ -108,16 +117,16 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <AboutTab org={org} app={app} />;
+        return <AboutTab org={org} app={app} id='tab-content-about' />;
       }
       case 'policy': {
-        return <PolicyTab org={org} app={app} />;
+        return <PolicyTab org={org} app={app} id='tab-content-policy' />;
       }
       case 'accessControl': {
-        return <AccessControlTab org={org} app={app} />;
+        return <AccessControlTab org={org} app={app} id='tab-content-accessControl' />;
       }
       case 'localChanges': {
-        return <LocalChangesTab org={org} app={app} />;
+        return <LocalChangesTab org={org} app={app} id='tab-content-localChanges' />;
       }
     }
   };
@@ -139,7 +148,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
         <div className={classes.leftNavWrapper}>
           <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
         </div>
-        <div className={classes.tabWrapper}>{displayTabs()}</div>
+        {displayTabs()}
       </div>
     </Modal>
   );

@@ -6,25 +6,10 @@ import { Tab } from './Tab';
 import cn from 'classnames';
 
 export type LeftNavigationBarProps = {
-  /**
-   * List of navigation tabs
-   */
   tabs: LeftNavigationTab[];
-  /**
-   * The upper tab
-   */
   upperTab?: 'backButton' | undefined;
-  /**
-   * Href for the back link
-   */
   backLink?: string;
-  /**
-   * The text on the back link
-   */
   backLinkText?: string;
-  /**
-   * Additional classnames
-   */
   className?: string;
 };
 
@@ -88,6 +73,7 @@ export const LeftNavigationBar = ({
     <Tab
       tab={tab}
       onClick={() => handleClick(tab.tabId)}
+      onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => tab.onKeyDown(e)}
       key={tab.tabId}
       navElementClassName={classes.navigationElement}
       onBlur={() => setNewTabIdClicked(null)}

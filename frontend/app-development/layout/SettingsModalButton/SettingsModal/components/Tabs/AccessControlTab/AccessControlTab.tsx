@@ -13,16 +13,12 @@ import {
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
+import { TabContent } from '../../TabContent';
 
 export type AccessControlTabProps = {
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
+  id: string;
 };
 
 /**
@@ -31,10 +27,11 @@ export type AccessControlTabProps = {
  *
  * @property {string}[org] - The org
  * @property {string}[app] - The app
+ * @property {string}[id] - The id of the tab
  *
  * @returns {ReactNode} - The rendered component
  */
-export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
+export const AccessControlTab = ({ org, app, id }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const {
@@ -116,9 +113,9 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
   };
 
   return (
-    <div>
+    <TabContent id={id}>
       <TabHeader text={t('settings_modal.access_control_tab_heading')} />
       {displayContent()}
-    </div>
+    </TabContent>
   );
 };

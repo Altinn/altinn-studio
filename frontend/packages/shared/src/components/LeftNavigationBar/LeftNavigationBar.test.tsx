@@ -32,6 +32,8 @@ const mockTabId1: string = 'tab1';
 const mockTabId2: string = 'tab2';
 const mockTabId3: string = 'tab3';
 
+const mockOnKeyDown = jest.fn();
+
 const mockTabs: LeftNavigationTab[] = [
   {
     icon: <TestFlaskIcon />,
@@ -39,6 +41,7 @@ const mockTabs: LeftNavigationTab[] = [
     tabId: mockTabId1,
     action: mockLinkAction1,
     isActiveTab: true,
+    onKeyDown: mockOnKeyDown,
   },
   {
     icon: <TestFlaskIcon />,
@@ -46,6 +49,7 @@ const mockTabs: LeftNavigationTab[] = [
     tabId: mockTabId2,
     action: mockButtonAction,
     isActiveTab: false,
+    onKeyDown: mockOnKeyDown,
   },
   {
     icon: <TestFlaskIcon />,
@@ -53,6 +57,7 @@ const mockTabs: LeftNavigationTab[] = [
     tabId: mockTabId3,
     action: mockLinkAction2,
     isActiveTab: false,
+    onKeyDown: mockOnKeyDown,
   },
 ];
 
@@ -78,6 +83,18 @@ describe('LeftNavigationBar', () => {
     const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab2));
     expect(nextTab.action.onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls the "onKeyDown" function when a tab is clicked with keyboard', async () => {
+    const user = userEvent.setup();
+    render(defaultProps);
+
+    const nextTab = mockTabs[1];
+
+    const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
+    await act(() => user.click(tab2));
+    await act(() => user.keyboard('{Tab}'));
+    expect(nextTab.onKeyDown).toHaveBeenCalledTimes(1);
   });
 
   it('calls the onClick function when a tab is clicked and action type is link and onClick is present', async () => {
@@ -136,6 +153,6 @@ const render = (props: LeftNavigationBarProps) => {
   return rtlRender(
     <MemoryRouter initialEntries={['/']}>
       <LeftNavigationBar {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

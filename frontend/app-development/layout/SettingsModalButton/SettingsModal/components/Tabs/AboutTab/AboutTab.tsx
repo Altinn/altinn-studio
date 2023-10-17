@@ -13,10 +13,12 @@ import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
+import { TabContent } from '../../TabContent';
 
 export type AboutTabProps = {
   org: string;
   app: string;
+  id: string;
 };
 
 /**
@@ -25,10 +27,11 @@ export type AboutTabProps = {
  *
  * @property {string}[org] - The org
  * @property {string}[app] - The app
+ * @property {string}[id] - The id of the tab
  *
  * @returns {ReactNode} - The rendered component
  */
-export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
+export const AboutTab = ({ org, app, id }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const repositoryType = getRepositoryType(org, app);
@@ -85,9 +88,9 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
     }
   };
   return (
-    <div>
+    <TabContent id={id}>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
       {displayContent()}
-    </div>
+    </TabContent>
   );
 };

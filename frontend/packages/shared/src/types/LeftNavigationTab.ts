@@ -19,4 +19,5 @@ export interface LeftNavigationTab {
   tabId: string;
   action: TabAction;
   isActiveTab: boolean;
+  onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 }

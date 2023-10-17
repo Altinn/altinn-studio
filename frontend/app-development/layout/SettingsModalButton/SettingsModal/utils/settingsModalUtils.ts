@@ -17,6 +17,7 @@ export const createNavigationTab = (
   tabId: SettingsModalTab,
   onClick: () => void,
   currentTab: SettingsModalTab,
+  handleKeyTab: (e: React.KeyboardEvent<HTMLButtonElement>) => void,
 ): LeftNavigationTab => {
   return {
     icon,
@@ -27,5 +28,6 @@ export const createNavigationTab = (
       onClick,
     },
     isActiveTab: currentTab === tabId,
+    onKeyDown: handleKeyTab,
   };
 };
