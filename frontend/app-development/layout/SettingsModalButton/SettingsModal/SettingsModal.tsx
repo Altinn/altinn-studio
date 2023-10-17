@@ -51,6 +51,10 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const localChangesTabId: SettingsModalTab = 'localChanges';
   const accessControlTabId: SettingsModalTab = 'accessControl';
 
+  /**
+   * Handles the logic for when to navigate in to a tab's content instead of continuing
+   * default behaviour.
+   */
   const handleKeyTab = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === 'Enter') {
       setEnterHasBeenClicked(true);
@@ -60,11 +64,9 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       e.preventDefault();
       setEnterHasBeenClicked(false);
 
-      // Focus on the selected tab button
-      const selectedTabButton = document.getElementById(`tab-content-${currentTab}`);
-
-      if (selectedTabButton) {
-        selectedTabButton.focus();
+      const selectedTab = document.getElementById(`tab-content-${currentTab}`);
+      if (selectedTab) {
+        selectedTab.focus();
       }
     }
   };

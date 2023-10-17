@@ -99,8 +99,11 @@ export const ResourcePage = (): React.ReactNode => {
     setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
 
+  /**
+   * Handles the logic for when to navigate in to a page's content instead of continuing
+   * default behaviour.
+   */
   const handleKeyTab = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-    console.log(e.key);
     if (e.key === 'Enter') {
       setEnterHasBeenClicked(true);
     }
@@ -109,11 +112,9 @@ export const ResourcePage = (): React.ReactNode => {
       e.preventDefault();
       setEnterHasBeenClicked(false);
 
-      // Focus on the selected tab button
-      const selectedPageButton = document.getElementById(`page-content-${currentPage}`);
-      console.log(selectedPageButton);
-      if (selectedPageButton) {
-        selectedPageButton.focus();
+      const selectedPage = document.getElementById(`page-content-${currentPage}`);
+      if (selectedPage) {
+        selectedPage.focus();
       }
     }
   };
