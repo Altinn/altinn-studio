@@ -85,4 +85,11 @@ describe('InputActionWrapper', () => {
     await act(() => user.unhover(input));
     expect(screen.queryByLabelText('general.edit')).not.toBeInTheDocument();
   });
+
+  it('check that handleFocus is called when onFocus is called ', async () => {
+    rtlRender(<InputActionWrapper {...mockProps} mode='standBy' />);
+    const input = screen.getByRole('textbox');
+    await act(() => user.hover(input));
+    expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
+  });
 });

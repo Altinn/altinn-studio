@@ -6,6 +6,9 @@ import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import userEvent from '@testing-library/user-event';
+
+const user = userEvent;
 
 const getDatamodelMetadata = () =>
   Promise.resolve({
@@ -51,6 +54,8 @@ const render = async ({
   dataModelBindings = {},
   handleComponentChange = jest.fn(),
   handleDataModelChange = jest.fn(),
+  setSelectedOption = jest.fn(),
+  onEditClick = jest.fn(),
 } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
@@ -63,6 +68,7 @@ const render = async ({
     { appData },
     { getDatamodelMetadata },
     handleDataModelChange(),
+    setSelectedOption(),
   )(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
@@ -171,7 +177,7 @@ describe('EditDataModelBindings', () => {
     expect(deleteButton).toBeInTheDocument();
   });
 
-  it('show link data model again when clcik on save button and no data model binding is selected', async () => {
+  it('show link data model again when click on save button and no data model binding is selected', async () => {
     await render();
     const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
     act(() => {
@@ -188,5 +194,86 @@ describe('EditDataModelBindings', () => {
     });
 
     expect(screen.getByText(/ux_editor.modal_properties_data_model_link/i)).toBeInTheDocument();
+  });
+
+  it('should call handleDataModelChange and update state on delete button click', async () => {
+    const handleDataModelChange = jest.fn();
+    let setDataModelSelectVisible: boolean = false;
+    let setSelectedOption = jest.fn();
+
+    await render({ handleDataModelChange });
+
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    act(() => {
+      linkIcon.click();
+    });
+
+    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
+
+    const deleteButton = await screen.findByRole('button', { name: /general.delete/i });
+    act(() => {
+      deleteButton.click();
+    });
+
+    expect(handleDataModelChange).toBeCalled;
+    expect((setDataModelSelectVisible = true));
+    expect((setSelectedOption = undefined));
+  });
+
+  it('should call handleDataModelChange and setSelectedOption on data model change', async () => {
+    const handleDataModelChange = jest.fn();
+    const setSelectedOption = jest.fn();
+
+    await render({ handleDataModelChange, setSelectedOption });
+
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    act(() => {
+      linkIcon.click();
+    });
+
+    expect(
+      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
+
+    expect(handleDataModelChange).toBeCalled;
+    expect(setSelectedOption).toBeCalled;
+  });
+
+  it('should render LinkedDataModelContainer component when an option is selected', async () => {
+    const handleDataModelChange = jest.fn();
+    const setSelectedOption = jest.fn();
+
+    await render({ handleDataModelChange, setSelectedOption });
+
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    act(() => {
+      linkIcon.click();
+    });
+
+    expect(
+      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
+
+    expect(handleDataModelChange).toBeCalled;
+    expect(setSelectedOption).toBeCalled;
+
+    const linkedDataModelContainer = await screen.findByText('testModel.field1');
+    expect(linkedDataModelContainer).toBeInTheDocument();
+  });
+
+  it('check that  onEditClick is called', async () => {
+    const onEditClick = jest.fn();
+    await render({ onEditClick });
+
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    act(() => {
+      linkIcon.click();
+    });
+    const editIcon = screen.getByRole('button', { name: /Edit/i });
+    user.hover(editIcon);
+    expect(editIcon).toBeInTheDocument();
+    expect(onEditClick).toHaveBeenCalled;
   });
 });
