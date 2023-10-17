@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Paragraph, Select, Spinner } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
@@ -50,14 +50,18 @@ export const ServiceContent = ({
       console.log('loading...');
 
       return (
-        <div>
-          <Spinner title='TODO' />
-        </div>
+        <Center className={classes.dropdownWrapper}>
+          <Spinner
+            size='2xLarge'
+            variant='interaction'
+            title={t('resourceadm.import_resource_spinner')}
+          />{' '}
+        </Center>
       );
     }
     case 'error': {
       return (
-        <Center>
+        <Center className={classes.dropdownWrapper}>
           <Alert severity='danger'>
             <Paragraph size='small'>{t('general.fetch_error_message')}</Paragraph>
             <Paragraph size='small'>{t('general.error_message_with_colon')}</Paragraph>
