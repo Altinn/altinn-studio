@@ -8,7 +8,6 @@ export type TabWrapperProps = {
   onClick?: () => void;
   action: TabAction;
   children: ReactNode;
-  onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 };
 
 /**
@@ -22,7 +21,6 @@ export type TabWrapperProps = {
  *      onClick={onClick}
  *      onBlur={onBlur}
  *      action={tab.action}
- *      onKeyDown={handleKeyDown}
  *    >
  *      {children}
  *    </TabWrapper>
@@ -32,7 +30,6 @@ export type TabWrapperProps = {
  * @property {function}[onClick] - Function to execute on click
  * @property {TabAction}[action] - The tab action
  * @property {ReactNode}[children] - Children of the component
- * @property {function}[onKeyDown] - Function to be executed when a key is pressed
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -42,7 +39,6 @@ export const TabWrapper = ({
   onClick,
   action,
   children,
-  onKeyDown,
 }: TabWrapperProps): ReactNode => {
   /**
    * Executes the on click of the action if it exists and type is link
@@ -60,7 +56,13 @@ export const TabWrapper = ({
   switch (action.type) {
     case 'link': {
       return (
-        <NavLink className={className} to={action.to} onBlur={onBlur} onClick={handleClickLink}>
+        <NavLink
+          className={className}
+          to={action.to}
+          onBlur={onBlur}
+          onClick={handleClickLink}
+          onKeyDown={action.onKeyDown}
+        >
           {children}
         </NavLink>
       );
@@ -70,7 +72,7 @@ export const TabWrapper = ({
         <button
           className={className}
           onClick={() => (onClick ? onClick() : null)}
-          onKeyDown={onKeyDown}
+          onKeyDown={action.onKeyDown}
           onBlur={onBlur}
           type='button'
         >

@@ -18,16 +18,19 @@ const mockLinkAction: TabAction = {
   type: 'link',
   to: mockTo,
   onClick: mockOnClick,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockLinkAction2: TabAction = {
   type: 'link',
   to: mockTo,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockButtonAction: TabAction = {
   type: 'button',
   onClick: mockOnClick,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockTabId1: string = 'tab1';
@@ -39,7 +42,6 @@ const mockTab1: LeftNavigationTab = {
   tabId: mockTabId1,
   action: mockLinkAction,
   isActiveTab: true,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockTab2: LeftNavigationTab = {
@@ -61,7 +63,6 @@ describe('Tab', () => {
     onBlur: mockOnBlur,
     onClick: mockOnClick,
     newTabIdClicked: mockTabId2,
-    onKeyDown: mockOnKeyDown,
   };
 
   it('calls the onClick function when onClick is present and type is link', async () => {

@@ -16,16 +16,19 @@ const mockLinkAction: TabAction = {
   type: 'link',
   to: mockTo,
   onClick: mockOnClick,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockLinkAction2: TabAction = {
   type: 'link',
   to: mockTo,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockButtonAction: TabAction = {
   type: 'button',
   onClick: mockOnClick,
+  onKeyDown: mockOnKeyDown,
 };
 
 const mockTabName: string = 'Tab 1';
@@ -37,7 +40,6 @@ describe('TabWrapper', () => {
     className: '.navElement',
     onBlur: mockOnBlur,
     onClick: mockOnClick,
-    onKeyDown: mockOnKeyDown,
     action: mockLinkAction,
     children: <p>{mockTabName}</p>,
   };

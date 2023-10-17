@@ -67,7 +67,7 @@ export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOpt
  */
 export const mapLanguageKeyToLanguageText = (
   val: 'nb' | 'nn' | 'en',
-  translationFunction: (key: string, params?: object) => string
+  translationFunction: (key: string, params?: object) => string,
 ) => {
   if (val === 'nb') return translationFunction('language.nb');
   if (val === 'nn') return translationFunction('language.nn');
@@ -84,7 +84,7 @@ export const mapLanguageKeyToLanguageText = (
 export const getMissingInputLanguageString = (
   language: SupportedLanguage,
   usageString: string,
-  translationFunction: (key: string, params?: KeyValuePairs<string>) => string
+  translationFunction: (key: string, params?: KeyValuePairs<string>) => string,
 ): string => {
   const valArr: ('nb' | 'nn' | 'en')[] = [];
 
@@ -158,6 +158,7 @@ export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): b
  * @param onClick function to be executed on click
  * @param currentPage the current selected page
  * @param to where to navigate to
+ * @param handleKeyPress function to be executed on key press
  *
  * @returns a LeftNavigationTab
  */
@@ -166,7 +167,8 @@ export const createNavigationTab = (
   tabId: string,
   onClick: (tabId: string) => void,
   currentPage: NavigationBarPage,
-  to: string
+  to: string,
+  handleKeyPress: (e: React.KeyboardEvent<HTMLAnchorElement>) => void,
 ): LeftNavigationTab => {
   return {
     icon,
@@ -176,6 +178,7 @@ export const createNavigationTab = (
       type: 'link',
       onClick,
       to,
+      onKeyDown: handleKeyPress,
     },
     isActiveTab: getIsActiveTab(currentPage, tabId),
   };

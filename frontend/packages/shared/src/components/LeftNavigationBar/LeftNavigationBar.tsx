@@ -73,7 +73,6 @@ export const LeftNavigationBar = ({
     <Tab
       tab={tab}
       onClick={() => handleClick(tab.tabId)}
-      onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => tab.onKeyDown(e)}
       key={tab.tabId}
       navElementClassName={classes.navigationElement}
       onBlur={() => setNewTabIdClicked(null)}

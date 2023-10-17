@@ -44,6 +44,8 @@ export const ResourcePage = (): React.ReactNode => {
   const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
+  const [enterHasBeenClicked, setEnterHasBeenClicked] = useState<boolean>(false);
+
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
@@ -96,6 +98,25 @@ export const ResourcePage = (): React.ReactNode => {
   useEffect(() => {
     setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
+
+  const handleKeyTab = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    console.log(e.key);
+    if (e.key === 'Enter') {
+      setEnterHasBeenClicked(true);
+    }
+    // If tabbing after clicking enter, set focus to the content in the tab
+    if (e.key === 'Tab' && enterHasBeenClicked) {
+      e.preventDefault();
+      setEnterHasBeenClicked(false);
+
+      // Focus on the selected tab button
+      const selectedPageButton = document.getElementById(`page-content-${currentPage}`);
+      console.log(selectedPageButton);
+      if (selectedPageButton) {
+        selectedPageButton.focus();
+      }
+    }
+  };
 
   /**
    * Navigates to the selected page
@@ -189,6 +210,7 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(aboutPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'about'),
+      handleKeyTab,
     ),
     createNavigationTab(
       <GavelSoundBlockIcon className={classes.icon} />,
@@ -196,6 +218,7 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(policyPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'policy'),
+      handleKeyTab,
     ),
     createNavigationTab(
       <UploadIcon className={classes.icon} />,
@@ -203,6 +226,7 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(deployPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'deploy'),
+      handleKeyTab,
     ),
   ];
 
@@ -212,6 +236,7 @@ export const ResourcePage = (): React.ReactNode => {
     () => navigateToPage(migrationPageId),
     currentPage,
     getResourcePageURL(selectedContext, repo, resourceId, 'migration'),
+    handleKeyTab,
   );
 
   /**
@@ -262,9 +287,12 @@ export const ResourcePage = (): React.ReactNode => {
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
               onSaveResource={handleSaveResource}
+              id='page-content-about'
             />
           )}
-          {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
+          {currentPage === 'policy' && (
+            <PolicyEditorPage showAllErrors={showPolicyErrors} id='page-content-policy' />
+          )}
           {currentPage === 'deploy' && (
             <DeployResourcePage
               navigateToPageWithError={navigateToPageWithError}
@@ -275,10 +303,14 @@ export const ResourcePage = (): React.ReactNode => {
                   version,
                 })
               }
+              id='page-content-deploy'
             />
           )}
           {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
-            <MigrationPage navigateToPageWithError={navigateToPageWithError} />
+            <MigrationPage
+              navigateToPageWithError={navigateToPageWithError}
+              id='page-content-migration'
+            />
           )}
         </div>
       )}

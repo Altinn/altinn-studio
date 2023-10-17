@@ -40,20 +40,10 @@ import { ResourceContactPointFields } from 'resourceadm/components/ResourceConta
 const emptyLanguages: SupportedLanguage = { nb: '', nn: '', en: '' };
 
 export type AboutResourcePageProps = {
-  /**
-   * Flag to decide if all errors should be shown or not
-   */
   showAllErrors: boolean;
-  /**
-   * The metadata for the resource
-   */
   resourceData: Resource;
-  /**
-   * Function to be handled when saving the resource
-   * @param r the resource
-   * @returns void
-   */
   onSaveResource: (r: Resource) => void;
+  id: string;
 };
 
 /**
@@ -63,6 +53,7 @@ export type AboutResourcePageProps = {
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {Resource}[resourceData] - The metadata for the resource
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
+ * @property {string}[id] - The id of the page
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -70,6 +61,7 @@ export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   onSaveResource,
+  id,
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -454,7 +446,7 @@ export const AboutResourcePage = ({
   };
 
   return (
-    <div className={classes.wrapper}>
+    <div className={classes.wrapper} id={id} tabIndex={0}>
       <div className={classes.pageWrapper}>{displayContent()}</div>
       {translationType !== 'none' && displayRightTranslationBar()}
     </div>

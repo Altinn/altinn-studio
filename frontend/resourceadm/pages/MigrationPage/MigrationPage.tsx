@@ -21,23 +21,23 @@ const envOptions = [
 ];
 
 type MigrationPageProps = {
-  /**
-   * Function that navigates to a page with errors
-   * @param page the page to navigate to
-   * @returns void
-   */
   navigateToPageWithError: (page: NavigationBarPage) => void;
+  id: string;
 };
 
 /**
  * @component
  *    Page that shows the information about migrating from Altinn 2 to Altinn 3
  *
- * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ * @property {string}[id] - The id of the page
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): React.ReactNode => {
+export const MigrationPage = ({
+  navigateToPageWithError,
+  id,
+}: MigrationPageProps): React.ReactNode => {
   // TODO - translation. Issue: #10715
 
   const { selectedContext, resourceId } = useParams();
@@ -246,5 +246,9 @@ export const MigrationPage = ({ navigateToPageWithError }: MigrationPageProps): 
     );
   };
 
-  return <div className={classes.pageWrapper}>{displayContent()}</div>;
+  return (
+    <div className={classes.pageWrapper} id={id} tabIndex={0}>
+      {displayContent()}
+    </div>
+  );
 };

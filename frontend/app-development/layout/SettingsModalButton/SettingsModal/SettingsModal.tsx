@@ -62,6 +62,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
 
       // Focus on the selected tab button
       const selectedTabButton = document.getElementById(`tab-content-${currentTab}`);
+
       if (selectedTabButton) {
         selectedTabButton.focus();
       }

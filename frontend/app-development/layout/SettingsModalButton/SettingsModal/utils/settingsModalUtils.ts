@@ -9,6 +9,7 @@ import { ReactNode } from 'react';
  * @param tabId the id of the tab
  * @param onClick function to execute on click of the tab
  * @param currentTab the current tab
+ * @param handleKeyPress function to be executed on key press
  *
  * @returns a LeftNavigationTab
  */
@@ -17,7 +18,7 @@ export const createNavigationTab = (
   tabId: SettingsModalTab,
   onClick: () => void,
   currentTab: SettingsModalTab,
-  handleKeyTab: (e: React.KeyboardEvent<HTMLButtonElement>) => void,
+  handleKeyPress: (e: React.KeyboardEvent<HTMLButtonElement>) => void,
 ): LeftNavigationTab => {
   return {
     icon,
@@ -26,8 +27,8 @@ export const createNavigationTab = (
     action: {
       type: 'button',
       onClick,
+      onKeyDown: handleKeyPress,
     },
     isActiveTab: currentTab === tabId,
-    onKeyDown: handleKeyTab,
   };
 };

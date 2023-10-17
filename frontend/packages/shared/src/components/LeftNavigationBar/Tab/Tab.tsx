@@ -12,7 +12,6 @@ export type TabProps = {
   newTabIdClicked: string;
   onBlur: () => void;
   onClick: () => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 };
 
 /**
@@ -28,7 +27,6 @@ export type TabProps = {
  *          newTabIdClicked={newTabIdClicked}
  *          onBlur={() => setNewTabIdClicked(null)}
  *          onClick={() => handleClick(tab.tabId)}
- *          onKeyDown={handleKeyDown}
  *        />
  *      ));
  *
@@ -37,7 +35,6 @@ export type TabProps = {
  * @property {string}[newTabIdClicked] - Id of the new tab clicked
  * @property {function}[onBlur] - Function to execute on blur
  * @property {function}[onClick] - Function to execute on click
- * @property {function}[onKeyDown] - Function to execute on keypress
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -47,7 +44,6 @@ export const Tab = ({
   newTabIdClicked,
   onBlur,
   onClick,
-  onKeyDown,
 }: TabProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -58,7 +54,6 @@ export const Tab = ({
         newTabIdClicked === tab.tabId ? classes.newPage : navElementClassName,
       )}
       onClick={onClick}
-      onKeyDown={onKeyDown}
       onBlur={onBlur}
       action={tab.action}
     >
