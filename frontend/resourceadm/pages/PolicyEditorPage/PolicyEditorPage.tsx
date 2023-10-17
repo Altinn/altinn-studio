@@ -12,7 +12,7 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
 
-type PolicyEditorPageProps = {
+export type PolicyEditorPageProps = {
   showAllErrors: boolean;
   id: string;
 };
