@@ -2513,9 +2513,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:^0.32.0":
-  version: 0.32.0
-  resolution: "@digdir/design-system-react@npm:0.32.0"
+"@digdir/design-system-react@npm:^0.32.1":
+  version: 0.32.1
+  resolution: "@digdir/design-system-react@npm:0.32.1"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
     "@digdir/design-system-tokens": ^0.8.1
@@ -2525,7 +2525,7 @@ __metadata:
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: ea341fbb61a74262a20206f6d170bfb8c0fdceace669fe09bd96869d4b59aa9bbcb67829e36e4c06545536f607bf1de57f4be52157305d24601ca92fba405316
+  checksum: 4f27879a966a66946b5993ff17d38880a0d80ca9200d5849aa94d835252036f5f86c095264350b74c7d6d7d3bda5924338445ce86a7a7c7a5ded1ceb154f5025
   languageName: node
   linkType: hard
 
@@ -5613,7 +5613,7 @@ __metadata:
     "@babel/runtime": ^7.21.0
     "@babel/runtime-corejs3": ^7.21.0
     "@date-io/moment": 1.3.13
-    "@digdir/design-system-react": ^0.32.0
+    "@digdir/design-system-react": ^0.32.1
     "@digdir/design-system-tokens": ^0.8.1
     "@material-ui/core": 4.12.4
     "@material-ui/pickers": 3.3.11
