@@ -89,7 +89,7 @@ export const InputActionWrapper = ({
   };
 
   return (
-    <div className={classes.buttons} onMouseOver={handleHover} onMouseLeave={handleMouseLeave}>
+    <div className={classes.container} onMouseOver={handleHover} onMouseLeave={handleMouseLeave}>
       {React.cloneElement(children, {
         ...rest,
         onFocus: handleFocus,
@@ -97,7 +97,7 @@ export const InputActionWrapper = ({
       {actions.map((action) => (
         <Button
           variant='quiet'
-          size='large'
+          size='medium'
           color={actionToColorMap[action]}
           key={action}
           onClick={() => handleActionClick(action)}
