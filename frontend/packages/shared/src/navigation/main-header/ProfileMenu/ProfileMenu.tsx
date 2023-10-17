@@ -41,20 +41,14 @@ export const ProfileMenu = ({
       .finally(() => true);
 
   return (
-    <Button
-      variant='quiet'
-      color='inverted'
-      onClick={handleClick}
-      title={t('shared.header_button')}
-    >
-      <Paragraph size='small' className={classes.userOrgNames}>
+    <Button variant='quiet' color='inverted' onClick={handleClick}>
+      <Paragraph as='span' size='small' className={classes.userOrgNames}>
         {userNameAndOrg}
       </Paragraph>
       <img
         alt={t('general.profile_icon')}
         aria-haspopup
         className={classes.userAvatar}
-        onClick={handleClick}
         src={user.avatar_url}
       />
       <Menu
