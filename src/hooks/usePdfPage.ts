@@ -82,18 +82,13 @@ function generateAutomaticPage(
   Object.entries(layoutPages.all())
     .filter(([pageName]) => !excludedPages.has(pageName) && !hiddenPages.has(pageName) && pageOrder?.includes(pageName))
     .sort(([pA], [pB]) => (pageOrder ? pageOrder.indexOf(pA) - pageOrder.indexOf(pB) : 0))
-    .map(
-      ([pageName, layoutPage]) =>
-        [pageName, layoutPage.children().filter((node) => !excludedComponents.has(node.item.id))] as const,
-    )
-    .flatMap(([pageName, nodes]) => nodes?.map((node) => [pageName, node] as const))
-    .map(([pageName, node]) => {
+    .flatMap(([_, layoutPage]) => layoutPage.children().filter((node) => !excludedComponents.has(node.item.id)))
+    .map((node) => {
       if (node.def.shouldRenderInAutomaticPDF(node as any)) {
         return {
           id: `__pdf__${node.item.id}`,
           type: 'Summary',
           componentRef: node.item.id,
-          pageRef: pageName,
           excludedChildren: pdfFormat?.excludedComponents,
           largeGroup: node.isType('Group') && (node.isNonRepGroup() || node.isNonRepPanelGroup()),
         } as CompSummaryExternal;

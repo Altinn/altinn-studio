@@ -211,7 +211,6 @@ describe('Form', () => {
       {
         id: 'the-summary',
         type: 'Summary',
-        pageRef: 'FormLayout',
         componentRef: 'field1',
       } as CompSummaryExternal,
     ];

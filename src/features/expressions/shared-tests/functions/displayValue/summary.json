@@ -24,8 +24,7 @@
           {
             "id": "summary",
             "type": "Summary",
-            "componentRef": "penger",
-            "pageRef": "Page"
+            "componentRef": "penger"
           }
         ]
       }

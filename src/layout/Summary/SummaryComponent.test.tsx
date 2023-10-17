@@ -135,7 +135,6 @@ describe('SummaryComponent', () => {
       type: 'Summary',
       id: 'mySummary',
       componentRef: props.componentRef,
-      pageRef: pageId,
     });
 
     return renderWithProviders(<Wrapper />, {

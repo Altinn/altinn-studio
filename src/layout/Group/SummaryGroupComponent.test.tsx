@@ -63,7 +63,6 @@ describe('SummaryGroupComponent', () => {
           {
             type: 'Summary',
             id: 'mySummary',
-            pageRef: 'page1',
             componentRef: 'groupComponent',
             largeGroup: false,
           },

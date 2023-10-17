@@ -22,15 +22,6 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
-      'pageRef',
-      new CG.str()
-        .optional()
-        .setTitle('Page reference')
-        .setDescription('String value indicating which layout page the referenced component is defined on.'),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
       'largeGroup',
       new CG.bool()
         .optional({ default: false })
