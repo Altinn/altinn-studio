@@ -1,0 +1,25 @@
+.datamodelLink {
+  display: flex;
+  align-items: center;
+}
+
+.linkIcon {
+  font-size: 1.5rem;
+}
+
+.SelectDataModelComponent {
+  margin-top: -25px;
+  width: 100%;
+}
+
+.linkedDatamodelContainer {
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+}
+
+.selectedOption {
+  gap: var(--fds-spacing-1);
+  width: 50%;
+}

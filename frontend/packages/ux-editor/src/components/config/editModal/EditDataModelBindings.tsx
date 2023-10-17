@@ -1,11 +1,15 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import React from 'react';
+import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { LinkIcon } from '@altinn/icons';
+import { Button } from '@digdir/design-system-react';
+import classes from './EditDataModelBindings.module.css';
+import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -43,28 +47,74 @@ export const EditDataModelBindings = ({
   };
 
   const { uniqueKey, key, label } = renderOptions || {};
+
+  const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(
+    component.dataModelBindings[key || 'simpleBinding'],
+  );
+
   return (
     <div key={uniqueKey || ''}>
-      <SelectDataModelComponent
-        propertyPath={`definitions/component/properties/dataModelBindings/properties/${
-          key || 'simpleBinding'
-        }`}
-        label={
-          label
-            ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
-            : t('ux_editor.modal_properties_data_model_helper')
-        }
-        componentType={component.type}
-        inputId={`selectDataModelSelect-${label}`}
-        selectedElement={
-          component.dataModelBindings
-            ? component.dataModelBindings[key || 'simpleBinding']
-            : undefined
-        }
-        onDataModelChange={(dataModelField: string) => handleDataModelChange(dataModelField, key)}
-        noOptionsMessage={t('general.no_options')}
-        helpText={helpText}
-      />
+      {!selectedOption && !dataModelSelectVisible ? (
+        <Button onClick={() => setDataModelSelectVisible(true)} variant='quiet' size='medium'>
+          <div className={classes.datamodelLink}>
+            <LinkIcon className={classes.linkIcon} />
+            {t('ux_editor.modal_properties_data_model_link')}
+          </div>
+        </Button>
+      ) : (
+        <InputActionWrapper
+          mode={dataModelSelectVisible ? 'editMode' : 'standBy'}
+          onEditClick={() => setDataModelSelectVisible(true)}
+          onDeleteClick={() => {
+            handleDataModelChange('', key);
+            setDataModelSelectVisible(false);
+            setSelectedOption(undefined);
+          }}
+          onSaveClick={() => setDataModelSelectVisible(false)}
+        >
+          <div className={classes.SelectDataModelComponent}>
+            {dataModelSelectVisible ? (
+              <SelectDataModelComponent
+                propertyPath={`definitions/component/properties/dataModelBindings/properties/${
+                  key || 'simpleBinding'
+                }`}
+                label={
+                  label
+                    ? `${t('ux_editor.modal_properties_data_model_helper')} ${t(
+                        'general.for',
+                      )} ${label}`
+                    : t('ux_editor.modal_properties_data_model_helper')
+                }
+                componentType={component.type}
+                inputId={`selectDataModelSelect-${label}`}
+                selectedElement={
+                  component.dataModelBindings
+                    ? component.dataModelBindings[key || 'simpleBinding']
+                    : undefined
+                }
+                onDataModelChange={(dataModelField: string) => {
+                  handleDataModelChange(dataModelField, key);
+                  setSelectedOption(dataModelField);
+                }}
+                noOptionsMessage={t('general.no_options')}
+                helpText={helpText}
+              />
+            ) : (
+              <>{selectedOption && <SelectedOption selectedOption={selectedOption} />}</>
+            )}
+          </div>
+        </InputActionWrapper>
+      )}
+    </div>
+  );
+};
+
+const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
+  return (
+    <div className={classes.linkedDatamodelContainer}>
+      <LinkIcon />
+      <div className={classes.selectedOption}>{selectedOption}</div>
     </div>
   );
 };
