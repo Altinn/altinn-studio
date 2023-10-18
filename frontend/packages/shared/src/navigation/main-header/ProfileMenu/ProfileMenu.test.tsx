@@ -37,7 +37,7 @@ describe('ProfileMenu', () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 
-  it('should show menu with link to documentation when clicking profile button', async () => {
+  it.only('should show menu with link to documentation when clicking profile button', async () => {
     render();
 
     expect(
@@ -50,7 +50,10 @@ describe('ProfileMenu', () => {
       screen.queryByRole('menuitem', { name: textMock('shared.header_logout') }),
     ).not.toBeInTheDocument();
 
-    const profileBtn = screen.getByRole('img', { name: textMock('general.profile_icon') });
+    const profileBtn = screen.getByRole('button', {
+      name: textMock('general.profile_icon'),
+    });
+    expect(profileBtn).toBeInTheDocument();
     await act(() => user.click(profileBtn));
 
     expect(

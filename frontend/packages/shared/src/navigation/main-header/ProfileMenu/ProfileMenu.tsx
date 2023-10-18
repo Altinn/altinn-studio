@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Button, Paragraph } from '@digdir/design-system-react';
+import * as testids from '../../../../../../testing/testids';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -41,7 +42,12 @@ export const ProfileMenu = ({
       .finally(() => true);
 
   return (
-    <Button variant='quiet' color='inverted' onClick={handleClick}>
+    <Button
+      variant='quiet'
+      color='inverted'
+      onClick={handleClick}
+      data-testid={testids.profileButton}
+    >
       <Paragraph as='span' size='small' className={classes.userOrgNames}>
         {userNameAndOrg}
       </Paragraph>
