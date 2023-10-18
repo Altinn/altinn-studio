@@ -95,4 +95,4 @@ export const updatePolicy = (org: string, repo: string, id: string, payload: Pol
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
-export const importResourceFromAltinn2 = (org: string, environment: string, serviceCode: string, serviceEdition: string) => get<Resource>(importResourceFromAltinn2Path(org, environment, serviceCode, serviceEdition));
+export const importResourceFromAltinn2 = (org: string, environment: string, serviceCode: string, serviceEdition: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, serviceCode, serviceEdition));
