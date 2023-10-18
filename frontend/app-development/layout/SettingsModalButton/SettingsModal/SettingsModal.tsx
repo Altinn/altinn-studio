@@ -41,7 +41,6 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const { t } = useTranslation();
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
-  const [enterHasBeenClicked, setEnterHasBeenClicked] = useState<boolean>(false);
 
   /**
    * Ids for the navigation tabs
@@ -52,26 +51,6 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const accessControlTabId: SettingsModalTab = 'accessControl';
 
   /**
-   * Handles the logic for when to navigate in to a tab's content instead of continuing
-   * default behaviour.
-   */
-  const handleKeyTab = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === 'Enter') {
-      setEnterHasBeenClicked(true);
-    }
-    // If tabbing after clicking enter, set focus to the content in the tab
-    if (e.key === 'Tab' && enterHasBeenClicked) {
-      e.preventDefault();
-      setEnterHasBeenClicked(false);
-
-      const selectedTab = document.getElementById(`tab-content-${currentTab}`);
-      if (selectedTab) {
-        selectedTab.focus();
-      }
-    }
-  };
-
-  /**
    * The tabs to display in the navigation bar
    */
   const leftNavigationTabs: LeftNavigationTab[] = [
@@ -80,28 +59,24 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       aboutTabId,
       () => changeTabTo(aboutTabId),
       currentTab,
-      handleKeyTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
       () => changeTabTo(policyTabId),
       currentTab,
-      handleKeyTab,
     ),
     createNavigationTab(
       <PersonSuitIcon className={classes.icon} />,
       accessControlTabId,
       () => changeTabTo(accessControlTabId),
       currentTab,
-      handleKeyTab,
     ),
     createNavigationTab(
       <MonitorIcon className={classes.icon} />,
       localChangesTabId,
       () => changeTabTo(localChangesTabId),
       currentTab,
-      handleKeyTab,
     ),
   ];
 
@@ -149,7 +124,11 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
     >
       <div className={classes.modalContent}>
         <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
+          <LeftNavigationBar
+            tabs={leftNavigationTabs}
+            className={classes.leftNavigationBar}
+            selectedTab={currentTab}
+          />
         </div>
         {displayTabs()}
       </div>

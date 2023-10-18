@@ -357,7 +357,7 @@ export const DeployResourcePage = ({
   };
 
   return (
-    <div className={classes.deployPageWrapper} id={id} tabIndex={0}>
+    <div className={classes.deployPageWrapper} id={id} role='tabpanel'>
       {displayContent()}
     </div>
   );

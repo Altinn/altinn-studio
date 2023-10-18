@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { KeyboardEventHandler, ReactNode } from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
@@ -12,6 +12,8 @@ export type TabProps = {
   newTabIdClicked: string;
   onBlur: () => void;
   onClick: () => void;
+  tabIndex: number;
+  onKeyDown: (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => void;
 };
 
 /**
@@ -44,6 +46,8 @@ export const Tab = ({
   newTabIdClicked,
   onBlur,
   onClick,
+  tabIndex,
+  onKeyDown,
 }: TabProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -56,6 +60,9 @@ export const Tab = ({
       onClick={onClick}
       onBlur={onBlur}
       action={tab.action}
+      tabIndex={tabIndex}
+      tabName={tab.tabName}
+      onKeyDown={onKeyDown}
     >
       {tab.icon}
       <Paragraph as='span' size='small' short className={classes.buttonText}>

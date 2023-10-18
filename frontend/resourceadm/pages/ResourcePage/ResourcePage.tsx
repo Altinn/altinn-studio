@@ -44,7 +44,6 @@ export const ResourcePage = (): React.ReactNode => {
   const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
-  const [enterHasBeenClicked, setEnterHasBeenClicked] = useState<boolean>(false);
 
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
@@ -98,26 +97,6 @@ export const ResourcePage = (): React.ReactNode => {
   useEffect(() => {
     setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
-
-  /**
-   * Handles the logic for when to navigate in to a page's content instead of continuing
-   * default behaviour.
-   */
-  const handleKeyTab = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-    if (e.key === 'Enter') {
-      setEnterHasBeenClicked(true);
-    }
-    // If tabbing after clicking enter, set focus to the content in the tab
-    if (e.key === 'Tab' && enterHasBeenClicked) {
-      e.preventDefault();
-      setEnterHasBeenClicked(false);
-
-      const selectedPage = document.getElementById(`page-content-${currentPage}`);
-      if (selectedPage) {
-        selectedPage.focus();
-      }
-    }
-  };
 
   /**
    * Navigates to the selected page
@@ -211,7 +190,6 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(aboutPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'about'),
-      handleKeyTab,
     ),
     createNavigationTab(
       <GavelSoundBlockIcon className={classes.icon} />,
@@ -219,7 +197,6 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(policyPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'policy'),
-      handleKeyTab,
     ),
     createNavigationTab(
       <UploadIcon className={classes.icon} />,
@@ -227,7 +204,6 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(deployPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'deploy'),
-      handleKeyTab,
     ),
   ];
 
@@ -237,7 +213,6 @@ export const ResourcePage = (): React.ReactNode => {
     () => navigateToPage(migrationPageId),
     currentPage,
     getResourcePageURL(selectedContext, repo, resourceId, 'migration'),
-    handleKeyTab,
   );
 
   /**
@@ -271,6 +246,7 @@ export const ResourcePage = (): React.ReactNode => {
           tabs={getTabs()}
           backLink={`${getResourceDashboardURL(selectedContext, repo)}`}
           backLinkText={t('resourceadm.left_nav_bar_back')}
+          selectedTab={currentPage}
         />
       </div>
       {resourceLoading ? (

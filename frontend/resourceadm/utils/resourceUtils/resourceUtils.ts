@@ -158,7 +158,6 @@ export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): b
  * @param onClick function to be executed on click
  * @param currentPage the current selected page
  * @param to where to navigate to
- * @param handleKeyPress function to be executed on key press
  *
  * @returns a LeftNavigationTab
  */
@@ -168,7 +167,6 @@ export const createNavigationTab = (
   onClick: (tabId: string) => void,
   currentPage: NavigationBarPage,
   to: string,
-  handleKeyPress: (e: React.KeyboardEvent<HTMLAnchorElement>) => void,
 ): LeftNavigationTab => {
   return {
     icon,
@@ -178,7 +176,6 @@ export const createNavigationTab = (
       type: 'link',
       onClick,
       to,
-      onKeyDown: handleKeyPress,
     },
     isActiveTab: getIsActiveTab(currentPage, tabId),
   };

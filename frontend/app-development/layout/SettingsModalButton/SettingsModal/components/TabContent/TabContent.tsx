@@ -22,7 +22,7 @@ export type TabContentProps = {
  */
 export const TabContent = ({ id, children }: TabContentProps): ReactNode => {
   return (
-    <div id={id} tabIndex={0} className={classes.tabContent}>
+    <div id={id} className={classes.tabContent} role='tabpanel'>
       {children}
     </div>
   );

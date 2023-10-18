@@ -446,7 +446,7 @@ export const AboutResourcePage = ({
   };
 
   return (
-    <div className={classes.wrapper} id={id} tabIndex={0}>
+    <div className={classes.wrapper} id={id} role='tabpanel'>
       <div className={classes.pageWrapper}>{displayContent()}</div>
       {translationType !== 'none' && displayRightTranslationBar()}
     </div>

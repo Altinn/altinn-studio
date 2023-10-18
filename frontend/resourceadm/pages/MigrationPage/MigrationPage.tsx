@@ -247,7 +247,7 @@ export const MigrationPage = ({
   };
 
   return (
-    <div className={classes.pageWrapper} id={id} tabIndex={0}>
+    <div className={classes.pageWrapper} id={id} role='tabpanel'>
       {displayContent()}
     </div>
   );

@@ -94,7 +94,7 @@ export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): 
   };
 
   return (
-    <div className={classes.policyEditorWrapper} id={id} tabIndex={0}>
+    <div className={classes.policyEditorWrapper} id={id} role='tabpanel'>
       <Heading size='large' spacing level={1}>
         {t('resourceadm.policy_editor_title')}
       </Heading>

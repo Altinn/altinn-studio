@@ -1,5 +1,5 @@
 import { TabAction } from 'app-shared/types/LeftNavigationTab';
-import React, { ReactNode } from 'react';
+import React, { KeyboardEventHandler, ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
 export type TabWrapperProps = {
@@ -8,6 +8,9 @@ export type TabWrapperProps = {
   onClick?: () => void;
   action: TabAction;
   children: ReactNode;
+  tabIndex: number;
+  tabName: string;
+  onKeyDown: (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => void;
 };
 
 /**
@@ -39,6 +42,9 @@ export const TabWrapper = ({
   onClick,
   action,
   children,
+  tabIndex,
+  tabName,
+  onKeyDown,
 }: TabWrapperProps): ReactNode => {
   /**
    * Executes the on click of the action if it exists and type is link
@@ -61,7 +67,9 @@ export const TabWrapper = ({
           to={action.to}
           onBlur={onBlur}
           onClick={handleClickLink}
-          onKeyDown={action.onKeyDown}
+          onKeyDown={onKeyDown(tabName)}
+          role='tab'
+          tabIndex={tabIndex}
         >
           {children}
         </NavLink>
@@ -72,9 +80,11 @@ export const TabWrapper = ({
         <button
           className={className}
           onClick={() => (onClick ? onClick() : null)}
-          onKeyDown={action.onKeyDown}
+          onKeyDown={onKeyDown(tabName)}
           onBlur={onBlur}
           type='button'
+          role='tab'
+          tabIndex={tabIndex}
         >
           {children}
         </button>

@@ -48,4 +48,10 @@
   outline: none;
   box-shadow: none;
   background-color: var(--fds-semantic-background-subtle);
+
+  outline: var(--fds-focus-border-width) solid red;
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow:
+    8px 0 0 0 var(--fds-semantic-border-action-active) inset,
+    0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
 }
