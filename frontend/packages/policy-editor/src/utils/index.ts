@@ -126,7 +126,6 @@ export const mapSubjectTitleToSubjectString = (
   subjectTitle: string,
 ): string => {
   const subject: PolicySubject = subjectOptions.find((s) => s.subjectTitle === subjectTitle);
-  if (subject.subjectId === '[org]') return `urn:altinn:org:${subject.subjectId}`;
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
