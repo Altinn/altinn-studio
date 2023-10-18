@@ -16,6 +16,9 @@ export const useGetResourceListQuery = (org: string): UseQueryResult<ResourceLis
   const { getResourceList } = useServicesContext();
 
   return useQuery<ResourceListItem[]>([QueryKey.ResourceList, org], () => getResourceList(org), {
-    select: (data) => data && sortResourceListByDateAndMap(data),
+    select: (data) => {
+      console.log('data', data);
+      return data && sortResourceListByDateAndMap(data);
+    },
   });
 };

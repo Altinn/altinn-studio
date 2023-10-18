@@ -66,7 +66,7 @@ export const ServiceContent = ({
             size='2xLarge'
             variant='interaction'
             title={t('resourceadm.import_resource_spinner')}
-          />{' '}
+          />
         </Center>
       );
     }

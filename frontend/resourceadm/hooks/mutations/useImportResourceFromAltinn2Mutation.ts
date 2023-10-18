@@ -2,6 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
+/**
+ * Mutation to import a resource from Altinn 2.
+ *
+ * @param org the organisation of the user
+ */
 export const useImportResourceFromAltinn2Mutation = (org: string) => {
   const queryClient = useQueryClient();
   const { importResourceFromAltinn2 } = useServicesContext();
