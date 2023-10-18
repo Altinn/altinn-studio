@@ -262,7 +262,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/altinn2linkservices/{environment}")]
         public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string environment)
         {
-            string cacheKey = "availablelinkservices:" + org;
+            string cacheKey = "availablelinkservices:" + org+environment;
             if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
             {
 
