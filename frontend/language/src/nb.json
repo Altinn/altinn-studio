@@ -30,6 +30,7 @@
   "administration.download_repo_heading": "Last ned alle endringer?",
   "administration.download_repo_info": "Hvis ting henger seg opp, og <em>push</em> ikke virker, kan det være mulig å \"redde\" endringene dine ved å laste ned en zip fil, og manuelt pakke den ut over et lokalt git repo og sjekke inn endrinene.",
   "administration.fetch_title_error_message": "Kunne ikke laste inn tittelen for denne appen. Prøv igjen senere.",
+  "administration.navigation_title": "Bygg applikasjonen med våre verktøy",
   "administration.repo_owner_is": "Opprettet for:",
   "administration.reset_repo_button": "Slett mine endringer",
   "administration.reset_repo_completed": "Alle endringer er nå slettet",
