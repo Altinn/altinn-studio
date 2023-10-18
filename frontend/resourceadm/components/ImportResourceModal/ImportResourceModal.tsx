@@ -5,8 +5,12 @@ import { Button, Select } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useTranslation } from 'react-i18next';
 import { EnvironmentType } from 'resourceadm/types/global';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
+import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import { useImportResourceFromAltinn2Mutation } from 'resourceadm/hooks/mutations';
+import { Resource } from 'app-shared/types/ResourceAdm';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -43,13 +47,15 @@ export const ImportResourceModal = ({
   const { t } = useTranslation();
 
   const { selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
+
+  const navigate = useNavigate();
 
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
-  const [selectedService, setSelectedService] = useState<string>();
-  const [id, setId] = useState('');
-  const [title, setTitle] = useState('');
-  const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
-  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
+  const [selectedService, setSelectedService] = useState<Altinn2LinkService>();
+
+  const { mutate: importResourceFromAltinn2 } =
+    useImportResourceFromAltinn2Mutation(selectedContext);
 
   /**
    * Reset fields on close
@@ -57,111 +63,39 @@ export const ImportResourceModal = ({
   const handleClose = () => {
     onClose();
     setSelectedEnv(undefined);
-    setSelectedService(undefined);
-    setId('');
-    setTitle('');
-    setEditIdFieldOpen(false);
-  };
-
-  /**
-   * Replaces the spaces in the value typed with '-'.
-   */
-  const handleIDInput = (val: string) => {
-    setId(val.replace(/\s/g, '-'));
-  };
-
-  /**
-   * Updates the value of the title. If the edit field is not open,
-   * then it updates the ID to the same as the title.
-   *
-   * @param val the title value typed
-   */
-  const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
-      setId(val.replace(/\s/g, '-'));
-    }
-    setTitle(val);
-  };
-
-  /**
-   * Handles the click of the edit button. If we click the edit button
-   * so that it closes the edit field, the id is set to the title.
-   *
-   * @param isOpened the value of the button when it is pressed
-   */
-  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
-    setEditIdFieldOpen(isOpened);
-
-    if (isSave) {
-      setBothFieldsHaveSameValue(false);
-    } else {
-      if (!isOpened) {
-        setBothFieldsHaveSameValue(true);
-        // If we stop editing, set the ID to the title
-        if (title !== id) setId(title.replace(/\s/g, '-'));
-      }
-    }
-  };
-
-  const handleSelectService = (s: string) => {
-    setSelectedService(s);
-    handleEditTitle(s);
-  };
-
-  /**
-   * Display loading (todo), the service, or nothing based on the
-   * state of the selected environment
-   */
-  /*const displayService = () => {
-    // If environment loading, display loading, else do below
-    if (selectedEnv) {
-      return (
-        <div className={classes.dropdownWraper}>
-          <Select
-            // Replace below with the real service list from API
-            options={dummyServices.map((s) => ({ value: s.name, label: s.name }))}
-            onChange={handleSelectService}
-            value={selectedService}
-            label={t('resourceadm.dashboard_import_modal_select_service')}
-          />
-        </div>
-      );
-    }
-    return null;
-  };*/
-
-  /**
-   * Display loading (todo), the title and id, or nothing based on the
-   * state of the selected service
-   */
-  const displayTitleAndId = () => {
-    // If service loading, display loading, else do below
-    if (selectedService) {
-      return (
-        <>
-          <div className={classes.contentDivider} />
-          <ResourceNameAndId
-            isEditOpen={editIdFieldOpen}
-            title={title}
-            text={t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
-            id={id}
-            handleEditTitle={handleEditTitle}
-            handleIdInput={handleIDInput}
-            handleClickEditButton={(isSave: boolean) =>
-              handleClickEditButton(!editIdFieldOpen, isSave)
-            }
-            resourceIdExists={false} // TODO
-            bothFieldsHaveSameValue={bothFieldsHaveSameValue}
-          />
-        </>
-      );
-    }
-    return null;
   };
 
   // TODO when connected with API calls
   const handleImportResource = () => {
     console.log('Importing... Coming soon');
+
+    importResourceFromAltinn2(
+      {
+        environment: selectedEnv,
+        serviceCode: selectedService.externalServiceCode,
+        serviceEdition: String(selectedService.externalServiceEditionCode),
+      },
+      {
+        onSuccess: (resource: Resource) => {
+          console.log('resource data in modal', resource);
+          // Navigate to resource page
+          navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
+        },
+      },
+    );
+
+    /*
+createNewResource(idAndTitle, {
+      onSuccess: () =>
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+      onError: (error: any) => {
+        if (error.response.status === 409) {
+          setResourceIdExists(true);
+          setEditIdFieldOpen(true);
+        }
+      },
+    });
+    */
   };
 
   return (
@@ -184,10 +118,9 @@ export const ImportResourceModal = ({
           selectedContext={selectedContext}
           env={selectedEnv}
           selectedService={selectedService}
-          onSelectService={(s: string) => handleSelectService(s)}
+          onSelectService={(a2ls: Altinn2LinkService) => setSelectedService(a2ls)}
         />
       )}
-      {displayTitleAndId()}
       <div className={classes.buttonWrapper}>
         <Button onClick={handleClose} color='first' variant='quiet' size='small'>
           {t('general.cancel')}

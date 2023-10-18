@@ -1,16 +1,17 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Paragraph, Select, Spinner } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import { ResourceContent } from './ResourceContent';
 
 export type ServiceContentProps = {
   selectedContext: string;
   env: string;
-  selectedService: string;
-  onSelectService: (s: string) => void;
+  selectedService: Altinn2LinkService;
+  onSelectService: (a2ls: Altinn2LinkService) => void;
 };
 
 export const ServiceContent = ({
@@ -27,10 +28,13 @@ export const ServiceContent = ({
     error: altinn2LinkServicesError,
   } = useGetAltinn2LinkServicesQuery(selectedContext, env);
 
-  console.log(altinn2LinkServices);
-
   const handleSelectService = (s: string) => {
-    onSelectService(s);
+    const valueAsArray: string[] = s.split('-');
+    onSelectService({
+      serviceName: valueAsArray[2],
+      externalServiceEditionCode: Number(valueAsArray[1]),
+      externalServiceCode: valueAsArray[0],
+    });
   };
 
   const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
@@ -78,9 +82,10 @@ export const ServiceContent = ({
           <Select
             options={mapAltinn2LinkServiceToSelectOption(altinn2LinkServices)}
             onChange={handleSelectService}
-            value={selectedService}
+            value={`${selectedService.externalServiceCode}-${selectedService.externalServiceEditionCode}-${selectedService.serviceName}`}
             label={t('resourceadm.dashboard_import_modal_select_service')}
           />
+          <ResourceContent altinn2LinkService={selectedService} />
         </div>
       );
     }
