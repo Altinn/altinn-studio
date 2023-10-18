@@ -79,6 +79,7 @@ const getDatamodelMetadata = () =>
 describe('EditFormComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   test('should return input specific content when type input', async () => {
