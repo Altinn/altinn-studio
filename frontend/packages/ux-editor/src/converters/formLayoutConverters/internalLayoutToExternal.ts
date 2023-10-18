@@ -51,7 +51,7 @@ const getGroupChildrenWithPageIndex = (
   internalLayout: IInternalLayout,
   container: FormContainer,
 ): string[] => {
-  const childrenIds = internalLayout.order[container.id] || [];
+  const childrenIds = internalLayout.order[container.id];
   return childrenIds.map((childId) => getComponentIdWithPageIndex(internalLayout, childId));
 };
 

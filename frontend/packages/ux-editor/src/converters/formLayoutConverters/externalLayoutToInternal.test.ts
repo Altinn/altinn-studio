@@ -3,6 +3,7 @@ import { complexExternalLayout, complexInternalLayout } from '../../testing/comp
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import { ExternalFormLayout } from 'app-shared/types/api';
 import { IInternalLayout } from '../../types/global';
+import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 describe('externalLayoutToInternal', () => {
   it('Converts an external layout to an internal layout', () => {
@@ -19,7 +20,7 @@ describe('externalLayoutToInternal', () => {
     const customProperty1 = 'test1';
     const customProperty2 = 'test2';
     const externalLayout: ExternalFormLayout = {
-      $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+      $schema: layoutSchemaUrl(),
       data: null,
       customProperty1,
       customProperty2,
@@ -41,7 +42,7 @@ describe('externalLayoutToInternal', () => {
     const dataCustomProperty1 = 'test3';
     const dataCustomProperty2 = 'test4';
     const externalLayout: ExternalFormLayout = {
-      $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+      $schema: layoutSchemaUrl(),
       data: {
         layout: null,
         dataCustomProperty1,

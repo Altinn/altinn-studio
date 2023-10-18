@@ -1,5 +1,9 @@
-import { IFormDesignerComponents, IFormLayouts, IInternalLayout, IWidget } from '../../types/global';
-import { convertFromLayoutToInternalFormat } from '../../utils/formLayoutUtils';
+import {
+  IFormDesignerComponents,
+  IFormLayouts,
+  IInternalLayout,
+  IWidget,
+} from '../../types/global';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
@@ -8,7 +12,11 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
-import { extractLanguagesFromWidgetTexts, extractTextsFromWidgetTextsByLanguage } from '../../utils/widgetUtils';
+import {
+  extractLanguagesFromWidgetTexts,
+  extractTextsFromWidgetTextsByLanguage,
+} from '../../utils/widgetUtils';
+import { externalLayoutToInternal } from '../../converters/formLayoutConverters';
 
 export interface AddWidgetMutationArgs {
   widget: IWidget;
@@ -23,9 +31,9 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
-      const internalComponents = convertFromLayoutToInternalFormat({
+      const internalComponents = externalLayoutToInternal({
         data: { layout: widget.components },
-        $schema: null
+        $schema: null,
       });
       const components: IFormDesignerComponents = deepCopy(layout.components);
       if (!containerId) containerId = BASE_CONTAINER_ID; // If containerId is not set, set it to the base-container's ID
@@ -55,8 +63,8 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
           const newLayouts: IFormLayouts = deepCopy(oldLayouts);
           newLayouts[layoutName] = updatedLayout;
           return newLayouts;
-        }
+        },
       );
-    }
+    },
   });
-}
+};

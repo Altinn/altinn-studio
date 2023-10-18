@@ -14,20 +14,7 @@ import { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import { FormItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
-import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import {
-  externalLayoutToInternal,
-  internalLayoutToExternal,
-} from '../converters/formLayoutConverters';
 import { FormItem } from '../types/FormItem';
-
-export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
-  return externalLayoutToInternal(formLayout);
-}
-
-export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): ExternalFormLayout {
-  return internalLayoutToExternal(internalFormat);
-}
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
