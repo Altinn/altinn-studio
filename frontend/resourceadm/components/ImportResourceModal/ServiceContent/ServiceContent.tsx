@@ -35,8 +35,8 @@ export const ServiceContent = ({
 
   const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
     return linkServices.map((ls: Altinn2LinkService) => ({
-      value: `${ls.externalServiceCode}-${ls.externalServiceCode}-${ls.serviceName}`,
-      label: `${ls.externalServiceCode}-${ls.externalServiceCode}-${ls.serviceName}`,
+      value: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
+      label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
     }));
   };
 
