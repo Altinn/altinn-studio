@@ -89,7 +89,7 @@ export const ServiceContent = ({
             }
             label={t('resourceadm.dashboard_import_modal_select_service')}
           />
-          <ResourceContent altinn2LinkService={selectedService} />
+          {selectedService && <ResourceContent altinn2LinkService={selectedService} />}
         </div>
       );
     }
