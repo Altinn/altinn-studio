@@ -16,19 +16,16 @@ const mockLinkAction: TabAction = {
   type: 'link',
   to: mockTo,
   onClick: mockOnClick,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockLinkAction2: TabAction = {
   type: 'link',
   to: mockTo,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockButtonAction: TabAction = {
   type: 'button',
   onClick: mockOnClick,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockTabName: string = 'Tab 1';
@@ -42,12 +39,15 @@ describe('TabWrapper', () => {
     onClick: mockOnClick,
     action: mockLinkAction,
     children: <p>{mockTabName}</p>,
+    tabIndex: 0,
+    tabName: 'Test',
+    onKeyDown: mockOnKeyDown,
   };
 
   it('renders a link wrapper when action type is link', () => {
     render(defaultProps);
 
-    const linkWrapper = screen.getByRole('link', { name: mockTabName });
+    const linkWrapper = screen.getByRole('tab', { name: mockTabName });
     expect(linkWrapper).toBeInTheDocument();
     expect(linkWrapper).toHaveAttribute('href', mockLinkAction.to);
   });
@@ -56,7 +56,7 @@ describe('TabWrapper', () => {
     const user = userEvent.setup();
     render(defaultProps);
 
-    const linkWrapper = screen.getByRole('link', { name: mockTabName });
+    const linkWrapper = screen.getByRole('tab', { name: mockTabName });
 
     await act(() => user.click(linkWrapper));
     expect(mockLinkAction.onClick).toHaveBeenCalledTimes(1);
@@ -66,7 +66,7 @@ describe('TabWrapper', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, action: mockLinkAction2 });
 
-    const linkWrapper = screen.getByRole('link', { name: mockTabName });
+    const linkWrapper = screen.getByRole('tab', { name: mockTabName });
 
     await act(() => user.click(linkWrapper));
     expect(mockOnClick).not.toHaveBeenCalled();
@@ -75,7 +75,7 @@ describe('TabWrapper', () => {
   it('renders a button wrapper when action type is button', () => {
     render({ ...defaultProps, action: mockButtonAction });
 
-    const buttonWrapper = screen.getByRole('button', { name: mockTabName });
+    const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
     expect(buttonWrapper).toBeInTheDocument();
   });
 
@@ -83,7 +83,7 @@ describe('TabWrapper', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, action: mockButtonAction });
 
-    const buttonWrapper = screen.getByRole('button', { name: mockTabName });
+    const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
     await act(() => user.click(buttonWrapper));
     expect(mockButtonAction.onClick).toHaveBeenCalledTimes(1);
   });
@@ -92,7 +92,7 @@ describe('TabWrapper', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, action: mockButtonAction });
 
-    const buttonWrapper = screen.getByRole('button', { name: mockTabName });
+    const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
     await act(() => user.click(buttonWrapper));
     await act(() => user.keyboard('{Tab}'));
     expect(mockOnKeyDown).toHaveBeenCalledTimes(1);
@@ -102,7 +102,7 @@ describe('TabWrapper', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, action: mockButtonAction });
 
-    const buttonWrapper = screen.getByRole('button', { name: mockTabName });
+    const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
     await act(() => user.click(buttonWrapper));
     await act(() => user.tab());
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
@@ -112,7 +112,7 @@ describe('TabWrapper', () => {
     const user = userEvent.setup();
     render({ ...defaultProps });
 
-    const linkWrapper = screen.getByRole('link', { name: mockTabName });
+    const linkWrapper = screen.getByRole('tab', { name: mockTabName });
     await act(() => user.click(linkWrapper));
     await act(() => user.tab());
     expect(mockOnBlur).toHaveBeenCalledTimes(1);

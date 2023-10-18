@@ -25,6 +25,7 @@ export type LeftNavigationBarProps = {
  *        upperTab='backButton'
  *        backLink='./someUrl'
  *        backLinkText={t('resourceadm.left_nav_bar_back')}
+ *        selectedTab={selectedTab}
  *    />
  *
  * @property {LeftNavigationBar[]}[tabs] - List of navigation tabs
@@ -32,6 +33,7 @@ export type LeftNavigationBarProps = {
  * @property {string}[backLink] - Href for the back link
  * @property {string}[backLinkText] - The text on the back link
  * @property {string}[className] - Additional classnames
+ * @property {string}[selectedTab] - The currently selected tab
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -43,7 +45,19 @@ export const LeftNavigationBar = ({
   className,
   selectedTab,
 }: LeftNavigationBarProps): ReactNode => {
+  const tablistRef = useRef<HTMLDivElement>(null);
+
+  const initialTab = selectedTab ?? tabs[0].tabId;
+  const lastIndex = tabs.length - 1;
+
+  const findTabIndexByValue = (value: string) => tabs.findIndex((tab) => tab.tabId === value);
+  const [focusIndex, setFocusIndex] = useState<number>(findTabIndexByValue(initialTab));
+
   const [newTabIdClicked, setNewTabIdClicked] = useState<string | null>(null);
+
+  useUpdate(() => {
+    tablistRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[focusIndex].focus();
+  }, [focusIndex]);
 
   /**
    * Function to be executed when the tab is clicked
@@ -58,7 +72,6 @@ export const LeftNavigationBar = ({
 
   /**
    * Dispalys the uppermost tab if there is one
-   * @returns
    */
   const displayUpperTab = () => {
     if (upperTab === 'backButton' && backLink && backLinkText) {
@@ -69,52 +82,40 @@ export const LeftNavigationBar = ({
     return null;
   };
 
-  const findTabIndexByValue = (value: string) => tabs.findIndex((tab) => tab.tabId === value);
-
-  const initialTab = selectedTab ?? tabs[0].tabId;
-
-  const tablistRef = useRef<HTMLDivElement>(null);
-
-  const lastIndex = tabs.length - 1;
-
-  const [focusIndex, setFocusIndex] = useState<number>(findTabIndexByValue(initialTab));
-
-  useUpdate(() => {
-    tablistRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[focusIndex].focus();
-    console.log(
-      'tablistRef.current',
-      tablistRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[focusIndex],
-    );
-  }, [focusIndex]);
-
+  /**
+   * Select tab
+   */
   const selectTab = (value: string) => {
     selectedTab !== value && handleClick(value);
     setFocusIndex(findTabIndexByValue(value));
   };
 
-  // TODO - REPLACE RIGHT AND LEFT WITH UP AND DOWN
-  const moveFocusRight = () => {
-    console.log('focusIndex', focusIndex);
-    console.log('lastIndex', lastIndex);
+  /**
+   * Move the focus down the tabs list
+   */
+  const moveFocusDown = () =>
     focusIndex !== undefined && setFocusIndex(focusIndex === lastIndex ? 0 : focusIndex + 1);
-  };
 
-  const moveFocusLeft = () =>
+  /**
+   * Move the focus up the tabs list
+   */
+  const moveFocusUp = () =>
     focusIndex !== undefined && setFocusIndex(focusIndex === 0 ? lastIndex : focusIndex - 1);
 
+  /**
+   * Handles key press in the tab bar
+   */
   const onKeyDown = (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => {
-    console.log('event.key', event.key);
     switch (event.key) {
-      case 'ArrowRight':
-        console.log('in arrow right');
-        moveFocusRight();
+      case 'ArrowDown':
+        event.preventDefault();
+        moveFocusDown();
         break;
-      case 'ArrowLeft':
-        console.log('in arrow left');
-        moveFocusLeft();
+      case 'ArrowUp':
+        event.preventDefault();
+        moveFocusUp();
         break;
       case 'Space':
-        console.log('in space');
         selectTab(name);
     }
   };

@@ -9,7 +9,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const mockOnClick = jest.fn();
-const mockOnKeyDown = jest.fn();
 
 const mockTo: string = '/test';
 
@@ -17,19 +16,16 @@ const mockLinkAction1: TabAction = {
   type: 'link',
   to: mockTo,
   onClick: mockOnClick,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockLinkAction2: TabAction = {
   type: 'link',
   to: mockTo,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockButtonAction: TabAction = {
   type: 'button',
   onClick: mockOnClick,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockTabId1: string = 'tab1';
@@ -71,6 +67,7 @@ describe('LeftNavigationBar', () => {
     upperTab: 'backButton',
     backLink: mockBackButtonHref,
     backLinkText: mockBackButtonText,
+    selectedTab: mockTabId1,
   };
 
   it('calls the onClick function when a tab is clicked and action type is button', async () => {
@@ -79,21 +76,9 @@ describe('LeftNavigationBar', () => {
 
     const nextTab = mockTabs[1];
 
-    const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
+    const tab2 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab2));
     expect(nextTab.action.onClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls the "onKeyDown" function when a tab is clicked with keyboard', async () => {
-    const user = userEvent.setup();
-    render(defaultProps);
-
-    const nextTab = mockTabs[1];
-
-    const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
-    await act(() => user.click(tab2));
-    await act(() => user.keyboard('{Tab}'));
-    expect(nextTab.action.onKeyDown).toHaveBeenCalledTimes(1);
   });
 
   it('calls the onClick function when a tab is clicked and action type is link and onClick is present', async () => {
@@ -101,11 +86,11 @@ describe('LeftNavigationBar', () => {
     render(defaultProps);
 
     const nextTab = mockTabs[1];
-    const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
+    const tab2 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab2));
 
     const newNextTab = mockTabs[0];
-    const tab1 = screen.getByRole('link', { name: textMock(newNextTab.tabName) });
+    const tab1 = screen.getByRole('tab', { name: textMock(newNextTab.tabName) });
     await act(() => user.click(tab1));
 
     expect(newNextTab.action.onClick).toHaveBeenCalledTimes(1);
@@ -117,7 +102,7 @@ describe('LeftNavigationBar', () => {
 
     const nextTab = mockTabs[2];
 
-    const tab3 = screen.getByRole('link', { name: textMock(nextTab.tabName) });
+    const tab3 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab3));
     expect(mockOnClick).not.toHaveBeenCalled();
   });
@@ -128,7 +113,7 @@ describe('LeftNavigationBar', () => {
 
     const currentTab = mockTabs[0];
 
-    const tab1 = screen.getByRole('link', { name: textMock(currentTab.tabName) });
+    const tab1 = screen.getByRole('tab', { name: textMock(currentTab.tabName) });
     await act(() => user.click(tab1));
     expect(currentTab.action.onClick).toHaveBeenCalledTimes(0);
   });
@@ -141,7 +126,7 @@ describe('LeftNavigationBar', () => {
   });
 
   it('does not display the back button when "upperTab" is backButton and "backButtonHref" or "backButtonText" is not present', () => {
-    render({ tabs: mockTabs });
+    render({ tabs: mockTabs, selectedTab: mockTabId1 });
 
     const backButton = screen.queryByRole('link', { name: mockBackButtonText });
     expect(backButton).not.toBeInTheDocument();

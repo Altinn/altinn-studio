@@ -12,7 +12,6 @@ describe('settingsModalUtils', () => {
   describe('createNavigationTab', () => {
     const mockIcon = <TestFlaskIcon />;
     const mockOnClick = jest.fn();
-    const mockOnKeyDown = jest.fn();
 
     it('creates a LeftNavigationTab with the provided parameters', () => {
       const navigationTab: LeftNavigationTab = createNavigationTab(
@@ -20,7 +19,6 @@ describe('settingsModalUtils', () => {
         mockTabId1,
         mockOnClick,
         mockCurrentTab,
-        mockOnKeyDown,
       );
 
       expect(navigationTab.icon).toEqual(mockIcon);
@@ -37,7 +35,6 @@ describe('settingsModalUtils', () => {
         mockTabId2,
         mockOnClick,
         mockCurrentTab,
-        mockOnKeyDown,
       );
 
       expect(navigationTab.isActiveTab).toEqual(false);

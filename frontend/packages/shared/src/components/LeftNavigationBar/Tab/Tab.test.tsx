@@ -18,19 +18,16 @@ const mockLinkAction: TabAction = {
   type: 'link',
   to: mockTo,
   onClick: mockOnClick,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockLinkAction2: TabAction = {
   type: 'link',
   to: mockTo,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockButtonAction: TabAction = {
   type: 'button',
   onClick: mockOnClick,
-  onKeyDown: mockOnKeyDown,
 };
 
 const mockTabId1: string = 'tab1';
@@ -63,13 +60,15 @@ describe('Tab', () => {
     onBlur: mockOnBlur,
     onClick: mockOnClick,
     newTabIdClicked: mockTabId2,
+    tabIndex: 0,
+    onKeyDown: mockOnKeyDown,
   };
 
   it('calls the onClick function when onClick is present and type is link', async () => {
     const user = userEvent.setup();
     render(defaultProps);
 
-    const tabLink = screen.getByRole('link', { name: textMock(mockTab1.tabName) });
+    const tabLink = screen.getByRole('tab', { name: textMock(mockTab1.tabName) });
     await act(() => user.click(tabLink));
 
     expect(mockTab1.action.onClick).toHaveBeenCalledTimes(1);
@@ -79,7 +78,7 @@ describe('Tab', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, tab: mockTab2 });
 
-    const tabLink = screen.getByRole('link', { name: textMock(mockTab2.tabName) });
+    const tabLink = screen.getByRole('tab', { name: textMock(mockTab2.tabName) });
     await act(() => user.click(tabLink));
 
     expect(mockOnClick).not.toHaveBeenCalled();
@@ -89,7 +88,7 @@ describe('Tab', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, tab: mockTab3 });
 
-    const tabButton = screen.getByRole('button', { name: textMock(mockTab3.tabName) });
+    const tabButton = screen.getByRole('tab', { name: textMock(mockTab3.tabName) });
     await act(() => user.click(tabButton));
 
     expect(mockTab3.action.onClick).toHaveBeenCalledTimes(1);
@@ -99,7 +98,7 @@ describe('Tab', () => {
     const user = userEvent.setup();
     render({ ...defaultProps, tab: mockTab3 });
 
-    const tabButton = screen.getByRole('button', { name: textMock(mockTab3.tabName) });
+    const tabButton = screen.getByRole('tab', { name: textMock(mockTab3.tabName) });
     await act(() => user.click(tabButton));
     await act(() => user.keyboard('{Tab}'));
     expect(mockOnKeyDown).toHaveBeenCalledTimes(1);
@@ -109,7 +108,7 @@ describe('Tab', () => {
     const user = userEvent.setup();
     render(defaultProps);
 
-    const tabLink = screen.getByRole('link', { name: textMock(mockTab1.tabName) });
+    const tabLink = screen.getByRole('tab', { name: textMock(mockTab1.tabName) });
     await act(() => user.click(tabLink));
     await act(() => user.tab());
 

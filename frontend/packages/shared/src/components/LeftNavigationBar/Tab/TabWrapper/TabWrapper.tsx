@@ -24,6 +24,9 @@ export type TabWrapperProps = {
  *      onClick={onClick}
  *      onBlur={onBlur}
  *      action={tab.action}
+ *      tabIndex={tabIndex}
+ *      tabName={tab.tabName}
+ *      onKeyDown={onKeyDown}
  *    >
  *      {children}
  *    </TabWrapper>
@@ -33,6 +36,9 @@ export type TabWrapperProps = {
  * @property {function}[onClick] - Function to execute on click
  * @property {TabAction}[action] - The tab action
  * @property {ReactNode}[children] - Children of the component
+ * @property {number}[tabIndex] - The index of the tab
+ * @property {string}[tabName] - The name of the tab
+ * @property {function}[onKeyDown] - Function to be executed on key press
  *
  * @returns {ReactNode} - The rendered component
  */

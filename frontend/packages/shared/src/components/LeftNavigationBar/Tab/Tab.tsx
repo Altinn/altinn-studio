@@ -21,7 +21,7 @@ export type TabProps = {
  *    Displays a tab in the left navigation bar.
  *
  * @example
- *      const displayTabs = tabs.map((tab: LeftNavigationTab) => (
+ *      const displayTabs = tabs.map((tab: LeftNavigationTab, i: number) => (
  *        <Tab
  *          tab={tab}
  *          key={tab.tabId}
@@ -29,6 +29,8 @@ export type TabProps = {
  *          newTabIdClicked={newTabIdClicked}
  *          onBlur={() => setNewTabIdClicked(null)}
  *          onClick={() => handleClick(tab.tabId)}
+ *          tabIndex={focusIndex === i ? 0 : -1}
+ *          onKeyDown={handleKeyDown}
  *        />
  *      ));
  *
@@ -37,6 +39,8 @@ export type TabProps = {
  * @property {string}[newTabIdClicked] - Id of the new tab clicked
  * @property {function}[onBlur] - Function to execute on blur
  * @property {function}[onClick] - Function to execute on click
+ * @property {number}[tabIndex] - The index of the tab
+ * @property {function}[onKeyDown] - Function to be executed on key press
  *
  * @returns {ReactNode} - The rendered component
  */

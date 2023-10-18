@@ -103,7 +103,6 @@ describe('getMissingInputLanguageString', () => {
 
   describe('createNavigationTab', () => {
     const mockOnClick = jest.fn();
-    const mockOnKeyDown = jest.fn();
 
     const mockTo: string = '/about';
 
@@ -115,20 +114,12 @@ describe('getMissingInputLanguageString', () => {
         type: 'link',
         onClick: mockOnClick,
         to: mockTo,
-        onKeyDown: mockOnKeyDown,
       },
       isActiveTab: true,
     };
 
     it('creates a new tab when the function is called', () => {
-      const newTab = createNavigationTab(
-        <TestFlaskIcon />,
-        'about',
-        mockOnClick,
-        'about',
-        mockTo,
-        mockOnKeyDown,
-      );
+      const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
 
       expect(newTab).toEqual(mockTab);
     });
