@@ -35,9 +35,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
   const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
   const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
-  const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
-    'layoutSet/' + app,
-  );
+  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
@@ -49,7 +47,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (layoutSet: string) => {
-    setSelectedLayoutSetInEditor(layoutSet);
+    setSelectedLayoutSet(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
@@ -94,7 +92,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             <AppPreviewSubMenu
               setViewSize={setPreviewViewSize}
               viewSize={previewViewSize}
-              selectedLayoutSet={selectedLayoutSetInEditor}
+              selectedLayoutSet={selectedLayoutSet}
               handleChangeLayoutSet={handleChangeLayoutSet}
             />
           }
@@ -121,7 +119,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={previewPage(org, app, selectedLayoutSetInEditor)}
+            src={previewPage(org, app, selectedLayoutSet)}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
         </div>

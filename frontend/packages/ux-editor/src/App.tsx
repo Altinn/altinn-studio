@@ -1,21 +1,16 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { FormDesigner } from './containers/FormDesigner';
-import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { useText } from './hooks';
 import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
-import {
-  selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
-} from './selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useAppContext } from "./hooks/useAppContext";
 
 /**
  * This is the main React component responsible for controlling
@@ -24,16 +19,10 @@ import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
  */
 
 export function App() {
-  const dispatch = useDispatch();
   const t = useText();
   const { org, app } = useStudioUrlParams();
   const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const [
-    selectedLayoutSetInPreview,
-    setSelectedLayoutSetInPreview,
-    removeSelectedLayoutSetInPreview,
-  ] = useLocalStorage('layoutSet/' + app, null);
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet } = useAppContext();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
@@ -43,16 +32,16 @@ export function App() {
   useEffect(() => {
     if (
         areLayoutSetsFetched &&
-        selectedLayoutSetInPreview &&
-        (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSetInPreview))
+        selectedLayoutSet &&
+        (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
     )
-      removeSelectedLayoutSetInPreview();
+      removeSelectedLayoutSet();
   }, [
     areLayoutSetsFetched,
     layoutSets,
-    selectedLayoutSetInPreview,
-    setSelectedLayoutSetInPreview,
-    removeSelectedLayoutSetInPreview,
+    selectedLayoutSet,
+    setSelectedLayoutSet,
+    removeSelectedLayoutSet,
   ]);
 
   const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
@@ -81,18 +70,9 @@ export function App() {
   useEffect(() => {
     if (selectedLayoutSet === null && layoutSets) {
       // Only set layout set if layout sets exists and there is no layout set selected yet
-      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSets.sets[0].id));
-      typedLocalStorage.setItem<string>('layoutSet/' + app, layoutSets.sets[0].id);
+      setSelectedLayoutSet(layoutSets.sets[0].id);
     }
-  }, [dispatch, selectedLayoutSet, layoutSets, app]);
-
-  useEffect(() => {
-    const layoutSetInEditor = selectedLayoutSetInPreview ?? selectedLayoutSet;
-    if (layoutSets && layoutSetInEditor !== null && layoutSetInEditor !== '') {
-      typedLocalStorage.setItem<string>('layoutSet/' + app, layoutSetInEditor);
-      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetInEditor));
-    }
-  }, [dispatch, selectedLayoutSet, layoutSets, selectedLayoutSetInPreview, app]);
+  }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
@@ -103,7 +83,7 @@ export function App() {
     return (
       <FormDesigner
         selectedLayout={selectedLayout}
-        selectedLayoutSet={selectedLayoutSetInPreview ?? selectedLayoutSet}
+        selectedLayoutSet={selectedLayoutSet}
       />
     );
   }

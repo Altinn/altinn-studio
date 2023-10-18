@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -39,7 +39,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

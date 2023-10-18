@@ -1,6 +1,5 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './DesignView.module.css';
@@ -20,7 +19,7 @@ import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { RenderedFormContainer } from './RenderedFormContainer';
 import { ReceiptContent } from './ReceiptContent';
-import {PageSpinner} from "app-shared/components";
+import { useAppContext } from '../../hooks/useAppContext';
 
 /**
  * @component
@@ -31,12 +30,11 @@ import {PageSpinner} from "app-shared/components";
 export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
-  const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages.order;
 
@@ -49,17 +47,15 @@ export const DesignView = (): ReactNode => {
   /**
    * Maps the IFormLayouts object to a list of FormLayouts
    */
-  const mapIFormLayoutsToFormLayouts = (iFormLayouts: IFormLayouts): FormLayout[] => {
+  const mapIFormLayoutsToFormLayouts = useCallback((formLayouts: IFormLayouts): FormLayout[] => {
     if (!layouts) return [];
-    return Object.entries(iFormLayouts).map(([key, value]) => ({
+    return Object.entries(formLayouts).map(([key, value]) => ({
       page: key,
       data: value,
     }));
-  };
-  
-  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(mapIFormLayoutsToFormLayouts(layouts));
+  }, []);
 
-  const designViewIsReady = formLayoutData && formLayoutSettings;
+  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(mapIFormLayoutsToFormLayouts(layouts));
 
   useEffect(() => {
     setOpenAccordion(searchParamsLayout);
@@ -156,8 +152,6 @@ export const DesignView = (): ReactNode => {
       </PageAccordion>
     );
   });
-
-  if (!designViewIsReady) return <PageSpinner/>
 
   return (
     <div className={classes.root}>

@@ -1,10 +1,8 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
-import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from '../../testing/mocks';
 import { layoutSetsMock } from '../../testing/layoutMock';
-import { useDispatch } from 'react-redux';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -27,25 +25,7 @@ describe('LayoutSetsContainer', () => {
     render();
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
-
-  it('calls dispatch when selecting an option', async () => {
-    const dispatch = jest.fn();
-    (useDispatch as jest.Mock).mockReturnValue(dispatch);
-    render();
-
-    await waitFor(async () => {
-      await userEvent.selectOptions(
-        screen.getByRole('combobox'),
-        screen.getByRole('option', { name: layoutSetsMock.sets[0].id }),
-      );
-    });
-
-    expect(dispatch).toHaveBeenCalledTimes(1);
-    expect(dispatch).toHaveBeenCalledWith({
-      payload: layoutSetsMock.sets[0].id,
-      type: 'formDesigner/updateSelectedLayoutSet',
-    });
-  });
+  
 });
 
 const render = () => renderWithMockStore()(<LayoutSetsContainer />);

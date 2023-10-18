@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TypedStorage, typedLocalStorage } from 'app-shared/utils/webStorage';
 
 const useWebStorage = <T>(
@@ -7,6 +7,20 @@ const useWebStorage = <T>(
   initialValue?: T,
 ): [T, (newValue: T) => void, () => void] => {
   const [value, setValue] = useState<T>(typedStorage.getItem(key) || initialValue);
+
+  const handleStorageChange = useCallback(() => {
+    const item = typedStorage.getItem<T>(key);
+    setValue(item);
+  }, [key, setValue, typedStorage]);
+
+  useEffect(() => {
+    
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [handleStorageChange]);
 
   const setStorageValue = useCallback(
     (newValue: T) => {
@@ -31,5 +45,5 @@ const useWebStorage = <T>(
  * @description
  * useLocalStorage is a hook that allows you to use local storage the same way you would with useState
  */
-export const useLocalStorage = <T, K = string>(key: K, initialValue?: T) =>
-  useWebStorage<T>(typedLocalStorage, key as string, initialValue);
+export const useLocalStorage = <T>(key: string, initialValue?: T) =>
+  useWebStorage<T>(typedLocalStorage, key, initialValue);
