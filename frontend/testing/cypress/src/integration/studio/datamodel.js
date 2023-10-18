@@ -47,10 +47,9 @@ context('datamodel', () => {
   it('Allows to upload an XSD file and displays the data model when the upload is complete', () => {
     cy.findAllByTestId(testids.fileSelectorInput)
       .first()
-      .selectFile('src/fixtures/DataModel.xsd', { force: true });
-    cy.findByRole('combobox', { name: texts['schema_editor.choose_model'] }).should(
-      'have.value',
-      '/App/models/DataModel.schema.json',
-    );
+      .selectFile('src/fixtures/testdatamodel.xsd', { force: true });
+    cy.findByRole('combobox', { name: texts['schema_editor.choose_model'] })
+      .invoke('val')
+      .should('match', /\/testdatamodel.schema.json$/);
   });
 });
