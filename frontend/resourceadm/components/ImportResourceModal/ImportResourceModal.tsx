@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
-import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useTranslation } from 'react-i18next';
 import { EnvironmentType } from 'resourceadm/types/global';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -15,14 +14,7 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
 export type ImportResourceModalProps = {
-  /**
-   * Boolean for if the modal is open
-   */
   isOpen: boolean;
-  /**
-   * Function to handle close
-   * @returns void
-   */
   onClose: () => void;
 };
 
@@ -54,6 +46,8 @@ export const ImportResourceModal = ({
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<Altinn2LinkService>();
 
+  const [resourceIdExists, setResourceIdExists] = useState(false);
+
   const { mutate: importResourceFromAltinn2 } =
     useImportResourceFromAltinn2Mutation(selectedContext);
 
@@ -65,37 +59,27 @@ export const ImportResourceModal = ({
     setSelectedEnv(undefined);
   };
 
-  // TODO when connected with API calls
+  /**
+   * Import the resource from Altinn 2, and navigate to about page on success
+   */
   const handleImportResource = () => {
-    console.log('Importing... Coming soon');
-
     importResourceFromAltinn2(
       {
         environment: selectedEnv,
         serviceCode: selectedService.externalServiceCode,
-        serviceEdition: String(selectedService.externalServiceEditionCode),
+        serviceEdition: selectedService.externalServiceEditionCode,
       },
       {
         onSuccess: (resource: Resource) => {
-          console.log('resource data in modal', resource);
-          // Navigate to resource page
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
+        },
+        onError: (error: any) => {
+          if (error.response.status === 409) {
+            setResourceIdExists(true);
+          }
         },
       },
     );
-
-    /*
-createNewResource(idAndTitle, {
-      onSuccess: () =>
-        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
-      onError: (error: any) => {
-        if (error.response.status === 409) {
-          setResourceIdExists(true);
-          setEditIdFieldOpen(true);
-        }
-      },
-    });
-    */
   };
 
   return (
@@ -119,6 +103,7 @@ createNewResource(idAndTitle, {
           env={selectedEnv}
           selectedService={selectedService}
           onSelectService={(a2ls: Altinn2LinkService) => setSelectedService(a2ls)}
+          resourceIdExists={resourceIdExists}
         />
       )}
       <div className={classes.buttonWrapper}>

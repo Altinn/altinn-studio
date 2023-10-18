@@ -18,7 +18,6 @@ export const useImportResourceFromAltinn2Mutation = (org: string) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.ImportAltinn2Resource, org],
       });
-      console.log('data received from import call: ', data);
       return data;
     },
   });

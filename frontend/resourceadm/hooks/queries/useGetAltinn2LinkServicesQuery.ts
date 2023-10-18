@@ -21,11 +21,5 @@ export const useGetAltinn2LinkServicesQuery = (
   return useQuery<Altinn2LinkService[], AxiosError>(
     [QueryKey.Altinn2Services, org, environment],
     () => getAltinn2LinkServices(org, environment),
-    {
-      select: (data) => {
-        console.log('data in query', data);
-        return data;
-      },
-    },
   );
 };

@@ -1,1 +1,1 @@
-export { sortResourceListByDateAndMap } from './mapperUtils';
+export { sortResourceListByDateAndMap, mapAltinn2LinkServiceToSelectOption } from './mapperUtils';

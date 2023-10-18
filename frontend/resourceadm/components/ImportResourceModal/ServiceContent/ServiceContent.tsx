@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Paragraph, Select, Spinner } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
@@ -6,19 +6,34 @@ import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ResourceContent } from './ResourceContent';
+import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
 
 export type ServiceContentProps = {
   selectedContext: string;
   env: string;
   selectedService: Altinn2LinkService;
   onSelectService: (a2ls: Altinn2LinkService) => void;
+  resourceIdExists: boolean;
 };
 
+/**
+ * @component
+ *    Displays the Service content in the import resource from Altinn 2 modal.
+ *
+ * @property {string}[selectedContext] - The selected context
+ * @property {string}[env] - The selected environment
+ * @property {Altinn2LinkService}[selectedService] - The selected service
+ * @property {function}[onSelectService] - Function to be executed when selecting the service
+ * @property {boolean}[resourceIdExists] - If the id already exists
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const ServiceContent = ({
   selectedContext,
   env,
   selectedService,
   onSelectService,
+  resourceIdExists,
 }: ServiceContentProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -28,22 +43,21 @@ export const ServiceContent = ({
     error: altinn2LinkServicesError,
   } = useGetAltinn2LinkServicesQuery(selectedContext, env);
 
+  /**
+   * Handles the selection of the service
+   */
   const handleSelectService = (s: string) => {
     const valueAsArray: string[] = s.split('-');
     onSelectService({
       serviceName: valueAsArray[2],
-      externalServiceEditionCode: Number(valueAsArray[1]),
+      externalServiceEditionCode: valueAsArray[1],
       externalServiceCode: valueAsArray[0],
     });
   };
 
-  const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
-    return linkServices.map((ls: Altinn2LinkService) => ({
-      value: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
-      label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
-    }));
-  };
-
+  /**
+   * Return the content based on the status of the API call
+   */
   switch (altinn2LinkServicesStatus) {
     case 'loading': {
       return (
@@ -89,7 +103,12 @@ export const ServiceContent = ({
             }
             label={t('resourceadm.dashboard_import_modal_select_service')}
           />
-          {selectedService && <ResourceContent altinn2LinkService={selectedService} />}
+          {selectedService && (
+            <ResourceContent
+              altinn2LinkService={selectedService}
+              resourceIdExists={resourceIdExists}
+            />
+          )}
         </div>
       );
     }

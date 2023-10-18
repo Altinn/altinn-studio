@@ -6,9 +6,22 @@ import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
 
 export type ResourceContentProps = {
   altinn2LinkService: Altinn2LinkService;
+  resourceIdExists: boolean;
 };
 
-export const ResourceContent = ({ altinn2LinkService }: ResourceContentProps): ReactNode => {
+/**
+ * @component
+ *    Displays the Resource content in the import resource from Altinn 2 modal
+ *
+ * @property {Altinn2LinkService}[altinn2LinkService] - The service to import from
+ * @property {boolean}[resourceIdExists] - If the id already exists
+ *
+ * @returns {ReactNode} - The rendered component
+ */
+export const ResourceContent = ({
+  altinn2LinkService,
+  resourceIdExists,
+}: ResourceContentProps): ReactNode => {
   const { t } = useTranslation();
 
   const [id, setId] = useState(altinn2LinkService.serviceName);
@@ -68,7 +81,7 @@ export const ResourceContent = ({ altinn2LinkService }: ResourceContentProps): R
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
         handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
-        resourceIdExists={false} // TODO
+        resourceIdExists={resourceIdExists}
         bothFieldsHaveSameValue={bothFieldsHaveSameValue}
       />
     </div>
